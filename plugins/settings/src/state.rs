@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 use tokio::sync::RwLock;
 
-use crate::Error;
 use crate::ext::FILENAME;
 
 pub struct State {
@@ -29,11 +28,9 @@ impl State {
 
     async fn read_or_default(&self) -> crate::Result<serde_json::Value> {
         match tokio::fs::read_to_string(self.path()).await {
-            Ok(content) => {
-                serde_json::from_str(&content).map_err(|e| Error::Settings(format!("parse: {}", e)))
-            }
+            Ok(content) => Ok(serde_json::from_str(&content)?),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(serde_json::json!({})),
-            Err(e) => Err(Error::Settings(format!("read: {}", e))),
+            Err(e) => Err(e.into()),
         }
     }
 

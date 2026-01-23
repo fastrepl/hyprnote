@@ -67,6 +67,11 @@ async obsidianVaults() : Promise<Result<ObsidianVault[], string>> {
 /** user-defined events **/
 
 
+export const events = __makeEvents__<{
+contentBaseMigrationStarted: ContentBaseMigrationStarted
+}>({
+contentBaseMigrationStarted: "plugin:settings:content-base-migration-started"
+})
 
 /** user-defined constants **/
 
@@ -74,6 +79,7 @@ async obsidianVaults() : Promise<Result<ObsidianVault[], string>> {
 
 /** user-defined types **/
 
+export type ContentBaseMigrationStarted = Record<string, never>
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type ObsidianVault = { path: string }
 

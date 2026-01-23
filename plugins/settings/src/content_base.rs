@@ -36,6 +36,22 @@ pub fn resolve_custom(settings_path: &Path, default_base: &Path) -> Option<PathB
     None
 }
 
+pub fn validate_content_base_change(old_path: &Path, new_path: &Path) -> Result<(), crate::Error> {
+    if new_path == old_path {
+        return Ok(());
+    }
+
+    if new_path.starts_with(old_path) {
+        return Err(crate::Error::ContentBaseIsSubdirectory);
+    }
+
+    if old_path.starts_with(new_path) {
+        return Err(crate::Error::ContentBaseIsParent);
+    }
+
+    Ok(())
+}
+
 pub fn prepare_settings_json_for_content_base(
     existing_json: Option<&str>,
     new_path: &Path,
@@ -253,5 +269,68 @@ mod tests {
             parsed.get(CONTENT_BASE_PATH_KEY).and_then(|v| v.as_str()),
             Some(new_path.to_string_lossy().as_ref())
         );
+    }
+
+    #[test]
+    fn validate_same_path_returns_ok() {
+        let path = PathBuf::from("/home/user/content");
+        assert!(validate_content_base_change(&path, &path).is_ok());
+    }
+
+    #[test]
+    fn validate_different_sibling_paths_returns_ok() {
+        let old = PathBuf::from("/home/user/content");
+        let new = PathBuf::from("/home/user/other");
+        assert!(validate_content_base_change(&old, &new).is_ok());
+    }
+
+    #[test]
+    fn validate_completely_different_paths_returns_ok() {
+        let old = PathBuf::from("/home/user/content");
+        let new = PathBuf::from("/var/data/content");
+        assert!(validate_content_base_change(&old, &new).is_ok());
+    }
+
+    #[test]
+    fn validate_rejects_subdirectory() {
+        let old = PathBuf::from("/home/user/content");
+        let new = PathBuf::from("/home/user/content/subdir");
+        let result = validate_content_base_change(&old, &new);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("subdirectory"));
+    }
+
+    #[test]
+    fn validate_rejects_nested_subdirectory() {
+        let old = PathBuf::from("/home/user/content");
+        let new = PathBuf::from("/home/user/content/deep/nested/subdir");
+        let result = validate_content_base_change(&old, &new);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("subdirectory"));
+    }
+
+    #[test]
+    fn validate_rejects_parent_directory() {
+        let old = PathBuf::from("/home/user/content/subdir");
+        let new = PathBuf::from("/home/user/content");
+        let result = validate_content_base_change(&old, &new);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("parent"));
+    }
+
+    #[test]
+    fn validate_rejects_ancestor_directory() {
+        let old = PathBuf::from("/home/user/content/deep/nested");
+        let new = PathBuf::from("/home/user/content");
+        let result = validate_content_base_change(&old, &new);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("parent"));
+    }
+
+    #[test]
+    fn validate_similar_prefix_not_ancestor() {
+        let old = PathBuf::from("/home/user/content");
+        let new = PathBuf::from("/home/user/content-backup");
+        assert!(validate_content_base_change(&old, &new).is_ok());
     }
 }

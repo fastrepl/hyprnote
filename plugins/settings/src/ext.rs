@@ -17,7 +17,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
             .manager
             .path()
             .data_dir()
-            .map_err(|e| crate::Error::Path(e.to_string()))?;
+            .map_err(|_| crate::Error::DataDirUnavailable)?;
 
         let app_folder = if cfg!(debug_assertions) || bundle_id == "com.hyprnote.staging" {
             bundle_id
@@ -55,33 +55,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
         Ok(custom_base.unwrap_or(default_base))
     }
 
-    pub async fn change_content_base(&self, new_path: PathBuf) -> Result<(), crate::Error> {
-        let old_content_base = self.content_base()?;
-        let default_base = self.default_base()?;
-
-        if new_path == old_content_base {
-            return Ok(());
-        }
-
-        std::fs::create_dir_all(&new_path)?;
-        crate::fs::copy_dir_recursive(&old_content_base, &new_path, Some(FILENAME)).await?;
-
-        let settings_path = default_base.join(FILENAME);
-        let existing_json = std::fs::read_to_string(&settings_path).ok();
-        let content = content_base::prepare_settings_json_for_content_base(
-            existing_json.as_deref(),
-            &new_path,
-        )?;
-
-        crate::fs::atomic_write(&settings_path, &content)?;
-
-        if old_content_base != default_base {
-            let _ = std::fs::remove_dir_all(&old_content_base);
-        }
-
-        Ok(())
-    }
-
     pub fn obsidian_vaults(&self) -> Result<Vec<ObsidianVault>, crate::Error> {
         crate::obsidian::load_vaults()
     }
@@ -99,6 +72,39 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
     pub fn reset(&self) -> crate::Result<()> {
         let state = self.manager.state::<crate::state::State>();
         state.reset()
+    }
+}
+
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'a, R, M> {
+    pub async fn change_content_base(&self, new_path: PathBuf) -> Result<(), crate::Error> {
+        let old_content_base = self.content_base()?;
+        let default_base = self.default_base()?;
+
+        if new_path == old_content_base {
+            return Ok(());
+        }
+
+        content_base::validate_content_base_change(&old_content_base, &new_path)?;
+
+        std::thread::sleep(std::time::Duration::from_millis(500));
+
+        std::fs::create_dir_all(&new_path)?;
+        crate::fs::copy_content_items(&old_content_base, &new_path).await?;
+
+        let settings_path = default_base.join(FILENAME);
+        let existing_json = std::fs::read_to_string(&settings_path).ok();
+        let content = content_base::prepare_settings_json_for_content_base(
+            existing_json.as_deref(),
+            &new_path,
+        )?;
+
+        crate::fs::atomic_write(&settings_path, &content)?;
+
+        if old_content_base != default_base {
+            let _ = std::fs::remove_dir_all(&old_content_base);
+        }
+
+        Ok(())
     }
 }
 

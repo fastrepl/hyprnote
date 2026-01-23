@@ -14,7 +14,7 @@ pub struct ObsidianVault {
 }
 
 pub fn load_vaults() -> crate::Result<Vec<ObsidianVault>> {
-    let data_dir = dirs::data_dir().ok_or_else(|| crate::Error::Path("data_dir".to_string()))?;
+    let data_dir = dirs::data_dir().ok_or(crate::Error::DataDirUnavailable)?;
     let config_path = data_dir.join("obsidian").join("obsidian.json");
     let content = std::fs::read_to_string(&config_path)?;
     let config: ObsidianConfig = serde_json::from_str(&content)?;

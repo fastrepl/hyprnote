@@ -5,13 +5,15 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    IoError(#[from] std::io::Error),
+    Io(#[from] std::io::Error),
     #[error(transparent)]
-    SerdeJsonError(#[from] serde_json::Error),
-    #[error("settings: {0}")]
-    Settings(String),
-    #[error("path error: {0}")]
-    Path(String),
+    Json(#[from] serde_json::Error),
+    #[error("data directory not available")]
+    DataDirUnavailable,
+    #[error("cannot move content to a subdirectory of the current location")]
+    ContentBaseIsSubdirectory,
+    #[error("cannot move content to a parent directory of the current location")]
+    ContentBaseIsParent,
 }
 
 impl Serialize for Error {

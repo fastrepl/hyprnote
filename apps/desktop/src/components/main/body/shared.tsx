@@ -1,5 +1,5 @@
 import { Pin, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Kbd } from "@hypr/ui/components/ui/kbd";
@@ -95,10 +95,28 @@ export function TabItemBase({
     }
   };
 
-  const handleConfirmClose = () => {
-    handleCloseConfirmationChange(false);
+  const handleConfirmClose = useCallback(() => {
+    setLocalShowConfirmation(false);
+    onCloseConfirmationChange?.(false);
     handleCloseThis();
-  };
+  }, [handleCloseThis, onCloseConfirmationChange]);
+
+  useEffect(() => {
+    if (!isConfirmationOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "w") {
+        e.preventDefault();
+        e.stopPropagation();
+        handleConfirmClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
+    };
+  }, [isConfirmationOpen, handleConfirmClose]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 1 && !active) {

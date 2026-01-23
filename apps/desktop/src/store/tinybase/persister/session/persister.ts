@@ -6,6 +6,7 @@ import { SESSION_META_FILE, SESSION_NOTE_EXTENSION } from "../shared";
 import { getChangedSessionIds, parseSessionIdFromPath } from "./changes";
 import {
   loadAllSessionData,
+  loadAllSessionMetadata,
   type LoadedSessionData,
   loadSingleSession,
 } from "./load/index";
@@ -14,6 +15,12 @@ import {
   buildSessionSaveOps,
   buildTranscriptSaveOps,
 } from "./save/index";
+
+/**
+ * Configuration for lazy loading behavior.
+ * When true, only metadata is loaded at startup; content is loaded on-demand.
+ */
+export const LAZY_LOADING_ENABLED = true;
 
 export function createSessionPersister(store: Store) {
   return createMultiTableDirPersister<Schemas, LoadedSessionData>(store, {
@@ -43,7 +50,7 @@ export function createSessionPersister(store: Store) {
         keepIds: Object.keys(tables.enhanced_notes ?? {}),
       },
     ],
-    loadAll: loadAllSessionData,
+    loadAll: LAZY_LOADING_ENABLED ? loadAllSessionMetadata : loadAllSessionData,
     loadSingle: loadSingleSession,
     save: (store, tables, dataDir, changedTables) => {
       let changedSessionIds: Set<string> | undefined;

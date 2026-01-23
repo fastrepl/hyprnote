@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useMemo } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 import type {
   EnhancedNoteStorage,
@@ -9,6 +9,11 @@ import type {
 } from "@hypr/store";
 
 import * as main from "../store/tinybase/store/main";
+import {
+  ensureSessionContentLoaded,
+  isSessionContentLoaded,
+  isSessionContentLoading,
+} from "../store/tinybase/persister/session/ops";
 
 export function useSession(sessionId: string) {
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
@@ -158,6 +163,88 @@ export function useEvent(eventId: string | undefined) {
       description,
       calendarId,
     ],
+  );
+}
+
+/**
+ * Hook to ensure session content is loaded (lazy loading).
+ * Triggers content loading when the session is accessed.
+ * Returns loading state so components can show loading indicators.
+ */
+export function useSessionContentLoader(sessionId: string) {
+  const [isLoading, setIsLoading] = useState(() => isSessionContentLoading(sessionId));
+  const [isLoaded, setIsLoaded] = useState(() => isSessionContentLoaded(sessionId));
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    // Check current state
+    const loaded = isSessionContentLoaded(sessionId);
+    const loading = isSessionContentLoading(sessionId);
+
+    setIsLoaded(loaded);
+    setIsLoading(loading);
+
+    // If not loaded and not loading, trigger load
+    if (!loaded && !loading) {
+      setIsLoading(true);
+      ensureSessionContentLoaded(sessionId).then(() => {
+        setIsLoaded(true);
+        setIsLoading(false);
+      });
+    }
+  }, [sessionId]);
+
+  return { isLoading, isLoaded };
+}
+
+/**
+ * Hook for session metadata only (lightweight, always available).
+ * Use this for session lists, timelines, etc. where content is not needed.
+ */
+export function useSessionMetadata(sessionId: string) {
+  const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
+  const createdAt = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "created_at",
+    main.STORE_ID,
+  );
+  const eventId = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "event_id",
+    main.STORE_ID,
+  );
+  const folderId = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "folder_id",
+    main.STORE_ID,
+  );
+
+  return useMemo(
+    () => ({ title, createdAt, eventId, folderId }),
+    [title, createdAt, eventId, folderId],
+  );
+}
+
+/**
+ * Hook for full session data including content.
+ * Automatically triggers lazy loading of content if not already loaded.
+ * Use this when you need to display/edit session content.
+ */
+export function useSessionWithContent(sessionId: string) {
+  const { isLoading, isLoaded } = useSessionContentLoader(sessionId);
+  const session = useSession(sessionId);
+
+  return useMemo(
+    () => ({
+      ...session,
+      contentLoading: isLoading,
+      contentLoaded: isLoaded,
+    }),
+    [session, isLoading, isLoaded],
   );
 }
 

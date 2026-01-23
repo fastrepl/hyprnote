@@ -13,6 +13,10 @@ import {
   type LoadResult,
   ok,
 } from "../../shared";
+import {
+  clearAllContentLoadingState,
+  markSessionContentLoaded,
+} from "./content";
 import { processMetaFile } from "./meta";
 import { processMdFile } from "./note";
 import { processTranscriptFile } from "./transcript";
@@ -20,6 +24,15 @@ import { createEmptyLoadedSessionData, type LoadedSessionData } from "./types";
 
 export { extractSessionIdAndFolder } from "./meta";
 export { createEmptyLoadedSessionData, type LoadedSessionData } from "./types";
+export {
+  clearAllContentLoadingState,
+  isSessionContentLoaded,
+  isSessionContentLoading,
+  loadSessionContentData,
+  markSessionContentLoaded,
+  markSessionContentLoading,
+  markSessionContentUnloaded,
+} from "./content";
 
 const LABEL = "SessionPersister";
 
@@ -51,6 +64,10 @@ async function processFiles(
   await Promise.all(mdPromises);
 }
 
+/**
+ * Load all session data (metadata + content) at once.
+ * This is the original eager loading approach - kept for backward compatibility.
+ */
 export async function loadAllSessionData(
   dataDir: string,
 ): Promise<LoadResult<LoadedSessionData>> {
@@ -73,6 +90,52 @@ export async function loadAllSessionData(
   }
 
   await processFiles(scanResult.data.files, result);
+
+  // Mark all sessions as having content loaded since we loaded everything
+  for (const sessionId of Object.keys(result.sessions)) {
+    markSessionContentLoaded(sessionId);
+  }
+
+  return ok(result);
+}
+
+/**
+ * Load only session metadata (from _meta.json files) at startup.
+ * Content (transcripts, notes) will be loaded on-demand when sessions are opened.
+ * This is the lazy loading approach for faster startup.
+ */
+export async function loadAllSessionMetadata(
+  dataDir: string,
+): Promise<LoadResult<LoadedSessionData>> {
+  // Clear any previous loading state on fresh load
+  clearAllContentLoadingState();
+
+  const result = createEmptyLoadedSessionData();
+  const sessionsDir = [dataDir, "sessions"].join(sep());
+
+  const scanResult = await fsSyncCommands.scanAndRead(
+    sessionsDir,
+    [SESSION_META_FILE], // Only load metadata files
+    true,
+    null,
+  );
+
+  if (scanResult.status === "error") {
+    if (isDirectoryNotFoundError(scanResult.error)) {
+      return ok(result);
+    }
+    console.error(`[${LABEL}] metadata scan error:`, scanResult.error);
+    return err(scanResult.error);
+  }
+
+  // Process only metadata files
+  for (const [path, content] of Object.entries(scanResult.data.files)) {
+    if (!content) continue;
+    if (path.endsWith(SESSION_META_FILE)) {
+      processMetaFile(path, content, result);
+    }
+  }
+
   return ok(result);
 }
 

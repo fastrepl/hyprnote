@@ -16,6 +16,7 @@ import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useStartListening } from "../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import { useTitleGeneration } from "../../../../hooks/useTitleGeneration";
+import { useSessionContentLoader } from "../../../../hooks/tinybase";
 import * as main from "../../../../store/tinybase/store/main";
 import {
   rowIdfromTab,
@@ -85,6 +86,9 @@ export function TabContentNote({
 }: {
   tab: Extract<Tab, { type: "sessions" }>;
 }) {
+  // Trigger lazy loading of session content when tab is opened
+  useSessionContentLoader(tab.id);
+
   const listenerStatus = useListener((state) => state.live.status);
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const { conn } = useSTTConnection();

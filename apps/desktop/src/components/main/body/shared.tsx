@@ -168,154 +168,146 @@ export function TabItemBase({
   const showShortcut = isCmdPressed && tabIndex !== undefined;
 
   return (
-    <Popover
-      open={active && isConfirmationOpen}
-      onOpenChange={handleCloseConfirmationChange}
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="h-full relative"
     >
-      <PopoverTrigger asChild>
-        <div
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          className="h-full"
-        >
-          <InteractiveButton
-            asChild
-            contextMenu={contextMenu}
-            onClick={handleSelectThis}
-            onMouseDown={handleMouseDown}
-            className={cn([
-              "flex items-center gap-1 relative",
-              "w-48 h-full px-2",
-              "rounded-xl border",
-              "cursor-pointer group",
-              "transition-colors duration-200",
-              active &&
-                selected && ["bg-red-50", "text-red-600", "border-red-400"],
-              active &&
-                !selected && [
-                  "bg-red-50",
-                  "text-red-500",
-                  "border-transparent",
-                ],
-              !active &&
-                selected && ["bg-neutral-50", "text-black", "border-stone-400"],
-              !active &&
-                !selected && [
-                  "bg-neutral-50",
-                  "text-neutral-500",
-                  "border-transparent",
-                ],
-            ])}
-          >
-            <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
-              <div className="shrink-0 relative w-4 h-4">
-                <div
-                  className={cn([
-                    "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
-                    isHovered || isConfirmationOpen
-                      ? "opacity-0"
-                      : "opacity-100",
-                  ])}
-                >
-                  {finalizing ? (
-                    <Spinner size={16} />
-                  ) : active ? (
-                    <div className="relative size-2">
-                      <div className="absolute inset-0 rounded-full bg-red-600"></div>
-                      <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
-                    </div>
-                  ) : pinned ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUnpinThis();
-                      }}
-                      className={cn([
-                        "flex items-center justify-center transition-colors",
-                        selected && "text-neutral-700 hover:text-neutral-900",
-                        !selected && "text-neutral-500 hover:text-neutral-700",
-                      ])}
-                    >
-                      <Pin size={14} />
-                    </button>
-                  ) : (
-                    icon
-                  )}
-                </div>
-                <div
-                  className={cn([
-                    "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
-                    isHovered || isConfirmationOpen
-                      ? "opacity-100"
-                      : "opacity-0",
-                  ])}
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAttemptClose();
-                    }}
-                    className={cn([
-                      "flex items-center justify-center transition-colors",
-                      active && "text-red-600 hover:text-red-700",
-                      !active &&
-                        selected &&
-                        "text-neutral-700 hover:text-neutral-900",
-                      !active &&
-                        !selected &&
-                        "text-neutral-500 hover:text-neutral-700",
-                    ])}
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              </div>
-              <span className="truncate">{title}</span>
-            </div>
-            {showShortcut && (
-              <div className="absolute top-0.75 right-2 pointer-events-none">
-                <Kbd>⌘ {tabIndex}</Kbd>
-              </div>
-            )}
-          </InteractiveButton>
-        </div>
-      </PopoverTrigger>
-      <PopoverContent
-        side="bottom"
-        align="start"
-        className="w-48 p-3 rounded-xl"
-        sideOffset={2}
-        onOpenAutoFocus={(e) => e.preventDefault()}
+      <InteractiveButton
+        asChild
+        contextMenu={contextMenu}
+        onClick={handleSelectThis}
+        onMouseDown={handleMouseDown}
+        className={cn([
+          "flex items-center gap-1 relative",
+          "w-48 h-full px-2",
+          "rounded-xl border",
+          "cursor-pointer group",
+          "transition-colors duration-200",
+          active && selected && ["bg-red-50", "text-red-600", "border-red-400"],
+          active &&
+            !selected && ["bg-red-50", "text-red-500", "border-transparent"],
+          !active &&
+            selected && ["bg-neutral-50", "text-black", "border-stone-400"],
+          !active &&
+            !selected && [
+              "bg-neutral-50",
+              "text-neutral-500",
+              "border-transparent",
+            ],
+        ])}
       >
-        <div className="flex flex-col gap-2">
-          <p className="text-sm text-neutral-700">
-            Are you sure you want to close this tab? This will stop Hyprnote
-            from listening.
-          </p>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="w-full rounded-lg flex items-center justify-center relative group"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleConfirmClose();
-            }}
-          >
-            <span>Close</span>
-            <Kbd
+        <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
+          <div className="shrink-0 relative w-4 h-4">
+            <div
               className={cn([
-                "absolute right-2",
-                "bg-red-200/20 border-red-200/30 text-red-100",
-                "transition-all duration-100",
-                "group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_0_0_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
-                "group-active:translate-y-0.5 group-active:shadow-none",
+                "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
+                isHovered || isConfirmationOpen ? "opacity-0" : "opacity-100",
               ])}
             >
-              ⌘ W
-            </Kbd>
-          </Button>
+              {finalizing ? (
+                <Spinner size={16} />
+              ) : active ? (
+                <div className="relative size-2">
+                  <div className="absolute inset-0 rounded-full bg-red-600"></div>
+                  <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
+                </div>
+              ) : pinned ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUnpinThis();
+                  }}
+                  className={cn([
+                    "flex items-center justify-center transition-colors",
+                    selected && "text-neutral-700 hover:text-neutral-900",
+                    !selected && "text-neutral-500 hover:text-neutral-700",
+                  ])}
+                >
+                  <Pin size={14} />
+                </button>
+              ) : (
+                icon
+              )}
+            </div>
+            <div
+              className={cn([
+                "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
+                isHovered || isConfirmationOpen ? "opacity-100" : "opacity-0",
+              ])}
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAttemptClose();
+                }}
+                className={cn([
+                  "flex items-center justify-center transition-colors",
+                  active && "text-red-600 hover:text-red-700",
+                  !active &&
+                    selected &&
+                    "text-neutral-700 hover:text-neutral-900",
+                  !active &&
+                    !selected &&
+                    "text-neutral-500 hover:text-neutral-700",
+                ])}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+          <span className="truncate">{title}</span>
         </div>
-      </PopoverContent>
-    </Popover>
+        {showShortcut && (
+          <div className="absolute top-0.75 right-2 pointer-events-none">
+            <Kbd>⌘ {tabIndex}</Kbd>
+          </div>
+        )}
+      </InteractiveButton>
+      <Popover
+        open={active && isConfirmationOpen}
+        onOpenChange={handleCloseConfirmationChange}
+      >
+        <PopoverTrigger asChild>
+          <div className="absolute inset-0 pointer-events-none" />
+        </PopoverTrigger>
+        <PopoverContent
+          side="bottom"
+          align="start"
+          className="w-48 p-3 rounded-xl"
+          sideOffset={2}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-neutral-700">
+              Are you sure you want to close this tab? This will stop Hyprnote
+              from listening.
+            </p>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="w-full rounded-lg flex items-center justify-center relative group"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleConfirmClose();
+              }}
+            >
+              <span>Close</span>
+              <Kbd
+                className={cn([
+                  "absolute right-2",
+                  "bg-red-200/20 border-red-200/30 text-red-100",
+                  "transition-all duration-100",
+                  "group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_0_0_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
+                  "group-active:translate-y-0.5 group-active:shadow-none",
+                ])}
+              >
+                ⌘ W
+              </Kbd>
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }

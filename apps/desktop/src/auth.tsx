@@ -261,14 +261,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await clearInvalidSession();
           return;
         }
-        if (
-          e instanceof AuthRetryableFetchError &&
-          isLocalAuthServer(env.VITE_SUPABASE_URL)
-        ) {
+        if (e instanceof AuthRetryableFetchError) {
           setServerReachable(false);
           return;
         }
-        await clearInvalidSession();
+        if (isLocalAuthServer(env.VITE_SUPABASE_URL)) {
+          await clearInvalidSession();
+        }
       }
     };
 

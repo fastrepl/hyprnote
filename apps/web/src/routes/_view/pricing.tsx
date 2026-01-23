@@ -41,7 +41,7 @@ const pricingPlans: PricingPlan[] = [
       { label: "Basic Sharing (Copy, PDF)", included: true },
       { label: "All Data Local", included: true },
       { label: "Templates & Chat", included: true },
-      { label: "Integrations", included: false },
+      { label: "Integrations", included: false, comingSoon: true },
       { label: "Cloud Services (STT & LLM)", included: false },
       { label: "Cloud Sync", included: false },
       { label: "Shareable Links", included: false },
@@ -62,7 +62,7 @@ const pricingPlans: PricingPlan[] = [
     popular: true,
     features: [
       { label: "Everything in Free", included: true },
-      { label: "Integrations", included: true },
+      { label: "Integrations", included: true, comingSoon: true },
       { label: "Cloud Services (STT & LLM)", included: true },
       {
         label: "Cloud Sync",

@@ -57,7 +57,7 @@ function Component() {
 
           <AccountSettingsCard />
 
-          <IntegrationsSettingsCard />
+          {/* <IntegrationsSettingsCard /> */}
 
           <SignOutSection />
         </div>

@@ -196,15 +196,18 @@ export const syncAfterSuccess = createServerFn({ method: "POST" }).handler(
 
     const subscriptions = await stripe.subscriptions.list({
       customer: stripeCustomerId,
-      limit: 1,
       status: "all",
     });
 
-    if (subscriptions.data.length === 0) {
+    // Prioritize active subscriptions over trialing ones
+    // This ensures paid users see "active" status even if they had a previous trial
+    const subscription =
+      subscriptions.data.find((sub) => sub.status === "active") ||
+      subscriptions.data.find((sub) => sub.status === "trialing");
+
+    if (!subscription) {
       return { status: "none" };
     }
-
-    const subscription = subscriptions.data[0];
 
     return {
       subscriptionId: subscription.id,

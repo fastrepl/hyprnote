@@ -24,6 +24,8 @@ export async function loadSessionContentData(
   sessionId: string,
 ): Promise<LoadResult<LoadedSessionData>> {
   const result = createEmptyLoadedSessionData();
+  // Initialize session entry so processMdFile can set raw_md on it
+  result.sessions[sessionId] = {};
   const sessionsDir = [dataDir, "sessions"].join(sep());
 
   const scanResult = await fsSyncCommands.scanAndRead(

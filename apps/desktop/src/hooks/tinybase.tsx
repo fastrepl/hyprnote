@@ -198,10 +198,18 @@ export function useSessionContentLoader(sessionId: string) {
     // If not loaded and not loading, trigger load
     if (!loaded && !loading) {
       setIsLoading(true);
-      ensureSessionContentLoaded(sessionId).then(() => {
-        setIsLoaded(true);
-        setIsLoading(false);
-      });
+      ensureSessionContentLoaded(sessionId)
+        .then(() => {
+          setIsLoaded(true);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          console.error(
+            `Failed to load session content for ${sessionId}:`,
+            error,
+          );
+          setIsLoading(false);
+        });
     }
   }, [sessionId]);
 

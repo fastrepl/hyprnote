@@ -12,6 +12,8 @@ pub enum Error {
     Settings(String),
     #[error("path error: {0}")]
     Path(String),
+    #[error("invalid path: {0}")]
+    InvalidPath(String),
 }
 
 impl Serialize for Error {

@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { confirm } from "@tauri-apps/plugin-dialog";
 import { open as selectFolder } from "@tauri-apps/plugin-dialog";
 import { FolderIcon } from "lucide-react";
 
@@ -6,7 +7,10 @@ import { commands as settingsCommands } from "@hypr/plugin-settings";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 
-import { relaunch } from "../../../store/tinybase/store/save";
+import {
+  relaunch,
+  setMigrationInProgress,
+} from "../../../store/tinybase/store/save";
 
 export function SettingsLab() {
   const { data: basePath } = useQuery({
@@ -22,6 +26,15 @@ export function SettingsLab() {
 
   const changeContentFolderMutation = useMutation({
     mutationFn: async () => {
+      const confirmed = await confirm(
+        "This will move your data to a new location and restart the app. Do not close the app during migration.",
+        { title: "Change Content Folder", kind: "warning" },
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
       const selected = await selectFolder({
         directory: true,
         defaultPath: basePath,
@@ -32,8 +45,11 @@ export function SettingsLab() {
         return;
       }
 
+      setMigrationInProgress(true);
+
       const result = await settingsCommands.changeContentBase(selected);
       if (result.status === "error") {
+        setMigrationInProgress(false);
         throw new Error(result.error);
       }
 

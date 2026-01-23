@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
+use tauri_specta::Event;
+
 use crate::content_base;
+use crate::events::ContentBaseMigrationStarted;
 use crate::obsidian::ObsidianVault;
 
 pub const FILENAME: &str = "settings.json";
@@ -10,7 +13,7 @@ pub struct Settings<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'a, R, M> {
     pub fn default_base(&self) -> Result<PathBuf, crate::Error> {
         let bundle_id: &str = self.manager.config().identifier.as_ref();
         let data_dir = self
@@ -62,6 +65,21 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
         if new_path == old_content_base {
             return Ok(());
         }
+
+        if new_path.starts_with(&old_content_base) {
+            return Err(crate::Error::InvalidPath(
+                "Cannot move content to a subdirectory of the current location".into(),
+            ));
+        }
+
+        if old_content_base.starts_with(&new_path) {
+            return Err(crate::Error::InvalidPath(
+                "Cannot move content to a parent directory of the current location".into(),
+            ));
+        }
+
+        let _ = ContentBaseMigrationStarted {}.emit(self.manager);
+        std::thread::sleep(std::time::Duration::from_millis(500));
 
         std::fs::create_dir_all(&new_path)?;
         crate::fs::copy_content_items(&old_content_base, &new_path).await?;

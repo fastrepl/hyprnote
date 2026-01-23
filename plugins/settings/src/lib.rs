@@ -3,12 +3,14 @@ use tauri::Manager;
 mod commands;
 mod content_base;
 mod error;
+mod events;
 mod ext;
 mod fs;
 mod obsidian;
 mod state;
 
 pub use error::{Error, Result};
+pub use events::*;
 pub use ext::*;
 pub use obsidian::ObsidianVault;
 pub use state::*;
@@ -27,6 +29,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::save::<tauri::Wry>,
             commands::obsidian_vaults::<tauri::Wry>,
         ])
+        .events(tauri_specta::collect_events![
+            events::ContentBaseMigrationStarted,
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -35,7 +40,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
+        .setup(move |app, _api| {
+            specta_builder.mount_events(app);
+
             let settings_base = app.settings().settings_base().unwrap();
             let content_base = app.settings().compute_content_base().unwrap();
             let state = state::State::new(settings_base, content_base);

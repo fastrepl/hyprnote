@@ -275,14 +275,22 @@ export function TabItemBase({
           <Button
             variant="destructive"
             size="sm"
-            className="w-full rounded-lg flex items-center justify-center gap-2"
+            className="w-full rounded-lg flex items-center justify-center relative group"
             onClick={(e) => {
               e.stopPropagation();
               handleConfirmClose();
             }}
           >
             <span>Close</span>
-            <Kbd className="bg-red-600/20 border-red-600/30 text-red-100">
+            <Kbd
+              className={cn([
+                "absolute right-2",
+                "bg-red-200/20 border-red-200/30 text-red-100",
+                "transition-all duration-100",
+                "group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_0_0_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
+                "group-active:translate-y-0.5 group-active:shadow-none",
+              ])}
+            >
               ⌘ W
             </Kbd>
           </Button>

@@ -76,6 +76,7 @@ export const getExtensions = (
     inline: false,
     allowBase64: true,
     HTMLAttributes: { class: "tiptap-image" },
+    resize: { enabled: true },
   }),
   Underline,
   Placeholder.configure({

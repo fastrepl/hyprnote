@@ -2,7 +2,7 @@ import {
   AuthRetryableFetchError,
   AuthSessionMissingError,
   createClient,
-  processLock,
+  navigatorLock,
   type Session,
   SupabaseClient,
   type SupportedStorage,
@@ -87,7 +87,7 @@ const supabase =
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: false,
-          lock: processLock,
+          lock: navigatorLock,
         },
       })
     : null;

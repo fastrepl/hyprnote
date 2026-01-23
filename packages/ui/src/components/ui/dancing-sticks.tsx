@@ -1,5 +1,5 @@
-import { motion } from "motion/react";
-import { useMemo } from "react";
+import { motion, useMotionValue, useTransform } from "motion/react";
+import { memo, useEffect, useMemo, useRef } from "react";
 
 const getRandomValues = (max: number, length: number, baseLength: number) => {
   const values: number[] = [];
@@ -12,30 +12,34 @@ const getRandomValues = (max: number, length: number, baseLength: number) => {
 
 type EqualizerStickProps = {
   baseLength: number;
-  amplitude: number;
+  amplitudeMotionValue: ReturnType<typeof useMotionValue<number>>;
   color: string;
   height: number;
   stickWidth: number;
 };
 
-function EqualizerStick({
+const EqualizerStick = memo(function EqualizerStick({
   baseLength,
-  amplitude,
+  amplitudeMotionValue,
   color,
   height,
   stickWidth,
 }: EqualizerStickProps) {
-  const scaledBaseLength = baseLength * Math.max(0.2, Math.max(amplitude, 0.1));
-
   const animationHeights = useMemo(
-    () => getRandomValues(height, 6, scaledBaseLength),
-    [height, scaledBaseLength],
+    () => getRandomValues(height, 6, baseLength),
+    [height, baseLength],
   );
+
+  const scaleY = useTransform(amplitudeMotionValue, [0, 1], [0.2, 1]);
 
   return (
     <motion.div
-      className="rounded-full"
-      style={{ width: stickWidth, backgroundColor: color }}
+      className="rounded-full origin-center"
+      style={{
+        width: stickWidth,
+        backgroundColor: color,
+        scaleY,
+      }}
       animate={{
         height: animationHeights,
       }}
@@ -47,38 +51,57 @@ function EqualizerStick({
       }}
     />
   );
-}
+});
 
 type DancingSticksProps = {
   color?: string;
   amplitude: number;
-  size?: "default" | "long";
   height?: number;
   width?: number;
   stickWidth?: number;
   gap?: number;
 };
 
-const STICK_PATTERNS = {
-  default: [50, 65, 85, 100, 85, 65],
-  long: [50, 65, 75, 85, 95, 100, 95, 85, 75, 65, 50],
-};
+function generatePattern(count: number): number[] {
+  const pattern: number[] = [];
+  const mid = (count - 1) / 2;
+  for (let i = 0; i < count; i++) {
+    const distance = Math.abs(i - mid) / mid;
+    pattern.push(50 + 50 * (1 - distance));
+  }
+  return pattern;
+}
 
-export function DancingSticks({
+export const DancingSticks = memo(function DancingSticks({
   color = "#e5e5e5",
   amplitude,
-  size = "default",
   height,
   width,
   stickWidth,
   gap,
 }: DancingSticksProps) {
   const resolvedHeight = height ?? 16;
-  const resolvedWidth = width ?? (size === "long" ? 32 : 17);
   const resolvedStickWidth = stickWidth ?? 2;
   const resolvedGap = gap ?? 1;
+  const resolvedWidth = width ?? 17;
+  const stickCount = Math.max(
+    1,
+    Math.floor(
+      (resolvedWidth + resolvedGap) / (resolvedStickWidth + resolvedGap),
+    ),
+  );
   const isFlat = amplitude === 0;
-  const pattern = STICK_PATTERNS[size];
+  const pattern = useMemo(() => generatePattern(stickCount), [stickCount]);
+
+  const amplitudeMotionValue = useMotionValue(amplitude);
+  const prevAmplitudeRef = useRef(amplitude);
+
+  useEffect(() => {
+    if (prevAmplitudeRef.current !== amplitude) {
+      amplitudeMotionValue.set(Math.max(amplitude, 0.1));
+      prevAmplitudeRef.current = amplitude;
+    }
+  }, [amplitude, amplitudeMotionValue]);
 
   if (isFlat) {
     return (
@@ -109,9 +132,9 @@ export function DancingSticks({
     >
       {pattern.map((baseLength, index) => (
         <EqualizerStick
-          key={`${size}-${index}`}
+          key={index}
           baseLength={baseLength}
-          amplitude={amplitude}
+          amplitudeMotionValue={amplitudeMotionValue}
           color={color}
           height={resolvedHeight}
           stickWidth={resolvedStickWidth}
@@ -119,4 +142,4 @@ export function DancingSticks({
       ))}
     </div>
   );
-}
+});

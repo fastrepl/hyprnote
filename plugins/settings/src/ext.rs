@@ -64,7 +64,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
         }
 
         std::fs::create_dir_all(&new_path)?;
-        crate::fs::copy_dir_recursive(&old_content_base, &new_path, Some(FILENAME)).await?;
+        crate::fs::copy_content_items(&old_content_base, &new_path).await?;
 
         let settings_path = default_base.join(FILENAME);
         let existing_json = std::fs::read_to_string(&settings_path).ok();

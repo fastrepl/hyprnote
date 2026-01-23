@@ -56,6 +56,38 @@ pub async fn copy_dir_recursive(
     Ok(())
 }
 
+const CONTENT_DIRECTORIES: &[&str] = &["sessions", "humans", "organizations", "chats", "prompts"];
+
+const CONTENT_FILES: &[&str] = &[
+    "events.json",
+    "calendars.json",
+    "templates.json",
+    "chat_shortcuts.json",
+];
+
+pub async fn copy_content_items(src: &Path, dst: &Path) -> std::io::Result<()> {
+    for dir_name in CONTENT_DIRECTORIES {
+        let src_dir = src.join(dir_name);
+        let dst_dir = dst.join(dir_name);
+
+        if src_dir.exists() && src_dir.is_dir() {
+            tokio::fs::create_dir_all(&dst_dir).await?;
+            copy_dir_recursive(&src_dir, &dst_dir, None).await?;
+        }
+    }
+
+    for file_name in CONTENT_FILES {
+        let src_file = src.join(file_name);
+        let dst_file = dst.join(file_name);
+
+        if src_file.exists() && src_file.is_file() {
+            tokio::fs::copy(&src_file, &dst_file).await?;
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -173,5 +205,53 @@ mod tests {
 
         assert!(dst.join("keep.txt").exists());
         assert!(!dst.join("skip.txt").exists());
+    }
+
+    #[tokio::test]
+    async fn copy_content_items_copies_only_content() {
+        let temp = tempdir().unwrap();
+        let src = temp.path().join("src");
+        let dst = temp.path().join("dst");
+
+        fs::create_dir_all(&src).unwrap();
+        fs::create_dir_all(&dst).unwrap();
+
+        fs::create_dir_all(src.join("sessions")).unwrap();
+        fs::write(src.join("sessions").join("test.json"), "session").unwrap();
+        fs::create_dir_all(src.join("humans")).unwrap();
+        fs::write(src.join("humans").join("person.md"), "human").unwrap();
+        fs::write(src.join("events.json"), "events").unwrap();
+
+        fs::write(src.join("settings.json"), "settings").unwrap();
+        fs::write(src.join("store.json"), "store").unwrap();
+        fs::create_dir_all(src.join("models")).unwrap();
+        fs::write(src.join("models").join("model.gguf"), "model").unwrap();
+
+        copy_content_items(&src, &dst).await.unwrap();
+
+        assert!(dst.join("sessions").join("test.json").exists());
+        assert!(dst.join("humans").join("person.md").exists());
+        assert!(dst.join("events.json").exists());
+
+        assert!(!dst.join("settings.json").exists());
+        assert!(!dst.join("store.json").exists());
+        assert!(!dst.join("models").exists());
+    }
+
+    #[tokio::test]
+    async fn copy_content_items_handles_missing_items() {
+        let temp = tempdir().unwrap();
+        let src = temp.path().join("src");
+        let dst = temp.path().join("dst");
+
+        fs::create_dir_all(&src).unwrap();
+        fs::create_dir_all(&dst).unwrap();
+
+        fs::write(src.join("events.json"), "events").unwrap();
+
+        copy_content_items(&src, &dst).await.unwrap();
+
+        assert!(dst.join("events.json").exists());
+        assert!(!dst.join("sessions").exists());
     }
 }

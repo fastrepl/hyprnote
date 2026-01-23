@@ -1,11 +1,11 @@
 import FileHandler from "@tiptap/extension-file-handler";
 import Highlight from "@tiptap/extension-highlight";
+import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
-import { ResizableImage } from "tiptap-extension-resizable-image";
 
 import { AIHighlight } from "../ai-highlight";
 import { StreamingAnimation } from "../animation";
@@ -23,7 +23,7 @@ export type FileHandlerConfig = {
   onImageUpload?: (file: File) => Promise<string>;
 };
 
-const AttachmentResizableImage = ResizableImage.extend({
+const AttachmentImage = Image.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -72,7 +72,8 @@ export const getExtensions = (
     link: false,
     listKeymap: false,
   }),
-  AttachmentResizableImage.configure({
+  AttachmentImage.configure({
+    inline: false,
     allowBase64: true,
     HTMLAttributes: { class: "tiptap-image" },
   }),

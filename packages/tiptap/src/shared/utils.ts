@@ -22,37 +22,10 @@ export function json2md(jsonContent: JSONContent): string {
   return manager.serialize(jsonContent);
 }
 
-function wrapInlineNodesInParagraphs(json: JSONContent): JSONContent {
-  if (json.type !== "doc" || !json.content) {
-    return json;
-  }
-
-  const wrappedContent: JSONContent[] = [];
-
-  for (const node of json.content) {
-    const isInlineNode = node.type === "image" || node.type === "text";
-
-    if (isInlineNode) {
-      wrappedContent.push({
-        type: "paragraph",
-        content: [node],
-      });
-    } else {
-      wrappedContent.push(node);
-    }
-  }
-
-  return {
-    ...json,
-    content: wrappedContent,
-  };
-}
-
 export function md2json(markdown: string): JSONContent {
   try {
     const manager = new MarkdownManager({ extensions: getExtensions() });
-    const parsed = manager.parse(markdown);
-    return wrapInlineNodesInParagraphs(parsed);
+    return manager.parse(markdown);
   } catch (error) {
     console.error(error);
 

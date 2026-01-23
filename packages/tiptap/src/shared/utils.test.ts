@@ -392,7 +392,7 @@ describe("schema validation", () => {
       }
     });
 
-    test("standalone image is wrapped in paragraph (not direct child of doc)", () => {
+    test("standalone image is a direct child of doc (block-level)", () => {
       const markdown = "![alt](https://example.com/image.png)";
       const json = md2json(markdown);
 
@@ -401,15 +401,9 @@ describe("schema validation", () => {
       expect(json.content!.length).toBeGreaterThan(0);
 
       const firstChild = json.content![0];
-      expect(firstChild.type).toBe("paragraph");
-      expect(firstChild.content).toBeDefined();
-
-      const imageNode = firstChild.content!.find(
-        (node) => node.type === "image",
-      );
-      expect(imageNode).toBeDefined();
-      expect(imageNode?.attrs?.src).toBe("https://example.com/image.png");
-      expect(imageNode?.attrs?.alt).toBe("alt");
+      expect(firstChild.type).toBe("image");
+      expect(firstChild.attrs?.src).toBe("https://example.com/image.png");
+      expect(firstChild.attrs?.alt).toBe("alt");
     });
 
     test("multiple images produce schema-valid JSON", () => {
@@ -427,7 +421,7 @@ describe("schema validation", () => {
       }
     });
 
-    test("consecutive standalone images are each wrapped in separate paragraphs", () => {
+    test("consecutive standalone images are direct children of doc (block-level)", () => {
       const markdown = `![img1](https://example.com/1.png)
 
 ![img2](https://example.com/2.png)`;
@@ -436,26 +430,18 @@ describe("schema validation", () => {
       expect(json.type).toBe("doc");
       expect(json.content).toBeDefined();
 
-      const paragraphs = json.content!.filter(
-        (node) => node.type === "paragraph",
-      );
-      expect(paragraphs.length).toBeGreaterThanOrEqual(2);
+      const images = json.content!.filter((node) => node.type === "image");
+      expect(images.length).toBeGreaterThanOrEqual(2);
 
-      const img1Para = paragraphs.find((p) =>
-        p.content?.some(
-          (n) =>
-            n.type === "image" && n.attrs?.src === "https://example.com/1.png",
-        ),
+      const img1 = images.find(
+        (n) => n.attrs?.src === "https://example.com/1.png",
       );
-      const img2Para = paragraphs.find((p) =>
-        p.content?.some(
-          (n) =>
-            n.type === "image" && n.attrs?.src === "https://example.com/2.png",
-        ),
+      const img2 = images.find(
+        (n) => n.attrs?.src === "https://example.com/2.png",
       );
 
-      expect(img1Para).toBeDefined();
-      expect(img2Para).toBeDefined();
+      expect(img1).toBeDefined();
+      expect(img2).toBeDefined();
     });
 
     test("mixed content produces schema-valid JSON", () => {
@@ -556,20 +542,15 @@ More text.`;
       expect(validation.valid).toBe(true);
     });
 
-    test("validates image with src attribute", () => {
+    test("validates image with src attribute (block-level)", () => {
       const validJson: JSONContent = {
         type: "doc",
         content: [
           {
-            type: "paragraph",
-            content: [
-              {
-                type: "image",
-                attrs: {
-                  src: "https://example.com/image.png",
-                },
-              },
-            ],
+            type: "image",
+            attrs: {
+              src: "https://example.com/image.png",
+            },
           },
         ],
       };
@@ -615,18 +596,12 @@ We appreciate your patience while you wait.`;
 
       expect(json.content!.length).toBeGreaterThanOrEqual(2);
 
+      // First node should be a block-level image (direct child of doc)
       const firstNode = json.content![0];
-      expect(firstNode.type).toBe("paragraph");
-      expect(firstNode.content).toBeDefined();
+      expect(firstNode.type).toBe("image");
+      expect(firstNode.attrs?.src).toBe("https://example.com/welcome.png");
 
-      const imageInFirstPara = firstNode.content!.find(
-        (n) => n.type === "image",
-      );
-      expect(imageInFirstPara).toBeDefined();
-      expect(imageInFirstPara?.attrs?.src).toBe(
-        "https://example.com/welcome.png",
-      );
-
+      // Second node should be a paragraph with text
       const secondNode = json.content![1];
       expect(secondNode.type).toBe("paragraph");
       const textInSecondPara = secondNode.content?.find(

@@ -44,7 +44,6 @@
     "prosemirror-model": "^1.25.4",
     "prosemirror-state": "^1.4.4",
     "requestidlecallback-polyfill": "^1.0.2",
-    "tiptap-extension-resizable-image": "^2.1.0",
     "usehooks-ts": "^3.1.1"
   },
   "devDependencies": {

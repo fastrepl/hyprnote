@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { confirm } from "@tauri-apps/plugin-dialog";
 import { open as selectFolder } from "@tauri-apps/plugin-dialog";
 import { FolderIcon } from "lucide-react";
 
@@ -22,6 +23,16 @@ export function SettingsLab() {
 
   const changeContentFolderMutation = useMutation({
     mutationFn: async () => {
+      const confirmed = await confirm(
+        "This will copy your data to a new location and restart the app. " +
+          "The original folder will NOT be deleted - you can remove it manually after confirming the migration was successful.",
+        { title: "Change Content Folder", kind: "warning" },
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
       const selected = await selectFolder({
         directory: true,
         defaultPath: basePath,

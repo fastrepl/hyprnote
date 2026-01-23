@@ -263,37 +263,29 @@ export function TabItemBase({
       <PopoverContent
         side="bottom"
         align="start"
-        className="w-48 p-3"
+        className="w-48 p-3 rounded-xl"
+        sideOffset={2}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="flex flex-col gap-2">
           <p className="text-sm text-neutral-700">
-            Are you sure you want to close this tab?
+            Are you sure you want to close this tab? This will stop Hyprnote
+            from listening.
           </p>
-          <div className="flex flex-col gap-2">
-            <Button
-              variant="destructive"
-              size="sm"
-              className="w-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleConfirmClose();
-              }}
-            >
-              Close
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCloseConfirmationChange(false);
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="w-full rounded-lg flex items-center justify-center gap-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleConfirmClose();
+            }}
+          >
+            <span>Close</span>
+            <Kbd className="bg-red-600/20 border-red-600/30 text-red-100">
+              ⌘ W
+            </Kbd>
+          </Button>
         </div>
       </PopoverContent>
     </Popover>

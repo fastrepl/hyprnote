@@ -268,28 +268,30 @@ export function TabItemBase({
       >
         <div className="flex flex-col gap-2">
           <p className="text-sm text-neutral-700">
-            Closing will stop listening.
+            Are you sure you want to close this tab?
           </p>
-          <div className="flex gap-2 justify-end">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCloseConfirmationChange(false);
-              }}
-            >
-              Cancel
-            </Button>
+          <div className="flex flex-col gap-2">
             <Button
               variant="destructive"
               size="sm"
+              className="w-full"
               onClick={(e) => {
                 e.stopPropagation();
                 handleConfirmClose();
               }}
             >
               Close
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCloseConfirmationChange(false);
+              }}
+            >
+              Cancel
             </Button>
           </div>
         </div>

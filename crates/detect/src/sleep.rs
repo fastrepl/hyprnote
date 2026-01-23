@@ -1,4 +1,6 @@
-use std::sync::atomic::Ordering;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::thread::JoinHandle;
 use std::time::Duration;
 
 use block2::RcBlock;
@@ -6,7 +8,7 @@ use objc2::{msg_send, rc::Retained};
 use objc2_app_kit::NSWorkspace;
 use objc2_foundation::{NSNotification, NSNotificationCenter, NSObject, NSString};
 
-use crate::{BackgroundTask, DetectCallback, DetectEvent};
+use crate::{DetectCallback, DetectEvent};
 
 struct SleepObserver {
     center: Retained<NSNotificationCenter>,
@@ -23,18 +25,30 @@ impl Drop for SleepObserver {
     }
 }
 
-#[derive(Default)]
 pub struct SleepDetector {
-    background: BackgroundTask,
+    running: Arc<AtomicBool>,
+    thread_handle: Option<JoinHandle<()>>,
+}
+
+impl Default for SleepDetector {
+    fn default() -> Self {
+        Self {
+            running: Arc::new(AtomicBool::new(false)),
+            thread_handle: None,
+        }
+    }
 }
 
 impl crate::Observer for SleepDetector {
     fn start(&mut self, f: DetectCallback) {
-        if self.background.is_running() {
+        if self.running.load(Ordering::SeqCst) {
             return;
         }
 
-        self.background.start(|running, mut rx| async move {
+        self.running.store(true, Ordering::SeqCst);
+        let running = self.running.clone();
+
+        self.thread_handle = Some(std::thread::spawn(move || {
             let will_sleep_callback = f.clone();
             let will_sleep_block = RcBlock::new(move |_notification: *const NSNotification| {
                 will_sleep_callback(DetectEvent::SleepStateChanged { value: true });
@@ -45,7 +59,7 @@ impl crate::Observer for SleepDetector {
                 did_wake_callback(DetectEvent::SleepStateChanged { value: false });
             });
 
-            let observer = unsafe {
+            let _observer = unsafe {
                 let workspace = NSWorkspace::sharedWorkspace();
                 let center = workspace.notificationCenter();
 
@@ -75,22 +89,21 @@ impl crate::Observer for SleepDetector {
                 }
             };
 
-            loop {
-                tokio::select! {
-                    _ = &mut rx => break,
-                    _ = tokio::time::sleep(Duration::from_millis(500)) => {
-                        if !running.load(Ordering::SeqCst) {
-                            break;
-                        }
-                    }
-                }
+            while running.load(Ordering::SeqCst) {
+                std::thread::sleep(Duration::from_millis(500));
             }
-
-            drop(observer);
-        });
+        }));
     }
 
     fn stop(&mut self) {
-        self.background.stop();
+        if !self.running.load(Ordering::SeqCst) {
+            return;
+        }
+
+        self.running.store(false, Ordering::SeqCst);
+
+        if let Some(handle) = self.thread_handle.take() {
+            let _ = handle.join();
+        }
     }
 }

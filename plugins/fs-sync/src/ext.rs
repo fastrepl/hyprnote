@@ -213,7 +213,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
 
         std::fs::create_dir_all(&attachments_dir)?;
 
-        let final_filename = find_unique_filename(&attachments_dir, filename);
+        let safe_filename = std::path::Path::new(filename)
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("attachment");
+
+        let final_filename = find_unique_filename(&attachments_dir, safe_filename);
         let file_path = attachments_dir.join(&final_filename);
 
         std::fs::write(&file_path, data)?;

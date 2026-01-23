@@ -10,6 +10,7 @@ import { useDebounceCallback } from "usehooks-ts";
 import "../../styles.css";
 import * as shared from "../shared";
 import { GoogleDocsImport } from "./google-docs-import";
+import { BlogImage } from "./image-with-alt";
 import { Toolbar } from "./toolbar";
 
 export type { TiptapEditor };
@@ -61,6 +62,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
                 onImageUpload,
               }
             : undefined,
+          { imageExtension: BlogImage },
         ),
         Markdown,
       ],

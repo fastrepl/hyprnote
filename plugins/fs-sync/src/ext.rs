@@ -318,15 +318,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
 fn sanitize_filename(filename: &str) -> Result<String, crate::Error> {
     let path = std::path::Path::new(filename);
 
-    let clean_name = path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .ok_or_else(|| {
-            crate::Error::from(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                "Invalid filename",
-            ))
-        })?;
+    let clean_name = path.file_name().and_then(|n| n.to_str()).ok_or_else(|| {
+        crate::Error::from(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Invalid filename",
+        ))
+    })?;
 
     if clean_name.is_empty() || clean_name.contains(['/', '\\', '\0']) {
         return Err(crate::Error::from(std::io::Error::new(

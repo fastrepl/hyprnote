@@ -15,7 +15,7 @@ import { useTemplatePersister } from "../persister/templates";
 import { useValuesPersister } from "../persister/values";
 import { useInitializeStore } from "./initialize";
 import { type Store } from "./main";
-import { registerSaveHandler } from "./save";
+import { initMigrationListener, registerSaveHandler } from "./save";
 
 export function useMainPersisters(store: Store) {
   const localPersister = useLocalPersister(store);
@@ -34,6 +34,8 @@ export function useMainPersisters(store: Store) {
     if (getCurrentWebviewWindowLabel() !== "main") {
       return;
     }
+
+    initMigrationListener();
 
     const persisters = [
       { id: "local", persister: localPersister },

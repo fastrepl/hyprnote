@@ -5,6 +5,7 @@ import { commands as store2Commands } from "@hypr/plugin-store2";
 
 const saveHandlers = new Map<string, () => Promise<void>>();
 let migrationInProgress = false;
+let migrationListenerInitialized = false;
 
 export function registerSaveHandler(id: string, handler: () => Promise<void>) {
   saveHandlers.set(id, handler);
@@ -21,9 +22,15 @@ export function setMigrationInProgress(value: boolean): void {
   migrationInProgress = value;
 }
 
-settingsEvents.contentBaseMigrationStarted.listen(() => {
-  migrationInProgress = true;
-});
+export function initMigrationListener(): void {
+  if (migrationListenerInitialized) {
+    return;
+  }
+  migrationListenerInitialized = true;
+  settingsEvents.contentBaseMigrationStarted.listen(() => {
+    migrationInProgress = true;
+  });
+}
 
 export async function save(): Promise<void> {
   if (migrationInProgress) {

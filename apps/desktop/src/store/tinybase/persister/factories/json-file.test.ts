@@ -9,6 +9,12 @@ const settingsMocks = vi.hoisted(() => ({
     .mockResolvedValue({ status: "ok", data: "/mock/data/dir/hyprnote" }),
 }));
 
+const settingsEventsMocks = vi.hoisted(() => ({
+  contentBaseMigrationStarted: {
+    listen: vi.fn().mockResolvedValue(() => {}),
+  },
+}));
+
 const fs2Mocks = vi.hoisted(() => ({
   readTextFile: vi.fn(),
   remove: vi.fn(),
@@ -24,7 +30,10 @@ const notifyMocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@hypr/plugin-settings", () => ({ commands: settingsMocks }));
+vi.mock("@hypr/plugin-settings", () => ({
+  commands: settingsMocks,
+  events: settingsEventsMocks,
+}));
 vi.mock("@hypr/plugin-fs2", () => ({ commands: fs2Mocks }));
 vi.mock("@hypr/plugin-fs-sync", () => ({ commands: fsSyncMocks }));
 vi.mock("@hypr/plugin-notify", () => ({ events: notifyMocks }));

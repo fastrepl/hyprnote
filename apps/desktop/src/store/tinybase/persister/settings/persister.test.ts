@@ -53,6 +53,11 @@ vi.mock("@hypr/plugin-settings", () => ({
     load: settingsLoad,
     save: settingsSave,
   },
+  events: {
+    contentBaseMigrationStarted: {
+      listen: vi.fn().mockResolvedValue(() => {}),
+    },
+  },
 }));
 
 vi.mock("@hypr/plugin-detect", () => ({

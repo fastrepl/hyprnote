@@ -18,6 +18,11 @@ vi.mock("@hypr/plugin-settings", () => ({
       .fn()
       .mockResolvedValue({ status: "ok", data: "/test/data" }),
   },
+  events: {
+    contentBaseMigrationStarted: {
+      listen: vi.fn().mockResolvedValue(() => {}),
+    },
+  },
 }));
 
 vi.mock("@hypr/plugin-fs2", () => ({

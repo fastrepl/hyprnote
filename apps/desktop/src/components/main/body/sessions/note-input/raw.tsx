@@ -11,6 +11,7 @@ import {
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
 
+import { useImageUpload } from "../../../../../hooks/useImageUpload";
 import * as main from "../../../../../store/tinybase/store/main";
 
 export const RawEditor = forwardRef<
@@ -18,6 +19,7 @@ export const RawEditor = forwardRef<
   { sessionId: string; onNavigateToTitle?: () => void }
 >(({ sessionId, onNavigateToTitle }, ref) => {
   const rawMd = main.UI.useCell("sessions", sessionId, "raw_md", main.STORE_ID);
+  const onImageUpload = useImageUpload(sessionId);
 
   const initialContent = useMemo<JSONContent>(() => {
     if (typeof rawMd !== "string" || !rawMd.trim()) {
@@ -81,6 +83,8 @@ export const RawEditor = forwardRef<
     [],
   );
 
+  const fileHandlerConfig = useMemo(() => ({ onImageUpload }), [onImageUpload]);
+
   return (
     <NoteEditor
       ref={ref}
@@ -90,6 +94,7 @@ export const RawEditor = forwardRef<
       mentionConfig={mentionConfig}
       placeholderComponent={Placeholder}
       onNavigateToTitle={onNavigateToTitle}
+      fileHandlerConfig={fileHandlerConfig}
     />
   );
 });

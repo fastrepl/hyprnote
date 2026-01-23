@@ -290,3 +290,27 @@ pub(crate) async fn entity_dir<R: tauri::Runtime>(
     let base = app.settings().content_base().map_err(|e| e.to_string())?;
     Ok(base.join(&dir_name).to_string_lossy().to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn attachment_save<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session_id: String,
+    data: Vec<u8>,
+    extension: String,
+) -> Result<String, String> {
+    let session_dir = resolve_session_dir(&app, &session_id)?;
+    let attachments_dir = session_dir.join("attachments");
+
+    spawn_blocking!({
+        std::fs::create_dir_all(&attachments_dir).map_err(|e| e.to_string())?;
+
+        let attachment_id = uuid::Uuid::new_v4().to_string();
+        let filename = format!("{}.{}", attachment_id, extension);
+        let file_path = attachments_dir.join(&filename);
+
+        std::fs::write(&file_path, data).map_err(|e| e.to_string())?;
+
+        Ok(file_path.to_string_lossy().to_string())
+    })
+}

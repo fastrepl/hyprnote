@@ -24,6 +24,7 @@
     "@nangohq/node": "^0.69.22",
     "@netlify/cache": "^3.3.4",
     "@netlify/vite-plugin-tanstack-start": "^1.2.6",
+    "@outlit/browser": "^1.0.3",
     "@posthog/react": "^1.5.2",
     "@sentry/tanstackstart-react": "^10.34.0",
     "@stripe/stripe-js": "^8.6.1",

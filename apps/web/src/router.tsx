@@ -1,3 +1,4 @@
+import { OutlitProvider } from "@outlit/browser/react";
 import * as Sentry from "@sentry/tanstackstart-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
@@ -19,9 +20,14 @@ export function getRouter() {
     Wrap: (props: { children: React.ReactNode }) => {
       return (
         <PostHogProvider>
-          <QueryClientProvider client={queryClient}>
-            {props.children}
-          </QueryClientProvider>
+          <OutlitProvider
+            publicKey="pk_HnJUrK_kn5n9rGv5e8V5CtzyT3--j1lz"
+            trackPageviews
+          >
+            <QueryClientProvider client={queryClient}>
+              {props.children}
+            </QueryClientProvider>
+          </OutlitProvider>
         </PostHogProvider>
       );
     },

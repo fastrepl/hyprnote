@@ -876,6 +876,9 @@ importers:
       '@netlify/vite-plugin-tanstack-start':
         specifier: ^1.2.6
         version: 1.2.6(@netlify/api@14.0.12)(@tanstack/react-start@1.150.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vite@7.3.1(@types/node@22.19.7)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)))(aws4fetch@1.0.20)(babel-plugin-macros@3.1.0)(ioredis@5.9.2)(rollup@4.55.1)(vite@7.3.1(@types/node@22.19.7)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
+      '@outlit/browser':
+        specifier: ^1.0.3
+        version: 1.0.3(react@19.2.3)
       '@posthog/react':
         specifier: ^1.5.2
         version: 1.5.2(@types/react@19.2.8)(posthog-js@1.324.1)(react@19.2.3)
@@ -4988,6 +4991,17 @@ packages:
 
   '@oslojs/encoding@1.1.0':
     resolution: {integrity: sha512-70wQhgYmndg4GCPxPPxPGevRKqTIJ2Nh4OkiMWmDAVYsTQ+Ta7Sq+rPevXyXGdzr30/qZBnyOalCszoMxlyldQ==}
+
+  '@outlit/browser@1.0.3':
+    resolution: {integrity: sha512-TAjKcQXQgYScF2XpYeUfqs2lH/qR1V8lhEyQkIm1N1/LW2s1wc/aHM3U5ROUflom/p9hW5xvs4Xi3JPKKInFnw==}
+    peerDependencies:
+      react: '>=17.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
+
+  '@outlit/core@1.0.1':
+    resolution: {integrity: sha512-shtsrRRBoP4NxdQZgjWO00hvWYNrQotZYSRZX9oTFCllYMwrOYusIP3fGF3cV3fgty+PyHraD6lVkFDwM4FPwA==}
 
   '@oxc-parser/binding-android-arm64@0.99.0':
     resolution: {integrity: sha512-V4jhmKXgQQdRnm73F+r3ZY4pUEsijQeSraFeaCGng7abSNJGs76X6l82wHnmjLGFAeY00LWtjcELs7ZmbJ9+lA==}
@@ -20596,6 +20610,14 @@ snapshots:
       '@orama/orama': 3.1.18
 
   '@oslojs/encoding@1.1.0': {}
+
+  '@outlit/browser@1.0.3(react@19.2.3)':
+    dependencies:
+      '@outlit/core': 1.0.1
+    optionalDependencies:
+      react: 19.2.3
+
+  '@outlit/core@1.0.1': {}
 
   '@oxc-parser/binding-android-arm64@0.99.0':
     optional: true

@@ -98,9 +98,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'
 
         crate::fs::atomic_write(&settings_path, &content)?;
 
-        if old_content_base != default_base {
-            let _ = std::fs::remove_dir_all(&old_content_base);
-        }
+        // NOTE: We intentionally do NOT delete the old content folder.
+        // This is a copy-only operation for safety - if the app fails to restart
+        // or encounters issues with the new location, the user's data remains
+        // intact at the old location. Users can manually delete the old folder
+        // after confirming the migration was successful.
 
         Ok(())
     }

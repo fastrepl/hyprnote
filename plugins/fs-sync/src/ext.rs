@@ -201,6 +201,148 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
             }
         }
     }
+
+    pub fn attachment_save(
+        &self,
+        session_id: &str,
+        data: &[u8],
+        filename: &str,
+    ) -> Result<crate::AttachmentSaveResult, crate::Error> {
+        let session_dir = self.resolve_session_dir(session_id)?;
+        let attachments_dir = session_dir.join("attachments");
+
+        std::fs::create_dir_all(&attachments_dir)?;
+
+        let final_filename = find_unique_filename(&attachments_dir, filename);
+        let file_path = attachments_dir.join(&final_filename);
+
+        std::fs::write(&file_path, data)?;
+
+        Ok(crate::AttachmentSaveResult {
+            path: file_path.to_string_lossy().to_string(),
+            attachment_id: final_filename,
+        })
+    }
+
+    pub fn attachment_list(
+        &self,
+        session_id: &str,
+    ) -> Result<Vec<crate::AttachmentInfo>, crate::Error> {
+        let session_dir = self.resolve_session_dir(session_id)?;
+        let attachments_dir = session_dir.join("attachments");
+
+        let mut attachments = Vec::new();
+
+        let entries = match std::fs::read_dir(&attachments_dir) {
+            Ok(entries) => entries,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(attachments),
+            Err(e) => return Err(e.into()),
+        };
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_file() {
+                continue;
+            }
+
+            let filename = match path.file_name().and_then(|s| s.to_str()) {
+                Some(name) => name.to_string(),
+                None => continue,
+            };
+
+            let extension = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_string();
+
+            let modified_at = entry
+                .metadata()
+                .and_then(|m| m.modified())
+                .map(|t| {
+                    chrono::DateTime::<chrono::Utc>::from(t)
+                        .to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+                })
+                .unwrap_or_default();
+
+            attachments.push(crate::AttachmentInfo {
+                attachment_id: filename,
+                path: path.to_string_lossy().to_string(),
+                extension,
+                modified_at,
+            });
+        }
+
+        Ok(attachments)
+    }
+
+    pub fn attachment_remove(
+        &self,
+        session_id: &str,
+        attachment_id: &str,
+    ) -> Result<(), crate::Error> {
+        let session_dir = self.resolve_session_dir(session_id)?;
+        let attachments_dir = session_dir.join("attachments");
+
+        let entries = match std::fs::read_dir(&attachments_dir) {
+            Ok(entries) => entries,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+            Err(e) => return Err(e.into()),
+        };
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_file() {
+                continue;
+            }
+
+            let filename = match path.file_name().and_then(|s| s.to_str()) {
+                Some(name) => name,
+                None => continue,
+            };
+
+            if filename == attachment_id {
+                std::fs::remove_file(&path)?;
+                return Ok(());
+            }
+        }
+
+        Ok(())
+    }
+
+    fn resolve_session_dir(&self, session_id: &str) -> Result<PathBuf, crate::Error> {
+        let sessions_dir = self.sessions_dir()?;
+        Ok(find_session_dir(&sessions_dir, session_id))
+    }
+}
+
+fn find_unique_filename(dir: &std::path::Path, filename: &str) -> String {
+    let path = std::path::Path::new(filename);
+    let stem = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or(filename);
+    let extension = path.extension().and_then(|e| e.to_str());
+
+    let candidate = dir.join(filename);
+    if !candidate.exists() {
+        return filename.to_string();
+    }
+
+    let mut counter = 1;
+    loop {
+        let new_filename = match extension {
+            Some(ext) => format!("{} {}.{}", stem, counter, ext),
+            None => format!("{} {}", stem, counter),
+        };
+
+        let candidate = dir.join(&new_filename);
+        if !candidate.exists() {
+            return new_filename;
+        }
+
+        counter += 1;
+    }
 }
 
 pub trait FsSyncPluginExt<R: tauri::Runtime> {

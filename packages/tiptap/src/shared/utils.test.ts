@@ -542,20 +542,15 @@ More text.`;
       expect(validation.valid).toBe(true);
     });
 
-    test("validates image with src attribute", () => {
+    test("validates image with src attribute (block-level)", () => {
       const validJson: JSONContent = {
         type: "doc",
         content: [
           {
-            type: "paragraph",
-            content: [
-              {
-                type: "image",
-                attrs: {
-                  src: "https://example.com/image.png",
-                },
-              },
-            ],
+            type: "image",
+            attrs: {
+              src: "https://example.com/image.png",
+            },
           },
         ],
       };

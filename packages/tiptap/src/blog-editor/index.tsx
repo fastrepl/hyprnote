@@ -9,6 +9,7 @@ import { useDebounceCallback } from "usehooks-ts";
 
 import "../../styles.css";
 import * as shared from "../shared";
+import type { ImageUploadResult } from "../shared/extensions";
 import { GoogleDocsImport } from "./google-docs-import";
 import { BlogImage } from "./image-with-alt";
 import { Toolbar } from "./toolbar";
@@ -22,7 +23,7 @@ interface BlogEditorProps {
   showToolbar?: boolean;
   onGoogleDocsImport?: (url: string) => void;
   isImporting?: boolean;
-  onImageUpload?: (file: File) => Promise<string>;
+  onImageUpload?: (file: File) => Promise<ImageUploadResult>;
   onAddImageFromLibrary?: () => void;
 }
 

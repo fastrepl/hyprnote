@@ -1,4 +1,5 @@
 import {
+  AuthApiError,
   AuthRetryableFetchError,
   AuthSessionMissingError,
   createClient,
@@ -9,7 +10,6 @@ import {
 } from "@supabase/supabase-js";
 import { getVersion } from "@tauri-apps/api/app";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { version as osVersion, platform } from "@tauri-apps/plugin-os";
 import {
@@ -39,6 +39,21 @@ const isLocalAuthServer = (url: string | undefined): boolean => {
   } catch {
     return false;
   }
+};
+
+const isInvalidSessionError = (error: unknown): boolean => {
+  if (error instanceof AuthSessionMissingError) {
+    return true;
+  }
+  if (error instanceof AuthApiError) {
+    const invalidCodes = [
+      "refresh_token_already_used",
+      "refresh_token_not_found",
+      "invalid_refresh_token",
+    ];
+    return invalidCodes.includes(error.code ?? "");
+  }
+  return false;
 };
 
 const clearAuthStorage = async (): Promise<void> => {
@@ -176,10 +191,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       void supabase.auth.stopAutoRefresh();
     });
 
-    void onOpenUrl(([url]) => {
-      void handleAuthCallback(url);
-    });
-
     return () => {
       void unlistenFocus.then((fn) => fn());
       void unlistenBlur.then((fn) => fn());
@@ -191,10 +202,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    const clearInvalidSession = async () => {
+      void supabase.auth.stopAutoRefresh();
+      await clearAuthStorage();
+      setSession(null);
+    };
+
     const initSession = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
+
         if (error) {
+          if (isInvalidSessionError(error)) {
+            await clearInvalidSession();
+            return;
+          }
           if (
             error instanceof AuthRetryableFetchError &&
             isLocalAuthServer(env.VITE_SUPABASE_URL)
@@ -203,35 +225,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
         }
-        if (data.session) {
-          const { data: refreshData, error: refreshError } =
-            await supabase.auth.refreshSession();
-          if (refreshError) {
-            if (refreshError instanceof AuthSessionMissingError) {
-              await clearAuthStorage();
-              setSession(null);
-              return;
-            }
-            if (
-              refreshError instanceof AuthRetryableFetchError &&
-              isLocalAuthServer(env.VITE_SUPABASE_URL)
-            ) {
-              setServerReachable(false);
-              setSession(data.session);
-              void supabase.auth.startAutoRefresh();
-              return;
-            }
+
+        if (!data.session) {
+          return;
+        }
+
+        const { data: refreshData, error: refreshError } =
+          await supabase.auth.refreshSession();
+
+        if (refreshError) {
+          if (isInvalidSessionError(refreshError)) {
+            await clearInvalidSession();
+            return;
           }
-          if (refreshData.session) {
-            setSession(refreshData.session);
-            setServerReachable(true);
+          if (
+            refreshError instanceof AuthRetryableFetchError &&
+            isLocalAuthServer(env.VITE_SUPABASE_URL)
+          ) {
+            setServerReachable(false);
+            setSession(data.session);
             void supabase.auth.startAutoRefresh();
+            return;
           }
+          await clearInvalidSession();
+          return;
+        }
+
+        if (refreshData.session) {
+          setSession(refreshData.session);
+          setServerReachable(true);
+          void supabase.auth.startAutoRefresh();
         }
       } catch (e) {
-        if (e instanceof AuthSessionMissingError) {
-          await clearAuthStorage();
-          setSession(null);
+        if (isInvalidSessionError(e)) {
+          await clearInvalidSession();
           return;
         }
         if (
@@ -239,7 +266,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isLocalAuthServer(env.VITE_SUPABASE_URL)
         ) {
           setServerReachable(false);
+          return;
         }
+        await clearInvalidSession();
       }
     };
 

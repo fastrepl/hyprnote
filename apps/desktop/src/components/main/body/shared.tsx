@@ -1,7 +1,13 @@
 import { Pin, X } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { Button } from "@hypr/ui/components/ui/button";
 import { Kbd } from "@hypr/ui/components/ui/kbd";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
@@ -16,6 +22,8 @@ type TabItemProps<T extends Tab = Tab> = { tab: T; tabIndex?: number } & {
   handleCloseAll: () => void;
   handlePinThis: (tab: T) => void;
   handleUnpinThis: (tab: T) => void;
+  pendingCloseConfirmationTab?: Tab | null;
+  setPendingCloseConfirmationTab?: (tab: Tab | null) => void;
 };
 
 type TabItemBaseProps = {
@@ -28,6 +36,8 @@ type TabItemBaseProps = {
   allowPin?: boolean;
   isEmptyTab?: boolean;
   tabIndex?: number;
+  showCloseConfirmation?: boolean;
+  onCloseConfirmationChange?: (show: boolean) => void;
 } & {
   handleCloseThis: () => void;
   handleSelectThis: () => void;
@@ -51,6 +61,8 @@ export function TabItemBase({
   allowPin = true,
   isEmptyTab = false,
   tabIndex,
+  showCloseConfirmation = false,
+  onCloseConfirmationChange,
   handleCloseThis,
   handleSelectThis,
   handleCloseOthers,
@@ -60,6 +72,51 @@ export function TabItemBase({
 }: TabItemBaseProps) {
   const isCmdPressed = useCmdKeyPressed();
   const [isHovered, setIsHovered] = useState(false);
+  const [localShowConfirmation, setLocalShowConfirmation] = useState(false);
+
+  const isConfirmationOpen = showCloseConfirmation || localShowConfirmation;
+
+  useEffect(() => {
+    if (showCloseConfirmation) {
+      setLocalShowConfirmation(true);
+    }
+  }, [showCloseConfirmation]);
+
+  const handleCloseConfirmationChange = (open: boolean) => {
+    setLocalShowConfirmation(open);
+    onCloseConfirmationChange?.(open);
+  };
+
+  const handleAttemptClose = () => {
+    if (active) {
+      handleCloseConfirmationChange(true);
+    } else {
+      handleCloseThis();
+    }
+  };
+
+  const handleConfirmClose = useCallback(() => {
+    setLocalShowConfirmation(false);
+    onCloseConfirmationChange?.(false);
+    handleCloseThis();
+  }, [handleCloseThis, onCloseConfirmationChange]);
+
+  useEffect(() => {
+    if (!isConfirmationOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "w") {
+        e.preventDefault();
+        e.stopPropagation();
+        handleConfirmClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
+    };
+  }, [isConfirmationOpen, handleConfirmClose]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 1 && !active) {
@@ -72,7 +129,7 @@ export function TabItemBase({
   const contextMenu =
     active || (selected && !isEmptyTab)
       ? [
-          { id: "close-tab", text: "Close", action: handleCloseThis },
+          { id: "close-tab", text: "Close", action: handleAttemptClose },
           ...(allowPin
             ? [
                 { separator: true as const },
@@ -87,7 +144,7 @@ export function TabItemBase({
             : []),
         ]
       : [
-          { id: "close-tab", text: "Close", action: handleCloseThis },
+          { id: "close-tab", text: "Close", action: handleAttemptClose },
           {
             id: "close-others",
             text: "Close others",
@@ -114,7 +171,7 @@ export function TabItemBase({
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="h-full"
+      className="h-full relative"
     >
       <InteractiveButton
         asChild
@@ -145,7 +202,7 @@ export function TabItemBase({
             <div
               className={cn([
                 "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
-                isHovered ? "opacity-0" : "opacity-100",
+                isHovered || isConfirmationOpen ? "opacity-0" : "opacity-100",
               ])}
             >
               {finalizing ? (
@@ -176,13 +233,13 @@ export function TabItemBase({
             <div
               className={cn([
                 "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
-                isHovered ? "opacity-100" : "opacity-0",
+                isHovered || isConfirmationOpen ? "opacity-100" : "opacity-0",
               ])}
             >
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleCloseThis();
+                  handleAttemptClose();
                 }}
                 className={cn([
                   "flex items-center justify-center transition-colors",
@@ -207,6 +264,50 @@ export function TabItemBase({
           </div>
         )}
       </InteractiveButton>
+      <Popover
+        open={active && isConfirmationOpen}
+        onOpenChange={handleCloseConfirmationChange}
+      >
+        <PopoverTrigger asChild>
+          <div className="absolute inset-0 pointer-events-none" />
+        </PopoverTrigger>
+        <PopoverContent
+          side="bottom"
+          align="start"
+          className="w-48 p-3 rounded-xl"
+          sideOffset={2}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-neutral-700">
+              Are you sure you want to close this tab? This will stop Hyprnote
+              from listening.
+            </p>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="w-full rounded-lg flex items-center justify-center relative group"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleConfirmClose();
+              }}
+            >
+              <span>Close</span>
+              <Kbd
+                className={cn([
+                  "absolute right-2",
+                  "bg-red-200/20 border-red-200/30 text-red-100",
+                  "transition-all duration-100",
+                  "group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_0_0_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
+                  "group-active:translate-y-0.5 group-active:shadow-none",
+                ])}
+              >
+                ⌘ W
+              </Kbd>
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

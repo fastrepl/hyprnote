@@ -11,6 +11,7 @@ import { cn } from "@hypr/utils";
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
 import { useShell } from "../../../../contexts/shell";
+import { listenerStore } from "../../../../store/zustand/listener/instance";
 import { useAutoEnhance } from "../../../../hooks/useAutoEnhance";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useStartListening } from "../../../../hooks/useStartListening";
@@ -48,6 +49,8 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   handleCloseAll,
   handlePinThis,
   handleUnpinThis,
+  pendingCloseConfirmationTab,
+  setPendingCloseConfirmationTab,
 }) => {
   const title = main.UI.useCell(
     "sessions",
@@ -56,10 +59,35 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
     main.STORE_ID,
   );
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
+  const stop = useListener((state) => state.stop);
   const isEnhancing = useIsSessionEnhancing(tab.id);
   const isActive = sessionMode === "active" || sessionMode === "finalizing";
   const isFinalizing = sessionMode === "finalizing";
   const showSpinner = !tab.active && (isFinalizing || isEnhancing);
+
+  const showCloseConfirmation =
+    pendingCloseConfirmationTab?.type === "sessions" &&
+    pendingCloseConfirmationTab?.id === tab.id;
+
+  const handleCloseConfirmationChange = (show: boolean) => {
+    if (!show) {
+      setPendingCloseConfirmationTab?.(null);
+    }
+  };
+
+  const handleCloseWithStop = () => {
+    if (isActive) {
+      stop();
+      const unsubscribe = listenerStore.subscribe((state) => {
+        if (state.live.status !== "active") {
+          unsubscribe();
+          handleCloseThis(tab);
+        }
+      });
+    } else {
+      handleCloseThis(tab);
+    }
+  };
 
   return (
     <TabItemBase
@@ -70,7 +98,9 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
       finalizing={showSpinner}
       pinned={tab.pinned}
       tabIndex={tabIndex}
-      handleCloseThis={() => handleCloseThis(tab)}
+      showCloseConfirmation={showCloseConfirmation}
+      onCloseConfirmationChange={handleCloseConfirmationChange}
+      handleCloseThis={handleCloseWithStop}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}

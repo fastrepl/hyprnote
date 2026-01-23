@@ -23,6 +23,10 @@ export type FileHandlerConfig = {
   onImageUpload?: (file: File) => Promise<string>;
 };
 
+export type ExtensionOptions = {
+  imageExtension?: ReturnType<typeof Image.extend>;
+};
+
 const AttachmentImage = Image.extend({
   addAttributes() {
     return {
@@ -64,6 +68,7 @@ const AttachmentImage = Image.extend({
 export const getExtensions = (
   placeholderComponent?: PlaceholderFunction,
   fileHandlerConfig?: FileHandlerConfig,
+  options?: ExtensionOptions,
 ) => [
   // https://tiptap.dev/docs/editor/extensions/functionality/starterkit
   StarterKit.configure({
@@ -72,7 +77,7 @@ export const getExtensions = (
     link: false,
     listKeymap: false,
   }),
-  AttachmentImage.configure({
+  (options?.imageExtension ?? AttachmentImage).configure({
     inline: false,
     allowBase64: true,
     HTMLAttributes: { class: "tiptap-image" },

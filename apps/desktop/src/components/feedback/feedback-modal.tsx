@@ -1,12 +1,16 @@
+import { sep } from "@tauri-apps/api/path";
 import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
 import { Bug, Lightbulb, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { create } from "zustand";
 
+import { commands as fs2Commands } from "@hypr/plugin-fs2";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
+import { commands as tracingCommands } from "@hypr/plugin-tracing";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Checkbox } from "@hypr/ui/components/ui/checkbox";
 import { cn } from "@hypr/utils";
 
 import { env } from "../../env";
@@ -27,12 +31,48 @@ export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
   close: () => set({ isOpen: false }),
 }));
 
+function redactUserInfo(content: string): string {
+  let redacted = content;
+  redacted = redacted.replace(/\/Users\/[^\/\s]+/g, "/Users/[REDACTED]");
+  redacted = redacted.replace(/\/home\/[^\/\s]+/g, "/home/[REDACTED]");
+  redacted = redacted.replace(
+    /C:\\Users\\[^\\\/\s]+/g,
+    "C:\\Users\\[REDACTED]",
+  );
+  redacted = redacted.replace(
+    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+    "[EMAIL_REDACTED]",
+  );
+  redacted = redacted.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[IP_REDACTED]");
+  return redacted;
+}
+
+async function getRedactedLogContent(): Promise<string | null> {
+  const logsDirResult = await tracingCommands.logsDir();
+  if (logsDirResult.status !== "ok") {
+    return null;
+  }
+
+  const logsDir = logsDirResult.data;
+  const logPath = [logsDir, "log"].join(sep());
+  const logResult = await fs2Commands.readTextFile(logPath);
+
+  if (logResult.status !== "ok") {
+    return null;
+  }
+
+  const lines = logResult.data.split("\n");
+  const lastLines = lines.slice(-500);
+  return redactUserInfo(lastLines.join("\n"));
+}
+
 export function FeedbackModal() {
   const { isOpen, initialType, close } = useFeedbackModal();
   const [type, setType] = useState<FeedbackType>(initialType);
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gitHash, setGitHash] = useState<string>("");
+  const [attachLogs, setAttachLogs] = useState(false);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -59,6 +99,7 @@ export function FeedbackModal() {
     } else {
       setDescription("");
       setGitHash("");
+      setAttachLogs(false);
     }
   }, [isOpen, initialType]);
 
@@ -87,13 +128,32 @@ export function FeedbackModal() {
       const title =
         firstLine || (type === "bug" ? "Bug Report" : "Feature Request");
 
+      let logSection = "";
+      if (attachLogs) {
+        const logContent = await getRedactedLogContent();
+        if (logContent) {
+          logSection = `
+
+## Application Logs (last 500 lines, redacted)
+<details>
+<summary>Click to expand logs</summary>
+
+\`\`\`
+${logContent}
+\`\`\`
+
+</details>
+`;
+        }
+      }
+
       if (type === "bug") {
         const body = `## Description
 ${trimmedDescription}
 
 ## Device Information
 ${deviceInfo}
-
+${logSection}
 ---
 *This issue was submitted from the Hyprnote desktop app.*
 `;
@@ -110,7 +170,7 @@ ${trimmedDescription}
 
 ## Submitted From
 ${deviceInfo}
-
+${logSection}
 ---
 *This feature request was submitted from the Hyprnote desktop app.*
 `;
@@ -131,7 +191,7 @@ ${deviceInfo}
     } finally {
       setIsSubmitting(false);
     }
-  }, [description, type, close]);
+  }, [description, type, close, attachLogs]);
 
   if (!isOpen) {
     return null;
@@ -224,6 +284,20 @@ ${deviceInfo}
                   ])}
                   maxLength={5000}
                 />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="attach-logs"
+                  checked={attachLogs}
+                  onCheckedChange={(checked) => setAttachLogs(checked === true)}
+                />
+                <label
+                  htmlFor="attach-logs"
+                  className="text-sm text-neutral-600 cursor-pointer"
+                >
+                  Attach application logs (user info redacted)
+                </label>
               </div>
 
               {gitHash && (

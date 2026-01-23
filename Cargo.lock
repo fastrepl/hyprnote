@@ -4365,6 +4365,7 @@ dependencies = [
 name = "detect"
 version = "0.1.0"
 dependencies = [
+ "block2",
  "bundle",
  "cidre",
  "isolang",

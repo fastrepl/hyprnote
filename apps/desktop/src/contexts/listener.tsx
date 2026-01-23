@@ -94,6 +94,10 @@ const useHandleDetectEvents = (store: ListenerStore) => {
             });
         } else if (payload.type === "micStopped") {
           stop();
+        } else if (payload.type === "sleepStateChanged") {
+          if (payload.value) {
+            stop();
+          }
         } else if (payload.type === "micMuted") {
           setMuted(payload.value);
         }

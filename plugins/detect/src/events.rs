@@ -20,6 +20,8 @@ common_event_derives! {
         },
         #[serde(rename = "micMuted")]
         MicMuteStateChanged { value: bool },
+        #[serde(rename = "sleepStateChanged")]
+        SleepStateChanged { value: bool },
     }
 }
 
@@ -34,6 +36,10 @@ impl From<hypr_detect::DetectEvent> for DetectEvent {
             #[cfg(all(target_os = "macos", feature = "zoom"))]
             hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {
                 Self::MicMuteStateChanged { value }
+            }
+            #[cfg(all(target_os = "macos", feature = "sleep"))]
+            hypr_detect::DetectEvent::SleepStateChanged { value } => {
+                Self::SleepStateChanged { value }
             }
         }
     }

@@ -110,8 +110,12 @@ pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::er
                 );
             }
             #[cfg(all(target_os = "macos", feature = "zoom"))]
-            other_event => {
-                emit_to_main(&app_handle, DetectEvent::from(other_event));
+            hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {
+                emit_to_main(&app_handle, DetectEvent::MicMuteStateChanged { value });
+            }
+            #[cfg(all(target_os = "macos", feature = "sleep"))]
+            hypr_detect::DetectEvent::SleepStateChanged { value } => {
+                emit_to_main(&app_handle, DetectEvent::SleepStateChanged { value });
             }
         }
     });

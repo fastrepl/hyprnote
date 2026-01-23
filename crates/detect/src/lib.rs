@@ -6,6 +6,8 @@ mod language;
 mod list;
 #[cfg(feature = "mic")]
 mod mic;
+#[cfg(all(target_os = "macos", feature = "sleep"))]
+mod sleep;
 
 mod utils;
 
@@ -36,6 +38,9 @@ pub use mic::*;
 ))]
 pub use zoom::*;
 
+#[cfg(all(target_os = "macos", feature = "sleep"))]
+pub use sleep::*;
+
 #[cfg(feature = "mic")]
 #[derive(Debug, Clone)]
 pub enum DetectEvent {
@@ -43,6 +48,10 @@ pub enum DetectEvent {
     MicStopped(Vec<InstalledApp>),
     #[cfg(all(target_os = "macos", feature = "zoom"))]
     ZoomMuteStateChanged {
+        value: bool,
+    },
+    #[cfg(all(target_os = "macos", feature = "sleep"))]
+    SleepStateChanged {
         value: bool,
     },
 }
@@ -70,6 +79,8 @@ pub struct Detector {
     mic_detector: MicDetector,
     #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
     zoom_watcher: ZoomMuteWatcher,
+    #[cfg(all(target_os = "macos", feature = "sleep"))]
+    sleep_detector: SleepDetector,
 }
 
 #[cfg(feature = "mic")]
@@ -78,7 +89,10 @@ impl Detector {
         self.mic_detector.start(f.clone());
 
         #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
-        self.zoom_watcher.start(f);
+        self.zoom_watcher.start(f.clone());
+
+        #[cfg(all(target_os = "macos", feature = "sleep"))]
+        self.sleep_detector.start(f);
     }
 
     pub fn stop(&mut self) {
@@ -86,5 +100,8 @@ impl Detector {
 
         #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
         self.zoom_watcher.stop();
+
+        #[cfg(all(target_os = "macos", feature = "sleep"))]
+        self.sleep_detector.stop();
     }
 }

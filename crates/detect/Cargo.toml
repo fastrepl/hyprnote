@@ -10,6 +10,7 @@ language = []
 list = []
 app = []
 zoom = []
+sleep = []
 
 [dependencies]
 isolang = { workspace = true }
@@ -31,9 +32,10 @@ hypr-language = { workspace = true }
 
 plist = "1.7"
 cidre = { workspace = true }
+block2 = { workspace = true }
 
 objc2-foundation = { workspace = true, features = ["NSLocale", "NSArray", "NSString"] }
-objc2-app-kit = { workspace = true }
+objc2-app-kit = { workspace = true, features = ["NSWorkspace"] }
 objc2 = { workspace = true }
 objc2-core-foundation = { workspace = true }
 objc2-application-services = { workspace = true }

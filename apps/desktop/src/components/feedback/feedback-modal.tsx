@@ -43,6 +43,7 @@ function redactUserInfo(content: string): string {
     /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
     "[EMAIL_REDACTED]",
   );
+  redacted = redacted.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[IP_REDACTED]");
   return redacted;
 }
 

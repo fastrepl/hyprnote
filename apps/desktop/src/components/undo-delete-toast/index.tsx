@@ -11,6 +11,7 @@ export function UndoDeleteToast() {
     <AnimatePresence>
       {hasPendingDelete && pendingDelete && (
         <motion.div
+          key={pendingDelete.checkpointId}
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}

@@ -83,10 +83,7 @@ export const RawEditor = forwardRef<
     [],
   );
 
-  const fileHandlerConfig = useMemo(
-    () => ({ onImageUpload }),
-    [onImageUpload],
-  );
+  const fileHandlerConfig = useMemo(() => ({ onImageUpload }), [onImageUpload]);
 
   return (
     <NoteEditor

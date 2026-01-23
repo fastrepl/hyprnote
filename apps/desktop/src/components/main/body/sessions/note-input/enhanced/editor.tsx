@@ -50,10 +50,7 @@ export const EnhancedEditor = forwardRef<
     [],
   );
 
-  const fileHandlerConfig = useMemo(
-    () => ({ onImageUpload }),
-    [onImageUpload],
-  );
+  const fileHandlerConfig = useMemo(() => ({ onImageUpload }), [onImageUpload]);
 
   return (
     <div className="h-full">

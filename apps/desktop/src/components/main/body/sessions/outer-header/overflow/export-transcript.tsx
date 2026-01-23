@@ -11,7 +11,16 @@ import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 
 import * as main from "../../../../../../store/tinybase/store/main";
-import { parseTranscriptWords } from "../../../../../../store/transcript/utils";
+import {
+  parseTranscriptHints,
+  parseTranscriptWords,
+} from "../../../../../../store/transcript/utils";
+import { buildSegments, SegmentKey } from "../../../../../../utils/segment";
+import {
+  defaultRenderLabelContext,
+  SpeakerLabelManager,
+} from "../../../../../../utils/segment/shared";
+import { convertStorageHintsToRuntime } from "../../../../../../utils/speaker-hints";
 
 export function ExportTranscript({ sessionId }: { sessionId: string }) {
   const store = main.UI.useStore(main.STORE_ID);
@@ -27,7 +36,14 @@ export function ExportTranscript({ sessionId }: { sessionId: string }) {
       return [];
     }
 
-    const allWords: VttWord[] = [];
+    const wordIdToIndex = new Map<string, number>();
+    const collectedWords: Array<{
+      id: string;
+      text: string;
+      start_ms: number;
+      end_ms: number;
+      channel: number;
+    }> = [];
 
     for (const transcriptId of transcriptIds) {
       const words = parseTranscriptWords(store, transcriptId);
@@ -39,16 +55,45 @@ export function ExportTranscript({ sessionId }: { sessionId: string }) {
         ) {
           continue;
         }
-        allWords.push({
+        collectedWords.push({
+          id: word.id,
           text: word.text,
           start_ms: word.start_ms,
           end_ms: word.end_ms,
-          speaker: null,
+          channel: word.channel ?? 0,
         });
       }
     }
 
-    return allWords.sort((a, b) => a.start_ms - b.start_ms);
+    collectedWords.sort((a, b) => a.start_ms - b.start_ms);
+    collectedWords.forEach((w, i) => wordIdToIndex.set(w.id, i));
+
+    const storageHints = transcriptIds.flatMap((id) =>
+      parseTranscriptHints(store, id),
+    );
+    const speakerHints = convertStorageHintsToRuntime(
+      storageHints,
+      wordIdToIndex,
+    );
+
+    const segments = buildSegments(collectedWords, [], speakerHints);
+    const ctx = defaultRenderLabelContext(store);
+    const manager = SpeakerLabelManager.fromSegments(segments, ctx);
+
+    const vttWords: VttWord[] = [];
+    for (const segment of segments) {
+      const speakerLabel = SegmentKey.renderLabel(segment.key, ctx, manager);
+      for (const word of segment.words) {
+        vttWords.push({
+          text: word.text,
+          start_ms: word.start_ms,
+          end_ms: word.end_ms,
+          speaker: speakerLabel,
+        });
+      }
+    }
+
+    return vttWords;
   }, [store, transcriptIds]);
 
   const { mutate, isPending } = useMutation({

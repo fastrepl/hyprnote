@@ -174,9 +174,12 @@ export const Route = createFileRoute("/api/admin/content/save")({
         const frontmatter = buildFrontmatter(metadata);
         const fullContent = `${frontmatter}\n\n${processedContent}`;
 
-        const result = branch
-          ? await updateContentFileOnBranch(path, fullContent, branch)
-          : await updateContentFile(path, fullContent);
+        // If the article is published, always save directly to main
+        // This ensures published article revisions go directly to main
+        const shouldSaveToMain = metadata.published === true || !branch;
+        const result = shouldSaveToMain
+          ? await updateContentFile(path, fullContent)
+          : await updateContentFileOnBranch(path, fullContent, branch);
 
         if (!result.success) {
           return new Response(JSON.stringify({ error: result.error }), {

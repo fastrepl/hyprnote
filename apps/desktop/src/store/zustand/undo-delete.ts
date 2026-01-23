@@ -50,6 +50,9 @@ export const useUndoDeleteStore = create<UndoDeleteState>((set, get) => ({
     if (pendingDelete) {
       clearTimeout(pendingDelete.timeoutId);
       void fsSyncCommands.audioDelete(pendingDelete.sessionId);
+      if (checkpoints) {
+        checkpoints.delCheckpoint(pendingDelete.checkpointId);
+      }
     }
 
     const timeoutId = setTimeout(() => {

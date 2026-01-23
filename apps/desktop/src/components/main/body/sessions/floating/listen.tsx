@@ -46,80 +46,146 @@ function BeforeMeeingButton({
   tab: Extract<Tab, { type: "sessions" }>;
 }) {
   const remote = useRemoteMeeting(tab.id);
-  const isNarrow = useMediaQuery("(max-width: 870px)");
 
   const { isDisabled, warningMessage } = useListenButtonState(tab.id);
   const startListening = useStartListening(tab.id);
 
-  const handleClick = useCallback(() => {
+  const handleJoin = useCallback(() => {
     if (remote?.url) {
       void openerCommands.openUrl(remote.url, null);
     }
-    startListening();
-  }, [remote?.url, startListening]);
+  }, [remote?.url]);
 
-  let content: React.ReactNode;
-
-  if (remote?.type === "zoom") {
-    content = isNarrow ? (
-      <>
-        <span>Join</span> <Icon icon="logos:zoom-icon" size={20} />
-      </>
-    ) : (
-      <>
-        <span>Join</span> <Icon icon="logos:zoom-icon" size={20} />{" "}
-        <span>Zoom & Start listening</span>
-      </>
-    );
-  } else if (remote?.type === "google-meet") {
-    content = isNarrow ? (
-      <>
-        <span>Join</span> <Icon icon="logos:google-meet" size={20} />
-      </>
-    ) : (
-      <>
-        <span>Join</span> <Icon icon="logos:google-meet" size={20} />{" "}
-        <span>Google Meet & Start listening</span>
-      </>
-    );
-  } else if (remote?.type === "webex") {
-    content = isNarrow ? (
-      <>
-        <span>Join</span> <Icon icon="simple-icons:webex" size={20} />
-      </>
-    ) : (
-      <>
-        <span>Join</span> <Icon icon="simple-icons:webex" size={20} />{" "}
-        <span>Webex & Start listening</span>
-      </>
-    );
-  } else if (remote?.type === "teams") {
-    content = isNarrow ? (
-      <>
-        <span>Join</span> <Icon icon="logos:microsoft-teams" size={20} />
-      </>
-    ) : (
-      <>
-        <span>Join</span> <Icon icon="logos:microsoft-teams" size={20} />{" "}
-        <span>Teams & Start listening</span>
-      </>
-    );
-  } else {
-    content = (
-      <>
-        <RecordingIcon /> <span>Start listening</span>
-      </>
+  if (remote) {
+    return (
+      <SplitMeetingButtons
+        remote={remote}
+        disabled={isDisabled}
+        warningMessage={warningMessage}
+        onJoin={handleJoin}
+        onStartListening={startListening}
+        sessionId={tab.id}
+      />
     );
   }
 
   return (
     <ListenSplitButton
-      content={content}
+      content={
+        <>
+          <span className="flex items-center gap-2 pl-3">
+            <RecordingIcon /> Start listening
+          </span>
+        </>
+      }
       disabled={isDisabled}
       warningMessage={warningMessage}
-      onPrimaryClick={handleClick}
+      onPrimaryClick={startListening}
       sessionId={tab.id}
     />
+  );
+}
+
+function SplitMeetingButtons({
+  remote,
+  disabled,
+  warningMessage,
+  onJoin,
+  onStartListening,
+  sessionId,
+}: {
+  remote: RemoteMeeting;
+  disabled: boolean;
+  warningMessage: string;
+  onJoin: () => void;
+  onStartListening: () => void;
+  sessionId: string;
+}) {
+  const openNew = useTabs((state) => state.openNew);
+  const countdown = useEventCountdown(sessionId);
+  const isNarrow = useMediaQuery("(max-width: 870px)");
+
+  const handleConfigure = useCallback(() => {
+    onStartListening();
+    openNew({ type: "ai", state: { tab: "transcription" } });
+  }, [onStartListening, openNew]);
+
+  const getMeetingIcon = () => {
+    switch (remote.type) {
+      case "zoom":
+        return <Icon icon="logos:zoom-icon" width={20} />;
+      case "google-meet":
+        return <Icon icon="logos:google-meet" width={20} />;
+      case "webex":
+        return <Icon icon="simple-icons:webex" width={20} />;
+      case "teams":
+        return <Icon icon="logos:microsoft-teams" width={20} />;
+    }
+  };
+
+  const getMeetingName = () => {
+    switch (remote.type) {
+      case "zoom":
+        return "Zoom";
+      case "google-meet":
+        return "Meet";
+      case "webex":
+        return "Webex";
+      case "teams":
+        return "Teams";
+    }
+  };
+
+  return (
+    <div className="relative flex items-center gap-2">
+      {!isNarrow && (
+        <FloatingButton
+          onClick={onJoin}
+          className="justify-center gap-2 h-10 px-3 lg:px-4 bg-linear-to-b from-white to-neutral-50 hover:from-neutral-50 hover:to-neutral-100 text-neutral-800 border-neutral-200 shadow-[0_4px_14px_rgba(0,0,0,0.1)]"
+        >
+          <span>Join</span>
+          {getMeetingIcon()}
+          <span>{getMeetingName()}</span>
+        </FloatingButton>
+      )}
+      <OptionsMenu
+        sessionId={sessionId}
+        disabled={disabled}
+        warningMessage={warningMessage}
+        onConfigure={handleConfigure}
+      >
+        <FloatingButton
+          onClick={onStartListening}
+          disabled={disabled}
+          className="justify-center gap-2 pl-3 pr-8 lg:pl-4 lg:pr-10 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white border-stone-600 shadow-[0_4px_14px_rgba(87,83,78,0.4)]"
+          tooltip={
+            warningMessage
+              ? {
+                  side: "top",
+                  content: (
+                    <ActionableTooltipContent
+                      message={warningMessage}
+                      action={{
+                        label: "Configure",
+                        handleClick: handleConfigure,
+                      }}
+                    />
+                  ),
+                }
+              : undefined
+          }
+        >
+          <span className="flex items-center gap-2 pl-3">
+            <RecordingIcon /> Start listening
+          </span>
+        </FloatingButton>
+      </OptionsMenu>
+      {countdown && (
+        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap text-xs text-neutral-500">
+          {countdown}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -145,36 +211,37 @@ function ListenSplitButton({
   }, [onPrimaryClick, openNew]);
 
   return (
-    <div className="relative flex items-center">
-      <FloatingButton
-        onClick={onPrimaryClick}
-        disabled={disabled}
-        className="justify-center gap-2 pr-12 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white border-stone-600 shadow-[0_4px_14px_rgba(87,83,78,0.4)]"
-        tooltip={
-          warningMessage
-            ? {
-                side: "top",
-                content: (
-                  <ActionableTooltipContent
-                    message={warningMessage}
-                    action={{
-                      label: "Configure",
-                      handleClick: handleAction,
-                    }}
-                  />
-                ),
-              }
-            : undefined
-        }
-      >
-        {content}
-      </FloatingButton>
+    <div className="relative">
       <OptionsMenu
         sessionId={sessionId}
         disabled={disabled}
         warningMessage={warningMessage}
         onConfigure={handleAction}
-      />
+      >
+        <FloatingButton
+          onClick={onPrimaryClick}
+          disabled={disabled}
+          className="justify-center gap-2 pl-3 pr-8 lg:pl-4 lg:pr-10 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white border-stone-600 shadow-[0_4px_14px_rgba(87,83,78,0.4)]"
+          tooltip={
+            warningMessage
+              ? {
+                  side: "top",
+                  content: (
+                    <ActionableTooltipContent
+                      message={warningMessage}
+                      action={{
+                        label: "Configure",
+                        handleClick: handleAction,
+                      }}
+                    />
+                  ),
+                }
+              : undefined
+          }
+        >
+          {content}
+        </FloatingButton>
+      </OptionsMenu>
       {countdown && (
         <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap text-xs text-neutral-500">
           {countdown}

@@ -24,7 +24,7 @@ export type FileHandlerConfig = {
 };
 
 export type ExtensionOptions = {
-  imageExtension?: ReturnType<typeof Image.extend>;
+  imageExtension?: any;
 };
 
 const AttachmentImage = Image.extend({

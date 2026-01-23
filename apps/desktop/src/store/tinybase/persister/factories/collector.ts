@@ -17,6 +17,7 @@ import {
 } from "@hypr/plugin-fs-sync";
 import { extractChangedTables } from "@hypr/tinybase-utils";
 
+import { isMigrationInProgress } from "../../store/save";
 import { StoreOrMergeableStore } from "../../store/shared";
 import {
   createFileListener,
@@ -129,6 +130,10 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
     >,
     changes?: PersistedChanges<Schemas, Persists.StoreOrMergeableStore>,
   ) => {
+    if (isMigrationInProgress()) {
+      return;
+    }
+
     const changedTables = extractChangedTables<Schemas>(changes);
 
     try {

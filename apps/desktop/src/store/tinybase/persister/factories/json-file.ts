@@ -15,6 +15,7 @@ import { events as notifyEvents } from "@hypr/plugin-notify";
 import { commands as settingsCommands } from "@hypr/plugin-settings";
 import { asTablesChanges, extractChangedTables } from "@hypr/tinybase-utils";
 
+import { isMigrationInProgress } from "../../store/save";
 import { StoreOrMergeableStore } from "../../store/shared";
 import { isFileNotFoundError } from "../shared/fs";
 import type { ChangedTables } from "../shared/types";
@@ -92,6 +93,10 @@ async function saveContent<
   filename: string,
   label: string,
 ) {
+  if (isMigrationInProgress()) {
+    return;
+  }
+
   if (changes) {
     const changedTables = extractChangedTables<Schemas>(changes);
     if (changedTables && !changedTables[tableName as keyof ChangedTables]) {

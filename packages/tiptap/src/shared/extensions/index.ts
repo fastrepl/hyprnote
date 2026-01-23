@@ -17,10 +17,15 @@ import { SearchAndReplace } from "./search-and-replace";
 
 export type { PlaceholderFunction };
 
+export type ImageUploadResult = {
+  url: string;
+  attachmentId: string;
+};
+
 export type FileHandlerConfig = {
   onDrop?: (files: File[], editor: any, position?: number) => boolean | void;
   onPaste?: (files: File[], editor: any) => boolean | void;
-  onImageUpload?: (file: File) => Promise<string>;
+  onImageUpload?: (file: File) => Promise<ImageUploadResult>;
 };
 
 export type ExtensionOptions = {
@@ -45,12 +50,14 @@ const AttachmentImage = Image.extend({
   },
 
   parseMarkdown: (token: { href?: string; text?: string; title?: string }) => {
+    const src = token.href || "";
     return {
       type: "image",
       attrs: {
-        src: token.href || "",
+        src,
         alt: token.text || "",
         title: token.title || null,
+        attachmentId: null,
       },
     };
   },
@@ -81,7 +88,6 @@ export const getExtensions = (
     inline: false,
     allowBase64: true,
     HTMLAttributes: { class: "tiptap-image" },
-    resize: { enabled: true },
   }),
   Underline,
   Placeholder.configure({
@@ -167,13 +173,15 @@ export const getExtensions = (
               for (const file of files) {
                 if (fileHandlerConfig.onImageUpload) {
                   try {
-                    const url = await fileHandlerConfig.onImageUpload(file);
+                    const { url, attachmentId } =
+                      await fileHandlerConfig.onImageUpload(file);
                     currentEditor
                       .chain()
                       .insertContentAt(pos, {
                         type: "image",
                         attrs: {
                           src: url,
+                          attachmentId,
                         },
                       })
                       .focus()
@@ -213,17 +221,18 @@ export const getExtensions = (
               for (const file of files) {
                 if (fileHandlerConfig.onImageUpload) {
                   try {
-                    const url = await fileHandlerConfig.onImageUpload(file);
-                    const imageNode = {
-                      type: "image",
-                      attrs: {
-                        src: url,
-                      },
-                    };
+                    const { url, attachmentId } =
+                      await fileHandlerConfig.onImageUpload(file);
                     currentEditor
                       .chain()
                       .focus()
-                      .insertContent(imageNode)
+                      .insertContent({
+                        type: "image",
+                        attrs: {
+                          src: url,
+                          attachmentId,
+                        },
+                      })
                       .run();
                   } catch (error) {
                     console.error("Failed to upload image:", error);
@@ -233,17 +242,15 @@ export const getExtensions = (
 
                   fileReader.readAsDataURL(file);
                   fileReader.onload = () => {
-                    const imageNode = {
-                      type: "image",
-                      attrs: {
-                        src: fileReader.result,
-                      },
-                    };
-
                     currentEditor
                       .chain()
                       .focus()
-                      .insertContent(imageNode)
+                      .insertContent({
+                        type: "image",
+                        attrs: {
+                          src: fileReader.result,
+                        },
+                      })
                       .run();
                   };
                 }

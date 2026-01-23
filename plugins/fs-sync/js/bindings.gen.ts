@@ -158,9 +158,25 @@ async entityDir(dirName: string) : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async attachmentSave(sessionId: string, data: number[], extension: string) : Promise<Result<string, string>> {
+async attachmentSave(sessionId: string, data: number[], extension: string) : Promise<Result<AttachmentSaveResult, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|attachment_save", { sessionId, data, extension }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async attachmentList(sessionId: string) : Promise<Result<AttachmentInfo[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|attachment_list", { sessionId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async attachmentRemove(sessionId: string, attachmentId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|attachment_remove", { sessionId, attachmentId }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -178,6 +194,8 @@ async attachmentSave(sessionId: string, data: number[], extension: string) : Pro
 
 /** user-defined types **/
 
+export type AttachmentInfo = { attachmentId: string; path: string; extension: string; modifiedAt: string }
+export type AttachmentSaveResult = { path: string; attachmentId: string }
 export type CleanupTarget = { type: "files"; subdir: string; extension: string } | { type: "dirs"; subdir: string; marker_file: string } | { type: "filesRecursive"; subdir: string; marker_file: string; extension: string }
 export type FolderInfo = { name: string; parent_folder_id: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>

@@ -1,8 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { AlertCircleIcon, PlusIcon, RefreshCwIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import {
+  type AttachmentInfo,
+  commands as fsSyncCommands,
+} from "@hypr/plugin-fs-sync";
 import { md2json } from "@hypr/tiptap/shared";
 import {
   Popover,
@@ -571,6 +575,29 @@ export function Header({
   );
 }
 
+export function useAttachments(sessionId: string): {
+  attachments: AttachmentInfo[];
+  isLoading: boolean;
+  refetch: () => void;
+} {
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["attachments", sessionId],
+    queryFn: async () => {
+      const result = await fsSyncCommands.attachmentList(sessionId);
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
+
+  return {
+    attachments: data ?? [],
+    isLoading,
+    refetch,
+  };
+}
+
 export function useEditorTabs({
   sessionId,
 }: {
@@ -580,6 +607,8 @@ export function useEditorTabs({
 
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const hasTranscript = useHasTranscript(sessionId);
+  const { attachments } = useAttachments(sessionId);
+  const hasAttachments = attachments.length > 0;
   const enhancedNoteIds = main.UI.useSliceRowIds(
     main.INDEXES.enhancedNotesBySession,
     sessionId,
@@ -587,7 +616,11 @@ export function useEditorTabs({
   );
 
   if (sessionMode === "active" || sessionMode === "running_batch") {
-    return [{ type: "raw" }, { type: "transcript" }];
+    const tabs: EditorView[] = [{ type: "raw" }, { type: "transcript" }];
+    if (hasAttachments) {
+      tabs.push({ type: "attachments" });
+    }
+    return tabs;
   }
 
   if (hasTranscript) {
@@ -595,10 +628,22 @@ export function useEditorTabs({
       type: "enhanced",
       id,
     }));
-    return [...enhancedTabs, { type: "raw" }, { type: "transcript" }];
+    const tabs: EditorView[] = [
+      ...enhancedTabs,
+      { type: "raw" },
+      { type: "transcript" },
+    ];
+    if (hasAttachments) {
+      tabs.push({ type: "attachments" });
+    }
+    return tabs;
   }
 
-  return [{ type: "raw" }];
+  const tabs: EditorView[] = [{ type: "raw" }];
+  if (hasAttachments) {
+    tabs.push({ type: "attachments" });
+  }
+  return tabs;
 }
 
 function labelForEditorView(view: EditorView): string {
@@ -610,6 +655,9 @@ function labelForEditorView(view: EditorView): string {
   }
   if (view.type === "transcript") {
     return "Transcript";
+  }
+  if (view.type === "attachments") {
+    return "Attachments";
   }
   return "";
 }

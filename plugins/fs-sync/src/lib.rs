@@ -48,6 +48,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::chat_dir::<tauri::Wry>,
             commands::entity_dir::<tauri::Wry>,
             commands::attachment_save::<tauri::Wry>,
+            commands::attachment_list::<tauri::Wry>,
+            commands::attachment_remove::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

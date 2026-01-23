@@ -7,6 +7,8 @@ crate::common_derives! {
         Transcript,
         #[serde(rename = "enhanced")]
         Enhanced { id: String },
+        #[serde(rename = "attachments")]
+        Attachments,
     }
 }
 

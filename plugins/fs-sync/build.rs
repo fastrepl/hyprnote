@@ -18,6 +18,7 @@ const COMMANDS: &[&str] = &[
     "scan_and_read",
     "chat_dir",
     "entity_dir",
+    "attachment_save",
 ];
 
 fn main() {

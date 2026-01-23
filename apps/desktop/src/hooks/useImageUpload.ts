@@ -1,11 +1,18 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useCallback } from "react";
 
-import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import {
+  type AttachmentSaveResult,
+  commands as fsSyncCommands,
+} from "@hypr/plugin-fs-sync";
+
+export type ImageUploadResult = AttachmentSaveResult & {
+  url: string;
+};
 
 export function useImageUpload(sessionId: string) {
   return useCallback(
-    async (file: File): Promise<string> => {
+    async (file: File): Promise<ImageUploadResult> => {
       const parts = file.name.split(".");
       const extension = parts.length > 1 ? parts.pop() || "png" : "png";
       const arrayBuffer = await file.arrayBuffer();
@@ -21,7 +28,8 @@ export function useImageUpload(sessionId: string) {
         throw new Error(result.error);
       }
 
-      return convertFileSrc(result.data);
+      const { path, attachmentId } = result.data;
+      return { path, attachmentId, url: convertFileSrc(path) };
     },
     [sessionId],
   );

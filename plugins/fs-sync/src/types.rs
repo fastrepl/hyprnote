@@ -38,3 +38,19 @@ pub enum CleanupTarget {
         extension: String,
     },
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct AttachmentSaveResult {
+    pub path: String,
+    pub attachment_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct AttachmentInfo {
+    pub attachment_id: String,
+    pub path: String,
+    pub extension: String,
+    pub modified_at: String,
+}

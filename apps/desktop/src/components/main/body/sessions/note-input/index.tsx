@@ -1,13 +1,16 @@
+import { convertFileSrc } from "@tauri-apps/api/core";
 import {
   forwardRef,
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import {
   ScrollFadeOverlay,
@@ -21,8 +24,9 @@ import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useCaretNearBottom } from "../caret-position-context";
 import { useCurrentNoteTab } from "../shared";
+import { type Attachment, Attachments } from "./attachments";
 import { Enhanced } from "./enhanced";
-import { Header, useEditorTabs } from "./header";
+import { Header, useAttachments, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
 
@@ -88,7 +92,7 @@ export const NoteInput = forwardRef<
   });
 
   useEffect(() => {
-    if (currentTab.type === "transcript") {
+    if (currentTab.type === "transcript" || currentTab.type === "attachments") {
       internalEditorRef.current = { editor: null };
       setEditor(null);
     } else if (currentTab.type === "raw" && isMeetingInProgress) {
@@ -201,11 +205,12 @@ export const NoteInput = forwardRef<
   useCaretNearBottom({
     editor,
     container,
-    enabled: currentTab.type !== "transcript",
+    enabled:
+      currentTab.type !== "transcript" && currentTab.type !== "attachments",
   });
 
   const handleContainerClick = () => {
-    if (currentTab.type !== "transcript") {
+    if (currentTab.type !== "transcript" && currentTab.type !== "attachments") {
       internalEditorRef.current?.editor?.commands.focus();
     }
   };
@@ -227,10 +232,14 @@ export const NoteInput = forwardRef<
         <div
           ref={(node) => {
             fadeRef.current = node;
-            if (currentTab.type !== "transcript") {
+            if (
+              currentTab.type !== "transcript" &&
+              currentTab.type !== "attachments"
+            ) {
               scrollRef.current = node;
               setContainer(node);
             } else {
+              scrollRef.current = node;
               setContainer(null);
             }
           }}
@@ -263,6 +272,9 @@ export const NoteInput = forwardRef<
               isEditing={isEditing}
               scrollRef={scrollRef}
             />
+          )}
+          {currentTab.type === "attachments" && (
+            <AttachmentsContent sessionId={sessionId} />
           )}
         </div>
         {!atStart && <ScrollFadeOverlay position="top" />}
@@ -379,5 +391,50 @@ function useTabShortcuts({
       enableOnContentEditable: true,
     },
     [currentTab, editorTabs, handleTabChange],
+  );
+}
+
+function AttachmentsContent({ sessionId }: { sessionId: string }) {
+  const {
+    attachments: rawAttachments,
+    isLoading,
+    refetch,
+  } = useAttachments(sessionId);
+
+  const attachments = useMemo<Attachment[]>(() => {
+    return rawAttachments.map((info) => {
+      const fileUrl = convertFileSrc(info.path);
+      return {
+        attachmentId: info.attachmentId,
+        type: "image" as const,
+        url: fileUrl,
+        path: info.path,
+        title: `${info.attachmentId}.${info.extension}`,
+        thumbnailUrl: fileUrl,
+        addedAt: info.modifiedAt,
+        isPersisted: true,
+      };
+    });
+  }, [rawAttachments]);
+
+  const handleRemove = useCallback(
+    async (attachmentId: string) => {
+      const result = await fsSyncCommands.attachmentRemove(
+        sessionId,
+        attachmentId,
+      );
+      if (result.status === "ok") {
+        refetch();
+      }
+    },
+    [sessionId, refetch],
+  );
+
+  return (
+    <Attachments
+      attachments={attachments}
+      onRemoveAttachment={handleRemove}
+      isLoading={isLoading}
+    />
   );
 }

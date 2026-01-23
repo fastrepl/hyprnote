@@ -298,7 +298,7 @@ pub(crate) async fn attachment_save<R: tauri::Runtime>(
     session_id: String,
     data: Vec<u8>,
     extension: String,
-) -> Result<String, String> {
+) -> Result<crate::AttachmentSaveResult, String> {
     let session_dir = resolve_session_dir(&app, &session_id)?;
     let attachments_dir = session_dir.join("attachments");
 
@@ -311,6 +311,107 @@ pub(crate) async fn attachment_save<R: tauri::Runtime>(
 
         std::fs::write(&file_path, data).map_err(|e| e.to_string())?;
 
-        Ok(file_path.to_string_lossy().to_string())
+        Ok(crate::AttachmentSaveResult {
+            path: file_path.to_string_lossy().to_string(),
+            attachment_id,
+        })
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn attachment_list<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session_id: String,
+) -> Result<Vec<crate::AttachmentInfo>, String> {
+    let session_dir = resolve_session_dir(&app, &session_id)?;
+    let attachments_dir = session_dir.join("attachments");
+
+    spawn_blocking!({
+        let mut attachments = Vec::new();
+
+        let entries = match std::fs::read_dir(&attachments_dir) {
+            Ok(entries) => entries,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(attachments),
+            Err(e) => return Err(e.to_string()),
+        };
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_file() {
+                continue;
+            }
+
+            let file_stem = match path.file_stem().and_then(|s| s.to_str()) {
+                Some(stem) => stem.to_string(),
+                None => continue,
+            };
+
+            if !crate::is_uuid(&file_stem) {
+                continue;
+            }
+
+            let extension = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_string();
+
+            let modified_at = entry
+                .metadata()
+                .and_then(|m| m.modified())
+                .map(|t| {
+                    chrono::DateTime::<chrono::Utc>::from(t)
+                        .to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+                })
+                .unwrap_or_default();
+
+            attachments.push(crate::AttachmentInfo {
+                attachment_id: file_stem,
+                path: path.to_string_lossy().to_string(),
+                extension,
+                modified_at,
+            });
+        }
+
+        Ok(attachments)
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn attachment_remove<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session_id: String,
+    attachment_id: String,
+) -> Result<(), String> {
+    let session_dir = resolve_session_dir(&app, &session_id)?;
+    let attachments_dir = session_dir.join("attachments");
+
+    spawn_blocking!({
+        let entries = match std::fs::read_dir(&attachments_dir) {
+            Ok(entries) => entries,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+            Err(e) => return Err(e.to_string()),
+        };
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_file() {
+                continue;
+            }
+
+            let file_stem = match path.file_stem().and_then(|s| s.to_str()) {
+                Some(stem) => stem,
+                None => continue,
+            };
+
+            if file_stem == attachment_id {
+                std::fs::remove_file(&path).map_err(|e| e.to_string())?;
+                return Ok(());
+            }
+        }
+
+        Ok(())
     })
 }

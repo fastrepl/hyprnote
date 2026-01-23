@@ -38,6 +38,7 @@ glob = "0.3"
 rayon = { workspace = true }
 rodio = { workspace = true, features = ["symphonia-all"] }
 
+chrono = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }

@@ -23,6 +23,9 @@ Default permissions for the fs-sync plugin
 - `allow-scan-and-read`
 - `allow-chat-dir`
 - `allow-entity-dir`
+- `allow-attachment-save`
+- `allow-attachment-list`
+- `allow-attachment-remove`
 
 ## Permission Table
 
@@ -32,6 +35,84 @@ Default permissions for the fs-sync plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`fs-sync:allow-attachment-list`
+
+</td>
+<td>
+
+Enables the attachment_list command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:deny-attachment-list`
+
+</td>
+<td>
+
+Denies the attachment_list command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:allow-attachment-remove`
+
+</td>
+<td>
+
+Enables the attachment_remove command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:deny-attachment-remove`
+
+</td>
+<td>
+
+Denies the attachment_remove command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:allow-attachment-save`
+
+</td>
+<td>
+
+Enables the attachment_save command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:deny-attachment-save`
+
+</td>
+<td>
+
+Denies the attachment_save command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>

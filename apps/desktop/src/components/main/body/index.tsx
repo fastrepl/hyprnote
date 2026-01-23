@@ -787,18 +787,16 @@ function useTabsShortcuts() {
     "mod+w",
     async () => {
       if (currentTab) {
-        if (currentTab.pinned) {
+        const isCurrentTabListening =
+          isListening &&
+          currentTab.type === "sessions" &&
+          currentTab.id === liveSessionId;
+        if (isCurrentTabListening) {
+          setPendingCloseConfirmationTab(currentTab);
+        } else if (currentTab.pinned) {
           unpin(currentTab);
         } else {
-          const isCurrentTabListening =
-            isListening &&
-            currentTab.type === "sessions" &&
-            currentTab.id === liveSessionId;
-          if (isCurrentTabListening) {
-            setPendingCloseConfirmationTab(currentTab);
-          } else {
-            close(currentTab);
-          }
+          close(currentTab);
         }
       }
     },

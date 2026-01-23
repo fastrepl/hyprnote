@@ -216,7 +216,7 @@ export function useSessionContentLoader(sessionId: string) {
 
     if (!loaded && !loading) {
       setIsLoading(true);
-      ensureSessionContentLoaded(sessionId).then((success) => {
+      ensureSessionContentLoaded(sessionId).then(() => {
         setIsLoaded(true);
         setIsLoading(false);
       });

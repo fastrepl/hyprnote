@@ -10,8 +10,17 @@ import { json2md } from "@hypr/tiptap/shared";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 
 import * as main from "../../../../../../store/tinybase/store/main";
-import { parseTranscriptWords } from "../../../../../../store/transcript/utils";
+import {
+  parseTranscriptHints,
+  parseTranscriptWords,
+} from "../../../../../../store/transcript/utils";
 import type { EditorView } from "../../../../../../store/zustand/tabs/schema";
+import { buildSegments, SegmentKey } from "../../../../../../utils/segment";
+import {
+  defaultRenderLabelContext,
+  SpeakerLabelManager,
+} from "../../../../../../utils/segment/shared";
+import { convertStorageHintsToRuntime } from "../../../../../../utils/speaker-hints";
 
 export function ExportPDF({
   sessionId,
@@ -48,44 +57,48 @@ export function ExportPDF({
       return [];
     }
 
-    const allWords: {
-      speaker: string | null;
+    const wordIdToIndex = new Map<string, number>();
+    const collectedWords: Array<{
+      id: string;
       text: string;
       start_ms: number;
-    }[] = [];
+      end_ms: number;
+      channel: number;
+    }> = [];
 
     for (const transcriptId of transcriptIds) {
       const words = parseTranscriptWords(store, transcriptId);
       for (const word of words) {
         if (word.text === undefined || word.start_ms === undefined) continue;
-        allWords.push({
-          speaker: word.speaker ?? null,
+        collectedWords.push({
+          id: word.id,
           text: word.text,
           start_ms: word.start_ms,
+          end_ms: word.end_ms ?? word.start_ms,
+          channel: word.channel ?? 0,
         });
       }
     }
 
-    allWords.sort((a, b) => a.start_ms - b.start_ms);
+    collectedWords.sort((a, b) => a.start_ms - b.start_ms);
+    collectedWords.forEach((w, i) => wordIdToIndex.set(w.id, i));
 
-    const items: TranscriptItem[] = [];
-    let currentSpeaker: string | null = null;
-    let currentTexts: string[] = [];
+    const storageHints = transcriptIds.flatMap((id) =>
+      parseTranscriptHints(store, id),
+    );
+    const speakerHints = convertStorageHintsToRuntime(
+      storageHints,
+      wordIdToIndex,
+    );
 
-    for (const word of allWords) {
-      if (word.speaker !== currentSpeaker && currentTexts.length > 0) {
-        items.push({ speaker: currentSpeaker, text: currentTexts.join(" ") });
-        currentTexts = [];
-      }
-      currentSpeaker = word.speaker;
-      currentTexts.push(word.text);
-    }
+    const segments = buildSegments(collectedWords, [], speakerHints);
+    const ctx = defaultRenderLabelContext(store);
+    const manager = SpeakerLabelManager.fromSegments(segments, ctx);
 
-    if (currentTexts.length > 0) {
-      items.push({ speaker: currentSpeaker, text: currentTexts.join(" ") });
-    }
-
-    return items;
+    return segments.map((segment) => ({
+      speaker: SegmentKey.renderLabel(segment.key, ctx, manager),
+      text: segment.words.map((w) => w.text).join(" "),
+    }));
   }, [store, transcriptIds]);
 
   const getExportContent = useMemo(() => {

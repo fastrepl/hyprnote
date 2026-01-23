@@ -73,7 +73,9 @@ function BeforeMeeingButton({
     <ListenSplitButton
       content={
         <>
-          <RecordingIcon /> <span>Start listening</span>
+          <span className="flex items-center gap-2 pl-3">
+            <RecordingIcon /> Start listening
+          </span>
         </>
       }
       disabled={isDisabled}
@@ -139,18 +141,23 @@ function SplitMeetingButtons({
       {!isNarrow && (
         <FloatingButton
           onClick={onJoin}
-          className="justify-center gap-2 bg-white hover:bg-neutral-100 text-neutral-800 border-neutral-200 shadow-[0_4px_14px_rgba(0,0,0,0.1)]"
+          className="justify-center gap-2 h-10 px-3 lg:px-4 bg-linear-to-b from-white to-neutral-50 hover:from-neutral-50 hover:to-neutral-100 text-neutral-800 border-neutral-200 shadow-[0_4px_14px_rgba(0,0,0,0.1)]"
         >
           <span>Join</span>
           {getMeetingIcon()}
           <span>{getMeetingName()}</span>
         </FloatingButton>
       )}
-      <div className="relative flex items-center">
+      <OptionsMenu
+        sessionId={sessionId}
+        disabled={disabled}
+        warningMessage={warningMessage}
+        onConfigure={handleConfigure}
+      >
         <FloatingButton
           onClick={onStartListening}
           disabled={disabled}
-          className="justify-center gap-2 pr-12 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white border-stone-600 shadow-[0_4px_14px_rgba(87,83,78,0.4)]"
+          className="justify-center gap-2 pl-3 pr-8 lg:pl-4 lg:pr-10 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white border-stone-600 shadow-[0_4px_14px_rgba(87,83,78,0.4)]"
           tooltip={
             warningMessage
               ? {
@@ -168,15 +175,11 @@ function SplitMeetingButtons({
               : undefined
           }
         >
-          <RecordingIcon /> <span>Start listening</span>
+          <span className="flex items-center gap-2 pl-3">
+            <RecordingIcon /> Start listening
+          </span>
         </FloatingButton>
-        <OptionsMenu
-          sessionId={sessionId}
-          disabled={disabled}
-          warningMessage={warningMessage}
-          onConfigure={handleConfigure}
-        />
-      </div>
+      </OptionsMenu>
       {countdown && (
         <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap text-xs text-neutral-500">
           {countdown}
@@ -208,36 +211,37 @@ function ListenSplitButton({
   }, [onPrimaryClick, openNew]);
 
   return (
-    <div className="relative flex items-center">
-      <FloatingButton
-        onClick={onPrimaryClick}
-        disabled={disabled}
-        className="justify-center gap-2 pr-12 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white border-stone-600 shadow-[0_4px_14px_rgba(87,83,78,0.4)]"
-        tooltip={
-          warningMessage
-            ? {
-                side: "top",
-                content: (
-                  <ActionableTooltipContent
-                    message={warningMessage}
-                    action={{
-                      label: "Configure",
-                      handleClick: handleAction,
-                    }}
-                  />
-                ),
-              }
-            : undefined
-        }
-      >
-        {content}
-      </FloatingButton>
+    <div className="relative">
       <OptionsMenu
         sessionId={sessionId}
         disabled={disabled}
         warningMessage={warningMessage}
         onConfigure={handleAction}
-      />
+      >
+        <FloatingButton
+          onClick={onPrimaryClick}
+          disabled={disabled}
+          className="justify-center gap-2 pl-3 pr-8 lg:pl-4 lg:pr-10 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white border-stone-600 shadow-[0_4px_14px_rgba(87,83,78,0.4)]"
+          tooltip={
+            warningMessage
+              ? {
+                  side: "top",
+                  content: (
+                    <ActionableTooltipContent
+                      message={warningMessage}
+                      action={{
+                        label: "Configure",
+                        handleClick: handleAction,
+                      }}
+                    />
+                  ),
+                }
+              : undefined
+          }
+        >
+          {content}
+        </FloatingButton>
+      </OptionsMenu>
       {countdown && (
         <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap text-xs text-neutral-500">
           {countdown}

@@ -2,11 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { downloadDir } from "@tauri-apps/api/path";
 import { open as selectFile } from "@tauri-apps/plugin-dialog";
 import { Effect, pipe } from "effect";
-import {
-  EllipsisVerticalIcon,
-  FileTextIcon,
-  UploadCloudIcon,
-} from "lucide-react";
+import { EllipsisVerticalIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -23,7 +19,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
-import { cn } from "@hypr/utils";
 
 import { fromResult } from "../../../../../effect";
 import { useRunBatch } from "../../../../../hooks/useRunBatch";
@@ -39,11 +34,13 @@ export function OptionsMenu({
   disabled,
   warningMessage,
   onConfigure,
+  children,
 }: {
   sessionId: string;
   disabled: boolean;
   warningMessage: string;
   onConfigure?: () => void;
+  children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const runBatch = useRunBatch(sessionId);
@@ -240,69 +237,82 @@ export function OptionsMenu({
     );
   }, [disabled, selectAndHandleFile]);
 
-  const triggerButton = (
-    <Button
-      variant="ghost"
-      size="icon"
-      className={cn([
-        "absolute right-2 top-1/2 -translate-y-1/2 z-10",
-        "h-10 w-10 rounded-full hover:bg-white/20 transition-colors",
-        "text-white/70 hover:text-white",
-        open ? "bg-white/20 text-white" : null,
-      ])}
+  const moreButton = (
+    <button
+      className="absolute right-2 top-1/2 -translate-y-1/2 z-10 cursor-pointer text-white/70 hover:text-white transition-colors disabled:opacity-50"
       disabled={disabled}
+      onClick={(e) => {
+        e.stopPropagation();
+        setOpen(true);
+      }}
     >
-      <EllipsisVerticalIcon className="w-5 h-5" />
+      <EllipsisVerticalIcon className="size-4" />
       <span className="sr-only">More options</span>
-    </Button>
+    </button>
   );
 
   if (disabled && warningMessage) {
     return (
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <span className="inline-block">{triggerButton}</span>
-        </TooltipTrigger>
-        <TooltipContent side="top" align="end">
-          <ActionableTooltipContent
-            message={warningMessage}
-            action={
-              onConfigure
-                ? {
-                    label: "Configure",
-                    handleClick: onConfigure,
-                  }
-                : undefined
-            }
-          />
-        </TooltipContent>
-      </Tooltip>
+      <div className="relative flex items-center">
+        {children}
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <span className="inline-block">{moreButton}</span>
+          </TooltipTrigger>
+          <TooltipContent side="top" align="end">
+            <ActionableTooltipContent
+              message={warningMessage}
+              action={
+                onConfigure
+                  ? {
+                      label: "Configure",
+                      handleClick: onConfigure,
+                    }
+                  : undefined
+              }
+            />
+          </TooltipContent>
+        </Tooltip>
+      </div>
     );
   }
 
   if (disabled) {
-    return triggerButton;
+    return (
+      <div className="relative flex items-center">
+        {children}
+        {moreButton}
+      </div>
+    );
   }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
-      <PopoverContent side="top" align="end" className="w-auto p-1.5">
+      <PopoverTrigger asChild>
+        <div className="relative flex items-center">
+          {children}
+          {moreButton}
+        </div>
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="center"
+        sideOffset={8}
+        className="w-43 p-1.5 rounded-xl"
+      >
         <div className="flex flex-col gap-1">
           <Button
             variant="ghost"
-            className="justify-start gap-2 h-9 px-3 whitespace-nowrap"
+            className="justify-center h-9 px-3 whitespace-nowrap"
             onClick={handleUploadAudio}
           >
-            <UploadCloudIcon className="w-4 h-4 shrink-0" />
             <span className="text-sm">Upload audio</span>
           </Button>
           <Button
             variant="ghost"
-            className="justify-start gap-2 h-9 px-3 whitespace-nowrap"
+            className="justify-center h-9 px-3 whitespace-nowrap"
             onClick={handleUploadTranscript}
           >
-            <FileTextIcon className="w-4 h-4 shrink-0" />
             <span className="text-sm">Upload transcript</span>
           </Button>
         </div>

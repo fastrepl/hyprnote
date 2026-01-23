@@ -77,8 +77,12 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   const handleCloseWithStop = () => {
     if (isActive) {
       stop();
+      setTimeout(() => {
+        handleCloseThis(tab);
+      }, 0);
+    } else {
+      handleCloseThis(tab);
     }
-    handleCloseThis(tab);
   };
 
   return (

@@ -79,7 +79,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
       stop();
       setTimeout(() => {
         handleCloseThis(tab);
-      }, 0);
+      }, 200);
     } else {
       handleCloseThis(tab);
     }

@@ -194,7 +194,9 @@ export function TabItemBase({
                 <div
                   className={cn([
                     "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
-                    isHovered ? "opacity-0" : "opacity-100",
+                    isHovered || isConfirmationOpen
+                      ? "opacity-0"
+                      : "opacity-100",
                   ])}
                 >
                   {finalizing ? (

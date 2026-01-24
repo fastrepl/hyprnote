@@ -63,6 +63,7 @@
     "@hypr/plugin-path2": "workspace:*",
     "@hypr/plugin-pdf": "workspace:*",
     "@hypr/plugin-permissions": "workspace:*",
+    "@hypr/plugin-screen": "workspace:*",
     "@hypr/plugin-settings": "workspace:*",
     "@hypr/plugin-store2": "workspace:*",
     "@hypr/plugin-sfx": "workspace:*",

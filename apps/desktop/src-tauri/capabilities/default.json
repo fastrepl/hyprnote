@@ -74,6 +74,7 @@
     "opener2:default",
     "detect:default",
     "permissions:default",
+    "screen:default",
     "settings:default",
     "sfx:default",
     "path2:default",

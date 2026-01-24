@@ -338,6 +338,9 @@ importers:
       '@hypr/plugin-permissions':
         specifier: workspace:*
         version: link:../../plugins/permissions
+      '@hypr/plugin-screen':
+        specifier: workspace:*
+        version: link:../../plugins/screen
       '@hypr/plugin-settings':
         specifier: workspace:*
         version: link:../../plugins/settings
@@ -1779,6 +1782,12 @@ importers:
         version: 2.9.1
 
   plugins/permissions:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/screen:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

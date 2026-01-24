@@ -2,28 +2,29 @@
 date: "2026-01-23"
 ---
 
-- Add sleep detection to automatically stop recording
-  - Recording stops when system goes to sleep
+- Add sleep detection (macOS)
+  - Recording automatically stops when you close your laptop lid or put the system to sleep
+  - Prevents unintended recording while the system is inactive
 
-- Enhanced event context menu for events with notes
-  - New "Open in new tab" option for quick multi-tab workflows
-  - "Reveal in Finder" to access session files directly
-  - "Delete completely" option to remove event and associated session data
-  - Ignoring events without notes now cleans up empty sessions automatically
+- Enhanced context menu for calendar events
+  - Events with notes now show: "Open in new tab", "Reveal in Finder", and "Delete completely"
+  - "Delete completely" removes both the event and all associated session data
+  - Ignoring events without notes now automatically cleans up empty sessions
 
-- Fix authentication token refresh on app restart
-  - Credentials no longer lost after restarting the app
-  - Auto token refresh keeps sessions alive
-  - Use navigatorLock for more reliable session locking
+- Fix credentials being lost after app restart
+  - Session tokens now refresh automatically in the background
+  - Switched to browser-native lock mechanism, eliminating spurious timeout warnings
 
-- Fix memory accumulation in audio processing
-  - Removed unnecessary audio data buffering in MicStream
-  - Added bounded channels with backpressure to prevent memory growth during long recordings
+- Fix memory growth during long recordings
+  - Removed audio data accumulation that could consume ~19GB/day of memory
+  - Added bounded audio channels with backpressure to prevent unbounded memory growth
 
-- Fix Ollama model listing CORS issues
-  - Model list now loads properly when using local Ollama instance
+- Fix Ollama model list not loading for remote instances
+  - Model list now populates correctly when connecting to Ollama via Tailscale or other remote setups
 
-- Improve timeline event visibility and time display
-  - Events now use end time for determining past/future visibility
-  - Smart time tracking updates timeline when events start or end
-  - Event start times are now displayed in the timeline sidebar
+- Fix starting recording from enhanced view
+  - Clicking "Start listening" while viewing a summary now correctly switches to raw view
+
+- Improved timeline event display
+  - Events now use end time to determine past/future visibility
+  - Event start times are displayed in the timeline sidebar

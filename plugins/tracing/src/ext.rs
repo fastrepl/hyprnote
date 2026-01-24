@@ -39,7 +39,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'a, R, M> {
 
     pub fn log_content(&self) -> Result<Option<String>, crate::Error> {
         let logs_dir = self.logs_dir()?;
-        const TARGET_LINES: usize = 1000;
+        const TARGET_LINES: usize = 300;
         const MAX_ROTATED_FILES: usize = 5;
 
         let log_files: Vec<_> = std::iter::once(logs_dir.join("app.log"))

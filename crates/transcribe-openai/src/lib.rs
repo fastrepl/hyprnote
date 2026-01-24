@@ -17,12 +17,12 @@ pub struct TranscribeConfig {}
 
 #[derive(Clone)]
 pub struct TranscribeService {
-    config: TranscribeConfig,
+    _config: TranscribeConfig,
 }
 
 impl TranscribeService {
     pub async fn new(config: TranscribeConfig) -> Result<Self, Error> {
-        Ok(Self { config })
+        Ok(Self { _config: config })
     }
 
     pub async fn handle_websocket(self, ws: WebSocketUpgrade) -> impl IntoResponse {

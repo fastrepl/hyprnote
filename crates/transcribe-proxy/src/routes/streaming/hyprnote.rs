@@ -131,12 +131,11 @@ fn build_proxy_with_adapter(
         _ => false,
     };
 
-    if listen_params.model.is_none() || should_override {
-        if let Some(model) =
+    if (listen_params.model.is_none() || should_override)
+        && let Some(model) =
             AdapterKind::from(provider).recommended_model_live(&listen_params.languages)
-        {
-            listen_params.model = Some(model.to_string());
-        }
+    {
+        listen_params.model = Some(model.to_string());
     }
 
     let api_base = provider.default_api_base();

@@ -105,7 +105,7 @@ export function FeedbackModal() {
         if (logContent) {
           logSection = `
 
-## Application Logs (last 500 lines, redacted)
+## Application Logs (last 1000 lines, redacted)
 <details>
 <summary>Click to expand logs</summary>
 

@@ -77,9 +77,14 @@ impl Builder {
                 let sentry_layer =
                     sentry::integrations::tracing::layer().event_filter(sentry_event_filter);
 
-                if let Some((file_writer, guard)) =
-                    make_file_writer_if_enabled(true, &app.tracing().logs_dir().unwrap())
-                {
+                let logs_dir = match app.tracing().logs_dir() {
+                    Ok(dir) => dir,
+                    Err(e) => {
+                        eprintln!("Failed to create logs directory: {}", e);
+                        return Ok(());
+                    }
+                };
+                if let Some((file_writer, guard)) = make_file_writer_if_enabled(true, &logs_dir) {
                     tracing_subscriber::Registry::default()
                         .with(env_filter)
                         .with(sentry_layer)
@@ -166,7 +171,12 @@ pub fn read_log_content(logs_dir: &PathBuf) -> Option<String> {
         }
 
         if let Ok(content) = fs::read_to_string(log_path) {
-            let lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+            let lines_needed = TARGET_LINES.saturating_sub(collected.len()) + TARGET_LINES;
+            let lines: Vec<String> = content
+                .lines()
+                .take(lines_needed)
+                .map(|s| s.to_string())
+                .collect();
             let mut new_collected = lines;
             new_collected.extend(collected);
             collected = new_collected;

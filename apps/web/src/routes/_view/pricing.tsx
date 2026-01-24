@@ -54,8 +54,8 @@ const pricingPlans: PricingPlan[] = [
       yearly: 59,
     },
     originalPrice: {
-      monthly: 20,
-      yearly: 169,
+      monthly: 25,
+      yearly: 250,
     },
     description:
       "No API keys needed. Get cloud services, advanced sharing, and team features out of the box.",
@@ -111,7 +111,7 @@ function TeamPricingBanner() {
       ])}
     >
       <span>
-        <strong>Early Bird Discount:</strong> Get 60% off as we launch our new
+        <strong>Early Bird Discount:</strong> Get 68% off as we launch our new
         version and help with migration
       </span>
     </div>
@@ -189,7 +189,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                     ${plan.originalPrice.yearly}
                   </span>
                 )}{" "}
-                <span className="text-green-700 font-medium">(save 65%)</span>
+                <span className="text-green-700 font-medium">(save 76%)</span>
               </div>
             </div>
           ) : (

@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use tauri_plugin_tracing::{cleanup_old_daily_logs, redaction::RedactingWriter};
+use tauri_plugin_tracing::redaction::RedactingWriter;
 use tempfile::tempdir;
 
 use file_rotate::{ContentLimit, FileRotate, compression::Compression, suffix::AppendCount};
@@ -290,69 +290,4 @@ mod e2e {
             "IP in structured field should be redacted"
         );
     }
-}
-
-#[test]
-fn cleanup_old_daily_logs_removes_matching_files() {
-    let temp = tempdir().unwrap();
-    let logs_dir = temp.path().to_path_buf();
-
-    fs::write(logs_dir.join("log.2024-01-15"), "old log").unwrap();
-    fs::write(logs_dir.join("log.2024-01-16"), "old log").unwrap();
-    fs::write(logs_dir.join("log.2024-12-31"), "old log").unwrap();
-
-    cleanup_old_daily_logs(&logs_dir).unwrap();
-
-    assert!(!logs_dir.join("log.2024-01-15").exists());
-    assert!(!logs_dir.join("log.2024-01-16").exists());
-    assert!(!logs_dir.join("log.2024-12-31").exists());
-}
-
-#[test]
-fn cleanup_old_daily_logs_preserves_non_matching() {
-    let temp = tempdir().unwrap();
-    let logs_dir = temp.path().to_path_buf();
-
-    fs::write(logs_dir.join("app.log"), "current log").unwrap();
-    fs::write(logs_dir.join("app.log.1"), "rotated log").unwrap();
-    fs::write(logs_dir.join("other.txt"), "other file").unwrap();
-    fs::write(logs_dir.join("log.2024-01-15"), "old log").unwrap();
-
-    cleanup_old_daily_logs(&logs_dir).unwrap();
-
-    assert!(logs_dir.join("app.log").exists());
-    assert!(logs_dir.join("app.log.1").exists());
-    assert!(logs_dir.join("other.txt").exists());
-    assert!(!logs_dir.join("log.2024-01-15").exists());
-}
-
-#[test]
-fn cleanup_old_daily_logs_handles_empty_dir() {
-    let temp = tempdir().unwrap();
-    let logs_dir = temp.path().to_path_buf();
-
-    let result = cleanup_old_daily_logs(&logs_dir);
-    assert!(result.is_ok());
-}
-
-#[test]
-fn cleanup_old_daily_logs_handles_nonexistent_dir() {
-    let logs_dir = PathBuf::from("/nonexistent/path/that/does/not/exist");
-
-    let result = cleanup_old_daily_logs(&logs_dir);
-    assert!(result.is_ok());
-}
-
-#[test]
-fn cleanup_old_daily_logs_preserves_log_without_date_suffix() {
-    let temp = tempdir().unwrap();
-    let logs_dir = temp.path().to_path_buf();
-
-    fs::write(logs_dir.join("log.txt"), "log file").unwrap();
-    fs::write(logs_dir.join("log.backup"), "backup").unwrap();
-
-    cleanup_old_daily_logs(&logs_dir).unwrap();
-
-    assert!(logs_dir.join("log.txt").exists());
-    assert!(logs_dir.join("log.backup").exists());
 }

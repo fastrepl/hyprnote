@@ -1,0 +1,11 @@
+{
+  "name": "@hypr/plugin-screen",
+  "private": true,
+  "main": "./js/index.ts",
+  "scripts": {
+    "codegen": "cargo test -p tauri-plugin-screen"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.1"
+  }
+}

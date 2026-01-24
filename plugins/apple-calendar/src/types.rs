@@ -9,6 +9,18 @@ pub struct EventFilter {
     pub calendar_tracking_id: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+pub struct CreateEventInput {
+    pub title: String,
+    pub start_date: DateTime<Utc>,
+    pub end_date: DateTime<Utc>,
+    pub calendar_id: String,
+    pub is_all_day: Option<bool>,
+    pub location: Option<String>,
+    pub notes: Option<String>,
+    pub url: Option<String>,
+}
+
 macro_rules! common_derives {
     ($item:item) => {
         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]

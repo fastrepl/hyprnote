@@ -4,12 +4,15 @@ use std::time::Duration;
 use backon::{BlockingRetryable, ConstantBuilder};
 use itertools::Itertools;
 use objc2::{AllocAnyThread, rc::Retained};
-use objc2_event_kit::{EKAuthorizationStatus, EKCalendar, EKEntityType, EKEvent, EKEventStore};
+use objc2_event_kit::{
+    EKAuthorizationStatus, EKCalendar, EKEntityType, EKEvent, EKEventStore, EKSpan,
+};
+use objc2_foundation::NSString;
 use objc2_foundation::{NSArray, NSDate};
 
 use crate::error::Error;
-use crate::types::EventFilter;
 use crate::types::{AppleCalendar, AppleEvent};
+use crate::types::{CreateEventInput, EventFilter};
 
 use super::transforms::{transform_calendar, transform_event};
 
@@ -137,6 +140,82 @@ impl Handle {
         };
 
         fetch
+            .retry(retry_backoff())
+            .when(|e| matches!(e, Error::XpcConnectionFailed))
+            .call()
+    }
+
+    pub fn create_event(&self, input: CreateEventInput) -> Result<String, Error> {
+        if !Self::has_calendar_access() {
+            return Err(Error::CalendarAccessDenied);
+        }
+
+        let create = || {
+            let event_store = Self::create_event_store();
+
+            let calendar = Self::get_calendars_with_exception_handling(&event_store)?
+                .into_iter()
+                .find(|c| {
+                    let id = unsafe { c.calendarIdentifier() }.to_string();
+                    input.calendar_id.eq(&id)
+                })
+                .ok_or(Error::CalendarNotFound)?;
+
+            let event = unsafe { EKEvent::eventWithEventStore(&event_store) };
+
+            unsafe {
+                event.setTitle(Some(&NSString::from_str(&input.title)));
+
+                let start_date = NSDate::initWithTimeIntervalSince1970(
+                    NSDate::alloc(),
+                    input.start_date.timestamp() as f64,
+                );
+                event.setStartDate(Some(&start_date));
+
+                let end_date = NSDate::initWithTimeIntervalSince1970(
+                    NSDate::alloc(),
+                    input.end_date.timestamp() as f64,
+                );
+                event.setEndDate(Some(&end_date));
+
+                event.setCalendar(Some(&calendar));
+
+                if let Some(is_all_day) = input.is_all_day {
+                    event.setAllDay(is_all_day);
+                }
+
+                if let Some(ref location) = input.location {
+                    event.setLocation(Some(&NSString::from_str(location)));
+                }
+
+                if let Some(ref notes) = input.notes {
+                    event.setNotes(Some(&NSString::from_str(notes)));
+                }
+            }
+
+            let event_store = AssertUnwindSafe(&event_store);
+            let event = AssertUnwindSafe(&event);
+
+            let result = objc2::exception::catch(|| unsafe {
+                event_store.saveEvent_span_commit_error(&event, EKSpan::ThisEvent, true)
+            });
+
+            match result {
+                Ok(Ok(())) => {
+                    let event_id = unsafe { event.eventIdentifier() }
+                        .map(|s| s.to_string())
+                        .unwrap_or_default();
+                    Ok(event_id)
+                }
+                Ok(Err(ns_error)) => {
+                    let error_msg = unsafe { ns_error.localizedDescription() }.to_string();
+                    Err(Error::ObjectiveCException(error_msg))
+                }
+                Err(_) => Err(Error::XpcConnectionFailed),
+            }
+        };
+
+        create
             .retry(retry_backoff())
             .when(|e| matches!(e, Error::XpcConnectionFailed))
             .call()

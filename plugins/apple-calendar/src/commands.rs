@@ -1,6 +1,5 @@
 use crate::AppleCalendarPluginExt;
-use crate::types::EventFilter;
-use crate::types::{AppleCalendar, AppleEvent};
+use crate::types::{AppleCalendar, AppleEvent, CreateEventInput, EventFilter};
 
 #[tauri::command]
 #[specta::specta]
@@ -23,6 +22,15 @@ pub fn list_events<R: tauri::Runtime>(
     filter: EventFilter,
 ) -> Result<Vec<AppleEvent>, String> {
     app.apple_calendar().list_events(filter)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn create_event<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    input: CreateEventInput,
+) -> Result<String, String> {
+    app.apple_calendar().create_event(input)
 }
 
 #[cfg(feature = "fixture")]

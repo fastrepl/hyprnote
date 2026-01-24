@@ -307,6 +307,18 @@
           "markdownDescription": "Denies the do_log command without any pre-configured scope."
         },
         {
+          "description": "Enables the log_content command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-log-content",
+          "markdownDescription": "Enables the log_content command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the log_content command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-log-content",
+          "markdownDescription": "Denies the log_content command without any pre-configured scope."
+        },
+        {
           "description": "Enables the logs_dir command without any pre-configured scope.",
           "type": "string",
           "const": "allow-logs-dir",
@@ -319,10 +331,10 @@
           "markdownDescription": "Denies the logs_dir command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-logs-dir`\n- `allow-do-log`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-logs-dir`\n- `allow-do-log`\n- `allow-log-content`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-logs-dir`\n- `allow-do-log`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-logs-dir`\n- `allow-do-log`\n- `allow-log-content`"
         }
       ]
     }

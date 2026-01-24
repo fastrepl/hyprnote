@@ -11,14 +11,17 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+dirs = { workspace = true }
 rquickjs = "0.10"
 specta-typescript = { workspace = true }
+tauri = { workspace = true, features = ["test"] }
+tempfile = { workspace = true }
+tracing-appender = { version = "0.2" }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
 
 [dependencies]
 tauri = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
-
-tauri-plugin-settings = { workspace = true }
 
 sentry = { workspace = true, features = ["tracing"] }
 tauri-plugin-sentry = { workspace = true }
@@ -30,6 +33,7 @@ specta = { workspace = true, features = ["derive", "serde_json"] }
 thiserror = { workspace = true }
 
 file-rotate = "0.8"
+regex = "1"
 tracing = { workspace = true }
 tracing-appender = { version = "0.2" }
 tracing-subscriber = { workspace = true, features = ["env-filter", "chrono"] }

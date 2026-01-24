@@ -17479,6 +17479,7 @@ version = "0.1.0"
 dependencies = [
  "dirs 6.0.0",
  "file-rotate",
+ "regex",
  "rquickjs 0.10.0",
  "sentry",
  "serde",
@@ -17488,8 +17489,8 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-sentry",
- "tauri-plugin-settings",
  "tauri-specta",
+ "tempfile",
  "thiserror 2.0.17",
  "tracing",
  "tracing-appender",

@@ -1,20 +1,20 @@
 mod commands;
 mod errors;
 mod ext;
+pub mod redaction;
+mod utils;
 
 pub use errors::*;
 pub use ext::*;
+pub use utils::cleanup_old_daily_logs;
 
-use std::path::PathBuf;
-use std::{fs, io};
-use tauri::Manager;
-
-use file_rotate::{ContentLimit, FileRotate, compression::Compression, suffix::AppendCount};
 use sentry::integrations::tracing::EventFilter;
-use tracing_appender::non_blocking::WorkerGuard;
+use tauri::Manager;
 use tracing_subscriber::{
     EnvFilter, fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
 };
+
+use utils::{cleanup_legacy_logs, make_file_writer_if_enabled};
 
 const PLUGIN_NAME: &str = "tracing";
 
@@ -33,92 +33,80 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         .commands(tauri_specta::collect_commands![
             commands::logs_dir::<tauri::Wry>,
             commands::do_log::<tauri::Wry>,
+            commands::log_content::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
+
+#[derive(Default)]
+pub struct Builder {
+    skip_subscriber_init: bool,
+}
+
+impl Builder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn skip_subscriber_init(mut self, skip: bool) -> Self {
+        self.skip_subscriber_init = skip;
+        self
+    }
+
+    pub fn build(self) -> tauri::plugin::TauriPlugin<tauri::Wry> {
+        let specta_builder = make_specta_builder();
+        let skip_subscriber_init = self.skip_subscriber_init;
+
+        tauri::plugin::Builder::new(PLUGIN_NAME)
+            .invoke_handler(specta_builder.invoke_handler())
+            .js_init_script(JS_INIT_SCRIPT)
+            .setup(move |app, _api| {
+                specta_builder.mount_events(app);
+
+                cleanup_legacy_logs(app);
+
+                if skip_subscriber_init {
+                    return Ok(());
+                }
+
+                let env_filter = EnvFilter::try_from_default_env()
+                    .unwrap_or_else(|_| EnvFilter::new("info"))
+                    .add_directive("ort=warn".parse().unwrap());
+
+                let sentry_layer =
+                    sentry::integrations::tracing::layer().event_filter(sentry_event_filter);
+
+                let logs_dir = match app.tracing().logs_dir() {
+                    Ok(dir) => dir,
+                    Err(e) => {
+                        eprintln!("Failed to create logs directory: {}", e);
+                        return Ok(());
+                    }
+                };
+                if let Some((file_writer, guard)) = make_file_writer_if_enabled(true, &logs_dir) {
+                    tracing_subscriber::Registry::default()
+                        .with(env_filter)
+                        .with(sentry_layer)
+                        .with(fmt::layer())
+                        .with(fmt::layer().with_ansi(false).with_writer(file_writer))
+                        .init();
+                    assert!(app.manage(guard));
+                } else {
+                    tracing_subscriber::Registry::default()
+                        .with(env_filter)
+                        .with(sentry_layer)
+                        .with(fmt::layer())
+                        .init();
+                }
+
+                Ok(())
+            })
+            .build()
+    }
+}
+
 pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
-    let specta_builder = make_specta_builder();
-
-    tauri::plugin::Builder::new(PLUGIN_NAME)
-        .invoke_handler(specta_builder.invoke_handler())
-        .js_init_script(JS_INIT_SCRIPT)
-        .setup(move |app, _api| {
-            specta_builder.mount_events(app);
-
-            let env_filter = EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new("info"))
-                .add_directive("ort=warn".parse().unwrap());
-
-            let sentry_layer =
-                sentry::integrations::tracing::layer().event_filter(sentry_event_filter);
-
-            if let Some((file_writer, guard)) =
-                make_file_writer_if_enabled(true, &app.tracing().logs_dir().unwrap())
-            {
-                tracing_subscriber::Registry::default()
-                    .with(env_filter)
-                    .with(sentry_layer)
-                    .with(fmt::layer())
-                    .with(fmt::layer().with_ansi(false).with_writer(file_writer))
-                    .init();
-                assert!(app.manage(guard));
-            } else {
-                tracing_subscriber::Registry::default()
-                    .with(env_filter)
-                    .with(sentry_layer)
-                    .with(fmt::layer())
-                    .init();
-            }
-
-            Ok(())
-        })
-        .build()
-}
-
-fn cleanup_old_daily_logs(logs_dir: &PathBuf) -> io::Result<()> {
-    if !logs_dir.exists() {
-        return Ok(());
-    }
-
-    for entry in fs::read_dir(logs_dir)? {
-        let entry = entry?;
-        let path = entry.path();
-
-        if let Some(filename) = path.file_name().and_then(|n| n.to_str())
-            && filename.starts_with("log.")
-            && filename.len() > 4
-        {
-            let suffix = &filename[4..];
-            if suffix.chars().all(|c| c.is_ascii_digit() || c == '-') {
-                let _ = fs::remove_file(path);
-            }
-        }
-    }
-
-    Ok(())
-}
-
-fn make_file_writer_if_enabled(
-    enabled: bool,
-    logs_dir: &PathBuf,
-) -> Option<(tracing_appender::non_blocking::NonBlocking, WorkerGuard)> {
-    if !enabled {
-        return None;
-    }
-
-    let _ = cleanup_old_daily_logs(logs_dir);
-
-    let log_path = logs_dir.join("log");
-    let file_appender = FileRotate::new(
-        log_path,
-        AppendCount::new(5),
-        ContentLimit::Bytes(10 * 1024 * 1024),
-        Compression::None,
-        None,
-    );
-
-    let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
-    Some((non_blocking, guard))
+    Builder::new().build()
 }
 
 #[cfg(test)]
@@ -140,5 +128,20 @@ mod test {
 
         let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
+    }
+
+    fn create_mock_app() -> tauri::App<tauri::test::MockRuntime> {
+        let mut ctx = tauri::test::mock_context(tauri::test::noop_assets());
+        ctx.config_mut().identifier = "com.hyprnote.dev".to_string();
+        ctx.config_mut().version = Some("0.0.1".to_string());
+
+        tauri::test::mock_builder().build(ctx).unwrap()
+    }
+
+    #[test]
+    fn test_log_content_empty() {
+        let app = create_mock_app();
+        let result = app.tracing().log_content();
+        assert!(result.is_ok());
     }
 }

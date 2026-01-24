@@ -2528,37 +2528,40 @@ const FileEditor = React.forwardRef<
     [importFromDocs],
   );
 
-  const handleImageUpload = useCallback(async (file: File): Promise<string> => {
-    const reader = new FileReader();
-    return new Promise((resolve, reject) => {
-      reader.onload = async () => {
-        try {
-          const base64 = (reader.result as string).split(",")[1];
-          const response = await fetch("/api/admin/blog/upload-image", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              filename: file.name,
-              content: base64,
-            }),
-          });
+  const handleImageUpload = useCallback(
+    async (file: File): Promise<{ url: string; attachmentId: string }> => {
+      const reader = new FileReader();
+      return new Promise((resolve, reject) => {
+        reader.onload = async () => {
+          try {
+            const base64 = (reader.result as string).split(",")[1];
+            const response = await fetch("/api/admin/blog/upload-image", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                filename: file.name,
+                content: base64,
+              }),
+            });
 
-          if (!response.ok) {
-            throw new Error("Upload failed");
+            if (!response.ok) {
+              throw new Error("Upload failed");
+            }
+
+            const data = await response.json();
+            resolve({ url: data.url, attachmentId: "" });
+          } catch (error) {
+            reject(error);
           }
-
-          const data = await response.json();
-          resolve(data.url);
-        } catch (error) {
-          reject(error);
-        }
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  }, []);
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+    },
+    [],
+  );
 
   const handleMediaLibrarySelect = useCallback((publicUrl: string) => {
     const editor = editorRef.current?.editor;

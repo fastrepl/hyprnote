@@ -49,7 +49,6 @@ export function MockWindow({
           <div className="ml-auto">
             <DancingSticks
               amplitude={1}
-              size="default"
               height={isMobile ? 10 : 12}
               color="#a3a3a3"
             />

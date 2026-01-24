@@ -16922,7 +16922,6 @@ dependencies = [
  "quickcheck",
  "quickcheck_macros",
  "ractor",
- "ractor-supervisor",
  "rodio",
  "sentry",
  "serde",

@@ -12,8 +12,8 @@ use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
 
 use crate::{
-    SessionErrorEvent, SessionProgressEvent,
-    actors::root::session_span,
+    ActorStopReason, SessionProgressEvent, SourceStopReason,
+    actors::session::session_span,
     actors::{AudioChunk, ChannelMode},
 };
 use hypr_audio::AudioInput;
@@ -78,7 +78,8 @@ impl DeviceChangeWatcher {
             match event_rx.recv() {
                 Ok(DeviceSwitch::DefaultInputChanged) => {
                     tracing::info!("default_input_changed_restarting_source");
-                    actor.stop(Some("device_change".to_string()));
+                    let reason = ActorStopReason::Source(SourceStopReason::DeviceChanged);
+                    actor.stop(serde_json::to_string(&reason).ok());
                 }
                 Ok(_) => {}
                 Err(_) => break,
@@ -180,14 +181,9 @@ impl Actor for SourceActor {
             }
             SourceMsg::StreamFailed(reason) => {
                 tracing::error!(%reason, "source_stream_failed_stopping");
-                let _ = (SessionErrorEvent::AudioError {
-                    session_id: st.session_id.clone(),
-                    error: reason.clone(),
-                    device: st.mic_device.clone(),
-                    is_fatal: true,
-                })
-                .emit(&st.app);
-                myself.stop(Some(reason));
+                let stop_reason =
+                    ActorStopReason::Source(SourceStopReason::StreamFailed { message: reason });
+                myself.stop(serde_json::to_string(&stop_reason).ok());
             }
         }
 

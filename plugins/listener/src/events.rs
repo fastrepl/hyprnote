@@ -1,5 +1,7 @@
 use owhisper_interface::stream::StreamResponse;
 
+use crate::error::{CriticalError, DegradedError};
+
 #[macro_export]
 macro_rules! common_event_derives {
     ($item:item) => {
@@ -16,10 +18,15 @@ common_event_derives! {
         #[serde(rename = "inactive")]
         Inactive {
             session_id: String,
-            error: Option<String>,
+            #[serde(default)]
+            error: Option<CriticalError>,
         },
         #[serde(rename = "active")]
-        Active { session_id: String },
+        Active {
+            session_id: String,
+            #[serde(default)]
+            error: Option<DegradedError>,
+        },
         #[serde(rename = "finalizing")]
         Finalizing { session_id: String },
     }
@@ -39,24 +46,6 @@ common_event_derives! {
         Connecting { session_id: String },
         #[serde(rename = "connected")]
         Connected { session_id: String, adapter: String },
-    }
-}
-
-common_event_derives! {
-    #[serde(tag = "type")]
-    pub enum SessionErrorEvent {
-        #[serde(rename = "audio_error")]
-        AudioError {
-            session_id: String,
-            error: String,
-            device: Option<String>,
-            is_fatal: bool,
-        },
-        #[serde(rename = "connection_error")]
-        ConnectionError {
-            session_id: String,
-            error: String,
-        },
     }
 }
 

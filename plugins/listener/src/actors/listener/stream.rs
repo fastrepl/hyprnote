@@ -1,11 +1,21 @@
 use std::time::Duration;
 
+use bytes::Bytes;
 use futures_util::StreamExt;
-use owhisper_client::FinalizeHandle;
-use owhisper_interface::stream::{Extra, StreamResponse};
 use ractor::ActorRef;
 
-use super::{LISTEN_STREAM_TIMEOUT, ListenerMsg};
+use owhisper_interface::stream::{Extra, StreamResponse};
+use owhisper_interface::{ControlMessage, MixedMessage};
+
+use super::ListenerMsg;
+
+pub(super) const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(5 * 60);
+pub(super) const LISTEN_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
+
+pub(super) enum ChannelSender {
+    Single(tokio::sync::mpsc::Sender<MixedMessage<Bytes, ControlMessage>>),
+    Dual(tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>),
+}
 
 pub(super) async fn process_stream<S, E, H>(
     mut listen_stream: std::pin::Pin<&mut S>,
@@ -17,7 +27,7 @@ pub(super) async fn process_stream<S, E, H>(
 ) where
     S: futures_util::Stream<Item = Result<StreamResponse, E>>,
     E: std::fmt::Debug,
-    H: FinalizeHandle,
+    H: owhisper_client::FinalizeHandle,
 {
     loop {
         tokio::select! {

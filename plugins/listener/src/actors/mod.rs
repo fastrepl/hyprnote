@@ -1,13 +1,11 @@
 mod listener;
 mod recorder;
-mod root;
-mod session;
+pub(crate) mod session;
 mod source;
 
 pub use listener::*;
 pub use recorder::*;
-pub use root::*;
-pub use session::*;
+pub use session::{SessionActor, SessionArgs, SessionMsg, SessionParams};
 pub use source::*;
 
 #[cfg(target_os = "macos")]

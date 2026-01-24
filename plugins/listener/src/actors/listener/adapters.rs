@@ -2,7 +2,6 @@ use std::time::{Duration, UNIX_EPOCH};
 
 use bytes::Bytes;
 use ractor::{ActorProcessingErr, ActorRef};
-use tauri_specta::Event;
 
 use owhisper_client::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, ElevenLabsAdapter,
@@ -11,12 +10,26 @@ use owhisper_client::{
 use owhisper_interface::stream::Extra;
 use owhisper_interface::{ControlMessage, MixedMessage};
 
-use super::stream::process_stream;
-use super::{
-    ChannelSender, DEVICE_FINGERPRINT_HEADER, LISTEN_CONNECT_TIMEOUT, ListenerArgs, ListenerMsg,
-    actor_error,
-};
-use crate::SessionErrorEvent;
+use super::stream::{ChannelSender, LISTEN_CONNECT_TIMEOUT, process_stream};
+use super::{ListenerArgs, ListenerMsg};
+use crate::DegradedError;
+
+const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
+
+#[derive(Debug)]
+struct ListenerInitError(String);
+
+impl std::fmt::Display for ListenerInitError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl std::error::Error for ListenerInitError {}
+
+fn actor_error(msg: impl Into<String>) -> ActorProcessingErr {
+    Box::new(ListenerInitError(msg.into()))
+}
 
 pub(super) async fn spawn_rx_task(
     args: ListenerArgs,
@@ -88,12 +101,12 @@ pub(super) async fn spawn_rx_task(
     Ok((result.0, result.1, result.2, adapter_kind.to_string()))
 }
 
-fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams {
+pub(super) fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams {
     let redemption_time_ms = if args.onboarding { "60" } else { "400" };
     owhisper_interface::ListenParams {
         model: Some(args.model.clone()),
         languages: args.languages.clone(),
-        sample_rate: super::super::SAMPLE_RATE,
+        sample_rate: crate::actors::SAMPLE_RATE,
         keywords: args.keywords.clone(),
         custom_query: Some(std::collections::HashMap::from([(
             "redemption_time_ms".to_string(),
@@ -103,7 +116,7 @@ fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams 
     }
 }
 
-fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
+pub(super) fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
     let session_offset_secs = args.session_started_at.elapsed().as_secs_f64();
     let started_unix_millis = args
         .session_started_at_unix
@@ -156,21 +169,19 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
                 "listen_ws_connect_timeout(single)"
             );
-            let _ = (SessionErrorEvent::ConnectionError {
-                session_id: args.session_id.clone(),
-                error: "listen_ws_connect_timeout".to_string(),
-            })
-            .emit(&args.app);
-            return Err(actor_error("listen_ws_connect_timeout"));
+            return Err(actor_error(
+                serde_json::to_string(&DegradedError::ConnectionTimeout)
+                    .unwrap_or_else(|_| "connection_timeout".to_string()),
+            ));
         }
         Ok(Err(e)) => {
             tracing::error!(session_id = %args.session_id, error = ?e, "listen_ws_connect_failed(single)");
-            let _ = (SessionErrorEvent::ConnectionError {
-                session_id: args.session_id.clone(),
-                error: format!("listen_ws_connect_failed: {:?}", e),
-            })
-            .emit(&args.app);
-            return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
+            return Err(actor_error(
+                serde_json::to_string(&DegradedError::UpstreamUnavailable {
+                    message: format!("{:?}", e),
+                })
+                .unwrap_or_else(|_| format!("{:?}", e)),
+            ));
         }
         Ok(Ok(res)) => res,
     };
@@ -228,21 +239,19 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
                 "listen_ws_connect_timeout(dual)"
             );
-            let _ = (SessionErrorEvent::ConnectionError {
-                session_id: args.session_id.clone(),
-                error: "listen_ws_connect_timeout".to_string(),
-            })
-            .emit(&args.app);
-            return Err(actor_error("listen_ws_connect_timeout"));
+            return Err(actor_error(
+                serde_json::to_string(&DegradedError::ConnectionTimeout)
+                    .unwrap_or_else(|_| "connection_timeout".to_string()),
+            ));
         }
         Ok(Err(e)) => {
             tracing::error!(session_id = %args.session_id, error = ?e, "listen_ws_connect_failed(dual)");
-            let _ = (SessionErrorEvent::ConnectionError {
-                session_id: args.session_id.clone(),
-                error: format!("listen_ws_connect_failed: {:?}", e),
-            })
-            .emit(&args.app);
-            return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
+            return Err(actor_error(
+                serde_json::to_string(&DegradedError::UpstreamUnavailable {
+                    message: format!("{:?}", e),
+                })
+                .unwrap_or_else(|_| format!("{:?}", e)),
+            ));
         }
         Ok(Ok(res)) => res,
     };

@@ -1,25 +1,24 @@
 mod adapters;
 mod stream;
 
-use std::time::{Duration, Instant, SystemTime};
+use std::time::{Instant, SystemTime};
 
 use bytes::Bytes;
-use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_specta::Event;
 use tokio::time::error::Elapsed;
 use tracing::Instrument;
 
+use owhisper_interface::MixedMessage;
 use owhisper_interface::stream::StreamResponse;
-use owhisper_interface::{ControlMessage, MixedMessage};
 
-use super::root::session_span;
-use crate::{SessionDataEvent, SessionErrorEvent, SessionProgressEvent};
+use super::session::session_span;
+use crate::{DegradedError, SessionDataEvent, SessionProgressEvent};
 
 use adapters::spawn_rx_task;
+use stream::ChannelSender;
 
-pub(super) const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
-pub(super) const LISTEN_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
-pub(super) const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
+const AUDIO_SEND_FAILURE_THRESHOLD: u32 = 10;
 
 pub enum ListenerMsg {
     AudioSingle(Bytes),
@@ -50,11 +49,7 @@ pub struct ListenerState {
     tx: ChannelSender,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
-}
-
-pub(super) enum ChannelSender {
-    Single(tokio::sync::mpsc::Sender<MixedMessage<Bytes, ControlMessage>>),
-    Dual(tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>),
+    consecutive_send_failures: u32,
 }
 
 pub struct ListenerActor;
@@ -63,21 +58,6 @@ impl ListenerActor {
     pub fn name() -> ActorName {
         "listener_actor".into()
     }
-}
-
-#[derive(Debug)]
-pub(super) struct ListenerInitError(pub(super) String);
-
-impl std::fmt::Display for ListenerInitError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl std::error::Error for ListenerInitError {}
-
-pub(super) fn actor_error(msg: impl Into<String>) -> ActorProcessingErr {
-    Box::new(ListenerInitError(msg.into()))
 }
 
 #[ractor::async_trait]
@@ -120,6 +100,7 @@ impl Actor for ListenerActor {
                 tx,
                 rx_task,
                 shutdown_tx: Some(shutdown_tx),
+                consecutive_send_failures: 0,
             };
 
             Ok(state)
@@ -152,13 +133,53 @@ impl Actor for ListenerActor {
         match message {
             ListenerMsg::AudioSingle(audio) => {
                 if let ChannelSender::Single(tx) = &state.tx {
-                    let _ = tx.try_send(MixedMessage::Audio(audio));
+                    match tx.try_send(MixedMessage::Audio(audio)) {
+                        Ok(()) => {
+                            state.consecutive_send_failures = 0;
+                        }
+                        Err(e) => {
+                            state.consecutive_send_failures += 1;
+                            if state.consecutive_send_failures >= AUDIO_SEND_FAILURE_THRESHOLD {
+                                tracing::error!(
+                                    consecutive_failures = state.consecutive_send_failures,
+                                    error = ?e,
+                                    "audio_send_failures_exceeded_threshold_entering_degraded_mode"
+                                );
+                                stop_with_degraded_error(myself, DegradedError::ChannelOverflow);
+                                return Ok(());
+                            }
+                            tracing::warn!(
+                                consecutive_failures = state.consecutive_send_failures,
+                                "audio_send_failed"
+                            );
+                        }
+                    }
                 }
             }
 
             ListenerMsg::AudioDual(mic, spk) => {
                 if let ChannelSender::Dual(tx) = &state.tx {
-                    let _ = tx.try_send(MixedMessage::Audio((mic, spk)));
+                    match tx.try_send(MixedMessage::Audio((mic, spk))) {
+                        Ok(()) => {
+                            state.consecutive_send_failures = 0;
+                        }
+                        Err(e) => {
+                            state.consecutive_send_failures += 1;
+                            if state.consecutive_send_failures >= AUDIO_SEND_FAILURE_THRESHOLD {
+                                tracing::error!(
+                                    consecutive_failures = state.consecutive_send_failures,
+                                    error = ?e,
+                                    "audio_send_failures_exceeded_threshold_entering_degraded_mode"
+                                );
+                                stop_with_degraded_error(myself, DegradedError::ChannelOverflow);
+                                return Ok(());
+                            }
+                            tracing::warn!(
+                                consecutive_failures = state.consecutive_send_failures,
+                                "audio_send_failed"
+                            );
+                        }
+                    }
                 }
             }
 
@@ -175,19 +196,12 @@ impl Actor for ListenerActor {
                         %provider,
                         "stream_provider_error"
                     );
-                    let _ = (SessionErrorEvent::ConnectionError {
-                        session_id: state.args.session_id.clone(),
-                        error: format!(
-                            "[{}] {} (code: {})",
-                            provider,
-                            error_message,
-                            error_code
-                                .map(|c| c.to_string())
-                                .unwrap_or_else(|| "none".to_string())
-                        ),
-                    })
-                    .emit(&state.args.app);
-                    myself.stop(Some(format!("{}: {}", provider, error_message)));
+                    stop_with_degraded_error(
+                        myself,
+                        DegradedError::AuthenticationFailed {
+                            provider: provider.clone(),
+                        },
+                    );
                     return Ok(());
                 }
 
@@ -212,40 +226,30 @@ impl Actor for ListenerActor {
             }
 
             ListenerMsg::StreamError(error) => {
-                tracing::info!("listen_stream_error: {}", error);
-                myself.stop(None);
+                tracing::warn!("listen_stream_error: {}", error);
+                stop_with_degraded_error(myself, DegradedError::StreamError { message: error });
             }
 
             ListenerMsg::StreamEnded => {
-                tracing::info!("listen_stream_ended");
-                myself.stop(None);
+                tracing::warn!("listen_stream_ended_unexpectedly");
+                stop_with_degraded_error(
+                    myself,
+                    DegradedError::UpstreamUnavailable {
+                        message: "stream ended unexpectedly".to_string(),
+                    },
+                );
             }
 
-            ListenerMsg::StreamTimeout(elapsed) => {
-                tracing::info!("listen_stream_timeout: {}", elapsed);
-                myself.stop(None);
-            }
-        }
-        Ok(())
-    }
-
-    async fn handle_supervisor_evt(
-        &self,
-        myself: ActorRef<Self::Msg>,
-        message: SupervisionEvent,
-        state: &mut Self::State,
-    ) -> Result<(), ActorProcessingErr> {
-        let span = session_span(&state.args.session_id);
-        let _guard = span.enter();
-        tracing::info!("supervisor_event: {:?}", message);
-
-        match message {
-            SupervisionEvent::ActorStarted(_) | SupervisionEvent::ProcessGroupChanged(_) => {}
-            SupervisionEvent::ActorTerminated(_, _, _) => {}
-            SupervisionEvent::ActorFailed(_cell, _) => {
-                myself.stop(None);
+            ListenerMsg::StreamTimeout(_elapsed) => {
+                tracing::warn!("listen_stream_timeout");
+                stop_with_degraded_error(myself, DegradedError::ConnectionTimeout);
             }
         }
         Ok(())
     }
+}
+
+fn stop_with_degraded_error(myself: ActorRef<ListenerMsg>, error: DegradedError) {
+    let reason = serde_json::to_string(&error).ok();
+    myself.stop(reason);
 }

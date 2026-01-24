@@ -4,6 +4,7 @@ permissions = [
     "allow-open-calendar",
     "allow-list-calendars",
     "allow-list-events",
+    "allow-create-event",
     "allow-advance-fixture",
     "allow-reset-fixture",
     "allow-get-fixture-info",

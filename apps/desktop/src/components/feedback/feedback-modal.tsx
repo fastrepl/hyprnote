@@ -31,23 +31,7 @@ export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
   close: () => set({ isOpen: false }),
 }));
 
-function redactUserInfo(content: string): string {
-  let redacted = content;
-  redacted = redacted.replace(/\/Users\/[^\/\s]+/g, "/Users/[REDACTED]");
-  redacted = redacted.replace(/\/home\/[^\/\s]+/g, "/home/[REDACTED]");
-  redacted = redacted.replace(
-    /C:\\Users\\[^\\\/\s]+/g,
-    "C:\\Users\\[REDACTED]",
-  );
-  redacted = redacted.replace(
-    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
-    "[EMAIL_REDACTED]",
-  );
-  redacted = redacted.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[IP_REDACTED]");
-  return redacted;
-}
-
-async function getRedactedLogContent(): Promise<string | null> {
+async function getLogContent(): Promise<string | null> {
   const logsDirResult = await tracingCommands.logsDir();
   if (logsDirResult.status !== "ok") {
     return null;
@@ -63,7 +47,7 @@ async function getRedactedLogContent(): Promise<string | null> {
 
   const lines = logResult.data.split("\n");
   const lastLines = lines.slice(-500);
-  return redactUserInfo(lastLines.join("\n"));
+  return lastLines.join("\n");
 }
 
 export function FeedbackModal() {
@@ -130,7 +114,7 @@ export function FeedbackModal() {
 
       let logSection = "";
       if (attachLogs) {
-        const logContent = await getRedactedLogContent();
+        const logContent = await getLogContent();
         if (logContent) {
           logSection = `
 

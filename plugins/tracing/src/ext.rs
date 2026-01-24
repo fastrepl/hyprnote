@@ -39,34 +39,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'a, R, M> {
 
     pub fn log_content(&self) -> Result<Option<String>, crate::Error> {
         let logs_dir = self.logs_dir()?;
-        const TARGET_LINES: usize = 1000;
-        const MAX_ROTATED_FILES: usize = 5;
-
-        let log_files: Vec<_> = std::iter::once(logs_dir.join("app.log"))
-            .chain((1..=MAX_ROTATED_FILES).map(|i| logs_dir.join(format!("app.log.{}", i))))
-            .collect();
-
-        let mut collected: Vec<String> = Vec::new();
-
-        for log_path in &log_files {
-            if collected.len() >= TARGET_LINES {
-                break;
-            }
-
-            if let Ok(content) = std::fs::read_to_string(log_path) {
-                let lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
-                let mut new_collected = lines;
-                new_collected.extend(collected);
-                collected = new_collected;
-            }
-        }
-
-        if collected.is_empty() {
-            return Ok(None);
-        }
-
-        let start = collected.len().saturating_sub(TARGET_LINES);
-        Ok(Some(collected[start..].join("\n")))
+        Ok(crate::read_log_content(&logs_dir))
     }
 }
 

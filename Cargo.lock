@@ -17490,6 +17490,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-sentry",
  "tauri-specta",
+ "tempfile",
  "thiserror 2.0.17",
  "tracing",
  "tracing-appender",

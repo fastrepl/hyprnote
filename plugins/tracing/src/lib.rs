@@ -38,45 +38,71 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
+
+#[derive(Default)]
+pub struct Builder {
+    skip_subscriber_init: bool,
+}
+
+impl Builder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn skip_subscriber_init(mut self, skip: bool) -> Self {
+        self.skip_subscriber_init = skip;
+        self
+    }
+
+    pub fn build(self) -> tauri::plugin::TauriPlugin<tauri::Wry> {
+        let specta_builder = make_specta_builder();
+        let skip_subscriber_init = self.skip_subscriber_init;
+
+        tauri::plugin::Builder::new(PLUGIN_NAME)
+            .invoke_handler(specta_builder.invoke_handler())
+            .js_init_script(JS_INIT_SCRIPT)
+            .setup(move |app, _api| {
+                specta_builder.mount_events(app);
+
+                cleanup_legacy_logs(app);
+
+                if skip_subscriber_init {
+                    return Ok(());
+                }
+
+                let env_filter = EnvFilter::try_from_default_env()
+                    .unwrap_or_else(|_| EnvFilter::new("info"))
+                    .add_directive("ort=warn".parse().unwrap());
+
+                let sentry_layer =
+                    sentry::integrations::tracing::layer().event_filter(sentry_event_filter);
+
+                if let Some((file_writer, guard)) =
+                    make_file_writer_if_enabled(true, &app.tracing().logs_dir().unwrap())
+                {
+                    tracing_subscriber::Registry::default()
+                        .with(env_filter)
+                        .with(sentry_layer)
+                        .with(fmt::layer())
+                        .with(fmt::layer().with_ansi(false).with_writer(file_writer))
+                        .init();
+                    assert!(app.manage(guard));
+                } else {
+                    tracing_subscriber::Registry::default()
+                        .with(env_filter)
+                        .with(sentry_layer)
+                        .with(fmt::layer())
+                        .init();
+                }
+
+                Ok(())
+            })
+            .build()
+    }
+}
+
 pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
-    let specta_builder = make_specta_builder();
-
-    tauri::plugin::Builder::new(PLUGIN_NAME)
-        .invoke_handler(specta_builder.invoke_handler())
-        .js_init_script(JS_INIT_SCRIPT)
-        .setup(move |app, _api| {
-            specta_builder.mount_events(app);
-
-            cleanup_legacy_logs(app);
-
-            let env_filter = EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new("info"))
-                .add_directive("ort=warn".parse().unwrap());
-
-            let sentry_layer =
-                sentry::integrations::tracing::layer().event_filter(sentry_event_filter);
-
-            if let Some((file_writer, guard)) =
-                make_file_writer_if_enabled(true, &app.tracing().logs_dir().unwrap())
-            {
-                tracing_subscriber::Registry::default()
-                    .with(env_filter)
-                    .with(sentry_layer)
-                    .with(fmt::layer())
-                    .with(fmt::layer().with_ansi(false).with_writer(file_writer))
-                    .init();
-                assert!(app.manage(guard));
-            } else {
-                tracing_subscriber::Registry::default()
-                    .with(env_filter)
-                    .with(sentry_layer)
-                    .with(fmt::layer())
-                    .init();
-            }
-
-            Ok(())
-        })
-        .build()
+    Builder::new().build()
 }
 
 fn cleanup_legacy_logs<M: Manager<tauri::Wry>>(app: &M) {
@@ -101,7 +127,7 @@ fn cleanup_legacy_logs<M: Manager<tauri::Wry>>(app: &M) {
     }
 }
 
-fn cleanup_old_daily_logs(logs_dir: &PathBuf) -> io::Result<()> {
+pub fn cleanup_old_daily_logs(logs_dir: &PathBuf) -> io::Result<()> {
     if !logs_dir.exists() {
         return Ok(());
     }
@@ -122,6 +148,37 @@ fn cleanup_old_daily_logs(logs_dir: &PathBuf) -> io::Result<()> {
     }
 
     Ok(())
+}
+
+pub fn read_log_content(logs_dir: &PathBuf) -> Option<String> {
+    const TARGET_LINES: usize = 1000;
+    const MAX_ROTATED_FILES: usize = 5;
+
+    let log_files: Vec<_> = std::iter::once(logs_dir.join("app.log"))
+        .chain((1..=MAX_ROTATED_FILES).map(|i| logs_dir.join(format!("app.log.{}", i))))
+        .collect();
+
+    let mut collected: Vec<String> = Vec::new();
+
+    for log_path in &log_files {
+        if collected.len() >= TARGET_LINES {
+            break;
+        }
+
+        if let Ok(content) = fs::read_to_string(log_path) {
+            let lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+            let mut new_collected = lines;
+            new_collected.extend(collected);
+            collected = new_collected;
+        }
+    }
+
+    if collected.is_empty() {
+        return None;
+    }
+
+    let start = collected.len().saturating_sub(TARGET_LINES);
+    Some(collected[start..].join("\n"))
 }
 
 fn make_file_writer_if_enabled(
@@ -168,5 +225,36 @@ mod test {
 
         let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
+    }
+
+    fn create_mock_app() -> tauri::App<tauri::test::MockRuntime> {
+        let mut ctx = tauri::test::mock_context(tauri::test::noop_assets());
+        ctx.config_mut().identifier = "com.hyprnote.dev".to_string();
+        ctx.config_mut().version = Some("0.0.1".to_string());
+
+        tauri::test::mock_builder().build(ctx).unwrap()
+    }
+
+    #[test]
+    fn test_logs_dir() {
+        let app = create_mock_app();
+        let result = app.tracing().logs_dir();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_log_content_empty() {
+        let app = create_mock_app();
+        let result = app.tracing().log_content();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_do_log() {
+        let app = create_mock_app();
+        let result = app
+            .tracing()
+            .do_log(Level::Info, vec![serde_json::json!("test message")]);
+        assert!(result.is_ok());
     }
 }

@@ -13,6 +13,8 @@ tauri-plugin = { workspace = true, features = ["build"] }
 [dev-dependencies]
 rquickjs = "0.10"
 specta-typescript = { workspace = true }
+tauri = { workspace = true, features = ["test"] }
+tempfile = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true }

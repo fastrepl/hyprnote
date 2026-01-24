@@ -24,6 +24,11 @@ use tower_http::cors::{self, CorsLayer};
 
 use crate::{ModelManager, events::LLMEvent};
 
+type StreamWithCancellation = (
+    Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send + 'static>>,
+    CancellationToken,
+);
+
 #[derive(Clone)]
 pub struct ServerHandle {
     pub addr: SocketAddr,
@@ -182,13 +187,7 @@ impl LocalProvider {
     fn build_stream(
         model: &hypr_llama::Llama,
         request: &CreateChatCompletionRequest,
-    ) -> Result<
-        (
-            Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send + 'static>>,
-            CancellationToken,
-        ),
-        crate::Error,
-    > {
+    ) -> Result<StreamWithCancellation, crate::Error> {
         let messages = request
             .messages
             .iter()

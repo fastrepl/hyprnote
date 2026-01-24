@@ -29,12 +29,12 @@ pub enum WsMessage {
 
 #[derive(Clone)]
 pub struct TranscribeService {
-    config: TranscribeConfig,
+    _config: TranscribeConfig,
 }
 
 impl TranscribeService {
     pub async fn new(config: TranscribeConfig) -> Result<Self, Error> {
-        Ok(Self { config })
+        Ok(Self { _config: config })
     }
 
     /// Handle WebSocket upgrade for streaming transcription

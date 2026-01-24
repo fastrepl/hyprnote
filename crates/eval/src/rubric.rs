@@ -34,6 +34,7 @@ pub struct Score {
 /// * `output` - The output to evaluate
 /// * `inputs` - Optional input variables for context
 /// * `on_evaluation` - Optional callback called after each evaluation
+#[allow(clippy::too_many_arguments)]
 pub fn grade_with_llm(
     client: &dyn ChatCompleter,
     model: &str,

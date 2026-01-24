@@ -17479,6 +17479,7 @@ version = "0.1.0"
 dependencies = [
  "dirs 6.0.0",
  "file-rotate",
+ "regex",
  "rquickjs 0.10.0",
  "sentry",
  "serde",

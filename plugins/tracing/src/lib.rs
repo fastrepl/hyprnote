@@ -1,6 +1,7 @@
 mod commands;
 mod errors;
 mod ext;
+mod redaction;
 
 pub use errors::*;
 pub use ext::*;
@@ -117,7 +118,9 @@ fn make_file_writer_if_enabled(
         None,
     );
 
-    let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+    let redacting_appender = redaction::RedactingWriter::new(file_appender);
+
+    let (non_blocking, guard) = tracing_appender::non_blocking(redacting_appender);
     Some((non_blocking, guard))
 }
 

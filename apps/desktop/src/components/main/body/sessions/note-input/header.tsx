@@ -18,6 +18,11 @@ import {
   useScrollFade,
 } from "@hypr/ui/components/ui/scroll-fade";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useAudioPlayer } from "../../../../../contexts/audio-player/provider";
@@ -208,8 +213,15 @@ function HeaderTabEnhanced({
   sessionId: string;
   enhancedNoteId: string;
 }) {
-  const { isGenerating, isError, onRegenerate, onCancel, currentStep } =
-    useEnhanceLogic(sessionId, enhancedNoteId);
+  const {
+    isGenerating,
+    isError,
+    isUnauthenticated,
+    onRegenerate,
+    onCancel,
+    currentStep,
+  } = useEnhanceLogic(sessionId, enhancedNoteId);
+  const openNew = useTabs((state) => state.openNew);
 
   const title =
     main.UI.useCell("enhanced_notes", enhancedNoteId, "title", main.STORE_ID) ||
@@ -283,9 +295,17 @@ function HeaderTabEnhanced({
     );
   }
 
-  const regenerateIcon = (
+  const handleSignInClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      openNew({ type: "settings" });
+    },
+    [openNew],
+  );
+
+  const iconContent = (
     <span
-      onClick={handleRegenerateClick}
+      onClick={isUnauthenticated ? undefined : handleRegenerateClick}
       className={cn([
         "group relative inline-flex h-5 w-5 items-center justify-center rounded-xs transition-colors cursor-pointer",
         isError
@@ -298,7 +318,11 @@ function HeaderTabEnhanced({
       {isError && (
         <AlertCircleIcon
           size={12}
-          className="pointer-events-none absolute inset-0 m-auto transition-opacity duration-200 group-hover:opacity-0 group-focus-visible:opacity-0"
+          className={cn([
+            "pointer-events-none absolute inset-0 m-auto transition-opacity duration-200",
+            !isUnauthenticated &&
+              "group-hover:opacity-0 group-focus-visible:opacity-0",
+          ])}
         />
       )}
       <RefreshCwIcon
@@ -306,11 +330,30 @@ function HeaderTabEnhanced({
         className={cn([
           "pointer-events-none absolute inset-0 m-auto transition-opacity duration-200",
           isError
-            ? "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+            ? isUnauthenticated
+              ? "opacity-0"
+              : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
             : "opacity-100",
         ])}
       />
     </span>
+  );
+
+  const regenerateIcon = isUnauthenticated ? (
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>{iconContent}</TooltipTrigger>
+      <TooltipContent side="bottom" className="flex flex-col gap-2 p-2">
+        <p className="text-xs">Sign in to regenerate summary</p>
+        <button
+          onClick={handleSignInClick}
+          className="text-xs px-2 py-1 bg-white text-neutral-900 rounded hover:bg-neutral-100 transition-colors"
+        >
+          Sign in
+        </button>
+      </TooltipContent>
+    </Tooltip>
+  ) : (
+    iconContent
   );
 
   return (
@@ -733,9 +776,13 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
   const isError =
     !!missingModelError || enhanceTask.isError || isIdleWithConfigError;
 
+  const isUnauthenticated =
+    llmStatus.status === "error" && llmStatus.reason === "unauthenticated";
+
   return {
     isGenerating: enhanceTask.isGenerating,
     isError,
+    isUnauthenticated,
     error,
     onRegenerate,
     onCancel: enhanceTask.cancel,

@@ -44,12 +44,9 @@ impl<W: Write> RedactingWriter<W> {
             return Ok(());
         }
 
-        if let Ok(line) = std::str::from_utf8(&self.buffer) {
-            let redacted = self.redact_line(line);
-            self.inner.write_all(redacted.as_bytes())?;
-        } else {
-            self.inner.write_all(&self.buffer)?;
-        }
+        let line = String::from_utf8_lossy(&self.buffer);
+        let redacted = self.redact_line(&line);
+        self.inner.write_all(redacted.as_bytes())?;
 
         self.buffer.clear();
         Ok(())

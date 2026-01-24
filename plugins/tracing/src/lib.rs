@@ -47,6 +47,8 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
+            cleanup_legacy_logs(app);
+
             let env_filter = EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| EnvFilter::new("info"))
                 .add_directive("ort=warn".parse().unwrap());
@@ -75,6 +77,28 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             Ok(())
         })
         .build()
+}
+
+fn cleanup_legacy_logs<M: Manager<tauri::Wry>>(app: &M) {
+    let Ok(data_dir) = app.path().data_dir() else {
+        return;
+    };
+
+    let bundle_id: &str = app.config().identifier.as_ref();
+    let app_folder = if cfg!(debug_assertions) || bundle_id == "com.hyprnote.staging" {
+        bundle_id
+    } else {
+        "hyprnote"
+    };
+
+    let old_logs_dir = data_dir.join(app_folder);
+    if !old_logs_dir.exists() {
+        return;
+    }
+
+    for name in ["log", "log.1", "log.2", "log.3", "log.4", "log.5"] {
+        let _ = fs::remove_file(old_logs_dir.join(name));
+    }
 }
 
 fn cleanup_old_daily_logs(logs_dir: &PathBuf) -> io::Result<()> {
@@ -110,11 +134,11 @@ fn make_file_writer_if_enabled(
 
     let _ = cleanup_old_daily_logs(logs_dir);
 
-    let log_path = logs_dir.join("log");
+    let log_path = logs_dir.join("app.log");
     let file_appender = FileRotate::new(
         log_path,
         AppendCount::new(5),
-        ContentLimit::Bytes(10 * 1024 * 1024),
+        ContentLimit::Bytes(5 * 1024 * 1024),
         Compression::None,
         None,
     );

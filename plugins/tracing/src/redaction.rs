@@ -10,14 +10,14 @@ static EMAIL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 static IP_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\b(?:\d{1,3}\.){3}\d{1,3}\b").expect("Invalid regex"));
 
-pub(crate) struct RedactingWriter<W: Write> {
+pub struct RedactingWriter<W: Write> {
     inner: W,
     buffer: Vec<u8>,
     home_dir: Option<String>,
 }
 
 impl<W: Write> RedactingWriter<W> {
-    pub(crate) fn new(inner: W) -> Self {
+    pub fn new(inner: W) -> Self {
         Self {
             inner,
             buffer: Vec::with_capacity(8192),

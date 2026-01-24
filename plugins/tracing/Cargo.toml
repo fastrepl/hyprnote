@@ -11,10 +11,14 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+dirs = { workspace = true }
+file-rotate = "0.8"
 rquickjs = "0.10"
 specta-typescript = { workspace = true }
 tauri = { workspace = true, features = ["test"] }
 tempfile = { workspace = true }
+tracing-appender = { version = "0.2" }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
 
 [dependencies]
 tauri = { workspace = true }

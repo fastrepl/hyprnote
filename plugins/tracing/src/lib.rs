@@ -1,7 +1,7 @@
 mod commands;
 mod errors;
 mod ext;
-mod redaction;
+pub mod redaction;
 
 pub use errors::*;
 pub use ext::*;

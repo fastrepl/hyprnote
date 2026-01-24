@@ -34,6 +34,7 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         .commands(tauri_specta::collect_commands![
             commands::logs_dir::<tauri::Wry>,
             commands::do_log::<tauri::Wry>,
+            commands::log_content::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

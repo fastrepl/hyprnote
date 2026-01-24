@@ -1,11 +1,9 @@
-import { sep } from "@tauri-apps/api/path";
 import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
 import { Bug, Lightbulb, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { create } from "zustand";
 
-import { commands as fs2Commands } from "@hypr/plugin-fs2";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as tracingCommands } from "@hypr/plugin-tracing";
@@ -32,22 +30,11 @@ export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
 }));
 
 async function getLogContent(): Promise<string | null> {
-  const logsDirResult = await tracingCommands.logsDir();
-  if (logsDirResult.status !== "ok") {
+  const result = await tracingCommands.logContent();
+  if (result.status !== "ok") {
     return null;
   }
-
-  const logsDir = logsDirResult.data;
-  const logPath = [logsDir, "log"].join(sep());
-  const logResult = await fs2Commands.readTextFile(logPath);
-
-  if (logResult.status !== "ok") {
-    return null;
-  }
-
-  const lines = logResult.data.split("\n");
-  const lastLines = lines.slice(-500);
-  return lastLines.join("\n");
+  return result.data ?? null;
 }
 
 export function FeedbackModal() {

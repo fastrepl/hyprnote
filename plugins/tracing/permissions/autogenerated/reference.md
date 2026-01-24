@@ -6,6 +6,7 @@ Default permissions for the plugin
 
 - `allow-logs-dir`
 - `allow-do-log`
+- `allow-log-content`
 
 ## Permission Table
 
@@ -38,6 +39,32 @@ Enables the do_log command without any pre-configured scope.
 <td>
 
 Denies the do_log command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`tracing:allow-log-content`
+
+</td>
+<td>
+
+Enables the log_content command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`tracing:deny-log-content`
+
+</td>
+<td>
+
+Denies the log_content command without any pre-configured scope.
 
 </td>
 </tr>

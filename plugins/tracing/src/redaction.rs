@@ -3,15 +3,6 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
-static UNIX_HOME_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"/home/[^/\s]+").expect("Invalid regex"));
-
-static MAC_HOME_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"/Users/[^/\s]+").expect("Invalid regex"));
-
-static WINDOWS_HOME_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"C:\\Users\\[^\\/\s]+").expect("Invalid regex"));
-
 static EMAIL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}").expect("Invalid regex")
 });
@@ -22,6 +13,7 @@ static IP_REGEX: LazyLock<Regex> =
 pub struct RedactingWriter<W: Write> {
     inner: W,
     buffer: Vec<u8>,
+    home_dir: Option<String>,
 }
 
 impl<W: Write> RedactingWriter<W> {
@@ -29,20 +21,15 @@ impl<W: Write> RedactingWriter<W> {
         Self {
             inner,
             buffer: Vec::with_capacity(8192),
+            home_dir: dirs::home_dir().map(|p| p.to_string_lossy().into_owned()),
         }
     }
 
-    fn redact_line(line: &str) -> String {
+    fn redact_line(&self, line: &str) -> String {
         let mut redacted = line.to_string();
-        redacted = UNIX_HOME_REGEX
-            .replace_all(&redacted, "/home/[REDACTED]")
-            .into_owned();
-        redacted = MAC_HOME_REGEX
-            .replace_all(&redacted, "/Users/[REDACTED]")
-            .into_owned();
-        redacted = WINDOWS_HOME_REGEX
-            .replace_all(&redacted, r"C:\Users\[REDACTED]")
-            .into_owned();
+        if let Some(home) = &self.home_dir {
+            redacted = redacted.replace(home, "[HOME]");
+        }
         redacted = EMAIL_REGEX
             .replace_all(&redacted, "[EMAIL_REDACTED]")
             .into_owned();
@@ -58,7 +45,7 @@ impl<W: Write> RedactingWriter<W> {
         }
 
         if let Ok(line) = std::str::from_utf8(&self.buffer) {
-            let redacted = Self::redact_line(line);
+            let redacted = self.redact_line(line);
             self.inner.write_all(redacted.as_bytes())?;
         } else {
             self.inner.write_all(&self.buffer)?;
@@ -104,161 +91,152 @@ impl<W: Write> Drop for RedactingWriter<W> {
 mod tests {
     use super::*;
 
+    impl<W: Write> RedactingWriter<W> {
+        fn with_home_dir(inner: W, home_dir: Option<String>) -> Self {
+            Self {
+                inner,
+                buffer: Vec::with_capacity(8192),
+                home_dir,
+            }
+        }
+    }
+
     #[test]
-    fn test_redact_unix_home() {
+    fn test_redact_home_dir() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), Some("/home/johndoe".into()));
         let input = "/home/johndoe/documents/file.txt";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
-        assert_eq!(output, "/home/[REDACTED]/documents/file.txt");
+        let output = writer.redact_line(input);
+        assert_eq!(output, "[HOME]/documents/file.txt");
     }
 
     #[test]
-    fn test_redact_unix_home_multiple() {
-        let input = "/home/alice/file and /home/bob/other";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
-        assert_eq!(output, "/home/[REDACTED]/file and /home/[REDACTED]/other");
+    fn test_redact_home_dir_multiple_occurrences() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), Some("/home/alice".into()));
+        let input = "/home/alice/file and /home/alice/other";
+        let output = writer.redact_line(input);
+        assert_eq!(output, "[HOME]/file and [HOME]/other");
     }
 
     #[test]
-    fn test_redact_mac_home() {
+    fn test_redact_mac_home_dir() {
+        let writer =
+            RedactingWriter::with_home_dir(Vec::<u8>::new(), Some("/Users/janedoe".into()));
         let input = "/Users/janedoe/projects/app";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
-        assert_eq!(output, "/Users/[REDACTED]/projects/app");
+        let output = writer.redact_line(input);
+        assert_eq!(output, "[HOME]/projects/app");
     }
 
     #[test]
-    fn test_redact_mac_home_multiple() {
-        let input = "/Users/alice/Desktop and /Users/bob/Documents";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
-        assert_eq!(
-            output,
-            "/Users/[REDACTED]/Desktop and /Users/[REDACTED]/Documents"
-        );
-    }
-
-    #[test]
-    fn test_redact_windows_home() {
+    fn test_redact_windows_home_dir() {
+        let writer =
+            RedactingWriter::with_home_dir(Vec::<u8>::new(), Some(r"C:\Users\johndoe".into()));
         let input = r"C:\Users\johndoe\Desktop\file.txt";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
-        assert_eq!(output, r"C:\Users\[REDACTED]\Desktop\file.txt");
+        let output = writer.redact_line(input);
+        assert_eq!(output, r"[HOME]\Desktop\file.txt");
     }
 
     #[test]
-    fn test_redact_windows_home_forward_slash() {
-        let input = r"C:\Users\johndoe/AppData/Local";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
-        assert_eq!(output, r"C:\Users\[REDACTED]/AppData/Local");
+    fn test_other_user_paths_not_redacted() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), Some("/home/alice".into()));
+        let input = "/home/bob/documents/file.txt";
+        let output = writer.redact_line(input);
+        assert_eq!(output, "/home/bob/documents/file.txt");
     }
 
     #[test]
     fn test_redact_email() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), None);
         let input = "Contact: user@example.com for help";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
+        let output = writer.redact_line(input);
         assert_eq!(output, "Contact: [EMAIL_REDACTED] for help");
     }
 
     #[test]
     fn test_redact_email_multiple() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), None);
         let input = "From alice@test.org to bob@example.com";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
+        let output = writer.redact_line(input);
         assert_eq!(output, "From [EMAIL_REDACTED] to [EMAIL_REDACTED]");
     }
 
     #[test]
     fn test_redact_email_complex() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), None);
         let input = "Email: john.doe+tag@sub.example.co.uk";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
+        let output = writer.redact_line(input);
         assert_eq!(output, "Email: [EMAIL_REDACTED]");
     }
 
     #[test]
     fn test_redact_ip() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), None);
         let input = "Connected to 192.168.1.1 successfully";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
+        let output = writer.redact_line(input);
         assert_eq!(output, "Connected to [IP_REDACTED] successfully");
     }
 
     #[test]
     fn test_redact_ip_multiple() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), None);
         let input = "From 10.0.0.1 to 192.168.0.100";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
+        let output = writer.redact_line(input);
         assert_eq!(output, "From [IP_REDACTED] to [IP_REDACTED]");
     }
 
     #[test]
     fn test_redact_ip_localhost() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), None);
         let input = "Listening on 127.0.0.1:8080";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
+        let output = writer.redact_line(input);
         assert_eq!(output, "Listening on [IP_REDACTED]:8080");
     }
 
     #[test]
     fn test_redact_mixed_content() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), Some("/home/alice".into()));
         let input = "User alice@test.com at /home/alice connected from 192.168.1.50";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
+        let output = writer.redact_line(input);
         assert_eq!(
             output,
-            "User [EMAIL_REDACTED] at /home/[REDACTED] connected from [IP_REDACTED]"
+            "User [EMAIL_REDACTED] at [HOME] connected from [IP_REDACTED]"
         );
     }
 
     #[test]
     fn test_no_redaction_needed() {
+        let writer = RedactingWriter::with_home_dir(Vec::<u8>::new(), None);
         let input = "Application started successfully";
-        let output = RedactingWriter::<Vec<u8>>::redact_line(input);
+        let output = writer.redact_line(input);
         assert_eq!(output, "Application started successfully");
     }
 
     #[test]
-    fn test_redacting_writer_single_line() {
-        let mut output = Vec::new();
-        {
-            let mut writer = RedactingWriter::new(&mut output);
-            writer.write_all(b"test /home/user/file\n").unwrap();
-            writer.flush().unwrap();
+    fn test_redacting_writer_with_actual_home() {
+        let home = dirs::home_dir().map(|p| p.to_string_lossy().into_owned());
+        if let Some(ref home_path) = home {
+            let mut output = Vec::new();
+            let input = format!("{}/documents/file.txt\n", home_path);
+            {
+                let mut writer = RedactingWriter::new(&mut output);
+                writer.write_all(input.as_bytes()).unwrap();
+                writer.flush().unwrap();
+            }
+            let result = String::from_utf8(output).unwrap();
+            assert_eq!(result, "[HOME]/documents/file.txt\n");
         }
-
-        let result = String::from_utf8(output).unwrap();
-        assert_eq!(result, "test /home/[REDACTED]/file\n");
     }
 
     #[test]
     fn test_redacting_writer_partial_line() {
         let mut output = Vec::new();
         {
-            let mut writer = RedactingWriter::new(&mut output);
+            let mut writer = RedactingWriter::with_home_dir(&mut output, Some("/home/user".into()));
             writer.write_all(b"test /home/").unwrap();
             writer.write_all(b"user/file\n").unwrap();
             writer.flush().unwrap();
         }
-
         let result = String::from_utf8(output).unwrap();
-        assert_eq!(result, "test /home/[REDACTED]/file\n");
-    }
-
-    #[test]
-    fn test_redacting_writer_multiple_lines() {
-        let mut output = Vec::new();
-        {
-            let mut writer = RedactingWriter::new(&mut output);
-            writer.write_all(b"/home/alice/a\n/Users/bob/b\n").unwrap();
-            writer.flush().unwrap();
-        }
-
-        let result = String::from_utf8(output).unwrap();
-        assert_eq!(result, "/home/[REDACTED]/a\n/Users/[REDACTED]/b\n");
-    }
-
-    #[test]
-    fn test_redacting_writer_flush_partial() {
-        let mut output = Vec::new();
-        {
-            let mut writer = RedactingWriter::new(&mut output);
-            writer.write_all(b"partial /home/user/path").unwrap();
-            writer.flush().unwrap();
-        }
-
-        let result = String::from_utf8(output).unwrap();
-        assert_eq!(result, "partial /home/[REDACTED]/path");
+        assert_eq!(result, "test [HOME]/file\n");
     }
 
     #[test]
@@ -269,7 +247,6 @@ mod tests {
             writer.write_all(b"").unwrap();
             writer.flush().unwrap();
         }
-
         let result = String::from_utf8(output).unwrap();
         assert_eq!(result, "");
     }
@@ -282,7 +259,6 @@ mod tests {
             writer.write_all(b"\n\n\n").unwrap();
             writer.flush().unwrap();
         }
-
         let result = String::from_utf8(output).unwrap();
         assert_eq!(result, "\n\n\n");
     }
@@ -298,7 +274,6 @@ mod tests {
             writer.write_all(b"line2\n").unwrap();
             writer.flush().unwrap();
         }
-
         let result = String::from_utf8(output).unwrap();
         assert_eq!(result, "line1 [EMAIL_REDACTED] end\nline2\n");
     }

@@ -37,6 +37,25 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'a, R, M> {
         }
         Ok(())
     }
+
+    pub fn log_content(&self) -> Result<Option<String>, crate::Error> {
+        let logs_dir = self.logs_dir()?;
+        let log_path = logs_dir.join("log");
+
+        let content = match std::fs::read_to_string(&log_path) {
+            Ok(content) => content,
+            Err(_) => return Ok(None),
+        };
+
+        let lines: Vec<&str> = content.lines().collect();
+        let last_lines = if lines.len() > 500 {
+            lines[lines.len() - 500..].to_vec()
+        } else {
+            lines
+        };
+
+        Ok(Some(last_lines.join("\n")))
+    }
 }
 
 pub trait TracingPluginExt<R: tauri::Runtime> {

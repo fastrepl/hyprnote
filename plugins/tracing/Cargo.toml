@@ -12,7 +12,6 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 dirs = { workspace = true }
-file-rotate = "0.8"
 rquickjs = "0.10"
 specta-typescript = { workspace = true }
 tauri = { workspace = true, features = ["test"] }

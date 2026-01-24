@@ -9,6 +9,7 @@
 @import "./nodes/link.css";
 @import "./nodes/list.css";
 @import "./nodes/task-list.css";
+@import "./nodes/table.css";
 @import "./nodes/mark.css";
 @import "./nodes/ai-highlight.css";
 @import "./nodes/hashtag.css";

@@ -8,6 +8,7 @@ import {
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
+  HighlighterIcon,
   ImageIcon,
   ItalicIcon,
   LinkIcon,
@@ -94,6 +95,7 @@ export function Toolbar({
       isItalic: ctx.editor?.isActive("italic") ?? false,
       isUnderline: ctx.editor?.isActive("underline") ?? false,
       isStrike: ctx.editor?.isActive("strike") ?? false,
+      isHighlight: ctx.editor?.isActive("highlight") ?? false,
       isHeading2: ctx.editor?.isActive("heading", { level: 2 }) ?? false,
       isHeading3: ctx.editor?.isActive("heading", { level: 3 }) ?? false,
       isHeading4: ctx.editor?.isActive("heading", { level: 4 }) ?? false,
@@ -209,6 +211,14 @@ export function Toolbar({
           title="Strikethrough"
         >
           <StrikethroughIcon className="size-4" />
+        </ToolbarButton>
+
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleHighlight().run()}
+          isActive={editorState?.isHighlight}
+          title="Highlight (==text==)"
+        >
+          <HighlighterIcon className="size-4" />
         </ToolbarButton>
 
         <ToolbarDivider />

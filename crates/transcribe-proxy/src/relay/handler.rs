@@ -97,16 +97,14 @@ impl WebSocketProxy {
     pub async fn handle_upgrade(&self, ws: WebSocketUpgrade) -> Response<Body> {
         let proxy = self.clone();
         let hub = sentry::Hub::current().clone();
-        ws.on_upgrade(move |socket| {
+        ws.on_upgrade(move |socket| async move {
             let _guard = hub.push_scope();
-            async move {
-                if let Err(e) = proxy.handle(socket).await {
-                    tracing::error!(
-                        error = %e,
-                        "websocket_proxy_error: {}",
-                        e
-                    );
-                }
+            if let Err(e) = proxy.handle(socket).await {
+                tracing::error!(
+                    error = %e,
+                    "websocket_proxy_error: {}",
+                    e
+                );
             }
         })
         .into_response()

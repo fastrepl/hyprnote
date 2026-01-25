@@ -1,7 +1,7 @@
 .tiptap {
   a {
     color: #3b82f6;
-    cursor: pointer;
+    cursor: text;
     text-decoration: underline;
 
     &:hover {

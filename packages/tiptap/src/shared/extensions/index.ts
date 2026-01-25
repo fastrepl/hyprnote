@@ -36,6 +36,7 @@ export type FileHandlerConfig = {
 
 export type ExtensionOptions = {
   imageExtension?: any;
+  linkClickable?: boolean;
 };
 
 const AttachmentImage = Image.extend({
@@ -109,7 +110,7 @@ export const getExtensions = (
   }),
   Hashtag,
   Link.configure({
-    openOnClick: true,
+    openOnClick: options?.linkClickable ?? false,
     defaultProtocol: "https",
     protocols: ["http", "https"],
     isAllowedUri: (url, ctx) => {

@@ -68,6 +68,7 @@
       ]
     },
     "misc:default",
+    "fs-db:default",
     "fs-sync:default",
     "fs2:default",
     "os:default",

@@ -4317,6 +4317,7 @@ dependencies = [
  "tauri-plugin-detect",
  "tauri-plugin-dialog",
  "tauri-plugin-extensions",
+ "tauri-plugin-fs-db",
  "tauri-plugin-fs-sync",
  "tauri-plugin-fs2",
  "tauri-plugin-hooks",
@@ -16745,6 +16746,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-fs-db"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-settings",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "tauri-plugin-fs-sync"
 version = "0.1.0"
 dependencies = [
@@ -16764,6 +16781,7 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-fs-db",
  "tauri-plugin-notify",
  "tauri-plugin-opener",
  "tauri-plugin-settings",

@@ -20,7 +20,7 @@ jobs:
       - name: Get changed MDX files
         id: changed-files
         run: |
-          FILES=$(git diff --name-only HEAD~1 HEAD -- '*.mdx' 2>/dev/null || echo "")
+          FILES=$(git diff --name-only HEAD~1 HEAD -- 'apps/web/content/articles/*.mdx' 2>/dev/null || echo "")
           echo "files=$FILES" >> $GITHUB_OUTPUT
 
       - name: Setup dprint

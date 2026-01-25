@@ -11,6 +11,7 @@ import {
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 
 import { AIHighlight } from "../ai-highlight";
@@ -36,7 +37,6 @@ export type FileHandlerConfig = {
 
 export type ExtensionOptions = {
   imageExtension?: any;
-  linkClickable?: boolean;
 };
 
 const AttachmentImage = Image.extend({
@@ -109,8 +109,44 @@ export const getExtensions = (
     showOnlyWhenEditable: true,
   }),
   Hashtag,
-  Link.configure({
-    openOnClick: options?.linkClickable ?? false,
+  Link.extend({
+    addProseMirrorPlugins() {
+      const plugins = this.parent?.() || [];
+
+      plugins.push(
+        new Plugin({
+          key: new PluginKey("linkCmdClick"),
+          props: {
+            handleClick(view, pos, event) {
+              if (!(event.metaKey || event.ctrlKey)) {
+                return false;
+              }
+
+              const { state } = view;
+              const $pos = state.doc.resolve(pos);
+              const marks = $pos.marks();
+              const linkMark = marks.find((mark) => mark.type.name === "link");
+
+              if (linkMark && linkMark.attrs.href) {
+                event.preventDefault();
+                window.open(
+                  linkMark.attrs.href,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+                return true;
+              }
+
+              return false;
+            },
+          },
+        }),
+      );
+
+      return plugins;
+    },
+  }).configure({
+    openOnClick: false,
     defaultProtocol: "https",
     protocols: ["http", "https"],
     isAllowedUri: (url, ctx) => {

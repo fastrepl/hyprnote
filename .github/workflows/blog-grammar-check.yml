@@ -50,6 +50,36 @@ jobs:
         run: |
           node .github/scripts/grammar-check.mjs
 
+      - name: Extract article info
+        if: steps.changed-files.outputs.has_files == 'true'
+        id: article-info
+        run: |
+          FILE=$(echo "${{ steps.changed-files.outputs.files }}" | awk '{print $1}')
+          if [ -f "$FILE" ]; then
+            # Extract display_title or fall back to meta_title (handles quoted YAML values)
+            TITLE=$(grep -m1 "^display_title:" "$FILE" | sed 's/display_title:[[:space:]]*"\(.*\)"/\1/' || echo "")
+            if [ -z "$TITLE" ]; then
+              TITLE=$(grep -m1 "^meta_title:" "$FILE" | sed 's/meta_title:[[:space:]]*"\(.*\)"/\1/' || echo "Untitled")
+            fi
+            AUTHOR=$(grep -m1 "^author:" "$FILE" | sed 's/author:[[:space:]]*"\(.*\)"/\1/' || echo "Unknown")
+            DATE=$(grep -m1 "^date:" "$FILE" | sed 's/date:[[:space:]]*"\(.*\)"/\1/' || echo "")
+          else
+            TITLE="Untitled"
+            AUTHOR="Unknown"
+            DATE=""
+          fi
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "author=$AUTHOR" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+
+          # Determine if this is a new article or edit (edit branches have timestamp suffix)
+          BRANCH="${{ github.head_ref }}"
+          if [[ "$BRANCH" =~ -[0-9]+$ ]]; then
+            echo "is_edit=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_edit=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Post PR comment
         if: steps.changed-files.outputs.has_files == 'true'
         uses: actions/github-script@v7
@@ -95,21 +125,13 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             {
-              "channel": "${{ secrets.SLACK_MARKETING_CHANNEL_ID }}",
+              "channel": "${{ secrets.SLACK_BLOG_CHANNEL_ID }}",
               "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "📝 Blog Article Update",
-                    "emoji": true
-                  }
-                },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>*"
+                    "text": "${{ steps.article-info.outputs.is_edit == 'true' && format('✏️ *{0}* made changes to *{1}*', github.event.pull_request.user.login, steps.article-info.outputs.title) || format('🚀 *{0}* is ready to publish a new article: *{1}*', github.event.pull_request.user.login, steps.article-info.outputs.title) }}"
                   }
                 },
                 {
@@ -117,7 +139,22 @@ jobs:
                   "elements": [
                     {
                       "type": "mrkdwn",
-                      "text": "Branch: `${{ github.head_ref }}` | Author: ${{ github.event.pull_request.user.login }}"
+                      "text": "👤 ${{ steps.article-info.outputs.author }}${{ steps.article-info.outputs.date != '' && format(' • 📅 {0}', steps.article-info.outputs.date) || '' }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View PR",
+                        "emoji": true
+                      },
+                      "url": "${{ github.event.pull_request.html_url }}",
+                      "style": "primary"
                     }
                   ]
                 }

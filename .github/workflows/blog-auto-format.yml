@@ -17,15 +17,24 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get changed MDX files
+        id: changed-files
+        run: |
+          FILES=$(git diff --name-only HEAD~1 HEAD -- '*.mdx' 2>/dev/null || echo "")
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+
       - name: Setup dprint
+        if: steps.changed-files.outputs.files != ''
         run: |
           curl -fsSL https://dprint.dev/install.sh | sh
           echo "$HOME/.dprint/bin" >> $GITHUB_PATH
 
-      - name: Run dprint fmt
-        run: dprint fmt
+      - name: Run dprint fmt on changed MDX file
+        if: steps.changed-files.outputs.files != ''
+        run: dprint fmt ${{ steps.changed-files.outputs.files }}
 
       - name: Commit and push formatting changes
+        if: steps.changed-files.outputs.files != ''
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

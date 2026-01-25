@@ -1,7 +1,12 @@
 use std::path::Path;
 
+use uuid::Uuid;
+
 use crate::Error;
-use crate::path::is_uuid;
+
+fn is_uuid(name: &str) -> bool {
+    Uuid::try_parse(name).is_ok()
+}
 
 pub fn rename_transcript(base_dir: &Path) -> Result<(), Error> {
     if !base_dir.exists() {

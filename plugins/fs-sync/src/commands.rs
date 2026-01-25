@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use rayon::prelude::*;
 use serde_json::Value;
@@ -30,7 +31,7 @@ fn resolve_session_dir<R: tauri::Runtime>(
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn deserialize(input: String) -> Result<ParsedDocument, String> {
-    crate::frontmatter::deserialize(&input).map_err(|e| e.to_string())
+    ParsedDocument::from_str(&input).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -91,7 +92,7 @@ pub(crate) async fn write_document_batch<R: tauri::Runtime>(
             if let Some(parent) = path.parent() {
                 std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
             }
-            let content = crate::frontmatter::serialize(doc).map_err(|e| e.to_string())?;
+            let content = doc.render().map_err(|e| e.to_string())?;
             std::fs::write(path, content).map_err(|e| e.to_string())
         })
     })
@@ -108,7 +109,7 @@ pub(crate) async fn read_document_batch(
             .into_par_iter()
             .filter_map(|(id, path)| {
                 let content = std::fs::read_to_string(&path).ok()?;
-                let doc = crate::frontmatter::deserialize(&content).ok()?;
+                let doc = ParsedDocument::from_str(&content).ok()?;
                 Some((id, doc))
             })
             .collect();

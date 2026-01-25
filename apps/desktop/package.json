@@ -45,6 +45,7 @@
     "@hypr/plugin-deeplink2": "workspace:*",
     "@hypr/plugin-detect": "workspace:*",
     "@hypr/plugin-extensions": "workspace:*",
+    "@hypr/plugin-fs-db": "workspace:*",
     "@hypr/plugin-fs-sync": "workspace:*",
     "@hypr/plugin-fs2": "workspace:*",
     "@hypr/plugin-hooks": "workspace:*",

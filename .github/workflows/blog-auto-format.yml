@@ -20,21 +20,25 @@ jobs:
       - name: Get changed MDX files
         id: changed-files
         run: |
-          FILES=$(git diff --name-only HEAD~1 HEAD -- 'apps/web/content/articles/*.mdx' 2>/dev/null | tr '\n' ' ' || echo "")
-          echo "files=$FILES" >> $GITHUB_OUTPUT
+          git diff --name-only -z HEAD~1 HEAD -- 'apps/web/content/articles/*.mdx' > /tmp/changed-files.txt 2>/dev/null || true
+          if [ -s /tmp/changed-files.txt ]; then
+            echo "has_files=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_files=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Setup dprint
-        if: steps.changed-files.outputs.files != ''
+        if: steps.changed-files.outputs.has_files == 'true'
         run: |
           curl -fsSL https://dprint.dev/install.sh | sh
           echo "$HOME/.dprint/bin" >> $GITHUB_PATH
 
       - name: Run dprint fmt on changed MDX file
-        if: steps.changed-files.outputs.files != ''
-        run: dprint fmt ${{ steps.changed-files.outputs.files }}
+        if: steps.changed-files.outputs.has_files == 'true'
+        run: xargs -0 -r dprint fmt < /tmp/changed-files.txt
 
       - name: Commit and push formatting changes
-        if: steps.changed-files.outputs.files != ''
+        if: steps.changed-files.outputs.has_files == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

@@ -80,10 +80,13 @@ function getApplyUrl(job: (typeof allJobs)[0]) {
 function HeroSection({ job }: { job: (typeof allJobs)[0] }) {
   return (
     <div className="relative overflow-hidden">
-      <img
+      <Image
         src={job.backgroundImage}
         alt=""
-        className="absolute inset-0 w-full h-full object-cover"
+        layout="fullWidth"
+        priority={false}
+        objectFit="cover"
+        className="absolute inset-0 w-full h-full"
       />
       <div
         className="absolute inset-0"

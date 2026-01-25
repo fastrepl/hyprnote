@@ -88,19 +88,19 @@
       opacity: 0.4;
     }
     58.33% {
-      opacity: 0.3;
+      opacity: 0.35;
     }
     66.67% {
-      opacity: 0.2;
+      opacity: 0.3;
     }
     75% {
-      opacity: 0.1;
+      opacity: 0.25;
     }
     83.33% {
-      opacity: 0.05;
+      opacity: 0.2;
     }
     91.67% {
-      opacity: 0.025;
+      opacity: 0.15;
     }
   }
 }

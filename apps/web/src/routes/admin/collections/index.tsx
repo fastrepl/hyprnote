@@ -2463,6 +2463,25 @@ const FileEditor = React.forwardRef<
     staleTime: 60000,
   });
 
+  const { data: pendingPRFileData, isLoading: isPendingPRLoading } = useQuery({
+    queryKey: ["pendingPRFile", filePath, pendingPRData?.branchName],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        path: `apps/web/content/${filePath}`,
+        branch: pendingPRData!.branchName!,
+      });
+      const response = await fetch(
+        `/api/admin/content/get-branch-file?${params}`,
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch file from PR branch");
+      }
+      return response.json() as Promise<BranchFileResponse>;
+    },
+    enabled: !!pendingPRData?.hasPendingPR && !!pendingPRData?.branchName,
+    staleTime: 30000,
+  });
+
   const publishedFileContent = useMemo(
     () => getFileContent(filePath),
     [filePath],
@@ -2486,8 +2505,32 @@ const FileEditor = React.forwardRef<
         category: branchFileData.frontmatter.category,
       };
     }
+    if (pendingPRData?.hasPendingPR && pendingPRFileData) {
+      return {
+        content: pendingPRFileData.content,
+        mdx: "",
+        collection: "articles",
+        slug: filePath.replace(/\.mdx$/, "").replace(/^articles\//, ""),
+        meta_title: pendingPRFileData.frontmatter.meta_title,
+        display_title: pendingPRFileData.frontmatter.display_title,
+        meta_description: pendingPRFileData.frontmatter.meta_description,
+        author: pendingPRFileData.frontmatter.author,
+        date: pendingPRFileData.frontmatter.date,
+        coverImage: pendingPRFileData.frontmatter.coverImage,
+        published: pendingPRFileData.frontmatter.published,
+        featured: pendingPRFileData.frontmatter.featured,
+        category: pendingPRFileData.frontmatter.category,
+      };
+    }
     return publishedFileContent;
-  }, [branch, branchFileData, publishedFileContent, filePath]);
+  }, [
+    branch,
+    branchFileData,
+    pendingPRData,
+    pendingPRFileData,
+    publishedFileContent,
+    filePath,
+  ]);
 
   const [content, setContent] = useState(fileContent?.content || "");
   const [metaTitle, setMetaTitle] = useState(fileContent?.meta_title || "");
@@ -2696,6 +2739,17 @@ const FileEditor = React.forwardRef<
         <div className="text-center">
           <Spinner size={32} />
           <p className="text-sm mt-3">Loading draft...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isPendingPRLoading && pendingPRData?.hasPendingPR) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-neutral-500">
+        <div className="text-center">
+          <Spinner size={32} />
+          <p className="text-sm mt-3">Loading from pending PR...</p>
         </div>
       </div>
     );

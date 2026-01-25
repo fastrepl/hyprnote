@@ -1,6 +1,8 @@
-import type { Editor as TiptapEditor } from "@tiptap/react";
+import { type Editor as TiptapEditor, useEditorState } from "@tiptap/react";
 import {
   BoldIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   CodeIcon,
   Heading1Icon,
   Heading2Icon,
@@ -11,9 +13,12 @@ import {
   ListIcon,
   ListOrderedIcon,
   QuoteIcon,
+  ReplaceIcon,
+  SearchIcon,
   StrikethroughIcon,
   TableIcon,
   UnderlineIcon,
+  XIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -63,18 +68,48 @@ function ToolbarDivider() {
 export function Toolbar({ editor, onAddImage }: ToolbarProps) {
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
-  const [, forceUpdate] = useState(0);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [replaceTerm, setReplaceTerm] = useState("");
+
+  const editorState = useEditorState({
+    editor,
+    selector: (ctx) => ({
+      isBold: ctx.editor?.isActive("bold") ?? false,
+      isItalic: ctx.editor?.isActive("italic") ?? false,
+      isUnderline: ctx.editor?.isActive("underline") ?? false,
+      isStrike: ctx.editor?.isActive("strike") ?? false,
+      isHeading2: ctx.editor?.isActive("heading", { level: 2 }) ?? false,
+      isHeading3: ctx.editor?.isActive("heading", { level: 3 }) ?? false,
+      isHeading4: ctx.editor?.isActive("heading", { level: 4 }) ?? false,
+      isBulletList: ctx.editor?.isActive("bulletList") ?? false,
+      isOrderedList: ctx.editor?.isActive("orderedList") ?? false,
+      isBlockquote: ctx.editor?.isActive("blockquote") ?? false,
+      isCodeBlock: ctx.editor?.isActive("codeBlock") ?? false,
+      isLink: ctx.editor?.isActive("link") ?? false,
+      searchResults: ctx.editor?.storage.searchAndReplace?.results ?? [],
+      searchResultIndex: ctx.editor?.storage.searchAndReplace?.resultIndex ?? 0,
+    }),
+  });
 
   useEffect(() => {
     if (!editor) return;
-    const handler = () => forceUpdate((n) => n + 1);
-    editor.on("selectionUpdate", handler);
-    editor.on("transaction", handler);
-    return () => {
-      editor.off("selectionUpdate", handler);
-      editor.off("transaction", handler);
-    };
-  }, [editor]);
+    editor.commands.setSearchTerm(searchTerm);
+  }, [editor, searchTerm]);
+
+  useEffect(() => {
+    if (!editor) return;
+    editor.commands.setReplaceTerm(replaceTerm);
+  }, [editor, replaceTerm]);
+
+  useEffect(() => {
+    if (!showSearch && editor) {
+      setSearchTerm("");
+      setReplaceTerm("");
+      editor.commands.setSearchTerm("");
+      editor.commands.setReplaceTerm("");
+    }
+  }, [showSearch, editor]);
 
   const handleLinkSubmit = useCallback(() => {
     if (!editor) return;
@@ -98,11 +133,14 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
     return null;
   }
 
+  const resultCount = editorState?.searchResults.length ?? 0;
+  const currentIndex = (editorState?.searchResultIndex ?? 0) + 1;
+
   return (
     <div className="flex items-center gap-0.5 p-2 border-b border-neutral-200 bg-white flex-wrap">
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBold().run()}
-        isActive={editor.isActive("bold")}
+        isActive={editorState?.isBold}
         title="Bold (Cmd+B)"
       >
         <BoldIcon className="size-4" />
@@ -110,7 +148,7 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        isActive={editor.isActive("italic")}
+        isActive={editorState?.isItalic}
         title="Italic (Cmd+I)"
       >
         <ItalicIcon className="size-4" />
@@ -118,7 +156,7 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleUnderline().run()}
-        isActive={editor.isActive("underline")}
+        isActive={editorState?.isUnderline}
         title="Underline (Cmd+U)"
       >
         <UnderlineIcon className="size-4" />
@@ -126,7 +164,7 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleStrike().run()}
-        isActive={editor.isActive("strike")}
+        isActive={editorState?.isStrike}
         title="Strikethrough"
       >
         <StrikethroughIcon className="size-4" />
@@ -136,7 +174,7 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        isActive={editor.isActive("heading", { level: 2 })}
+        isActive={editorState?.isHeading2}
         title="Heading 1 (##)"
       >
         <Heading1Icon className="size-4" />
@@ -144,7 +182,7 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        isActive={editor.isActive("heading", { level: 3 })}
+        isActive={editorState?.isHeading3}
         title="Heading 2 (###)"
       >
         <Heading2Icon className="size-4" />
@@ -152,7 +190,7 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
-        isActive={editor.isActive("heading", { level: 4 })}
+        isActive={editorState?.isHeading4}
         title="Heading 3 (####)"
       >
         <Heading3Icon className="size-4" />
@@ -162,7 +200,7 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        isActive={editor.isActive("bulletList")}
+        isActive={editorState?.isBulletList}
         title="Bullet List"
       >
         <ListIcon className="size-4" />
@@ -170,7 +208,7 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        isActive={editor.isActive("orderedList")}
+        isActive={editorState?.isOrderedList}
         title="Numbered List"
       >
         <ListOrderedIcon className="size-4" />
@@ -178,7 +216,7 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        isActive={editor.isActive("blockquote")}
+        isActive={editorState?.isBlockquote}
         title="Quote"
       >
         <QuoteIcon className="size-4" />
@@ -186,7 +224,7 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        isActive={editor.isActive("codeBlock")}
+        isActive={editorState?.isCodeBlock}
         title="Code Block"
       >
         <CodeIcon className="size-4" />
@@ -210,13 +248,13 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
       <div className="relative">
         <ToolbarButton
           onClick={() => {
-            if (editor.isActive("link")) {
+            if (editorState?.isLink) {
               editor.chain().focus().unsetLink().run();
             } else {
               setShowLinkInput(!showLinkInput);
             }
           }}
-          isActive={editor.isActive("link")}
+          isActive={editorState?.isLink}
           title="Link"
         >
           <LinkIcon className="size-4" />
@@ -261,6 +299,114 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
             <ImageIcon className="size-4" />
           </ToolbarButton>
         </>
+      )}
+
+      <div className="flex-1" />
+
+      {showSearch ? (
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-neutral-100 rounded px-2 py-1">
+            <SearchIcon className="size-3.5 text-neutral-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search..."
+              className="bg-transparent text-sm w-32 focus:outline-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  editor.commands.nextSearchResult();
+                } else if (e.key === "Escape") {
+                  setShowSearch(false);
+                }
+              }}
+              autoFocus
+            />
+            {searchTerm && (
+              <span className="text-xs text-neutral-500">
+                {resultCount > 0 ? `${currentIndex}/${resultCount}` : "0/0"}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => editor.commands.previousSearchResult()}
+              disabled={resultCount === 0}
+              className="p-1 rounded hover:bg-neutral-100 disabled:opacity-50"
+              title="Previous"
+            >
+              <ChevronUpIcon className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.commands.nextSearchResult()}
+              disabled={resultCount === 0}
+              className="p-1 rounded hover:bg-neutral-100 disabled:opacity-50"
+              title="Next"
+            >
+              <ChevronDownIcon className="size-4" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1 bg-neutral-100 rounded px-2 py-1">
+            <ReplaceIcon className="size-3.5 text-neutral-400" />
+            <input
+              type="text"
+              value={replaceTerm}
+              onChange={(e) => setReplaceTerm(e.target.value)}
+              placeholder="Replace..."
+              className="bg-transparent text-sm w-32 focus:outline-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  editor.commands.replace();
+                } else if (e.key === "Escape") {
+                  setShowSearch(false);
+                }
+              }}
+            />
+          </div>
+
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => editor.commands.replace()}
+              disabled={resultCount === 0}
+              className="px-2 py-1 text-xs rounded hover:bg-neutral-100 disabled:opacity-50"
+              title="Replace"
+            >
+              Replace
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.commands.replaceAll()}
+              disabled={resultCount === 0}
+              className="px-2 py-1 text-xs rounded hover:bg-neutral-100 disabled:opacity-50"
+              title="Replace All"
+            >
+              All
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowSearch(false)}
+            className="p-1 rounded hover:bg-neutral-100"
+            title="Close"
+          >
+            <XIcon className="size-4" />
+          </button>
+        </div>
+      ) : (
+        <ToolbarButton
+          onClick={() => setShowSearch(true)}
+          title="Search & Replace (Cmd+F)"
+        >
+          <SearchIcon className="size-4" />
+        </ToolbarButton>
       )}
     </div>
   );

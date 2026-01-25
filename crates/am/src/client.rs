@@ -70,7 +70,20 @@ impl Client {
         let response = self.client.post(&url).json(&request).send().await?;
 
         match response.status() {
-            StatusCode::OK => Ok(response.json().await?),
+            StatusCode::OK => {
+                let text = response.text().await?;
+
+                if let Ok(error_response) = serde_json::from_str::<ErrorResponse>(&text) {
+                    if error_response.status == "error" {
+                        return Err(Error::ServerError {
+                            status: error_response.status,
+                            message: error_response.message,
+                        });
+                    }
+                }
+
+                serde_json::from_str(&text).map_err(Error::Json)
+            }
             StatusCode::BAD_REQUEST | StatusCode::CONFLICT => {
                 Err(self.handle_error_response(response).await)
             }

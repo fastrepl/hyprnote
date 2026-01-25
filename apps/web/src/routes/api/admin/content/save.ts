@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
 import {
-  updateContentFile,
+  savePublishedArticleWithPR,
   updateContentFileOnBranch,
 } from "@/functions/github-content";
 import { getSupabaseServerClient } from "@/functions/supabase";
@@ -174,12 +174,42 @@ export const Route = createFileRoute("/api/admin/content/save")({
         const frontmatter = buildFrontmatter(metadata);
         const fullContent = `${frontmatter}\n\n${processedContent}`;
 
-        // If the article is published, always save directly to main
-        // This ensures published article revisions go directly to main
-        const shouldSaveToMain = metadata.published === true || !branch;
-        const result = shouldSaveToMain
-          ? await updateContentFile(path, fullContent)
-          : await updateContentFileOnBranch(path, fullContent, branch);
+        // If the article is published, create a PR to main (handles branch protection)
+        // Otherwise, save to the draft branch
+        const shouldCreatePR = metadata.published === true && !branch;
+
+        if (shouldCreatePR) {
+          const result = await savePublishedArticleWithPR(path, fullContent, {
+            meta_title: metadata.meta_title,
+            display_title: metadata.display_title,
+            author: metadata.author,
+          });
+
+          if (!result.success) {
+            return new Response(JSON.stringify({ error: result.error }), {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              prNumber: result.prNumber,
+              prUrl: result.prUrl,
+            }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
+
+        const result = await updateContentFileOnBranch(
+          path,
+          fullContent,
+          branch!,
+        );
 
         if (!result.success) {
           return new Response(JSON.stringify({ error: result.error }), {

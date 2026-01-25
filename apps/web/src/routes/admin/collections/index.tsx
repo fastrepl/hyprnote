@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import {
+  AlertTriangleIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -1216,6 +1217,11 @@ function ContentPanel({
         throw new Error(error.error || "Failed to save");
       }
       return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.prUrl) {
+        window.open(data.prUrl, "_blank");
+      }
     },
   });
 
@@ -2438,6 +2444,25 @@ const FileEditor = React.forwardRef<
     staleTime: 30000,
   });
 
+  const { data: pendingPRData } = useQuery({
+    queryKey: ["pendingPR", filePath],
+    queryFn: async () => {
+      const params = new URLSearchParams({ path: filePath });
+      const response = await fetch(`/api/admin/content/pending-pr?${params}`);
+      if (!response.ok) {
+        return { hasPendingPR: false };
+      }
+      return response.json() as Promise<{
+        hasPendingPR: boolean;
+        prNumber?: number;
+        prUrl?: string;
+        branchName?: string;
+      }>;
+    },
+    enabled: !branch && filePath.startsWith("articles/"),
+    staleTime: 60000,
+  });
+
   const publishedFileContent = useMemo(
     () => getFileContent(filePath),
     [filePath],
@@ -2766,9 +2791,37 @@ const FileEditor = React.forwardRef<
     </div>
   );
 
+  const pendingPRBanner = pendingPRData?.hasPendingPR ? (
+    <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-between">
+      <div className="flex items-center gap-2 text-sm text-amber-800">
+        <AlertTriangleIcon className="size-4" />
+        <span>
+          This article has a pending edit PR. Your changes will be added to{" "}
+          <a
+            href={pendingPRData.prUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium underline hover:text-amber-900"
+          >
+            PR #{pendingPRData.prNumber}
+          </a>
+        </span>
+      </div>
+      <a
+        href={pendingPRData.prUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-xs font-medium text-amber-700 hover:text-amber-900"
+      >
+        View PR →
+      </a>
+    </div>
+  ) : null;
+
   if (isPreviewMode) {
     return (
       <>
+        {pendingPRBanner}
         <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
           <ResizablePanel defaultSize={50} minSize={30}>
             <div className="flex flex-col h-full">
@@ -2809,6 +2862,7 @@ const FileEditor = React.forwardRef<
 
   return (
     <>
+      {pendingPRBanner}
       <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
         <ResizablePanel defaultSize={70} minSize={50}>
           <BlogEditor

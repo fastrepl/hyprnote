@@ -1209,6 +1209,223 @@ export async function updateContentFileOnBranch(
   }
 }
 
+export async function findExistingEditPR(slug: string): Promise<{
+  found: boolean;
+  branchName?: string;
+  prNumber?: number;
+  prUrl?: string;
+}> {
+  if (isDev()) {
+    return { found: false };
+  }
+
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
+    return { found: false };
+  }
+  const { token: githubToken } = credentials;
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/pulls?state=open&base=${GITHUB_BRANCH}`,
+      {
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      return { found: false };
+    }
+
+    const prs = await response.json();
+    const editPrefix = `edit/${slug}-`;
+
+    for (const pr of prs) {
+      const headRef = pr.head?.ref || "";
+      if (headRef.startsWith(editPrefix)) {
+        return {
+          found: true,
+          branchName: headRef,
+          prNumber: pr.number,
+          prUrl: pr.html_url,
+        };
+      }
+    }
+
+    return { found: false };
+  } catch {
+    return { found: false };
+  }
+}
+
+export async function getExistingEditPRForArticle(filePath: string): Promise<{
+  success: boolean;
+  hasPendingPR: boolean;
+  prNumber?: number;
+  prUrl?: string;
+  branchName?: string;
+  error?: string;
+}> {
+  const slug = filePath.replace(/\.mdx$/, "").replace(/^articles\//, "");
+
+  if (isDev()) {
+    return { success: true, hasPendingPR: false };
+  }
+
+  const existingPR = await findExistingEditPR(slug);
+  if (existingPR.found) {
+    return {
+      success: true,
+      hasPendingPR: true,
+      prNumber: existingPR.prNumber,
+      prUrl: existingPR.prUrl,
+      branchName: existingPR.branchName,
+    };
+  }
+
+  return { success: true, hasPendingPR: false };
+}
+
+export async function savePublishedArticleWithPR(
+  filePath: string,
+  content: string,
+  metadata: {
+    meta_title?: string;
+    display_title?: string;
+    author?: string;
+  },
+): Promise<{
+  success: boolean;
+  prNumber?: number;
+  prUrl?: string;
+  isExistingPR?: boolean;
+  error?: string;
+}> {
+  const slug = filePath.replace(/\.mdx$/, "").replace(/^articles\//, "");
+
+  if (isDev()) {
+    try {
+      const localPath = path.join(getLocalContentPath(), filePath);
+      fs.writeFileSync(localPath, content);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to save locally: ${(error as Error).message}`,
+      };
+    }
+  }
+
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
+    return { success: false, error: "GitHub token not configured" };
+  }
+  const { token: githubToken, author } = credentials;
+
+  const existingPR = await findExistingEditPR(slug);
+  let branchName: string;
+  let isExistingPR = false;
+
+  if (existingPR.found && existingPR.branchName) {
+    branchName = existingPR.branchName;
+    isExistingPR = true;
+  } else {
+    const timestamp = Date.now();
+    branchName = `edit/${slug}-${timestamp}`;
+    const branchResult = await createBranch(branchName, GITHUB_BRANCH);
+    if (!branchResult.success) {
+      return { success: false, error: branchResult.error };
+    }
+  }
+
+  const fullPath = `${CONTENT_PATH}/${filePath}`;
+
+  try {
+    const getResponse = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${fullPath}?ref=${branchName}`,
+      {
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+
+    if (!getResponse.ok) {
+      return {
+        success: false,
+        error: `File not found on branch: ${getResponse.status}`,
+      };
+    }
+
+    const fileData = await getResponse.json();
+    const sha = fileData.sha;
+    const contentBase64 = Buffer.from(content).toString("base64");
+
+    const updateResponse = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${fullPath}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/vnd.github.v3+json",
+        },
+        body: JSON.stringify({
+          message: `Update ${filePath} via admin`,
+          content: contentBase64,
+          sha,
+          branch: branchName,
+          ...(author && { author, committer: author }),
+        }),
+      },
+    );
+
+    if (!updateResponse.ok) {
+      const error = await updateResponse.json();
+      return {
+        success: false,
+        error: `Failed to update: ${error.message || updateResponse.status}`,
+      };
+    }
+
+    if (isExistingPR) {
+      return {
+        success: true,
+        prNumber: existingPR.prNumber,
+        prUrl: existingPR.prUrl,
+        isExistingPR: true,
+      };
+    }
+
+    const title = `Update: ${metadata.display_title || metadata.meta_title || slug}`;
+    const body = `## Article Update
+
+**Title:** ${metadata.display_title || metadata.meta_title || "Untitled"}
+**Author:** ${metadata.author || "Unknown"}
+**File:** apps/web/content/${filePath}
+
+---
+Auto-generated PR from admin panel.`;
+
+    const prResult = await createPullRequest(
+      branchName,
+      GITHUB_BRANCH,
+      title,
+      body,
+    );
+    return { ...prResult, isExistingPR: false };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Save failed: ${(error as Error).message}`,
+    };
+  }
+}
+
 export async function publishArticle(
   filePath: string,
   branchName: string,

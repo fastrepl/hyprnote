@@ -51,7 +51,8 @@ enum Shell {
     Bash,
     Zsh,
     Fish,
-    PowerShell,
+    #[value(alias = "powershell")]
+    Pwsh,
 }
 
 fn main() -> ExitCode {
@@ -185,7 +186,7 @@ fn generate_completion(shell: Shell) {
         Shell::Bash => ClapShell::Bash,
         Shell::Zsh => ClapShell::Zsh,
         Shell::Fish => ClapShell::Fish,
-        Shell::PowerShell => ClapShell::PowerShell,
+        Shell::Pwsh => ClapShell::PowerShell,
     };
     generate(shell, &mut cmd, "evals", &mut std::io::stdout());
 }

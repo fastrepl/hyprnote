@@ -1,7 +1,8 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
+import { generateObject } from "ai";
 import fs from "fs";
 import path from "path";
+import { z } from "zod";
 
 function extractContent(mdxContent) {
   const frontmatterMatch = mdxContent.match(/^---\n([\s\S]*?)\n---\n/);
@@ -19,31 +20,79 @@ function extractFrontmatter(mdxContent) {
   return "";
 }
 
-async function checkGrammar(filename, content) {
-  const { text } = await generateText({
+function getFrontmatterLineCount(mdxContent) {
+  const frontmatterMatch = mdxContent.match(/^---\n([\s\S]*?)\n---\n/);
+  if (frontmatterMatch) {
+    return frontmatterMatch[0].split("\n").length - 1;
+  }
+  return 0;
+}
+
+const suggestionSchema = z.object({
+  issues: z.array(
+    z.object({
+      line: z.number().describe("Line number in the content (1-indexed)"),
+      original: z.string().describe("The original text that needs correction"),
+      suggestion: z.string().describe("The corrected text"),
+      reason: z
+        .string()
+        .describe("Brief explanation of why this change is needed"),
+      category: z.enum([
+        "em-dash",
+        "punctuation-placement",
+        "grammar",
+        "spelling",
+        "clarity",
+        "other",
+      ]),
+    }),
+  ),
+  summary: z
+    .string()
+    .describe("Brief overall assessment of the article quality"),
+});
+
+async function checkGrammar(filename, content, contentWithLineNumbers) {
+  const { object } = await generateObject({
     model: anthropic("claude-haiku-4-5"),
-    prompt: `You are a professional editor reviewing a blog article. Check the following content for:
+    schema: suggestionSchema,
+    prompt: `You are a professional editor reviewing a blog article. Check the content for issues and provide specific, actionable suggestions.
 
-1. Grammar and spelling errors
-2. Awkward phrasing or unclear sentences
-3. Punctuation issues
-4. Consistency in tone and style
+## Style Rules (MUST flag these):
 
-For each issue found, provide:
-- The original text (quote it)
-- The suggested correction
-- A brief explanation
+1. **Em dashes (—)**: Flag ALL em dashes. They should be replaced with regular dashes (-) or rewritten.
+   - Example: "The tool—which is free—works great" → "The tool - which is free - works great" or rewrite the sentence
 
-If the content is well-written with no issues, say "No issues found."
+2. **Punctuation placement with quotes**: Periods and commas should go OUTSIDE quotation marks (British style).
+   - Wrong: "lorem."
+   - Correct: "lorem".
+   - Wrong: "hello," she said
+   - Correct: "hello", she said
 
-Be concise and focus only on actual errors or significant improvements. Do not suggest stylistic changes unless they significantly improve clarity.
+## Also check for:
+- Grammar and spelling errors
+- Awkward phrasing or unclear sentences
+- Other punctuation issues
+- Consistency in tone and style
 
-Content to review:
+## Instructions:
+- Provide the exact line number where each issue occurs
+- Give the exact original text and the corrected version
+- Be concise in explanations
+- Only flag actual issues, not stylistic preferences (except for the rules above)
 
-${content}`,
+Content with line numbers:
+${contentWithLineNumbers}`,
   });
 
-  return text;
+  return object;
+}
+
+function addLineNumbers(content) {
+  return content
+    .split("\n")
+    .map((line, i) => `${i + 1}: ${line}`)
+    .join("\n");
 }
 
 async function main() {
@@ -65,9 +114,10 @@ async function main() {
       continue;
     }
 
-    const content = fs.readFileSync(file, "utf8");
-    const articleContent = extractContent(content);
-    const frontmatter = extractFrontmatter(content);
+    const fullContent = fs.readFileSync(file, "utf8");
+    const articleContent = extractContent(fullContent);
+    const frontmatter = extractFrontmatter(fullContent);
+    const frontmatterLines = getFrontmatterLineCount(fullContent);
 
     const titleMatch =
       frontmatter.match(/display_title:\s*["']?(.+?)["']?\s*$/m) ||
@@ -77,17 +127,26 @@ async function main() {
     console.log(`Checking: ${file}`);
 
     try {
-      const feedback = await checkGrammar(file, articleContent);
+      const contentWithLineNumbers = addLineNumbers(articleContent);
+      const feedback = await checkGrammar(
+        file,
+        articleContent,
+        contentWithLineNumbers,
+      );
+
       results.push({
         file,
         title,
         feedback,
+        frontmatterLines,
+        contentLines: articleContent.split("\n"),
       });
     } catch (error) {
       results.push({
         file,
         title,
-        feedback: `Error checking grammar: ${error.message}`,
+        feedback: null,
+        error: error.message,
       });
     }
   }
@@ -98,7 +157,49 @@ async function main() {
   for (const result of results) {
     markdown += `### ${result.title}\n`;
     markdown += `📄 \`${result.file}\`\n\n`;
-    markdown += `${result.feedback}\n\n`;
+
+    if (result.error) {
+      markdown += `⚠️ Error: ${result.error}\n\n`;
+    } else if (result.feedback.issues.length === 0) {
+      markdown += `✅ No issues found!\n\n`;
+      markdown += `${result.feedback.summary}\n\n`;
+    } else {
+      markdown += `${result.feedback.summary}\n\n`;
+      markdown += `Found **${result.feedback.issues.length}** issue${result.feedback.issues.length === 1 ? "" : "s"}:\n\n`;
+
+      const issuesByCategory = {};
+      for (const issue of result.feedback.issues) {
+        if (!issuesByCategory[issue.category]) {
+          issuesByCategory[issue.category] = [];
+        }
+        issuesByCategory[issue.category].push(issue);
+      }
+
+      const categoryLabels = {
+        "em-dash": "🔸 Em Dashes",
+        "punctuation-placement": "🔹 Punctuation Placement",
+        grammar: "📝 Grammar",
+        spelling: "🔤 Spelling",
+        clarity: "💡 Clarity",
+        other: "📋 Other",
+      };
+
+      for (const [category, issues] of Object.entries(issuesByCategory)) {
+        markdown += `#### ${categoryLabels[category] || category}\n\n`;
+
+        for (const issue of issues) {
+          const actualLine = issue.line + result.frontmatterLines;
+          markdown += `**Line ${actualLine}**\n`;
+          markdown += `> ${issue.original}\n\n`;
+          markdown += `${issue.reason}\n\n`;
+
+          markdown += `<details>\n<summary>📋 Suggested fix (click to expand)</summary>\n\n`;
+          markdown += `\`\`\`suggestion\n${issue.suggestion}\n\`\`\`\n\n`;
+          markdown += `</details>\n\n`;
+        }
+      }
+    }
+
     markdown += "---\n\n";
   }
 

@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";

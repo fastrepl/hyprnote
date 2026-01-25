@@ -155,3 +155,13 @@
     animation: fade-in-out 3s ease-in-out infinite;
   }
 }
+
+@layer base {
+  button,
+  [role="button"],
+  [type="button"],
+  [type="submit"],
+  [type="reset"] {
+    cursor: pointer;
+  }
+}

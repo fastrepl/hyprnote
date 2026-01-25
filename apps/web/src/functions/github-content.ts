@@ -816,7 +816,7 @@ export function generateBranchName(slug: string): string {
     .replace(/\.mdx$/, "")
     .replace(/[^a-zA-Z0-9-]/g, "-")
     .toLowerCase();
-  return `blog/article-${sanitizedSlug}`;
+  return `blog/${sanitizedSlug}`;
 }
 
 export async function getBranchSha(
@@ -1241,7 +1241,7 @@ export async function findExistingEditPR(slug: string): Promise<{
     }
 
     const prs = await response.json();
-    const editPrefix = `edit/${slug}-`;
+    const editPrefix = `blog/${slug}-`;
 
     for (const pr of prs) {
       const headRef = pr.head?.ref || "";
@@ -1334,7 +1334,7 @@ export async function savePublishedArticleWithPR(
     isExistingPR = true;
   } else {
     const timestamp = Date.now();
-    branchName = `edit/${slug}-${timestamp}`;
+    branchName = `blog/${slug}-${timestamp}`;
     const branchResult = await createBranch(branchName, GITHUB_BRANCH);
     if (!branchResult.success) {
       return { success: false, error: branchResult.error };

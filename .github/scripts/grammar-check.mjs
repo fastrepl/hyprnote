@@ -1,5 +1,5 @@
-import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
+import { generateText } from "ai";
 import fs from "fs";
 import path from "path";
 

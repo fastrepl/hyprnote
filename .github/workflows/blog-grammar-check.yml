@@ -9,7 +9,7 @@ on:
 
 jobs:
   grammar-check:
-    if: startsWith(github.head_ref, 'blog-')
+    if: startsWith(github.head_ref, 'blog/')
     runs-on: ubuntu-latest
     permissions:
       contents: read

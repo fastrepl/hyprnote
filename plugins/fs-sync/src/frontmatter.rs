@@ -9,41 +9,7 @@ pub struct ParsedDocument {
 }
 
 fn yaml_to_json(yaml: serde_yaml::Value) -> serde_json::Value {
-    match yaml {
-        serde_yaml::Value::Null => serde_json::Value::Null,
-        serde_yaml::Value::Bool(b) => serde_json::Value::Bool(b),
-        serde_yaml::Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                serde_json::Value::Number(i.into())
-            } else if let Some(u) = n.as_u64() {
-                serde_json::Value::Number(u.into())
-            } else if let Some(f) = n.as_f64() {
-                serde_json::Number::from_f64(f)
-                    .map(serde_json::Value::Number)
-                    .unwrap_or(serde_json::Value::Null)
-            } else {
-                serde_json::Value::Null
-            }
-        }
-        serde_yaml::Value::String(s) => serde_json::Value::String(s),
-        serde_yaml::Value::Sequence(seq) => {
-            serde_json::Value::Array(seq.into_iter().map(yaml_to_json).collect())
-        }
-        serde_yaml::Value::Mapping(map) => {
-            let obj: serde_json::Map<String, serde_json::Value> = map
-                .into_iter()
-                .filter_map(|(k, v)| {
-                    let key = match k {
-                        serde_yaml::Value::String(s) => s,
-                        other => serde_yaml::to_string(&other).ok()?.trim().to_string(),
-                    };
-                    Some((key, yaml_to_json(v)))
-                })
-                .collect();
-            serde_json::Value::Object(obj)
-        }
-        serde_yaml::Value::Tagged(tagged) => yaml_to_json(tagged.value),
-    }
+    serde_json::to_value(&yaml).unwrap_or(serde_json::Value::Null)
 }
 
 impl FromStr for ParsedDocument {
@@ -124,5 +90,113 @@ mod tests {
         let reparsed = ParsedDocument::from_str(&rendered).unwrap();
 
         assert_eq!(parsed, reparsed);
+    }
+
+    #[test]
+    fn parse_tags_array() {
+        let input = &md_with_frontmatter("tags:\n  - meeting\n  - project-x\n  - important", "");
+        let result = ParsedDocument::from_str(input).unwrap();
+
+        let tags = result.frontmatter["tags"].as_array().unwrap();
+        assert_eq!(tags.len(), 3);
+        assert_eq!(tags[0], "meeting");
+        assert_eq!(tags[1], "project-x");
+        assert_eq!(tags[2], "important");
+    }
+
+    #[test]
+    fn parse_inline_tags_array() {
+        let input = &md_with_frontmatter("tags: [daily, work]", "");
+        let result = ParsedDocument::from_str(input).unwrap();
+
+        let tags = result.frontmatter["tags"].as_array().unwrap();
+        assert_eq!(tags, &vec!["daily", "work"]);
+    }
+
+    #[test]
+    fn parse_aliases() {
+        let input = &md_with_frontmatter("aliases:\n  - \"Weekly Sync\"\n  - \"Team Meeting\"", "");
+        let result = ParsedDocument::from_str(input).unwrap();
+
+        let aliases = result.frontmatter["aliases"].as_array().unwrap();
+        assert_eq!(aliases[0], "Weekly Sync");
+        assert_eq!(aliases[1], "Team Meeting");
+    }
+
+    #[test]
+    fn parse_dates() {
+        let input = &md_with_frontmatter("date: 2024-01-15\ncreated: 2024-01-15T10:30:00", "");
+        let result = ParsedDocument::from_str(input).unwrap();
+
+        assert_eq!(result.frontmatter["date"], "2024-01-15");
+        assert_eq!(result.frontmatter["created"], "2024-01-15T10:30:00");
+    }
+
+    #[test]
+    fn parse_boolean_values() {
+        let input = &md_with_frontmatter("publish: true\ndraft: false", "");
+        let result = ParsedDocument::from_str(input).unwrap();
+
+        assert_eq!(result.frontmatter["publish"], true);
+        assert_eq!(result.frontmatter["draft"], false);
+    }
+
+    #[test]
+    fn parse_numeric_values() {
+        let input = &md_with_frontmatter("priority: 1\nrating: 4.5", "");
+        let result = ParsedDocument::from_str(input).unwrap();
+
+        assert_eq!(result.frontmatter["priority"], 1);
+        assert_eq!(result.frontmatter["rating"], 4.5);
+    }
+
+    #[test]
+    fn parse_null_value() {
+        let input = &md_with_frontmatter("description: null\ntitle: Test", "");
+        let result = ParsedDocument::from_str(input).unwrap();
+
+        assert!(result.frontmatter["description"].is_null());
+        assert_eq!(result.frontmatter["title"], "Test");
+    }
+
+    #[test]
+    fn parse_nested_object() {
+        let input = &md_with_frontmatter("metadata:\n  author: John\n  version: 2", "");
+        let result = ParsedDocument::from_str(input).unwrap();
+
+        let metadata = result.frontmatter["metadata"].as_object().unwrap();
+        assert_eq!(metadata["author"], "John");
+        assert_eq!(metadata["version"], 2);
+    }
+
+    #[test]
+    fn parse_complex_obsidian_note() {
+        let frontmatter = r#"id: meeting-2024-01-15
+title: "Q1 Planning Session"
+date: 2024-01-15
+tags:
+  - meeting
+  - quarterly
+  - planning
+aliases:
+  - "Q1 Planning"
+participants:
+  - Alice
+  - Bob
+status: completed
+publish: false"#;
+        let input = &md_with_frontmatter(frontmatter, "# Meeting Notes\n\nDiscussed roadmap.");
+        let result = ParsedDocument::from_str(input).unwrap();
+
+        assert_eq!(result.frontmatter["id"], "meeting-2024-01-15");
+        assert_eq!(result.frontmatter["title"], "Q1 Planning Session");
+        assert_eq!(result.frontmatter["status"], "completed");
+        assert_eq!(result.frontmatter["publish"], false);
+        assert_eq!(result.frontmatter["tags"].as_array().unwrap().len(), 3);
+        assert_eq!(
+            result.frontmatter["participants"].as_array().unwrap().len(),
+            2
+        );
+        assert_eq!(result.content, "# Meeting Notes\n\nDiscussed roadmap.");
     }
 }

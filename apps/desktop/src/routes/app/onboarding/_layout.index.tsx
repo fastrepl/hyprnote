@@ -14,8 +14,6 @@ import {
 
 const validateSearch = z.object({
   step: z.enum(STEP_IDS).default("welcome"),
-  local: z.boolean().default(false),
-  pro: z.boolean().default(false),
   platform: z.string().default(platform()),
   skipAutoForward: z.boolean().default(false),
 });

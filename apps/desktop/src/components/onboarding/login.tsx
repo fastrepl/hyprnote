@@ -1,21 +1,34 @@
 import { useMutation } from "@tanstack/react-query";
+import { platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient, createConfig } from "@hypr/api-client/client";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as sfxCommands } from "@hypr/plugin-sfx";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
 import { Route } from "../../routes/app/onboarding/_layout.index";
 import * as settings from "../../store/tinybase/store/settings";
+import { commands } from "../../types/tauri.gen";
 import { useTrialBeginModal } from "../devtool/trial-begin-modal";
 import { getBack, getNext, type StepProps } from "./config";
-import { STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
 import { Divider, OnboardingContainer } from "./shared";
 
 export const STEP_ID_LOGIN = "login" as const;
+
+async function finishOnboarding() {
+  await sfxCommands.stop("BGM").catch(console.error);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await commands.setOnboardingNeeded(false).catch(console.error);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await windowsCommands.windowShow({ type: "main" });
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await windowsCommands.windowDestroy({ type: "onboarding" });
+}
 
 export function Login({ onNavigate }: StepProps) {
   const search = Route.useSearch();
@@ -95,12 +108,21 @@ export function Login({ onNavigate }: StepProps) {
         setTrialDefaults();
         openTrialBeginModal();
       }
-      const nextSearch = { ...search, pro: isPro };
-      onNavigate({ ...nextSearch, step: getNext(nextSearch)! });
+      const nextStep = getNext(search);
+      if (nextStep) {
+        onNavigate({ ...search, step: nextStep });
+      } else {
+        void finishOnboarding();
+      }
     },
     onError: (e) => {
       console.error(e);
-      onNavigate({ ...search, step: STEP_ID_CONFIGURE_NOTICE });
+      const nextStep = getNext(search);
+      if (nextStep) {
+        onNavigate({ ...search, step: nextStep });
+      } else {
+        void finishOnboarding();
+      }
     },
   });
 

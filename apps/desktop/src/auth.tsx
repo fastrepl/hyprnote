@@ -9,7 +9,6 @@ import {
   type SupportedStorage,
 } from "@supabase/supabase-js";
 import { getVersion } from "@tauri-apps/api/app";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { version as osVersion, platform } from "@tauri-apps/plugin-os";
 import {
@@ -124,7 +123,6 @@ const AuthContext = createContext<{
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [serverReachable, setServerReachable] = useState(true);
   const [fingerprint, setFingerprint] = useState<string | null>(null);
 
   useEffect(() => {
@@ -152,7 +150,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error(res.error);
       } else {
         setSession(res.data.session);
-        setServerReachable(true);
         void supabase.auth.startAutoRefresh();
       }
     },
@@ -175,27 +172,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [setSessionFromTokens],
   );
 
-  useEffect(() => {
-    if (!supabase) {
-      return;
-    }
-
-    const appWindow = getCurrentWindow();
-
-    const unlistenFocus = appWindow.listen("tauri://focus", () => {
-      if (serverReachable) {
-        void supabase.auth.startAutoRefresh();
-      }
-    });
-    const unlistenBlur = appWindow.listen("tauri://blur", () => {
-      void supabase.auth.stopAutoRefresh();
-    });
-
-    return () => {
-      void unlistenFocus.then((fn) => fn());
-      void unlistenBlur.then((fn) => fn());
-    };
-  }, [serverReachable]);
+  // Note: We don't stop auto-refresh when the app is backgrounded because:
+  // 1. Token refresh happens only ~1x/hour (negligible battery/resource impact)
+  // 2. Keeping refresh active prevents session expiry after 57+ minutes in background
+  // 3. Provides better UX when user returns to app after extended periods
+  // 4. Supabase's autoRefreshToken: true handles this automatically
 
   useEffect(() => {
     if (!supabase) {
@@ -221,7 +202,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             error instanceof AuthRetryableFetchError &&
             isLocalAuthServer(env.VITE_SUPABASE_URL)
           ) {
-            setServerReachable(false);
             return;
           }
         }
@@ -242,7 +222,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             refreshError instanceof AuthRetryableFetchError &&
             isLocalAuthServer(env.VITE_SUPABASE_URL)
           ) {
-            setServerReachable(false);
             setSession(data.session);
             void supabase.auth.startAutoRefresh();
             return;
@@ -253,7 +232,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (refreshData.session) {
           setSession(refreshData.session);
-          setServerReachable(true);
           void supabase.auth.startAutoRefresh();
         }
       } catch (e) {
@@ -262,7 +240,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         if (e instanceof AuthRetryableFetchError) {
-          setServerReachable(false);
           return;
         }
         if (isLocalAuthServer(env.VITE_SUPABASE_URL)) {
@@ -279,7 +256,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (event === "TOKEN_REFRESHED" && !session) {
         if (isLocalAuthServer(env.VITE_SUPABASE_URL)) {
           void clearAuthStorage();
-          setServerReachable(false);
         }
       }
       if (event === "SIGNED_IN" && session) {

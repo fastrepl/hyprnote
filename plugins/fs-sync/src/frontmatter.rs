@@ -1,67 +1,94 @@
-use std::collections::HashMap;
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 
-#[derive(serde::Serialize, serde::Deserialize, specta::Type)]
+use hypr_frontmatter::{Document, Error as FrontmatterError};
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct ParsedDocument {
     pub frontmatter: HashMap<String, serde_json::Value>,
     pub content: String,
 }
 
-pub fn deserialize(input: &str) -> std::result::Result<ParsedDocument, crate::Error> {
-    match hypr_frontmatter::Document::<HashMap<String, serde_yaml::Value>>::from_str(input) {
-        Ok(doc) => {
-            let frontmatter_json: HashMap<String, serde_json::Value> = doc
-                .frontmatter
+fn yaml_to_json(yaml: serde_yaml::Value) -> serde_json::Value {
+    match yaml {
+        serde_yaml::Value::Null => serde_json::Value::Null,
+        serde_yaml::Value::Bool(b) => serde_json::Value::Bool(b),
+        serde_yaml::Value::Number(n) => {
+            if let Some(i) = n.as_i64() {
+                serde_json::Value::Number(i.into())
+            } else if let Some(u) = n.as_u64() {
+                serde_json::Value::Number(u.into())
+            } else if let Some(f) = n.as_f64() {
+                serde_json::Number::from_f64(f)
+                    .map(serde_json::Value::Number)
+                    .unwrap_or(serde_json::Value::Null)
+            } else {
+                serde_json::Value::Null
+            }
+        }
+        serde_yaml::Value::String(s) => serde_json::Value::String(s),
+        serde_yaml::Value::Sequence(seq) => {
+            serde_json::Value::Array(seq.into_iter().map(yaml_to_json).collect())
+        }
+        serde_yaml::Value::Mapping(map) => {
+            let obj: serde_json::Map<String, serde_json::Value> = map
                 .into_iter()
-                .map(|(k, v)| {
-                    let json_value = serde_json::to_value(&v).unwrap_or(serde_json::Value::Null);
-                    (k, json_value)
+                .filter_map(|(k, v)| {
+                    let key = match k {
+                        serde_yaml::Value::String(s) => s,
+                        other => serde_yaml::to_string(&other).ok()?.trim().to_string(),
+                    };
+                    Some((key, yaml_to_json(v)))
                 })
                 .collect();
-
-            Ok(ParsedDocument {
-                frontmatter: frontmatter_json,
-                content: doc.content,
-            })
+            serde_json::Value::Object(obj)
         }
-        Err(hypr_frontmatter::Error::MissingOpeningDelimiter) => Ok(ParsedDocument {
-            frontmatter: HashMap::new(),
-            content: input.to_string(),
-        }),
-        Err(e) => Err(e.into()),
+        serde_yaml::Value::Tagged(tagged) => yaml_to_json(tagged.value),
     }
 }
 
-pub fn serialize(doc: ParsedDocument) -> std::result::Result<String, crate::Error> {
-    let has_frontmatter = !doc.frontmatter.is_empty();
-    let has_content = !doc.content.is_empty();
+impl FromStr for ParsedDocument {
+    type Err = crate::Error;
 
-    match (has_frontmatter, has_content) {
-        (false, _) => Ok(doc.content),
-        (true, false) => {
-            let frontmatter_yaml: HashMap<String, serde_yaml::Value> = doc
-                .frontmatter
-                .into_iter()
-                .map(|(k, v)| {
-                    let yaml_value = serde_yaml::to_value(&v).unwrap_or(serde_yaml::Value::Null);
-                    (k, yaml_value)
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match Document::<HashMap<String, serde_yaml::Value>>::from_str(s) {
+            Ok(doc) => {
+                let frontmatter: HashMap<String, serde_json::Value> = doc
+                    .frontmatter
+                    .into_iter()
+                    .map(|(k, v)| (k, yaml_to_json(v)))
+                    .collect();
+
+                Ok(ParsedDocument {
+                    frontmatter,
+                    content: doc.content,
                 })
-                .collect();
-            let doc = hypr_frontmatter::Document::new(frontmatter_yaml, String::new());
-            doc.render().map_err(crate::Error::from)
+            }
+            Err(FrontmatterError::MissingOpeningDelimiter) => Ok(ParsedDocument {
+                frontmatter: HashMap::new(),
+                content: s.to_string(),
+            }),
+            Err(e) => Err(e.into()),
         }
-        (true, true) => {
-            let frontmatter_yaml: HashMap<String, serde_yaml::Value> = doc
-                .frontmatter
-                .into_iter()
-                .map(|(k, v)| {
-                    let yaml_value = serde_yaml::to_value(&v).unwrap_or(serde_yaml::Value::Null);
-                    (k, yaml_value)
-                })
-                .collect();
-            let doc = hypr_frontmatter::Document::new(frontmatter_yaml, doc.content);
-            doc.render().map_err(crate::Error::from)
+    }
+}
+
+impl ParsedDocument {
+    pub fn render(&self) -> Result<String, crate::Error> {
+        if self.frontmatter.is_empty() {
+            return Ok(self.content.clone());
         }
+
+        let frontmatter_yaml: HashMap<String, serde_yaml::Value> = self
+            .frontmatter
+            .iter()
+            .map(|(k, v)| {
+                let yaml_value = serde_yaml::to_value(v).unwrap_or(serde_yaml::Value::Null);
+                (k.clone(), yaml_value)
+            })
+            .collect();
+
+        let doc = Document::new(frontmatter_yaml, &self.content);
+        doc.render().map_err(crate::Error::from)
     }
 }
 
@@ -71,21 +98,31 @@ mod tests {
     use crate::test_fixtures::md_with_frontmatter;
 
     #[test]
-    fn deserialize_without_frontmatter_returns_empty_frontmatter() {
+    fn parse_without_frontmatter_returns_empty() {
         let input = "# Meeting Summary\n\nPlain markdown.";
-        let result = deserialize(input).unwrap();
+        let result = ParsedDocument::from_str(input).unwrap();
 
         assert!(result.frontmatter.is_empty());
         assert_eq!(result.content, input);
     }
 
     #[test]
-    fn deserialize_with_frontmatter() {
+    fn parse_with_frontmatter() {
         let input = &md_with_frontmatter("id: test-id\ntype: memo", "Content here.");
-        let result = deserialize(input).unwrap();
+        let result = ParsedDocument::from_str(input).unwrap();
 
         assert_eq!(result.frontmatter["id"], "test-id");
         assert_eq!(result.frontmatter["type"], "memo");
         assert_eq!(result.content, "Content here.");
+    }
+
+    #[test]
+    fn render_roundtrip() {
+        let input = &md_with_frontmatter("id: test-id\ntype: memo", "Content here.");
+        let parsed = ParsedDocument::from_str(input).unwrap();
+        let rendered = parsed.render().unwrap();
+        let reparsed = ParsedDocument::from_str(&rendered).unwrap();
+
+        assert_eq!(parsed, reparsed);
     }
 }

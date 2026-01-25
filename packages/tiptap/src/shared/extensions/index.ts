@@ -111,9 +111,7 @@ export const getExtensions = (
   Hashtag,
   Link.extend({
     addProseMirrorPlugins() {
-      const plugins = this.parent?.() || [];
-
-      plugins.push(
+      return [
         new Plugin({
           key: new PluginKey("linkCmdClick"),
           props: {
@@ -141,9 +139,7 @@ export const getExtensions = (
             },
           },
         }),
-      );
-
-      return plugins;
+      ];
     },
   }).configure({
     openOnClick: false,

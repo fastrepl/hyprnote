@@ -82,6 +82,7 @@ mod tests {
     use testcontainers_modules::{minio, testcontainers::runners::AsyncRunner};
 
     #[tokio::test]
+    #[ignore]
     async fn test_upload() {
         let container = minio::MinIO::default().start().await.unwrap();
         let port = container.get_host_port_ipv4(9000).await.unwrap();

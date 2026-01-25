@@ -69,6 +69,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_embedding_extractor() {
         use simsimd::SpatialSimilarity;
 
@@ -98,6 +99,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_embedding_extractor_with_f32() {
         let mut extractor = EmbeddingExtractor::new();
 

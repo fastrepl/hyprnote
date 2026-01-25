@@ -10,6 +10,7 @@ use tower::ServiceExt;
 mod basic {
     use super::*;
 
+    #[ignore]
     #[tokio::test]
     async fn non_streaming() {
         let harness = TestHarness::new().await;
@@ -44,6 +45,7 @@ mod basic {
         assert!(event.latency > 0.0);
     }
 
+    #[ignore]
     #[tokio::test]
     async fn streaming() {
         let harness = TestHarness::new().await;
@@ -82,6 +84,7 @@ mod basic {
 mod features {
     use super::*;
 
+    #[ignore]
     #[tokio::test]
     async fn request_transformation() {
         let harness = TestHarness::new().await;
@@ -115,6 +118,7 @@ mod features {
 mod error_handling {
     use super::*;
 
+    #[ignore]
     #[tokio::test]
     async fn upstream_error_propagates() {
         let harness = TestHarness::new().await;

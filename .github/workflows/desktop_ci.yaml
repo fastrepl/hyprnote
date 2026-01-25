@@ -58,6 +58,9 @@ jobs:
           platform: ${{ matrix.platform }}
       - run: cargo check -p desktop
       - run: cargo test -p desktop
+      - name: Test cross-platform crates
+        run: |
+          cargo test -p analytics -p askama-utils -p buffer -p data -p db-core -p db-user -p eval -p file -p gbnf -p gguf -p granola -p language -p llm -p llm-interface -p llm-proxy -p loops -p nango -p openai -p owhisper-client -p owhisper-config -p owhisper-interface -p pyannote-cloud -p pyannote-local -p s3 -p supabase-auth -p template-app -p template-app-legacy -p template-eval -p tiptap -p transcribe-aws -p transcribe-azure -p transcribe-deepgram -p transcribe-gcp -p transcribe-interface -p transcribe-openai -p transcribe-proxy -p turso -p ws-client -p ws-utils
 
   ci:
     if: always()

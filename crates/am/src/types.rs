@@ -149,7 +149,10 @@ common_derives! {
 
 impl InitResponse {
     pub fn is_success(&self) -> bool {
-        matches!(self, InitResponse::Initializing { .. })
+        matches!(
+            self,
+            InitResponse::Initializing { .. } | InitResponse::AlreadyInitialized { .. }
+        )
     }
 
     pub fn message(&self) -> &str {

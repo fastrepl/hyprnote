@@ -80,6 +80,16 @@ jobs:
             echo "is_edit=false" >> $GITHUB_OUTPUT
           fi
 
+          # Map GitHub username to Slack user ID
+          GH_USER="${{ github.event.pull_request.user.login }}"
+          case "$GH_USER" in
+            "yujonglee") SLACK_USER="<@U0628P6TAPL>" ;;
+            "ComputelessComputer") SLACK_USER="<@U08PVBSGL31>" ;;
+            "harshikaalagh-netizen") SLACK_USER="<@U0976J9CAKF>" ;;
+            *) SLACK_USER="$GH_USER" ;;
+          esac
+          echo "slack_user=$SLACK_USER" >> $GITHUB_OUTPUT
+
       - name: Post PR comment
         if: steps.changed-files.outputs.has_files == 'true'
         uses: actions/github-script@v7
@@ -131,7 +141,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ steps.article-info.outputs.is_edit == 'true' && format('✏️ *{0}* made changes to *{1}*', github.event.pull_request.user.login, steps.article-info.outputs.title) || format('🚀 *{0}* is ready to publish a new article: *{1}*', github.event.pull_request.user.login, steps.article-info.outputs.title) }}"
+                    "text": "${{ steps.article-info.outputs.is_edit == 'true' && format('✏️ {0} made changes to *{1}*', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) || format('🚀 {0} is ready to publish a new article: *{1}*', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) }}"
                   }
                 },
                 {

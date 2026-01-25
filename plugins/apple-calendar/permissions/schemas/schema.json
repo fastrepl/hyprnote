@@ -307,6 +307,18 @@
           "markdownDescription": "Denies the advance_fixture command without any pre-configured scope."
         },
         {
+          "description": "Enables the create_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-create-event",
+          "markdownDescription": "Enables the create_event command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_event command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-create-event",
+          "markdownDescription": "Denies the create_event command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_fixture_info command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-fixture-info",
@@ -367,10 +379,10 @@
           "markdownDescription": "Denies the reset_fixture command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-list-calendars`\n- `allow-list-events`\n- `allow-advance-fixture`\n- `allow-reset-fixture`\n- `allow-get-fixture-info`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-list-calendars`\n- `allow-list-events`\n- `allow-create-event`\n- `allow-advance-fixture`\n- `allow-reset-fixture`\n- `allow-get-fixture-info`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-list-calendars`\n- `allow-list-events`\n- `allow-advance-fixture`\n- `allow-reset-fixture`\n- `allow-get-fixture-info`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-list-calendars`\n- `allow-list-events`\n- `allow-create-event`\n- `allow-advance-fixture`\n- `allow-reset-fixture`\n- `allow-get-fixture-info`"
         }
       ]
     }

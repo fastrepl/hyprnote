@@ -7,6 +7,7 @@ Default permissions for the plugin
 - `allow-open-calendar`
 - `allow-list-calendars`
 - `allow-list-events`
+- `allow-create-event`
 - `allow-advance-fixture`
 - `allow-reset-fixture`
 - `allow-get-fixture-info`
@@ -42,6 +43,32 @@ Enables the advance_fixture command without any pre-configured scope.
 <td>
 
 Denies the advance_fixture command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-create-event`
+
+</td>
+<td>
+
+Enables the create_event command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-create-event`
+
+</td>
+<td>
+
+Denies the create_event command without any pre-configured scope.
 
 </td>
 </tr>

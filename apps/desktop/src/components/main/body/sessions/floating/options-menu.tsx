@@ -131,6 +131,7 @@ export function OptionsMenu({
         !normalizedPath.endsWith(".wav") &&
         !normalizedPath.endsWith(".mp3") &&
         !normalizedPath.endsWith(".ogg") &&
+        !normalizedPath.endsWith(".mp4") &&
         !normalizedPath.endsWith(".m4a") &&
         !normalizedPath.endsWith(".flac")
       ) {

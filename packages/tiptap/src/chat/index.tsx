@@ -105,6 +105,19 @@ const ChatEditor = forwardRef<{ editor: TiptapEditor | null }, ChatEditorProps>(
       }
     }, [editor, editable]);
 
+    useEffect(() => {
+      const platform = navigator.platform.toLowerCase();
+      if (platform.includes("win")) {
+        document.body.classList.add("platform-windows");
+      } else if (platform.includes("linux")) {
+        document.body.classList.add("platform-linux");
+      }
+
+      return () => {
+        document.body.classList.remove("platform-windows", "platform-linux");
+      };
+    }, []);
+
     return (
       <EditorContent editor={editor} className="tiptap-root" role="textbox" />
     );

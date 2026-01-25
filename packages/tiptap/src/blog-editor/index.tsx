@@ -112,6 +112,19 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
 
     const showImportOverlay = isEmpty && onGoogleDocsImport && editable;
 
+    useEffect(() => {
+      const platform = navigator.platform.toLowerCase();
+      if (platform.includes("win")) {
+        document.body.classList.add("platform-windows");
+      } else if (platform.includes("linux")) {
+        document.body.classList.add("platform-linux");
+      }
+
+      return () => {
+        document.body.classList.remove("platform-windows", "platform-linux");
+      };
+    }, []);
+
     return (
       <div className="relative flex flex-col h-full">
         {editable && showToolbar && (

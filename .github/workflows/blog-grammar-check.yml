@@ -142,6 +142,7 @@ jobs:
           payload: |
             {
               "channel": "${{ secrets.SLACK_BLOG_CHANNEL_ID }}",
+              "text": "${{ steps.article-info.outputs.is_edit == 'true' && format('{0} made changes to {1}', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) || format('{0} is ready to publish: {1}', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) }}",
               "blocks": [
                 {
                   "type": "section",

@@ -1,5 +1,4 @@
-use crate::types::EventFilter;
-use crate::types::{AppleCalendar, AppleEvent};
+use crate::types::{AppleCalendar, AppleEvent, CreateEventInput, EventFilter};
 
 pub struct AppleCalendarExt<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     #[allow(dead_code)]
@@ -22,6 +21,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
     #[tracing::instrument(skip_all)]
     pub fn list_events(&self, filter: EventFilter) -> Result<Vec<AppleEvent>, String> {
         crate::fixture::list_events(filter)
+    }
+
+    #[tracing::instrument(skip_all)]
+    pub fn create_event(&self, _input: CreateEventInput) -> Result<String, String> {
+        Ok("fixture-event-created".to_string())
     }
 }
 
@@ -61,6 +65,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
         let handle = crate::apple::Handle;
         handle.list_events(filter).map_err(|e| e.to_string())
     }
+
+    #[tracing::instrument(skip_all)]
+    pub fn create_event(&self, input: CreateEventInput) -> Result<String, String> {
+        let handle = crate::apple::Handle;
+        handle.create_event(input).map_err(|e| e.to_string())
+    }
 }
 
 #[cfg(all(not(target_os = "macos"), not(feature = "fixture")))]
@@ -74,6 +84,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
     }
 
     pub fn list_events(&self, _filter: EventFilter) -> Result<Vec<AppleEvent>, String> {
+        Err("not supported on this platform".to_string())
+    }
+
+    pub fn create_event(&self, _input: CreateEventInput) -> Result<String, String> {
         Err("not supported on this platform".to_string())
     }
 }

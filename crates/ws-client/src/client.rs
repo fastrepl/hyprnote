@@ -142,10 +142,9 @@ impl WebSocketClient {
                             if let Err(e) = ws_sender.send(msg).await {
                                 tracing::error!("ws_finalize_failed: {:?}", e);
                                 let _ = error_tx.send(e.into());
-                                break;
                             }
-                            last_outbound_at = tokio::time::Instant::now();
                         }
+                        break;
                     }
                     else => break,
                 }

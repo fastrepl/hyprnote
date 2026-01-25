@@ -128,6 +128,9 @@ export function Toolbar({
       setReplaceTerm("");
       editor.commands.setSearchTerm("");
       editor.commands.setReplaceTerm("");
+      editor.commands.resetIndex();
+      // Force a transaction to clear decorations
+      editor.view.dispatch(editor.state.tr);
     }
   }, [showSearch, editor]);
 

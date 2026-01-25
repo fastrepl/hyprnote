@@ -5,6 +5,7 @@ use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::http::Response;
 use axum::response::IntoResponse;
 use futures_util::{SinkExt, StreamExt};
+use sentry::SentryFutureExt;
 use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use tokio_tungstenite::{
@@ -96,13 +97,18 @@ impl WebSocketProxy {
 
     pub async fn handle_upgrade(&self, ws: WebSocketUpgrade) -> Response<Body> {
         let proxy = self.clone();
-        ws.on_upgrade(move |socket| async move {
-            if let Err(e) = proxy.handle(socket).await {
-                tracing::error!(
-                    error = ?e,
-                    "websocket_proxy_error"
-                );
+        let hub = sentry::Hub::current();
+        ws.on_upgrade(move |socket| {
+            async move {
+                if let Err(e) = proxy.handle(socket).await {
+                    tracing::error!(
+                        error = %e,
+                        "websocket_proxy_error: {}",
+                        e
+                    );
+                }
             }
+            .bind_hub(sentry::Hub::new_from_top(hub))
         })
         .into_response()
     }
@@ -242,8 +248,9 @@ impl WebSocketProxy {
                         Ok(m) => m,
                         Err(e) => {
                             tracing::error!(
-                                error = ?e,
-                                "client_receive_error"
+                                error = %e,
+                                "client_receive_error: {}",
+                                e
                             );
                             let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "client_error".to_string()));
                             break;
@@ -334,8 +341,9 @@ impl WebSocketProxy {
                         Ok(m) => m,
                         Err(e) => {
                             tracing::error!(
-                                error = ?e,
-                                "upstream_receive_error"
+                                error = %e,
+                                "upstream_receive_error: {}",
+                                e
                             );
                             let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, format!("upstream_error: {}", e)));
                             break;

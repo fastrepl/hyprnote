@@ -118,6 +118,7 @@ import { Route as ApiAdminImportGoogleDocsRouteImport } from './routes/api/admin
 import { Route as ApiAdminContentSaveRouteImport } from './routes/api/admin/content/save'
 import { Route as ApiAdminContentRenameRouteImport } from './routes/api/admin/content/rename'
 import { Route as ApiAdminContentPublishRouteImport } from './routes/api/admin/content/publish'
+import { Route as ApiAdminContentPendingPrRouteImport } from './routes/api/admin/content/pending-pr'
 import { Route as ApiAdminContentListDraftsRouteImport } from './routes/api/admin/content/list-drafts'
 import { Route as ApiAdminContentListRouteImport } from './routes/api/admin/content/list'
 import { Route as ApiAdminContentHistoryRouteImport } from './routes/api/admin/content/history'
@@ -684,6 +685,12 @@ const ApiAdminContentPublishRoute = ApiAdminContentPublishRouteImport.update({
   path: '/api/admin/content/publish',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminContentPendingPrRoute =
+  ApiAdminContentPendingPrRouteImport.update({
+    id: '/api/admin/content/pending-pr',
+    path: '/api/admin/content/pending-pr',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminContentListDraftsRoute =
   ApiAdminContentListDraftsRouteImport.update({
     id: '/api/admin/content/list-drafts',
@@ -848,6 +855,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
   '/api/admin/content/list-drafts': typeof ApiAdminContentListDraftsRoute
+  '/api/admin/content/pending-pr': typeof ApiAdminContentPendingPrRoute
   '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
@@ -964,6 +972,7 @@ export interface FileRoutesByTo {
   '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
   '/api/admin/content/list-drafts': typeof ApiAdminContentListDraftsRoute
+  '/api/admin/content/pending-pr': typeof ApiAdminContentPendingPrRoute
   '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
@@ -1086,6 +1095,7 @@ export interface FileRoutesById {
   '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
   '/api/admin/content/list-drafts': typeof ApiAdminContentListDraftsRoute
+  '/api/admin/content/pending-pr': typeof ApiAdminContentPendingPrRoute
   '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
@@ -1208,6 +1218,7 @@ export interface FileRouteTypes {
     | '/api/admin/content/history'
     | '/api/admin/content/list'
     | '/api/admin/content/list-drafts'
+    | '/api/admin/content/pending-pr'
     | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
@@ -1324,6 +1335,7 @@ export interface FileRouteTypes {
     | '/api/admin/content/history'
     | '/api/admin/content/list'
     | '/api/admin/content/list-drafts'
+    | '/api/admin/content/pending-pr'
     | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
@@ -1445,6 +1457,7 @@ export interface FileRouteTypes {
     | '/api/admin/content/history'
     | '/api/admin/content/list'
     | '/api/admin/content/list-drafts'
+    | '/api/admin/content/pending-pr'
     | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
@@ -1486,6 +1499,7 @@ export interface RootRouteChildren {
   ApiAdminContentHistoryRoute: typeof ApiAdminContentHistoryRoute
   ApiAdminContentListRoute: typeof ApiAdminContentListRoute
   ApiAdminContentListDraftsRoute: typeof ApiAdminContentListDraftsRoute
+  ApiAdminContentPendingPrRoute: typeof ApiAdminContentPendingPrRoute
   ApiAdminContentPublishRoute: typeof ApiAdminContentPublishRoute
   ApiAdminContentRenameRoute: typeof ApiAdminContentRenameRoute
   ApiAdminContentSaveRoute: typeof ApiAdminContentSaveRoute
@@ -2263,6 +2277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminContentPublishRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/content/pending-pr': {
+      id: '/api/admin/content/pending-pr'
+      path: '/api/admin/content/pending-pr'
+      fullPath: '/api/admin/content/pending-pr'
+      preLoaderRoute: typeof ApiAdminContentPendingPrRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/content/list-drafts': {
       id: '/api/admin/content/list-drafts'
       path: '/api/admin/content/list-drafts'
@@ -2579,6 +2600,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminContentHistoryRoute: ApiAdminContentHistoryRoute,
   ApiAdminContentListRoute: ApiAdminContentListRoute,
   ApiAdminContentListDraftsRoute: ApiAdminContentListDraftsRoute,
+  ApiAdminContentPendingPrRoute: ApiAdminContentPendingPrRoute,
   ApiAdminContentPublishRoute: ApiAdminContentPublishRoute,
   ApiAdminContentRenameRoute: ApiAdminContentRenameRoute,
   ApiAdminContentSaveRoute: ApiAdminContentSaveRoute,

@@ -187,13 +187,22 @@ impl Actor for ExternalSTTActor {
         let models_dir = state.models_dir.clone();
 
         let res = (|| async {
-            state
+            let response = state
                 .client
                 .init(
                     hypr_am::InitRequest::new(api_key.clone())
                         .with_model(model.clone(), &models_dir),
                 )
-                .await
+                .await?;
+
+            if !response.is_success() {
+                return Err(hypr_am::Error::ServerError {
+                    status: response.status_str().to_string(),
+                    message: response.message().to_string(),
+                });
+            }
+
+            Ok(response)
         })
         .retry(
             ConstantBuilder::default()

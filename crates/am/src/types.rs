@@ -124,23 +124,131 @@ common_derives! {
 }
 
 common_derives! {
-    pub struct InitResponse {
-        pub status: String,
-        pub message: String,
-        pub model: String,
-        pub verbose: bool,
+    #[serde(tag = "status")]
+    #[serde(rename_all = "snake_case")]
+    pub enum InitResponse {
+        Initializing {
+            message: String,
+            model: String,
+            verbose: bool,
+        },
+        Error {
+            message: String,
+        },
+        Timeout {
+            message: String,
+        },
+        AlreadyInitialized {
+            message: String,
+        },
+        NotInitialized {
+            message: String,
+        },
+    }
+}
+
+impl InitResponse {
+    pub fn is_success(&self) -> bool {
+        matches!(self, InitResponse::Initializing { .. })
+    }
+
+    pub fn message(&self) -> &str {
+        match self {
+            InitResponse::Initializing { message, .. }
+            | InitResponse::Error { message }
+            | InitResponse::Timeout { message }
+            | InitResponse::AlreadyInitialized { message }
+            | InitResponse::NotInitialized { message } => message,
+        }
+    }
+
+    pub fn status_str(&self) -> &'static str {
+        match self {
+            InitResponse::Initializing { .. } => "initializing",
+            InitResponse::Error { .. } => "error",
+            InitResponse::Timeout { .. } => "timeout",
+            InitResponse::AlreadyInitialized { .. } => "already_initialized",
+            InitResponse::NotInitialized { .. } => "not_initialized",
+        }
     }
 }
 
 common_derives! {
-    pub struct GenericResponse {
-        pub status: String,
+    pub struct ResetResponse {
+        pub status: ResetStatus,
         pub message: String,
+    }
+}
+
+common_derives! {
+    #[derive(Eq, PartialEq)]
+    #[serde(rename_all = "lowercase")]
+    pub enum ResetStatus {
+        Reset,
+    }
+}
+
+common_derives! {
+    pub struct UnloadResponse {
+        pub status: UnloadStatus,
+        pub message: String,
+    }
+}
+
+common_derives! {
+    #[derive(Eq, PartialEq)]
+    #[serde(rename_all = "lowercase")]
+    pub enum UnloadStatus {
+        Unloaded,
+    }
+}
+
+common_derives! {
+    pub struct ShutdownResponse {
+        pub status: ShutdownStatus,
+        pub message: String,
+    }
+}
+
+common_derives! {
+    #[derive(Eq, PartialEq)]
+    #[serde(rename_all = "snake_case")]
+    pub enum ShutdownStatus {
+        ShuttingDown,
     }
 }
 
 common_derives! {
     pub struct ErrorResponse {
+        pub status: ErrorStatus,
+        pub message: String,
+    }
+}
+
+common_derives! {
+    #[derive(Eq, PartialEq)]
+    #[serde(rename_all = "snake_case")]
+    pub enum ErrorStatus {
+        Error,
+        Timeout,
+        AlreadyInitialized,
+        NotInitialized,
+    }
+}
+
+impl std::fmt::Display for ErrorStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ErrorStatus::Error => write!(f, "error"),
+            ErrorStatus::Timeout => write!(f, "timeout"),
+            ErrorStatus::AlreadyInitialized => write!(f, "already_initialized"),
+            ErrorStatus::NotInitialized => write!(f, "not_initialized"),
+        }
+    }
+}
+
+common_derives! {
+    pub struct GenericResponse {
         pub status: String,
         pub message: String,
     }

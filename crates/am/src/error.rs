@@ -9,6 +9,9 @@ pub enum Error {
     #[error(transparent)]
     HyprFile(#[from] hypr_file::Error),
 
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
+
     #[error("Could not find home directory")]
     NoHomeDir,
 

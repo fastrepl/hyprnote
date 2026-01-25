@@ -1,5 +1,6 @@
 use crate::{
-    AmModel, Error, ErrorResponse, GenericResponse, InitRequest, InitResponse, Secret, ServerStatus,
+    AmModel, Error, ErrorResponse, InitRequest, InitResponse, ResetResponse, Secret, ServerStatus,
+    ShutdownResponse, UnloadResponse,
 };
 use reqwest::{Response, StatusCode};
 
@@ -70,15 +71,14 @@ impl Client {
         let response = self.client.post(&url).json(&request).send().await?;
 
         match response.status() {
-            StatusCode::OK => Ok(response.json().await?),
-            StatusCode::BAD_REQUEST | StatusCode::CONFLICT => {
-                Err(self.handle_error_response(response).await)
+            StatusCode::OK | StatusCode::BAD_REQUEST | StatusCode::CONFLICT => {
+                Ok(response.json().await?)
             }
             _ => Err(Error::UnexpectedResponse),
         }
     }
 
-    pub async fn reset(&self) -> Result<GenericResponse, Error> {
+    pub async fn reset(&self) -> Result<ResetResponse, Error> {
         let url = format!("{}/reset", self.base_url);
         let response = self.client.post(&url).send().await?;
 
@@ -89,7 +89,7 @@ impl Client {
         }
     }
 
-    pub async fn unload(&self) -> Result<GenericResponse, Error> {
+    pub async fn unload(&self) -> Result<UnloadResponse, Error> {
         let url = format!("{}/unload", self.base_url);
         let response = self.client.post(&url).send().await?;
 
@@ -100,7 +100,7 @@ impl Client {
         }
     }
 
-    pub async fn shutdown(&self) -> Result<GenericResponse, Error> {
+    pub async fn shutdown(&self) -> Result<ShutdownResponse, Error> {
         let url = format!("{}/shutdown", self.base_url);
         let response = self.client.post(&url).send().await?;
 
@@ -114,7 +114,7 @@ impl Client {
     async fn handle_error_response(&self, response: Response) -> Error {
         if let Ok(error_response) = response.json::<ErrorResponse>().await {
             Error::ServerError {
-                status: error_response.status,
+                status: error_response.status.to_string(),
                 message: error_response.message,
             }
         } else {

@@ -53,7 +53,7 @@ pub(super) async fn process_stream<S, E, H>(
                                     response.set_extra(&extra);
 
                                     if myself.send_message(ListenerMsg::StreamResponse(response)).is_err() {
-                                        tracing::warn!("actor_gone_during_finalize");
+                                        tracing::debug!("actor_gone_during_finalize");
                                         break;
                                     }
 

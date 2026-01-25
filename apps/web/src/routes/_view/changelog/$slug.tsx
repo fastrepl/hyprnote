@@ -2,7 +2,7 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Download } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import semver from "semver";
 
 import { cn } from "@hypr/utils";
@@ -232,46 +232,66 @@ function DownloadLinksHeroMobile({ version }: { version: string }) {
   const links = getDownloadLinks(version);
   const grouped = groupDownloadLinks(links);
   const [activeIndex, setActiveIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const allLinks = [...grouped.macos, ...grouped.linux];
+
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const scrollLeft = container.scrollLeft;
+    const itemWidth = container.offsetWidth;
+    const newIndex = Math.round(scrollLeft / itemWidth);
+    setActiveIndex(newIndex);
+  };
+
+  const scrollToIndex = (index: number) => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const itemWidth = container.offsetWidth;
+    container.scrollTo({
+      left: index * itemWidth,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <div className="w-full max-w-sm">
       <div className="relative">
-        <div className="overflow-hidden">
-          <div
-            className="flex transition-transform duration-300 ease-in-out"
-            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
-          >
-            {allLinks.map((link) => (
-              <div key={link.url} className="w-full shrink-0 px-2">
-                <a
-                  href={link.url}
-                  className={cn([
-                    "flex flex-col items-center gap-2 px-6 py-4 rounded-2xl transition-all",
-                    "bg-linear-to-b from-white to-stone-50 text-neutral-700",
-                    "border border-neutral-300",
-                    "hover:shadow-xs active:scale-[98%]",
-                  ])}
-                >
-                  <Download className="size-5 shrink-0" />
-                  <div className="text-center">
-                    <div className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1">
-                      {link.platform}
-                    </div>
-                    <div className="text-sm font-medium">{link.label}</div>
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {allLinks.map((link) => (
+            <div key={link.url} className="w-full shrink-0 snap-center px-2">
+              <a
+                href={link.url}
+                className={cn([
+                  "flex flex-col items-center gap-2 px-6 py-4 rounded-2xl transition-all",
+                  "bg-linear-to-b from-white to-stone-50 text-neutral-700",
+                  "border border-neutral-300",
+                  "hover:shadow-xs active:scale-[98%]",
+                ])}
+              >
+                <Download className="size-5 shrink-0" />
+                <div className="text-center">
+                  <div className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1">
+                    {link.platform}
                   </div>
-                </a>
-              </div>
-            ))}
-          </div>
+                  <div className="text-sm font-medium">{link.label}</div>
+                </div>
+              </a>
+            </div>
+          ))}
         </div>
 
         <div className="flex justify-center gap-2 mt-3">
           {allLinks.map((_, index) => (
             <button
               key={index}
-              onClick={() => setActiveIndex(index)}
+              onClick={() => scrollToIndex(index)}
               className={cn([
                 "h-1.5 rounded-full transition-all",
                 activeIndex === index

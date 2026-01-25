@@ -57,12 +57,18 @@ jobs:
           FILE=$(echo "${{ steps.changed-files.outputs.files }}" | awk '{print $1}')
           if [ -f "$FILE" ]; then
             # Extract display_title or fall back to meta_title (handles quoted YAML values)
-            TITLE=$(grep -m1 "^display_title:" "$FILE" | sed 's/display_title:[[:space:]]*"\(.*\)"/\1/' || echo "")
-            if [ -z "$TITLE" ]; then
-              TITLE=$(grep -m1 "^meta_title:" "$FILE" | sed 's/meta_title:[[:space:]]*"\(.*\)"/\1/' || echo "Untitled")
+            # Use jq to properly escape for JSON
+            RAW_TITLE=$(grep -m1 "^display_title:" "$FILE" | sed 's/display_title:[[:space:]]*"\(.*\)"/\1/' || echo "")
+            if [ -z "$RAW_TITLE" ]; then
+              RAW_TITLE=$(grep -m1 "^meta_title:" "$FILE" | sed 's/meta_title:[[:space:]]*"\(.*\)"/\1/' || echo "Untitled")
             fi
-            AUTHOR=$(grep -m1 "^author:" "$FILE" | sed 's/author:[[:space:]]*"\(.*\)"/\1/' || echo "Unknown")
-            DATE=$(grep -m1 "^date:" "$FILE" | sed 's/date:[[:space:]]*"\(.*\)"/\1/' || echo "")
+            RAW_AUTHOR=$(grep -m1 "^author:" "$FILE" | sed 's/author:[[:space:]]*"\(.*\)"/\1/' || echo "Unknown")
+            RAW_DATE=$(grep -m1 "^date:" "$FILE" | sed 's/date:[[:space:]]*"\(.*\)"/\1/' || echo "")
+
+            # Escape for JSON (remove surrounding quotes that jq adds)
+            TITLE=$(echo "$RAW_TITLE" | jq -Rs . | sed 's/^"//;s/"$//')
+            AUTHOR=$(echo "$RAW_AUTHOR" | jq -Rs . | sed 's/^"//;s/"$//')
+            DATE=$(echo "$RAW_DATE" | jq -Rs . | sed 's/^"//;s/"$//')
           else
             TITLE="Untitled"
             AUTHOR="Unknown"

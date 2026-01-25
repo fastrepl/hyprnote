@@ -4,7 +4,7 @@ import {
   type Editor as TiptapEditor,
   useEditor,
 } from "@tiptap/react";
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useDebounceCallback } from "usehooks-ts";
 
 import "../../styles.css";
@@ -40,6 +40,8 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
       onAddImageFromLibrary,
     } = props;
     const [isEmpty, setIsEmpty] = useState(!content || content.trim() === "");
+    const [showSearch, setShowSearch] = useState(false);
+    const [showReplace, setShowReplace] = useState(false);
 
     const onUpdate = useDebounceCallback(
       ({ editor }: { editor: TiptapEditor }) => {
@@ -110,6 +112,36 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
       }
     }, [editor, editable]);
 
+    const handleKeyDown = useCallback(
+      (e: KeyboardEvent) => {
+        const isMod = e.metaKey || e.ctrlKey;
+
+        if (isMod && e.key === "f") {
+          e.preventDefault();
+          setShowSearch((prev) => !prev);
+          if (!showSearch) {
+            setShowReplace(false);
+          }
+        }
+
+        if (isMod && e.shiftKey && e.key === "h") {
+          e.preventDefault();
+          if (showSearch) {
+            setShowReplace((prev) => !prev);
+          } else {
+            setShowSearch(true);
+            setShowReplace(true);
+          }
+        }
+      },
+      [showSearch],
+    );
+
+    useEffect(() => {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [handleKeyDown]);
+
     const showImportOverlay = isEmpty && onGoogleDocsImport && editable;
 
     useEffect(() => {
@@ -129,7 +161,14 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
       <div className="relative flex flex-col h-full">
         {editable && showToolbar && (
           <div className="shrink-0">
-            <Toolbar editor={editor} onAddImage={onAddImageFromLibrary} />
+            <Toolbar
+              editor={editor}
+              onAddImage={onAddImageFromLibrary}
+              showSearch={showSearch}
+              onShowSearchChange={setShowSearch}
+              showReplace={showReplace}
+              onShowReplaceChange={setShowReplace}
+            />
           </div>
         )}
         <div className="flex-1 min-h-0 overflow-y-auto p-6">

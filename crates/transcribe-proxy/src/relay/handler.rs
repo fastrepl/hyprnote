@@ -97,6 +97,7 @@ impl WebSocketProxy {
 
     pub async fn handle_upgrade(&self, ws: WebSocketUpgrade) -> Response<Body> {
         let proxy = self.clone();
+        let hub = sentry::Hub::current();
         ws.on_upgrade(move |socket| {
             async move {
                 if let Err(e) = proxy.handle(socket).await {
@@ -107,7 +108,7 @@ impl WebSocketProxy {
                     );
                 }
             }
-            .bind_hub(sentry::Hub::new_from_top(sentry::Hub::current()))
+            .bind_hub(sentry::Hub::new_from_top(hub))
         })
         .into_response()
     }

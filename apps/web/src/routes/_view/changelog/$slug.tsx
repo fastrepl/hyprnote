@@ -2,7 +2,6 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Download } from "lucide-react";
-import { useState } from "react";
 import semver from "semver";
 
 import { cn } from "@hypr/utils";
@@ -231,56 +230,32 @@ function DownloadLinksHero({ version }: { version: string }) {
 function DownloadLinksHeroMobile({ version }: { version: string }) {
   const links = getDownloadLinks(version);
   const grouped = groupDownloadLinks(links);
-  const [activeIndex, setActiveIndex] = useState(0);
 
   const allLinks = [...grouped.macos, ...grouped.linux];
 
   return (
-    <div className="w-full max-w-sm">
-      <div className="relative">
-        <div className="overflow-hidden">
-          <div
-            className="flex transition-transform duration-300 ease-in-out"
-            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+    <div className="-mx-6 px-6 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-3 w-max mx-auto">
+        {allLinks.map((link) => (
+          <a
+            key={link.url}
+            href={link.url}
+            className={cn([
+              "flex flex-col items-center gap-2 px-6 py-4 rounded-2xl transition-all w-36",
+              "bg-linear-to-b from-white to-stone-50 text-neutral-700",
+              "border border-neutral-300",
+              "hover:shadow-xs active:scale-[98%]",
+            ])}
           >
-            {allLinks.map((link) => (
-              <div key={link.url} className="w-full shrink-0 px-2">
-                <a
-                  href={link.url}
-                  className={cn([
-                    "flex flex-col items-center gap-2 px-6 py-4 rounded-2xl transition-all",
-                    "bg-linear-to-b from-white to-stone-50 text-neutral-700",
-                    "border border-neutral-300",
-                    "hover:shadow-xs active:scale-[98%]",
-                  ])}
-                >
-                  <Download className="size-5 shrink-0" />
-                  <div className="text-center">
-                    <div className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1">
-                      {link.platform}
-                    </div>
-                    <div className="text-sm font-medium">{link.label}</div>
-                  </div>
-                </a>
+            <Download className="size-5 shrink-0" />
+            <div className="text-center">
+              <div className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1">
+                {link.platform}
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex justify-center gap-2 mt-3">
-          {allLinks.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveIndex(index)}
-              className={cn([
-                "h-1.5 rounded-full transition-all",
-                activeIndex === index
-                  ? "w-6 bg-stone-600"
-                  : "w-1.5 bg-stone-300 hover:bg-stone-400",
-              ])}
-            />
-          ))}
-        </div>
+              <div className="text-sm font-medium">{link.label}</div>
+            </div>
+          </a>
+        ))}
       </div>
     </div>
   );

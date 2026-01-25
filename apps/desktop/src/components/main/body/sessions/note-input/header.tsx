@@ -305,9 +305,14 @@ function HeaderTabEnhanced({
 
   const iconContent = (
     <span
-      onClick={isUnauthenticated ? undefined : handleRegenerateClick}
+      onClick={(e) => {
+        if (!isUnauthenticated) {
+          handleRegenerateClick(e);
+        }
+      }}
       className={cn([
-        "group relative inline-flex h-5 w-5 items-center justify-center rounded-xs transition-colors cursor-pointer",
+        "group relative inline-flex h-5 w-5 items-center justify-center rounded-xs transition-colors",
+        !isUnauthenticated && "cursor-pointer",
         isError
           ? [
               "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",

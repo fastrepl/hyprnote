@@ -9,7 +9,6 @@ import {
   type SupportedStorage,
 } from "@supabase/supabase-js";
 import { getVersion } from "@tauri-apps/api/app";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { version as osVersion, platform } from "@tauri-apps/plugin-os";
 import {
@@ -175,27 +174,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [setSessionFromTokens],
   );
 
-  useEffect(() => {
-    if (!supabase) {
-      return;
-    }
-
-    const appWindow = getCurrentWindow();
-
-    const unlistenFocus = appWindow.listen("tauri://focus", () => {
-      if (serverReachable) {
-        void supabase.auth.startAutoRefresh();
-      }
-    });
-    const unlistenBlur = appWindow.listen("tauri://blur", () => {
-      void supabase.auth.stopAutoRefresh();
-    });
-
-    return () => {
-      void unlistenFocus.then((fn) => fn());
-      void unlistenBlur.then((fn) => fn());
-    };
-  }, [serverReachable]);
+  // Note: We don't stop auto-refresh when the app is backgrounded because:
+  // 1. Token refresh happens only ~1x/hour (negligible battery/resource impact)
+  // 2. Keeping refresh active prevents session expiry after 57+ minutes in background
+  // 3. Provides better UX when user returns to app after extended periods
+  // 4. Supabase's autoRefreshToken: true handles this automatically
 
   useEffect(() => {
     if (!supabase) {

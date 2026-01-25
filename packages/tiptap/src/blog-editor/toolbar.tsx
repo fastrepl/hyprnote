@@ -12,9 +12,10 @@ import {
   ListOrderedIcon,
   QuoteIcon,
   StrikethroughIcon,
+  TableIcon,
   UnderlineIcon,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface ToolbarProps {
   editor: TiptapEditor | null;
@@ -62,6 +63,18 @@ function ToolbarDivider() {
 export function Toolbar({ editor, onAddImage }: ToolbarProps) {
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
+  const [, forceUpdate] = useState(0);
+
+  useEffect(() => {
+    if (!editor) return;
+    const handler = () => forceUpdate((n) => n + 1);
+    editor.on("selectionUpdate", handler);
+    editor.on("transaction", handler);
+    return () => {
+      editor.off("selectionUpdate", handler);
+      editor.off("transaction", handler);
+    };
+  }, [editor]);
 
   const handleLinkSubmit = useCallback(() => {
     if (!editor) return;
@@ -122,25 +135,25 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
       <ToolbarDivider />
 
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        isActive={editor.isActive("heading", { level: 1 })}
-        title="Heading 1"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        isActive={editor.isActive("heading", { level: 2 })}
+        title="Heading 1 (##)"
       >
         <Heading1Icon className="size-4" />
       </ToolbarButton>
 
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        isActive={editor.isActive("heading", { level: 2 })}
-        title="Heading 2"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        isActive={editor.isActive("heading", { level: 3 })}
+        title="Heading 2 (###)"
       >
         <Heading2Icon className="size-4" />
       </ToolbarButton>
 
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        isActive={editor.isActive("heading", { level: 3 })}
-        title="Heading 3"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+        isActive={editor.isActive("heading", { level: 4 })}
+        title="Heading 3 (####)"
       >
         <Heading3Icon className="size-4" />
       </ToolbarButton>
@@ -177,6 +190,19 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
         title="Code Block"
       >
         <CodeIcon className="size-4" />
+      </ToolbarButton>
+
+      <ToolbarButton
+        onClick={() =>
+          editor
+            .chain()
+            .focus()
+            .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+            .run()
+        }
+        title="Insert Table"
+      >
+        <TableIcon className="size-4" />
       </ToolbarButton>
 
       <ToolbarDivider />

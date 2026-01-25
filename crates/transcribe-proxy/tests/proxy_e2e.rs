@@ -121,7 +121,10 @@ async fn run_passthrough_batch_test(provider: Provider) {
         std::fs::read(hypr_data::english_1::AUDIO_PATH).expect("failed to read test audio file");
 
     let model = provider.default_batch_model();
-    let url = format!("http://{}/listen?model={}", addr, model);
+    let url = format!(
+        "http://{}/listen?provider={}&model={}",
+        addr, provider, model
+    );
 
     run_batch_request(url, audio_bytes, format!("passthrough:{}", provider)).await;
 }
@@ -137,7 +140,10 @@ async fn run_hyprnote_batch_test(provider: Provider) {
         std::fs::read(hypr_data::english_1::AUDIO_PATH).expect("failed to read test audio file");
 
     let model = provider.default_batch_model();
-    let url = format!("http://{}/listen?provider=hyprnote&model={}", addr, model);
+    let url = format!(
+        "http://{}/listen?provider=hyprnote&model={}&language=en",
+        addr, model
+    );
 
     run_batch_request(url, audio_bytes, format!("hyprnote:{}", provider)).await;
 }
@@ -152,12 +158,14 @@ async fn run_batch_request(url: String, audio_bytes: Vec<u8>, provider_name: Str
         .await
         .expect("failed to send batch request");
 
-    assert!(
-        response.status().is_success(),
-        "[{}] batch request failed with status: {}",
-        provider_name,
-        response.status()
-    );
+    let status = response.status();
+    if !status.is_success() {
+        let body = response.text().await.unwrap_or_default();
+        panic!(
+            "[{}] batch request failed with status: {}, body: {}",
+            provider_name, status, body
+        );
+    }
 
     let batch_response: owhisper_interface::batch::Response = response
         .json()

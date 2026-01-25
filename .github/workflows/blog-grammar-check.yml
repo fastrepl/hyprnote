@@ -86,3 +86,40 @@ jobs:
                 body: body
               });
             }
+
+      - name: Notify Slack
+        if: steps.changed-files.outputs.has_files == 'true'
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            {
+              "channel": "${{ secrets.SLACK_MARKETING_CHANNEL_ID }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "📝 Blog Article Update",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>*"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Branch: `${{ github.head_ref }}` | Author: ${{ github.event.pull_request.user.login }}"
+                    }
+                  ]
+                }
+              ]
+            }

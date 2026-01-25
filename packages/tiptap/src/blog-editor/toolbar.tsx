@@ -137,10 +137,20 @@ export function Toolbar({
   }, [showSearch, editor]);
 
   useEffect(() => {
-    if (showSearch && searchInputRef.current) {
-      searchInputRef.current.focus();
+    if (showSearch && editor) {
+      const { from, to } = editor.state.selection;
+      if (from !== to) {
+        const selectedText = editor.state.doc.textBetween(from, to, " ");
+        if (selectedText.trim()) {
+          setSearchTerm(selectedText);
+        }
+      }
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+        searchInputRef.current.select();
+      }
     }
-  }, [showSearch]);
+  }, [showSearch, editor]);
 
   useEffect(() => {
     if (showReplace && replaceInputRef.current) {

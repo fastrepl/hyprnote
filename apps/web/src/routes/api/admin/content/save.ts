@@ -172,7 +172,7 @@ export const Route = createFileRoute("/api/admin/content/save")({
         }
 
         const frontmatter = buildFrontmatter(metadata);
-        const fullContent = `${frontmatter}\n\n${processedContent}`;
+        const fullContent = `${frontmatter}\n${processedContent}`;
 
         // If the article is published, create a PR to main (handles branch protection)
         // Otherwise, save to the draft branch

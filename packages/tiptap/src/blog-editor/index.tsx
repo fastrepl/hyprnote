@@ -59,7 +59,12 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
     const extensions = useMemo(
       () => [
         ...shared.getExtensions(
-          undefined,
+          ({ node }) => {
+            if (node.type.name === "paragraph") {
+              return "Start typing...";
+            }
+            return "";
+          },
           onImageUpload
             ? {
                 onImageUpload,
@@ -178,10 +183,12 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
             role="textbox"
           />
           {showImportOverlay && (
-            <GoogleDocsImport
-              onImport={onGoogleDocsImport}
-              isLoading={isImporting}
-            />
+            <div className="mt-6">
+              <GoogleDocsImport
+                onImport={onGoogleDocsImport}
+                isLoading={isImporting}
+              />
+            </div>
           )}
         </div>
       </div>

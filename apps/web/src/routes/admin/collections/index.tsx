@@ -1225,11 +1225,6 @@ function ContentPanel({
       }
       return response.json();
     },
-    onSuccess: (data) => {
-      if (data.prUrl && !data.isAutoSave) {
-        window.open(data.prUrl, "_blank");
-      }
-    },
   });
 
   const { mutate: publishContent, isPending: isPublishing } = useMutation({
@@ -1342,6 +1337,7 @@ function ContentPanel({
         path: string;
         branch: string;
         prNumber: number;
+        prUrl?: string;
       }) => {
         const response = await fetch("/api/admin/content/submit-for-review", {
           method: "POST",
@@ -1352,15 +1348,19 @@ function ContentPanel({
           const error = await response.json();
           throw new Error(error.error || "Failed to submit for review");
         }
-        return response.json();
+        const data = await response.json();
+        return { ...data, prUrl: params.prUrl };
       },
-      onSuccess: () => {
+      onSuccess: (data) => {
         queryClient.invalidateQueries({
           queryKey: ["branchFile", currentTab?.path],
         });
         queryClient.invalidateQueries({
           queryKey: ["pendingPRFile", currentTab?.path],
         });
+        if (data.prUrl) {
+          window.open(data.prUrl, "_blank");
+        }
       },
     });
 
@@ -1395,6 +1395,7 @@ function ContentPanel({
       ? {
           branchName: saveResult.branchName,
           prNumber: saveResult.prNumber,
+          prUrl: saveResult.prUrl,
         }
       : pendingPRData;
 
@@ -1403,6 +1404,7 @@ function ContentPanel({
         path: `apps/web/content/${currentTab.path}`,
         branch: prData.branchName,
         prNumber: prData.prNumber,
+        prUrl: prData.prUrl,
       });
     }
   }, [currentTab, editorData, pendingPRData, submitForReview, queryClient]);

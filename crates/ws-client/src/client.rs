@@ -138,12 +138,11 @@ impl WebSocketClient {
                         last_outbound_at = tokio::time::Instant::now();
                     }
                     Some(ControlCommand::Finalize(maybe_msg)) = control_rx.recv() => {
-                        if let Some(msg) = maybe_msg {
-                            if let Err(e) = ws_sender.send(msg).await {
+                        if let Some(msg) = maybe_msg
+                            && let Err(e) = ws_sender.send(msg).await {
                                 tracing::error!("ws_finalize_failed: {:?}", e);
                                 let _ = error_tx.send(e.into());
                             }
-                        }
                         break;
                     }
                     else => break,

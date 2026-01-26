@@ -8,6 +8,7 @@ import {
   SupabaseClient,
   type SupportedStorage,
 } from "@supabase/supabase-js";
+import { useMutation } from "@tanstack/react-query";
 import { getVersion } from "@tauri-apps/api/app";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { version as osVersion, platform } from "@tauri-apps/plugin-os";
@@ -112,6 +113,7 @@ const AuthContext = createContext<{
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<Session | null>;
+  isRefreshingSession: boolean;
   handleAuthCallback: (url: string) => Promise<void>;
   setSessionFromTokens: (
     accessToken: string,
@@ -323,21 +325,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const refreshSession = useCallback(async (): Promise<Session | null> => {
-    if (!supabase) {
-      return null;
-    }
+  const refreshSessionMutation = useMutation({
+    mutationFn: async (): Promise<Session | null> => {
+      if (!supabase) {
+        return null;
+      }
 
-    const { data, error } = await supabase.auth.refreshSession();
-    if (error) {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        return null;
+      }
+      if (data.session) {
+        setSession(data.session);
+        return data.session;
+      }
       return null;
-    }
-    if (data.session) {
-      setSession(data.session);
-      return data.session;
-    }
-    return null;
-  }, []);
+    },
+  });
+
+  const refreshSession = useCallback(
+    () => refreshSessionMutation.mutateAsync(),
+    [refreshSessionMutation.mutateAsync],
+  );
 
   const getHeaders = useCallback(() => {
     if (!session) {
@@ -379,6 +388,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signOut,
       refreshSession,
+      isRefreshingSession: refreshSessionMutation.isPending,
       handleAuthCallback,
       setSessionFromTokens,
       getHeaders,
@@ -389,6 +399,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signOut,
       refreshSession,
+      refreshSessionMutation.isPending,
       handleAuthCallback,
       setSessionFromTokens,
       getHeaders,

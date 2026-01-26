@@ -5,12 +5,7 @@ import { useMemo, useState } from "react";
 import { cn } from "@hypr/utils";
 
 import { SlashSeparator } from "@/components/slash-separator";
-
-const AUTHOR_AVATARS: Record<string, string> = {
-  "John Jeong": "/api/images/team/john.png",
-  Harshika: "/api/images/team/harshika.jpeg",
-  "Yujong Lee": "/api/images/team/yujong.png",
-};
+import { AUTHOR_AVATARS } from "@/lib/team";
 
 const CATEGORIES = [
   "Case Study",

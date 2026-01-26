@@ -8,6 +8,7 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { z } from "zod";
 
+import { AUTHOR_NAMES } from "@/lib/team";
 import { VersionPlatform } from "@/scripts/versioning";
 
 async function embedGithubCode(content: string): Promise<string> {
@@ -86,7 +87,7 @@ const articles = defineCollection({
     display_title: z.string().optional(),
     meta_title: z.string(),
     meta_description: z.string(),
-    author: z.enum(["Harshika", "John Jeong", "Yujong Lee"]),
+    author: z.enum(AUTHOR_NAMES as [string, ...string[]]),
     date: z.string(),
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),

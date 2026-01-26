@@ -11,6 +11,7 @@ import { Image } from "@/components/image";
 import { defaultMDXComponents } from "@/components/mdx";
 import { SlashSeparator } from "@/components/slash-separator";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
+import { AUTHOR_AVATARS } from "@/lib/team";
 
 export const Route = createFileRoute("/_view/blog/$slug")({
   component: Component,
@@ -115,12 +116,6 @@ function Component() {
     </main>
   );
 }
-
-const AUTHOR_AVATARS: Record<string, string> = {
-  "John Jeong": "/api/images/team/john.png",
-  Harshika: "/api/images/team/harshika.jpeg",
-  "Yujong Lee": "/api/images/team/yujong.png",
-};
 
 function HeroSection({ article }: { article: any }) {
   const avatarUrl = AUTHOR_AVATARS[article.author];

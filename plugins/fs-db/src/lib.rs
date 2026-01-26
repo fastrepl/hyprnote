@@ -24,23 +24,18 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .setup(|app, _api| {
             use tauri_plugin_settings::SettingsPluginExt;
 
-            let base_dir = match app.settings().vault_base() {
+            let base_dir = match app.settings().fresh_vault_base() {
                 Ok(dir) => dir,
                 Err(_) => return Ok(()),
             };
 
-            let app_version = app
-                .config()
-                .version
-                .as_ref()
-                .and_then(|v| semver::Version::parse(v).ok())
-                .unwrap_or_else(|| semver::Version::new(0, 0, 0));
+            let app_version = app.config().version.as_ref().map_or_else(
+                || semver::Version::new(0, 0, 0),
+                |v| semver::Version::parse(v).expect("version must be semver"),
+            );
 
-            let mut runner = migrations::MigrationRunner::new(&base_dir, app_version);
-            for migration in migrations::all_migrations() {
-                runner = runner.register(migration);
-            }
-            runner.run()?;
+            migrations::run(&base_dir, &app_version)?;
+            version::write_version(&base_dir, &app_version)?;
 
             Ok(())
         })

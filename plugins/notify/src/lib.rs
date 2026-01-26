@@ -1,6 +1,7 @@
 mod error;
 mod events;
 mod ext;
+mod path;
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};

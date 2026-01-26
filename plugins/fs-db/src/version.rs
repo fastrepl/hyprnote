@@ -4,6 +4,9 @@ use semver::Version;
 
 use crate::Result;
 
+const HYPRNOTE_DIR: &str = ".hyprnote";
+const VERSION_FILE: &str = "version";
+
 #[derive(Debug, Clone)]
 pub struct VaultVersion {
     pub version: Version,
@@ -12,7 +15,7 @@ pub struct VaultVersion {
 
 #[derive(Debug, Clone)]
 pub enum VersionSource {
-    SchemaFile,
+    VersionFile,
     Heuristic(&'static str),
 }
 
@@ -44,10 +47,10 @@ impl VersionDetector {
     }
 
     pub fn detect(&self, base_dir: &Path) -> Option<VaultVersion> {
-        if let Some(version) = read_schema_version(base_dir) {
+        if let Some(version) = read_version(base_dir) {
             return Some(VaultVersion {
                 version,
-                source: VersionSource::SchemaFile,
+                source: VersionSource::VersionFile,
             });
         }
 
@@ -84,8 +87,8 @@ pub fn default_detector() -> VersionDetector {
     VersionDetector::new().with_heuristic(SqliteHeuristic)
 }
 
-pub fn read_schema_version(base_dir: &Path) -> Option<Version> {
-    let version_file = base_dir.join(".schema").join("version");
+pub fn read_version(base_dir: &Path) -> Option<Version> {
+    let version_file = base_dir.join(HYPRNOTE_DIR).join(VERSION_FILE);
     if version_file.exists() {
         let content = std::fs::read_to_string(&version_file).ok()?;
         return Version::parse(content.trim()).ok();
@@ -93,9 +96,9 @@ pub fn read_schema_version(base_dir: &Path) -> Option<Version> {
     None
 }
 
-pub fn write_schema_version(base_dir: &Path, version: &Version) -> Result<()> {
-    let schema_dir = base_dir.join(".schema");
-    std::fs::create_dir_all(&schema_dir)?;
-    std::fs::write(schema_dir.join("version"), version.to_string())?;
+pub fn write_version(base_dir: &Path, version: &Version) -> Result<()> {
+    let hyprnote_dir = base_dir.join(HYPRNOTE_DIR);
+    std::fs::create_dir_all(&hyprnote_dir)?;
+    std::fs::write(hyprnote_dir.join(VERSION_FILE), version.to_string())?;
     Ok(())
 }

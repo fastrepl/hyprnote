@@ -5,6 +5,7 @@ use notify_debouncer_full::{DebouncedEvent, new_debouncer};
 use tauri_plugin_settings::SettingsPluginExt;
 use tauri_specta::Event;
 
+use crate::path::{should_skip_path, to_relative_path};
 use crate::{FileChanged, WatcherState};
 
 const DEBOUNCE_DELAY_MS: u64 = 900;
@@ -24,7 +25,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
             return Ok(());
         }
 
-        let base = self.manager.app_handle().settings().vault_base()?;
+        let base = self.manager.app_handle().settings().cached_vault_base()?;
         let app_handle = self.manager.app_handle().clone();
         let base_for_closure = base.clone();
         let own_writes = state.own_writes.clone();
@@ -59,28 +60,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                         }
 
                         for path in &event.paths {
-                            if path.file_name().is_some_and(|name| name == ".DS_Store") {
-                                continue;
-                            }
+                            let relative_path = to_relative_path(path, &base_for_closure);
 
-                            let relative_path = path
-                                .strip_prefix(&base_for_closure)
-                                .unwrap_or(path)
-                                .to_string_lossy()
-                                .to_string();
-
-                            if relative_path == "store.json" {
-                                continue;
-                            }
-
-                            if relative_path.starts_with("argmax") {
-                                continue;
-                            }
-
-                            if path
-                                .extension()
-                                .is_some_and(|ext| ext == "wav" || ext == "ogg" || ext == "tmp")
-                            {
+                            if should_skip_path(&relative_path, path) {
                                 continue;
                             }
 

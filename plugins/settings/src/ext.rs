@@ -23,20 +23,16 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
     }
 
     pub fn settings_path(&self) -> Result<PathBuf, crate::Error> {
-        let base = self.vault_base()?;
+        let base = self.cached_vault_base()?;
         Ok(vault::compute_settings_path(&base))
     }
 
-    pub fn vault_base(&self) -> Result<PathBuf, crate::Error> {
-        let state = self.manager.try_state::<crate::state::State>();
-        if let Some(state) = state {
-            return Ok(state.vault_base().clone());
-        }
-
-        self.compute_vault_base()
+    pub fn cached_vault_base(&self) -> Result<PathBuf, crate::Error> {
+        let state = self.manager.state::<crate::state::State>();
+        Ok(state.vault_base().clone())
     }
 
-    pub fn compute_vault_base(&self) -> Result<PathBuf, crate::Error> {
+    pub fn fresh_vault_base(&self) -> Result<PathBuf, crate::Error> {
         let default_base = self.default_base()?;
         let global_base = self.global_base()?;
         let custom_base = vault::resolve_custom(&global_base, &default_base);
@@ -65,7 +61,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'a, R, M> {
     pub async fn change_vault_base(&self, new_path: PathBuf) -> Result<(), crate::Error> {
-        let old_vault_base = self.vault_base()?;
+        let old_vault_base = self.cached_vault_base()?;
         let default_base = self.default_base()?;
 
         if new_path == old_vault_base {
@@ -73,8 +69,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'
         }
 
         vault::validate_vault_base_change(&old_vault_base, &new_path)?;
-
-        std::fs::create_dir_all(&new_path)?;
+        vault::ensure_vault_dir(&new_path)?;
         vault::copy_vault_items(&old_vault_base, &new_path).await?;
 
         let vault_config_path = global::compute_vault_config_path(&default_base);

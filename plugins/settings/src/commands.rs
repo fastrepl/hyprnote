@@ -29,7 +29,7 @@ pub(crate) async fn vault_base<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<String, String> {
     app.settings()
-        .vault_base()
+        .cached_vault_base()
         .map(|p| p.to_string_lossy().to_string())
         .map_err(|e| e.to_string())
 }

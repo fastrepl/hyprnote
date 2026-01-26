@@ -18,6 +18,7 @@ interface ArticleMetadata {
   published?: boolean;
   featured?: boolean;
   category?: string;
+  ready_for_review?: boolean;
 }
 
 interface SaveRequest {
@@ -51,6 +52,9 @@ function buildFrontmatter(metadata: ArticleMetadata): string {
   }
   if (metadata.published !== undefined) {
     lines.push(`published: ${metadata.published}`);
+  }
+  if (metadata.ready_for_review !== undefined) {
+    lines.push(`ready_for_review: ${metadata.ready_for_review}`);
   }
   if (metadata.category) {
     lines.push(`category: ${JSON.stringify(metadata.category)}`);

@@ -267,6 +267,7 @@ const createLanguageModel = (
     case "openai": {
       const provider = createOpenAI({
         fetch: tauriFetch,
+        baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
       });
       return wrapWithThinkingMiddleware(provider(conn.modelId));

@@ -1,14 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
-import postgres from "postgres";
 
 import { env } from "@/env";
 
 const BUCKET_NAME = "blog";
-
-function getDbClient() {
-  return postgres(env.DATABASE_URL, { prepare: false });
-}
 
 export interface MediaItem {
   name: string;
@@ -101,11 +96,6 @@ export async function uploadMediaFile(
   publicUrl?: string;
   error?: string;
 }> {
-  const timestamp = Date.now();
-  const sanitizedFilename = `${timestamp}-${filename
-    .replace(/[^a-zA-Z0-9.-]/g, "-")
-    .toLowerCase()}`;
-
   const allowedExtensions = [
     "jpg",
     "jpeg",
@@ -118,7 +108,10 @@ export async function uploadMediaFile(
     "webm",
     "mov",
   ];
-  const ext = sanitizedFilename.toLowerCase().split(".").pop();
+
+  const parts = filename.split(".");
+  const ext = parts.pop()?.toLowerCase();
+  const baseName = parts.join(".").replace(/[^a-zA-Z0-9.-]/g, "-") || "file";
 
   if (!ext || !allowedExtensions.includes(ext)) {
     return {
@@ -127,7 +120,24 @@ export async function uploadMediaFile(
     };
   }
 
-  const path = folder ? `${folder}/${sanitizedFilename}` : sanitizedFilename;
+  let finalFilename = `${baseName}.${ext}`;
+  let path = folder ? `${folder}/${finalFilename}` : finalFilename;
+
+  const { data: existingFiles } = await supabase.storage
+    .from(BUCKET_NAME)
+    .list(folder || undefined, { limit: 1000 });
+
+  if (existingFiles) {
+    const existingNames = new Set(existingFiles.map((f) => f.name));
+    let counter = 1;
+
+    while (existingNames.has(finalFilename)) {
+      finalFilename = `${baseName}-${counter}.${ext}`;
+      counter++;
+    }
+
+    path = folder ? `${folder}/${finalFilename}` : finalFilename;
+  }
 
   try {
     const fileBuffer = Buffer.from(content, "base64");
@@ -170,32 +180,64 @@ export async function uploadMediaFile(
   }
 }
 
+async function listAllFilesInFolder(
+  supabase: SupabaseClient,
+  folderPath: string,
+): Promise<string[]> {
+  const allFiles: string[] = [];
+
+  const { data } = await supabase.storage
+    .from(BUCKET_NAME)
+    .list(folderPath, { limit: 1000 });
+
+  if (!data) return allFiles;
+
+  for (const item of data) {
+    const itemPath = folderPath ? `${folderPath}/${item.name}` : item.name;
+    const isFolder = item.id === null;
+
+    if (isFolder) {
+      const nestedFiles = await listAllFilesInFolder(supabase, itemPath);
+      allFiles.push(...nestedFiles);
+    } else {
+      allFiles.push(itemPath);
+    }
+  }
+
+  return allFiles;
+}
+
 export async function deleteMediaFiles(
   supabase: SupabaseClient,
   paths: string[],
 ): Promise<{ success: boolean; deleted: string[]; errors: string[] }> {
   const deleted: string[] = [];
   const errors: string[] = [];
-  const sql = getDbClient();
 
   try {
     for (const path of paths) {
-      const isFolder =
-        (
-          await sql`
-        SELECT COUNT(*) as count FROM storage.objects
-        WHERE bucket_id = ${BUCKET_NAME}
-        AND name LIKE ${path + "/%"}
-      `
-        )[0].count > 0;
+      const { data: folderContents } = await supabase.storage
+        .from(BUCKET_NAME)
+        .list(path, { limit: 1 });
+
+      const isFolder = folderContents && folderContents.length > 0;
 
       if (isFolder) {
-        await sql`
-          DELETE FROM storage.objects
-          WHERE bucket_id = ${BUCKET_NAME}
-          AND (name = ${path} OR name LIKE ${path + "/%"})
-        `;
-        deleted.push(path);
+        const allFiles = await listAllFilesInFolder(supabase, path);
+
+        if (allFiles.length > 0) {
+          const { error } = await supabase.storage
+            .from(BUCKET_NAME)
+            .remove(allFiles);
+
+          if (error) {
+            errors.push(`${path}: ${error.message}`);
+          } else {
+            deleted.push(path);
+          }
+        } else {
+          deleted.push(path);
+        }
       } else {
         const { data, error } = await supabase.storage
           .from(BUCKET_NAME)
@@ -224,18 +266,14 @@ export async function deleteMediaFiles(
       deleted,
       errors: [`Delete failed: ${(error as Error).message}`],
     };
-  } finally {
-    await sql.end();
   }
 }
 
 export async function createMediaFolder(
-  _supabase: SupabaseClient,
+  supabase: SupabaseClient,
   folderName: string,
   parentFolder: string = "",
 ): Promise<{ success: boolean; path?: string; error?: string }> {
-  const sql = getDbClient();
-
   const sanitizedFolderName = folderName
     .replace(/[^a-zA-Z0-9-_]/g, "-")
     .toLowerCase();
@@ -244,22 +282,27 @@ export async function createMediaFolder(
     ? `${parentFolder}/${sanitizedFolderName}`
     : sanitizedFolderName;
 
-  try {
-    const existing = await sql`
-      SELECT id FROM storage.objects
-      WHERE bucket_id = ${BUCKET_NAME}
-      AND name LIKE ${folderPath + "/%"}
-      LIMIT 1
-    `;
+  const placeholderPath = `${folderPath}/.emptyFolderPlaceholder`;
 
-    if (existing.length > 0) {
+  try {
+    const { data: existing } = await supabase.storage
+      .from(BUCKET_NAME)
+      .list(folderPath, { limit: 1 });
+
+    if (existing && existing.length > 0) {
       return { success: false, error: "Folder already exists" };
     }
 
-    await sql`
-      INSERT INTO storage.objects (bucket_id, name, owner, metadata)
-      VALUES (${BUCKET_NAME}, ${folderPath + "/.folder"}, NULL, '{"mimetype": "application/x-directory"}')
-    `;
+    const { error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(placeholderPath, new Uint8Array(0), {
+        contentType: "application/x-empty",
+        upsert: false,
+      });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
 
     return {
       success: true,
@@ -270,8 +313,6 @@ export async function createMediaFolder(
       success: false,
       error: `Failed to create folder: ${(error as Error).message}`,
     };
-  } finally {
-    await sql.end();
   }
 }
 
@@ -280,24 +321,31 @@ export async function moveMediaFile(
   fromPath: string,
   toPath: string,
 ): Promise<{ success: boolean; newPath?: string; error?: string }> {
-  const sql = getDbClient();
-
   try {
-    const filesInFolder = await sql`
-      SELECT name FROM storage.objects
-      WHERE bucket_id = ${BUCKET_NAME}
-      AND name LIKE ${fromPath + "/%"}
-    `;
+    const { data: folderContents } = await supabase.storage
+      .from(BUCKET_NAME)
+      .list(fromPath, { limit: 1 });
 
-    const isFolder = filesInFolder.length > 0;
+    const isFolder = folderContents && folderContents.length > 0;
 
     if (isFolder) {
-      await sql`
-        UPDATE storage.objects
-        SET name = ${toPath} || SUBSTRING(name FROM ${fromPath.length + 1})
-        WHERE bucket_id = ${BUCKET_NAME}
-        AND name LIKE ${fromPath + "/%"}
-      `;
+      const allFiles = await listAllFilesInFolder(supabase, fromPath);
+
+      for (const filePath of allFiles) {
+        const relativePath = filePath.substring(fromPath.length);
+        const newFilePath = toPath + relativePath;
+
+        const { error } = await supabase.storage
+          .from(BUCKET_NAME)
+          .move(filePath, newFilePath);
+
+        if (error) {
+          return {
+            success: false,
+            error: `Failed to move ${filePath}: ${error.message}`,
+          };
+        }
+      }
 
       return {
         success: true,
@@ -322,7 +370,5 @@ export async function moveMediaFile(
       success: false,
       error: `Move failed: ${(error as Error).message}`,
     };
-  } finally {
-    await sql.end();
   }
 }

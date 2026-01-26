@@ -21,8 +21,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::maybe_emit_updated::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![
+            events::UpdateDownloadingEvent,
+            events::UpdateReadyEvent,
             events::UpdatedEvent,
-            events::UpdateReadyEvent
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

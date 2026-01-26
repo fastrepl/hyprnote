@@ -5,7 +5,7 @@ use tauri_plugin_store2::Store2PluginExt;
 use tauri_plugin_updater::UpdaterExt;
 use tauri_specta::Event;
 
-use crate::events::UpdatedEvent;
+use crate::events::{UpdateDownloadingEvent, UpdateReadyEvent, UpdatedEvent};
 
 pub struct Updater2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -106,8 +106,18 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
             });
         }
 
+        let _ = UpdateDownloadingEvent {
+            version: version.to_string(),
+        }
+        .emit(self.manager.app_handle());
+
         let bytes = update.download(|_, _| {}, || {}).await?;
         self.cache_update_bytes(version, &bytes)?;
+
+        let _ = UpdateReadyEvent {
+            version: version.to_string(),
+        }
+        .emit(self.manager.app_handle());
 
         Ok(())
     }

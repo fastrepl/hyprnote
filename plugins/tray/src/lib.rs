@@ -22,7 +22,12 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             let handle = app.clone();
+            tauri_plugin_updater2::UpdateDownloadingEvent::listen(app, move |_event| {
+                let _ =
+                    menu_items::TrayCheckUpdate::set_state(&handle, UpdateMenuState::Downloading);
+            });
 
+            let handle = app.clone();
             tauri_plugin_updater2::UpdateReadyEvent::listen(app, move |_event| {
                 let _ = menu_items::TrayCheckUpdate::set_state(
                     &handle,

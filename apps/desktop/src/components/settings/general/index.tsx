@@ -8,6 +8,7 @@ import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/store/settings";
+import { Data } from "../data";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
 import { Audio } from "./audio";
@@ -23,7 +24,6 @@ type SettingsSection =
   | "notifications"
   | "permissions"
   | "audio"
-  | "data"
   | "lab";
 
 export function SettingsGeneral({
@@ -204,6 +204,9 @@ export function SettingsGeneral({
 
       <div>
         <StorageSettingsView />
+        <div className="mt-6">
+          <Data />
+        </div>
       </div>
 
       <div ref={languageRef}>

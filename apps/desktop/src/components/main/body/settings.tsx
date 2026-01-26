@@ -1,7 +1,6 @@
 import {
   BellIcon,
   FlaskConical,
-  HardDriveIcon,
   LanguagesIcon,
   LockIcon,
   MicIcon,
@@ -18,7 +17,6 @@ import {
 import { cn } from "@hypr/utils";
 
 import { type Tab } from "../../../store/zustand/tabs";
-import { Data } from "../../settings/data";
 import { SettingsGeneral } from "../../settings/general";
 import { SettingsLab } from "../../settings/lab";
 import { StandardTabWrapper } from "./index";
@@ -69,7 +67,6 @@ type SettingsSection =
   | "notifications"
   | "permissions"
   | "audio"
-  | "data"
   | "lab";
 
 const SECTIONS: {
@@ -82,7 +79,6 @@ const SECTIONS: {
   { id: "notifications", label: "Notifications", icon: BellIcon },
   { id: "permissions", label: "Permissions", icon: LockIcon },
   { id: "audio", label: "Audio", icon: MicIcon },
-  { id: "data", label: "Data", icon: HardDriveIcon },
   { id: "lab", label: "Lab", icon: FlaskConical },
 ];
 
@@ -111,9 +107,6 @@ function SettingsView() {
       },
       audio: (el: HTMLDivElement | null) => {
         sectionRefs.current.set("audio", el);
-      },
-      data: (el: HTMLDivElement | null) => {
-        sectionRefs.current.set("data", el);
       },
       lab: (el: HTMLDivElement | null) => {
         sectionRefs.current.set("lab", el);
@@ -235,11 +228,6 @@ function SettingsView() {
             audioRef={refCallbacks.audio}
             activeSection={activeSection}
           />
-
-          <div ref={refCallbacks.data} className="mt-8">
-            <h2 className="font-semibold mb-2">Data</h2>
-            <Data />
-          </div>
 
           <div className="border-t border-dashed border-neutral-200 mt-10 pt-8">
             <div ref={refCallbacks.lab}>

@@ -6,6 +6,7 @@ mod error;
 mod ext;
 mod fs;
 mod obsidian;
+mod settings_base;
 mod state;
 
 pub use error::{Error, Result};

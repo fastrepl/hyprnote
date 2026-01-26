@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use tokio::sync::RwLock;
 
-use crate::ext::FILENAME;
+use crate::settings_base;
 
 pub struct State {
     settings_base: PathBuf,
@@ -19,7 +19,7 @@ impl State {
     }
 
     fn path(&self) -> PathBuf {
-        self.settings_base.join(FILENAME)
+        settings_base::compute_settings_path(&self.settings_base)
     }
 
     pub fn content_base(&self) -> &PathBuf {

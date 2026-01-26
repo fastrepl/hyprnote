@@ -2,8 +2,7 @@ use std::path::PathBuf;
 
 use crate::content_base;
 use crate::obsidian::ObsidianVault;
-
-pub const FILENAME: &str = "settings.json";
+use crate::settings_base;
 
 pub struct Settings<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -13,19 +12,8 @@ pub struct Settings<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
     pub fn default_base(&self) -> Result<PathBuf, crate::Error> {
         let bundle_id: &str = self.manager.config().identifier.as_ref();
-        let data_dir = self
-            .manager
-            .path()
-            .data_dir()
-            .map_err(|_| crate::Error::DataDirUnavailable)?;
-
-        let app_folder = if cfg!(debug_assertions) || bundle_id == "com.hyprnote.staging" {
-            bundle_id
-        } else {
-            "hyprnote"
-        };
-
-        let path = data_dir.join(app_folder);
+        let path = settings_base::compute_default_base(bundle_id)
+            .ok_or(crate::Error::DataDirUnavailable)?;
         std::fs::create_dir_all(&path)?;
         Ok(path)
     }
@@ -36,7 +24,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
 
     pub fn settings_path(&self) -> Result<PathBuf, crate::Error> {
         let base = self.settings_base()?;
-        Ok(base.join(FILENAME))
+        Ok(settings_base::compute_settings_path(&base))
     }
 
     pub fn content_base(&self) -> Result<PathBuf, crate::Error> {
@@ -89,7 +77,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'
         std::fs::create_dir_all(&new_path)?;
         crate::fs::copy_content_items(&old_content_base, &new_path).await?;
 
-        let settings_path = default_base.join(FILENAME);
+        let settings_path = settings_base::compute_settings_path(&default_base);
         let existing_json = std::fs::read_to_string(&settings_path).ok();
         let content = content_base::prepare_settings_json_for_content_base(
             existing_json.as_deref(),

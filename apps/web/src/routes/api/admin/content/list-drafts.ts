@@ -53,7 +53,7 @@ export const Route = createFileRoute("/api/admin/content/list-drafts")({
           const drafts: DraftArticle[] = [];
 
           for (const branch of branches) {
-            const slugMatch = branch.match(/^blog\/article-(.+)$/);
+            const slugMatch = branch.match(/^blog\/(.+)$/);
             if (!slugMatch) continue;
 
             const slug = slugMatch[1];

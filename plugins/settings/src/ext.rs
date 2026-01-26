@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-use crate::content_base;
+use crate::global;
 use crate::obsidian::ObsidianVault;
-use crate::settings_base;
+use crate::vault;
 
 pub struct Settings<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -12,34 +12,34 @@ pub struct Settings<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
     pub fn default_base(&self) -> Result<PathBuf, crate::Error> {
         let bundle_id: &str = self.manager.config().identifier.as_ref();
-        let path = settings_base::compute_default_base(bundle_id)
-            .ok_or(crate::Error::DataDirUnavailable)?;
+        let path =
+            global::compute_default_base(bundle_id).ok_or(crate::Error::DataDirUnavailable)?;
         std::fs::create_dir_all(&path)?;
         Ok(path)
     }
 
-    pub fn settings_base(&self) -> Result<PathBuf, crate::Error> {
+    pub fn global_base(&self) -> Result<PathBuf, crate::Error> {
         self.default_base()
     }
 
     pub fn settings_path(&self) -> Result<PathBuf, crate::Error> {
-        let base = self.settings_base()?;
-        Ok(settings_base::compute_settings_path(&base))
+        let base = self.vault_base()?;
+        Ok(vault::compute_settings_path(&base))
     }
 
-    pub fn content_base(&self) -> Result<PathBuf, crate::Error> {
+    pub fn vault_base(&self) -> Result<PathBuf, crate::Error> {
         let state = self.manager.try_state::<crate::state::State>();
         if let Some(state) = state {
-            return Ok(state.content_base().clone());
+            return Ok(state.vault_base().clone());
         }
 
-        self.compute_content_base()
+        self.compute_vault_base()
     }
 
-    pub fn compute_content_base(&self) -> Result<PathBuf, crate::Error> {
+    pub fn compute_vault_base(&self) -> Result<PathBuf, crate::Error> {
         let default_base = self.default_base()?;
-        let settings_path = self.settings_base()?;
-        let custom_base = content_base::resolve_custom(&settings_path, &default_base);
+        let global_base = self.global_base()?;
+        let custom_base = vault::resolve_custom(&global_base, &default_base);
         Ok(custom_base.unwrap_or(default_base))
     }
 
@@ -64,33 +64,27 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'a, R, M> {
-    pub async fn change_content_base(&self, new_path: PathBuf) -> Result<(), crate::Error> {
-        let old_content_base = self.content_base()?;
+    pub async fn change_vault_base(&self, new_path: PathBuf) -> Result<(), crate::Error> {
+        let old_vault_base = self.vault_base()?;
         let default_base = self.default_base()?;
 
-        if new_path == old_content_base {
+        if new_path == old_vault_base {
             return Ok(());
         }
 
-        content_base::validate_content_base_change(&old_content_base, &new_path)?;
+        vault::validate_vault_base_change(&old_vault_base, &new_path)?;
 
         std::fs::create_dir_all(&new_path)?;
-        crate::fs::copy_content_items(&old_content_base, &new_path).await?;
+        vault::copy_vault_items(&old_vault_base, &new_path).await?;
 
-        let settings_path = settings_base::compute_settings_path(&default_base);
-        let existing_json = std::fs::read_to_string(&settings_path).ok();
-        let content = content_base::prepare_settings_json_for_content_base(
-            existing_json.as_deref(),
-            &new_path,
-        )?;
+        let vault_config_path = global::compute_vault_config_path(&default_base);
+        let mut config = std::fs::read_to_string(&vault_config_path)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_else(|| serde_json::json!({}));
+        vault::set_vault_path(&mut config, &new_path);
 
-        crate::fs::atomic_write(&settings_path, &content)?;
-
-        // NOTE: We intentionally do NOT delete the old content folder.
-        // This is a copy-only operation for safety - if the app fails to restart
-        // or encounters issues with the new location, the user's data remains
-        // intact at the old location. Users can manually delete the old folder
-        // after confirming the migration was successful.
+        crate::fs::atomic_write(&vault_config_path, &serde_json::to_string_pretty(&config)?)?;
 
         Ok(())
     }

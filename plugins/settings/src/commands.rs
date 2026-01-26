@@ -5,11 +5,11 @@ use crate::obsidian::ObsidianVault;
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn settings_base<R: tauri::Runtime>(
+pub(crate) async fn global_base<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<String, String> {
     app.settings()
-        .settings_base()
+        .global_base()
         .map(|p| p.to_string_lossy().to_string())
         .map_err(|e| e.to_string())
 }
@@ -25,23 +25,23 @@ pub(crate) fn settings_path<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Resu
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn content_base<R: tauri::Runtime>(
+pub(crate) async fn vault_base<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<String, String> {
     app.settings()
-        .content_base()
+        .vault_base()
         .map(|p| p.to_string_lossy().to_string())
         .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn change_content_base<R: tauri::Runtime>(
+pub(crate) async fn change_vault_base<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     new_path: String,
 ) -> Result<(), String> {
     app.settings()
-        .change_content_base(PathBuf::from(&new_path))
+        .change_vault_base(PathBuf::from(&new_path))
         .await
         .map_err(|e| e.to_string())
 }

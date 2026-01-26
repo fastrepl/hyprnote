@@ -79,7 +79,7 @@ pub struct Tantivy<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
     pub async fn register_collection(&self, config: CollectionConfig) -> Result<(), crate::Error> {
-        let base = self.manager.app_handle().settings().settings_base()?;
+        let base = self.manager.app_handle().settings().global_base()?;
         let index_path = base.join(&config.path);
         let version_path = index_path.join("schema_version");
 

@@ -40,7 +40,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let base = app.settings().settings_base().unwrap();
+            let base = app.settings().global_base().unwrap();
             let state = AudioPriorityState::new(base);
             assert!(app.manage(state));
             Ok(())

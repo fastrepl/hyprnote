@@ -43,7 +43,7 @@ pub async fn list_extensions<R: tauri::Runtime>(
 ) -> Result<Vec<ExtensionInfo>, Error> {
     let extensions_dir = app
         .settings()
-        .settings_base()
+        .global_base()
         .map_err(|e| Error::Io(e.to_string()))?
         .join("extensions");
 
@@ -87,7 +87,7 @@ pub async fn get_extensions_dir<R: tauri::Runtime>(
 ) -> Result<String, Error> {
     let extensions_dir = app
         .settings()
-        .settings_base()
+        .global_base()
         .map_err(|e| Error::Io(e.to_string()))?
         .join("extensions");
 
@@ -106,7 +106,7 @@ pub async fn get_extension<R: tauri::Runtime>(
 ) -> Result<ExtensionInfo, Error> {
     let extensions_dir = app
         .settings()
-        .settings_base()
+        .global_base()
         .map_err(|e| Error::Io(e.to_string()))?
         .join("extensions");
 

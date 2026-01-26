@@ -1,14 +1,9 @@
-import { sep } from "@tauri-apps/api/path";
 import { createMergeableStore } from "tinybase/with-schemas";
 
-import { commands as fs2Commands } from "@hypr/plugin-fs2";
-import { commands as settingsCommands } from "@hypr/plugin-settings";
 import { SCHEMA } from "@hypr/store";
 import { isValidTiptapContent, md2json } from "@hypr/tiptap/shared";
 
 import type { Store } from "./main";
-
-const IMPORT_FILENAME = "import.json";
 
 export type ImportResult =
   | { status: "success"; rowsImported: number; valuesImported: number }
@@ -19,13 +14,12 @@ type ParsedImport = {
   values: object | null;
 };
 
-const parseImportContent = (content: string): ParsedImport => {
-  const parsed = JSON.parse(content) as unknown;
-  if (!Array.isArray(parsed) || parsed.length !== 2) {
+const parseImportData = (data: unknown): ParsedImport => {
+  if (!Array.isArray(data) || data.length !== 2) {
     throw new Error("Invalid import format: expected [tables, values] array");
   }
 
-  const [tables, values] = parsed as [unknown, unknown];
+  const [tables, values] = data as [unknown, unknown];
 
   if (tables !== null && typeof tables !== "object") {
     throw new Error("Invalid import format: tables must be an object or null");
@@ -124,35 +118,16 @@ const mergeImportData = (
   };
 };
 
-export const importFromJson = async (
+export const importData = async (
   store: Store,
+  data: unknown,
   onPersistComplete: () => Promise<void>,
 ): Promise<ImportResult> => {
   try {
-    const baseResult = await settingsCommands.contentBase();
-    if (baseResult.status === "error") {
-      throw new Error(baseResult.error);
-    }
-    const base = baseResult.data;
-    const importPath = [base, IMPORT_FILENAME].join(sep());
-
-    const readResult = await fs2Commands.readTextFile(importPath);
-    if (readResult.status === "error") {
-      throw new Error(readResult.error);
-    }
-
-    const parsed = parseImportContent(readResult.data);
+    const parsed = parseImportData(data);
     const { rowsImported, valuesImported } = mergeImportData(store, parsed);
 
     await onPersistComplete();
-
-    const removeResult = await fs2Commands.remove(importPath);
-    if (removeResult.status === "error") {
-      console.warn(
-        "[Importer] Failed to remove import file:",
-        removeResult.error,
-      );
-    }
 
     console.log(
       `[Importer] Successfully imported ${rowsImported} rows and ${valuesImported} values`,

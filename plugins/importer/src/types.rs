@@ -154,6 +154,13 @@ pub struct ImportStats {
     pub enhanced_notes_count: usize,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportDataResult {
+    pub stats: ImportStats,
+    pub data: serde_json::Value,
+}
+
 pub struct ImportResult {
     pub notes: Vec<ImportedNote>,
     pub transcripts: Vec<ImportedTranscript>,

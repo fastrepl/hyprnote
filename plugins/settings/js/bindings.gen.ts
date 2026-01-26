@@ -14,25 +14,25 @@ async settingsPath() : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async settingsBase() : Promise<Result<string, string>> {
+async globalBase() : Promise<Result<string, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|settings_base") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|global_base") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async contentBase() : Promise<Result<string, string>> {
+async vaultBase() : Promise<Result<string, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|content_base") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|vault_base") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async changeContentBase(newPath: string) : Promise<Result<null, string>> {
+async changeVaultBase(newPath: string) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|change_content_base", { newPath }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|change_vault_base", { newPath }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

@@ -27,7 +27,6 @@ export function AccountSettings() {
   const [isPending, setIsPending] = useState(false);
   const [devMode, setDevMode] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("");
-  const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -77,12 +76,7 @@ export function AccountSettings() {
   }, [auth, store]);
 
   const handleRefreshPlan = useCallback(async () => {
-    setIsRefreshingPlan(true);
-    try {
-      await auth?.refreshSession();
-    } finally {
-      setIsRefreshingPlan(false);
-    }
+    await auth?.refreshSession();
   }, [auth]);
 
   if (!isAuthenticated) {
@@ -186,7 +180,7 @@ export function AccountSettings() {
         action={<BillingButton />}
       >
         <p className="text-sm text-neutral-600 flex items-center gap-1">
-          {isRefreshingPlan ? (
+          {auth?.isRefreshingSession ? (
             <>
               <Spinner size={14} />
               <span>Refreshing plan status...</span>

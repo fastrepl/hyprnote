@@ -348,7 +348,9 @@ export async function moveMediaFile(
                 .move(moved.to, moved.from);
               if (rollbackError) {
                 // Log or handle rollback failure
-                console.error(`Rollback failed for ${moved.to}: ${rollbackError.message}`);
+                console.error(
+                  `Rollback failed for ${moved.to}: ${rollbackError.message}`,
+                );
               }
             }
           }

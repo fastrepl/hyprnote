@@ -343,9 +343,13 @@ export async function moveMediaFile(
         if (error) {
           if (movedFiles.length > 0) {
             for (const moved of movedFiles) {
-              await supabase.storage
+              const { error: rollbackError } = await supabase.storage
                 .from(BUCKET_NAME)
                 .move(moved.to, moved.from);
+              if (rollbackError) {
+                // Log or handle rollback failure
+                console.error(`Rollback failed for ${moved.to}: ${rollbackError.message}`);
+              }
             }
           }
 

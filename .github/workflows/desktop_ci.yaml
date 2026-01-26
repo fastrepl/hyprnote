@@ -101,7 +101,8 @@ jobs:
             --exclude audio \
             --exclude audio-device \
             --exclude transcribe-whisper-local \
-            --exclude tauri-plugin-analytics \
+            --exclude device-monitor \
+            --exclude tauri-plugin-analytics\
             --exclude tauri-plugin-apple-calendar \
             --exclude tauri-plugin-apple-contact \
             --exclude tauri-plugin-audio-priority \

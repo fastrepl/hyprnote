@@ -111,7 +111,7 @@ export async function uploadMediaFile(
 
   const parts = filename.split(".");
   const ext = parts.pop()?.toLowerCase();
-  const baseName = parts.join(".").replace(/[^a-zA-Z0-9.-]/g, "-");
+  const baseName = parts.join(".").replace(/[^a-zA-Z0-9.-]/g, "-") || "file";
 
   if (!ext || !allowedExtensions.includes(ext)) {
     return {

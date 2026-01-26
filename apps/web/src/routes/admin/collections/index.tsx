@@ -2702,6 +2702,8 @@ const FileEditor = React.forwardRef<
   const lastSavedContentRef = useRef(fileContent?.content || "");
   const editorRef = useRef<{ editor: any } | null>(null);
   const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const onSaveRef = useRef(onSave);
+  const contentRef = useRef(content);
 
   const { mutate: importFromDocs, isPending: isImporting } = useMutation({
     mutationFn: async (url: string) => {
@@ -2867,6 +2869,14 @@ const FileEditor = React.forwardRef<
   }, []);
 
   useEffect(() => {
+    onSaveRef.current = onSave;
+  }, [onSave]);
+
+  useEffect(() => {
+    contentRef.current = content;
+  }, [content]);
+
+  useEffect(() => {
     if (!hasUnsavedChanges) {
       setAutoSaveCountdown(null);
       if (autoSaveIntervalRef.current) {
@@ -2881,8 +2891,8 @@ const FileEditor = React.forwardRef<
     autoSaveIntervalRef.current = setInterval(() => {
       setAutoSaveCountdown((prev) => {
         if (prev === null || prev <= 1) {
-          onSave({ isAutoSave: true });
-          lastSavedContentRef.current = content;
+          onSaveRef.current({ isAutoSave: true });
+          lastSavedContentRef.current = contentRef.current;
           setHasUnsavedChanges(false);
           return null;
         }
@@ -2902,8 +2912,8 @@ const FileEditor = React.forwardRef<
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
-        onSave();
-        lastSavedContentRef.current = content;
+        onSaveRef.current();
+        lastSavedContentRef.current = contentRef.current;
         setHasUnsavedChanges(false);
         setAutoSaveCountdown(null);
         if (autoSaveIntervalRef.current) {
@@ -2914,7 +2924,7 @@ const FileEditor = React.forwardRef<
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onSave, content]);
+  }, []);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {

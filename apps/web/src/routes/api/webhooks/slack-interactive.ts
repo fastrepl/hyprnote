@@ -16,10 +16,10 @@ function verifySlackSignature(
   hmac.update(baseString);
   const computedSignature = `v0=${hmac.digest("hex")}`;
 
-  return crypto.timingSafeEqual(
-    Buffer.from(computedSignature),
-    Buffer.from(signature),
-  );
+  const a = Buffer.from(computedSignature);
+  const b = Buffer.from(signature);
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
 }
 
 async function mergePullRequest(

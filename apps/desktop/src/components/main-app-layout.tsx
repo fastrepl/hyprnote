@@ -10,6 +10,7 @@ import { NetworkProvider } from "../contexts/network";
 import { useProModelAutoConfig } from "../hooks/useProModelAutoConfig";
 import { useProSettingsReset } from "../hooks/useProSettingsReset";
 import { useTrialExpiredModalTrigger } from "../hooks/useTrialExpiredModalTrigger";
+import { useTrialStartOnFirstLaunch } from "../hooks/useTrialStartOnFirstLaunch";
 import { useTabs } from "../store/zustand/tabs";
 import { TrialBeginModal } from "./devtool/trial-begin-modal";
 import { TrialExpiredModal } from "./devtool/trial-expired-modal";
@@ -35,6 +36,7 @@ function MainAppContent() {
   useProSettingsReset();
   useTrialExpiredModalTrigger();
   useProModelAutoConfig();
+  useTrialStartOnFirstLaunch();
 
   return (
     <>

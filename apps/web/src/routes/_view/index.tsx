@@ -653,7 +653,7 @@ export function CoolStuffSection() {
         </p>
       </div>
 
-      <div className="max-sm:hidden grid sm:grid-cols-2">
+      <div className="hidden sm:grid sm:grid-cols-2">
         <div className="border-r border-neutral-100 flex flex-col">
           <div className="p-8 flex flex-col gap-4">
             <div className="flex items-center gap-3">
@@ -812,7 +812,7 @@ export function HowItWorksSection() {
           How it works
         </p>
       </div>
-      <div className="max-sm:hidden grid sm:grid-cols-2">
+      <div className="hidden sm:grid sm:grid-cols-2">
         <div className="border-r border-neutral-100 flex flex-col overflow-clip">
           <div className="p-8 flex flex-col gap-4">
             <p className="text-lg font-serif text-neutral-600 leading-relaxed">

@@ -51,7 +51,6 @@
 
 @import "tailwindcss";
 @import "tailwind-scrollbar-hide/v4";
-@import "@hypr/ui/globals.css";
 @plugin "@tailwindcss/typography";
 
 @theme {
@@ -59,6 +58,60 @@
   --font-serif: "Lora", Georgia, serif;
   --font-serif2: "Instrument Serif", serif;
   --breakpoint-laptop: 72rem;
+  --animate-ios-opacity-spin: ios-opacity-spin 1s linear infinite;
+}
+
+@theme inline {
+  @keyframes ios-opacity-spin {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    8.33% {
+      opacity: 0.9;
+    }
+
+    16.67% {
+      opacity: 0.8;
+    }
+
+    25% {
+      opacity: 0.7;
+    }
+
+    33.33% {
+      opacity: 0.6;
+    }
+
+    41.67% {
+      opacity: 0.5;
+    }
+
+    50% {
+      opacity: 0.4;
+    }
+
+    58.33% {
+      opacity: 0.35;
+    }
+
+    66.67% {
+      opacity: 0.3;
+    }
+
+    75% {
+      opacity: 0.25;
+    }
+
+    83.33% {
+      opacity: 0.2;
+    }
+
+    91.67% {
+      opacity: 0.15;
+    }
+  }
 }
 
 @layer base {

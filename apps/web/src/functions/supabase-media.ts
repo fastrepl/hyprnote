@@ -330,6 +330,7 @@ export async function moveMediaFile(
 
     if (isFolder) {
       const allFiles = await listAllFilesInFolder(supabase, fromPath);
+      const movedFiles: Array<{ from: string; to: string }> = [];
 
       for (const filePath of allFiles) {
         const relativePath = filePath.substring(fromPath.length);
@@ -340,11 +341,21 @@ export async function moveMediaFile(
           .move(filePath, newFilePath);
 
         if (error) {
+          if (movedFiles.length > 0) {
+            for (const moved of movedFiles) {
+              await supabase.storage
+                .from(BUCKET_NAME)
+                .move(moved.to, moved.from);
+            }
+          }
+
           return {
             success: false,
             error: `Failed to move ${filePath}: ${error.message}`,
           };
         }
+
+        movedFiles.push({ from: filePath, to: newFilePath });
       }
 
       return {

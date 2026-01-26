@@ -37,6 +37,8 @@ export function StreamingView({ enhancedNoteId }: { enhancedNoteId: string }) {
         <Streamdown
           components={streamdownComponents}
           className={cn(["flex flex-col gap-2"])}
+          caret="block"
+          isAnimating={isGenerating}
         >
           {streamedText}
         </Streamdown>

@@ -6,7 +6,6 @@ use crate::fs::copy_dir_recursive;
 const VAULT_DIRECTORIES: &[&str] = &["sessions", "humans", "organizations", "chats", "prompts"];
 
 const VAULT_FILES: &[&str] = &[
-    "store.json",
     "settings.json",
     "events.json",
     "calendars.json",

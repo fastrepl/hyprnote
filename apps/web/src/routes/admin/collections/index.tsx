@@ -29,7 +29,6 @@ import {
   ScissorsIcon,
   SearchIcon,
   SendHorizontalIcon,
-  SendIcon,
   SquareArrowOutUpRightIcon,
   Trash2Icon,
   XIcon,
@@ -156,6 +155,8 @@ interface ArticleMetadata {
 interface EditorData {
   content: string;
   metadata: ArticleMetadata;
+  hasUnsavedChanges?: boolean;
+  autoSaveCountdown?: number | null;
 }
 
 function getFileContent(path: string): FileContent | undefined {
@@ -1211,6 +1212,7 @@ function ContentPanel({
       content: string;
       metadata: ArticleMetadata;
       branch?: string;
+      isAutoSave?: boolean;
     }) => {
       const response = await fetch("/api/admin/content/save", {
         method: "POST",
@@ -1224,7 +1226,7 @@ function ContentPanel({
       return response.json();
     },
     onSuccess: (data) => {
-      if (data.prUrl) {
+      if (data.prUrl && !data.isAutoSave) {
         window.open(data.prUrl, "_blank");
       }
     },
@@ -1265,16 +1267,20 @@ function ContentPanel({
     },
   });
 
-  const handleSave = useCallback(() => {
-    if (currentTab?.type === "file" && editorData) {
-      saveContent({
-        path: currentTab.path,
-        content: editorData.content,
-        metadata: editorData.metadata,
-        branch: currentTab.branch,
-      });
-    }
-  }, [currentTab, editorData, saveContent]);
+  const handleSave = useCallback(
+    (options?: { isAutoSave?: boolean }) => {
+      if (currentTab?.type === "file" && editorData) {
+        saveContent({
+          path: currentTab.path,
+          content: editorData.content,
+          metadata: editorData.metadata,
+          branch: currentTab.branch,
+          isAutoSave: options?.isAutoSave,
+        });
+      }
+    },
+    [currentTab, editorData, saveContent],
+  );
 
   const handlePublish = useCallback(() => {
     if (currentTab?.type === "file" && editorData) {
@@ -1324,8 +1330,7 @@ function ContentPanel({
     enabled:
       !!currentTab?.path &&
       currentTab?.type === "file" &&
-      currentTab.path.startsWith("articles/") &&
-      currentFileContent?.published === true,
+      currentTab.path.startsWith("articles/"),
     staleTime: 60000,
   });
 
@@ -1359,15 +1364,48 @@ function ContentPanel({
       },
     });
 
-  const handleSubmitForReview = useCallback(() => {
-    if (pendingPRData?.hasPendingPR && pendingPRData.branchName) {
+  const handleSubmitForReview = useCallback(async () => {
+    if (!currentTab || !editorData) return;
+
+    const saveFirst = async () => {
+      const response = await fetch("/api/admin/content/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          path: currentTab.path,
+          content: editorData.content,
+          metadata: editorData.metadata,
+          branch: currentTab.branch,
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to save");
+      }
+      return response.json();
+    };
+
+    const saveResult = await saveFirst();
+
+    await queryClient.invalidateQueries({
+      queryKey: ["pendingPR", currentTab.path],
+    });
+
+    const prData = saveResult.prNumber
+      ? {
+          branchName: saveResult.branchName,
+          prNumber: saveResult.prNumber,
+        }
+      : pendingPRData;
+
+    if (prData?.branchName && prData?.prNumber) {
       submitForReview({
-        path: `apps/web/content/${currentTab!.path}`,
-        branch: pendingPRData.branchName,
-        prNumber: pendingPRData.prNumber!,
+        path: `apps/web/content/${currentTab.path}`,
+        branch: prData.branchName,
+        prNumber: prData.prNumber,
       });
     }
-  }, [currentTab, pendingPRData, submitForReview]);
+  }, [currentTab, editorData, pendingPRData, submitForReview, queryClient]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -1399,6 +1437,8 @@ function ContentPanel({
               const newPath = pathParts.join("/");
               onRenameFile(currentTab.path, newPath);
             }}
+            hasUnsavedChanges={editorData?.hasUnsavedChanges}
+            autoSaveCountdown={editorData?.autoSaveCountdown}
           />
           {currentTab.type === "collection" ? (
             <FileList filteredItems={filteredItems} onFileClick={onFileClick} />
@@ -1440,14 +1480,16 @@ function EditorHeader({
   onTogglePreview,
   onSave,
   isSaving,
-  onPublish,
+  onPublish: _onPublish,
   onUnpublish,
   isPublishing,
   isPublished,
   onSubmitForReview,
   isSubmittingForReview,
-  hasPendingPR,
+  hasPendingPR: _hasPendingPR,
   onRenameFile,
+  hasUnsavedChanges,
+  autoSaveCountdown,
 }: {
   tabs: Tab[];
   currentTab: Tab;
@@ -1469,6 +1511,8 @@ function EditorHeader({
   isSubmittingForReview?: boolean;
   hasPendingPR?: boolean;
   onRenameFile?: (newSlug: string) => void;
+  hasUnsavedChanges?: boolean;
+  autoSaveCountdown?: number | null;
 }) {
   const [isHoveringPublish, setIsHoveringPublish] = useState(false);
   const [isEditingSlug, setIsEditingSlug] = useState(false);
@@ -1585,7 +1629,7 @@ function EditorHeader({
             </button>
             <button
               onClick={onSave}
-              disabled={isSaving}
+              disabled={isSaving || !hasUnsavedChanges}
               className={cn([
                 "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
                 "text-white bg-neutral-900 hover:bg-neutral-800",
@@ -1599,11 +1643,18 @@ function EditorHeader({
                 <SaveIcon className="size-4" />
               )}
               Save
+              {autoSaveCountdown !== null &&
+                autoSaveCountdown !== undefined &&
+                hasUnsavedChanges && (
+                  <span className="text-neutral-400 ml-1">
+                    ({autoSaveCountdown}s)
+                  </span>
+                )}
             </button>
-            {hasPendingPR && onSubmitForReview && (
+            {onSubmitForReview && (
               <button
                 onClick={onSubmitForReview}
-                disabled={isSubmittingForReview}
+                disabled={isSubmittingForReview || !hasUnsavedChanges}
                 className={cn([
                   "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
                   "text-white bg-blue-600 hover:bg-blue-700",
@@ -1619,44 +1670,44 @@ function EditorHeader({
                 Submit for Review
               </button>
             )}
-            <button
-              type="button"
-              onClick={isPublished ? onUnpublish : onPublish}
-              disabled={isPublishing}
-              onMouseEnter={() => setIsHoveringPublish(true)}
-              onMouseLeave={() => setIsHoveringPublish(false)}
-              className={cn([
-                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
-                isPublished && isHoveringPublish
-                  ? "text-white bg-red-600 hover:bg-red-700"
-                  : isPublished
-                    ? "text-white bg-green-600"
-                    : "text-white bg-neutral-900 hover:bg-neutral-800",
-                "disabled:cursor-not-allowed",
-              ])}
-            >
-              {isPublishing ? (
-                <>
-                  <Spinner size={14} color="white" />
-                  Publishing
-                </>
-              ) : isPublished && isHoveringPublish ? (
-                <>
-                  <XIcon className="size-4" />
-                  Unpublish
-                </>
-              ) : isPublished ? (
-                <>
-                  <CheckIcon className="size-4" />
-                  Published
-                </>
-              ) : (
-                <>
-                  <SendIcon className="size-4" />
-                  Publish
-                </>
-              )}
-            </button>
+            {isPublished ? (
+              <button
+                type="button"
+                onClick={onUnpublish}
+                disabled={isPublishing}
+                onMouseEnter={() => setIsHoveringPublish(true)}
+                onMouseLeave={() => setIsHoveringPublish(false)}
+                className={cn([
+                  "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
+                  isHoveringPublish
+                    ? "text-white bg-red-600 hover:bg-red-700"
+                    : "text-white bg-green-600",
+                  "disabled:cursor-not-allowed",
+                ])}
+              >
+                {isPublishing ? (
+                  <>
+                    <Spinner size={14} color="white" />
+                    Unpublishing
+                  </>
+                ) : isHoveringPublish ? (
+                  <>
+                    <XIcon className="size-4" />
+                    Unpublish
+                  </>
+                ) : (
+                  <>
+                    <CheckIcon className="size-4" />
+                    Published
+                  </>
+                )}
+              </button>
+            ) : (
+              <span className="px-2 py-1.5 text-xs font-medium font-mono rounded-xs bg-neutral-100 text-neutral-400 flex items-center gap-1.5">
+                <XIcon className="size-4" />
+                Not Published
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -2504,7 +2555,7 @@ const FileEditor = React.forwardRef<
     branch?: string;
     isPreviewMode: boolean;
     onDataChange: (data: EditorData) => void;
-    onSave: () => void;
+    onSave: (options?: { isAutoSave?: boolean }) => void;
     isSaving: boolean;
   }
 >(function FileEditor(
@@ -2643,8 +2694,12 @@ const FileEditor = React.forwardRef<
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
+  const [autoSaveCountdown, setAutoSaveCountdown] = useState<number | null>(
+    null,
+  );
   const lastSavedContentRef = useRef(fileContent?.content || "");
   const editorRef = useRef<{ editor: any } | null>(null);
+  const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { mutate: importFromDocs, isPending: isImporting } = useMutation({
     mutationFn: async (url: string) => {
@@ -2781,7 +2836,12 @@ const FileEditor = React.forwardRef<
   }, [filePath, fileContent, pendingPRData?.hasPendingPR]);
 
   useEffect(() => {
-    onDataChange({ content, metadata: getMetadata() });
+    onDataChange({
+      content,
+      metadata: getMetadata(),
+      hasUnsavedChanges,
+      autoSaveCountdown,
+    });
   }, [
     content,
     metaTitle,
@@ -2795,6 +2855,8 @@ const FileEditor = React.forwardRef<
     category,
     onDataChange,
     getMetadata,
+    hasUnsavedChanges,
+    autoSaveCountdown,
   ]);
 
   const handleContentChange = useCallback((newContent: string) => {
@@ -2803,12 +2865,49 @@ const FileEditor = React.forwardRef<
   }, []);
 
   useEffect(() => {
+    if (!hasUnsavedChanges) {
+      setAutoSaveCountdown(null);
+      if (autoSaveIntervalRef.current) {
+        clearInterval(autoSaveIntervalRef.current);
+        autoSaveIntervalRef.current = null;
+      }
+      return;
+    }
+
+    setAutoSaveCountdown(60);
+
+    autoSaveIntervalRef.current = setInterval(() => {
+      setAutoSaveCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          onSave({ isAutoSave: true });
+          lastSavedContentRef.current = content;
+          setHasUnsavedChanges(false);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (autoSaveIntervalRef.current) {
+        clearInterval(autoSaveIntervalRef.current);
+        autoSaveIntervalRef.current = null;
+      }
+    };
+  }, [hasUnsavedChanges]);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
         onSave();
         lastSavedContentRef.current = content;
         setHasUnsavedChanges(false);
+        setAutoSaveCountdown(null);
+        if (autoSaveIntervalRef.current) {
+          clearInterval(autoSaveIntervalRef.current);
+          autoSaveIntervalRef.current = null;
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);

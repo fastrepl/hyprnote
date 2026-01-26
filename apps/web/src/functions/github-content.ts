@@ -919,14 +919,16 @@ export async function createPullRequest(
   base: string,
   title: string,
   body: string,
+  options?: { isDraft?: boolean },
 ): Promise<{
   success: boolean;
   prNumber?: number;
   prUrl?: string;
+  isDraft?: boolean;
   error?: string;
 }> {
   if (isDev()) {
-    return { success: true, prNumber: 0, prUrl: "" };
+    return { success: true, prNumber: 0, prUrl: "", isDraft: options?.isDraft };
   }
 
   const credentials = await getGitHubCredentials();
@@ -953,6 +955,7 @@ export async function createPullRequest(
           success: true,
           prNumber: existingPRs[0].number,
           prUrl: existingPRs[0].html_url,
+          isDraft: existingPRs[0].draft,
         };
       }
     }
@@ -971,6 +974,7 @@ export async function createPullRequest(
           body,
           head,
           base,
+          draft: options?.isDraft ?? false,
         }),
       },
     );
@@ -988,11 +992,59 @@ export async function createPullRequest(
       success: true,
       prNumber: data.number,
       prUrl: data.html_url,
+      isDraft: data.draft,
     };
   } catch (error) {
     return {
       success: false,
       error: `Failed to create PR: ${(error as Error).message}`,
+    };
+  }
+}
+
+export async function convertDraftToReady(prNumber: number): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  if (isDev()) {
+    return { success: true };
+  }
+
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
+    return { success: false, error: "GitHub token not configured" };
+  }
+  const { token: githubToken } = credentials;
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/pulls/${prNumber}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          draft: false,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      return {
+        success: false,
+        error: error.message || `GitHub API error: ${response.status}`,
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Failed to convert draft to ready: ${(error as Error).message}`,
     };
   }
 }
@@ -1297,11 +1349,14 @@ export async function savePublishedArticleWithPR(
     display_title?: string;
     author?: string;
   },
+  options?: { isDraft?: boolean },
 ): Promise<{
   success: boolean;
   prNumber?: number;
   prUrl?: string;
+  branchName?: string;
   isExistingPR?: boolean;
+  isDraft?: boolean;
   error?: string;
 }> {
   const slug = filePath.replace(/\.mdx$/, "").replace(/^articles\//, "");
@@ -1397,6 +1452,7 @@ export async function savePublishedArticleWithPR(
         success: true,
         prNumber: existingPR.prNumber,
         prUrl: existingPR.prUrl,
+        branchName,
         isExistingPR: true,
       };
     }
@@ -1416,8 +1472,9 @@ Auto-generated PR from admin panel.`;
       GITHUB_BRANCH,
       title,
       body,
+      { isDraft: options?.isDraft ?? true },
     );
-    return { ...prResult, isExistingPR: false };
+    return { ...prResult, branchName, isExistingPR: false };
   } catch (error) {
     return {
       success: false,

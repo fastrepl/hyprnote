@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
 import {
+  convertDraftToReady,
   getFileContentFromBranch,
   getGitHubCredentials,
   parseMDX,
@@ -36,9 +37,7 @@ function buildFrontmatter(frontmatter: Record<string, unknown>): string {
   if (frontmatter.featured !== undefined) {
     lines.push(`featured: ${frontmatter.featured}`);
   }
-  if (frontmatter.published !== undefined) {
-    lines.push(`published: ${frontmatter.published}`);
-  }
+  lines.push(`published: true`);
   lines.push(`ready_for_review: true`);
   if (frontmatter.category) {
     lines.push(`category: ${JSON.stringify(frontmatter.category)}`);
@@ -154,6 +153,14 @@ export const Route = createFileRoute("/api/admin/content/submit-for-review")({
         }
 
         if (!isDev) {
+          const convertResult = await convertDraftToReady(prNumber);
+          if (!convertResult.success) {
+            console.warn(
+              "Failed to convert draft PR to ready:",
+              convertResult.error,
+            );
+          }
+
           const credentials = await getGitHubCredentials();
           if (credentials?.token) {
             const reviewerResult = await addReviewerToPR(

@@ -47,10 +47,15 @@ jobs:
             TITLE=$(echo "$RAW_TITLE" | jq -Rs . | sed 's/^"//;s/"$//')
             AUTHOR=$(echo "$RAW_AUTHOR" | jq -Rs . | sed 's/^"//;s/"$//')
             DATE=$(echo "$RAW_DATE" | jq -Rs . | sed 's/^"//;s/"$//')
+
+            # Extract slug from filename for preview URL
+            SLUG=$(basename "$FILE" .mdx)
+            echo "slug=$SLUG" >> $GITHUB_OUTPUT
           else
             TITLE="Untitled"
             AUTHOR="Unknown"
             DATE=""
+            SLUG=""
           fi
           echo "title=$TITLE" >> $GITHUB_OUTPUT
           echo "author=$AUTHOR" >> $GITHUB_OUTPUT
@@ -86,8 +91,76 @@ jobs:
             echo "ready_for_review=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Notify Slack
+      - name: Check for unpublish action
         if: steps.changed-files.outputs.has_files == 'true'
+        id: unpublish-check
+        run: |
+          FILE=$(echo "${{ steps.changed-files.outputs.files }}" | awk '{print $1}')
+          # Get current published value
+          CURRENT_PUBLISHED=$(grep -m1 "^published:" "$FILE" | sed 's/published:[[:space:]]*//' || echo "false")
+
+          # Get previous published value from main branch
+          PREV_PUBLISHED=$(git show origin/${{ github.base_ref }}:"$FILE" 2>/dev/null | grep -m1 "^published:" | sed 's/published:[[:space:]]*//' || echo "false")
+
+          # Check if this is an unpublish action (was true, now false)
+          if [ "$PREV_PUBLISHED" = "true" ] && [ "$CURRENT_PUBLISHED" = "false" ]; then
+            echo "is_unpublish=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_unpublish=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify Slack (Unpublish)
+        if: steps.changed-files.outputs.has_files == 'true' && steps.unpublish-check.outputs.is_unpublish == 'true'
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            {
+              "channel": "${{ secrets.SLACK_BLOG_CHANNEL_ID }}",
+              "text": "${{ steps.article-info.outputs.slack_user }} wants to unpublish: ${{ steps.article-info.outputs.title }}",
+              "attachments": [
+                {
+                  "color": "#f59e0b",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "⚠️ ${{ steps.article-info.outputs.slack_user }} wants to unpublish *${{ steps.article-info.outputs.title }}*"
+                      }
+                    },
+                    {
+                      "type": "context",
+                      "elements": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "👤 ${{ steps.article-info.outputs.author }}${{ steps.article-info.outputs.date != '' && format(' • 📅 {0}', steps.article-info.outputs.date) || '' }}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "actions",
+                      "elements": [
+                        {
+                          "type": "button",
+                          "text": {
+                            "type": "plain_text",
+                            "text": "View PR",
+                            "emoji": true
+                          },
+                          "url": "${{ github.event.pull_request.html_url }}",
+                          "style": "primary"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Notify Slack (Regular)
+        if: steps.changed-files.outputs.has_files == 'true' && steps.unpublish-check.outputs.is_unpublish != 'true'
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
@@ -123,10 +196,30 @@ jobs:
                           "type": "button",
                           "text": {
                             "type": "plain_text",
+                            "text": "Preview",
+                            "emoji": true
+                          },
+                          "url": "https://deploy-preview-${{ github.event.pull_request.number }}--hyprnote.netlify.app/blog/${{ steps.article-info.outputs.slug }}"
+                        },
+                        {
+                          "type": "button",
+                          "text": {
+                            "type": "plain_text",
                             "text": "View PR",
                             "emoji": true
                           },
                           "url": "${{ github.event.pull_request.html_url }}",
+                          "style": "primary"
+                        },
+                        {
+                          "type": "button",
+                          "text": {
+                            "type": "plain_text",
+                            "text": "Merge",
+                            "emoji": true
+                          },
+                          "action_id": "merge_pr",
+                          "value": "${{ github.event.pull_request.number }}",
                           "style": "primary"
                         }
                       ]

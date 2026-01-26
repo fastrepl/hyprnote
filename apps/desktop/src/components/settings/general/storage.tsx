@@ -1,7 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { FolderIcon } from "lucide-react";
+import { GlobeIcon, LockKeyholeIcon, type LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as settingsCommands } from "@hypr/plugin-settings";
+import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 
 export function StorageSettingsView() {
   const { data: globalBase } = useQuery({
@@ -29,16 +37,32 @@ export function StorageSettingsView() {
   return (
     <div>
       <h2 className="font-semibold font-serif mb-4">Storage</h2>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <StoragePathRow
+          icon={GlobeIcon}
           title="Global"
           description="Stores app-wide settings and configurations"
           path={globalBase}
         />
         <StoragePathRow
+          icon={LockKeyholeIcon}
           title="Vault"
           description="Stores your notes, recordings, and session data"
           path={vaultBase}
+          action={
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button variant="outline" size="sm" disabled>
+                    Change
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p className="text-xs">Coming soon</p>
+              </TooltipContent>
+            </Tooltip>
+          }
         />
       </div>
     </div>
@@ -46,26 +70,44 @@ export function StorageSettingsView() {
 }
 
 function StoragePathRow({
+  icon: Icon,
   title,
   description,
   path,
+  action,
 }: {
+  icon: LucideIcon;
   title: string;
   description: string;
   path: string | undefined;
+  action?: ReactNode;
 }) {
+  const handleOpenPath = () => {
+    if (path) {
+      openerCommands.openPath(path, null);
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex-1">
-        <h3 className="text-sm font-medium mb-1">{title}</h3>
-        <p className="text-xs text-neutral-600">{description}</p>
-      </div>
-      <div className="flex items-center gap-3 border border-neutral-200 rounded-lg px-4 py-2">
-        <FolderIcon className="size-4 text-neutral-500 shrink-0" />
-        <span className="text-sm text-neutral-600 truncate">
-          {path ?? "Loading..."}
-        </span>
-      </div>
+    <div className="flex items-center gap-3">
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-2 w-24 shrink-0 cursor-default">
+            <Icon className="size-4 text-neutral-500" />
+            <span className="text-sm font-medium">{title}</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top">
+          <p className="text-xs">{description}</p>
+        </TooltipContent>
+      </Tooltip>
+      <button
+        onClick={handleOpenPath}
+        className="flex-1 text-left text-sm text-neutral-500 truncate min-w-0 hover:underline cursor-pointer"
+      >
+        {path ?? "Loading..."}
+      </button>
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

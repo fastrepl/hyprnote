@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 function ImageNodeView({ node, updateAttributes, selected }: NodeViewProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [altText, setAltText] = useState(node.attrs.alt || "");
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,6 +29,8 @@ function ImageNodeView({ node, updateAttributes, selected }: NodeViewProps) {
     }
   }, []);
 
+  const showAltField = isHovered || isFocused;
+
   return (
     <NodeViewWrapper className="relative">
       <div
@@ -46,7 +49,7 @@ function ImageNodeView({ node, updateAttributes, selected }: NodeViewProps) {
           ].join(" ")}
           draggable={false}
         />
-        {isHovered && (
+        {showAltField && (
           <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-sm rounded-md shadow-lg border border-neutral-200 p-2">
             <label className="flex items-center gap-2">
               <span className="text-xs text-neutral-500 whitespace-nowrap">
@@ -58,6 +61,8 @@ function ImageNodeView({ node, updateAttributes, selected }: NodeViewProps) {
                 value={altText}
                 onChange={handleAltChange}
                 onKeyDown={handleKeyDown}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
                 placeholder="Describe this image..."
                 className="flex-1 text-sm bg-transparent border-none outline-none text-neutral-700 placeholder:text-neutral-400"
               />

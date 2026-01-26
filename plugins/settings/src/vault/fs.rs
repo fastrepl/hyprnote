@@ -7,7 +7,6 @@ const VAULT_DIRECTORIES: &[&str] = &["sessions", "humans", "organizations", "cha
 
 const VAULT_FILES: &[&str] = &[
     "store.json",
-    "db.sqlite",
     "settings.json",
     "events.json",
     "calendars.json",

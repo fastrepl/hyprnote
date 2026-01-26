@@ -96,6 +96,8 @@ function MediaLibrary() {
   const [rootLoaded, setRootLoaded] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [dragOver, setDragOver] = useState(false);
+  const [draggingItem, setDraggingItem] = useState<MediaItem | null>(null);
+  const [dropTargetPath, setDropTargetPath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set());
@@ -407,6 +409,33 @@ function MediaLibrary() {
     moveMutation.mutate({ fromPath: itemToMove.path, toPath });
   };
 
+  const handleDragItemStart = (item: MediaItem) => {
+    setDraggingItem(item);
+  };
+
+  const handleDragItemEnd = () => {
+    setDraggingItem(null);
+    setDropTargetPath(null);
+  };
+
+  const handleDropOnFolder = (targetFolderPath: string) => {
+    if (!draggingItem) return;
+    if (draggingItem.path === targetFolderPath) return;
+    if (draggingItem.path.startsWith(targetFolderPath + "/")) return;
+
+    const fileName = draggingItem.path.split("/").pop() || "";
+    const toPath = targetFolderPath
+      ? `${targetFolderPath}/${fileName}`
+      : fileName;
+
+    if (draggingItem.path !== toPath) {
+      moveMutation.mutate({ fromPath: draggingItem.path, toPath });
+    }
+
+    setDraggingItem(null);
+    setDropTargetPath(null);
+  };
+
   const openMoveModal = (item: MediaItem) => {
     setItemToMove(item);
     setShowMoveModal(true);
@@ -579,6 +608,12 @@ function MediaLibrary() {
             canNavigateForward={historyIndex < navigationHistory.length - 1}
             onNavigateBack={handleNavigateBack}
             onNavigateForward={handleNavigateForward}
+            draggingItem={draggingItem}
+            dropTargetPath={dropTargetPath}
+            onDragItemStart={handleDragItemStart}
+            onDragItemEnd={handleDragItemEnd}
+            onDropOnFolder={handleDropOnFolder}
+            onSetDropTarget={setDropTargetPath}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
@@ -1044,6 +1079,12 @@ function ContentPanel({
   canNavigateForward,
   onNavigateBack,
   onNavigateForward,
+  draggingItem,
+  dropTargetPath,
+  onDragItemStart,
+  onDragItemEnd,
+  onDropOnFolder,
+  onSetDropTarget,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -1080,6 +1121,12 @@ function ContentPanel({
   canNavigateForward: boolean;
   onNavigateBack: () => void;
   onNavigateForward: () => void;
+  draggingItem: MediaItem | null;
+  dropTargetPath: string | null;
+  onDragItemStart: (item: MediaItem) => void;
+  onDragItemEnd: () => void;
+  onDropOnFolder: (targetFolderPath: string) => void;
+  onSetDropTarget: (path: string | null) => void;
 }) {
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -1121,6 +1168,10 @@ function ContentPanel({
             canNavigateForward={canNavigateForward}
             onNavigateBack={onNavigateBack}
             onNavigateForward={onNavigateForward}
+            draggingItem={draggingItem}
+            dropTargetPath={dropTargetPath}
+            onDropOnFolder={onDropOnFolder}
+            onSetDropTarget={onSetDropTarget}
           />
 
           <div className="flex-1 overflow-hidden">
@@ -1142,6 +1193,12 @@ function ContentPanel({
                 onOpenFolder={onOpenFolder}
                 onMove={onMove}
                 onRename={onRename}
+                draggingItem={draggingItem}
+                dropTargetPath={dropTargetPath}
+                onDragItemStart={onDragItemStart}
+                onDragItemEnd={onDragItemEnd}
+                onDropOnFolder={onDropOnFolder}
+                onSetDropTarget={onSetDropTarget}
               />
             ) : (
               <FilePreview
@@ -1381,6 +1438,10 @@ function HeaderBar({
   canNavigateForward,
   onNavigateBack,
   onNavigateForward,
+  draggingItem,
+  dropTargetPath,
+  onDropOnFolder,
+  onSetDropTarget,
 }: {
   currentTab: Tab;
   selectedItems: Set<string>;
@@ -1402,6 +1463,10 @@ function HeaderBar({
   canNavigateForward: boolean;
   onNavigateBack: () => void;
   onNavigateForward: () => void;
+  draggingItem: MediaItem | null;
+  dropTargetPath: string | null;
+  onDropOnFolder: (targetFolderPath: string) => void;
+  onSetDropTarget: (path: string | null) => void;
 }) {
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -1441,32 +1506,77 @@ function HeaderBar({
             <ChevronRightIcon className="size-4" />
           </button>
         </div>
-        {breadcrumbs.length === 0 ? (
-          <span className="text-neutral-700 font-medium">Home</span>
-        ) : (
-          breadcrumbs.map((crumb, index) => {
-            const isLast = index === breadcrumbs.length - 1;
-            const folderPath = breadcrumbs.slice(0, index + 1).join("/");
-            return (
-              <span key={index} className="flex items-center gap-1">
-                {index > 0 && (
-                  <ChevronRightIcon className="size-4 text-neutral-300" />
-                )}
-                {isLast ? (
-                  <span className="text-neutral-700 font-medium">{crumb}</span>
-                ) : (
+        <span
+          className={cn([
+            "px-1.5 py-0.5 rounded transition-colors",
+            draggingItem &&
+              dropTargetPath === "" &&
+              "bg-blue-100 ring-2 ring-blue-400",
+            draggingItem && "cursor-copy",
+          ])}
+          onDragOver={(e) => {
+            if (!draggingItem) return;
+            e.preventDefault();
+            onSetDropTarget("");
+          }}
+          onDragLeave={() => onSetDropTarget(null)}
+          onDrop={(e) => {
+            e.preventDefault();
+            onDropOnFolder("");
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => onOpenFolder("", "Home")}
+            className={cn([
+              "text-neutral-700 font-medium",
+              breadcrumbs.length > 0 && "hover:text-neutral-900",
+            ])}
+          >
+            Home
+          </button>
+        </span>
+        {breadcrumbs.map((crumb, index) => {
+          const isLast = index === breadcrumbs.length - 1;
+          const folderPath = breadcrumbs.slice(0, index + 1).join("/");
+          const isDropTarget = draggingItem && dropTargetPath === folderPath;
+          return (
+            <span key={index} className="flex items-center gap-1">
+              <ChevronRightIcon className="size-4 text-neutral-300" />
+              {isLast ? (
+                <span className="text-neutral-700 font-medium px-1.5 py-0.5">
+                  {crumb}
+                </span>
+              ) : (
+                <span
+                  className={cn([
+                    "px-1.5 py-0.5 rounded transition-colors",
+                    isDropTarget && "bg-blue-100 ring-2 ring-blue-400",
+                    draggingItem && "cursor-copy",
+                  ])}
+                  onDragOver={(e) => {
+                    if (!draggingItem) return;
+                    e.preventDefault();
+                    onSetDropTarget(folderPath);
+                  }}
+                  onDragLeave={() => onSetDropTarget(null)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    onDropOnFolder(folderPath);
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => onOpenFolder(folderPath, crumb)}
-                    className="hover:text-neutral-700 cursor-pointer"
+                    className="hover:text-neutral-700"
                   >
                     {crumb}
                   </button>
-                )}
-              </span>
-            );
-          })
-        )}
+                </span>
+              )}
+            </span>
+          );
+        })}
         {currentFile && (
           <span className="text-xs text-neutral-400 ml-2">
             {formatFileSize(currentFile.size)} • {currentFile.mimeType}
@@ -1625,6 +1735,12 @@ function FolderView({
   onOpenFolder,
   onMove,
   onRename,
+  draggingItem,
+  dropTargetPath,
+  onDragItemStart,
+  onDragItemEnd,
+  onDropOnFolder,
+  onSetDropTarget,
 }: {
   dragOver: boolean;
   onDrop: (e: React.DragEvent) => void;
@@ -1642,6 +1758,12 @@ function FolderView({
   onOpenFolder: (path: string, name: string) => void;
   onMove: (item: MediaItem) => void;
   onRename: (path: string, newName: string) => void;
+  draggingItem: MediaItem | null;
+  dropTargetPath: string | null;
+  onDragItemStart: (item: MediaItem) => void;
+  onDragItemEnd: () => void;
+  onDropOnFolder: (targetFolderPath: string) => void;
+  onSetDropTarget: (path: string | null) => void;
 }) {
   return (
     <div
@@ -1689,6 +1811,19 @@ function FolderView({
               onOpenFolder={() => onOpenFolder(item.path, item.name)}
               onMove={() => onMove(item)}
               onRename={(newName) => onRename(item.path, newName)}
+              isDragging={draggingItem?.path === item.path}
+              isDropTarget={item.type === "dir" && dropTargetPath === item.path}
+              onDragStart={() => onDragItemStart(item)}
+              onDragEnd={onDragItemEnd}
+              onDropOnFolder={() => onDropOnFolder(item.path)}
+              onSetDropTarget={(isOver) =>
+                onSetDropTarget(isOver ? item.path : null)
+              }
+              canDrop={
+                item.type === "dir" &&
+                draggingItem !== null &&
+                draggingItem.path !== item.path
+              }
             />
           ))}
         </div>
@@ -1708,6 +1843,13 @@ function MediaItemCard({
   onOpenFolder,
   onMove,
   onRename,
+  isDragging,
+  isDropTarget,
+  onDragStart,
+  onDragEnd,
+  onDropOnFolder,
+  onSetDropTarget,
+  canDrop,
 }: {
   item: MediaItem;
   isSelected: boolean;
@@ -1719,6 +1861,13 @@ function MediaItemCard({
   onOpenFolder: () => void;
   onMove: () => void;
   onRename: (newName: string) => void;
+  isDragging: boolean;
+  isDropTarget: boolean;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  onDropOnFolder: () => void;
+  onSetDropTarget: (isOver: boolean) => void;
+  canDrop: boolean;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -1792,17 +1941,52 @@ function MediaItemCard({
   if (item.type === "dir") {
     return (
       <div
+        draggable={!isRenaming}
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", item.path);
+          onDragStart();
+        }}
+        onDragEnd={onDragEnd}
+        onDragOver={(e) => {
+          if (!canDrop) return;
+          e.preventDefault();
+          e.stopPropagation();
+          onSetDropTarget(true);
+        }}
+        onDragLeave={(e) => {
+          e.stopPropagation();
+          onSetDropTarget(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onDropOnFolder();
+        }}
         className={cn([
           "group relative rounded-lg border overflow-hidden cursor-pointer transition-all",
           isSelected
             ? "border-blue-500 ring-2 ring-blue-500"
-            : "border-neutral-200 hover:border-neutral-300 hover:shadow-md",
+            : isDropTarget
+              ? "border-blue-400 ring-2 ring-blue-400 bg-blue-50"
+              : "border-neutral-200 hover:border-neutral-300 hover:shadow-md",
+          isDragging && "opacity-50",
         ])}
         onClick={isRenaming ? undefined : onOpenFolder}
         onContextMenu={handleContextMenu}
       >
-        <div className="aspect-square bg-neutral-100 flex items-center justify-center">
-          <FolderIcon className="size-12 text-neutral-400" />
+        <div
+          className={cn([
+            "aspect-square flex items-center justify-center",
+            isDropTarget ? "bg-blue-100" : "bg-neutral-100",
+          ])}
+        >
+          <FolderIcon
+            className={cn([
+              "size-12",
+              isDropTarget ? "text-blue-500" : "text-neutral-400",
+            ])}
+          />
         </div>
         <div className="p-2 bg-white">
           {isRenaming ? (
@@ -1952,11 +2136,19 @@ function MediaItemCard({
 
   return (
     <div
+      draggable={!isRenaming}
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", item.path);
+        onDragStart();
+      }}
+      onDragEnd={onDragEnd}
       className={cn([
         "group relative rounded-lg border overflow-hidden cursor-pointer transition-all",
         isSelected
           ? "border-blue-500 ring-2 ring-blue-500"
           : "border-neutral-200 hover:border-neutral-300 hover:shadow-md",
+        isDragging && "opacity-50",
       ])}
       onClick={onOpenPreview}
       onContextMenu={handleContextMenu}

@@ -66,6 +66,7 @@ import { cn } from "@hypr/utils";
 import { MediaSelectorModal } from "@/components/admin/media-selector-modal";
 import { defaultMDXComponents } from "@/components/mdx";
 import { fetchGitHubCredentials } from "@/functions/admin";
+import { AUTHORS } from "@/lib/team";
 
 interface ContentItem {
   name: string;
@@ -1897,12 +1898,6 @@ function FileList({
     </div>
   );
 }
-
-const AUTHORS = [
-  { name: "John Jeong", avatar: "/api/images/team/john.png" },
-  { name: "Harshika", avatar: "/api/images/team/harshika.jpeg" },
-  { name: "Yujong Lee", avatar: "/api/images/team/yujong.png" },
-];
 
 function AuthorSelect({
   value,

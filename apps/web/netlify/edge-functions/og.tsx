@@ -428,15 +428,17 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
   );
 }
 
-function getAuthorAvatar(author: string): string {
-  const authorMap: Record<string, string> = {
-    "Harshika": "https://hyprnote.com/api/images/team/harshika.jpeg",
-    "John Jeong": "https://hyprnote.com/api/images/team/john.png",
-    "Yujong Lee": "https://hyprnote.com/api/images/team/yujong.png",
-  };
+// Keep in sync with apps/web/src/lib/team.ts
+const AUTHOR_AVATARS: Record<string, string> = {
+  "John Jeong": "https://hyprnote.com/api/images/team/john.png",
+  "Yujong Lee": "https://hyprnote.com/api/images/team/yujong.png",
+  Harshika: "https://hyprnote.com/api/images/team/harshika.jpeg",
+};
 
+function getAuthorAvatar(author: string): string {
   return (
-    authorMap[author] || "https://hyprnote.com/api/images/icons/stable-icon.png"
+    AUTHOR_AVATARS[author] ||
+    "https://hyprnote.com/api/images/icons/stable-icon.png"
   );
 }
 

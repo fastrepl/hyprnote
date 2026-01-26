@@ -14,6 +14,7 @@ import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
 import { MockWindow } from "@/components/mock-window";
+import { FOUNDERS, TEAM_PHOTOS } from "@/lib/team";
 
 type AboutSearch = {
   type?: "story" | "founder" | "photo";
@@ -44,112 +45,10 @@ export const Route = createFileRoute("/_view/about")({
   }),
 });
 
-const founders = [
-  {
-    id: "john",
-    name: "John Jeong",
-    role: "Chief Wisdom Seeker",
-    bio: "I love designing simple and intuitive user interfaces.",
-    image: "/api/images/team/john.png",
-    links: {
-      twitter: "https://x.com/computeless",
-      github: "https://github.com/computelesscomputer",
-      linkedin: "https://linkedin.com/in/johntopia",
-      email: "john@hyprnote.com",
-    },
-  },
-  {
-    id: "yujong",
-    name: "Yujong Lee",
-    role: "Chief OSS Lover",
-    bio: "I am super bullish about open-source software.",
-    image: "/api/images/team/yujong.png",
-    links: {
-      twitter: "https://x.com/yujonglee",
-      github: "https://github.com/yujonglee",
-      linkedin: "https://linkedin.com/in/yujong1ee",
-      email: "yujonglee@hyprnote.com",
-    },
-  },
-];
-
-const teamPhotos = [
-  {
-    id: "john-1",
-    name: "john-1.jpg",
-    url: "/api/images/team/john-1.jpg",
-  },
-  {
-    id: "john-2",
-    name: "john-2.jpg",
-    url: "/api/images/team/john-2.jpg",
-  },
-  {
-    id: "palo-alto-1",
-    name: "palo-alto-1.jpg",
-    url: "/api/images/team/palo-alto-1.jpg",
-  },
-  {
-    id: "palo-alto-2",
-    name: "palo-alto-2.jpg",
-    url: "/api/images/team/palo-alto-2.jpg",
-  },
-  {
-    id: "palo-alto-3",
-    name: "palo-alto-3.jpg",
-    url: "/api/images/team/palo-alto-3.jpg",
-  },
-  {
-    id: "palo-alto-4",
-    name: "palo-alto-4.jpg",
-    url: "/api/images/team/palo-alto-4.jpg",
-  },
-  {
-    id: "sadang",
-    name: "sadang.jpg",
-    url: "/api/images/team/sadang.jpg",
-  },
-  {
-    id: "yc-0",
-    name: "yc-0.jpg",
-    url: "/api/images/team/yc-0.jpg",
-  },
-  {
-    id: "yc-1",
-    name: "yc-1.jpg",
-    url: "/api/images/team/yc-1.jpg",
-  },
-  {
-    id: "yc-2",
-    name: "yc-2.jpg",
-    url: "/api/images/team/yc-2.jpg",
-  },
-  {
-    id: "yujong-1",
-    name: "yujong-1.jpg",
-    url: "/api/images/team/yujong-1.jpg",
-  },
-  {
-    id: "yujong-2",
-    name: "yujong-2.jpg",
-    url: "/api/images/team/yujong-2.jpg",
-  },
-  {
-    id: "yujong-3",
-    name: "yujong-3.jpg",
-    url: "/api/images/team/yujong-3.jpg",
-  },
-  {
-    id: "yujong-4",
-    name: "yujong-4.jpg",
-    url: "/api/images/team/yujong-4.jpg",
-  },
-];
-
 type SelectedItem =
   | { type: "story" }
-  | { type: "founder"; data: (typeof founders)[0] }
-  | { type: "photo"; data: (typeof teamPhotos)[0] };
+  | { type: "founder"; data: (typeof FOUNDERS)[number] }
+  | { type: "photo"; data: (typeof TEAM_PHOTOS)[number] };
 
 function Component() {
   const navigate = useNavigate({ from: Route.fullPath });
@@ -160,14 +59,14 @@ function Component() {
     if (search.type === "story") {
       setSelectedItem({ type: "story" });
     } else if (search.type === "founder" && search.id) {
-      const founder = founders.find((f) => f.id === search.id);
+      const founder = FOUNDERS.find((f) => f.id === search.id);
       if (founder) {
         setSelectedItem({ type: "founder", data: founder });
       } else {
         setSelectedItem(null);
       }
     } else if (search.type === "photo" && search.id) {
-      const photo = teamPhotos.find((p) => p.id === search.id);
+      const photo = TEAM_PHOTOS.find((p) => p.id === search.id);
       if (photo) {
         setSelectedItem({ type: "photo", data: photo });
       } else {
@@ -345,7 +244,7 @@ function FoundersGrid({
         Founders
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 content-start">
-        {founders.map((founder) => (
+        {FOUNDERS.map((founder) => (
           <button
             key={founder.id}
             onClick={() =>
@@ -358,7 +257,7 @@ function FoundersGrid({
           >
             <div className="mb-3 w-16 h-16">
               <Image
-                src={founder.image}
+                src={founder.avatar}
                 alt={founder.name}
                 width={64}
                 height={64}
@@ -384,7 +283,7 @@ function TeamPhotosGrid({
         Team Photos
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 content-start">
-        {teamPhotos.map((photo) => (
+        {TEAM_PHOTOS.map((photo) => (
           <button
             key={photo.id}
             onClick={() => setSelectedItem({ type: "photo", data: photo })}
@@ -615,7 +514,7 @@ function FoundersSidebar({
         Founders
       </div>
       <div className="flex flex-col gap-3">
-        {founders.map((founder) => (
+        {FOUNDERS.map((founder) => (
           <button
             key={founder.id}
             onClick={() =>
@@ -634,7 +533,7 @@ function FoundersSidebar({
           >
             <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden border-2 border-neutral-200">
               <Image
-                src={founder.image}
+                src={founder.avatar}
                 alt={founder.name}
                 width={48}
                 height={48}
@@ -669,7 +568,7 @@ function TeamPhotosSidebar({
         Team Photos
       </div>
       <div className="flex flex-col gap-3">
-        {teamPhotos.map((photo) => (
+        {TEAM_PHOTOS.map((photo) => (
           <button
             key={photo.id}
             onClick={() =>
@@ -857,7 +756,7 @@ function FounderDetail({
   founder,
   onClose,
 }: {
-  founder: (typeof founders)[0];
+  founder: (typeof FOUNDERS)[number];
   onClose: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -874,7 +773,7 @@ function FounderDetail({
         <h2 className="font-medium text-stone-600">{founder.name}</h2>
         <div className="flex items-center gap-2">
           <a
-            href={founder.image}
+            href={founder.avatar}
             download={`${founder.name.toLowerCase().replace(" ", "-")}.png`}
             target="_blank"
             rel="noopener noreferrer"
@@ -894,7 +793,7 @@ function FounderDetail({
       <div ref={scrollRef} className="p-4 overflow-y-auto">
         <div className="flex justify-center mb-6">
           <Image
-            src={founder.image}
+            src={founder.avatar}
             alt={founder.name}
             width={200}
             height={200}
@@ -914,9 +813,9 @@ function FounderDetail({
           </p>
 
           <div className="flex flex-wrap gap-2">
-            {founder.links.email && (
+            {founder.email && (
               <a
-                href={`mailto:${founder.links.email}`}
+                href={`mailto:${founder.email}`}
                 className="flex items-center gap-2 px-3 py-2 text-xs border border-neutral-300 text-stone-600 rounded-full hover:bg-stone-50 transition-colors"
                 aria-label="Email"
               >
@@ -971,7 +870,7 @@ function PhotoDetail({
   photo,
   onClose,
 }: {
-  photo: (typeof teamPhotos)[0];
+  photo: (typeof TEAM_PHOTOS)[number];
   onClose: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -1025,7 +924,7 @@ function AboutStatusBar({
 }: {
   selectedItem: SelectedItem | null;
 }) {
-  const totalItems = 1 + founders.length + teamPhotos.length;
+  const totalItems = 1 + FOUNDERS.length + TEAM_PHOTOS.length;
 
   return (
     <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">

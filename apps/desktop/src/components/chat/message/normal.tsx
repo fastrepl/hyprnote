@@ -151,6 +151,7 @@ function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
     <Streamdown
       components={components}
       className="px-0.5 py-1"
+      caret="block"
       isAnimating={isAnimating}
     >
       {part.text}

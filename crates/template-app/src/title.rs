@@ -32,7 +32,7 @@ mod tests {
     );
 
     tpl_snapshot!(
-        test_title_system, 
+        test_title_system,
         TitleSystem { language: None, current_date: None },
         @r#"
     # General Instructions
@@ -44,6 +44,8 @@ mod tests {
     # Format Requirements
 
     - Only output the title as plaintext, nothing else. No characters like *"'([{}]):.
+    - Never ask questions or request more information.
+    - If the note is empty or has no meaningful content, output exactly: <EMPTY>
     "#);
 
     tpl_snapshot!(

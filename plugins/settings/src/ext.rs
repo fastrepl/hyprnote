@@ -56,7 +56,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
     }
 
     pub fn obsidian_vaults(&self) -> Result<Vec<ObsidianVault>, crate::Error> {
-        crate::obsidian::load_vaults()
+        crate::obsidian::list_vaults()
     }
 
     pub async fn load(&self) -> crate::Result<serde_json::Value> {

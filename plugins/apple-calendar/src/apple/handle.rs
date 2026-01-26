@@ -208,7 +208,7 @@ impl Handle {
                     Ok(event_id)
                 }
                 Ok(Err(ns_error)) => {
-                    let error_msg = unsafe { ns_error.localizedDescription() }.to_string();
+                    let error_msg = ns_error.localizedDescription().to_string();
                     Err(Error::ObjectiveCException(error_msg))
                 }
                 Err(_) => Err(Error::XpcConnectionFailed),

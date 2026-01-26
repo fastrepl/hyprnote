@@ -31,10 +31,10 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
   } = usePermissions();
 
   const allPermissionsGranted =
-    platform() !== "macos" ||
-    (micPermissionStatus.data === "authorized" &&
-      systemAudioPermissionStatus.data === "authorized" &&
-      accessibilityPermissionStatus.data === "authorized");
+    platform() === "macos" &&
+    micPermissionStatus.data === "authorized" &&
+    systemAudioPermissionStatus.data === "authorized" &&
+    accessibilityPermissionStatus.data === "authorized";
 
   useEffect(() => {
     if (allPermissionsGranted && !search.skipAutoForward) {

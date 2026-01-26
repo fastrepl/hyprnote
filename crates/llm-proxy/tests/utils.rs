@@ -4,7 +4,7 @@ use axum::body::Body;
 use axum::http::Request;
 use llm_proxy::provider::OpenRouterProvider;
 use llm_proxy::{AnalyticsReporter, GenerationEvent, LlmProxyConfig};
-use wiremock::matchers::{body_partial_json, header, method, path};
+use wiremock::matchers::{header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 #[derive(Default, Clone)]
@@ -110,31 +110,12 @@ impl TestHarness {
             .mount(&self.mock_server)
             .await;
     }
-
-    pub async fn mount_with_body_matcher(
-        &self,
-        body_matcher: serde_json::Value,
-        response: serde_json::Value,
-    ) {
-        Mock::given(method("POST"))
-            .and(path("/"))
-            .and(header("Authorization", "Bearer test-api-key"))
-            .and(body_partial_json(body_matcher))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(&response)
-                    .insert_header("Content-Type", "application/json"),
-            )
-            .expect(1)
-            .mount(&self.mock_server)
-            .await;
-    }
 }
 
 pub fn build_request(body: serde_json::Value) -> Request<Body> {
     Request::builder()
         .method("POST")
-        .uri("/completions")
+        .uri("/chat/completions")
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_string(&body).unwrap()))
         .unwrap()

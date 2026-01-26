@@ -58,9 +58,92 @@ jobs:
           platform: ${{ matrix.platform }}
       - run: cargo check -p desktop
       - run: cargo test -p desktop
-      - name: Test cross-platform crates
+      - name: Test workspace crates
         run: |
-          cargo test -p analytics -p askama-utils -p buffer -p data -p db-core -p db-user -p eval -p file -p gbnf -p gguf -p granola -p language -p llm -p llm-interface -p llm-proxy -p loops -p nango -p openai -p owhisper-client -p owhisper-config -p owhisper-interface -p pyannote-cloud -p pyannote-local -p s3 -p supabase-auth -p template-app -p template-app-legacy -p template-eval -p tiptap -p transcribe-aws -p transcribe-azure -p transcribe-deepgram -p transcribe-gcp -p transcribe-interface -p transcribe-openai -p transcribe-proxy -p turso -p ws-client -p ws-utils
+          cargo test --workspace \
+            --exclude desktop \
+            --exclude control-tauri \
+            --exclude ai \
+            --exclude email \
+            --exclude lago \
+            --exclude mac \
+            --exclude notch \
+            --exclude notification-macos \
+            --exclude tcc \
+            --exclude apple-note \
+            --exclude notification-linux \
+            --exclude am \
+            --exclude am2 \
+            --exclude aec \
+            --exclude agc \
+            --exclude whisper \
+            --exclude whisper-local \
+            --exclude whisper-local-model \
+            --exclude moonshine \
+            --exclude kyutai \
+            --exclude vad2 \
+            --exclude vad3 \
+            --exclude vvad \
+            --exclude vad-ext \
+            --exclude onnx \
+            --exclude pyannote-local \
+            --exclude llama \
+            --exclude granola-cli \
+            --exclude eval-cli \
+            --exclude tools \
+            --exclude docs \
+            --exclude bundle \
+            --exclude host \
+            --exclude intercept \
+            --exclude extensions-runtime \
+            --exclude frontmatter \
+            --exclude openstatus \
+            --exclude audio \
+            --exclude audio-device \
+            --exclude transcribe-whisper-local \
+            --exclude tauri-plugin-analytics \
+            --exclude tauri-plugin-apple-calendar \
+            --exclude tauri-plugin-apple-contact \
+            --exclude tauri-plugin-audio-priority \
+            --exclude tauri-plugin-auth \
+            --exclude tauri-plugin-bedrock \
+            --exclude tauri-plugin-cli2 \
+            --exclude tauri-plugin-db2 \
+            --exclude tauri-plugin-deeplink2 \
+            --exclude tauri-plugin-detect \
+            --exclude tauri-plugin-extensions \
+            --exclude tauri-plugin-fs-db \
+            --exclude tauri-plugin-fs-sync \
+            --exclude tauri-plugin-fs2 \
+            --exclude tauri-plugin-hooks \
+            --exclude tauri-plugin-icon \
+            --exclude tauri-plugin-importer \
+            --exclude tauri-plugin-js \
+            --exclude tauri-plugin-listener \
+            --exclude tauri-plugin-listener2 \
+            --exclude tauri-plugin-local-llm \
+            --exclude tauri-plugin-local-stt \
+            --exclude tauri-plugin-misc \
+            --exclude tauri-plugin-network \
+            --exclude tauri-plugin-notification \
+            --exclude tauri-plugin-notify \
+            --exclude tauri-plugin-opener2 \
+            --exclude tauri-plugin-overlay \
+            --exclude tauri-plugin-path2 \
+            --exclude tauri-plugin-pdf \
+            --exclude tauri-plugin-permissions \
+            --exclude tauri-plugin-screen \
+            --exclude tauri-plugin-settings \
+            --exclude tauri-plugin-sfx \
+            --exclude tauri-plugin-sidecar2 \
+            --exclude tauri-plugin-store2 \
+            --exclude tauri-plugin-tantivy \
+            --exclude tauri-plugin-template \
+            --exclude tauri-plugin-tracing \
+            --exclude tauri-plugin-tray \
+            --exclude tauri-plugin-updater2 \
+            --exclude tauri-plugin-webhook \
+            --exclude tauri-plugin-windows
 
   ci:
     if: always()

@@ -47,17 +47,48 @@ Full-featured blog editor with the following capabilities:
 
 #### Editorial Workflow
 
-When editing a published article:
+Complete flow from editing to publication:
 
-1. **Save** - Creates/updates a PR branch with `ready_for_review: false`
-2. **Submit for Review** - Updates the article with `ready_for_review: true` and adds a reviewer
-3. GitHub Actions detects the status and sends appropriate Slack notifications:
-   - Regular edits: "✏️ {user} made changes to {title}"
-   - Submitted for review: "👀 Article submitted for review" (tags reviewer)
+**1. User Edits a Published Article**
+- Open `/admin/collections` and select a published article
+- Make changes in the editor
 
-The `ready_for_review` field in frontmatter tracks the editorial state:
-- `false` (default): Article is being edited
-- `true`: Article is ready for content review
+**2. User Clicks "Save"**
+- Creates a new branch `blog/{slug}-{timestamp}` (or uses existing one)
+- Commits with `ready_for_review: false` in frontmatter
+- Creates/updates PR to `main`
+
+**3. GitHub Actions Trigger**
+- `blog-grammar-check.yml` - Runs AI grammar check, posts suggestions as PR comment
+- `blog-slack-notify.yml` - Sends Slack notification (green border):
+  ```
+  ✏️ @user made changes to *Article Title*
+  ```
+
+**4. User Continues Editing (Optional)**
+- Each "Save" updates the same PR branch
+- Each push triggers workflows again
+
+**5. User Clicks "Submit for Review"**
+- Updates frontmatter to `ready_for_review: true`
+- Adds `ComputelessComputer` as PR reviewer
+
+**6. GitHub Actions Trigger Again**
+- Slack notification changes to (blue border):
+  ```
+  👀 *Article submitted for review*
+  @john please review
+  ```
+
+**7. Reviewer Merges PR**
+- Article goes live on the website
+
+**Slack Notification Summary:**
+
+| Action | `ready_for_review` | Slack Message | Border |
+|--------|-------------------|---------------|--------|
+| Save | `false` | "✏️ made changes" | Green |
+| Submit for Review | `true` | "👀 submitted for review" @john | Blue |
 
 ## API Endpoints
 
@@ -90,6 +121,15 @@ All API endpoints require admin authentication.
 - `POST /api/admin/content/rename` - Rename a content file
 - `POST /api/admin/content/duplicate` - Duplicate a content file
 - `POST /api/admin/content/delete` - Delete a content file
+
+## GitHub Workflows
+
+The editorial workflow is powered by two GitHub Actions workflows in `.github/workflows/`:
+
+- **`blog-grammar-check.yml`** - Runs AI-powered grammar check on article PRs and posts suggestions as comments
+- **`blog-slack-notify.yml`** - Sends Slack notifications for article changes with editorial status detection
+
+Both trigger on PRs to `main` that modify `apps/web/content/articles/**` on `blog/` branches.
 
 ## Environment Variables
 

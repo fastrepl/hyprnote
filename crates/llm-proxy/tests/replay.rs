@@ -86,7 +86,11 @@ mod features {
     async fn request_transformation() {
         let harness = TestHarness::new().await;
         harness
-            .mount_json_response(completion_response("gen-transform-test", "openai/gpt-4.1-nano", "test"))
+            .mount_json_response(completion_response(
+                "gen-transform-test",
+                "openai/gpt-4.1-nano",
+                "test",
+            ))
             .await;
 
         let response = router(harness.config_no_analytics())

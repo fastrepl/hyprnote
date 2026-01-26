@@ -15,6 +15,7 @@ import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
+import { StorageSettingsView } from "./storage";
 
 type SettingsSection =
   | "app"
@@ -199,6 +200,10 @@ export function SettingsGeneral({
             </form.Field>
           )}
         </form.Field>
+      </div>
+
+      <div>
+        <StorageSettingsView />
       </div>
 
       <div ref={languageRef}>

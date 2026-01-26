@@ -1,5 +1,5 @@
 use crate::ext::ImporterPluginExt;
-use crate::types::{ImportSourceInfo, ImportSourceKind, ImportStats};
+use crate::types::{ImportDataResult, ImportSourceInfo, ImportSourceKind, ImportStats};
 
 #[tauri::command]
 #[specta::specta]
@@ -16,7 +16,7 @@ pub async fn run_import<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     source: ImportSourceKind,
     user_id: String,
-) -> Result<ImportStats, String> {
+) -> Result<ImportDataResult, String> {
     app.importer()
         .run_import(source, user_id)
         .await

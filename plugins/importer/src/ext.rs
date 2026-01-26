@@ -1,13 +1,13 @@
 use crate::output::to_tinybase_json;
-use crate::types::{ImportSource, ImportSourceInfo, ImportSourceKind, ImportStats};
-use tauri_plugin_settings::SettingsPluginExt;
+use crate::types::{
+    ImportDataResult, ImportSource, ImportSourceInfo, ImportSourceKind, ImportStats,
+};
 
-pub struct Importer<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
-    manager: &'a M,
+pub struct Importer<R: tauri::Runtime> {
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
+impl<R: tauri::Runtime> Importer<R> {
     pub fn list_available_sources(&self) -> Vec<ImportSourceInfo> {
         crate::sources::list_available_sources()
     }
@@ -16,7 +16,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
         &self,
         source_kind: ImportSourceKind,
         user_id: String,
-    ) -> Result<ImportStats, crate::Error> {
+    ) -> Result<ImportDataResult, crate::Error> {
         let source = ImportSource::from(source_kind.clone());
         self.run_import_from_source(&source, user_id).await
     }
@@ -25,23 +25,19 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
         &self,
         source: &ImportSource,
         user_id: String,
-    ) -> Result<ImportStats, crate::Error> {
+    ) -> Result<ImportDataResult, crate::Error> {
         if !source.is_available() {
             return Err(crate::Error::SourceNotAvailable(source.name.clone()));
         }
 
         let data = crate::sources::import_all(source).await?;
         let stats = data.stats();
-
         let tinybase_json = to_tinybase_json(&data, &user_id);
 
-        let dir_path = self.manager.settings().global_base()?;
-        let file_path = dir_path.join("import.json");
-
-        let json_str = serde_json::to_string_pretty(&tinybase_json)?;
-        std::fs::write(&file_path, json_str)?;
-
-        Ok(stats)
+        Ok(ImportDataResult {
+            stats,
+            data: tinybase_json,
+        })
     }
 
     pub async fn run_import_dry(
@@ -66,18 +62,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
 }
 
 pub trait ImporterPluginExt<R: tauri::Runtime> {
-    fn importer(&self) -> Importer<'_, R, Self>
-    where
-        Self: tauri::Manager<R> + Sized;
+    fn importer(&self) -> Importer<R>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ImporterPluginExt<R> for T {
-    fn importer(&self) -> Importer<'_, R, Self>
-    where
-        Self: Sized,
-    {
+    fn importer(&self) -> Importer<R> {
         Importer {
-            manager: self,
             _runtime: std::marker::PhantomData,
         }
     }

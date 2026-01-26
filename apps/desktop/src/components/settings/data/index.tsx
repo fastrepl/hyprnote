@@ -10,7 +10,7 @@ import {
   type ImportStats,
 } from "@hypr/plugin-importer";
 
-import { importFromJson } from "../../../store/tinybase/store/importer";
+import { importData } from "../../../store/tinybase/store/importer";
 import * as main from "../../../store/tinybase/store/main";
 import { save } from "../../../store/tinybase/store/save";
 import { StyledStreamdown } from "../ai/shared";
@@ -51,12 +51,16 @@ export function Data() {
         throw new Error("Store not available");
       }
 
-      const importResult = await importFromJson(store as main.Store, save);
+      const importResult = await importData(
+        store as main.Store,
+        result.data.data,
+        save,
+      );
       if (importResult.status === "error") {
         throw new Error(importResult.error);
       }
 
-      return result.data;
+      return result.data.stats;
     },
     onSuccess: () => {
       const source = dryRunResult?.source;

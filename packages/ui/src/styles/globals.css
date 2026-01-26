@@ -47,77 +47,95 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+}
 
+@theme inline {
   @keyframes accordion-down {
     from {
       height: 0;
     }
+
     to {
       height: var(--radix-accordion-content-height);
     }
   }
+
   @keyframes accordion-up {
     from {
       height: var(--radix-accordion-content-height);
     }
+
     to {
       height: 0;
     }
   }
+
   @keyframes ios-opacity-spin {
     0%,
     100% {
       opacity: 1;
     }
+
     8.33% {
       opacity: 0.9;
     }
+
     16.67% {
       opacity: 0.8;
     }
+
     25% {
       opacity: 0.7;
     }
+
     33.33% {
       opacity: 0.6;
     }
+
     41.67% {
       opacity: 0.5;
     }
+
     50% {
       opacity: 0.4;
     }
+
     58.33% {
       opacity: 0.35;
     }
+
     66.67% {
       opacity: 0.3;
     }
+
     75% {
       opacity: 0.25;
     }
+
     83.33% {
       opacity: 0.2;
     }
+
     91.67% {
       opacity: 0.15;
     }
   }
-}
 
-@theme inline {
   @keyframes marquee {
     from {
       transform: translateX(0);
     }
+
     to {
       transform: translateX(calc(-100% - var(--gap)));
     }
   }
+
   @keyframes marquee-vertical {
     from {
       transform: translateY(0);
     }
+
     to {
       transform: translateY(calc(-100% - var(--gap)));
     }
@@ -170,6 +188,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -196,16 +215,19 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
   .theme {
     --animate-marquee: marquee var(--duration) infinite linear;
     --animate-marquee-vertical: marquee-vertical var(--duration) linear
       infinite;
   }
 }
+
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -215,9 +237,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   button,
   [role="button"],
   [type="button"],

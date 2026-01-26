@@ -6,6 +6,11 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error("migration gap: cannot migrate from {from} to {to}")]
+    MigrationGap {
+        from: semver::Version,
+        to: semver::Version,
+    },
 }
 
 impl Serialize for Error {

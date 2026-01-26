@@ -1,9 +1,11 @@
 mod error;
 mod ext;
 pub mod migrations;
+pub mod version;
 
 pub use error::{Error, Result};
 pub use ext::*;
+pub use version::*;
 
 const PLUGIN_NAME: &str = "fs-db";
 

@@ -101,11 +101,6 @@ export async function uploadMediaFile(
   publicUrl?: string;
   error?: string;
 }> {
-  const timestamp = Date.now();
-  const sanitizedFilename = `${timestamp}-${filename
-    .replace(/[^a-zA-Z0-9.-]/g, "-")
-    .toLowerCase()}`;
-
   const allowedExtensions = [
     "jpg",
     "jpeg",
@@ -118,7 +113,10 @@ export async function uploadMediaFile(
     "webm",
     "mov",
   ];
-  const ext = sanitizedFilename.toLowerCase().split(".").pop();
+
+  const parts = filename.split(".");
+  const ext = parts.pop()?.toLowerCase();
+  const baseName = parts.join(".").replace(/[^a-zA-Z0-9.-]/g, "-");
 
   if (!ext || !allowedExtensions.includes(ext)) {
     return {
@@ -127,7 +125,24 @@ export async function uploadMediaFile(
     };
   }
 
-  const path = folder ? `${folder}/${sanitizedFilename}` : sanitizedFilename;
+  let finalFilename = `${baseName}.${ext}`;
+  let path = folder ? `${folder}/${finalFilename}` : finalFilename;
+
+  const { data: existingFiles } = await supabase.storage
+    .from(BUCKET_NAME)
+    .list(folder || undefined, { limit: 1000 });
+
+  if (existingFiles) {
+    const existingNames = new Set(existingFiles.map((f) => f.name));
+    let counter = 1;
+
+    while (existingNames.has(finalFilename)) {
+      finalFilename = `${baseName}-${counter}.${ext}`;
+      counter++;
+    }
+
+    path = folder ? `${folder}/${finalFilename}` : finalFilename;
+  }
 
   try {
     const fileBuffer = Buffer.from(content, "base64");

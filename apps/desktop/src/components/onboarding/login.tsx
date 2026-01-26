@@ -79,19 +79,23 @@ export function Login({ onNavigate }: StepProps) {
       );
 
       const { data } = await getRpcCanStartTrial({ client });
+      let trialStarted = false;
       if (data?.canStartTrial) {
         await postBillingStartTrial({ client, query: { interval: "monthly" } });
+        trialStarted = true;
       }
 
       const newSession = await auth!.refreshSession();
-      return newSession
+      const isPro = newSession
         ? getEntitlementsFromToken(newSession.access_token).includes(
             "hyprnote_pro",
           )
         : false;
+
+      return { isPro, trialStarted };
     },
-    onSuccess: (isPro) => {
-      if (isPro) {
+    onSuccess: ({ isPro, trialStarted }) => {
+      if (trialStarted && isPro) {
         void analyticsCommands.event({
           event: "trial_started",
           plan: "pro",
@@ -104,9 +108,13 @@ export function Login({ onNavigate }: StepProps) {
             trial_end_date: trialEndDate.toISOString(),
           },
         });
-        setTrialDefaults();
         openTrialBeginModal();
       }
+
+      if (isPro) {
+        setTrialDefaults();
+      }
+
       const nextStep = getNext(search);
       if (nextStep) {
         onNavigate({ ...search, step: nextStep });

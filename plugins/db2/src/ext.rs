@@ -14,7 +14,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Database2<'a, R, M> {
                     .unwrap()
             } else {
                 use tauri_plugin_settings::SettingsPluginExt;
-                let dir_path = self.manager.settings().settings_base()?;
+                let dir_path = self.manager.settings().global_base()?;
                 let file_path = dir_path.join("db.sqlite");
 
                 hypr_db_core::DatabaseBuilder::default()

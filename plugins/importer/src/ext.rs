@@ -35,7 +35,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
 
         let tinybase_json = to_tinybase_json(&data, &user_id);
 
-        let dir_path = self.manager.settings().settings_base()?;
+        let dir_path = self.manager.settings().global_base()?;
         let file_path = dir_path.join("import.json");
 
         let json_str = serde_json::to_string_pretty(&tinybase_json)?;

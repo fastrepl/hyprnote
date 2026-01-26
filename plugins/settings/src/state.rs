@@ -1,29 +1,27 @@
 use std::path::PathBuf;
 use tokio::sync::RwLock;
 
-use crate::settings_base;
+use crate::vault;
 
 pub struct State {
-    settings_base: PathBuf,
-    content_base: PathBuf,
+    vault_base: PathBuf,
     lock: RwLock<()>,
 }
 
 impl State {
-    pub fn new(settings_base: PathBuf, content_base: PathBuf) -> Self {
+    pub fn new(vault_base: PathBuf) -> Self {
         Self {
-            settings_base,
-            content_base,
+            vault_base,
             lock: RwLock::new(()),
         }
     }
 
     fn path(&self) -> PathBuf {
-        settings_base::compute_settings_path(&self.settings_base)
+        vault::compute_settings_path(&self.vault_base)
     }
 
-    pub fn content_base(&self) -> &PathBuf {
-        &self.content_base
+    pub fn vault_base(&self) -> &PathBuf {
+        &self.vault_base
     }
 
     async fn read_or_default(&self) -> crate::Result<serde_json::Value> {

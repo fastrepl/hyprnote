@@ -321,7 +321,7 @@ export const createGeneralSlice = <
       const [dataDirPath, micUsingApps, bundleId] = yield* Effect.tryPromise({
         try: () =>
           Promise.all([
-            settingsCommands.contentBase().then((r) => {
+            settingsCommands.vaultBase().then((r) => {
               if (r.status === "error") throw new Error(r.error);
               return r.data;
             }),
@@ -413,7 +413,7 @@ export const createGeneralSlice = <
         onSuccess: () => {
           if (sessionId) {
             void Promise.all([
-              settingsCommands.contentBase().then((r) => {
+              settingsCommands.vaultBase().then((r) => {
                 if (r.status === "error") throw new Error(r.error);
                 return r.data;
               }),

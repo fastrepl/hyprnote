@@ -1,15 +1,15 @@
 use std::path::{Path, PathBuf};
 
-pub const FILENAME: &str = "settings.json";
+pub const VAULT_CONFIG_FILENAME: &str = "hyprnote.json";
+
+pub fn compute_vault_config_path(base: &Path) -> PathBuf {
+    base.join(VAULT_CONFIG_FILENAME)
+}
 
 pub fn compute_default_base(bundle_id: &str) -> Option<PathBuf> {
     let data_dir = dirs::data_dir()?;
     let app_folder = resolve_app_folder(bundle_id);
     Some(data_dir.join(app_folder))
-}
-
-pub fn compute_settings_path(base: &Path) -> PathBuf {
-    base.join(FILENAME)
 }
 
 fn resolve_app_folder(bundle_id: &str) -> &str {

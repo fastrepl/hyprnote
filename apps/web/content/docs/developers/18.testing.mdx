@@ -22,10 +22,10 @@ If the timestamp is older than 2.5 seconds, it's treated as a restart and `--onb
 
 There are two base directories:
 
-1. **`settings_base`** - Fixed per build/environment
-2. **`content_base`** - Can be overridden via env or settings.json
+1. **`global_base`** - Fixed per build/environment
+2. **`vault_base`** - Can be overridden via env or config file in global_base
 
-### settings_base
+### global_base
 
 | Environment | Bundle ID | Folder Name |
 |-------------|-----------|-------------|
@@ -36,16 +36,16 @@ There are two base directories:
 
 Stable and nightly share the same folder (`hyprnote`) in production builds.
 
-### content_base
+### vault_base
 
-Priority:
-1. `CONTENT_BASE` env var (highest)
-2. `base_path` in settings.json
-3. Fall back to `settings_base`
+Priority**:**
+1. `VAULT_BASE` env var (highest)
+2. `vault_path` in `hyprnote.json` (at global_base)
+3. Fall back to `global_base`
 
 Example:
 ```bash
-CONTENT_BASE="$HOME/Library/Application Support/hyprnote" pnpm -F desktop tauri:dev
+VAULT_BASE="$HOME/Library/Application Support/hyprnote" pnpm -F desktop tauri:dev
 ```
 
 ### Platform Paths
@@ -57,21 +57,22 @@ CONTENT_BASE="$HOME/Library/Application Support/hyprnote" pnpm -F desktop tauri:
 
 ## Files by Base Path
 
-### At settings_base (cannot be redirected)
+### At global_base (cannot be redirected)
 
 | File/Dir | Description |
 |----------|-------------|
-| `settings.json` | App configuration |
+| `hyprnote.json` | Global config (vault_path, etc.) |
 | `store.json` | Tauri plugin store |
 | `db.sqlite` | Legacy SQLite DB (release only) |
 | `models/stt/` | STT models |
 | `models/llm/` | LLM models |
 | `extensions/` | User extensions |
 
-### At content_base (can be redirected)
+### At vault_base (can be redirected)
 
 | File/Dir | Description |
 |----------|-------------|
+| `settings.json` | App configuration |
 | `sessions/` | Session data |
 | `sessions/{uuid}/_meta.json` | Session metadata |
 | `sessions/{uuid}/transcript.json` | Transcript |
@@ -88,12 +89,13 @@ CONTENT_BASE="$HOME/Library/Application Support/hyprnote" pnpm -F desktop tauri:
 
 | What | Base | Env Override |
 |------|------|--------------|
-| `settings.json` | settings_base | No |
-| `store.json` | settings_base | No |
-| `db.sqlite` | settings_base | No |
-| `models/` | settings_base | No |
-| `extensions/` | settings_base | No |
-| `sessions/` | content_base | Yes |
-| `humans/` | content_base | Yes |
-| `organizations/` | content_base | Yes |
-| JSON files (events, etc.) | content_base | Yes |
+| `hyprnote.json` | global_base | No |
+| `store.json` | global_base | No |
+| `db.sqlite` | global_base | No |
+| `models/` | global_base | No |
+| `extensions/` | global_base | No |
+| `settings.json` | vault_base | Yes |
+| `sessions/` | vault_base | Yes |
+| `humans/` | vault_base | Yes |
+| `organizations/` | vault_base | Yes |
+| JSON files (events, etc.) | vault_base | Yes |

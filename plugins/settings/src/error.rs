@@ -10,10 +10,10 @@ pub enum Error {
     Json(#[from] serde_json::Error),
     #[error("data directory not available")]
     DataDirUnavailable,
-    #[error("cannot move content to a subdirectory of the current location")]
-    ContentBaseIsSubdirectory,
-    #[error("cannot move content to a parent directory of the current location")]
-    ContentBaseIsParent,
+    #[error("cannot move vault to a subdirectory of the current location")]
+    VaultBaseIsSubdirectory,
+    #[error("cannot move vault to a parent directory of the current location")]
+    VaultBaseIsParent,
 }
 
 impl Serialize for Error {

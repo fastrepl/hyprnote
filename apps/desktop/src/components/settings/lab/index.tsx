@@ -11,9 +11,9 @@ import { relaunch } from "../../../store/tinybase/store/save";
 
 export function SettingsLab() {
   const { data: basePath } = useQuery({
-    queryKey: ["content-base-path"],
+    queryKey: ["vault-base-path"],
     queryFn: async () => {
-      const result = await settingsCommands.contentBase();
+      const result = await settingsCommands.vaultBase();
       if (result.status === "error") {
         throw new Error(result.error);
       }
@@ -43,7 +43,7 @@ export function SettingsLab() {
         return;
       }
 
-      const result = await settingsCommands.changeContentBase(selected);
+      const result = await settingsCommands.changeVaultBase(selected);
       if (result.status === "error") {
         throw new Error(result.error);
       }

@@ -26,7 +26,7 @@ impl<'a, R: Runtime, M: Manager<R>> LocalStt<'a, R, M> {
         use tauri_plugin_settings::SettingsPluginExt;
         self.manager
             .settings()
-            .settings_base()
+            .global_base()
             .map(|base| base.join("models").join("stt"))
             .unwrap_or_else(|_| {
                 dirs::data_dir()

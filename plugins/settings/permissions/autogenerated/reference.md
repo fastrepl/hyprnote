@@ -4,9 +4,9 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-settings-base`
-- `allow-content-base`
-- `allow-change-content-base`
+- `allow-global-base`
+- `allow-vault-base`
+- `allow-change-vault-base`
 - `allow-obsidian-vaults`
 - `allow-path`
 - `allow-load`
@@ -24,25 +24,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`settings:allow-change-content-base`
+`settings:allow-change-vault-base`
 
 </td>
 <td>
 
-Enables the change_content_base command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`settings:deny-change-content-base`
-
-</td>
-<td>
-
-Denies the change_content_base command without any pre-configured scope.
+Enables the change_vault_base command without any pre-configured scope.
 
 </td>
 </tr>
@@ -50,12 +37,12 @@ Denies the change_content_base command without any pre-configured scope.
 <tr>
 <td>
 
-`settings:allow-content-base`
+`settings:deny-change-vault-base`
 
 </td>
 <td>
 
-Enables the content_base command without any pre-configured scope.
+Denies the change_vault_base command without any pre-configured scope.
 
 </td>
 </tr>
@@ -63,12 +50,25 @@ Enables the content_base command without any pre-configured scope.
 <tr>
 <td>
 
-`settings:deny-content-base`
+`settings:allow-global-base`
 
 </td>
 <td>
 
-Denies the content_base command without any pre-configured scope.
+Enables the global_base command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`settings:deny-global-base`
+
+</td>
+<td>
+
+Denies the global_base command without any pre-configured scope.
 
 </td>
 </tr>
@@ -180,12 +180,12 @@ Denies the save command without any pre-configured scope.
 <tr>
 <td>
 
-`settings:allow-settings-base`
+`settings:allow-vault-base`
 
 </td>
 <td>
 
-Enables the settings_base command without any pre-configured scope.
+Enables the vault_base command without any pre-configured scope.
 
 </td>
 </tr>
@@ -193,12 +193,12 @@ Enables the settings_base command without any pre-configured scope.
 <tr>
 <td>
 
-`settings:deny-settings-base`
+`settings:deny-vault-base`
 
 </td>
 <td>
 
-Denies the settings_base command without any pre-configured scope.
+Denies the vault_base command without any pre-configured scope.
 
 </td>
 </tr>

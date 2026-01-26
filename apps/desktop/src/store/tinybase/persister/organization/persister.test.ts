@@ -4,7 +4,7 @@ import { createTestMainStore, MOCK_DATA_DIR } from "../testing/mocks";
 import { createOrganizationPersister } from "./persister";
 
 const settingsMocks = vi.hoisted(() => ({
-  contentBase: vi
+  vaultBase: vi
     .fn()
     .mockResolvedValue({ status: "ok", data: "/mock/data/dir/hyprnote" }),
 }));

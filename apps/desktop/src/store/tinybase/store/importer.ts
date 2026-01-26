@@ -129,7 +129,7 @@ export const importFromJson = async (
   onPersistComplete: () => Promise<void>,
 ): Promise<ImportResult> => {
   try {
-    const baseResult = await settingsCommands.contentBase();
+    const baseResult = await settingsCommands.vaultBase();
     if (baseResult.status === "error") {
       throw new Error(baseResult.error);
     }

@@ -142,7 +142,7 @@ async fn start_session_impl(
 
         configure_sentry_session_context(&params);
 
-        let app_dir = match state.app.settings().settings_base() {
+        let app_dir = match state.app.settings().global_base() {
             Ok(base) => base.join("sessions"),
             Err(e) => {
                 tracing::error!(error = ?e, "failed_to_resolve_sessions_base_dir");

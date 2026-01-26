@@ -4,38 +4,16 @@ section: "Guides"
 description: "How Hyprnote stores and manages your data."
 ---
 
-Hyprnote stores all data locally using JSON and Markdown files. Nothing leaves your device unless you explicitly use cloud features.
+## Base
 
-## Data Location
+There is two type of base directories. `global` and `vault`.
 
-| Platform | Path |
-|----------|------|
-| macOS | `~/Library/Application Support/hyprnote/` |
-| Linux | `~/.local/share/hyprnote/` |
+### Global
 
-In development mode, the folder name changes to `com.hyprnote.dev` or `com.hyprnote.staging`.
+- Shared between `stable` and `nightly` builds. (`staging` and `dev` builds use different folders).
+- `models/`, `store.json`, `hyprnote.json` are stored here.
 
-## Directory Structure
+### Vault
 
-```
-hyprnote/
-├── settings.json    # App configuration
-├── sessions/        # Session data and audio recordings
-│   └── {session_id}/
-│       ├── _meta.json       # Session metadata
-│       ├── transcript.json  # Transcript data
-│       ├── _memo.md         # Your notes
-│       └── _summary.md      # AI-generated summary
-└── models/          # Downloaded AI models
-    ├── llm/         # LLM models (.gguf)
-    └── stt/         # STT models (.gguf)
-```
-
-## Export
-
-Select any note and use the export menu to save as PDF, Markdown, JSON, or VTT (with speaker information).
-
-## Backup
-
-Copy the entire data directory to back up your notes. Include this folder in your regular backup routine. Since data is stored as human-readable JSON and Markdown files, you can also version control your notes with Git.
-
+- Customizable, defaults to be the same as `global` base, for backward compatibility.
+- Contents like `sessions/`, `humans/`, `organizations/`, `chats/`, `prompts/`, and configs like `settings.json` are stored here.

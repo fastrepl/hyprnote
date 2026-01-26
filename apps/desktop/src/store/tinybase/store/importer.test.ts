@@ -14,9 +14,7 @@ vi.mock("@tauri-apps/api/path", () => ({
 
 vi.mock("@hypr/plugin-settings", () => ({
   commands: {
-    contentBase: vi
-      .fn()
-      .mockResolvedValue({ status: "ok", data: "/test/data" }),
+    vaultBase: vi.fn().mockResolvedValue({ status: "ok", data: "/test/data" }),
   },
 }));
 
@@ -39,7 +37,7 @@ describe("importFromJson", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(settingsCommands.contentBase).mockResolvedValue({
+    vi.mocked(settingsCommands.vaultBase).mockResolvedValue({
       status: "ok",
       data: "/test/data",
     });

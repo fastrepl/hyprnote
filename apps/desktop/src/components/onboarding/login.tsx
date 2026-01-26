@@ -116,12 +116,6 @@ export function Login({ onNavigate }: StepProps) {
     },
     onError: (e) => {
       console.error(e);
-      const nextStep = getNext(search);
-      if (nextStep) {
-        onNavigate({ ...search, step: nextStep });
-      } else {
-        void finishOnboarding();
-      }
     },
   });
 

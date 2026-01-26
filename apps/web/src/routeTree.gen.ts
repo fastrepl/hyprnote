@@ -59,6 +59,7 @@ import { Route as ViewCompanyHandbookIndexRouteImport } from './routes/_view/com
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
+import { Route as ApiWebhooksSlackInteractiveRouteImport } from './routes/api/webhooks/slack-interactive'
 import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
 import { Route as ApiImagesSplatRouteImport } from './routes/api/images.$'
 import { Route as ViewVsSlugRouteImport } from './routes/_view/vs/$slug'
@@ -382,6 +383,12 @@ const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
+const ApiWebhooksSlackInteractiveRoute =
+  ApiWebhooksSlackInteractiveRouteImport.update({
+    id: '/api/webhooks/slack-interactive',
+    path: '/api/webhooks/slack-interactive',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiTweetIdRoute = ApiTweetIdRouteImport.update({
   id: '/api/tweet/$id',
   path: '/api/tweet/$id',
@@ -835,6 +842,7 @@ export interface FileRoutesByFullPath {
   '/vs/$slug': typeof ViewVsSlugRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
+  '/api/webhooks/slack-interactive': typeof ApiWebhooksSlackInteractiveRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -953,6 +961,7 @@ export interface FileRoutesByTo {
   '/vs/$slug': typeof ViewVsSlugRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
+  '/api/webhooks/slack-interactive': typeof ApiWebhooksSlackInteractiveRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -1077,6 +1086,7 @@ export interface FileRoutesById {
   '/_view/vs/$slug': typeof ViewVsSlugRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
+  '/api/webhooks/slack-interactive': typeof ApiWebhooksSlackInteractiveRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
@@ -1201,6 +1211,7 @@ export interface FileRouteTypes {
     | '/vs/$slug'
     | '/api/images/$'
     | '/api/tweet/$id'
+    | '/api/webhooks/slack-interactive'
     | '/app/'
     | '/blog'
     | '/changelog'
@@ -1319,6 +1330,7 @@ export interface FileRouteTypes {
     | '/vs/$slug'
     | '/api/images/$'
     | '/api/tweet/$id'
+    | '/api/webhooks/slack-interactive'
     | '/app'
     | '/blog'
     | '/changelog'
@@ -1442,6 +1454,7 @@ export interface FileRouteTypes {
     | '/_view/vs/$slug'
     | '/api/images/$'
     | '/api/tweet/$id'
+    | '/api/webhooks/slack-interactive'
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
@@ -1504,6 +1517,7 @@ export interface RootRouteChildren {
   WebhookNangoRoute: typeof WebhookNangoRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
+  ApiWebhooksSlackInteractiveRoute: typeof ApiWebhooksSlackInteractiveRoute
   ApiAdminBlogUploadImageRoute: typeof ApiAdminBlogUploadImageRoute
   ApiAdminContentCreateRoute: typeof ApiAdminContentCreateRoute
   ApiAdminContentDeleteRoute: typeof ApiAdminContentDeleteRoute
@@ -1877,6 +1891,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof ViewAppIndexRouteImport
       parentRoute: typeof ViewAppRouteRoute
+    }
+    '/api/webhooks/slack-interactive': {
+      id: '/api/webhooks/slack-interactive'
+      path: '/api/webhooks/slack-interactive'
+      fullPath: '/api/webhooks/slack-interactive'
+      preLoaderRoute: typeof ApiWebhooksSlackInteractiveRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/tweet/$id': {
       id: '/api/tweet/$id'
@@ -2613,6 +2634,7 @@ const rootRouteChildren: RootRouteChildren = {
   WebhookNangoRoute: WebhookNangoRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
+  ApiWebhooksSlackInteractiveRoute: ApiWebhooksSlackInteractiveRoute,
   ApiAdminBlogUploadImageRoute: ApiAdminBlogUploadImageRoute,
   ApiAdminContentCreateRoute: ApiAdminContentCreateRoute,
   ApiAdminContentDeleteRoute: ApiAdminContentDeleteRoute,

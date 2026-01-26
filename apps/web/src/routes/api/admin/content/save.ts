@@ -26,6 +26,7 @@ interface SaveRequest {
   content: string;
   metadata: ArticleMetadata;
   branch?: string;
+  isAutoSave?: boolean;
 }
 
 function buildFrontmatter(metadata: ArticleMetadata): string {
@@ -135,7 +136,7 @@ export const Route = createFileRoute("/api/admin/content/save")({
           });
         }
 
-        const { path, content, metadata, branch } = body;
+        const { path, content, metadata, branch, isAutoSave } = body;
 
         if (!path || content === undefined || !metadata) {
           return new Response(
@@ -201,6 +202,8 @@ export const Route = createFileRoute("/api/admin/content/save")({
               success: true,
               prNumber: result.prNumber,
               prUrl: result.prUrl,
+              branchName: result.branchName,
+              isAutoSave,
             }),
             {
               status: 200,

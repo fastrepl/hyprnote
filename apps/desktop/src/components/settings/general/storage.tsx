@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { GlobeIcon, LockKeyholeIcon, type LucideIcon } from "lucide-react";
+import { FolderIcon, type LucideIcon, Settings2Icon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { commands as openerCommands } from "@hypr/plugin-opener2";
@@ -12,8 +12,8 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 
 export function StorageSettingsView() {
-  const { data: globalBase } = useQuery({
-    queryKey: ["global-base-path"],
+  const { data: othersBase } = useQuery({
+    queryKey: ["others-base-path"],
     queryFn: async () => {
       const result = await settingsCommands.globalBase();
       if (result.status === "error") {
@@ -23,8 +23,8 @@ export function StorageSettingsView() {
     },
   });
 
-  const { data: vaultBase } = useQuery({
-    queryKey: ["vault-base-path"],
+  const { data: contentBase } = useQuery({
+    queryKey: ["content-base-path"],
     queryFn: async () => {
       const result = await settingsCommands.vaultBase();
       if (result.status === "error") {
@@ -39,22 +39,16 @@ export function StorageSettingsView() {
       <h2 className="font-semibold font-serif mb-4">Storage</h2>
       <div className="flex flex-col gap-3">
         <StoragePathRow
-          icon={GlobeIcon}
-          title="Global"
-          description="Stores app-wide settings and configurations"
-          path={globalBase}
-        />
-        <StoragePathRow
-          icon={LockKeyholeIcon}
-          title="Vault"
+          icon={FolderIcon}
+          title="Content"
           description="Stores your notes, recordings, and session data"
-          path={vaultBase}
+          path={contentBase}
           action={
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <span>
                   <Button variant="outline" size="sm" disabled>
-                    Change
+                    Customize
                   </Button>
                 </span>
               </TooltipTrigger>
@@ -63,6 +57,12 @@ export function StorageSettingsView() {
               </TooltipContent>
             </Tooltip>
           }
+        />
+        <StoragePathRow
+          icon={Settings2Icon}
+          title="Others"
+          description="Stores app-wide settings and configurations"
+          path={othersBase}
         />
       </div>
     </div>

@@ -1,8 +1,6 @@
-mod commands;
 mod error;
 mod ext;
 pub mod migrations;
-mod models;
 
 pub use error::{Error, Result};
 pub use ext::*;
@@ -12,9 +10,7 @@ const PLUGIN_NAME: &str = "fs-db";
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![
-            commands::ping::<tauri::Wry>,
-        ])
+        .commands(tauri_specta::collect_commands![])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -25,10 +21,25 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             use tauri_plugin_settings::SettingsPluginExt;
-            if let Ok(base_dir) = app.settings().vault_base() {
-                migrations::move_uuid_folders_to_sessions(&base_dir)?;
-                migrations::rename_transcript(&base_dir)?;
+
+            let base_dir = match app.settings().vault_base() {
+                Ok(dir) => dir,
+                Err(_) => return Ok(()),
+            };
+
+            let app_version = app
+                .config()
+                .version
+                .as_ref()
+                .and_then(|v| semver::Version::parse(v).ok())
+                .unwrap_or_else(|| semver::Version::new(0, 0, 0));
+
+            let mut runner = migrations::MigrationRunner::new(&base_dir, app_version);
+            for migration in migrations::all_migrations() {
+                runner = runner.register(migration);
             }
+            runner.run()?;
+
             Ok(())
         })
         .build()

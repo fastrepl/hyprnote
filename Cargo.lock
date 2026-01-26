@@ -16749,6 +16749,7 @@ dependencies = [
 name = "tauri-plugin-fs-db"
 version = "0.1.0"
 dependencies = [
+ "semver 1.0.27",
  "serde",
  "specta",
  "specta-typescript",

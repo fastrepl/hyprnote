@@ -1,18 +1,9 @@
 pub struct FsDb<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
-    manager: &'a M,
+    _manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsDb<'a, R, M> {
-    pub fn ping(
-        &self,
-        payload: crate::models::PingRequest,
-    ) -> Result<crate::models::PingResponse, crate::Error> {
-        Ok(crate::models::PingResponse {
-            value: payload.value,
-        })
-    }
-}
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsDb<'a, R, M> {}
 
 pub trait FsDbPluginExt<R: tauri::Runtime> {
     fn fs_db(&self) -> FsDb<'_, R, Self>
@@ -26,7 +17,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> FsDbPluginExt<R> for T {
         Self: Sized,
     {
         FsDb {
-            manager: self,
+            _manager: self,
             _runtime: std::marker::PhantomData,
         }
     }

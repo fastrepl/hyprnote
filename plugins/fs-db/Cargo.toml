@@ -22,5 +22,6 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 serde = { workspace = true }
 specta = { workspace = true }
 
+semver = "1"
 thiserror = { workspace = true }
 uuid = { workspace = true }

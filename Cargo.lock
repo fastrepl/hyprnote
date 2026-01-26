@@ -16749,13 +16749,16 @@ dependencies = [
 name = "tauri-plugin-fs-db"
 version = "0.1.0"
 dependencies = [
+ "semver 1.0.27",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",
  "tauri-plugin",
  "tauri-plugin-settings",
  "tauri-specta",
+ "tempfile",
  "thiserror 2.0.17",
  "tokio",
  "uuid",

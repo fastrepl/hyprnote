@@ -3,9 +3,20 @@ mod error;
 mod ext;
 pub mod migrations;
 mod models;
+pub mod runner;
+pub mod types;
+
+#[cfg(test)]
+mod tests;
 
 pub use error::{Error, Result};
 pub use ext::*;
+pub use runner::MigrationRunner;
+pub use types::*;
+
+pub mod version {
+    pub use crate::types::{Version, read_current_version, write_version};
+}
 
 const PLUGIN_NAME: &str = "fs-db";
 
@@ -25,9 +36,16 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             use tauri_plugin_settings::SettingsPluginExt;
+
+            let app_version = app
+                .config()
+                .version
+                .as_ref()
+                .and_then(|v| semver::Version::parse(v).ok())
+                .unwrap_or_else(|| semver::Version::new(0, 0, 0));
+
             if let Ok(base_dir) = app.settings().content_base() {
-                migrations::move_uuid_folders_to_sessions(&base_dir)?;
-                migrations::rename_transcript(&base_dir)?;
+                migrations::run_migrations(&base_dir, app_version)?;
             }
             Ok(())
         })

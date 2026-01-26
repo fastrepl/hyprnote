@@ -6,6 +6,12 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
+    #[error("version parse error: {0}")]
+    VersionParse(String),
+    #[error("migration failed")]
+    Migration,
 }
 
 impl Serialize for Error {

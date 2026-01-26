@@ -133,6 +133,18 @@ jobs:
               });
             }
 
+      - name: Check ready_for_review status
+        if: steps.changed-files.outputs.has_files == 'true'
+        id: review-status
+        run: |
+          FILE=$(echo "${{ steps.changed-files.outputs.files }}" | awk '{print $1}')
+          if [ -f "$FILE" ]; then
+            READY_FOR_REVIEW=$(grep -m1 "^ready_for_review:" "$FILE" | sed 's/ready_for_review:[[:space:]]*//' || echo "false")
+            echo "ready_for_review=$READY_FOR_REVIEW" >> $GITHUB_OUTPUT
+          else
+            echo "ready_for_review=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Notify Slack
         if: steps.changed-files.outputs.has_files == 'true'
         uses: slackapi/slack-github-action@v2.0.0
@@ -142,36 +154,41 @@ jobs:
           payload: |
             {
               "channel": "${{ secrets.SLACK_BLOG_CHANNEL_ID }}",
-              "text": "${{ steps.article-info.outputs.is_edit == 'true' && format('{0} made changes to {1}', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) || format('{0} is ready to publish: {1}', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) }}",
-              "blocks": [
+              "text": "${{ steps.review-status.outputs.ready_for_review == 'true' && format('Article submitted for review: {0}', steps.article-info.outputs.title) || (steps.article-info.outputs.is_edit == 'true' && format('{0} made changes to {1}', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) || format('{0} is ready to publish: {1}', steps.article-info.outputs.slack_user, steps.article-info.outputs.title)) }}",
+              "attachments": [
                 {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "${{ steps.article-info.outputs.is_edit == 'true' && format('✏️ {0} made changes to *{1}*', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) || format('🚀 {0} is ready to publish a new article: *{1}*', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) }}"
-                  }
-                },
-                {
-                  "type": "context",
-                  "elements": [
+                  "color": "${{ steps.review-status.outputs.ready_for_review == 'true' && '#3b82f6' || '#2eb886' }}",
+                  "blocks": [
                     {
-                      "type": "mrkdwn",
-                      "text": "👤 ${{ steps.article-info.outputs.author }}${{ steps.article-info.outputs.date != '' && format(' • 📅 {0}', steps.article-info.outputs.date) || '' }}"
-                    }
-                  ]
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                      "type": "button",
+                      "type": "section",
                       "text": {
-                        "type": "plain_text",
-                        "text": "View PR",
-                        "emoji": true
-                      },
-                      "url": "${{ github.event.pull_request.html_url }}",
-                      "style": "primary"
+                        "type": "mrkdwn",
+                        "text": "${{ steps.review-status.outputs.ready_for_review == 'true' && format('👀 *Article submitted for review*\n<@U08PVBSGL31> please review\n\n>*{0}*', steps.article-info.outputs.title) || (steps.article-info.outputs.is_edit == 'true' && format('✏️ {0} made changes to *{1}*', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) || format('🚀 {0} is ready to publish a new article: *{1}*', steps.article-info.outputs.slack_user, steps.article-info.outputs.title)) }}"
+                      }
+                    },
+                    {
+                      "type": "context",
+                      "elements": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "👤 ${{ steps.article-info.outputs.author }}${{ steps.article-info.outputs.date != '' && format(' • 📅 {0}', steps.article-info.outputs.date) || '' }}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "actions",
+                      "elements": [
+                        {
+                          "type": "button",
+                          "text": {
+                            "type": "plain_text",
+                            "text": "View PR",
+                            "emoji": true
+                          },
+                          "url": "${{ github.event.pull_request.html_url }}",
+                          "style": "primary"
+                        }
+                      ]
                     }
                   ]
                 }

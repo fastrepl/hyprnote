@@ -28,6 +28,7 @@ import {
   SaveIcon,
   ScissorsIcon,
   SearchIcon,
+  SendHorizontalIcon,
   SendIcon,
   SquareArrowOutUpRightIcon,
   Trash2Icon,
@@ -85,6 +86,7 @@ interface DraftArticle {
   author?: string;
   date?: string;
   published?: boolean;
+  ready_for_review?: boolean;
 }
 
 interface CollectionInfo {
@@ -134,6 +136,7 @@ interface FileContent {
   published?: boolean;
   featured?: boolean;
   category?: string;
+  ready_for_review?: boolean;
 }
 
 interface ArticleMetadata {
@@ -146,6 +149,7 @@ interface ArticleMetadata {
   published: boolean;
   featured: boolean;
   category: string;
+  ready_for_review?: boolean;
 }
 
 interface EditorData {
@@ -1301,6 +1305,69 @@ function ContentPanel({
     [currentTab?.type, currentTab?.path],
   );
 
+  const { data: pendingPRData } = useQuery({
+    queryKey: ["pendingPR", currentTab?.path],
+    queryFn: async () => {
+      const params = new URLSearchParams({ path: currentTab!.path });
+      const response = await fetch(`/api/admin/content/pending-pr?${params}`);
+      if (!response.ok) {
+        return { hasPendingPR: false };
+      }
+      return response.json() as Promise<{
+        hasPendingPR: boolean;
+        prNumber?: number;
+        prUrl?: string;
+        branchName?: string;
+      }>;
+    },
+    enabled:
+      !!currentTab?.path &&
+      currentTab?.type === "file" &&
+      currentTab.path.startsWith("articles/") &&
+      currentFileContent?.published === true,
+    staleTime: 60000,
+  });
+
+  const queryClient = useQueryClient();
+
+  const { mutate: submitForReview, isPending: isSubmittingForReview } =
+    useMutation({
+      mutationFn: async (params: {
+        path: string;
+        branch: string;
+        prNumber: number;
+      }) => {
+        const response = await fetch("/api/admin/content/submit-for-review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(params),
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Failed to submit for review");
+        }
+        return response.json();
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["branchFile", currentTab?.path],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["pendingPRFile", currentTab?.path],
+        });
+      },
+    });
+
+  const handleSubmitForReview = useCallback(() => {
+    if (pendingPRData?.hasPendingPR && pendingPRData.branchName) {
+      submitForReview({
+        path: `apps/web/content/${currentTab!.path}`,
+        branch: pendingPRData.branchName,
+        prNumber: pendingPRData.prNumber!,
+      });
+    }
+  }, [currentTab, pendingPRData, submitForReview]);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {currentTab ? (
@@ -1322,6 +1389,9 @@ function ContentPanel({
             onUnpublish={handleUnpublish}
             isPublishing={isPublishing}
             isPublished={currentFileContent?.published}
+            onSubmitForReview={handleSubmitForReview}
+            isSubmittingForReview={isSubmittingForReview}
+            hasPendingPR={pendingPRData?.hasPendingPR}
             onRenameFile={(newSlug) => {
               const pathParts = currentTab.path.split("/");
               pathParts[pathParts.length - 1] = `${newSlug}.mdx`;
@@ -1373,6 +1443,9 @@ function EditorHeader({
   onUnpublish,
   isPublishing,
   isPublished,
+  onSubmitForReview,
+  isSubmittingForReview,
+  hasPendingPR,
   onRenameFile,
 }: {
   tabs: Tab[];
@@ -1391,6 +1464,9 @@ function EditorHeader({
   onUnpublish: () => void;
   isPublishing: boolean;
   isPublished?: boolean;
+  onSubmitForReview?: () => void;
+  isSubmittingForReview?: boolean;
+  hasPendingPR?: boolean;
   onRenameFile?: (newSlug: string) => void;
 }) {
   const [isHoveringPublish, setIsHoveringPublish] = useState(false);
@@ -1523,6 +1599,25 @@ function EditorHeader({
               )}
               Save
             </button>
+            {hasPendingPR && onSubmitForReview && (
+              <button
+                onClick={onSubmitForReview}
+                disabled={isSubmittingForReview}
+                className={cn([
+                  "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
+                  "text-white bg-blue-600 hover:bg-blue-700",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                ])}
+                title="Submit for Review"
+              >
+                {isSubmittingForReview ? (
+                  <Spinner size={16} color="white" />
+                ) : (
+                  <SendHorizontalIcon className="size-4" />
+                )}
+                Submit for Review
+              </button>
+            )}
             <button
               type="button"
               onClick={isPublished ? onUnpublish : onPublish}
@@ -2402,6 +2497,7 @@ interface BranchFileResponse {
     published?: boolean;
     featured?: boolean;
     category?: string;
+    ready_for_review?: boolean;
   };
   sha: string;
 }
@@ -2503,6 +2599,7 @@ const FileEditor = React.forwardRef<
         published: branchFileData.frontmatter.published,
         featured: branchFileData.frontmatter.featured,
         category: branchFileData.frontmatter.category,
+        ready_for_review: branchFileData.frontmatter.ready_for_review,
       };
     }
     if (pendingPRData?.hasPendingPR && pendingPRFileData) {
@@ -2520,6 +2617,7 @@ const FileEditor = React.forwardRef<
         published: pendingPRFileData.frontmatter.published,
         featured: pendingPRFileData.frontmatter.featured,
         category: pendingPRFileData.frontmatter.category,
+        ready_for_review: pendingPRFileData.frontmatter.ready_for_review,
       };
     }
     return publishedFileContent;
@@ -2685,7 +2783,7 @@ const FileEditor = React.forwardRef<
     setCategory(fileContent?.category || "");
     lastSavedContentRef.current = fileContent?.content || "";
     setHasUnsavedChanges(false);
-  }, [filePath, fileContent]);
+  }, [filePath, fileContent, pendingPRData?.hasPendingPR]);
 
   useEffect(() => {
     onDataChange({ content, metadata: getMetadata() });

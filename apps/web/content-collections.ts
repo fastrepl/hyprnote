@@ -91,6 +91,7 @@ const articles = defineCollection({
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),
     published: z.boolean().default(false),
+    ready_for_review: z.boolean().default(false),
     category: z
       .enum([
         "Case Study",

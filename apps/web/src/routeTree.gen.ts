@@ -115,6 +115,7 @@ import { Route as ApiAdminMediaDeleteRouteImport } from './routes/api/admin/medi
 import { Route as ApiAdminMediaCreateFolderRouteImport } from './routes/api/admin/media/create-folder'
 import { Route as ApiAdminImportSaveRouteImport } from './routes/api/admin/import/save'
 import { Route as ApiAdminImportGoogleDocsRouteImport } from './routes/api/admin/import/google-docs'
+import { Route as ApiAdminContentSubmitForReviewRouteImport } from './routes/api/admin/content/submit-for-review'
 import { Route as ApiAdminContentSaveRouteImport } from './routes/api/admin/content/save'
 import { Route as ApiAdminContentRenameRouteImport } from './routes/api/admin/content/rename'
 import { Route as ApiAdminContentPublishRouteImport } from './routes/api/admin/content/publish'
@@ -670,6 +671,12 @@ const ApiAdminImportGoogleDocsRoute =
     path: '/api/admin/import/google-docs',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminContentSubmitForReviewRoute =
+  ApiAdminContentSubmitForReviewRouteImport.update({
+    id: '/api/admin/content/submit-for-review',
+    path: '/api/admin/content/submit-for-review',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminContentSaveRoute = ApiAdminContentSaveRouteImport.update({
   id: '/api/admin/content/save',
   path: '/api/admin/content/save',
@@ -859,6 +866,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
+  '/api/admin/content/submit-for-review': typeof ApiAdminContentSubmitForReviewRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
   '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
@@ -976,6 +984,7 @@ export interface FileRoutesByTo {
   '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
+  '/api/admin/content/submit-for-review': typeof ApiAdminContentSubmitForReviewRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
   '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
@@ -1099,6 +1108,7 @@ export interface FileRoutesById {
   '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
+  '/api/admin/content/submit-for-review': typeof ApiAdminContentSubmitForReviewRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
   '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
@@ -1222,6 +1232,7 @@ export interface FileRouteTypes {
     | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
+    | '/api/admin/content/submit-for-review'
     | '/api/admin/import/google-docs'
     | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
@@ -1339,6 +1350,7 @@ export interface FileRouteTypes {
     | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
+    | '/api/admin/content/submit-for-review'
     | '/api/admin/import/google-docs'
     | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
@@ -1461,6 +1473,7 @@ export interface FileRouteTypes {
     | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
+    | '/api/admin/content/submit-for-review'
     | '/api/admin/import/google-docs'
     | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
@@ -1503,6 +1516,7 @@ export interface RootRouteChildren {
   ApiAdminContentPublishRoute: typeof ApiAdminContentPublishRoute
   ApiAdminContentRenameRoute: typeof ApiAdminContentRenameRoute
   ApiAdminContentSaveRoute: typeof ApiAdminContentSaveRoute
+  ApiAdminContentSubmitForReviewRoute: typeof ApiAdminContentSubmitForReviewRoute
   ApiAdminImportGoogleDocsRoute: typeof ApiAdminImportGoogleDocsRoute
   ApiAdminImportSaveRoute: typeof ApiAdminImportSaveRoute
   ApiAdminMediaCreateFolderRoute: typeof ApiAdminMediaCreateFolderRoute
@@ -2256,6 +2270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminImportGoogleDocsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/content/submit-for-review': {
+      id: '/api/admin/content/submit-for-review'
+      path: '/api/admin/content/submit-for-review'
+      fullPath: '/api/admin/content/submit-for-review'
+      preLoaderRoute: typeof ApiAdminContentSubmitForReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/content/save': {
       id: '/api/admin/content/save'
       path: '/api/admin/content/save'
@@ -2604,6 +2625,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminContentPublishRoute: ApiAdminContentPublishRoute,
   ApiAdminContentRenameRoute: ApiAdminContentRenameRoute,
   ApiAdminContentSaveRoute: ApiAdminContentSaveRoute,
+  ApiAdminContentSubmitForReviewRoute: ApiAdminContentSubmitForReviewRoute,
   ApiAdminImportGoogleDocsRoute: ApiAdminImportGoogleDocsRoute,
   ApiAdminImportSaveRoute: ApiAdminImportSaveRoute,
   ApiAdminMediaCreateFolderRoute: ApiAdminMediaCreateFolderRoute,

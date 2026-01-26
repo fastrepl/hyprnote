@@ -8,6 +8,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
@@ -26,6 +27,7 @@ export function AccountSettings() {
   const [isPending, setIsPending] = useState(false);
   const [devMode, setDevMode] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("");
+  const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -73,6 +75,15 @@ export function AccountSettings() {
 
     await auth?.signOut();
   }, [auth, store]);
+
+  const handleRefreshPlan = useCallback(async () => {
+    setIsRefreshingPlan(true);
+    try {
+      await auth?.refreshSession();
+    } finally {
+      setIsRefreshingPlan(false);
+    }
+  }, [auth]);
 
   if (!isAuthenticated) {
     if (isPending && devMode) {
@@ -174,15 +185,24 @@ export function AccountSettings() {
         description={`Your current plan is ${isPro ? "PRO" : "FREE"}. `}
         action={<BillingButton />}
       >
-        <p className="text-sm text-neutral-600">
-          Click{" "}
-          <span
-            onClick={() => auth?.refreshSession()}
-            className="text-primary underline cursor-pointer"
-          >
-            here
-          </span>
-          <span className="text-neutral-600"> to refresh plan status.</span>
+        <p className="text-sm text-neutral-600 flex items-center gap-1">
+          {isRefreshingPlan ? (
+            <>
+              <Spinner size={14} />
+              <span>Refreshing plan status...</span>
+            </>
+          ) : (
+            <>
+              Click{" "}
+              <span
+                onClick={handleRefreshPlan}
+                className="text-primary underline cursor-pointer"
+              >
+                here
+              </span>
+              <span className="text-neutral-600"> to refresh plan status.</span>
+            </>
+          )}
         </p>
       </Container>
     </div>

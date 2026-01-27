@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { platform } from "@tauri-apps/plugin-os";
 import {
   ArrowLeftIcon,
@@ -11,6 +12,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useResizeObserver } from "usehooks-ts";
 import { useShallow } from "zustand/shallow";
 
+import { commands as flagCommands } from "@hypr/plugin-flag";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
@@ -566,6 +568,22 @@ function TabChatButton({
 }) {
   const { chat } = useShell();
   const currentTab = useTabs((state) => state.currentTab);
+
+  const { data: isChatEnabled } = useQuery({
+    refetchInterval: 10_000,
+    queryKey: ["flag", "chat"],
+    queryFn: async () => {
+      const result = await flagCommands.isEnabled("chat");
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
+
+  if (!isChatEnabled) {
+    return null;
+  }
 
   if (chat.mode === "RightPanelOpen") {
     return null;

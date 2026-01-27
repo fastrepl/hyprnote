@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useLocation } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 
 import { postBillingStartTrial } from "@hypr/api-client";
@@ -17,6 +18,10 @@ export function useTrialStartOnFirstLaunch() {
   const { open: openTrialBeginModal } = useTrialBeginModal();
   const store = settings.UI.useStore(settings.STORE_ID);
   const hasCheckedRef = useRef(false);
+  const hasShownModalRef = useRef(false);
+  const location = useLocation();
+
+  const isOnboarding = location.pathname.startsWith("/app/onboarding");
 
   const startTrialMutation = useMutation({
     mutationFn: async () => {
@@ -50,7 +55,7 @@ export function useTrialStartOnFirstLaunch() {
             trial_end_date: trialEndDate.toISOString(),
           },
         });
-        openTrialBeginModal();
+        store?.setValue("trial_begin_modal_pending", true);
       }
     },
     onError: (e) => {
@@ -78,4 +83,17 @@ export function useTrialStartOnFirstLaunch() {
       startTrialMutation.mutate();
     }
   }, [isAuthenticated, canStartTrial, store, startTrialMutation]);
+
+  useEffect(() => {
+    if (hasShownModalRef.current || !store || isOnboarding) {
+      return;
+    }
+
+    const pending = store.getValue("trial_begin_modal_pending");
+    if (pending) {
+      store.setValue("trial_begin_modal_pending", false);
+      hasShownModalRef.current = true;
+      openTrialBeginModal();
+    }
+  }, [store, isOnboarding, openTrialBeginModal]);
 }

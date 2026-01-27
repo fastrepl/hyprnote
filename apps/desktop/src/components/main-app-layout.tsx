@@ -9,6 +9,7 @@ import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
 import { useProModelAutoConfig } from "../hooks/useProModelAutoConfig";
 import { useProSettingsReset } from "../hooks/useProSettingsReset";
+import { useProSubscriptionModalTrigger } from "../hooks/useProSubscriptionModalTrigger";
 import { useTrialExpiredModalTrigger } from "../hooks/useTrialExpiredModalTrigger";
 import { useTrialStartOnFirstLaunch } from "../hooks/useTrialStartOnFirstLaunch";
 import { useTabs } from "../store/zustand/tabs";
@@ -35,6 +36,7 @@ export default function MainAppLayout() {
 function MainAppContent() {
   useProSettingsReset();
   useTrialExpiredModalTrigger();
+  useProSubscriptionModalTrigger();
   useProModelAutoConfig();
   useTrialStartOnFirstLaunch();
 

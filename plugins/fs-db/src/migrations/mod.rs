@@ -3,7 +3,7 @@ mod v1_0_3_rename_transcript;
 
 use std::path::Path;
 
-use semver::Version;
+use hypr_version::Version;
 
 use crate::version::default_detector;
 use crate::Result;

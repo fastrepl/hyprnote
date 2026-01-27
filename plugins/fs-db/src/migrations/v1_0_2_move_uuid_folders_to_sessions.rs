@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use semver::Version;
+use hypr_version::Version;
 use uuid::Uuid;
 
 use crate::Result;

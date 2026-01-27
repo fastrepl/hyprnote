@@ -168,9 +168,20 @@ pub async fn main() {
 
     let root_supervisor_ctx_for_run = root_supervisor_ctx.clone();
 
+    // Always intercept Cmd+Q - this handler always returns false to prevent quit.
+    // Use Cmd+Shift+Q or "Quit Completely" menu items to actually quit.
+    hypr_intercept::register_quit_handler("desktop", || false);
+
     let app = builder
         .invoke_handler(specta_builder.invoke_handler())
         .on_window_event(tauri_plugin_windows::on_window_event)
+        .on_menu_event(|app, event| {
+            // Handle "Quit Completely" menu item from app menu
+            if event.id().as_ref() == "hypr_tray_quit" {
+                hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
+                app.exit(0);
+            }
+        })
         .setup(move |app| {
             let app_handle = app.handle().clone();
             let app_clone = app_handle.clone();

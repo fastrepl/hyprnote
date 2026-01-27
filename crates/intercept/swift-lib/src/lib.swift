@@ -1,6 +1,7 @@
 import Cocoa
 
 private var interceptor: QuitInterceptor?
+private var keyMonitor: Any?
 
 class QuitInterceptor: NSObject, NSApplicationDelegate {
   private let originalDelegate: NSApplicationDelegate?
@@ -39,4 +40,17 @@ public func _setupQuitHandler() {
 
   interceptor = QuitInterceptor(originalDelegate: originalDelegate)
   app.delegate = interceptor
+
+  keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+    let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+    let isCmd = flags.contains(.command)
+    let isShift = flags.contains(.shift)
+    let isQ = event.charactersIgnoringModifiers?.lowercased() == "q"
+
+    if isCmd && isShift && isQ {
+      NSApplication.shared.terminate(nil)
+      return nil
+    }
+    return event
+  }
 }

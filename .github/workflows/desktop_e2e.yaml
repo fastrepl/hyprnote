@@ -20,9 +20,14 @@ jobs:
           platform: linux
       - uses: ./.github/actions/pnpm_install
       - run: pnpm -F ui build
-      - run: pnpm -F desktop tauri build --no-bundle --target x86_64-unknown-linux-gnu --config ./src-tauri/tauri.conf.staging.json --features devtools
-        env:
-          CI: false
+      - uses: ./.github/actions/desktop-build
+        with:
+          target: x86_64-unknown-linux-gnu
+          channel: staging
+          features: devtools
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          posthog_api_key: ${{ secrets.POSTHOG_API_KEY }}
+          sentry_dsn: ${{ secrets.SENTRY_DSN }}
       - uses: ./.github/actions/desktop-e2e-linux
         with:
           channel: staging
@@ -42,9 +47,14 @@ jobs:
           platform: macos
       - uses: ./.github/actions/pnpm_install
       - run: pnpm -F ui build
-      - run: pnpm -F desktop tauri build --no-bundle --target aarch64-apple-darwin --config ./src-tauri/tauri.conf.staging.json --features devtools,automation
-        env:
-          CI: false
+      - uses: ./.github/actions/desktop-build
+        with:
+          target: aarch64-apple-darwin
+          channel: staging
+          features: devtools,automation
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          posthog_api_key: ${{ secrets.POSTHOG_API_KEY }}
+          sentry_dsn: ${{ secrets.SENTRY_DSN }}
       - uses: FedericoCarboni/setup-ffmpeg@v3
         with:
           ffmpeg-version: release

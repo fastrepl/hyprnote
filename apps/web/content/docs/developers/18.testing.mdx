@@ -6,6 +6,9 @@ description: "Testing and data paths in Hyprnote"
 
 ## Fresh Start Testing
 
+> If you got `“Hyprnote Staging” is an app downloaded from the Internet`, it might prevent you from onboarding.
+> Press `cmd+shift+q` to force quit the app, and rerun the command.
+
 ```bash
 open -a "Hyprnote Staging" --args --onboarding $(date +%s)
 ```
@@ -13,7 +16,7 @@ open -a "Hyprnote Staging" --args --onboarding $(date +%s)
 This will:
 
 - Remove `settings.json` and `store.json`
-- Reset all permissions
+- Reset all permissions (sometimes fails to reset - although it is rare)
 
 The timestamp is used to detect fresh launches vs relaunches (e.g., during permission setup).
 If the timestamp is older than 2.5 seconds, it's treated as a restart and `--onboarding` will be ignored.

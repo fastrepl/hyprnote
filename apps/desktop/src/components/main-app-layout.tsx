@@ -62,8 +62,9 @@ const useNavigationEvents = () => {
     void windowsEvents
       .navigate(webview)
       .listen(({ payload }) => {
-        // TODO: Not very ideal
-        if (payload.path === "/app/settings") {
+        if (payload.path === "/app/new") {
+          openNewNote();
+        } else if (payload.path === "/app/settings") {
           let tab = (payload.search?.tab as string) ?? "general";
           if (tab === "notifications" || tab === "account") {
             tab = "general";

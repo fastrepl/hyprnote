@@ -11,6 +11,10 @@ pub enum Error {
         from: semver::Version,
         to: semver::Version,
     },
+    #[error("import failed: {0}")]
+    ImportFailed(String),
+    #[error("json error: {0}")]
+    Json(#[from] serde_json::Error),
 }
 
 impl Serialize for Error {

@@ -16768,10 +16768,12 @@ version = "0.1.0"
 dependencies = [
  "semver 1.0.27",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-importer",
  "tauri-plugin-settings",
  "tauri-specta",
  "thiserror 2.0.17",

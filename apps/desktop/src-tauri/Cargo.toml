@@ -37,6 +37,7 @@ tauri-plugin-detect = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-extensions = { workspace = true }
 tauri-plugin-flag = { workspace = true }
+tauri-plugin-fs = { workspace = true }
 tauri-plugin-fs-db = { workspace = true }
 tauri-plugin-fs-sync = { workspace = true }
 tauri-plugin-fs2 = { workspace = true }

@@ -2700,10 +2700,22 @@ const FileEditor = React.forwardRef<
     null,
   );
   const lastSavedContentRef = useRef(fileContent?.content || "");
+  const lastSavedMetadataRef = useRef<ArticleMetadata>({
+    meta_title: fileContent?.meta_title || "",
+    display_title: fileContent?.display_title || "",
+    meta_description: fileContent?.meta_description || "",
+    author: fileContent?.author || "",
+    date: fileContent?.date || "",
+    coverImage: fileContent?.coverImage || "",
+    published: fileContent?.published || false,
+    featured: fileContent?.featured || false,
+    category: fileContent?.category || "",
+  });
   const editorRef = useRef<{ editor: any } | null>(null);
   const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const onSaveRef = useRef(onSave);
   const contentRef = useRef(content);
+  const metadataRef = useRef<ArticleMetadata>(lastSavedMetadataRef.current);
 
   const { mutate: importFromDocs, isPending: isImporting } = useMutation({
     mutationFn: async (url: string) => {
@@ -2836,6 +2848,17 @@ const FileEditor = React.forwardRef<
     setFeatured(fileContent?.featured || false);
     setCategory(fileContent?.category || "");
     lastSavedContentRef.current = fileContent?.content || "";
+    lastSavedMetadataRef.current = {
+      meta_title: fileContent?.meta_title || "",
+      display_title: fileContent?.display_title || "",
+      meta_description: fileContent?.meta_description || "",
+      author: fileContent?.author || "",
+      date: fileContent?.date || "",
+      coverImage: fileContent?.coverImage || "",
+      published: fileContent?.published || false,
+      featured: fileContent?.featured || false,
+      category: fileContent?.category || "",
+    };
     setHasUnsavedChanges(false);
   }, [filePath, fileContent, pendingPRData?.hasPendingPR]);
 
@@ -2863,10 +2886,51 @@ const FileEditor = React.forwardRef<
     autoSaveCountdown,
   ]);
 
-  const handleContentChange = useCallback((newContent: string) => {
-    setContent(newContent);
-    setHasUnsavedChanges(newContent !== lastSavedContentRef.current);
+  const hasMetadataChanged = useCallback((currentMetadata: ArticleMetadata) => {
+    const saved = lastSavedMetadataRef.current;
+    return (
+      currentMetadata.meta_title !== saved.meta_title ||
+      currentMetadata.display_title !== saved.display_title ||
+      currentMetadata.meta_description !== saved.meta_description ||
+      currentMetadata.author !== saved.author ||
+      currentMetadata.date !== saved.date ||
+      currentMetadata.coverImage !== saved.coverImage ||
+      currentMetadata.published !== saved.published ||
+      currentMetadata.featured !== saved.featured ||
+      currentMetadata.category !== saved.category
+    );
   }, []);
+
+  const handleContentChange = useCallback(
+    (newContent: string) => {
+      setContent(newContent);
+      const contentChanged = newContent !== lastSavedContentRef.current;
+      const metadataChanged = hasMetadataChanged(metadataRef.current);
+      setHasUnsavedChanges(contentChanged || metadataChanged);
+    },
+    [hasMetadataChanged],
+  );
+
+  useEffect(() => {
+    const currentMetadata = getMetadata();
+    metadataRef.current = currentMetadata;
+    const metadataChanged = hasMetadataChanged(currentMetadata);
+    const contentChanged = content !== lastSavedContentRef.current;
+    setHasUnsavedChanges(metadataChanged || contentChanged);
+  }, [
+    metaTitle,
+    displayTitle,
+    metaDescription,
+    author,
+    date,
+    coverImage,
+    published,
+    featured,
+    category,
+    getMetadata,
+    hasMetadataChanged,
+    content,
+  ]);
 
   useEffect(() => {
     onSaveRef.current = onSave;
@@ -2893,6 +2957,7 @@ const FileEditor = React.forwardRef<
         if (prev === null || prev <= 1) {
           onSaveRef.current({ isAutoSave: true });
           lastSavedContentRef.current = contentRef.current;
+          lastSavedMetadataRef.current = { ...metadataRef.current };
           setHasUnsavedChanges(false);
           return null;
         }
@@ -2914,6 +2979,7 @@ const FileEditor = React.forwardRef<
         e.preventDefault();
         onSaveRef.current();
         lastSavedContentRef.current = contentRef.current;
+        lastSavedMetadataRef.current = { ...metadataRef.current };
         setHasUnsavedChanges(false);
         setAutoSaveCountdown(null);
         if (autoSaveIntervalRef.current) {

@@ -1,122 +1,47 @@
-import { useMutation } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
-import { createClient, createConfig } from "@hypr/api-client/client";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as sfxCommands } from "@hypr/plugin-sfx";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import { useAuth } from "../../auth";
-import { getEntitlementsFromToken } from "../../billing";
-import { env } from "../../env";
 import { Route } from "../../routes/app/onboarding/_layout.index";
-import * as settings from "../../store/tinybase/store/settings";
-import { useTrialBeginModal } from "../devtool/trial-begin-modal";
+import { commands } from "../../types/tauri.gen";
 import { getBack, getNext, type StepProps } from "./config";
-import { STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
 import { Divider, OnboardingContainer } from "./shared";
 
 export const STEP_ID_LOGIN = "login" as const;
+
+async function finishOnboarding() {
+  await sfxCommands.stop("BGM").catch(console.error);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await commands.setOnboardingNeeded(false).catch(console.error);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await windowsCommands.windowShow({ type: "main" });
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await windowsCommands.windowDestroy({ type: "onboarding" });
+}
 
 export function Login({ onNavigate }: StepProps) {
   const search = Route.useSearch();
   const auth = useAuth();
   const [callbackUrl, setCallbackUrl] = useState("");
-  const { open: openTrialBeginModal } = useTrialBeginModal();
-
-  const setLlmProvider = settings.UI.useSetValueCallback(
-    "current_llm_provider",
-    () => "hyprnote",
-    [],
-    settings.STORE_ID,
-  );
-  const setLlmModel = settings.UI.useSetValueCallback(
-    "current_llm_model",
-    () => "Auto",
-    [],
-    settings.STORE_ID,
-  );
-  const setSttProvider = settings.UI.useSetValueCallback(
-    "current_stt_provider",
-    () => "hyprnote",
-    [],
-    settings.STORE_ID,
-  );
-  const setSttModel = settings.UI.useSetValueCallback(
-    "current_stt_model",
-    () => "cloud",
-    [],
-    settings.STORE_ID,
-  );
-
-  const setTrialDefaults = useCallback(() => {
-    setLlmProvider();
-    setLlmModel();
-    setSttProvider();
-    setSttModel();
-  }, [setLlmProvider, setLlmModel, setSttProvider, setSttModel]);
-
-  const processLoginMutation = useMutation({
-    mutationFn: async () => {
-      const client = createClient(
-        createConfig({
-          baseUrl: env.VITE_API_URL,
-          headers: {
-            Authorization: `Bearer ${auth!.session!.access_token}`,
-          },
-        }),
-      );
-
-      const { data } = await getRpcCanStartTrial({ client });
-      if (data?.canStartTrial) {
-        await postBillingStartTrial({ client, query: { interval: "monthly" } });
-      }
-
-      const newSession = await auth!.refreshSession();
-      return newSession
-        ? getEntitlementsFromToken(newSession.access_token).includes(
-            "hyprnote_pro",
-          )
-        : false;
-    },
-    onSuccess: (isPro) => {
-      if (isPro) {
-        void analyticsCommands.event({
-          event: "trial_started",
-          plan: "pro",
-        });
-        const trialEndDate = new Date();
-        trialEndDate.setDate(trialEndDate.getDate() + 14);
-        void analyticsCommands.setProperties({
-          set: {
-            plan: "pro",
-            trial_end_date: trialEndDate.toISOString(),
-          },
-        });
-        setTrialDefaults();
-        openTrialBeginModal();
-      }
-      const nextSearch = { ...search, pro: isPro };
-      onNavigate({ ...nextSearch, step: getNext(nextSearch)! });
-    },
-    onError: (e) => {
-      console.error(e);
-      onNavigate({ ...search, step: STEP_ID_CONFIGURE_NOTICE });
-    },
-  });
-
-  const { mutate, isIdle } = processLoginMutation;
 
   useEffect(() => {
-    if (auth?.session && isIdle) {
-      mutate();
+    if (auth?.session) {
+      const nextStep = getNext(search);
+      if (nextStep) {
+        onNavigate({ ...search, step: nextStep });
+      } else {
+        void finishOnboarding();
+      }
     }
-  }, [auth?.session, isIdle, mutate]);
+  }, [auth?.session, search, onNavigate]);
 
   useEffect(() => {
-    if (isIdle && !auth?.session) {
+    if (!auth?.session) {
       void auth?.signIn();
     }
-  }, [auth?.session, auth?.signIn, isIdle]);
+  }, [auth?.session, auth?.signIn]);
 
   const backStep = getBack(search);
 

@@ -19,6 +19,7 @@ mod tests {
 
     mod parse {
         use super::*;
+        use std::str::FromStr;
 
         #[test]
         fn basic() {
@@ -222,6 +223,7 @@ And another --- line."#;
 
     mod roundtrip {
         use super::*;
+        use std::str::FromStr;
 
         #[test]
         fn preserves_data() {

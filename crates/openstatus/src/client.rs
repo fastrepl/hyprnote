@@ -65,6 +65,10 @@ impl OpenStatusClient {
         OpenStatusClientBuilder::default()
     }
 
+    pub fn api_base(&self) -> &url::Url {
+        &self.api_base
+    }
+
     pub async fn list_incidents(&self) -> Result<Vec<Incident>, Error> {
         let mut url = self.api_base.clone();
         url.set_path(&format!("{}/incident", self.api_base.path()));

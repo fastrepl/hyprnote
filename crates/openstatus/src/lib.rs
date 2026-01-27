@@ -23,7 +23,7 @@ mod tests {
             .api_base("https://custom.api.com/v1")
             .build();
 
-        assert_eq!(client.api_base.as_str(), "https://custom.api.com/v1");
+        assert_eq!(client.api_base().as_str(), "https://custom.api.com/v1");
     }
 
     #[test]

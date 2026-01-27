@@ -32,10 +32,6 @@ export const SETTINGS_MAPPING = {
       path: ["notification", "detect"],
     },
     respect_dnd: { type: "boolean", path: ["notification", "respect_dnd"] },
-    quit_intercept: {
-      type: "boolean",
-      path: ["general", "quit_intercept"],
-    },
     telemetry_consent: {
       type: "boolean",
       path: ["general", "telemetry_consent"],

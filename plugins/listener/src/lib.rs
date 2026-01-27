@@ -69,19 +69,6 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             Ok(())
         })
-        .on_event(move |_app, event| {
-            if let tauri::RunEvent::Ready = event {
-                hypr_intercept::register_quit_handler(PLUGIN_NAME, || {
-                    ractor::registry::where_is(SourceActor::name()).is_none()
-                });
-            }
-        })
-        .on_drop(|_app| {
-            hypr_intercept::unregister_quit_handler(PLUGIN_NAME);
-            if let Some(cell) = ractor::registry::where_is(RootActor::name()) {
-                cell.stop(None);
-            }
-        })
         .build()
 }
 

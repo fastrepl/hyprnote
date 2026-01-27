@@ -1,41 +1,4 @@
-use tauri::Manager;
-
 use crate::DetectPluginExt;
-
-const QUIT_HANDLER_ID: &str = "detect";
-
-#[tauri::command]
-#[specta::specta]
-pub(crate) async fn set_quit_handler<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    really_quit: bool,
-) -> Result<(), String> {
-    hypr_intercept::register_quit_handler(QUIT_HANDLER_ID, move || {
-        hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
-
-        for (_, window) in app.webview_windows() {
-            let _ = window.close();
-        }
-
-        #[cfg(target_os = "macos")]
-        if !really_quit {
-            let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-        }
-
-        really_quit
-    });
-
-    Ok(())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub(crate) async fn reset_quit_handler<R: tauri::Runtime>(
-    _app: tauri::AppHandle<R>,
-) -> Result<(), String> {
-    hypr_intercept::unregister_quit_handler(QUIT_HANDLER_ID);
-    Ok(())
-}
 
 #[tauri::command]
 #[specta::specta]

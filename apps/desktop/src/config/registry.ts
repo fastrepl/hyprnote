@@ -12,7 +12,6 @@ export type ConfigKey =
   | "notification_event"
   | "respect_dnd"
   | "ignored_platforms"
-  | "quit_intercept"
   | "current_stt_provider"
   | "current_stt_model"
   | "ai_language"
@@ -70,14 +69,6 @@ export const CONFIG_REGISTRY = {
     default: [] as string[],
     sideEffect: async (value: string[], _) => {
       await detectCommands.setIgnoredBundleIds(value);
-    },
-  },
-
-  quit_intercept: {
-    key: "quit_intercept",
-    default: false,
-    sideEffect: async (reallyQuit: boolean, _) => {
-      await detectCommands.setQuitHandler(reallyQuit);
     },
   },
 

@@ -29,7 +29,6 @@ export function NotificationSettingsView() {
     "notification_detect",
     "respect_dnd",
     "ignored_platforms",
-    "quit_intercept",
   ] as const);
 
   useEffect(() => {
@@ -102,27 +101,15 @@ export function NotificationSettingsView() {
     settings.STORE_ID,
   );
 
-  const handleSetQuitIntercept = settings.UI.useSetValueCallback(
-    "quit_intercept",
-    (value: boolean) => value,
-    [],
-    settings.STORE_ID,
-  );
-
   const form = useForm({
     defaultValues: {
       notification_event: configs.notification_event,
       notification_detect: configs.notification_detect,
       respect_dnd: configs.respect_dnd,
       ignored_platforms: configs.ignored_platforms.map(bundleIdToName),
-      quit_intercept: configs.quit_intercept,
     },
     listeners: {
       onChange: async ({ formApi }) => {
-        const anyEnabled =
-          formApi.getFieldValue("notification_event") ||
-          formApi.getFieldValue("notification_detect");
-        formApi.setFieldValue("quit_intercept", anyEnabled);
         void formApi.handleSubmit();
       },
     },
@@ -133,7 +120,6 @@ export function NotificationSettingsView() {
       handleSetIgnoredPlatforms(
         JSON.stringify(value.ignored_platforms.map(nameToBundleId)),
       );
-      handleSetQuitIntercept(value.quit_intercept);
     },
   });
 
@@ -378,27 +364,6 @@ export function NotificationSettingsView() {
             For enabled notifications
           </span>
         </div>
-
-        <form.Field name="quit_intercept">
-          {(field) => (
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h3 className="mb-1 text-sm font-medium">
-                  Quit intercept (Read-only)
-                </h3>
-                <p className="text-xs text-neutral-600">
-                  Prevents Hyprnote from quitting, which is required for
-                  notifications to work.
-                </p>
-              </div>
-              <Switch
-                checked={field.state.value}
-                onCheckedChange={field.handleChange}
-                disabled
-              />
-            </div>
-          )}
-        </form.Field>
 
         <form.Field name="respect_dnd">
           {(field) => (

@@ -97,7 +97,6 @@ describe("settingsPersister roundtrip", () => {
       general: {
         autostart: true,
         save_recordings: false,
-        quit_intercept: true,
         telemetry_consent: false,
       },
       language: {
@@ -153,7 +152,6 @@ describe("settingsPersister roundtrip", () => {
       ignored_platforms: '["zoom"]',
       autostart: true,
       save_recordings: false,
-      quit_intercept: true,
       telemetry_consent: false,
       ai_language: "en",
       spoken_languages: '["en","ko"]',

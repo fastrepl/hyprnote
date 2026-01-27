@@ -8,6 +8,7 @@ mod supervisor;
 use ext::*;
 use store::*;
 
+use tauri::Manager;
 use tauri_plugin_permissions::{Permission, PermissionsPluginExt};
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
@@ -197,6 +198,26 @@ pub async fn main() {
                 {
                     tracing::error!("failed to write AGENTS.md: {}", e);
                 }
+            }
+
+            #[cfg(target_os = "macos")]
+            {
+                let app = app_handle.clone();
+                let really_quit = false;
+
+                hypr_intercept::register_quit_handler("desktop", move || {
+                    println!("quit handler called");
+
+                    for (_, window) in app.webview_windows() {
+                        let _ = window.close();
+                    }
+
+                    if !really_quit {
+                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                    }
+
+                    really_quit
+                });
             }
 
             tokio::spawn(async move {

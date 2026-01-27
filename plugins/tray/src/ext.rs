@@ -55,7 +55,7 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                         &PredefinedMenuItem::hide_others(app, None)?,
                         &PredefinedMenuItem::show_all(app, None)?,
                         &PredefinedMenuItem::separator(app)?,
-                        &PredefinedMenuItem::quit(app, None)?,
+                        &TrayQuit::build(app)?,
                     ],
                 )?;
 

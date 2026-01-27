@@ -4,8 +4,6 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-set-quit-handler`
-- `allow-reset-quit-handler`
 - `allow-list-installed-applications`
 - `allow-list-mic-using-applications`
 - `allow-set-respect-do-not-disturb`

@@ -1,8 +1,6 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
-    "allow-set-quit-handler",
-    "allow-reset-quit-handler",
     "allow-list-installed-applications",
     "allow-list-mic-using-applications",
     "allow-set-respect-do-not-disturb",

@@ -4291,6 +4291,7 @@ name = "desktop"
 version = "0.0.0"
 dependencies = [
  "host",
+ "intercept",
  "pico-args",
  "ractor",
  "ractor-supervisor",
@@ -16675,7 +16676,6 @@ version = "0.1.0"
 dependencies = [
  "detect",
  "host",
- "intercept",
  "serde",
  "specta",
  "specta-typescript",

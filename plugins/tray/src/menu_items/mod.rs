@@ -1,3 +1,4 @@
+mod app_hide;
 mod app_info;
 mod app_new;
 mod help_report_bug;
@@ -9,6 +10,7 @@ mod tray_settings;
 mod tray_start;
 mod tray_version;
 
+pub use app_hide::AppHide;
 pub use app_info::AppInfo;
 pub use app_new::AppNew;
 pub use help_report_bug::HelpReportBug;
@@ -75,6 +77,7 @@ menu_items! {
     TrayCheckUpdate => TrayCheckUpdate,
     TrayQuit => TrayQuit,
     TrayVersion => TrayVersion,
+    AppHide => AppHide,
     AppInfo => AppInfo,
     AppNew => AppNew,
     HelpReportBug => HelpReportBug,

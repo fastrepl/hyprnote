@@ -185,26 +185,6 @@ pub async fn main() {
                 }
             }
 
-            #[cfg(target_os = "macos")]
-            {
-                let app = app_handle.clone();
-                let really_quit = false;
-
-                hypr_intercept::register_quit_handler("desktop", move || {
-                    println!("quit handler called");
-
-                    for (_, window) in app.webview_windows() {
-                        let _ = window.close();
-                    }
-
-                    if !really_quit {
-                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-                    }
-
-                    really_quit
-                });
-            }
-
             tokio::spawn(async move {
                 use tauri_plugin_db2::Database2PluginExt;
 
@@ -258,6 +238,9 @@ pub async fn main() {
         }
     }
 
+    #[cfg(target_os = "macos")]
+    hypr_intercept::setup_force_quit_handler();
+
     #[allow(unused_variables)]
     app.run(move |app, event| match event {
         #[cfg(target_os = "macos")]
@@ -269,6 +252,20 @@ pub async fn main() {
                 AppWindow::Onboarding.destroy(&app).unwrap();
                 AppWindow::Main.show(&app).unwrap();
             }
+        }
+        #[cfg(target_os = "macos")]
+        tauri::RunEvent::ExitRequested { api, .. } => {
+            if hypr_intercept::should_force_quit() {
+                return;
+            }
+
+            api.prevent_exit();
+
+            for (_, window) in app.webview_windows() {
+                let _ = window.close();
+            }
+
+            let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
         }
         tauri::RunEvent::Exit => {
             {

@@ -12,7 +12,7 @@ pub use error::*;
 pub use events::*;
 pub use ext::*;
 
-use actors::{RootActor, RootArgs, SourceActor};
+use actors::{RootActor, RootArgs};
 
 const PLUGIN_NAME: &str = "listener";
 
@@ -51,20 +51,14 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             let app_handle = app.app_handle().clone();
 
             tauri::async_runtime::spawn(async move {
-                match Actor::spawn(
+                Actor::spawn(
                     Some(RootActor::name()),
                     RootActor,
                     RootArgs { app: app_handle },
                 )
                 .await
-                {
-                    Ok(_) => {
-                        tracing::info!("root_actor_spawned");
-                    }
-                    Err(e) => {
-                        tracing::error!(?e, "failed_to_spawn_root_actor");
-                    }
-                }
+                .map(|_| tracing::info!("root_actor_spawned"))
+                .map_err(|e| tracing::error!(?e, "failed_to_spawn_root_actor"))
             });
 
             Ok(())

@@ -67,6 +67,9 @@ impl Actor for RecorderActor {
             }
             std::fs::remove_file(&ogg_path)?;
             !has_identical
+        } else if wav_path.exists() {
+            let reader = hound::WavReader::open(&wav_path)?;
+            reader.spec().channels == 2
         } else {
             true
         };

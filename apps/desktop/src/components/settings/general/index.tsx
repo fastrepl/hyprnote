@@ -11,35 +11,12 @@ import * as settings from "../../../store/tinybase/store/settings";
 import { Data } from "../data";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
-import { Audio } from "./audio";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
-import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 import { StorageSettingsView } from "./storage";
 
-type SettingsSection =
-  | "app"
-  | "language"
-  | "notifications"
-  | "permissions"
-  | "audio"
-  | "lab";
-
-export function SettingsGeneral({
-  appRef,
-  languageRef,
-  notificationsRef,
-  permissionsRef,
-  audioRef,
-}: {
-  appRef?: React.Ref<HTMLDivElement>;
-  languageRef?: React.Ref<HTMLDivElement>;
-  notificationsRef?: React.Ref<HTMLDivElement>;
-  permissionsRef?: React.Ref<HTMLDivElement>;
-  audioRef?: React.Ref<HTMLDivElement>;
-  activeSection?: SettingsSection;
-} = {}) {
+function useSettingsForm() {
   const value = useConfigValues([
     "autostart",
     "notification_detect",
@@ -49,37 +26,6 @@ export function SettingsGeneral({
     "spoken_languages",
     "current_stt_provider",
   ] as const);
-
-  const supportedLanguagesQuery = useQuery({
-    queryKey: ["documented-language-codes", "live"],
-    queryFn: async () => {
-      const result = await listenerCommands.listDocumentedLanguageCodesLive();
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-    staleTime: Infinity,
-  });
-  const supportedLanguages = supportedLanguagesQuery.data ?? ["en"];
-
-  const suggestedProviders = useQuery({
-    enabled: !!value.spoken_languages?.length,
-    queryKey: ["suggested-stt-providers", value.spoken_languages],
-    queryFn: async () => {
-      const result = await listenerCommands.suggestProvidersForLanguagesLive(
-        value.spoken_languages ?? [],
-      );
-
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-
-      return result.data.filter(
-        (provider) => !["fireworks", "openai"].includes(provider),
-      );
-    },
-  });
 
   const setPartialValues = settings.UI.useSetPartialValuesCallback(
     (row: Partial<General>) =>
@@ -143,13 +89,19 @@ export function SettingsGeneral({
     },
   });
 
+  return { form, value };
+}
+
+export function SettingsApp() {
+  const { form } = useSettingsForm();
+
   return (
     <div className="flex flex-col gap-8">
       <div className="pt-3">
         <AccountSettings />
       </div>
 
-      <div ref={appRef}>
+      <div>
         <form.Field name="autostart">
           {(autostartField) => (
             <form.Field name="notification_detect">
@@ -208,51 +160,87 @@ export function SettingsGeneral({
           <Data />
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div ref={languageRef}>
-        <h2 className="text-lg font-semibold font-serif mb-4">
-          Language & Vocabulary
-        </h2>
-        <div className="flex flex-col gap-6">
-          <form.Field name="ai_language">
-            {(field) => (
-              <MainLanguageView
+export function SettingsLanguage() {
+  const { form } = useSettingsForm();
+
+  const supportedLanguagesQuery = useQuery({
+    queryKey: ["documented-language-codes", "live"],
+    queryFn: async () => {
+      const result = await listenerCommands.listDocumentedLanguageCodesLive();
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+    staleTime: Infinity,
+  });
+  const supportedLanguages = supportedLanguagesQuery.data ?? ["en"];
+
+  const value = useConfigValues(["spoken_languages"] as const);
+
+  const suggestedProviders = useQuery({
+    enabled: !!value.spoken_languages?.length,
+    queryKey: ["suggested-stt-providers", value.spoken_languages],
+    queryFn: async () => {
+      const result = await listenerCommands.suggestProvidersForLanguagesLive(
+        value.spoken_languages ?? [],
+      );
+
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+
+      return result.data.filter(
+        (provider) => !["fireworks", "openai"].includes(provider),
+      );
+    },
+  });
+
+  return (
+    <div>
+      <h2 className="text-lg font-semibold mb-4">Language & Vocabulary</h2>
+      <div className="flex flex-col gap-6">
+        <form.Field name="ai_language">
+          {(field) => (
+            <MainLanguageView
+              value={field.state.value}
+              onChange={(val) => field.handleChange(val)}
+              supportedLanguages={supportedLanguages}
+            />
+          )}
+        </form.Field>
+        <form.Field name="spoken_languages">
+          {(field) => (
+            <>
+              <SpokenLanguagesView
                 value={field.state.value}
                 onChange={(val) => field.handleChange(val)}
                 supportedLanguages={supportedLanguages}
               />
-            )}
-          </form.Field>
-          <form.Field name="spoken_languages">
-            {(field) => (
-              <>
-                <SpokenLanguagesView
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val)}
-                  supportedLanguages={supportedLanguages}
-                />
-                <span className="text-xs text-neutral-500">
-                  Providers outside {suggestedProviders.data?.join(", ")} may
-                  not work properly.
-                </span>
-              </>
-            )}
-          </form.Field>
-        </div>
-      </div>
-
-      <div ref={notificationsRef}>
-        <h2 className="text-lg font-semibold font-serif mb-4">Notifications</h2>
-        <NotificationSettingsView />
-      </div>
-
-      <div ref={permissionsRef}>
-        <Permissions />
-      </div>
-
-      <div ref={audioRef}>
-        <Audio />
+              <span className="text-xs text-neutral-500">
+                Providers outside {suggestedProviders.data?.join(", ")} may not
+                work properly.
+              </span>
+            </>
+          )}
+        </form.Field>
       </div>
     </div>
   );
 }
+
+export function SettingsNotifications() {
+  return (
+    <div>
+      <h2 className="text-lg font-semibold mb-4">Notifications</h2>
+      <NotificationSettingsView />
+    </div>
+  );
+}
+
+export { Audio as SettingsAudio } from "./audio";
+export { Permissions as SettingsPermissions } from "./permissions";

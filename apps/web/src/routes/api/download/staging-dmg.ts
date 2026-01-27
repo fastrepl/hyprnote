@@ -3,20 +3,23 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { env } from "../../../env";
 
-const s3Client = new S3Client({
-  region: "auto",
-  endpoint: env.CLOUDFLARE_R2_ENDPOINT_URL,
-  credentials: {
-    accessKeyId: env.CLOUDFLARE_R2_ACCESS_KEY_ID,
-    secretAccessKey: env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
-  },
-});
+function getS3Client() {
+  return new S3Client({
+    region: "auto",
+    endpoint: env.CLOUDFLARE_R2_ENDPOINT_URL,
+    credentials: {
+      accessKeyId: env.CLOUDFLARE_R2_ACCESS_KEY_ID,
+      secretAccessKey: env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
+    },
+  });
+}
 
 export const Route = createFileRoute("/api/download/staging-dmg")({
   server: {
     handlers: {
       GET: async () => {
         try {
+          const s3Client = getS3Client();
           const command = new GetObjectCommand({
             Bucket: "hyprnote-build",
             Key: "desktop/staging/hyprnote-macos-aarch64.dmg",

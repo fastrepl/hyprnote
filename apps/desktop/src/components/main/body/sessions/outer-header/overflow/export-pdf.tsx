@@ -194,7 +194,11 @@ export function ExportPDF({
     let maxEndedAt: number | null = null;
 
     for (const transcriptId of transcriptIds) {
-      const startedAt = store.getCell("transcripts", transcriptId, "started_at");
+      const startedAt = store.getCell(
+        "transcripts",
+        transcriptId,
+        "started_at",
+      );
       const endedAt = store.getCell("transcripts", transcriptId, "ended_at");
 
       if (typeof startedAt === "number") {
@@ -306,8 +310,9 @@ export function ExportPDF({
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
       const downloadsPath = await downloadDir();
-      const sanitizedTitle = ((sessionTitle ?? "Untitled").trim() || "Untitled")
-        .replace(/[<>:"/\\|?*]/g, "_");
+      const sanitizedTitle = (
+        (sessionTitle ?? "Untitled").trim() || "Untitled"
+      ).replace(/[<>:"/\\|?*]/g, "_");
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const filename = `${sanitizedTitle}_${timestamp}.pdf`;
       const path = await join(downloadsPath, filename);

@@ -17,9 +17,20 @@ fn library() -> &'static LazyHash<Library> {
 
 fn fonts() -> &'static (Vec<Font>, LazyHash<FontBook>) {
     FONTS.get_or_init(|| {
-        let fonts: Vec<Font> = typst_assets::fonts()
+        let mut fonts: Vec<Font> = typst_assets::fonts()
             .flat_map(|data| Font::iter(Bytes::new(data)))
             .collect();
+
+        const PRETENDARD_REGULAR: &[u8] = include_bytes!("../../fonts/Pretendard-Regular.otf");
+        const PRETENDARD_MEDIUM: &[u8] = include_bytes!("../../fonts/Pretendard-Medium.otf");
+        const PRETENDARD_SEMIBOLD: &[u8] = include_bytes!("../../fonts/Pretendard-SemiBold.otf");
+        const PRETENDARD_BOLD: &[u8] = include_bytes!("../../fonts/Pretendard-Bold.otf");
+
+        fonts.extend(Font::iter(Bytes::new(PRETENDARD_REGULAR)));
+        fonts.extend(Font::iter(Bytes::new(PRETENDARD_MEDIUM)));
+        fonts.extend(Font::iter(Bytes::new(PRETENDARD_SEMIBOLD)));
+        fonts.extend(Font::iter(Bytes::new(PRETENDARD_BOLD)));
+
         let font_book = FontBook::from_fonts(fonts.iter());
         (fonts, LazyHash::new(font_book))
     })

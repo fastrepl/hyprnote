@@ -14,7 +14,7 @@ fn build_preamble() -> String {
 )
 
 #set text(
-  font: "New Computer Modern",
+  font: "Pretendard",
   size: 11pt,
   lang: "en",
 )

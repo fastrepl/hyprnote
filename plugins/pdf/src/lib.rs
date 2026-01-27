@@ -72,6 +72,7 @@ mod test {
                             text: "Hello, world!".to_string(),
                         }],
                     }),
+                    metadata: None,
                 },
             )
             .unwrap();

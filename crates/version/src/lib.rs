@@ -1,4 +1,47 @@
-pub use semver::Version;
+use std::fmt;
+use std::ops::Deref;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct BaseVersion {
+    pub major: u64,
+    pub minor: u64,
+    pub patch: u64,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Version(semver::Version);
+
+impl Version {
+    pub const fn new(major: u64, minor: u64, patch: u64) -> Self {
+        Self(semver::Version::new(major, minor, patch))
+    }
+
+    pub fn parse(text: &str) -> Result<Self, semver::Error> {
+        semver::Version::parse(text).map(Self)
+    }
+
+    pub fn base(&self) -> BaseVersion {
+        BaseVersion {
+            major: self.0.major,
+            minor: self.0.minor,
+            patch: self.0.patch,
+        }
+    }
+}
+
+impl Deref for Version {
+    type Target = semver::Version;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl fmt::Display for Version {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -92,5 +135,32 @@ mod tests {
         assert!(nightly_tag < staging_build);
         assert!(staging_build < next_nightly);
         assert!(next_nightly < stable);
+    }
+
+    #[test]
+    fn base_version_strips_prerelease_and_build() {
+        let release = Version::parse("1.0.2").unwrap();
+        let prerelease = Version::parse("1.0.2-nightly.12").unwrap();
+        let dev_build = Version::parse("1.0.2-nightly.12.dev.5169+8797281").unwrap();
+
+        let expected = BaseVersion {
+            major: 1,
+            minor: 0,
+            patch: 2,
+        };
+        assert_eq!(release.base(), expected);
+        assert_eq!(prerelease.base(), expected);
+        assert_eq!(dev_build.base(), expected);
+    }
+
+    #[test]
+    fn base_version_comparison() {
+        let v1 = Version::new(1, 0, 2);
+        let v2 = Version::parse("1.0.2-nightly.12.dev.5169+8797281").unwrap();
+        let v3 = Version::new(1, 0, 3);
+
+        assert_eq!(v1.base(), v2.base());
+        assert!(v1.base() < v3.base());
+        assert!(v2.base() < v3.base());
     }
 }

@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { save } from "@tauri-apps/plugin-dialog";
+import { downloadDir, join } from "@tauri-apps/api/path";
 import { FileTextIcon, Loader2Icon } from "lucide-react";
 import { useMemo } from "react";
 
@@ -30,6 +30,13 @@ export function ExportPDF({
   currentView: EditorView;
 }) {
   const store = main.UI.useStore(main.STORE_ID);
+
+  const sessionTitle = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "title",
+    main.STORE_ID,
+  ) as string | undefined;
 
   const rawMd = main.UI.useCell(
     "sessions",
@@ -168,14 +175,13 @@ export function ExportPDF({
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      const path = await save({
-        title: getExportLabel(),
-        filters: [{ name: "PDF", extensions: ["pdf"] }],
-      });
-
-      if (!path) {
-        return null;
-      }
+      const downloadsPath = await downloadDir();
+      const sanitizedTitle = (sessionTitle ?? "Untitled")
+        .replace(/[<>:"/\\|?*]/g, "_")
+        .trim();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filename = `${sanitizedTitle}_${timestamp}.pdf`;
+      const path = await join(downloadsPath, filename);
 
       const exportContent = getExportContent();
       const result = await pdfCommands.export(path, exportContent);
@@ -198,7 +204,7 @@ export function ExportPDF({
             currentView.type === "enhanced" && !!enhancedNoteContent,
           has_memo: currentView.type === "raw" && !!rawMd,
         });
-        void openerCommands.openPath(path, null);
+        void openerCommands.revealItemInDir(path);
       }
     },
     onError: console.error,

@@ -16917,7 +16917,6 @@ name = "tauri-plugin-listener"
 version = "0.1.0"
 dependencies = [
  "aec",
- "agc",
  "audio",
  "audio-device",
  "audio-utils",

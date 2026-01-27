@@ -1,11 +1,13 @@
 mod continuous;
 mod continuous2;
 mod error;
+mod masking;
 mod streaming;
 
 pub use continuous::*;
 pub use continuous2::*;
 pub use error::*;
+pub use masking::*;
 pub use streaming::*;
 
 #[cfg(test)]

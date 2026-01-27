@@ -12,18 +12,17 @@ use crate::{
     actors::{AudioChunk, ChannelMode, ListenerActor, ListenerMsg, RecMsg, RecorderActor},
 };
 use hypr_aec::AEC;
-use hypr_agc::VadAgc;
 use hypr_audio_utils::f32_to_i16_bytes;
+use hypr_vad_ext::VadMask;
 
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
 const MAX_BUFFER_CHUNKS: usize = 150;
 
-type AudioPair = (Arc<[f32]>, Arc<[f32]>);
+type AudioPair = (Vec<f32>, Vec<f32>);
 type BufferedAudio = (Arc<[f32]>, Arc<[f32]>, ChannelMode);
 
 pub(in crate::actors) struct Pipeline {
-    agc_mic: VadAgc,
-    agc_spk: VadAgc,
+    vad_mask: VadMask,
     aec: Option<AEC>,
     joiner: Joiner,
     amplitude: AmplitudeEmitter,
@@ -37,42 +36,34 @@ impl Pipeline {
 
     pub(super) fn new(app: tauri::AppHandle, session_id: String) -> Self {
         Self {
-            agc_mic: VadAgc::default().with_masking(true),
-            agc_spk: VadAgc::default(),
-            aec: None,
+            aec: AEC::new()
+                .map_err(|e| tracing::warn!(error = ?e, "aec_init_failed"))
+                .ok(),
             joiner: Joiner::new(),
             amplitude: AmplitudeEmitter::new(app, session_id),
             audio_buffer: AudioBuffer::new(MAX_BUFFER_CHUNKS),
             backlog_quota: 0.0,
+            vad_mask: VadMask::default(),
         }
     }
 
     pub(super) fn reset(&mut self) {
         self.joiner.reset();
-        self.agc_mic = VadAgc::default().with_masking(true);
-        self.agc_spk = VadAgc::default();
         if let Some(aec) = &mut self.aec {
             aec.reset();
         }
         self.amplitude.reset();
         self.audio_buffer.clear();
         self.backlog_quota = 0.0;
+        self.vad_mask = VadMask::default();
     }
 
     pub(super) fn ingest_mic(&mut self, chunk: AudioChunk) {
-        let mut data = chunk.data;
-        self.agc_mic.process(&mut data);
-        self.amplitude.observe_mic(&data);
-        let arc = Arc::<[f32]>::from(data);
-        self.joiner.push_mic(arc);
+        self.joiner.push_mic(chunk.data);
     }
 
     pub(super) fn ingest_speaker(&mut self, chunk: AudioChunk) {
-        let mut data = chunk.data;
-        self.agc_spk.process(&mut data);
-        self.amplitude.observe_spk(&data);
-        let arc = Arc::<[f32]>::from(data);
-        self.joiner.push_spk(arc);
+        self.joiner.push_spk(chunk.data);
     }
 
     pub(super) fn flush(&mut self, mode: ChannelMode) {
@@ -81,21 +72,25 @@ impl Pipeline {
         }
     }
 
-    fn dispatch(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>, mode: ChannelMode) {
-        let (processed_mic, processed_spk) = if let Some(aec) = &mut self.aec {
+    fn dispatch(&mut self, mic: Vec<f32>, spk: Vec<f32>, mode: ChannelMode) {
+        let mut processed_mic = if let Some(aec) = &mut self.aec {
             match aec.process_streaming(&mic, &spk) {
-                Ok(processed) => {
-                    let processed_arc = Arc::<[f32]>::from(processed);
-                    (processed_arc, Arc::clone(&spk))
-                }
+                Ok(processed) => processed,
                 Err(e) => {
                     tracing::warn!(error = ?e, "aec_failed");
-                    (mic, spk)
+                    mic
                 }
             }
         } else {
-            (mic, spk)
+            mic
         };
+
+        self.vad_mask.process(&mut processed_mic);
+        let processed_mic = Arc::<[f32]>::from(processed_mic);
+        let processed_spk = Arc::<[f32]>::from(spk);
+
+        self.amplitude.observe_mic(&processed_mic);
+        self.amplitude.observe_spk(&processed_spk);
 
         if let Some(cell) = registry::where_is(RecorderActor::name()) {
             let actor: ActorRef<RecMsg> = cell.into();
@@ -315,8 +310,8 @@ impl AmplitudeEmitter {
 }
 
 struct Joiner {
-    mic: VecDeque<Arc<[f32]>>,
-    spk: VecDeque<Arc<[f32]>>,
+    mic: VecDeque<Vec<f32>>,
+    spk: VecDeque<Vec<f32>>,
     silence_cache: HashMap<usize, Arc<[f32]>>,
 }
 
@@ -337,14 +332,14 @@ impl Joiner {
         self.spk.clear();
     }
 
-    fn get_silence(&mut self, len: usize) -> Arc<[f32]> {
+    fn get_silence(&mut self, len: usize) -> Vec<f32> {
         self.silence_cache
             .entry(len)
             .or_insert_with(|| Arc::from(vec![0.0; len]))
-            .clone()
+            .to_vec()
     }
 
-    fn push_mic(&mut self, data: Arc<[f32]>) {
+    fn push_mic(&mut self, data: Vec<f32>) {
         self.mic.push_back(data);
         if self.mic.len() > Self::MAX_QUEUE_SIZE {
             tracing::warn!("mic_queue_overflow");
@@ -352,7 +347,7 @@ impl Joiner {
         }
     }
 
-    fn push_spk(&mut self, data: Arc<[f32]>) {
+    fn push_spk(&mut self, data: Vec<f32>) {
         self.spk.push_back(data);
         if self.spk.len() > Self::MAX_QUEUE_SIZE {
             tracing::warn!("spk_queue_overflow");

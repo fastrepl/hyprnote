@@ -21,7 +21,6 @@ uuid = { workspace = true }
 
 [dependencies]
 hypr-aec = { workspace = true }
-hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-device = { workspace = true }
 hypr-audio-utils = { workspace = true }

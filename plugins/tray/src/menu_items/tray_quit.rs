@@ -16,7 +16,12 @@ impl MenuItemHandler for TrayQuit {
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {
-        hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
+        #[cfg(target_os = "macos")]
+        {
+            hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
+            hypr_intercept::set_force_quit();
+        }
+
         app.exit(0);
     }
 }

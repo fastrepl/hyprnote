@@ -26,6 +26,11 @@ pub fn should_force_quit() -> bool {
     FORCE_QUIT.load(Ordering::SeqCst)
 }
 
+#[cfg(target_os = "macos")]
+pub fn set_force_quit() {
+    FORCE_QUIT.store(true, Ordering::SeqCst);
+}
+
 #[unsafe(no_mangle)]
 #[cfg(target_os = "macos")]
 pub extern "C" fn rust_set_force_quit() {

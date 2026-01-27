@@ -165,10 +165,20 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
 
     async fn check_microphone(&self) -> Result<PermissionStatus, crate::Error> {
         #[cfg(target_os = "macos")]
-        return check!("microphone", unsafe {
-            let media_type = AVMediaTypeAudio.unwrap();
-            AVCaptureDevice::authorizationStatusForMediaType(media_type)
-        });
+        {
+            let raw = unsafe {
+                let media_type = AVMediaTypeAudio.unwrap();
+                AVCaptureDevice::authorizationStatusForMediaType(media_type)
+            };
+            let status: PermissionStatus = raw.into();
+            tracing::info!(
+                permission = "microphone",
+                raw = ?raw,
+                status = ?status,
+                "permission_check: AVCaptureDevice::authorizationStatusForMediaType"
+            );
+            return Ok(status);
+        }
 
         #[cfg(not(target_os = "macos"))]
         {
@@ -185,7 +195,18 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
 
     async fn check_system_audio(&self) -> Result<PermissionStatus, crate::Error> {
         #[cfg(target_os = "macos")]
-        return check!("system_audio", hypr_tcc::audio_capture_permission_status());
+        {
+            let raw = hypr_tcc::audio_capture_permission_status();
+            let status: PermissionStatus = raw.into();
+            tracing::info!(
+                permission = "system_audio",
+                raw = raw,
+                status = ?status,
+                expected_mapping = "0=Authorized, 1=Denied (but currently maps to wildcard), 2=NeverRequested, -1=TCC_ERROR",
+                "permission_check: hypr_tcc::audio_capture_permission_status (TCCAccessPreflight)"
+            );
+            return Ok(status);
+        }
 
         #[cfg(not(target_os = "macos"))]
         {
@@ -202,7 +223,17 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
 
     async fn check_accessibility(&self) -> Result<PermissionStatus, crate::Error> {
         #[cfg(target_os = "macos")]
-        return check!("accessibility", macos_accessibility_client::accessibility::application_is_trusted());
+        {
+            let raw = macos_accessibility_client::accessibility::application_is_trusted();
+            let status: PermissionStatus = raw.into();
+            tracing::info!(
+                permission = "accessibility",
+                raw = raw,
+                status = ?status,
+                "permission_check: macos_accessibility_client::application_is_trusted"
+            );
+            return Ok(status);
+        }
 
         #[cfg(not(target_os = "macos"))]
         {

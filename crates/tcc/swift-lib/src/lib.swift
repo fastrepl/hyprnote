@@ -18,10 +18,12 @@ public func _audio_capture_permission_status() -> Int {
     let funcSym = dlsym(apiHandle, "TCCAccessPreflight"),
     let preflight = unsafeBitCast(funcSym, to: PreflightFuncType.self) as PreflightFuncType?
   else {
+    NSLog("[hypr_tcc] Failed to load TCCAccessPreflight - returning -1 (TCC_ERROR)")
     return -1
   }
 
   let result = preflight("kTCCServiceAudioCapture" as CFString, nil)
+  NSLog("[hypr_tcc] TCCAccessPreflight(kTCCServiceAudioCapture) returned: %d (0=authorized, 1=denied, other=unknown)", result)
   return result
 }
 

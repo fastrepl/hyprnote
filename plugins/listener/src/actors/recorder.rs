@@ -5,8 +5,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use hypr_audio_utils::{
-    VorbisEncodeSettings, decode_vorbis_to_mono_wav_file, decode_vorbis_to_wav_file,
-    encode_wav_to_vorbis_file, encode_wav_to_vorbis_file_mono_as_stereo, mix_audio_f32,
+    decode_vorbis_to_mono_wav_file, decode_vorbis_to_wav_file, mix_audio_f32,
     ogg_has_identical_channels,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
@@ -29,7 +28,6 @@ pub struct RecState {
     writer_mic: Option<hound::WavWriter<BufWriter<File>>>,
     writer_spk: Option<hound::WavWriter<BufWriter<File>>>,
     wav_path: PathBuf,
-    ogg_path: PathBuf,
     last_flush: Instant,
     is_stereo: bool,
 }
@@ -121,7 +119,6 @@ impl Actor for RecorderActor {
             writer_mic,
             writer_spk,
             wav_path,
-            ogg_path,
             last_flush: Instant::now(),
             is_stereo,
         })
@@ -177,34 +174,8 @@ impl Actor for RecorderActor {
         finalize_writer(&mut st.writer_spk, None)?;
 
         if st.wav_path.exists() {
-            let temp_ogg_path = st.ogg_path.with_extension("ogg.tmp");
-
-            let encode_result = if st.is_stereo {
-                encode_wav_to_vorbis_file(
-                    &st.wav_path,
-                    &temp_ogg_path,
-                    VorbisEncodeSettings::default(),
-                )
-            } else {
-                encode_wav_to_vorbis_file_mono_as_stereo(
-                    &st.wav_path,
-                    &temp_ogg_path,
-                    VorbisEncodeSettings::default(),
-                )
-            };
-
-            match encode_result {
-                Ok(_) => {
-                    std::fs::rename(&temp_ogg_path, &st.ogg_path)?;
-                    sync_file(&st.ogg_path);
-                    sync_dir(&st.ogg_path);
-                    std::fs::remove_file(&st.wav_path)?;
-                }
-                Err(e) => {
-                    tracing::error!(error = ?e, "wav_to_ogg_failed_keeping_wav");
-                    let _ = std::fs::remove_file(&temp_ogg_path);
-                }
-            }
+            sync_file(&st.wav_path);
+            sync_dir(&st.wav_path);
         }
 
         Ok(())

@@ -1,7 +1,4 @@
 // @ts-nocheck
-/** user-defined events **/
-/** user-defined constants **/
-/** user-defined types **/
 /** tauri-specta globals **/
 import {
   Channel as TAURI_CHANNEL,
@@ -15,7 +12,7 @@ import { type WebviewWindow as __WebviewWindow__ } from "@tauri-apps/api/webview
 /** user-defined commands **/
 
 export const commands = {
-  async isEnabled(feature: string): Promise<Result<boolean, string>> {
+  async isEnabled(feature: Feature): Promise<Result<boolean, string>> {
     try {
       return {
         status: "ok",
@@ -27,6 +24,14 @@ export const commands = {
     }
   },
 };
+
+/** user-defined events **/
+
+/** user-defined constants **/
+
+/** user-defined types **/
+
+export type Feature = "chat";
 
 type __EventObj__<T> = {
   listen: (

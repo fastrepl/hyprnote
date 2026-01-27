@@ -3,7 +3,7 @@ mod error;
 mod ext;
 
 pub use error::{Error, Result};
-pub use ext::*;
+pub use ext::{Feature, Flag, FlagPluginExt};
 
 const PLUGIN_NAME: &str = "flag";
 
@@ -56,7 +56,7 @@ mod test {
     #[tokio::test]
     async fn test_flag() {
         let app = create_app(tauri::test::mock_builder());
-        let result = app.flag().is_enabled("test_feature");
+        let result = app.flag().is_enabled(Feature::Chat);
         assert!(!result);
     }
 }

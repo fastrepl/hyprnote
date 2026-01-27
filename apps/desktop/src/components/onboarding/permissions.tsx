@@ -119,6 +119,17 @@ export function Permissions({ onNavigate }: StepProps) {
     >
       <div className="flex flex-col gap-4">
         <PermissionBlock
+          name="Accessibility"
+          status={accessibilityPermissionStatus.data}
+          description={{
+            authorized: "Good to go :)",
+            unauthorized: "To sync mic inputs & mute from meetings",
+          }}
+          isPending={accessibilityPermission.isPending}
+          onAction={handleAccessibilityPermissionAction}
+        />
+
+        <PermissionBlock
           name="Microphone"
           status={micPermissionStatus.data}
           description={{
@@ -138,17 +149,6 @@ export function Permissions({ onNavigate }: StepProps) {
           }}
           isPending={systemAudioPermission.isPending}
           onAction={handleSystemAudioPermissionAction}
-        />
-
-        <PermissionBlock
-          name="Accessibility"
-          status={accessibilityPermissionStatus.data}
-          description={{
-            authorized: "Good to go :)",
-            unauthorized: "To sync mic inputs & mute from meetings",
-          }}
-          isPending={accessibilityPermission.isPending}
-          onAction={handleAccessibilityPermissionAction}
         />
       </div>
 

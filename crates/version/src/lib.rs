@@ -1,100 +1,96 @@
 pub use semver::Version;
 
-pub fn is_at_least(current: &Version, minimum: &Version) -> bool {
-    current >= minimum
-}
-
-pub fn is_before(current: &Version, version: &Version) -> bool {
-    current < version
-}
-
-pub fn is_in_range(current: &Version, from: &Version, to: &Version) -> bool {
-    current >= from && current < to
-}
-
-pub fn is_in_range_inclusive(current: &Version, from: &Version, to: &Version) -> bool {
-    current >= from && current <= to
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    macro_rules! test_order {
+        ($name:ident: $($version:literal),+ $(,)?) => {
+            #[test]
+            fn $name() {
+                let versions = [$($version),+];
+                for i in 0..versions.len() {
+                    for j in (i + 1)..versions.len() {
+                        let left = Version::parse(versions[i]).unwrap();
+                        let right = Version::parse(versions[j]).unwrap();
+                        assert!(
+                            left < right,
+                            "Expected {} < {}, but got {} >= {}",
+                            versions[i], versions[j], versions[i], versions[j]
+                        );
+                    }
+                }
+            }
+        };
+    }
+
+    test_order!(basic_semver: "1.0.0", "1.0.1", "1.1.0", "2.0.0");
+
+    test_order!(prerelease_vs_release: "1.0.0-alpha", "1.0.0-beta", "1.0.0-rc.1", "1.0.0");
+
+    test_order!(numeric_prerelease_identifiers: "1.0.0-pre.1", "1.0.0-pre.2", "1.0.0-pre.10", "1.0.0-pre.100");
+
+    test_order!(nightly_releases: "1.0.0-nightly.1", "1.0.0-nightly.2", "1.0.0-nightly.10", "1.0.0-nightly.32", "1.0.0");
+
+    test_order!(
+        nightly_across_patches:
+        "1.0.0-nightly.1",
+        "1.0.0-nightly.32",
+        "1.0.0",
+        "1.0.1-nightly.1",
+        "1.0.1-nightly.4",
+        "1.0.1",
+        "1.0.2-nightly.1",
+        "1.0.2-nightly.12",
+    );
+
+    test_order!(
+        dev_builds_extend_prerelease:
+        "1.0.2-nightly.12",
+        "1.0.2-nightly.12.dev.1",
+        "1.0.2-nightly.12.dev.100",
+        "1.0.2-nightly.12.dev.5169",
+        "1.0.2-nightly.13",
+    );
+
+    test_order!(
+        full_release_cycle:
+        "1.0.1",
+        "1.0.2-nightly.1",
+        "1.0.2-nightly.1.dev.10",
+        "1.0.2-nightly.1.dev.100",
+        "1.0.2-nightly.2",
+        "1.0.2-nightly.12",
+        "1.0.2-nightly.12.dev.1",
+        "1.0.2-nightly.12.dev.5169",
+        "1.0.2-nightly.13",
+        "1.0.2",
+        "1.0.3-nightly.1",
+    );
+
+    test_order!(string_vs_numeric_identifiers: "1.0.0-1", "1.0.0-2", "1.0.0-10", "1.0.0-alpha", "1.0.0-beta");
+
+    test_order!(longer_prerelease_is_greater: "1.0.0-alpha", "1.0.0-alpha.1", "1.0.0-alpha.1.beta");
+
     #[test]
-    fn test_is_at_least() {
-        let v1_0_0 = Version::new(1, 0, 0);
-        let v1_0_1 = Version::new(1, 0, 1);
-        let v1_1_0 = Version::new(1, 1, 0);
-        let v2_0_0 = Version::new(2, 0, 0);
+    fn build_metadata_comparison() {
+        let base = Version::parse("1.0.2-nightly.12.dev.5169").unwrap();
+        let with_meta = Version::parse("1.0.2-nightly.12.dev.5169+8797281").unwrap();
+        let with_other_meta = Version::parse("1.0.2-nightly.12.dev.5169+abcdef0").unwrap();
 
-        assert!(is_at_least(&v1_0_0, &v1_0_0));
-        assert!(is_at_least(&v1_0_1, &v1_0_0));
-        assert!(is_at_least(&v1_1_0, &v1_0_0));
-        assert!(is_at_least(&v2_0_0, &v1_0_0));
-
-        assert!(!is_at_least(&v1_0_0, &v1_0_1));
-        assert!(!is_at_least(&v1_0_0, &v2_0_0));
+        assert!(base < with_meta);
+        assert!(with_meta < with_other_meta);
     }
 
     #[test]
-    fn test_is_before() {
-        let v1_0_0 = Version::new(1, 0, 0);
-        let v1_0_1 = Version::new(1, 0, 1);
-        let v2_0_0 = Version::new(2, 0, 0);
+    fn real_world_staging_build() {
+        let nightly_tag = Version::parse("1.0.2-nightly.12").unwrap();
+        let staging_build = Version::parse("1.0.2-nightly.12.dev.5169+8797281").unwrap();
+        let next_nightly = Version::parse("1.0.2-nightly.13").unwrap();
+        let stable = Version::parse("1.0.2").unwrap();
 
-        assert!(is_before(&v1_0_0, &v1_0_1));
-        assert!(is_before(&v1_0_0, &v2_0_0));
-        assert!(is_before(&v1_0_1, &v2_0_0));
-
-        assert!(!is_before(&v1_0_0, &v1_0_0));
-        assert!(!is_before(&v1_0_1, &v1_0_0));
-        assert!(!is_before(&v2_0_0, &v1_0_0));
-    }
-
-    #[test]
-    fn test_is_in_range() {
-        let v1_0_0 = Version::new(1, 0, 0);
-        let v1_0_1 = Version::new(1, 0, 1);
-        let v1_0_2 = Version::new(1, 0, 2);
-        let v1_1_0 = Version::new(1, 1, 0);
-        let v2_0_0 = Version::new(2, 0, 0);
-
-        assert!(is_in_range(&v1_0_1, &v1_0_0, &v1_0_2));
-        assert!(is_in_range(&v1_0_0, &v1_0_0, &v1_0_2));
-        assert!(is_in_range(&v1_0_1, &v1_0_0, &v2_0_0));
-        assert!(is_in_range(&v1_1_0, &v1_0_0, &v2_0_0));
-
-        assert!(!is_in_range(&v1_0_2, &v1_0_0, &v1_0_2));
-        assert!(!is_in_range(&v2_0_0, &v1_0_0, &v2_0_0));
-        assert!(!is_in_range(&v1_0_0, &v1_0_1, &v2_0_0));
-    }
-
-    #[test]
-    fn test_is_in_range_inclusive() {
-        let v1_0_0 = Version::new(1, 0, 0);
-        let v1_0_1 = Version::new(1, 0, 1);
-        let v1_0_2 = Version::new(1, 0, 2);
-        let v2_0_0 = Version::new(2, 0, 0);
-
-        assert!(is_in_range_inclusive(&v1_0_0, &v1_0_0, &v1_0_2));
-        assert!(is_in_range_inclusive(&v1_0_1, &v1_0_0, &v1_0_2));
-        assert!(is_in_range_inclusive(&v1_0_2, &v1_0_0, &v1_0_2));
-
-        assert!(!is_in_range_inclusive(&v2_0_0, &v1_0_0, &v1_0_2));
-        assert!(!is_in_range_inclusive(&v1_0_0, &v1_0_1, &v1_0_2));
-    }
-
-    #[test]
-    fn test_with_prerelease() {
-        let v1_0_0 = Version::new(1, 0, 0);
-        let v1_0_0_alpha = Version::parse("1.0.0-alpha").unwrap();
-        let v1_0_0_beta = Version::parse("1.0.0-beta").unwrap();
-
-        assert!(is_before(&v1_0_0_alpha, &v1_0_0));
-        assert!(is_before(&v1_0_0_beta, &v1_0_0));
-        assert!(is_before(&v1_0_0_alpha, &v1_0_0_beta));
-
-        assert!(is_at_least(&v1_0_0, &v1_0_0_alpha));
-        assert!(is_at_least(&v1_0_0, &v1_0_0_beta));
+        assert!(nightly_tag < staging_build);
+        assert!(staging_build < next_nightly);
+        assert!(next_nightly < stable);
     }
 }

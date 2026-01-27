@@ -20076,7 +20076,6 @@ name = "version"
 version = "0.1.0"
 dependencies = [
  "semver 1.0.27",
- "thiserror 2.0.17",
 ]
 
 [[package]]

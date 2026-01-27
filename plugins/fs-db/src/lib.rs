@@ -30,8 +30,8 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             };
 
             let app_version = app.config().version.as_ref().map_or_else(
-                || semver::Version::new(0, 0, 0),
-                |v| semver::Version::parse(v).expect("version must be semver"),
+                || hypr_version::Version::new(0, 0, 0),
+                |v| hypr_version::Version::parse(v).expect("version must be semver"),
             );
 
             migrations::run(&base_dir, &app_version)?;

@@ -105,3 +105,4 @@ apple-calendar-fixture = ["tauri-plugin-apple-calendar/fixture"]
 
 [target.'cfg(target_os = "macos")'.dependencies]
 tauri-plugin-automation = { version = "0.1", optional = true }
+hypr-intercept = { workspace = true }

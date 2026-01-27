@@ -170,6 +170,7 @@ pub async fn main() {
 
     // Always intercept Cmd+Q - this handler always returns false to prevent quit.
     // Use Cmd+Shift+Q or "Quit Completely" menu items to actually quit.
+    #[cfg(target_os = "macos")]
     hypr_intercept::register_quit_handler("desktop", || false);
 
     let app = builder

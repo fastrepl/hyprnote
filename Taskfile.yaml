@@ -143,6 +143,16 @@ tasks:
       - task: supabase-env
       - supabase migration up --local
 
+  qa:
+    desc: Reset Hyprnote Staging app state and open for QA testing
+    platforms: [darwin]
+    cmds:
+      - rm -rf ~/Library/Application\ Support/com.hyprnote.staging
+      - tccutil reset Microphone com.hyprnote.staging
+      - tccutil reset ScreenCapture com.hyprnote.staging
+      - tccutil reset Accessibility com.hyprnote.staging
+      - /Applications/Hyprnote\ Staging.app/Contents/MacOS/hyprnote-staging
+
   stripe:
     cmds:
       - stripe listen --print-secret | tr -d '\r\n' | xargs -I{} sh -c 'printf "STRIPE_WEBHOOK_SECRET=\"{}\"\n" > .env.stripe'

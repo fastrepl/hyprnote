@@ -30,10 +30,23 @@ impl MockAnalytics {
     }
 
     pub async fn get_single_event(&self) -> GenerationEvent {
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-        let events = self.captured_events();
-        assert_eq!(events.len(), 1);
-        events.into_iter().next().unwrap()
+        let timeout = std::time::Duration::from_secs(10);
+        let poll_interval = std::time::Duration::from_millis(50);
+        let start = std::time::Instant::now();
+
+        loop {
+            let events = self.captured_events();
+            if events.len() == 1 {
+                return events.into_iter().next().unwrap();
+            }
+            if start.elapsed() > timeout {
+                panic!(
+                    "Timed out waiting for analytics event. Got {} events, expected 1",
+                    events.len()
+                );
+            }
+            tokio::time::sleep(poll_interval).await;
+        }
     }
 }
 

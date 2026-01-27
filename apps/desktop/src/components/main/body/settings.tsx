@@ -231,7 +231,9 @@ function SettingsView() {
 
           <div className="border-t border-dashed border-neutral-200 mt-10 pt-8">
             <div ref={refCallbacks.lab}>
-              <h2 className="font-semibold mb-4 text-neutral-600">Lab</h2>
+              <h2 className="text-lg font-semibold mb-4 text-neutral-600">
+                Lab
+              </h2>
               <SettingsLab />
             </div>
           </div>

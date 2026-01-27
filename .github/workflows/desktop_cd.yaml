@@ -183,6 +183,17 @@ jobs:
           name: hyprnote-staging-macos-${{ matrix.artifact_name }}
           path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
           retention-days: 3
+      - if: ${{ inputs.channel == 'staging' }}
+        run: |
+          DMG_FILE=$(find "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/" -name "*.dmg" -type f)
+          cp "$DMG_FILE" "hyprnote-macos-${{ matrix.arch }}.dmg"
+          aws s3 cp "hyprnote-macos-${{ matrix.arch }}.dmg" \
+            "s3://hyprnote-build/desktop/staging/hyprnote-macos-${{ matrix.arch }}.dmg" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
 
   build-linux:
     needs: [compute-version, cn-draft]

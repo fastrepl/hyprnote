@@ -4,7 +4,7 @@ mod commands;
 mod error;
 mod ext;
 mod output;
-mod sources;
+pub mod sources;
 mod types;
 
 pub use error::*;

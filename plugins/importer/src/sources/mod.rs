@@ -1,6 +1,6 @@
 mod as_is;
 mod granola;
-mod hyprnote;
+pub mod hyprnote;
 
 pub use as_is::AsIsData;
 

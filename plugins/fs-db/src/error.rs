@@ -11,6 +11,10 @@ pub enum Error {
         from: hypr_version::Version,
         to: hypr_version::Version,
     },
+    #[error("import failed: {0}")]
+    ImportFailed(String),
+    #[error("json error: {0}")]
+    Json(#[from] serde_json::Error),
 }
 
 impl Serialize for Error {

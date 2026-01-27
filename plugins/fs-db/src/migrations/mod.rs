@@ -1,5 +1,6 @@
 mod v1_0_2_move_uuid_folders_to_sessions;
 mod v1_0_3_rename_transcript;
+mod v1_0_4_migrate_sqlite_to_filesystem;
 
 use std::path::Path;
 
@@ -25,6 +26,11 @@ fn all_migrations() -> Vec<Migration> {
             from: v1_0_3_rename_transcript::FROM_VERSION,
             to: v1_0_3_rename_transcript::TO_VERSION,
             run: v1_0_3_rename_transcript::run,
+        },
+        Migration {
+            from: v1_0_4_migrate_sqlite_to_filesystem::FROM_VERSION,
+            to: v1_0_4_migrate_sqlite_to_filesystem::TO_VERSION,
+            run: v1_0_4_migrate_sqlite_to_filesystem::run,
         },
     ]
 }

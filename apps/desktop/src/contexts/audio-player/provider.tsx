@@ -85,10 +85,31 @@ export function AudioPlayerProvider({
       url,
       dragToSeek: true,
       normalize: true,
+      splitChannels: [
+        { waveColor: "#d4d4d8", progressColor: "#a1a1aa", overlay: true },
+        { waveColor: "#3f3f46", progressColor: "#18181b", overlay: true },
+      ],
     });
+
+    let audioContext: AudioContext | null = null;
 
     const handleReady = () => {
       setDuration(ws.getDuration());
+
+      const media = ws.getMediaElement();
+      if (media) {
+        audioContext = new AudioContext();
+        const source = audioContext.createMediaElementSource(media);
+        const merger = audioContext.createChannelMerger(2);
+        const splitter = audioContext.createChannelSplitter(2);
+
+        source.connect(splitter);
+        splitter.connect(merger, 0, 0);
+        splitter.connect(merger, 0, 1);
+        splitter.connect(merger, 1, 0);
+        splitter.connect(merger, 1, 1);
+        merger.connect(audioContext.destination);
+      }
     };
 
     const handleDecode = () => {
@@ -120,6 +141,9 @@ export function AudioPlayerProvider({
     return () => {
       ws.destroy();
       setWavesurfer(null);
+      if (audioContext) {
+        audioContext.close();
+      }
     };
   }, [container, url]);
 

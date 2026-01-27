@@ -5,8 +5,8 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use hypr_audio_utils::{
-    VorbisEncodeSettings, decode_vorbis_to_mono_wav_file, encode_wav_to_vorbis_file_mono_as_stereo,
-    mix_audio_f32,
+    VorbisEncodeSettings, decode_vorbis_to_mono_wav_file, encode_wav_to_vorbis_file,
+    encode_wav_to_vorbis_file_mono_as_stereo, mix_audio_f32,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_plugin_fs_sync::find_session_dir;
@@ -30,6 +30,7 @@ pub struct RecState {
     wav_path: PathBuf,
     ogg_path: PathBuf,
     last_flush: Instant,
+    is_stereo: bool,
 }
 
 pub struct RecorderActor;
@@ -58,12 +59,21 @@ impl Actor for RecorderActor {
         let wav_path = dir.join(format!("{}.wav", filename_base));
         let ogg_path = dir.join(format!("{}.ogg", filename_base));
 
+        let is_stereo = !ogg_path.exists();
+
         if ogg_path.exists() {
             decode_vorbis_to_mono_wav_file(&ogg_path, &wav_path).map_err(into_actor_err)?;
             std::fs::remove_file(&ogg_path)?;
         }
 
-        let spec = hound::WavSpec {
+        let stereo_spec = hound::WavSpec {
+            channels: 2,
+            sample_rate: super::SAMPLE_RATE,
+            bits_per_sample: 32,
+            sample_format: hound::SampleFormat::Float,
+        };
+
+        let mono_spec = hound::WavSpec {
             channels: 1,
             sample_rate: super::SAMPLE_RATE,
             bits_per_sample: 32,
@@ -72,8 +82,10 @@ impl Actor for RecorderActor {
 
         let writer = if wav_path.exists() {
             hound::WavWriter::append(&wav_path)?
+        } else if is_stereo {
+            hound::WavWriter::create(&wav_path, stereo_spec)?
         } else {
-            hound::WavWriter::create(&wav_path, spec)?
+            hound::WavWriter::create(&wav_path, mono_spec)?
         };
 
         let (writer_mic, writer_spk) = if is_debug_mode() {
@@ -83,13 +95,13 @@ impl Actor for RecorderActor {
             let mic_writer = if mic_path.exists() {
                 hound::WavWriter::append(&mic_path)?
             } else {
-                hound::WavWriter::create(&mic_path, spec)?
+                hound::WavWriter::create(&mic_path, mono_spec)?
             };
 
             let spk_writer = if spk_path.exists() {
                 hound::WavWriter::append(&spk_path)?
             } else {
-                hound::WavWriter::create(&spk_path, spec)?
+                hound::WavWriter::create(&spk_path, mono_spec)?
             };
 
             (Some(mic_writer), Some(spk_writer))
@@ -104,6 +116,7 @@ impl Actor for RecorderActor {
             wav_path,
             ogg_path,
             last_flush: Instant::now(),
+            is_stereo,
         })
     }
 
@@ -116,31 +129,46 @@ impl Actor for RecorderActor {
         match msg {
             RecMsg::AudioSingle(samples) => {
                 if let Some(ref mut writer) = st.writer {
-                    for s in samples.iter() {
-                        writer.write_sample(*s)?;
+                    if st.is_stereo {
+                        for s in samples.iter() {
+                            writer.write_sample(*s)?;
+                            writer.write_sample(*s)?;
+                        }
+                    } else {
+                        for s in samples.iter() {
+                            writer.write_sample(*s)?;
+                        }
                     }
                 }
                 flush_if_due(st)?;
             }
             RecMsg::AudioDual(mic, spk) => {
                 if let Some(ref mut writer) = st.writer {
-                    let mixed = mix_audio_f32(&mic, &spk);
-                    for sample in mixed {
-                        writer.write_sample(sample)?;
+                    if st.is_stereo {
+                        let max_len = mic.len().max(spk.len());
+                        for i in 0..max_len {
+                            let m = mic.get(i).copied().unwrap_or(0.0);
+                            let s = spk.get(i).copied().unwrap_or(0.0);
+                            writer.write_sample(m)?;
+                            writer.write_sample(s)?;
+                        }
+                    } else {
+                        let mixed = mix_audio_f32(&mic, &spk);
+                        for sample in mixed {
+                            writer.write_sample(sample)?;
+                        }
                     }
                 }
 
-                if st.writer_mic.is_some() {
-                    if let Some(ref mut writer_mic) = st.writer_mic {
-                        for s in mic.iter() {
-                            writer_mic.write_sample(*s)?;
-                        }
+                if let Some(ref mut writer_mic) = st.writer_mic {
+                    for s in mic.iter() {
+                        writer_mic.write_sample(*s)?;
                     }
+                }
 
-                    if let Some(ref mut writer_spk) = st.writer_spk {
-                        for s in spk.iter() {
-                            writer_spk.write_sample(*s)?;
-                        }
+                if let Some(ref mut writer_spk) = st.writer_spk {
+                    for s in spk.iter() {
+                        writer_spk.write_sample(*s)?;
                     }
                 }
 
@@ -163,11 +191,21 @@ impl Actor for RecorderActor {
         if st.wav_path.exists() {
             let temp_ogg_path = st.ogg_path.with_extension("ogg.tmp");
 
-            match encode_wav_to_vorbis_file_mono_as_stereo(
-                &st.wav_path,
-                &temp_ogg_path,
-                VorbisEncodeSettings::default(),
-            ) {
+            let encode_result = if st.is_stereo {
+                encode_wav_to_vorbis_file(
+                    &st.wav_path,
+                    &temp_ogg_path,
+                    VorbisEncodeSettings::default(),
+                )
+            } else {
+                encode_wav_to_vorbis_file_mono_as_stereo(
+                    &st.wav_path,
+                    &temp_ogg_path,
+                    VorbisEncodeSettings::default(),
+                )
+            };
+
+            match encode_result {
                 Ok(_) => {
                     std::fs::rename(&temp_ogg_path, &st.ogg_path)?;
 

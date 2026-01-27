@@ -22,6 +22,10 @@ export const env = createEnv({
     DEEPGRAM_API_KEY: z.string().min(1),
 
     GITHUB_TOKEN: z.string().optional(),
+
+    CLOUDFLARE_R2_ENDPOINT_URL: z.string().min(1),
+    CLOUDFLARE_R2_ACCESS_KEY_ID: z.string().min(1),
+    CLOUDFLARE_R2_SECRET_ACCESS_KEY: z.string().min(1),
   },
 
   clientPrefix: "VITE_",

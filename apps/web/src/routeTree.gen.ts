@@ -62,6 +62,7 @@ import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiWebhooksSlackInteractiveRouteImport } from './routes/api/webhooks/slack-interactive'
 import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
 import { Route as ApiImagesSplatRouteImport } from './routes/api/images.$'
+import { Route as ApiDownloadStagingDmgRouteImport } from './routes/api/download/staging-dmg'
 import { Route as ViewVsSlugRouteImport } from './routes/_view/vs/$slug'
 import { Route as ViewTemplatesSlugRouteImport } from './routes/_view/templates/$slug'
 import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/sales'
@@ -95,6 +96,7 @@ import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewK6ReportsIdRouteImport } from './routes/_view/k6-reports/$id'
 import { Route as ViewJobsSlugRouteImport } from './routes/_view/jobs/$slug'
 import { Route as ViewDownloadWindowsRouteImport } from './routes/_view/download/windows'
+import { Route as ViewDownloadStagingRouteImport } from './routes/_view/download/staging'
 import { Route as ViewDownloadLinuxDebRouteImport } from './routes/_view/download/linux-deb'
 import { Route as ViewDownloadLinuxAppimageRouteImport } from './routes/_view/download/linux-appimage'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
@@ -399,6 +401,11 @@ const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
   path: '/api/images/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDownloadStagingDmgRoute = ApiDownloadStagingDmgRouteImport.update({
+  id: '/api/download/staging-dmg',
+  path: '/api/download/staging-dmg',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViewVsSlugRoute = ViewVsSlugRouteImport.update({
   id: '/vs/$slug',
   path: '/vs/$slug',
@@ -565,6 +572,11 @@ const ViewJobsSlugRoute = ViewJobsSlugRouteImport.update({
 const ViewDownloadWindowsRoute = ViewDownloadWindowsRouteImport.update({
   id: '/download/windows',
   path: '/download/windows',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDownloadStagingRoute = ViewDownloadStagingRouteImport.update({
+  id: '/download/staging',
+  path: '/download/staging',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewDownloadLinuxDebRoute = ViewDownloadLinuxDebRouteImport.update({
@@ -807,6 +819,7 @@ export interface FileRoutesByFullPath {
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
+  '/download/staging': typeof ViewDownloadStagingRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
   '/jobs/$slug': typeof ViewJobsSlugRoute
   '/k6-reports/$id': typeof ViewK6ReportsIdRoute
@@ -840,6 +853,7 @@ export interface FileRoutesByFullPath {
   '/solution/sales': typeof ViewSolutionSalesRoute
   '/templates/$slug': typeof ViewTemplatesSlugRoute
   '/vs/$slug': typeof ViewVsSlugRoute
+  '/api/download/staging-dmg': typeof ApiDownloadStagingDmgRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/api/webhooks/slack-interactive': typeof ApiWebhooksSlackInteractiveRoute
@@ -926,6 +940,7 @@ export interface FileRoutesByTo {
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
+  '/download/staging': typeof ViewDownloadStagingRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
   '/jobs/$slug': typeof ViewJobsSlugRoute
   '/k6-reports/$id': typeof ViewK6ReportsIdRoute
@@ -959,6 +974,7 @@ export interface FileRoutesByTo {
   '/solution/sales': typeof ViewSolutionSalesRoute
   '/templates/$slug': typeof ViewTemplatesSlugRoute
   '/vs/$slug': typeof ViewVsSlugRoute
+  '/api/download/staging-dmg': typeof ApiDownloadStagingDmgRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/api/webhooks/slack-interactive': typeof ApiWebhooksSlackInteractiveRoute
@@ -1051,6 +1067,7 @@ export interface FileRoutesById {
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/_view/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/_view/download/linux-deb': typeof ViewDownloadLinuxDebRoute
+  '/_view/download/staging': typeof ViewDownloadStagingRoute
   '/_view/download/windows': typeof ViewDownloadWindowsRoute
   '/_view/jobs/$slug': typeof ViewJobsSlugRoute
   '/_view/k6-reports/$id': typeof ViewK6ReportsIdRoute
@@ -1084,6 +1101,7 @@ export interface FileRoutesById {
   '/_view/solution/sales': typeof ViewSolutionSalesRoute
   '/_view/templates/$slug': typeof ViewTemplatesSlugRoute
   '/_view/vs/$slug': typeof ViewVsSlugRoute
+  '/api/download/staging-dmg': typeof ApiDownloadStagingDmgRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/api/webhooks/slack-interactive': typeof ApiWebhooksSlackInteractiveRoute
@@ -1176,6 +1194,7 @@ export interface FileRouteTypes {
     | '/download/apple-silicon'
     | '/download/linux-appimage'
     | '/download/linux-deb'
+    | '/download/staging'
     | '/download/windows'
     | '/jobs/$slug'
     | '/k6-reports/$id'
@@ -1209,6 +1228,7 @@ export interface FileRouteTypes {
     | '/solution/sales'
     | '/templates/$slug'
     | '/vs/$slug'
+    | '/api/download/staging-dmg'
     | '/api/images/$'
     | '/api/tweet/$id'
     | '/api/webhooks/slack-interactive'
@@ -1295,6 +1315,7 @@ export interface FileRouteTypes {
     | '/download/apple-silicon'
     | '/download/linux-appimage'
     | '/download/linux-deb'
+    | '/download/staging'
     | '/download/windows'
     | '/jobs/$slug'
     | '/k6-reports/$id'
@@ -1328,6 +1349,7 @@ export interface FileRouteTypes {
     | '/solution/sales'
     | '/templates/$slug'
     | '/vs/$slug'
+    | '/api/download/staging-dmg'
     | '/api/images/$'
     | '/api/tweet/$id'
     | '/api/webhooks/slack-interactive'
@@ -1419,6 +1441,7 @@ export interface FileRouteTypes {
     | '/_view/download/apple-silicon'
     | '/_view/download/linux-appimage'
     | '/_view/download/linux-deb'
+    | '/_view/download/staging'
     | '/_view/download/windows'
     | '/_view/jobs/$slug'
     | '/_view/k6-reports/$id'
@@ -1452,6 +1475,7 @@ export interface FileRouteTypes {
     | '/_view/solution/sales'
     | '/_view/templates/$slug'
     | '/_view/vs/$slug'
+    | '/api/download/staging-dmg'
     | '/api/images/$'
     | '/api/tweet/$id'
     | '/api/webhooks/slack-interactive'
@@ -1515,6 +1539,7 @@ export interface RootRouteChildren {
   ApiShortcutsRoute: typeof ApiShortcutsRoute
   ApiTemplatesRoute: typeof ApiTemplatesRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
+  ApiDownloadStagingDmgRoute: typeof ApiDownloadStagingDmgRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
   ApiWebhooksSlackInteractiveRoute: typeof ApiWebhooksSlackInteractiveRoute
@@ -1913,6 +1938,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiImagesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/download/staging-dmg': {
+      id: '/api/download/staging-dmg'
+      path: '/api/download/staging-dmg'
+      fullPath: '/api/download/staging-dmg'
+      preLoaderRoute: typeof ApiDownloadStagingDmgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_view/vs/$slug': {
       id: '/_view/vs/$slug'
       path: '/vs/$slug'
@@ -2142,6 +2174,13 @@ declare module '@tanstack/react-router' {
       path: '/download/windows'
       fullPath: '/download/windows'
       preLoaderRoute: typeof ViewDownloadWindowsRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/download/staging': {
+      id: '/_view/download/staging'
+      path: '/download/staging'
+      fullPath: '/download/staging'
+      preLoaderRoute: typeof ViewDownloadStagingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/download/linux-deb': {
@@ -2472,6 +2511,7 @@ interface ViewRouteRouteChildren {
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
   ViewDownloadLinuxAppimageRoute: typeof ViewDownloadLinuxAppimageRoute
   ViewDownloadLinuxDebRoute: typeof ViewDownloadLinuxDebRoute
+  ViewDownloadStagingRoute: typeof ViewDownloadStagingRoute
   ViewDownloadWindowsRoute: typeof ViewDownloadWindowsRoute
   ViewJobsSlugRoute: typeof ViewJobsSlugRoute
   ViewK6ReportsIdRoute: typeof ViewK6ReportsIdRoute
@@ -2544,6 +2584,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
   ViewDownloadLinuxAppimageRoute: ViewDownloadLinuxAppimageRoute,
   ViewDownloadLinuxDebRoute: ViewDownloadLinuxDebRoute,
+  ViewDownloadStagingRoute: ViewDownloadStagingRoute,
   ViewDownloadWindowsRoute: ViewDownloadWindowsRoute,
   ViewJobsSlugRoute: ViewJobsSlugRoute,
   ViewK6ReportsIdRoute: ViewK6ReportsIdRoute,
@@ -2632,6 +2673,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiShortcutsRoute: ApiShortcutsRoute,
   ApiTemplatesRoute: ApiTemplatesRoute,
   WebhookNangoRoute: WebhookNangoRoute,
+  ApiDownloadStagingDmgRoute: ApiDownloadStagingDmgRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
   ApiWebhooksSlackInteractiveRoute: ApiWebhooksSlackInteractiveRoute,

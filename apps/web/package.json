@@ -11,6 +11,7 @@
     "gen:agents": "node scripts/gen-agents.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.975.0",
     "@deepgram/sdk": "^4.11.3",
     "@hypr/api-client": "workspace:*",
     "@hypr/tiptap": "workspace:*",

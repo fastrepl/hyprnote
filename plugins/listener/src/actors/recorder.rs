@@ -5,8 +5,9 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use hypr_audio_utils::{
-    VorbisEncodeSettings, decode_vorbis_to_mono_wav_file, encode_wav_to_vorbis_file,
-    encode_wav_to_vorbis_file_mono_as_stereo, mix_audio_f32,
+    VorbisEncodeSettings, decode_vorbis_to_mono_wav_file, decode_vorbis_to_wav_file,
+    encode_wav_to_vorbis_file, encode_wav_to_vorbis_file_mono_as_stereo, mix_audio_f32,
+    ogg_has_identical_channels,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_plugin_fs_sync::find_session_dir;
@@ -59,12 +60,18 @@ impl Actor for RecorderActor {
         let wav_path = dir.join(format!("{}.wav", filename_base));
         let ogg_path = dir.join(format!("{}.ogg", filename_base));
 
-        let is_stereo = !ogg_path.exists();
-
-        if ogg_path.exists() {
-            decode_vorbis_to_mono_wav_file(&ogg_path, &wav_path).map_err(into_actor_err)?;
+        let is_stereo = if ogg_path.exists() {
+            let has_identical = ogg_has_identical_channels(&ogg_path).map_err(into_actor_err)?;
+            if has_identical {
+                decode_vorbis_to_mono_wav_file(&ogg_path, &wav_path).map_err(into_actor_err)?;
+            } else {
+                decode_vorbis_to_wav_file(&ogg_path, &wav_path).map_err(into_actor_err)?;
+            }
             std::fs::remove_file(&ogg_path)?;
-        }
+            !has_identical
+        } else {
+            true
+        };
 
         let stereo_spec = hound::WavSpec {
             channels: 2,
@@ -130,52 +137,33 @@ impl Actor for RecorderActor {
             RecMsg::AudioSingle(samples) => {
                 if let Some(ref mut writer) = st.writer {
                     if st.is_stereo {
-                        for s in samples.iter() {
-                            writer.write_sample(*s)?;
-                            writer.write_sample(*s)?;
-                        }
+                        write_mono_as_stereo(writer, &samples)?;
                     } else {
-                        for s in samples.iter() {
-                            writer.write_sample(*s)?;
-                        }
+                        write_mono_samples(writer, &samples)?;
                     }
                 }
-                flush_if_due(st)?;
             }
             RecMsg::AudioDual(mic, spk) => {
                 if let Some(ref mut writer) = st.writer {
                     if st.is_stereo {
-                        let max_len = mic.len().max(spk.len());
-                        for i in 0..max_len {
-                            let m = mic.get(i).copied().unwrap_or(0.0);
-                            let s = spk.get(i).copied().unwrap_or(0.0);
-                            writer.write_sample(m)?;
-                            writer.write_sample(s)?;
-                        }
+                        write_interleaved_stereo(writer, &mic, &spk)?;
                     } else {
                         let mixed = mix_audio_f32(&mic, &spk);
-                        for sample in mixed {
-                            writer.write_sample(sample)?;
-                        }
+                        write_mono_samples(writer, &mixed)?;
                     }
                 }
 
                 if let Some(ref mut writer_mic) = st.writer_mic {
-                    for s in mic.iter() {
-                        writer_mic.write_sample(*s)?;
-                    }
+                    write_mono_samples(writer_mic, &mic)?;
                 }
 
                 if let Some(ref mut writer_spk) = st.writer_spk {
-                    for s in spk.iter() {
-                        writer_spk.write_sample(*s)?;
-                    }
+                    write_mono_samples(writer_spk, &spk)?;
                 }
-
-                flush_if_due(st)?;
             }
         }
 
+        flush_if_due(st)?;
         Ok(())
     }
 
@@ -208,16 +196,8 @@ impl Actor for RecorderActor {
             match encode_result {
                 Ok(_) => {
                     std::fs::rename(&temp_ogg_path, &st.ogg_path)?;
-
-                    if let Ok(file) = File::open(&st.ogg_path) {
-                        let _ = file.sync_all();
-                    }
-                    if let Some(parent) = st.ogg_path.parent() {
-                        if let Ok(dir) = File::open(parent) {
-                            let _ = dir.sync_all();
-                        }
-                    }
-
+                    sync_file(&st.ogg_path);
+                    sync_dir(&st.ogg_path);
                     std::fs::remove_file(&st.wav_path)?;
                 }
                 Err(e) => {
@@ -263,6 +243,42 @@ fn flush_all(state: &mut RecState) -> Result<(), hound::Error> {
     Ok(())
 }
 
+fn write_mono_samples(
+    writer: &mut hound::WavWriter<BufWriter<File>>,
+    samples: &[f32],
+) -> Result<(), hound::Error> {
+    for s in samples {
+        writer.write_sample(*s)?;
+    }
+    Ok(())
+}
+
+fn write_mono_as_stereo(
+    writer: &mut hound::WavWriter<BufWriter<File>>,
+    samples: &[f32],
+) -> Result<(), hound::Error> {
+    for s in samples {
+        writer.write_sample(*s)?;
+        writer.write_sample(*s)?;
+    }
+    Ok(())
+}
+
+fn write_interleaved_stereo(
+    writer: &mut hound::WavWriter<BufWriter<File>>,
+    mic: &[f32],
+    spk: &[f32],
+) -> Result<(), hound::Error> {
+    let max_len = mic.len().max(spk.len());
+    for i in 0..max_len {
+        let m = mic.get(i).copied().unwrap_or(0.0);
+        let s = spk.get(i).copied().unwrap_or(0.0);
+        writer.write_sample(m)?;
+        writer.write_sample(s)?;
+    }
+    Ok(())
+}
+
 fn finalize_writer(
     writer: &mut Option<hound::WavWriter<BufWriter<File>>>,
     path: Option<&std::path::Path>,
@@ -272,10 +288,22 @@ fn finalize_writer(
         writer.finalize()?;
 
         if let Some(p) = path {
-            if let Ok(file) = File::open(p) {
-                let _ = file.sync_all();
-            }
+            sync_file(p);
         }
     }
     Ok(())
+}
+
+fn sync_file(path: &std::path::Path) {
+    if let Ok(file) = File::open(path) {
+        let _ = file.sync_all();
+    }
+}
+
+fn sync_dir(path: &std::path::Path) {
+    if let Some(parent) = path.parent() {
+        if let Ok(dir) = File::open(parent) {
+            let _ = dir.sync_all();
+        }
+    }
 }

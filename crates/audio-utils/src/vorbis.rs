@@ -128,6 +128,42 @@ pub fn decode_vorbis_to_mono_wav_file(
     decode_vorbis_to_wav_file_with_mode(ogg_path, wav_path, DecodeMode::Mono)
 }
 
+pub fn ogg_has_identical_channels(ogg_path: impl AsRef<Path>) -> Result<bool, Error> {
+    const MAX_FRAMES_TO_CHECK: usize = 1000;
+    const EPSILON: f32 = 1e-6;
+
+    let ogg_reader = BufReader::new(File::open(ogg_path)?);
+    let mut decoder = VorbisDecoder::new(ogg_reader)?;
+
+    if decoder.channels().get() != 2 {
+        return Ok(true);
+    }
+
+    let mut frames_checked = 0;
+    while let Some(block) = decoder.decode_audio_block()? {
+        let samples = block.samples();
+        if samples.len() < 2 {
+            continue;
+        }
+
+        let left = &samples[0];
+        let right = &samples[1];
+        let frame_count = left.len().min(right.len());
+
+        for i in 0..frame_count {
+            if (left[i] - right[i]).abs() > EPSILON {
+                return Ok(false);
+            }
+            frames_checked += 1;
+            if frames_checked >= MAX_FRAMES_TO_CHECK {
+                return Ok(true);
+            }
+        }
+    }
+
+    Ok(true)
+}
+
 fn decode_vorbis_to_wav_file_with_mode(
     ogg_path: impl AsRef<Path>,
     wav_path: impl AsRef<Path>,

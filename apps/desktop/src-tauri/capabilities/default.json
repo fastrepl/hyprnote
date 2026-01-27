@@ -82,6 +82,7 @@
     "pdf:default",
     "autostart:default",
     "js:default",
+    "flag:default",
     {
       "identifier": "http:default",
       "deny": [],

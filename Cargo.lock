@@ -4317,6 +4317,7 @@ dependencies = [
  "tauri-plugin-detect",
  "tauri-plugin-dialog",
  "tauri-plugin-extensions",
+ "tauri-plugin-flag",
  "tauri-plugin-fs-db",
  "tauri-plugin-fs-sync",
  "tauri-plugin-fs2",
@@ -16721,6 +16722,20 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "tauri-plugin-flag"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
 ]
 
 [[package]]

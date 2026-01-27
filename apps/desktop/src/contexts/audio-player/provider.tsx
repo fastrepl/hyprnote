@@ -71,6 +71,8 @@ export function AudioPlayerProvider({
       return;
     }
 
+    const audio = new Audio(url);
+
     const ws = WaveSurfer.create({
       container,
       height: 30,
@@ -82,7 +84,7 @@ export function AudioPlayerProvider({
       barGap: 2,
       barRadius: 2,
       barHeight: 1,
-      url,
+      media: audio,
       dragToSeek: true,
       normalize: true,
       splitChannels: [
@@ -93,27 +95,29 @@ export function AudioPlayerProvider({
 
     let audioContext: AudioContext | null = null;
 
-    const handleReady = () => {
-      setDuration(ws.getDuration());
-
+    const handleReady = async () => {
       const media = ws.getMediaElement();
-      if (media) {
-        audioContext = new AudioContext();
-        const source = audioContext.createMediaElementSource(media);
-        const merger = audioContext.createChannelMerger(2);
-        const splitter = audioContext.createChannelSplitter(2);
-
-        source.connect(splitter);
-        splitter.connect(merger, 0, 0);
-        splitter.connect(merger, 0, 1);
-        splitter.connect(merger, 1, 0);
-        splitter.connect(merger, 1, 1);
-        merger.connect(audioContext.destination);
+      if (!media) {
+        return;
       }
-    };
 
-    const handleDecode = () => {
-      setDuration(ws.getDuration());
+      setDuration(media.duration);
+
+      audioContext = new AudioContext();
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+
+      const source = audioContext.createMediaElementSource(media);
+      const merger = audioContext.createChannelMerger(2);
+      const splitter = audioContext.createChannelSplitter(2);
+
+      source.connect(splitter);
+      splitter.connect(merger, 0, 0);
+      splitter.connect(merger, 0, 1);
+      splitter.connect(merger, 1, 0);
+      splitter.connect(merger, 1, 1);
+      merger.connect(audioContext.destination);
     };
 
     const handleAudioprocess = () => {
@@ -129,7 +133,6 @@ export function AudioPlayerProvider({
     };
 
     ws.on("ready", handleReady);
-    ws.on("decode", handleDecode);
     ws.on("audioprocess", handleAudioprocess);
     ws.on("timeupdate", handleTimeupdate);
 
@@ -141,6 +144,9 @@ export function AudioPlayerProvider({
     return () => {
       ws.destroy();
       setWavesurfer(null);
+      audio.pause();
+      audio.src = "";
+      audio.load();
       if (audioContext) {
         audioContext.close();
       }

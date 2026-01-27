@@ -1,11 +1,15 @@
 import { useMutation } from "@tanstack/react-query";
-import { save } from "@tauri-apps/plugin-dialog";
+import { downloadDir, join } from "@tauri-apps/api/path";
 import { FileTextIcon, Loader2Icon } from "lucide-react";
 import { useMemo } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
-import { commands as pdfCommands, type TranscriptItem } from "@hypr/plugin-pdf";
+import {
+  commands as pdfCommands,
+  type PdfMetadata,
+  type TranscriptItem,
+} from "@hypr/plugin-pdf";
 import { json2md } from "@hypr/tiptap/shared";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 
@@ -22,6 +26,30 @@ import {
 } from "../../../../../../utils/segment/shared";
 import { convertStorageHintsToRuntime } from "../../../../../../utils/speaker-hints";
 
+function formatDate(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function formatDuration(startMs: number, endMs: number): string {
+  const durationMs = endMs - startMs;
+  const minutes = Math.floor(durationMs / 60000);
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${remainingMinutes}m`;
+  }
+  return `${minutes}m`;
+}
+
 export function ExportPDF({
   sessionId,
   currentView,
@@ -30,6 +58,35 @@ export function ExportPDF({
   currentView: EditorView;
 }) {
   const store = main.UI.useStore(main.STORE_ID);
+  const queries = main.UI.useQueries(main.STORE_ID);
+
+  const sessionTitle = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "title",
+    main.STORE_ID,
+  ) as string | undefined;
+
+  const sessionCreatedAt = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "created_at",
+    main.STORE_ID,
+  ) as string | undefined;
+
+  const eventId = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "event_id",
+    main.STORE_ID,
+  ) as string | undefined;
+
+  const eventTitle = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "title",
+    main.STORE_ID,
+  ) as string | undefined;
 
   const rawMd = main.UI.useCell(
     "sessions",
@@ -45,6 +102,33 @@ export function ExportPDF({
     "content",
     main.STORE_ID,
   ) as string | undefined;
+
+  const participantNames = useMemo((): string[] => {
+    if (!queries) return [];
+
+    const names: string[] = [];
+    queries.forEachResultRow(
+      main.QUERIES.sessionParticipantsWithDetails,
+      (rowId) => {
+        const participantSessionId = queries.getResultCell(
+          main.QUERIES.sessionParticipantsWithDetails,
+          rowId,
+          "session_id",
+        );
+        if (participantSessionId === sessionId) {
+          const name = queries.getResultCell(
+            main.QUERIES.sessionParticipantsWithDetails,
+            rowId,
+            "human_name",
+          );
+          if (name && typeof name === "string") {
+            names.push(name);
+          }
+        }
+      },
+    );
+    return names;
+  }, [queries, sessionId]);
 
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -101,11 +185,54 @@ export function ExportPDF({
     }));
   }, [store, transcriptIds]);
 
+  const transcriptDuration = useMemo((): string | null => {
+    if (!store || !transcriptIds || transcriptIds.length === 0) {
+      return null;
+    }
+
+    let minStartedAt: number | null = null;
+    let maxEndedAt: number | null = null;
+
+    for (const transcriptId of transcriptIds) {
+      const startedAt = store.getCell(
+        "transcripts",
+        transcriptId,
+        "started_at",
+      );
+      const endedAt = store.getCell("transcripts", transcriptId, "ended_at");
+
+      if (typeof startedAt === "number") {
+        if (minStartedAt === null || startedAt < minStartedAt) {
+          minStartedAt = startedAt;
+        }
+      }
+      if (typeof endedAt === "number") {
+        if (maxEndedAt === null || endedAt > maxEndedAt) {
+          maxEndedAt = endedAt;
+        }
+      }
+    }
+
+    if (minStartedAt !== null && maxEndedAt !== null) {
+      return formatDuration(minStartedAt, maxEndedAt);
+    }
+    return null;
+  }, [store, transcriptIds]);
+
   const getExportContent = useMemo(() => {
     return (): {
       enhancedMd: string;
       transcript: { items: TranscriptItem[] } | null;
+      metadata: PdfMetadata | null;
     } => {
+      const metadata: PdfMetadata = {
+        title: sessionTitle || "Untitled",
+        createdAt: sessionCreatedAt ? formatDate(sessionCreatedAt) : "",
+        participants: participantNames,
+        eventTitle: eventTitle || null,
+        duration: transcriptDuration,
+      };
+
       switch (currentView.type) {
         case "raw": {
           let memoMd = "";
@@ -120,6 +247,7 @@ export function ExportPDF({
           return {
             enhancedMd: memoMd,
             transcript: null,
+            metadata,
           };
         }
         case "enhanced": {
@@ -135,6 +263,7 @@ export function ExportPDF({
           return {
             enhancedMd,
             transcript: null,
+            metadata,
           };
         }
         case "transcript": {
@@ -142,16 +271,28 @@ export function ExportPDF({
             enhancedMd: "",
             transcript:
               transcriptItems.length > 0 ? { items: transcriptItems } : null,
+            metadata,
           };
         }
         default:
           return {
             enhancedMd: "",
             transcript: null,
+            metadata,
           };
       }
     };
-  }, [currentView, rawMd, enhancedNoteContent, transcriptItems]);
+  }, [
+    currentView,
+    rawMd,
+    enhancedNoteContent,
+    transcriptItems,
+    sessionTitle,
+    sessionCreatedAt,
+    participantNames,
+    eventTitle,
+    transcriptDuration,
+  ]);
 
   const getExportLabel = () => {
     switch (currentView.type) {
@@ -168,14 +309,13 @@ export function ExportPDF({
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      const path = await save({
-        title: getExportLabel(),
-        filters: [{ name: "PDF", extensions: ["pdf"] }],
-      });
-
-      if (!path) {
-        return null;
-      }
+      const downloadsPath = await downloadDir();
+      const sanitizedTitle = (
+        (sessionTitle ?? "Untitled").trim() || "Untitled"
+      ).replace(/[<>:"/\\|?*]/g, "_");
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filename = `${sanitizedTitle}_${timestamp}.pdf`;
+      const path = await join(downloadsPath, filename);
 
       const exportContent = getExportContent();
       const result = await pdfCommands.export(path, exportContent);
@@ -198,7 +338,7 @@ export function ExportPDF({
             currentView.type === "enhanced" && !!enhancedNoteContent,
           has_memo: currentView.type === "raw" && !!rawMd,
         });
-        void openerCommands.openPath(path, null);
+        void openerCommands.revealItemInDir(path);
       }
     },
     onError: console.error,

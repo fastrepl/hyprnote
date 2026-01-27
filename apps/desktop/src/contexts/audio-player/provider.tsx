@@ -144,6 +144,9 @@ export function AudioPlayerProvider({
     return () => {
       ws.destroy();
       setWavesurfer(null);
+      audio.pause();
+      audio.src = "";
+      audio.load();
       if (audioContext) {
         audioContext.close();
       }

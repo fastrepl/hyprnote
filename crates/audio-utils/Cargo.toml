@@ -8,6 +8,7 @@ bytes = { workspace = true }
 futures-util = { workspace = true }
 hypr-audio-interface = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }
 
 dasp = { workspace = true }
 hound = { workspace = true }

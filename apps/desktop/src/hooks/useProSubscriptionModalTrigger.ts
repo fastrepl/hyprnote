@@ -1,4 +1,3 @@
-import { useLocation } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -7,19 +6,19 @@ import { useAuth } from "../auth";
 import { useBillingAccess } from "../billing";
 import { useTrialBeginModal } from "../components/devtool/trial-begin-modal";
 import * as settings from "../store/tinybase/store/settings";
+import { useOnboardingState } from "./useOnboardingState";
 
 export function useProSubscriptionModalTrigger() {
   const auth = useAuth();
   const { isPro, canStartTrial } = useBillingAccess();
   const { open: openProModal } = useTrialBeginModal();
   const store = settings.UI.useStore(settings.STORE_ID);
-  const location = useLocation();
 
   const prevIsProRef = useRef<boolean | null>(null);
   const hasShownRef = useRef(false);
 
   const isAuthenticated = !!auth?.session;
-  const isOnboarding = location.pathname.startsWith("/app/onboarding");
+  const isOnboarding = useOnboardingState();
 
   useEffect(() => {
     if (!isAuthenticated || !store || hasShownRef.current || isOnboarding) {

@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { useLocation } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 
 import { postBillingStartTrial } from "@hypr/api-client";
@@ -11,6 +10,7 @@ import { getEntitlementsFromToken, useBillingAccess } from "../billing";
 import { useTrialBeginModal } from "../components/devtool/trial-begin-modal";
 import { env } from "../env";
 import * as settings from "../store/tinybase/store/settings";
+import { useOnboardingState } from "./useOnboardingState";
 
 export function useTrialStartOnFirstLaunch() {
   const auth = useAuth();
@@ -19,9 +19,8 @@ export function useTrialStartOnFirstLaunch() {
   const store = settings.UI.useStore(settings.STORE_ID);
   const hasCheckedRef = useRef(false);
   const hasShownModalRef = useRef(false);
-  const location = useLocation();
 
-  const isOnboarding = location.pathname.startsWith("/app/onboarding");
+  const isOnboarding = useOnboardingState();
 
   const startTrialMutation = useMutation({
     mutationFn: async () => {
@@ -64,6 +63,7 @@ export function useTrialStartOnFirstLaunch() {
   });
 
   const isAuthenticated = !!auth?.session;
+  const startTrial = startTrialMutation.mutate;
 
   useEffect(() => {
     if (hasCheckedRef.current || !store || !isAuthenticated) {
@@ -80,9 +80,9 @@ export function useTrialStartOnFirstLaunch() {
     hasCheckedRef.current = true;
 
     if (canStartTrial) {
-      startTrialMutation.mutate();
+      startTrial();
     }
-  }, [isAuthenticated, canStartTrial, store, startTrialMutation]);
+  }, [isAuthenticated, canStartTrial, store, startTrial]);
 
   useEffect(() => {
     if (hasShownModalRef.current || !store || isOnboarding) {

@@ -1,4 +1,3 @@
-mod app_cli;
 mod app_info;
 mod app_new;
 mod help_report_bug;
@@ -10,7 +9,6 @@ mod tray_settings;
 mod tray_start;
 mod tray_version;
 
-pub use app_cli::{AppCliInstall, AppCliUninstall, app_cli_menu};
 pub use app_info::AppInfo;
 pub use app_new::AppNew;
 pub use help_report_bug::HelpReportBug;
@@ -78,8 +76,6 @@ menu_items! {
     TrayQuit => TrayQuit,
     TrayVersion => TrayVersion,
     AppInfo => AppInfo,
-    AppCliInstall => AppCliInstall,
-    AppCliUninstall => AppCliUninstall,
     AppNew => AppNew,
     HelpReportBug => HelpReportBug,
     HelpSuggestFeature => HelpSuggestFeature,

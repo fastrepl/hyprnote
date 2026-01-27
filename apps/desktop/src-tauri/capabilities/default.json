@@ -31,7 +31,6 @@
     "tray:default",
     "analytics:default",
     "bedrock:default",
-    "cli2:default",
     "updater:default",
     "updater2:default",
     "deep-link:default",

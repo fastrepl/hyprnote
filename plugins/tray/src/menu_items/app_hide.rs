@@ -20,6 +20,7 @@ impl MenuItemHandler for AppHide {
             let _ = window.close();
         }
 
+        #[cfg(target_os = "macos")]
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
     }
 }

@@ -11,7 +11,13 @@ impl MenuItemHandler for TrayQuit {
     const ID: &'static str = "hypr_tray_quit";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = MenuItem::with_id(app, Self::ID, "Quit Completely", true, Some("CmdOrCtrl+Shift+Q"))?;
+        let item = MenuItem::with_id(
+            app,
+            Self::ID,
+            "Quit Completely",
+            true,
+            Some("CmdOrCtrl+Shift+Q"),
+        )?;
         Ok(MenuItemKind::MenuItem(item))
     }
 

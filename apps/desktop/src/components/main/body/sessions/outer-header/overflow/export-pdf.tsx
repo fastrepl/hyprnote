@@ -306,9 +306,8 @@ export function ExportPDF({
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
       const downloadsPath = await downloadDir();
-      const sanitizedTitle = (sessionTitle ?? "Untitled")
-        .replace(/[<>:"/\\|?*]/g, "_")
-        .trim();
+      const sanitizedTitle = ((sessionTitle ?? "Untitled").trim() || "Untitled")
+        .replace(/[<>:"/\\|?*]/g, "_");
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const filename = `${sanitizedTitle}_${timestamp}.pdf`;
       const path = await join(downloadsPath, filename);

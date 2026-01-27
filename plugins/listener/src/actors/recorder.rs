@@ -156,9 +156,9 @@ impl Actor for RecorderActor {
         _myself: ActorRef<Self::Msg>,
         st: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        finalize_writer(&mut st.writer)?;
-        finalize_writer(&mut st.writer_mic)?;
-        finalize_writer(&mut st.writer_spk)?;
+        finalize_writer(&mut st.writer, Some(&st.wav_path))?;
+        finalize_writer(&mut st.writer_mic, None)?;
+        finalize_writer(&mut st.writer_spk, None)?;
 
         if st.wav_path.exists() {
             let temp_ogg_path = st.ogg_path.with_extension("ogg.tmp");
@@ -170,12 +170,21 @@ impl Actor for RecorderActor {
             ) {
                 Ok(_) => {
                     std::fs::rename(&temp_ogg_path, &st.ogg_path)?;
+
+                    if let Ok(file) = File::open(&st.ogg_path) {
+                        let _ = file.sync_all();
+                    }
+                    if let Some(parent) = st.ogg_path.parent() {
+                        if let Ok(dir) = File::open(parent) {
+                            let _ = dir.sync_all();
+                        }
+                    }
+
                     std::fs::remove_file(&st.wav_path)?;
                 }
                 Err(e) => {
                     tracing::error!(error = ?e, "wav_to_ogg_failed_keeping_wav");
                     let _ = std::fs::remove_file(&temp_ogg_path);
-                    // Keep WAV as a fallback, but don't cause an actor failure
                 }
             }
         }
@@ -218,10 +227,17 @@ fn flush_all(state: &mut RecState) -> Result<(), hound::Error> {
 
 fn finalize_writer(
     writer: &mut Option<hound::WavWriter<BufWriter<File>>>,
+    path: Option<&std::path::Path>,
 ) -> Result<(), hound::Error> {
     if let Some(mut writer) = writer.take() {
         writer.flush()?;
         writer.finalize()?;
+
+        if let Some(p) = path {
+            if let Ok(file) = File::open(p) {
+                let _ = file.sync_all();
+            }
+        }
     }
     Ok(())
 }

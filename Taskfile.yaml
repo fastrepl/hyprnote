@@ -143,15 +143,15 @@ tasks:
       - task: supabase-env
       - supabase migration up --local
 
-  reset-staging:
-    desc: Reset Hyprnote Staging app state for QA testing
+  qa:
+    desc: Reset Hyprnote Staging app state and open for QA testing
     platforms: [darwin]
     cmds:
       - rm -rf ~/Library/Application\ Support/com.hyprnote.staging
       - tccutil reset Microphone com.hyprnote.staging
       - tccutil reset ScreenCapture com.hyprnote.staging
       - tccutil reset Accessibility com.hyprnote.staging
-      - echo "Done! Staging app is ready for QA testing."
+      - /Applications/Hyprnote\ Staging.app/Contents/MacOS/hyprnote-staging
 
   stripe:
     cmds:

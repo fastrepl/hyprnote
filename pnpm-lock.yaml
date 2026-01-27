@@ -269,9 +269,6 @@ importers:
       '@hypr/plugin-bedrock':
         specifier: workspace:*
         version: link:../../plugins/bedrock
-      '@hypr/plugin-cli2':
-        specifier: workspace:*
-        version: link:../../plugins/cli2
       '@hypr/plugin-db2':
         specifier: workspace:*
         version: link:../../plugins/db2
@@ -1611,12 +1608,6 @@ importers:
         version: 2.9.1
 
   plugins/bedrock:
-    dependencies:
-      '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
-
-  plugins/cli2:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

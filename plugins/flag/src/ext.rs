@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use strum::{EnumString, VariantNames};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type, EnumString, VariantNames)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type, EnumString, VariantNames,
+)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum Feature {

@@ -1,3 +1,4 @@
+import { useLocation } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 
 import { useAuth } from "../auth";
@@ -13,11 +14,13 @@ export function useTrialExpiredModalTrigger() {
   const { open: openTrialExpiredModal } = useTrialExpiredModal();
   const store = settings.UI.useStore(settings.STORE_ID);
   const hasShownRef = useRef(false);
+  const location = useLocation();
 
   const isAuthenticated = !!auth?.session;
+  const isOnboarding = location.pathname.startsWith("/app/onboarding");
 
   useEffect(() => {
-    if (hasShownRef.current || !store) {
+    if (hasShownRef.current || !store || isOnboarding) {
       return;
     }
 
@@ -30,5 +33,12 @@ export function useTrialExpiredModalTrigger() {
         hasShownRef.current = true;
       }
     }
-  }, [isAuthenticated, isPro, canStartTrial, openTrialExpiredModal, store]);
+  }, [
+    isAuthenticated,
+    isPro,
+    canStartTrial,
+    openTrialExpiredModal,
+    store,
+    isOnboarding,
+  ]);
 }

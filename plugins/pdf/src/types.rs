@@ -16,7 +16,18 @@ pub struct Transcript {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
+pub struct PdfMetadata {
+    pub title: String,
+    pub created_at: String,
+    pub participants: Vec<String>,
+    pub event_title: Option<String>,
+    pub duration: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct PdfInput {
     pub enhanced_md: String,
     pub transcript: Option<Transcript>,
+    pub metadata: Option<PdfMetadata>,
 }

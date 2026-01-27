@@ -26,7 +26,8 @@ async export(path: string, input: PdfInput) : Promise<Result<null, string>> {
 
 /** user-defined types **/
 
-export type PdfInput = { enhancedMd: string; transcript: Transcript | null }
+export type PdfInput = { enhancedMd: string; transcript: Transcript | null; metadata: PdfMetadata | null }
+export type PdfMetadata = { title: string; createdAt: string; participants: string[]; eventTitle: string | null; duration: string | null }
 export type Transcript = { items: TranscriptItem[] }
 export type TranscriptItem = { speaker: string | null; text: string }
 

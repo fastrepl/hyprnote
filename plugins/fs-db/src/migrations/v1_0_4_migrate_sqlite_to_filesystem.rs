@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use semver::Version;
+use hypr_version::Version;
 use serde::{Deserialize, Serialize};
 use tauri_plugin_importer::sources::hyprnote::v1_sqlite::import_all_from_path;
 use tauri_plugin_importer::{

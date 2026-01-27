@@ -4,7 +4,7 @@ mod v1_0_4_migrate_sqlite_to_filesystem;
 
 use std::path::Path;
 
-use semver::Version;
+use hypr_version::Version;
 
 use crate::version::default_detector;
 use crate::Result;
@@ -42,7 +42,7 @@ pub fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
 
     let mut current = vault_version.version;
 
-    if current == *app_version {
+    if current.base() == app_version.base() {
         return Ok(());
     }
 
@@ -50,13 +50,17 @@ pub fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
     migrations.sort_by(|a, b| a.from.cmp(&b.from));
 
     for migration in &migrations {
-        if migration.from == current && migration.to <= *app_version {
+        let migration_applies =
+            migration.from.base() == current.base()
+            && migration.to.base() <= app_version.base();
+
+        if migration_applies {
             (migration.run)(base_dir)?;
             current = migration.to.clone();
         }
     }
 
-    if current != *app_version {
+    if current.base() != app_version.base() {
         return Err(crate::Error::MigrationGap {
             from: current,
             to: app_version.clone(),

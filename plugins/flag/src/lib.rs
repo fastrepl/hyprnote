@@ -1,9 +1,11 @@
 mod commands;
 mod error;
 mod ext;
+mod feature;
 
-pub use error::{Error, Result};
-pub use ext::{Feature, Flag, FlagPluginExt};
+pub use error::*;
+pub use ext::*;
+pub use feature::*;
 
 const PLUGIN_NAME: &str = "flag";
 

@@ -16777,7 +16777,6 @@ dependencies = [
 name = "tauri-plugin-fs-db"
 version = "0.1.0"
 dependencies = [
- "semver 1.0.27",
  "serde",
  "serde_json",
  "specta",
@@ -16790,6 +16789,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "uuid",
+ "version",
 ]
 
 [[package]]
@@ -20081,6 +20081,13 @@ dependencies = [
  "anyhow",
  "derive_builder",
  "rustversion",
+]
+
+[[package]]
+name = "version"
+version = "0.1.0"
+dependencies = [
+ "semver 1.0.27",
 ]
 
 [[package]]

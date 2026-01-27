@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use semver::Version;
+pub use hypr_version::Version;
 
 use crate::Result;
 

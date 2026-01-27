@@ -8,8 +8,8 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error("migration gap: cannot migrate from {from} to {to}")]
     MigrationGap {
-        from: semver::Version,
-        to: semver::Version,
+        from: hypr_version::Version,
+        to: hypr_version::Version,
     },
     #[error("import failed: {0}")]
     ImportFailed(String),

@@ -25,47 +25,49 @@ export async function deleteSessionCascade(
   indexes: ReturnType<typeof main.UI.useIndexes>,
   sessionId: string,
 ): Promise<void> {
-  await fsSyncCommands.audioDelete(sessionId);
-
+  // Delete from TinyBase first
   if (!indexes) {
     store.delRow("sessions", sessionId);
-    return;
+  } else {
+    store.transaction(() => {
+      const transcriptIds = indexes.getSliceRowIds(
+        main.INDEXES.transcriptBySession,
+        sessionId,
+      );
+
+      for (const transcriptId of transcriptIds) {
+        store.delRow("transcripts", transcriptId);
+      }
+
+      deleteByIndex(
+        store,
+        indexes,
+        main.INDEXES.sessionParticipantsBySession,
+        sessionId,
+        "mapping_session_participant",
+      );
+      deleteByIndex(
+        store,
+        indexes,
+        main.INDEXES.tagSessionsBySession,
+        sessionId,
+        "mapping_tag_session",
+      );
+      deleteByIndex(
+        store,
+        indexes,
+        main.INDEXES.enhancedNotesBySession,
+        sessionId,
+        "enhanced_notes",
+      );
+
+      store.delRow("sessions", sessionId);
+    });
   }
 
-  store.transaction(() => {
-    const transcriptIds = indexes.getSliceRowIds(
-      main.INDEXES.transcriptBySession,
-      sessionId,
-    );
-
-    for (const transcriptId of transcriptIds) {
-      store.delRow("transcripts", transcriptId);
-    }
-
-    deleteByIndex(
-      store,
-      indexes,
-      main.INDEXES.sessionParticipantsBySession,
-      sessionId,
-      "mapping_session_participant",
-    );
-    deleteByIndex(
-      store,
-      indexes,
-      main.INDEXES.tagSessionsBySession,
-      sessionId,
-      "mapping_tag_session",
-    );
-    deleteByIndex(
-      store,
-      indexes,
-      main.INDEXES.enhancedNotesBySession,
-      sessionId,
-      "enhanced_notes",
-    );
-
-    store.delRow("sessions", sessionId);
-  });
+  // Explicitly delete the session folder from filesystem
+  // This replaces reliance on orphan cleanup for session deletion
+  await fsSyncCommands.deleteSessionFolder(sessionId);
 }
 
 export function useDeleteSession() {

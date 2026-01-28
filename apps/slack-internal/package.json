@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@hypr/agent-designer": "workspace:^",
-    "@hypr/agent-internal": "workspace:^",
+    "@hypr/agent-support": "workspace:^",
     "@langchain/core": "^1.1.15",
     "@langchain/langgraph": "^1.1.0",
     "@sentry/bun": "^10.34.0",

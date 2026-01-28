@@ -10,7 +10,7 @@
 - https://docs.langchain.com/oss/javascript/langgraph/functional-api.md
 - https://docs.langchain.com/oss/javascript/langgraph/use-functional-api.md
 
-In `packages/agent-internal`, use `Graph` API. Do not use `Functional` API.
+In `packages/agent-support`, use `Graph` API. Do not use `Functional` API.
 
 ## Architecture
 

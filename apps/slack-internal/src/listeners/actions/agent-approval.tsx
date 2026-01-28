@@ -5,7 +5,7 @@ import type { App } from "@slack/bolt";
 import type { KnownBlock } from "@slack/types";
 import { Blocks, Section } from "jsx-slack";
 
-import type { AgentStateType, HumanResponse } from "@hypr/agent-internal";
+import type { AgentStateType, HumanResponse } from "@hypr/agent-support";
 
 import { getAgentForChannel } from "../../config/agents";
 

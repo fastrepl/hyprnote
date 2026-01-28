@@ -12,8 +12,8 @@ import {
   getInterruptToolName,
   getLangSmithUrl,
   isInterrupted,
-} from "@hypr/agent-internal";
-import type { AgentStateType, AgentStreamState } from "@hypr/agent-internal";
+} from "@hypr/agent-support";
+import type { AgentStateType, AgentStreamState } from "@hypr/agent-support";
 
 import { getAgentForChannel } from "../../config/agents";
 import { env } from "../../env";

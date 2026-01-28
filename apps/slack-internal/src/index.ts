@@ -1,6 +1,6 @@
 import "./instrument";
 
-import { registerTool, setupCheckpointer } from "@hypr/agent-internal";
+import { registerTool, setupCheckpointer } from "@hypr/agent-support";
 
 import { app } from "./app";
 import { registerListeners } from "./listeners";

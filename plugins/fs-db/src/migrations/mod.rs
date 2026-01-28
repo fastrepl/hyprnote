@@ -1,16 +1,13 @@
 mod v1_0_2_extract_from_sqlite;
 mod v1_0_2_nightly_3_move_uuid_folders;
 mod v1_0_2_nightly_4_rename_transcript;
-pub mod version_macro;
 
 use std::path::Path;
 
 use hypr_version::Version;
 
-use crate::version::{default_detector, write_version};
+use crate::version::{detect_version, version_from_name, write_version};
 use crate::Result;
-
-pub(crate) use version_macro::version_from_name;
 
 struct Migration {
     to: &'static Version,
@@ -35,7 +32,7 @@ fn all_migrations() -> Vec<Migration> {
 }
 
 pub fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
-    let Some(vault_version) = default_detector().detect(base_dir) else {
+    let Some(vault_version) = detect_version(base_dir) else {
         return Ok(());
     };
 

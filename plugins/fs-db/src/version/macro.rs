@@ -2,11 +2,10 @@ use hypr_version::Version;
 
 macro_rules! version_from_name {
     () => {{
-        static V: std::sync::LazyLock<hypr_version::Version> =
-            std::sync::LazyLock::new(|| {
-                let name = module_path!().rsplit("::").next().unwrap();
-                $crate::migrations::version_macro::parse(name)
-            });
+        static V: std::sync::LazyLock<hypr_version::Version> = std::sync::LazyLock::new(|| {
+            let name = module_path!().rsplit("::").next().unwrap();
+            $crate::version::r#macro::parse(name)
+        });
         &*V
     }};
 }

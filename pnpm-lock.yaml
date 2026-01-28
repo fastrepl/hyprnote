@@ -724,6 +724,9 @@ importers:
 
   apps/slack-internal:
     dependencies:
+      '@hypr/agent-designer':
+        specifier: workspace:^
+        version: link:../../packages/agent-designer
       '@hypr/agent-internal':
         specifier: workspace:^
         version: link:../../packages/agent-internal
@@ -1125,6 +1128,52 @@ importers:
         specifier: ^4.3.5
         version: 4.3.5
     devDependencies:
+      '@types/bun':
+        specifier: ^1.3.6
+        version: 1.3.6
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/agent-designer:
+    dependencies:
+      '@hypr/agent-core':
+        specifier: workspace:^
+        version: link:../agent-core
+      '@langchain/core':
+        specifier: ^1.1.15
+        version: 1.1.15(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.4.0(@opentelemetry/api@1.9.0))(openai@6.16.0(ws@8.19.0)(zod@4.3.5))
+      '@langchain/langgraph':
+        specifier: ^1.1.0
+        version: 1.1.0(@langchain/core@1.1.15(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.4.0(@opentelemetry/api@1.9.0))(openai@6.16.0(ws@8.19.0)(zod@4.3.5)))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod-to-json-schema@3.25.1(zod@4.3.5))(zod@4.3.5)
+      '@langchain/langgraph-checkpoint-postgres':
+        specifier: ^1.0.0
+        version: 1.0.0(@langchain/core@1.1.15(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.4.0(@opentelemetry/api@1.9.0))(openai@6.16.0(ws@8.19.0)(zod@4.3.5)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.15(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.4.0(@opentelemetry/api@1.9.0))(openai@6.16.0(ws@8.19.0)(zod@4.3.5))))
+      '@langchain/openai':
+        specifier: ^1.2.2
+        version: 1.2.2(@langchain/core@1.1.15(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.4.0(@opentelemetry/api@1.9.0))(openai@6.16.0(ws@8.19.0)(zod@4.3.5)))(ws@8.19.0)
+      '@t3-oss/env-core':
+        specifier: ^0.13.10
+        version: 0.13.10(typescript@5.9.3)(zod@4.3.5)
+      langsmith:
+        specifier: ^0.4.7
+        version: 0.4.7(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.4.0(@opentelemetry/api@1.9.0))(openai@6.16.0(ws@8.19.0)(zod@4.3.5))
+      pg:
+        specifier: ^8.17.1
+        version: 8.17.1
+      promptl-ai:
+        specifier: ^0.4.12
+        version: 0.4.12
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
+    devDependencies:
+      '@langchain/langgraph-cli':
+        specifier: ^1.1.11
+        version: 1.1.11(5520130d944549bc46e82acd5b3ad674)
       '@types/bun':
         specifier: ^1.3.6
         version: 1.3.6
@@ -15085,6 +15134,7 @@ packages:
   tar@7.5.3:
     resolution: {integrity: sha512-ENg5JUHUm2rDD7IvKNFGzyElLXNjachNLp6RaGf4+JOgxXHkqA+gq81ZAMCUmtMtqBsoU62lcp6S27g1LCYGGQ==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
 
   tauri-plugin-keygen-api@https://codeload.github.com/bagindo/tauri-plugin-keygen/tar.gz/e0de03a76a5c82c36adb347e43e4bff4f78c87de:
     resolution: {tarball: https://codeload.github.com/bagindo/tauri-plugin-keygen/tar.gz/e0de03a76a5c82c36adb347e43e4bff4f78c87de}
@@ -18482,7 +18532,7 @@ snapshots:
       node-fetch: 2.7.0
       nopt: 8.1.0
       semver: 7.6.3
-      tar: 7.5.2
+      tar: 7.5.3
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -18495,7 +18545,7 @@ snapshots:
       node-fetch: 2.7.0
       nopt: 8.1.0
       semver: 7.6.3
-      tar: 7.5.2
+      tar: 7.5.3
     transitivePeerDependencies:
       - encoding
       - supports-color

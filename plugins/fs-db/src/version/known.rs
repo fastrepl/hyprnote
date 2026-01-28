@@ -7,6 +7,10 @@ use crate::Result;
 const HYPRNOTE_DIR: &str = ".hyprnote";
 const VERSION_FILE: &str = "version";
 
+pub fn exists(base_dir: &Path) -> bool {
+    base_dir.join(HYPRNOTE_DIR).join(VERSION_FILE).exists()
+}
+
 pub fn read(base_dir: &Path) -> Option<Version> {
     let version_file = base_dir.join(HYPRNOTE_DIR).join(VERSION_FILE);
     if version_file.exists() {

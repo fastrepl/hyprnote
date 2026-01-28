@@ -2,7 +2,7 @@
 pub(crate) mod r#macro;
 
 mod heuristics;
-mod known;
+pub(crate) mod known;
 
 use std::path::Path;
 
@@ -11,32 +11,32 @@ pub(crate) use r#macro::version_from_name;
 
 pub use known::write as write_version;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DetectedVersion {
+    Fresh,
+    Known(VaultVersion),
+    Unknown,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VaultVersion {
     pub version: Version,
     pub source: VersionSource,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VersionSource {
     VersionFile,
     Heuristic(&'static str),
 }
 
-pub fn detect_version(base_dir: &Path) -> Option<VaultVersion> {
+pub fn detect_version(base_dir: &Path) -> DetectedVersion {
     if let Some(version) = known::read(base_dir) {
-        return Some(VaultVersion {
+        return DetectedVersion::Known(VaultVersion {
             version,
             source: VersionSource::VersionFile,
         });
     }
 
-    if let Some(version) = heuristics::cold_start(base_dir) {
-        return Some(VaultVersion {
-            version,
-            source: VersionSource::Heuristic("cold_start"),
-        });
-    }
-
-    None
+    heuristics::cold_start(base_dir)
 }

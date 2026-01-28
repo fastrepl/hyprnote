@@ -17589,6 +17589,7 @@ dependencies = [
  "strum 0.26.3",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-fs-db",
  "tauri-plugin-store2",
  "tauri-plugin-updater",
  "tauri-specta",

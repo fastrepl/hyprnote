@@ -10,6 +10,8 @@ pub enum Error {
     DbParser(#[from] hypr_db_parser::Error),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
+    #[error(transparent)]
+    Settings(#[from] tauri_plugin_settings::Error),
 }
 
 impl Serialize for Error {

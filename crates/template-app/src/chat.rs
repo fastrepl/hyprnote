@@ -24,7 +24,7 @@ common_derives! {
 mod tests {
     use super::*;
     use crate::Segment;
-    use askama_utils::tpl_snapshot_with_assert;
+    use hypr_askama_utils::tpl_snapshot_with_assert;
 
     tpl_snapshot_with_assert!(
         test_chat_system_with_context, 

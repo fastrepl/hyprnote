@@ -42,7 +42,7 @@ mod tests {
 
     use super::*;
     use askama::Template;
-    use askama_utils::tpl_assert;
+    use hypr_askama_utils::tpl_assert;
 
     #[test]
     fn test_isolang() {

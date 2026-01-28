@@ -20,7 +20,7 @@ common_derives! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use askama_utils::{tpl_assert, tpl_snapshot};
+    use hypr_askama_utils::{tpl_assert, tpl_snapshot};
 
     tpl_assert!(
         test_language_as_specified,

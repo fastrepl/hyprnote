@@ -26,13 +26,7 @@ export type {
   TemplatesState,
 };
 
-export type SettingsTab =
-  | "app"
-  | "language"
-  | "notifications"
-  | "permissions"
-  | "audio"
-  | "lab";
+export type SettingsTab = "general" | "notifications" | "system" | "lab";
 
 export type SettingsState = {
   tab: SettingsTab | null;
@@ -183,7 +177,7 @@ export const getDefaultState = (tab: TabInput): Tab => {
         state: tab.state,
       };
     case "settings":
-      return { ...base, type: "settings", state: { tab: null } };
+      return { ...base, type: "settings", state: { tab: "general" } };
     case "ai":
       return {
         ...base,

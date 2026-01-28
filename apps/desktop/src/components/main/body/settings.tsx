@@ -1,11 +1,9 @@
 import {
   BellIcon,
   FlaskConical,
-  LanguagesIcon,
-  LockIcon,
-  MicIcon,
+  MonitorIcon,
   SettingsIcon,
-  SmartphoneIcon,
+  UserIcon,
 } from "lucide-react";
 import { useCallback, useRef } from "react";
 
@@ -22,11 +20,9 @@ import {
   useTabs,
 } from "../../../store/zustand/tabs";
 import {
-  SettingsApp,
-  SettingsAudio,
-  SettingsLanguage,
+  SettingsGeneral,
   SettingsNotifications,
-  SettingsPermissions,
+  SettingsSystem,
 } from "../../settings/general";
 import { SettingsLab } from "../../settings/lab";
 import { StandardTabWrapper } from "./index";
@@ -74,13 +70,11 @@ export function TabContentSettings({
 const SECTIONS: {
   id: SettingsTab;
   label: string;
-  icon: typeof SmartphoneIcon;
+  icon: typeof UserIcon;
 }[] = [
-  { id: "app", label: "App", icon: SmartphoneIcon },
-  { id: "language", label: "Language", icon: LanguagesIcon },
+  { id: "general", label: "General", icon: UserIcon },
   { id: "notifications", label: "Notifications", icon: BellIcon },
-  { id: "permissions", label: "Permissions", icon: LockIcon },
-  { id: "audio", label: "Audio", icon: MicIcon },
+  { id: "system", label: "System", icon: MonitorIcon },
   { id: "lab", label: "Lab", icon: FlaskConical },
 ];
 
@@ -88,7 +82,7 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
   const updateSettingsTabState = useTabs(
     (state) => state.updateSettingsTabState,
   );
-  const activeTab = tab.state.tab ?? "app";
+  const activeTab = tab.state.tab ?? "general";
   const ref = useRef<HTMLDivElement>(null);
   const { atStart, atEnd } = useScrollFade(ref, "vertical", [activeTab]);
 
@@ -101,16 +95,12 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "app":
-        return <SettingsApp />;
-      case "language":
-        return <SettingsLanguage />;
+      case "general":
+        return <SettingsGeneral />;
       case "notifications":
         return <SettingsNotifications />;
-      case "permissions":
-        return <SettingsPermissions />;
-      case "audio":
-        return <SettingsAudio />;
+      case "system":
+        return <SettingsSystem />;
       case "lab":
         return <SettingsLab />;
     }
@@ -127,10 +117,13 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
             onClick={() => setActiveTab(id)}
             className={cn([
               "px-1 gap-1.5 h-7 border border-transparent shrink-0",
-              id === "lab" && "ml-2 text-neutral-500",
+              id === "lab" && "ml-2 text-amber-600",
+              id === "lab" &&
+                activeTab !== id &&
+                "bg-amber-50/50 border-amber-100",
               activeTab === id &&
                 (id === "lab"
-                  ? "bg-amber-50 border-amber-200 text-amber-700"
+                  ? "bg-amber-100 border-amber-300 text-amber-800"
                   : "bg-neutral-100 border-neutral-200"),
             ])}
           >

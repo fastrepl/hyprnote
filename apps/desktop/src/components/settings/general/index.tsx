@@ -11,8 +11,10 @@ import * as settings from "../../../store/tinybase/store/settings";
 import { Data } from "../data";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
+import { Audio } from "./audio";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
+import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 import { StorageSettingsView } from "./storage";
 
@@ -92,8 +94,41 @@ function useSettingsForm() {
   return { form, value };
 }
 
-export function SettingsApp() {
+export function SettingsGeneral() {
   const { form } = useSettingsForm();
+
+  const supportedLanguagesQuery = useQuery({
+    queryKey: ["documented-language-codes", "live"],
+    queryFn: async () => {
+      const result = await listenerCommands.listDocumentedLanguageCodesLive();
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+    staleTime: Infinity,
+  });
+  const supportedLanguages = supportedLanguagesQuery.data ?? ["en"];
+
+  const value = useConfigValues(["spoken_languages"] as const);
+
+  const suggestedProviders = useQuery({
+    enabled: !!value.spoken_languages?.length,
+    queryKey: ["suggested-stt-providers", value.spoken_languages],
+    queryFn: async () => {
+      const result = await listenerCommands.suggestProvidersForLanguagesLive(
+        value.spoken_languages ?? [],
+      );
+
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+
+      return result.data.filter(
+        (provider) => !["fireworks", "openai"].includes(provider),
+      );
+    },
+  });
 
   return (
     <div className="flex flex-col gap-8">
@@ -102,6 +137,7 @@ export function SettingsApp() {
       </div>
 
       <div>
+        <h2 className="text-lg font-semibold mb-4">App</h2>
         <form.Field name="autostart">
           {(autostartField) => (
             <form.Field name="notification_detect">
@@ -155,79 +191,33 @@ export function SettingsApp() {
       </div>
 
       <div>
-        <StorageSettingsView />
-        <div className="mt-6">
-          <Data />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function SettingsLanguage() {
-  const { form } = useSettingsForm();
-
-  const supportedLanguagesQuery = useQuery({
-    queryKey: ["documented-language-codes", "live"],
-    queryFn: async () => {
-      const result = await listenerCommands.listDocumentedLanguageCodesLive();
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-    staleTime: Infinity,
-  });
-  const supportedLanguages = supportedLanguagesQuery.data ?? ["en"];
-
-  const value = useConfigValues(["spoken_languages"] as const);
-
-  const suggestedProviders = useQuery({
-    enabled: !!value.spoken_languages?.length,
-    queryKey: ["suggested-stt-providers", value.spoken_languages],
-    queryFn: async () => {
-      const result = await listenerCommands.suggestProvidersForLanguagesLive(
-        value.spoken_languages ?? [],
-      );
-
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-
-      return result.data.filter(
-        (provider) => !["fireworks", "openai"].includes(provider),
-      );
-    },
-  });
-
-  return (
-    <div>
-      <h2 className="text-lg font-semibold mb-4">Language & Vocabulary</h2>
-      <div className="flex flex-col gap-6">
-        <form.Field name="ai_language">
-          {(field) => (
-            <MainLanguageView
-              value={field.state.value}
-              onChange={(val) => field.handleChange(val)}
-              supportedLanguages={supportedLanguages}
-            />
-          )}
-        </form.Field>
-        <form.Field name="spoken_languages">
-          {(field) => (
-            <>
-              <SpokenLanguagesView
+        <h2 className="text-lg font-semibold mb-4">Language & Vocabulary</h2>
+        <div className="flex flex-col gap-6">
+          <form.Field name="ai_language">
+            {(field) => (
+              <MainLanguageView
                 value={field.state.value}
                 onChange={(val) => field.handleChange(val)}
                 supportedLanguages={supportedLanguages}
               />
-              <span className="text-xs text-neutral-500">
-                Providers outside {suggestedProviders.data?.join(", ")} may not
-                work properly.
-              </span>
-            </>
-          )}
-        </form.Field>
+            )}
+          </form.Field>
+          <form.Field name="spoken_languages">
+            {(field) => (
+              <>
+                <SpokenLanguagesView
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val)}
+                  supportedLanguages={supportedLanguages}
+                />
+                <span className="text-xs text-neutral-500">
+                  Providers outside {suggestedProviders.data?.join(", ")} may
+                  not work properly.
+                </span>
+              </>
+            )}
+          </form.Field>
+        </div>
       </div>
     </div>
   );
@@ -235,12 +225,25 @@ export function SettingsLanguage() {
 
 export function SettingsNotifications() {
   return (
-    <div>
-      <h2 className="text-lg font-semibold mb-4">Notifications</h2>
+    <div className="pt-3">
       <NotificationSettingsView />
     </div>
   );
 }
 
-export { Audio as SettingsAudio } from "./audio";
-export { Permissions as SettingsPermissions } from "./permissions";
+export function SettingsSystem() {
+  return (
+    <div className="flex flex-col gap-8 pt-3">
+      <Permissions />
+      <Audio />
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Storage</h2>
+        <StorageSettingsView />
+      </div>
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Data</h2>
+        <Data />
+      </div>
+    </div>
+  );
+}

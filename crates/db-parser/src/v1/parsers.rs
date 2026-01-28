@@ -24,6 +24,7 @@ pub(super) fn parse_session(id: &str, cells: &serde_json::Map<String, Value>) ->
             .to_string(),
         title: title.to_string(),
         raw_md: raw_md.map(String::from),
+        enhanced_content: None,
         folder_id: get_cell_str(cells, "folder_id").map(String::from),
         event_id: get_cell_str(cells, "event_id").map(String::from),
     })

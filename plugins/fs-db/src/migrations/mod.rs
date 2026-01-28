@@ -8,8 +8,8 @@ use std::pin::Pin;
 
 use hypr_version::Version;
 
-use crate::version::{detect_version, version_from_name, write_version, DetectedVersion};
 use crate::Result;
+use crate::version::{DetectedVersion, detect_version, version_from_name, write_version};
 
 type MigrationFn = for<'a> fn(&'a Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>;
 
@@ -100,8 +100,16 @@ mod tests {
             (DetectedVersion::Unknown, "1.0.2", vec![]),
             (known("1.0.1"), "1.0.2", vec![nightly_3, nightly_4, v1_0_2]),
             (known("1.0.2-nightly.2"), "1.0.2-nightly.3", vec![nightly_3]),
-            (known("1.0.2-nightly.2"), "1.0.2-nightly.4", vec![nightly_3, nightly_4]),
-            (known("1.0.2-nightly.2"), "1.0.2", vec![nightly_3, nightly_4, v1_0_2]),
+            (
+                known("1.0.2-nightly.2"),
+                "1.0.2-nightly.4",
+                vec![nightly_3, nightly_4],
+            ),
+            (
+                known("1.0.2-nightly.2"),
+                "1.0.2",
+                vec![nightly_3, nightly_4, v1_0_2],
+            ),
             (known("1.0.2-nightly.3"), "1.0.2", vec![nightly_4, v1_0_2]),
             (known("1.0.2-nightly.4"), "1.0.2", vec![v1_0_2]),
             (known("1.0.2"), "1.0.3", vec![]),

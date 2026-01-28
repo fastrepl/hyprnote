@@ -19,7 +19,7 @@
     "**/generated/**",
     "**/permissions/**",
     "**/*.swift",
-    "**/migrations/**",
+    "**/migrations/**/*.sql",
     "**/tests/*.sql",
     "**/charts/**",
     "**/schema.json",

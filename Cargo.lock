@@ -16745,6 +16745,7 @@ name = "tauri-plugin-fs-db"
 version = "0.1.0"
 dependencies = [
  "db-parser",
+ "frontmatter",
  "serde",
  "serde_json",
  "specta",

@@ -11,10 +11,17 @@ import {
 } from "@langchain/langgraph";
 import { ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
 
-import { compilePrompt, loadPrompt, type PromptConfig } from "../../prompt";
-import { isRetryableError, type SpecialistConfig } from "../../types";
-import { compressMessages } from "../../utils/context";
-import { createModel, ensureMessageIds } from "../../utils/shared";
+import {
+  compilePrompt,
+  compressMessages,
+  createModel,
+  ensureMessageIds,
+  isRetryableError,
+  loadPrompt,
+  type PromptConfig,
+  type SpecialistConfig,
+} from "@hypr/agent-core";
+
 import { executeCodeTool } from "./tools";
 
 const SpecialistState = Annotation.Root({

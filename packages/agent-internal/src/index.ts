@@ -1,45 +1,41 @@
-// Main agent exports
+// Re-export everything from agent-core for backwards compatibility
 export {
-  agent,
+  AgentState,
+  type AgentStateType,
+  type AgentStreamState,
   checkpointer,
   clearThread,
+  type CompiledPrompt,
+  compilePrompt,
+  compressMessages,
+  createModel,
+  ensureMessageIds,
+  extractOutput,
   generateRunId,
+  getImages,
+  getInterruptToolArgs,
+  getInterruptToolName,
   getLangSmithUrl,
+  type HumanInterrupt,
+  type HumanResponse,
+  type ImageContent,
+  isInterrupted,
+  isRetryableError,
+  loadPrompt,
+  parseRequest,
+  type PromptConfig,
   setupCheckpointer,
-} from "./agent";
+  type SpecialistConfig,
+} from "@hypr/agent-core";
+
+// Main agent exports
+export { agent } from "./agent";
 
 // Graph exports
 export { graph } from "./graph";
 export type { CompiledAgentGraph } from "./graph";
 
-// State exports
-export { AgentState } from "./state";
-export type { AgentStateType } from "./state";
-
-// Types
-export type {
-  AgentStreamState,
-  HumanInterrupt,
-  HumanResponse,
-  SpecialistConfig,
-} from "./types";
-export {
-  extractOutput,
-  getInterruptToolArgs,
-  getInterruptToolName,
-  isInterrupted,
-  isRetryableError,
-} from "./types";
-
-// Prompt utilities
-export type { CompiledPrompt, PromptConfig } from "./prompt";
-export { compilePrompt, loadPrompt } from "./prompt";
-
-// Input utilities
-export type { AgentInput, ImageContent } from "./utils/input";
-export { getImages, parseRequest } from "./utils/input";
-
-// Tools
+// Tools (internal-specific tools + re-exports from core)
 export {
   executeCodeTool,
   loopsTool,
@@ -61,7 +57,7 @@ export { supabaseSpecialist } from "./specialists/supabase";
 
 // Modal
 export type { ExecutionResult } from "./modal/execute";
-export { executeCode, formatExecutionResult } from "./modal/execute";
+export { executeCode } from "./modal/execute";
 export type { BunSandbox, SandboxRunResult } from "./modal/sandbox";
 export {
   createBunSandbox,

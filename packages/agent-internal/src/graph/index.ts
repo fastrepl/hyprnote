@@ -1,25 +1,19 @@
 import { END, START, StateGraph } from "@langchain/langgraph";
-import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 import { ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
 
-import { env } from "../env";
+import {
+  AgentState,
+  checkpointer,
+  clearThread,
+  isRetryableError,
+  setupCheckpointer,
+} from "@hypr/agent-core";
+
 import { agentNode } from "../nodes/agent";
 import { humanApprovalNode } from "../nodes/tools";
-import { AgentState } from "../state";
 import { tools } from "../tools";
-import { isRetryableError } from "../types";
 
-const checkpointer = PostgresSaver.fromConnString(env.DATABASE_URL);
-
-export async function setupCheckpointer() {
-  await checkpointer.setup();
-}
-
-export async function clearThread(threadId: string): Promise<void> {
-  await checkpointer.deleteThread(threadId);
-}
-
-export { checkpointer };
+export { checkpointer, clearThread, setupCheckpointer };
 
 const toolNode = new ToolNode(tools);
 

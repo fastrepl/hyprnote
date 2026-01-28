@@ -1,12 +1,12 @@
 import { AIMessage, ToolMessage } from "@langchain/core/messages";
 import { Command, interrupt } from "@langchain/langgraph";
-import type {
-  HumanInterrupt,
-  HumanResponse,
-} from "@langchain/langgraph/prebuilt";
 
-import type { AgentStateType } from "../state";
-import { toolsRequiringApproval } from "../tools";
+import {
+  type AgentStateType,
+  type HumanInterrupt,
+  type HumanResponse,
+  toolsRequiringApproval,
+} from "@hypr/agent-core";
 
 export async function humanApprovalNode(
   state: AgentStateType,

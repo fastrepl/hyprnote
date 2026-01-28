@@ -11,12 +11,14 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/slack-internal/package.json apps/slack-internal/package.json
 COPY packages/agent-core/package.json packages/agent-core/package.json
 COPY packages/agent-internal/package.json packages/agent-internal/package.json
+COPY packages/agent-designer/package.json packages/agent-designer/package.json
 RUN pnpm fetch --filter @hypr/slack-internal...
 
 FROM deps AS build
 COPY apps/slack-internal apps/slack-internal
 COPY packages/agent-core packages/agent-core
 COPY packages/agent-internal packages/agent-internal
+COPY packages/agent-designer packages/agent-designer
 RUN pnpm install --filter @hypr/slack-internal... --frozen-lockfile
 RUN pnpm deploy --filter @hypr/slack-internal --prod --legacy /runtime
 

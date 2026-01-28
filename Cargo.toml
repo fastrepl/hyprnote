@@ -32,6 +32,7 @@ exclude = [
   "apps/web",
   "plugins/db",
   "plugins/export",
+  "plugins/cli2",
 ]
 
 [workspace.dependencies]

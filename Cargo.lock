@@ -3971,6 +3971,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "db-parser"
+version = "0.1.0"
+dependencies = [
+ "db-core",
+ "db-user",
+ "htmd",
+ "owhisper-interface",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+]
+
+[[package]]
 name = "db-user"
 version = "0.1.0"
 dependencies = [

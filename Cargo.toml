@@ -35,13 +35,13 @@ exclude = [
 ]
 
 [workspace.dependencies]
-askama-utils = { path = "crates/askama-utils", package = "askama-utils" }
 hypr-aec = { path = "crates/aec", package = "aec" }
 hypr-agc = { path = "crates/agc", package = "agc" }
 hypr-am = { path = "crates/am", package = "am" }
 hypr-am2 = { path = "crates/am2", package = "am2" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-apple-note = { path = "crates/apple-note", package = "apple-note" }
+hypr-askama-utils = { path = "crates/askama-utils", package = "askama-utils" }
 hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-device = { path = "crates/audio-device", package = "audio-device" }
 hypr-audio-interface = { path = "crates/audio-interface", package = "audio-interface" }
@@ -50,6 +50,7 @@ hypr-buffer = { path = "crates/buffer", package = "buffer" }
 hypr-bundle = { path = "crates/bundle", package = "bundle" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
+hypr-db-parser = { path = "crates/db-parser", package = "db-parser" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }
 hypr-detect = { path = "crates/detect", package = "detect" }
 hypr-device-monitor = { path = "crates/device-monitor", package = "device-monitor" }

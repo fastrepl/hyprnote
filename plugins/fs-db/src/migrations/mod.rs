@@ -5,7 +5,7 @@ use std::path::Path;
 
 use hypr_version::Version;
 
-use crate::version::default_detector;
+use crate::version::{default_detector, write_version};
 use crate::Result;
 
 struct Migration {
@@ -39,6 +39,7 @@ pub fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
     for migration in &migrations {
         if current < *migration.to && *migration.to <= *app_version {
             (migration.run)(base_dir)?;
+            write_version(base_dir, migration.to)?;
             current = migration.to.clone();
         }
     }

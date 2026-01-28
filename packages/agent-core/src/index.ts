@@ -41,11 +41,9 @@ export { createModel, ensureMessageIds } from "./utils/shared";
 
 // Tools
 export {
+  coreTools,
   executeCodeTool,
   readUrlTool,
-  registerTool,
-  tools,
-  toolsByName,
   toolsRequiringApproval,
 } from "./tools";
 export type {
@@ -58,6 +56,14 @@ export {
   formatExecutionResult,
   setExecuteCodeFunction,
 } from "./tools/execute-code";
+
+// Nodes
+export { createAgentNode } from "./nodes/createAgentNode";
+export { humanApprovalNode } from "./nodes/humanApprovalNode";
+
+// Graph
+export { createAgentGraph } from "./graph/createAgentGraph";
+export type { CompiledAgentGraph } from "./graph/createAgentGraph";
 
 // Environment
 export { env } from "./env";

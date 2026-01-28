@@ -225,10 +225,7 @@ export function SettingsApp() {
         </div>
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold font-serif mb-4">Storage</h2>
-        <StorageSettingsView />
-      </div>
+      <StorageSettingsView />
 
       <div>
         <h2 className="text-lg font-semibold font-serif mb-4">Data</h2>

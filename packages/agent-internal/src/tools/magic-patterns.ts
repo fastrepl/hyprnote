@@ -22,7 +22,9 @@ const magicPatternsArgsSchema = z.object({
     ),
   modelSelector: MagicPatternsModelSelector.optional()
     .default("auto")
-    .describe("The model to use for generation: 'auto', 'claude_sonnet', or 'gemini'"),
+    .describe(
+      "The model to use for generation: 'auto', 'claude_sonnet', or 'gemini'",
+    ),
 });
 
 export type MagicPatternsArgs = z.infer<typeof magicPatternsArgsSchema>;

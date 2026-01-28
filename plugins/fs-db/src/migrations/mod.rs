@@ -1,5 +1,7 @@
-mod v1_0_2_move_uuid_folders_to_sessions;
-mod v1_0_3_rename_transcript;
+mod v1_0_2_extract_from_sqlite;
+mod v1_0_2_nightly_3_move_uuid_folders;
+mod v1_0_2_nightly_4_rename_transcript;
+pub mod version_macro;
 
 use std::path::Path;
 
@@ -7,6 +9,8 @@ use hypr_version::Version;
 
 use crate::version::{default_detector, write_version};
 use crate::Result;
+
+pub(crate) use version_macro::version_from_name;
 
 struct Migration {
     to: &'static Version,
@@ -16,12 +20,16 @@ struct Migration {
 fn all_migrations() -> Vec<Migration> {
     vec![
         Migration {
-            to: &v1_0_2_move_uuid_folders_to_sessions::TO_VERSION,
-            run: v1_0_2_move_uuid_folders_to_sessions::run,
+            to: v1_0_2_nightly_3_move_uuid_folders::version(),
+            run: v1_0_2_nightly_3_move_uuid_folders::run,
         },
         Migration {
-            to: &v1_0_3_rename_transcript::TO_VERSION,
-            run: v1_0_3_rename_transcript::run,
+            to: v1_0_2_nightly_4_rename_transcript::version(),
+            run: v1_0_2_nightly_4_rename_transcript::run,
+        },
+        Migration {
+            to: v1_0_2_extract_from_sqlite::version(),
+            run: v1_0_2_extract_from_sqlite::run,
         },
     ]
 }

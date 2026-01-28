@@ -16744,7 +16744,9 @@ dependencies = [
 name = "tauri-plugin-fs-db"
 version = "0.1.0"
 dependencies = [
+ "db-parser",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",

@@ -2,9 +2,12 @@ use std::path::Path;
 
 use hypr_version::Version;
 
+use super::version_from_name;
 use crate::Result;
 
-pub static TO_VERSION: Version = Version::new(1, 0, 3);
+pub fn version() -> &'static Version {
+    version_from_name!()
+}
 
 pub fn run(base_dir: &Path) -> Result<()> {
     if !base_dir.exists() {

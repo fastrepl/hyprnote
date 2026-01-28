@@ -1,0 +1,52 @@
+on:
+  workflow_run:
+    workflows: ["desktop_cd.yaml"]
+    types:
+      - completed
+
+jobs:
+  upload-staging:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch != 'main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if staging build
+        id: check
+        run: |
+          RUN_ID=${{ github.event.workflow_run.id }}
+          INPUTS=$(gh api repos/${{ github.repository }}/actions/runs/$RUN_ID --jq '.inputs // empty')
+          CHANNEL=$(echo "$INPUTS" | jq -r '.channel // empty')
+          if [[ "$CHANNEL" == "staging" ]]; then
+            echo "is_staging=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_staging=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: steps.check.outputs.is_staging == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: hyprnote-staging-macos-silicon
+          path: ./artifacts/macos
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: steps.check.outputs.is_staging == 'true'
+        name: Upload to R2
+        run: |
+          DMG_FILE=$(find ./artifacts/macos -name "*.dmg" -type f | head -1)
+          if [[ -n "$DMG_FILE" ]]; then
+            aws s3 cp "$DMG_FILE" \
+              "s3://hyprnote-build/desktop/staging/hyprnote-macos-aarch64.dmg" \
+              --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+              --region auto
+            echo "Uploaded staging build to R2"
+          else
+            echo "No DMG file found"
+            exit 1
+          fi
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}

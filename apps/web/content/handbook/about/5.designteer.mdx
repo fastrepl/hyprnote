@@ -1,0 +1,39 @@
+---
+title: "Designteer Guide"
+section: "About"
+summary: "Resources and workflows for designteers working on Hyprnote."
+---
+
+This guide covers workflows and resources specific to designteers working on Hyprnote.
+
+## Downloading Staging Builds
+
+Staging builds are created when testing new features before they go to nightly or stable releases. To download a staging build:
+
+1. Go to the [GitHub Actions page](https://github.com/fastrepl/hyprnote/actions/workflows/desktop_cd.yaml)
+2. Find the workflow run for the staging build you want (look for runs with "staging" channel)
+3. Scroll down to the "Artifacts" section
+4. Download `hyprnote-staging-macos-silicon` for Apple Silicon Macs
+
+Alternatively, staging builds are automatically uploaded to R2 storage after successful builds. The latest staging build can be accessed at:
+
+```
+s3://hyprnote-build/desktop/staging/hyprnote-macos-aarch64.dmg
+```
+
+Note: You'll need appropriate R2 credentials to access the S3 bucket directly. For most testing purposes, downloading from GitHub Actions artifacts is the recommended approach.
+
+## Triggering Staging Builds
+
+To trigger a staging build for a PR or branch:
+
+1. Comment `/staging` on the PR
+2. The bot will trigger a staging build and reply with a link to the workflow run
+3. Once complete, download the artifact from the workflow run
+
+You can also trigger a staging build manually:
+
+1. Go to [desktop_cd.yaml workflow](https://github.com/fastrepl/hyprnote/actions/workflows/desktop_cd.yaml)
+2. Click "Run workflow"
+3. Select the branch and choose "staging" as the channel
+4. Click "Run workflow"

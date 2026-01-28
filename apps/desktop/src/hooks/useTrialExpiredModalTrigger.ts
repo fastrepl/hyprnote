@@ -4,6 +4,7 @@ import { useAuth } from "../auth";
 import { useBillingAccess } from "../billing";
 import { useTrialExpiredModal } from "../components/devtool/trial-expired-modal";
 import * as settings from "../store/tinybase/store/settings";
+import { useOnboardingState } from "./useOnboardingState";
 
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -15,9 +16,10 @@ export function useTrialExpiredModalTrigger() {
   const hasShownRef = useRef(false);
 
   const isAuthenticated = !!auth?.session;
+  const isOnboarding = useOnboardingState();
 
   useEffect(() => {
-    if (hasShownRef.current || !store) {
+    if (hasShownRef.current || !store || isOnboarding) {
       return;
     }
 
@@ -30,5 +32,12 @@ export function useTrialExpiredModalTrigger() {
         hasShownRef.current = true;
       }
     }
-  }, [isAuthenticated, isPro, canStartTrial, openTrialExpiredModal, store]);
+  }, [
+    isAuthenticated,
+    isPro,
+    canStartTrial,
+    openTrialExpiredModal,
+    store,
+    isOnboarding,
+  ]);
 }

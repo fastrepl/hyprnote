@@ -10,6 +10,7 @@ import { getEntitlementsFromToken, useBillingAccess } from "../billing";
 import { useTrialBeginModal } from "../components/devtool/trial-begin-modal";
 import { env } from "../env";
 import * as settings from "../store/tinybase/store/settings";
+import { useOnboardingState } from "./useOnboardingState";
 
 export function useTrialStartOnFirstLaunch() {
   const auth = useAuth();
@@ -17,6 +18,9 @@ export function useTrialStartOnFirstLaunch() {
   const { open: openTrialBeginModal } = useTrialBeginModal();
   const store = settings.UI.useStore(settings.STORE_ID);
   const hasCheckedRef = useRef(false);
+  const hasShownModalRef = useRef(false);
+
+  const isOnboarding = useOnboardingState();
 
   const startTrialMutation = useMutation({
     mutationFn: async () => {
@@ -50,7 +54,7 @@ export function useTrialStartOnFirstLaunch() {
             trial_end_date: trialEndDate.toISOString(),
           },
         });
-        openTrialBeginModal();
+        store?.setValue("trial_begin_modal_pending", true);
       }
     },
     onError: (e) => {
@@ -59,6 +63,7 @@ export function useTrialStartOnFirstLaunch() {
   });
 
   const isAuthenticated = !!auth?.session;
+  const startTrial = startTrialMutation.mutate;
 
   useEffect(() => {
     if (hasCheckedRef.current || !store || !isAuthenticated) {
@@ -75,7 +80,20 @@ export function useTrialStartOnFirstLaunch() {
     hasCheckedRef.current = true;
 
     if (canStartTrial) {
-      startTrialMutation.mutate();
+      startTrial();
     }
-  }, [isAuthenticated, canStartTrial, store, startTrialMutation]);
+  }, [isAuthenticated, canStartTrial, store, startTrial]);
+
+  useEffect(() => {
+    if (hasShownModalRef.current || !store || isOnboarding) {
+      return;
+    }
+
+    const pending = store.getValue("trial_begin_modal_pending");
+    if (pending) {
+      store.setValue("trial_begin_modal_pending", false);
+      hasShownModalRef.current = true;
+      openTrialBeginModal();
+    }
+  }, [store, isOnboarding, openTrialBeginModal]);
 }

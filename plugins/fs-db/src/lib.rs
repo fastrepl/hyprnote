@@ -37,9 +37,21 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 },
             );
 
-            migrations::run(&base_dir, &app_version)?;
-            version::write_version(&base_dir, &app_version)?;
+            std::thread::spawn({
+                let base_dir = base_dir.clone();
+                let app_version = app_version.clone();
+                move || {
+                    let rt = tokio::runtime::Builder::new_current_thread()
+                        .enable_all()
+                        .build()
+                        .expect("failed to create migration runtime");
+                    rt.block_on(migrations::run(&base_dir, &app_version))
+                }
+            })
+            .join()
+            .expect("migration thread panicked")?;
 
+            version::write_version(&base_dir, &app_version)?;
             Ok(())
         })
         .build()

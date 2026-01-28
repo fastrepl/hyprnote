@@ -2,16 +2,20 @@ mod v1_0_2_extract_from_sqlite;
 mod v1_0_2_nightly_3_move_uuid_folders;
 mod v1_0_2_nightly_4_rename_transcript;
 
+use std::future::Future;
 use std::path::Path;
+use std::pin::Pin;
 
 use hypr_version::Version;
 
 use crate::version::{detect_version, version_from_name, write_version, DetectedVersion};
 use crate::Result;
 
+type MigrationFn = for<'a> fn(&'a Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>;
+
 struct Migration {
     to: &'static Version,
-    run: fn(&Path) -> Result<()>,
+    run: MigrationFn,
 }
 
 fn all_migrations() -> Vec<Migration> {
@@ -31,28 +35,39 @@ fn all_migrations() -> Vec<Migration> {
     ]
 }
 
-pub fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
-    let mut current = match detect_version(base_dir) {
-        DetectedVersion::Fresh => {
-            write_version(base_dir, app_version)?;
-            return Ok(());
-        }
-        DetectedVersion::Unknown => {
-            write_version(base_dir, app_version)?;
-            return Ok(());
-        }
-        DetectedVersion::Known(vault_version) => vault_version.version,
+fn migrations_to_apply(detected: &DetectedVersion, to: &Version) -> Vec<Migration> {
+    let current = match detected {
+        DetectedVersion::Fresh | DetectedVersion::Unknown => return vec![],
+        DetectedVersion::Known(v) => v.version.clone(),
     };
+
+    let mut current = current;
+    let mut result = vec![];
 
     let mut migrations = all_migrations();
     migrations.sort_by(|a, b| a.to.cmp(b.to));
 
-    for migration in &migrations {
-        if current < *migration.to && *migration.to <= *app_version {
-            (migration.run)(base_dir)?;
-            write_version(base_dir, migration.to)?;
+    for migration in migrations {
+        if current < *migration.to && *migration.to <= *to {
             current = migration.to.clone();
+            result.push(migration);
         }
+    }
+
+    result
+}
+
+pub async fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
+    let detected = detect_version(base_dir);
+
+    if matches!(detected, DetectedVersion::Fresh | DetectedVersion::Unknown) {
+        write_version(base_dir, app_version)?;
+        return Ok(());
+    }
+
+    for migration in migrations_to_apply(&detected, app_version) {
+        (migration.run)(base_dir).await?;
+        write_version(base_dir, migration.to)?;
     }
 
     Ok(())
@@ -62,29 +77,6 @@ pub fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
 mod tests {
     use super::*;
     use crate::version::{VaultVersion, VersionSource};
-
-    fn migrations_to_apply(detected: &DetectedVersion, to: &Version) -> Vec<&'static Version> {
-        let current = match detected {
-            DetectedVersion::Fresh => return vec![],
-            DetectedVersion::Unknown => return vec![],
-            DetectedVersion::Known(v) => v.version.clone(),
-        };
-
-        let mut current = current;
-        let mut result = vec![];
-
-        let mut migrations = all_migrations();
-        migrations.sort_by(|a, b| a.to.cmp(b.to));
-
-        for migration in &migrations {
-            if current < *migration.to && *migration.to <= *to {
-                result.push(migration.to);
-                current = migration.to.clone();
-            }
-        }
-
-        result
-    }
 
     fn v(s: &str) -> Version {
         s.parse().unwrap()
@@ -116,7 +108,10 @@ mod tests {
         ];
 
         for (detected, to, expected) in cases {
-            let result = migrations_to_apply(detected, &v(to));
+            let result: Vec<_> = migrations_to_apply(detected, &v(to))
+                .iter()
+                .map(|m| m.to)
+                .collect();
             assert_eq!(result, *expected, "detected {detected:?} to {to}");
         }
     }

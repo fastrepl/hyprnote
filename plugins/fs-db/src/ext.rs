@@ -13,13 +13,19 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsDb<'a, R, M> {
             return Ok(());
         }
 
-        let app_version = self.manager.app_handle().config().version.as_ref().map_or_else(
-            || hypr_version::Version::new(0, 0, 0),
-            |v| {
-                v.parse::<hypr_version::Version>()
-                    .expect("version must be semver")
-            },
-        );
+        let app_version = self
+            .manager
+            .app_handle()
+            .config()
+            .version
+            .as_ref()
+            .map_or_else(
+                || hypr_version::Version::new(0, 0, 0),
+                |v| {
+                    v.parse::<hypr_version::Version>()
+                        .expect("version must be semver")
+                },
+            );
 
         crate::version::write_version(&base_dir, &app_version)?;
         Ok(())

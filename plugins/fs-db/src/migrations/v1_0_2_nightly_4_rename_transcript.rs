@@ -1,4 +1,6 @@
+use std::future::Future;
 use std::path::Path;
+use std::pin::Pin;
 
 use hypr_version::Version;
 
@@ -9,7 +11,11 @@ pub fn version() -> &'static Version {
     version_from_name!()
 }
 
-pub fn run(base_dir: &Path) -> Result<()> {
+pub fn run(base_dir: &Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + '_>> {
+    Box::pin(run_inner(base_dir))
+}
+
+async fn run_inner(base_dir: &Path) -> Result<()> {
     if !base_dir.exists() {
         return Ok(());
     }

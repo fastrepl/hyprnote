@@ -1,5 +1,7 @@
 use std::collections::HashMap;
+use std::future::Future;
 use std::path::Path;
+use std::pin::Pin;
 
 use hypr_db_parser::{MigrationData, Transcript};
 use hypr_version::Version;
@@ -11,17 +13,17 @@ pub fn version() -> &'static Version {
     version_from_name!()
 }
 
-pub fn run(base_dir: &Path) -> Result<()> {
+pub fn run(base_dir: &Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + '_>> {
+    Box::pin(run_inner(base_dir))
+}
+
+async fn run_inner(base_dir: &Path) -> Result<()> {
     let sqlite_path = base_dir.join("db.sqlite");
     if !sqlite_path.exists() {
         return Ok(());
     }
 
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()?;
-
-    let data = rt.block_on(hypr_db_parser::v1::parse_from_sqlite(&sqlite_path))?;
+    let data = hypr_db_parser::v1::parse_from_sqlite(&sqlite_path).await?;
 
     write_sessions(base_dir, &data)?;
     write_humans(base_dir, &data)?;

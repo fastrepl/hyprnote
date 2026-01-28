@@ -156,7 +156,7 @@ export function AccountSettings() {
           Get Started
         </button>
 
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide mt-4">
           {[
             { label: "Pro AI models", icon: Sparkle, comingSoon: false },
             { label: "Cloud sync", icon: Cloud, comingSoon: true },

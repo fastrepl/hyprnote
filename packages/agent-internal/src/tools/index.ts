@@ -1,26 +1,29 @@
-import type { StructuredToolInterface } from "@langchain/core/tools";
+import {
+  readUrlTool,
+  registerTool,
+  tools,
+  toolsByName,
+  toolsRequiringApproval,
+} from "@hypr/agent-core";
 
 import { executeCodeTool } from "./execute-code";
 import { loopsTool } from "./loops";
-import { readUrlTool } from "./read-url";
 import { stripeTool } from "./stripe";
 import { supabaseTool } from "./supabase";
 
-export const tools: StructuredToolInterface[] = [
+tools.push(loopsTool, stripeTool, supabaseTool);
+toolsByName[loopsTool.name] = loopsTool;
+toolsByName[stripeTool.name] = stripeTool;
+toolsByName[supabaseTool.name] = supabaseTool;
+
+export {
+  executeCodeTool,
   loopsTool,
   readUrlTool,
+  registerTool,
   stripeTool,
   supabaseTool,
-];
-
-export const toolsByName: Record<string, StructuredToolInterface> =
-  Object.fromEntries(tools.map((t) => [t.name, t]));
-
-export const toolsRequiringApproval = new Set(["executeCode"]);
-
-export function registerTool(tool: StructuredToolInterface): void {
-  tools.push(tool);
-  toolsByName[tool.name] = tool;
-}
-
-export { executeCodeTool, loopsTool, readUrlTool, stripeTool, supabaseTool };
+  tools,
+  toolsByName,
+  toolsRequiringApproval,
+};

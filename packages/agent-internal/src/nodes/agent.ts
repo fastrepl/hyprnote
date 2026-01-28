@@ -1,3 +1,12 @@
+import {
+  type AgentStateType,
+  compilePrompt,
+  compressMessages,
+  createModel,
+  ensureMessageIds,
+  loadPrompt,
+  type PromptConfig,
+} from "@hypr/agent-core";
 import type { BaseMessage } from "@langchain/core/messages";
 import {
   AIMessage,
@@ -6,11 +15,7 @@ import {
 } from "@langchain/core/messages";
 import path from "path";
 
-import { compilePrompt, loadPrompt, type PromptConfig } from "../prompt";
-import type { AgentStateType } from "../state";
 import { tools } from "../tools";
-import { compressMessages } from "../utils/context";
-import { createModel, ensureMessageIds } from "../utils/shared";
 
 const prompt = loadPrompt(path.join(import.meta.dirname, ".."));
 

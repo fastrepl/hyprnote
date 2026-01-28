@@ -85,21 +85,4 @@ mod test {
                 .unwrap()
         );
     }
-
-    #[ignore]
-    #[tokio::test]
-    async fn test_run_import_dry_v1_sqlite() {
-        let app = create_app(tauri::test::mock_builder());
-        let importer = app.importer();
-
-        let source = ImportSource::from_path(
-            dirs::download_dir().unwrap().join("db.sqlite"),
-            TransformKind::HyprnoteV1Sqlite,
-        );
-
-        println!(
-            "{:?}",
-            importer.run_import_dry_from_source(&source).await.unwrap()
-        );
-    }
 }

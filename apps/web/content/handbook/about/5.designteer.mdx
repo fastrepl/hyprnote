@@ -8,20 +8,21 @@ This guide covers workflows and resources specific to designteers working on Hyp
 
 ## Downloading Staging Builds
 
-Staging builds are created when testing new features before they go to nightly or stable releases. To download a staging build:
+Staging builds are created when testing new features before they go to nightly or stable releases. The easiest way to download the latest staging build is using the dedicated workflow:
 
-1. Go to the [GitHub Actions page](https://github.com/fastrepl/hyprnote/actions/workflows/desktop_cd.yaml)
-2. Find the workflow run for the staging build you want (look for runs with "staging" channel)
-3. Scroll down to the "Artifacts" section
-4. Download `hyprnote-staging-macos-silicon` for Apple Silicon Macs
+1. Go to the [Download Latest Staging Build workflow](https://github.com/fastrepl/hyprnote/actions/workflows/download_staging.yaml)
+2. Click "Run workflow"
+3. Select the platform (currently `macos-aarch64` for Apple Silicon Macs)
+4. Click "Run workflow"
+5. Once complete, download the artifact from the workflow run
 
-Alternatively, staging builds are automatically uploaded to R2 storage after successful builds. The latest staging build can be accessed at:
+Staging builds are stored in R2 with filenames like `hyprnote-staging-{timestamp}-{commit}-macos-aarch64.dmg`, making it easy to identify which commit a build corresponds to.
 
-```
-s3://hyprnote-build/desktop/staging/hyprnote-macos-aarch64.dmg
-```
+You can also download directly from the desktop_cd workflow artifacts:
 
-Note: You'll need appropriate R2 credentials to access the S3 bucket directly. For most testing purposes, downloading from GitHub Actions artifacts is the recommended approach.
+1. Go to the [desktop_cd workflow](https://github.com/fastrepl/hyprnote/actions/workflows/desktop_cd.yaml)
+2. Find the staging build run you want
+3. Download `hyprnote-staging-macos-silicon` from the Artifacts section
 
 ## Triggering Staging Builds
 
@@ -29,7 +30,7 @@ To trigger a staging build for a PR or branch:
 
 1. Comment `/staging` on the PR
 2. The bot will trigger a staging build and reply with a link to the workflow run
-3. Once complete, download the artifact from the workflow run
+3. Once complete, use the download workflow or artifacts to get the build
 
 You can also trigger a staging build manually:
 

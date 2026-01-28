@@ -8,6 +8,7 @@ import { usePermissions } from "../../hooks/usePermissions";
 import { Route } from "../../routes/app/onboarding/_layout.index";
 import { commands } from "../../types/tauri.gen";
 import { getNext, type StepProps } from "./config";
+import { STEP_ID_PERMISSIONS } from "./permissions";
 
 export const STEP_ID_WELCOME = "welcome" as const;
 
@@ -47,6 +48,15 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
     onNavigate({ ...search, step: getNext(search)! });
   }, [onNavigate, search]);
 
+  const handleProceedWithoutAccount = useCallback(async () => {
+    await commands.setOnboardingLocal(false);
+    if (platform() === "macos") {
+      onNavigate({ ...search, step: STEP_ID_PERMISSIONS });
+    } else {
+      void finishOnboarding();
+    }
+  }, [onNavigate, search]);
+
   return (
     <>
       <img
@@ -60,12 +70,20 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
         Where Conversations Stay Yours
       </p>
 
-      <button
-        onClick={handleClickGetStarted}
-        className="w-full py-3 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
-      >
-        Get Started
-      </button>
+      <div className="flex flex-col items-center gap-2 w-full">
+        <button
+          onClick={handleClickGetStarted}
+          className="w-full py-3 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
+        >
+          Get Started
+        </button>
+        <button
+          onClick={handleProceedWithoutAccount}
+          className="text-sm text-neutral-500 transition-opacity duration-150 hover:opacity-70"
+        >
+          proceed without account
+        </button>
+      </div>
     </>
   );
 });

@@ -1,12 +1,9 @@
 import { AIMessage, ToolMessage } from "@langchain/core/messages";
 import { Command, interrupt } from "@langchain/langgraph";
 
-import {
-  type AgentStateType,
-  type HumanInterrupt,
-  type HumanResponse,
-  toolsRequiringApproval,
-} from "@hypr/agent-core";
+import type { AgentStateType } from "../state";
+import { toolsRequiringApproval } from "../tools";
+import type { HumanInterrupt, HumanResponse } from "../types";
 
 export async function humanApprovalNode(
   state: AgentStateType,
@@ -23,17 +20,14 @@ export async function humanApprovalNode(
 
   const toolCalls = lastMessage.tool_calls ?? [];
 
-  // Check if any tool calls require approval
   const toolsNeedingApproval = toolCalls.filter((toolCall) =>
     toolsRequiringApproval.has(toolCall.name),
   );
 
   if (toolsNeedingApproval.length === 0) {
-    // No approval needed, proceed directly to tools
     return new Command({ goto: "tools" });
   }
 
-  // Process each tool requiring approval
   for (const toolCall of toolsNeedingApproval) {
     const interruptValue: HumanInterrupt = {
       action_request: {
@@ -52,12 +46,10 @@ export async function humanApprovalNode(
     const response = interrupt(interruptValue) as HumanResponse;
 
     if (response.type === "ignore") {
-      // User ignored the tool call, go back to agent without feedback
       return new Command({ goto: "agent" });
     }
 
     if (response.type === "response" && typeof response.args === "string") {
-      // User provided feedback, add it as a ToolMessage and go back to agent
       const feedbackMessage = new ToolMessage({
         content: `User feedback: ${response.args}`,
         tool_call_id: toolCall.id ?? "",
@@ -69,6 +61,5 @@ export async function humanApprovalNode(
     }
   }
 
-  // All approvals accepted, proceed to tools
   return new Command({ goto: "tools" });
 }

@@ -96,8 +96,10 @@ function useSettingsForm() {
 
 export function SettingsAccount() {
   return (
-    <div className="pt-3">
-      <AccountSettings />
+    <div className="h-full flex items-center justify-center">
+      <div className="w-full max-w-md">
+        <AccountSettings />
+      </div>
     </div>
   );
 }

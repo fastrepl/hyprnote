@@ -122,8 +122,8 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
             onClick={() => setActiveTab(id)}
             className={cn([
               "px-1 gap-1.5 h-7 border border-transparent shrink-0",
-              id === "lab" && "ml-2 text-amber-600 hover:bg-amber-50",
-              id === "lab" && activeTab !== id && "bg-amber-50/50",
+              id === "lab" &&
+                "ml-2 text-amber-600 hover:bg-amber-50 hover:text-amber-700",
               activeTab === id &&
                 (id === "lab"
                   ? "bg-amber-100 border-amber-300 text-amber-800"

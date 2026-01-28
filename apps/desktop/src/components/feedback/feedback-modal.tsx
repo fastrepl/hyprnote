@@ -1,3 +1,6 @@
+import { downloadDir } from "@tauri-apps/api/path";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
 import { Bug, Lightbulb, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -103,18 +106,24 @@ export function FeedbackModal() {
       if (attachLogs) {
         const logContent = await getLogContent();
         if (logContent) {
-          logSection = `
+          const defaultPath = await downloadDir();
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          const defaultFileName = `hyprnote-logs-${timestamp}.txt`;
 
-## Application Logs (last 1000 lines, redacted)
-<details>
-<summary>Click to expand logs</summary>
+          const filePath = await save({
+            title: "Save Application Logs",
+            defaultPath: `${defaultPath}/${defaultFileName}`,
+            filters: [{ name: "Text Files", extensions: ["txt", "log"] }],
+          });
 
-\`\`\`
-${logContent}
-\`\`\`
+          if (filePath) {
+            await writeTextFile(filePath, logContent);
+            logSection = `
 
-</details>
+## Application Logs
+Logs have been saved to a file. Please attach the saved log file to this issue.
 `;
+          }
         }
       }
 
@@ -267,7 +276,7 @@ ${logSection}
                   htmlFor="attach-logs"
                   className="text-sm text-neutral-600 cursor-pointer"
                 >
-                  Attach application logs (user info redacted)
+                  Save application logs to file (for manual attachment)
                 </label>
               </div>
 

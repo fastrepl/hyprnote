@@ -36,10 +36,14 @@ type StartParams<T extends TaskType> = {
   onComplete?: (text: string) => void;
 };
 
+type ExtendedOptions<T extends TaskType> = Options<T> & {
+  onComplete?: (text: string) => void;
+};
+
 export function useAITaskTask<T extends TaskType>(
   taskId: TaskId<T>,
   taskType: T,
-  options?: Options<T>,
+  options?: ExtendedOptions<T>,
 ) {
   const { taskState, generate, cancel, reset } = useAITask(
     useCallback(
@@ -80,9 +84,16 @@ export function useAITaskTask<T extends TaskType>(
     prevStatusRef.current = status;
   }, [status, streamedText, error, taskState, callbacksRef]);
 
+  const onCompleteRef = useLatestRef(options?.onComplete);
+
   const start = useCallback(
-    (config: StartParams<T>) => generate(taskId, { ...config, taskType }),
-    [generate, taskId, taskType],
+    (config: StartParams<T>) =>
+      generate(taskId, {
+        ...config,
+        taskType,
+        onComplete: config.onComplete ?? onCompleteRef.current,
+      }),
+    [generate, taskId, taskType, onCompleteRef],
   );
 
   const cancelTask = useCallback(() => cancel(taskId), [cancel, taskId]);

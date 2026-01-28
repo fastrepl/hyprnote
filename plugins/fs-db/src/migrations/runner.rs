@@ -64,26 +64,56 @@ mod tests {
     fn test_migrations_to_apply() {
         let nightly_3 = super::super::v1_0_2_nightly_3_move_uuid_folders::version();
         let nightly_4 = super::super::v1_0_2_nightly_4_rename_transcript::version();
-        let v1_0_2 = super::super::v1_0_2_extract_from_sqlite::version();
+        let nightly_14 = super::super::v1_0_2_nightly_14_extract_from_sqlite::version();
 
         let cases: &[(DetectedVersion, &str, Vec<&Version>)] = &[
             (DetectedVersion::Fresh, "1.0.2", vec![]),
             (DetectedVersion::Unknown, "1.0.2", vec![]),
-            (known("1.0.1"), "1.0.2", vec![nightly_3, nightly_4, v1_0_2]),
+            // 1.0.1 stable -> 1.0.2 stable: all migrations run
+            (
+                known("1.0.1"),
+                "1.0.2",
+                vec![nightly_3, nightly_4, nightly_14],
+            ),
+            // nightly upgrades within early nightlies
             (known("1.0.2-nightly.2"), "1.0.2-nightly.3", vec![nightly_3]),
             (
                 known("1.0.2-nightly.2"),
                 "1.0.2-nightly.4",
                 vec![nightly_3, nightly_4],
             ),
+            // nightly.12 -> nightly.14: extraction runs
+            (
+                known("1.0.2-nightly.12"),
+                "1.0.2-nightly.14",
+                vec![nightly_14],
+            ),
+            // nightly.13 -> nightly.14: extraction runs
+            (
+                known("1.0.2-nightly.13"),
+                "1.0.2-nightly.14",
+                vec![nightly_14],
+            ),
+            // nightly.14 -> nightly.15: nothing runs (already past extraction)
+            (known("1.0.2-nightly.14"), "1.0.2-nightly.15", vec![]),
+            // nightly.14 -> 1.0.2 stable: nothing runs
+            (known("1.0.2-nightly.14"), "1.0.2", vec![]),
+            // 1.0.2 stable -> 1.0.3 stable: nothing runs
+            (known("1.0.2"), "1.0.3", vec![]),
+            // nightly.14 -> 1.0.3-nightly.1: nothing runs
+            (known("1.0.2-nightly.14"), "1.0.3-nightly.1", vec![]),
+            // early nightly -> stable: all applicable migrations
             (
                 known("1.0.2-nightly.2"),
                 "1.0.2",
-                vec![nightly_3, nightly_4, v1_0_2],
+                vec![nightly_3, nightly_4, nightly_14],
             ),
-            (known("1.0.2-nightly.3"), "1.0.2", vec![nightly_4, v1_0_2]),
-            (known("1.0.2-nightly.4"), "1.0.2", vec![v1_0_2]),
-            (known("1.0.2"), "1.0.3", vec![]),
+            (
+                known("1.0.2-nightly.3"),
+                "1.0.2",
+                vec![nightly_4, nightly_14],
+            ),
+            (known("1.0.2-nightly.4"), "1.0.2", vec![nightly_14]),
         ];
 
         for (detected, to, expected) in cases {

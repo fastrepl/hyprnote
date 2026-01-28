@@ -91,7 +91,7 @@ pub fn read_version(base_dir: &Path) -> Option<Version> {
     let version_file = base_dir.join(HYPRNOTE_DIR).join(VERSION_FILE);
     if version_file.exists() {
         let content = std::fs::read_to_string(&version_file).ok()?;
-        return Version::parse(content.trim()).ok();
+        return content.trim().parse().ok();
     }
     None
 }

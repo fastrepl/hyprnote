@@ -5,8 +5,7 @@ use uuid::Uuid;
 
 use crate::Result;
 
-pub const FROM_VERSION: Version = Version::new(1, 0, 1);
-pub const TO_VERSION: Version = Version::new(1, 0, 2);
+pub static TO_VERSION: Version = Version::new(1, 0, 2);
 
 pub fn run(base_dir: &Path) -> Result<()> {
     if !base_dir.exists() {

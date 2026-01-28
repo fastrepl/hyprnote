@@ -6,11 +6,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
-    #[error("migration gap: cannot migrate from {from} to {to}")]
-    MigrationGap {
-        from: hypr_version::Version,
-        to: hypr_version::Version,
-    },
 }
 
 impl Serialize for Error {

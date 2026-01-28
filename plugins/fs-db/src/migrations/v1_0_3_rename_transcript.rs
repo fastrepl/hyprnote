@@ -4,8 +4,7 @@ use hypr_version::Version;
 
 use crate::Result;
 
-pub const FROM_VERSION: Version = Version::new(1, 0, 2);
-pub const TO_VERSION: Version = Version::new(1, 0, 3);
+pub static TO_VERSION: Version = Version::new(1, 0, 3);
 
 pub fn run(base_dir: &Path) -> Result<()> {
     if !base_dir.exists() {

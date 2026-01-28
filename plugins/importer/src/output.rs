@@ -1,20 +1,16 @@
-use crate::types::{
-    ImportResult, ImportedEnhancedNote, ImportedHuman, ImportedNote, ImportedOrganization,
-    ImportedSessionParticipant, ImportedTranscript,
-};
+use crate::types::ImportData;
 use serde::Serialize;
 use serde_json::{Map, Value};
-use std::collections::HashMap;
 
 #[derive(Serialize)]
-struct Organization {
+struct OrganizationOutput {
     user_id: String,
     created_at: String,
     name: String,
 }
 
 #[derive(Serialize)]
-struct Human {
+struct HumanOutput {
     user_id: String,
     created_at: String,
     name: String,
@@ -26,7 +22,7 @@ struct Human {
 }
 
 #[derive(Serialize)]
-struct Session {
+struct SessionOutput {
     user_id: String,
     created_at: String,
     folder_id: String,
@@ -36,7 +32,7 @@ struct Session {
 }
 
 #[derive(Serialize)]
-struct EnhancedNote {
+struct EnhancedNoteOutput {
     user_id: String,
     created_at: String,
     session_id: String,
@@ -47,7 +43,7 @@ struct EnhancedNote {
 }
 
 #[derive(Serialize)]
-struct Transcript {
+struct TranscriptOutput {
     user_id: String,
     created_at: String,
     session_id: String,
@@ -70,7 +66,7 @@ struct WordInTranscript {
 }
 
 #[derive(Serialize)]
-struct SessionParticipant {
+struct SessionParticipantOutput {
     user_id: String,
     created_at: String,
     session_id: String,
@@ -79,47 +75,44 @@ struct SessionParticipant {
 }
 
 #[derive(Serialize)]
-struct Tag {
+struct TagOutput {
     user_id: String,
     created_at: String,
     name: String,
 }
 
 #[derive(Serialize)]
-struct TagSessionMapping {
+struct TagSessionMappingOutput {
     user_id: String,
     created_at: String,
     tag_id: String,
     session_id: String,
 }
 
-pub(crate) fn to_tinybase_json(data: &ImportResult, user_id: &str) -> Value {
+pub(crate) fn to_tinybase_json(data: &ImportData, user_id: &str) -> Value {
     let mut tables: Map<String, Value> = Map::new();
 
-    insert_organizations(&mut tables, &data.organizations, user_id);
-    insert_humans(&mut tables, &data.humans, user_id);
-    insert_sessions(&mut tables, &data.notes, user_id);
-    insert_enhanced_notes(&mut tables, &data.enhanced_notes, user_id);
-    insert_transcripts_and_words(&mut tables, &data.transcripts, user_id);
-    insert_participants(&mut tables, &data.participants, user_id);
-    insert_tags(&mut tables, &data.notes, user_id);
+    insert_organizations(&mut tables, data, user_id);
+    insert_humans(&mut tables, data, user_id);
+    insert_sessions(&mut tables, data, user_id);
+    insert_enhanced_notes(&mut tables, data, user_id);
+    insert_transcripts_and_words(&mut tables, data, user_id);
+    insert_participants(&mut tables, data, user_id);
+    insert_tags(&mut tables, data, user_id);
 
     serde_json::json!([Value::Object(tables), Value::Null])
 }
 
-fn insert_organizations(
-    tables: &mut Map<String, Value>,
-    orgs: &[ImportedOrganization],
-    user_id: &str,
-) {
-    if orgs.is_empty() {
+fn insert_organizations(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+    if data.organizations.is_empty() {
         return;
     }
 
-    let entries: Map<String, Value> = orgs
+    let entries: Map<String, Value> = data
+        .organizations
         .iter()
         .map(|org| {
-            let value = Organization {
+            let value = OrganizationOutput {
                 user_id: user_id.to_string(),
                 created_at: normalize_datetime(&org.created_at),
                 name: org.name.clone(),
@@ -131,15 +124,16 @@ fn insert_organizations(
     tables.insert("organizations".to_string(), Value::Object(entries));
 }
 
-fn insert_humans(tables: &mut Map<String, Value>, humans: &[ImportedHuman], user_id: &str) {
-    if humans.is_empty() {
+fn insert_humans(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+    if data.humans.is_empty() {
         return;
     }
 
-    let entries: Map<String, Value> = humans
+    let entries: Map<String, Value> = data
+        .humans
         .iter()
         .map(|human| {
-            let value = Human {
+            let value = HumanOutput {
                 user_id: user_id.to_string(),
                 created_at: normalize_datetime(&human.created_at),
                 name: human.name.clone(),
@@ -156,42 +150,40 @@ fn insert_humans(tables: &mut Map<String, Value>, humans: &[ImportedHuman], user
     tables.insert("humans".to_string(), Value::Object(entries));
 }
 
-fn insert_sessions(tables: &mut Map<String, Value>, notes: &[ImportedNote], user_id: &str) {
-    if notes.is_empty() {
+fn insert_sessions(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+    if data.sessions.is_empty() {
         return;
     }
 
-    let entries: Map<String, Value> = notes
+    let entries: Map<String, Value> = data
+        .sessions
         .iter()
-        .map(|note| {
-            let value = Session {
+        .map(|session| {
+            let value = SessionOutput {
                 user_id: user_id.to_string(),
-                created_at: normalize_datetime(&note.created_at),
-                folder_id: note.folder_id.clone().unwrap_or_default(),
-                event_id: note.event_id.clone().unwrap_or_default(),
-                title: note.title.clone(),
-                raw_md: note.raw_md.clone().unwrap_or_else(|| note.content.clone()),
+                created_at: normalize_datetime(&session.created_at),
+                folder_id: session.folder_id.clone().unwrap_or_default(),
+                event_id: session.event_id.clone().unwrap_or_default(),
+                title: session.title.clone(),
+                raw_md: session.raw_md.clone().unwrap_or_default(),
             };
-            (note.id.clone(), serde_json::to_value(value).unwrap())
+            (session.id.clone(), serde_json::to_value(value).unwrap())
         })
         .collect();
 
     tables.insert("sessions".to_string(), Value::Object(entries));
 }
 
-fn insert_enhanced_notes(
-    tables: &mut Map<String, Value>,
-    enhanced_notes: &[ImportedEnhancedNote],
-    user_id: &str,
-) {
-    if enhanced_notes.is_empty() {
+fn insert_enhanced_notes(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+    if data.enhanced_notes.is_empty() {
         return;
     }
 
-    let entries: Map<String, Value> = enhanced_notes
+    let entries: Map<String, Value> = data
+        .enhanced_notes
         .iter()
         .map(|note| {
-            let value = EnhancedNote {
+            let value = EnhancedNoteOutput {
                 user_id: user_id.to_string(),
                 created_at: chrono::Utc::now().to_rfc3339(),
                 session_id: note.session_id.clone(),
@@ -207,18 +199,14 @@ fn insert_enhanced_notes(
     tables.insert("enhanced_notes".to_string(), Value::Object(entries));
 }
 
-fn insert_transcripts_and_words(
-    tables: &mut Map<String, Value>,
-    transcripts: &[ImportedTranscript],
-    user_id: &str,
-) {
-    if transcripts.is_empty() {
+fn insert_transcripts_and_words(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+    if data.transcripts.is_empty() {
         return;
     }
 
     let mut transcript_entries: Map<String, Value> = Map::new();
 
-    for transcript in transcripts {
+    for transcript in &data.transcripts {
         let words_json: Vec<WordInTranscript> = transcript
             .words
             .iter()
@@ -234,7 +222,7 @@ fn insert_transcripts_and_words(
             })
             .collect();
 
-        let value = Transcript {
+        let value = TranscriptOutput {
             user_id: user_id.to_string(),
             created_at: normalize_datetime(&transcript.created_at),
             session_id: transcript.session_id.clone(),
@@ -249,20 +237,17 @@ fn insert_transcripts_and_words(
     tables.insert("transcripts".to_string(), Value::Object(transcript_entries));
 }
 
-fn insert_participants(
-    tables: &mut Map<String, Value>,
-    participants: &[ImportedSessionParticipant],
-    user_id: &str,
-) {
-    if participants.is_empty() {
+fn insert_participants(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+    if data.participants.is_empty() {
         return;
     }
 
-    let entries: Map<String, Value> = participants
+    let entries: Map<String, Value> = data
+        .participants
         .iter()
         .map(|p| {
             let id = format!("{}_{}", p.session_id, p.human_id);
-            let value = SessionParticipant {
+            let value = SessionParticipantOutput {
                 user_id: user_id.to_string(),
                 created_at: chrono::Utc::now().to_rfc3339(),
                 session_id: p.session_id.clone(),
@@ -279,46 +264,43 @@ fn insert_participants(
     );
 }
 
-fn insert_tags(tables: &mut Map<String, Value>, notes: &[ImportedNote], user_id: &str) {
-    let mut tags: Map<String, Value> = Map::new();
-    let mut mappings: Map<String, Value> = Map::new();
-    let mut tag_name_to_id: HashMap<String, String> = HashMap::new();
+fn insert_tags(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+    if data.tags.is_empty() {
+        return;
+    }
 
-    for note in notes {
-        for tag_name in &note.tags {
-            let tag_id = tag_name_to_id
-                .entry(tag_name.to_string())
-                .or_insert_with(|| {
-                    uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_OID, tag_name.as_bytes()).to_string()
-                })
-                .clone();
-
-            if !tags.contains_key(&tag_id) {
-                let value = Tag {
-                    user_id: user_id.to_string(),
-                    created_at: chrono::Utc::now().to_rfc3339(),
-                    name: tag_name.clone(),
-                };
-                tags.insert(tag_id.clone(), serde_json::to_value(value).unwrap());
-            }
-
-            let mapping_id = format!("{}_{}", tag_id, note.id);
-            let value = TagSessionMapping {
+    let tag_entries: Map<String, Value> = data
+        .tags
+        .iter()
+        .map(|tag| {
+            let value = TagOutput {
                 user_id: user_id.to_string(),
                 created_at: chrono::Utc::now().to_rfc3339(),
-                tag_id: tag_id.clone(),
-                session_id: note.id.clone(),
+                name: tag.name.clone(),
             };
-            mappings.insert(mapping_id, serde_json::to_value(value).unwrap());
-        }
-    }
+            (tag.id.clone(), serde_json::to_value(value).unwrap())
+        })
+        .collect();
 
-    if !tags.is_empty() {
-        tables.insert("tags".to_string(), Value::Object(tags));
-    }
-    if !mappings.is_empty() {
-        tables.insert("mapping_tag_session".to_string(), Value::Object(mappings));
-    }
+    let mapping_entries: Map<String, Value> = data
+        .tag_mappings
+        .iter()
+        .map(|mapping| {
+            let value = TagSessionMappingOutput {
+                user_id: user_id.to_string(),
+                created_at: chrono::Utc::now().to_rfc3339(),
+                tag_id: mapping.tag_id.clone(),
+                session_id: mapping.session_id.clone(),
+            };
+            (mapping.id.clone(), serde_json::to_value(value).unwrap())
+        })
+        .collect();
+
+    tables.insert("tags".to_string(), Value::Object(tag_entries));
+    tables.insert(
+        "mapping_tag_session".to_string(),
+        Value::Object(mapping_entries),
+    );
 }
 
 fn normalize_datetime(s: &str) -> String {

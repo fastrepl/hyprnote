@@ -3977,6 +3977,7 @@ dependencies = [
  "db-core",
  "db-user",
  "htmd",
+ "importer-interface",
  "owhisper-interface",
  "serde",
  "serde_json",
@@ -8547,6 +8548,13 @@ name = "impl-more"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8a5a9a0ff0086c7a148acb942baaabeadf9504d10400b5a05645853729b9cd2"
+
+[[package]]
+name = "importer-interface"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "indenter"
@@ -16876,12 +16884,10 @@ name = "tauri-plugin-importer"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "db-core",
- "db-user",
+ "db-parser",
  "dirs 6.0.0",
  "granola",
- "htmd",
- "owhisper-interface",
+ "importer-interface",
  "serde",
  "serde_json",
  "specta",

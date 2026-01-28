@@ -4,24 +4,13 @@ mod hyprnote;
 
 pub use as_is::AsIsData;
 
-use crate::types::{ImportResult, ImportSource, ImportSourceInfo, TransformKind};
+use crate::types::{ImportData, ImportSource, ImportSourceInfo, TransformKind};
 
-pub async fn import_all(source: &ImportSource) -> Result<ImportResult, crate::Error> {
+pub async fn import_all(source: &ImportSource) -> Result<ImportData, crate::Error> {
     match source.transform {
         TransformKind::HyprnoteV0 => hyprnote::v0::import_all_from_path(&source.path).await,
         TransformKind::Granola => granola::import_all_from_path(&source.path).await,
-        TransformKind::AsIs => {
-            let data = as_is::load_data(&source.path)?;
-            Ok(ImportResult {
-                notes: data.notes,
-                transcripts: data.transcripts,
-                humans: data.humans,
-                organizations: data.organizations,
-                participants: data.session_participants,
-                templates: vec![],
-                enhanced_notes: vec![],
-            })
-        }
+        TransformKind::AsIs => as_is::load_data(&source.path),
     }
 }
 

@@ -14,6 +14,8 @@ pub async fn parse_from_sqlite(path: &Path) -> Result<MigrationData> {
         .await?;
     let db = UserDatabase::from(db);
 
+    // Older Hyprnote DBs can have `sessions.words` as NULL/empty, but db-user's
+    // `Session::from_row` expects a non-null JSON string.
     let conn = db.conn()?;
     conn.execute(
         "UPDATE sessions SET words = '[]' WHERE words IS NULL OR words = ''",

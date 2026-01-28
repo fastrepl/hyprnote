@@ -31,7 +31,7 @@ impl<R: tauri::Runtime> Importer<R> {
         }
 
         let data = crate::sources::import_all(source).await?;
-        let stats = data.stats();
+        let stats = ImportStats::from_data(&data);
         let tinybase_json = to_tinybase_json(&data, &user_id);
 
         Ok(ImportDataResult {
@@ -57,7 +57,7 @@ impl<R: tauri::Runtime> Importer<R> {
         }
 
         let data = crate::sources::import_all(source).await?;
-        Ok(data.stats())
+        Ok(ImportStats::from_data(&data))
     }
 }
 

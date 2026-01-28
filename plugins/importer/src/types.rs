@@ -1,6 +1,11 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+pub use hypr_importer_interface::{
+    EnhancedNote, Human, ImportData, Organization, Session, SessionParticipant, Tag, TagMapping,
+    Template, TemplateSection, Transcript, Word,
+};
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum TransformKind {
@@ -131,7 +136,7 @@ pub struct ImportSourceInfo {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ImportStats {
-    pub notes_count: usize,
+    pub sessions_count: usize,
     pub transcripts_count: usize,
     pub humans_count: usize,
     pub organizations_count: usize,
@@ -140,130 +145,23 @@ pub struct ImportStats {
     pub enhanced_notes_count: usize,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct ImportDataResult {
-    pub stats: ImportStats,
-    pub data: serde_json::Value,
-}
-
-pub struct ImportResult {
-    pub notes: Vec<ImportedNote>,
-    pub transcripts: Vec<ImportedTranscript>,
-    pub humans: Vec<ImportedHuman>,
-    pub organizations: Vec<ImportedOrganization>,
-    pub participants: Vec<ImportedSessionParticipant>,
-    pub templates: Vec<ImportedTemplate>,
-    pub enhanced_notes: Vec<ImportedEnhancedNote>,
-}
-
-impl ImportResult {
-    pub fn stats(&self) -> ImportStats {
-        ImportStats {
-            organizations_count: self.organizations.len(),
-            humans_count: self.humans.len(),
-            notes_count: self.notes.len(),
-            transcripts_count: self.transcripts.len(),
-            participants_count: self.participants.len(),
-            templates_count: self.templates.len(),
-            enhanced_notes_count: self.enhanced_notes.len(),
+impl ImportStats {
+    pub fn from_data(data: &ImportData) -> Self {
+        Self {
+            sessions_count: data.sessions.len(),
+            transcripts_count: data.transcripts.len(),
+            humans_count: data.humans.len(),
+            organizations_count: data.organizations.len(),
+            participants_count: data.participants.len(),
+            templates_count: data.templates.len(),
+            enhanced_notes_count: data.enhanced_notes.len(),
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportedNote {
-    pub id: String,
-    pub title: String,
-    pub content: String,
-    pub raw_md: Option<String>,
-    pub enhanced_content: Option<String>,
-    pub created_at: String,
-    pub updated_at: String,
-    pub folder_id: Option<String>,
-    pub event_id: Option<String>,
-    pub tags: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportedTranscriptSegment {
-    pub id: String,
-    pub start_timestamp: String,
-    pub end_timestamp: String,
-    pub text: String,
-    pub speaker: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportedWord {
-    pub id: String,
-    pub start_ms: Option<f64>,
-    pub end_ms: Option<f64>,
-    pub text: String,
-    pub speaker: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportedTranscript {
-    pub id: String,
-    pub session_id: String,
-    pub title: String,
-    pub created_at: String,
-    pub updated_at: String,
-    pub segments: Vec<ImportedTranscriptSegment>,
-    pub words: Vec<ImportedWord>,
-    pub start_ms: Option<f64>,
-    pub end_ms: Option<f64>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportedHuman {
-    pub id: String,
-    pub created_at: String,
-    pub name: String,
-    pub email: Option<String>,
-    pub org_id: Option<String>,
-    pub job_title: Option<String>,
-    pub linkedin_username: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportedOrganization {
-    pub id: String,
-    pub created_at: String,
-    pub name: String,
-    pub description: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportedSessionParticipant {
-    pub session_id: String,
-    pub human_id: String,
-    pub source: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportedEnhancedNote {
-    pub id: String,
-    pub session_id: String,
-    pub content: String,
-    pub template_id: Option<String>,
-    pub position: i32,
-    pub title: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportedTemplate {
-    pub id: String,
-    pub title: String,
-    pub description: String,
-    pub sections: Vec<ImportedTemplateSection>,
-    pub tags: Vec<String>,
-    pub context_option: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportedTemplateSection {
-    pub title: String,
-    pub description: String,
+#[serde(rename_all = "camelCase")]
+pub struct ImportDataResult {
+    pub stats: ImportStats,
+    pub data: serde_json::Value,
 }

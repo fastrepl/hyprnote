@@ -9,14 +9,11 @@ pub enum Error {
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 
-    #[error("database error: {0}")]
-    Database(#[from] hypr_db_core::Error),
-
-    #[error("libsql error: {0}")]
-    Libsql(#[from] hypr_db_core::libsql::Error),
-
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
+
+    #[error("db parser error: {0}")]
+    DbParser(#[from] hypr_db_parser::Error),
 
     #[error("import source not found: {0:?}")]
     SourceNotFound(ImportSourceKind),

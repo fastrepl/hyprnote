@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import { commands } from "../../types/tauri.gen";
+
 export function useLeftSidebar() {
   const [expanded, setExpanded] = useState(true);
   const [showDevtool, setShowDevtool] = useState(false);
@@ -11,6 +13,11 @@ export function useLeftSidebar() {
 
   const toggleDevtool = useCallback(() => {
     setShowDevtool((prev) => !prev);
+  }, []);
+
+  const expandWithResize = useCallback(() => {
+    commands.resizeWindowForSidebar();
+    setExpanded(true);
   }, []);
 
   useHotkeys(
@@ -28,6 +35,7 @@ export function useLeftSidebar() {
     expanded,
     setExpanded,
     toggleExpanded,
+    expandWithResize,
     showDevtool,
     setShowDevtool,
     toggleDevtool,

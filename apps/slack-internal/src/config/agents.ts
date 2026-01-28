@@ -2,6 +2,8 @@ import { agent as designerAgent } from "@hypr/agent-designer";
 import type { CompiledAgentGraph } from "@hypr/agent-internal";
 import { agent as internalAgent } from "@hypr/agent-internal";
 
+import { env } from "../env";
+
 export interface AgentConfig {
   agent: CompiledAgentGraph;
   name: string;
@@ -23,7 +25,33 @@ export const agents = {
 
 export type AgentType = keyof typeof agents;
 
-const channelAgentMap: Record<string, AgentType> = {};
+function parseChannelAgentMap(): Record<string, AgentType> {
+  try {
+    const parsed = JSON.parse(env.AGENT_CHANNEL_MAP) as Record<string, string>;
+    const validMap: Record<string, AgentType> = {};
+
+    for (const [channelId, agentType] of Object.entries(parsed)) {
+      if (agentType in agents) {
+        validMap[channelId] = agentType as AgentType;
+      } else {
+        console.warn(
+          `Invalid agent type "${agentType}" for channel "${channelId}". Valid types: ${Object.keys(agents).join(", ")}`,
+        );
+      }
+    }
+
+    if (Object.keys(validMap).length > 0) {
+      console.log(`Loaded channel-agent mappings: ${JSON.stringify(validMap)}`);
+    }
+
+    return validMap;
+  } catch (error) {
+    console.error("Failed to parse AGENT_CHANNEL_MAP:", error);
+    return {};
+  }
+}
+
+const channelAgentMap: Record<string, AgentType> = parseChannelAgentMap();
 
 const defaultAgent: AgentType = "internal";
 

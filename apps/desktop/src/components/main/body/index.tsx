@@ -45,6 +45,7 @@ import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
 import { TabContentPrompt, TabItemPrompt } from "./prompts";
 import { Search } from "./search";
+import { TabContentSearch, TabItemSearch } from "./search-view";
 import { TabContentNote, TabItemNote } from "./sessions";
 import { useCaretPosition } from "./sessions/caret-position-context";
 import { TabContentSettings, TabItemSettings } from "./settings";
@@ -274,6 +275,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
             variant="ghost"
             size="icon"
             className="text-neutral-600"
+            data-tour="new-tab-button"
           >
             <PlusIcon size={16} />
           </Button>
@@ -510,6 +512,20 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "search") {
+    return (
+      <TabItemSearch
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
+      />
+    );
+  }
   return null;
 }
 
@@ -555,6 +571,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "ai") {
     return <TabContentAI tab={tab} />;
+  }
+  if (tab.type === "search") {
+    return <TabContentSearch tab={tab} />;
   }
   return null;
 }
@@ -890,6 +909,17 @@ function useTabsShortcuts() {
   useHotkeys(
     "mod+shift+l",
     () => openNew({ type: "folders", id: null }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+f",
+    () => openNew({ type: "search" }),
     {
       preventDefault: true,
       enableOnFormTags: true,

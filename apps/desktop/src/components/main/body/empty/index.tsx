@@ -68,6 +68,10 @@ function EmptyView() {
     () => openCurrent({ type: "ai" }),
     [openCurrent],
   );
+  const openSearch = useCallback(
+    () => openCurrent({ type: "search" }),
+    [openCurrent],
+  );
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6 mb-12 text-neutral-600">
@@ -82,6 +86,11 @@ function EmptyView() {
           label="Contacts"
           shortcut={["⌘", "⇧", "O"]}
           onClick={openContacts}
+        />
+        <ActionItem
+          label="Search"
+          shortcut={["⌘", "⇧", "F"]}
+          onClick={openSearch}
         />
         <div className="h-px bg-neutral-200 my-1" />
         <ActionItem

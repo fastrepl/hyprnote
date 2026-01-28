@@ -129,15 +129,16 @@ export function useLocalPersister(store: Store) {
       const loadedResult = await commands.getLocalPersisterLoaded();
       const alreadyLoaded = loadedResult.status === "ok" && loadedResult.data;
 
+      console.info("[localPersister] load_start", {
+        elapsedMs: Date.now() - loadStart,
+      });
+      const persisterLoadStart = Date.now();
+      await persister.load();
+      console.info("[localPersister] load_end", {
+        elapsedMs: Date.now() - persisterLoadStart,
+      });
+
       if (!alreadyLoaded) {
-        console.info("[localPersister] load_start", {
-          elapsedMs: Date.now() - loadStart,
-        });
-        const persisterLoadStart = Date.now();
-        await persister.load();
-        console.info("[localPersister] load_end", {
-          elapsedMs: Date.now() - persisterLoadStart,
-        });
         await commands.setLocalPersisterLoaded(true);
 
         (store as Store).transaction(() => {});
@@ -148,10 +149,6 @@ export function useLocalPersister(store: Store) {
             await persister.save();
           }
         }
-      } else {
-        console.info("[localPersister] already_loaded", {
-          elapsedMs: Date.now() - loadStart,
-        });
       }
 
       console.info("[localPersister] ready", {

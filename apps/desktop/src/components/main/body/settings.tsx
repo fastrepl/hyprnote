@@ -3,6 +3,7 @@ import {
   FlaskConical,
   MonitorIcon,
   SettingsIcon,
+  SmartphoneIcon,
   UserIcon,
 } from "lucide-react";
 import { useCallback, useRef } from "react";
@@ -20,7 +21,8 @@ import {
   useTabs,
 } from "../../../store/zustand/tabs";
 import {
-  SettingsGeneral,
+  SettingsAccount,
+  SettingsApp,
   SettingsNotifications,
   SettingsSystem,
 } from "../../settings/general";
@@ -72,7 +74,8 @@ const SECTIONS: {
   label: string;
   icon: typeof UserIcon;
 }[] = [
-  { id: "general", label: "General", icon: UserIcon },
+  { id: "account", label: "Account", icon: UserIcon },
+  { id: "app", label: "App", icon: SmartphoneIcon },
   { id: "notifications", label: "Notifications", icon: BellIcon },
   { id: "system", label: "System", icon: MonitorIcon },
   { id: "lab", label: "Lab", icon: FlaskConical },
@@ -82,7 +85,7 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
   const updateSettingsTabState = useTabs(
     (state) => state.updateSettingsTabState,
   );
-  const activeTab = tab.state.tab ?? "general";
+  const activeTab = tab.state.tab ?? "account";
   const ref = useRef<HTMLDivElement>(null);
   const { atStart, atEnd } = useScrollFade(ref, "vertical", [activeTab]);
 
@@ -95,8 +98,10 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "general":
-        return <SettingsGeneral />;
+      case "account":
+        return <SettingsAccount />;
+      case "app":
+        return <SettingsApp />;
       case "notifications":
         return <SettingsNotifications />;
       case "system":
@@ -117,10 +122,8 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
             onClick={() => setActiveTab(id)}
             className={cn([
               "px-1 gap-1.5 h-7 border border-transparent shrink-0",
-              id === "lab" && "ml-2 text-amber-600",
-              id === "lab" &&
-                activeTab !== id &&
-                "bg-amber-50/50 border-amber-100",
+              id === "lab" && "ml-2 text-amber-600 hover:bg-amber-50",
+              id === "lab" && activeTab !== id && "bg-amber-50/50",
               activeTab === id &&
                 (id === "lab"
                   ? "bg-amber-100 border-amber-300 text-amber-800"

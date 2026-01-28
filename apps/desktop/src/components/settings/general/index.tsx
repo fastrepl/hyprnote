@@ -94,7 +94,15 @@ function useSettingsForm() {
   return { form, value };
 }
 
-export function SettingsGeneral() {
+export function SettingsAccount() {
+  return (
+    <div className="pt-3">
+      <AccountSettings />
+    </div>
+  );
+}
+
+export function SettingsApp() {
   const { form } = useSettingsForm();
 
   const supportedLanguagesQuery = useQuery({
@@ -131,67 +139,62 @@ export function SettingsGeneral() {
   });
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="pt-3">
-        <AccountSettings />
-      </div>
+    <div className="flex flex-col gap-8 pt-3">
+      <form.Field name="autostart">
+        {(autostartField) => (
+          <form.Field name="notification_detect">
+            {(notificationDetectField) => (
+              <form.Field name="save_recordings">
+                {(saveRecordingsField) => (
+                  <form.Field name="telemetry_consent">
+                    {(telemetryConsentField) => (
+                      <AppSettingsView
+                        autostart={{
+                          title: "Start Hyprnote automatically at login",
+                          description:
+                            "Hyprnote will always be ready for action without you having to turn it on",
+                          value: autostartField.state.value,
+                          onChange: (val) => autostartField.handleChange(val),
+                        }}
+                        notificationDetect={{
+                          title:
+                            "Start/Stop listening to meetings automatically",
+                          description:
+                            "You don't have to press button every time — we'll start/stop listening for you",
+                          value: notificationDetectField.state.value,
+                          onChange: (val) =>
+                            notificationDetectField.handleChange(val),
+                        }}
+                        saveRecordings={{
+                          title: "Save recordings",
+                          description:
+                            "Audio files of meetings will be saved locally and won't be leaving your device",
+                          value: saveRecordingsField.state.value,
+                          onChange: (val) =>
+                            saveRecordingsField.handleChange(val),
+                        }}
+                        telemetryConsent={{
+                          title: "Share usage data",
+                          description:
+                            "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
+                          value: telemetryConsentField.state.value,
+                          onChange: (val) =>
+                            telemetryConsentField.handleChange(val),
+                        }}
+                      />
+                    )}
+                  </form.Field>
+                )}
+              </form.Field>
+            )}
+          </form.Field>
+        )}
+      </form.Field>
 
       <div>
-        <h2 className="text-lg font-semibold mb-4">App</h2>
-        <form.Field name="autostart">
-          {(autostartField) => (
-            <form.Field name="notification_detect">
-              {(notificationDetectField) => (
-                <form.Field name="save_recordings">
-                  {(saveRecordingsField) => (
-                    <form.Field name="telemetry_consent">
-                      {(telemetryConsentField) => (
-                        <AppSettingsView
-                          autostart={{
-                            title: "Start Hyprnote automatically at login",
-                            description:
-                              "Hyprnote will always be ready for action without you having to turn it on",
-                            value: autostartField.state.value,
-                            onChange: (val) => autostartField.handleChange(val),
-                          }}
-                          notificationDetect={{
-                            title:
-                              "Start/Stop listening to meetings automatically",
-                            description:
-                              "You don't have to press button every time — we'll start/stop listening for you",
-                            value: notificationDetectField.state.value,
-                            onChange: (val) =>
-                              notificationDetectField.handleChange(val),
-                          }}
-                          saveRecordings={{
-                            title: "Save recordings",
-                            description:
-                              "Audio files of meetings will be saved locally and won't be leaving your device",
-                            value: saveRecordingsField.state.value,
-                            onChange: (val) =>
-                              saveRecordingsField.handleChange(val),
-                          }}
-                          telemetryConsent={{
-                            title: "Share usage data",
-                            description:
-                              "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
-                            value: telemetryConsentField.state.value,
-                            onChange: (val) =>
-                              telemetryConsentField.handleChange(val),
-                          }}
-                        />
-                      )}
-                    </form.Field>
-                  )}
-                </form.Field>
-              )}
-            </form.Field>
-          )}
-        </form.Field>
-      </div>
-
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Language & Vocabulary</h2>
+        <h2 className="text-lg font-semibold font-serif mb-4">
+          Language & Vocabulary
+        </h2>
         <div className="flex flex-col gap-6">
           <form.Field name="ai_language">
             {(field) => (
@@ -219,6 +222,16 @@ export function SettingsGeneral() {
           </form.Field>
         </div>
       </div>
+
+      <div>
+        <h2 className="text-lg font-semibold font-serif mb-4">Storage</h2>
+        <StorageSettingsView />
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold font-serif mb-4">Data</h2>
+        <Data />
+      </div>
     </div>
   );
 }
@@ -236,14 +249,6 @@ export function SettingsSystem() {
     <div className="flex flex-col gap-8 pt-3">
       <Permissions />
       <Audio />
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Storage</h2>
-        <StorageSettingsView />
-      </div>
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Data</h2>
-        <Data />
-      </div>
     </div>
   );
 }

@@ -79,20 +79,26 @@ pub async fn parse_from_sqlite(path: &Path) -> Result<MigrationData> {
             });
         }
 
-        let raw_md = if !session.raw_memo_html.is_empty() {
-            Some(html_to_markdown(&session.raw_memo_html))
-        } else {
-            None
-        };
+        if !session.is_empty() {
+            let raw_md = if !session.raw_memo_html.is_empty() {
+                Some(html_to_markdown(&session.raw_memo_html))
+            } else {
+                None
+            };
 
-        let is_empty = session.title.is_empty() && raw_md.is_none();
-        if !is_empty {
+            let enhanced_content = session
+                .enhanced_memo_html
+                .as_ref()
+                .filter(|s| !s.is_empty())
+                .map(|s| html_to_markdown(s));
+
             sessions.push(Session {
                 id: session.id.clone(),
                 user_id: String::new(),
                 created_at: session.created_at.to_rfc3339(),
                 title: session.title,
                 raw_md,
+                enhanced_content,
                 folder_id: None,
                 event_id: session.calendar_event_id,
             });

@@ -25,6 +25,8 @@ pub struct Session {
     #[serde(default)]
     pub raw_md: Option<String>,
     #[serde(default)]
+    pub enhanced_content: Option<String>,
+    #[serde(default)]
     pub folder_id: Option<String>,
     #[serde(default)]
     pub event_id: Option<String>,

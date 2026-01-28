@@ -14,6 +14,7 @@ export const env = createEnv({
     POSTHOG_API_KEY: z.string().optional(),
     POSTHOG_HOST: z.string().optional(),
     JINA_API_KEY: z.string().optional(),
+    MAGIC_PATTERNS_API_KEY: z.string().optional(),
     LANGSMITH_API_KEY: z.string().optional(),
     LANGSMITH_ORG_ID: z.string().optional(),
     LANGSMITH_PROJECT: z.string().optional().default("agent"),

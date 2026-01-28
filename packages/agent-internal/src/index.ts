@@ -43,6 +43,7 @@ export { getImages, parseRequest } from "./utils/input";
 export {
   executeCodeTool,
   loopsTool,
+  magicPatternsTool,
   readUrlTool,
   registerTool,
   stripeTool,

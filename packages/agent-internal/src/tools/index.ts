@@ -2,12 +2,14 @@ import type { StructuredToolInterface } from "@langchain/core/tools";
 
 import { executeCodeTool } from "./execute-code";
 import { loopsTool } from "./loops";
+import { magicPatternsTool } from "./magic-patterns";
 import { readUrlTool } from "./read-url";
 import { stripeTool } from "./stripe";
 import { supabaseTool } from "./supabase";
 
 export const tools: StructuredToolInterface[] = [
   loopsTool,
+  magicPatternsTool,
   readUrlTool,
   stripeTool,
   supabaseTool,
@@ -23,4 +25,11 @@ export function registerTool(tool: StructuredToolInterface): void {
   toolsByName[tool.name] = tool;
 }
 
-export { executeCodeTool, loopsTool, readUrlTool, stripeTool, supabaseTool };
+export {
+  executeCodeTool,
+  loopsTool,
+  magicPatternsTool,
+  readUrlTool,
+  stripeTool,
+  supabaseTool,
+};

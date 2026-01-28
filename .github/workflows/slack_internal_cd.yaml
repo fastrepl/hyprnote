@@ -4,8 +4,12 @@ on:
     paths:
       - "apps/slack-internal/**"
       - "packages/agent-internal/**"
+      - "packages/agent-designer/**"
     branches:
       - main
+
+env:
+  AGENT_CHANNEL_MAP: '{"C0AB7TVP9B5":"designer","C0AA8650ERE":"internal"}'
 
 jobs:
   deploy:
@@ -16,5 +20,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --config apps/slack-internal/fly.toml --remote-only --build-arg GIT_SHA=${{ github.sha }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: Set agent channel mapping secret
+        run: flyctl secrets set AGENT_CHANNEL_MAP='${{ env.AGENT_CHANNEL_MAP }}' --app hyprnote-slack-internal
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

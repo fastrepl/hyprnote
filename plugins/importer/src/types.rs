@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 pub use hypr_importer_interface::{
-    EnhancedNote, Human, ImportData, Organization, Session, SessionParticipant, Tag, TagMapping,
+    Collection, EnhancedNote, Human, Organization, Session, SessionParticipant, Tag, TagMapping,
     Template, TemplateSection, Transcript, Word,
 };
 
@@ -146,7 +146,7 @@ pub struct ImportStats {
 }
 
 impl ImportStats {
-    pub fn from_data(data: &ImportData) -> Self {
+    pub fn from_data(data: &Collection) -> Self {
         Self {
             sessions_count: data.sessions.len(),
             transcripts_count: data.transcripts.len(),

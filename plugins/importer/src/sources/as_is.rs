@@ -1,5 +1,5 @@
 use crate::types::{
-    EnhancedNote, Human, ImportData, Organization, Session, SessionParticipant, Tag, TagMapping,
+    Collection, EnhancedNote, Human, Organization, Session, SessionParticipant, Tag, TagMapping,
     Template, Transcript,
 };
 use serde::{Deserialize, Serialize};
@@ -27,13 +27,13 @@ pub struct AsIsData {
     pub tag_mappings: Vec<TagMapping>,
 }
 
-pub fn load_data(path: &Path) -> Result<ImportData, crate::Error> {
+pub fn load_data(path: &Path) -> Result<Collection, crate::Error> {
     if !path.exists() {
-        return Ok(ImportData::default());
+        return Ok(Collection::default());
     }
     let content = std::fs::read_to_string(path)?;
     let data: AsIsData = serde_json::from_str(&content)?;
-    Ok(ImportData {
+    Ok(Collection {
         sessions: data.sessions,
         transcripts: data.transcripts,
         humans: data.humans,

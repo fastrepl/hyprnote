@@ -4,7 +4,7 @@ use std::path::Path;
 use std::pin::Pin;
 
 use hypr_db_parser::{
-    EnhancedNote, Human, MigrationData, Organization, Session, SessionParticipant, Transcript,
+    Collection, EnhancedNote, Human, Organization, Session, SessionParticipant, Transcript,
 };
 use hypr_frontmatter::Document;
 use hypr_version::Version;
@@ -34,7 +34,7 @@ async fn run_inner(base_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn collect_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileOp>> {
+fn collect_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>> {
     let mut ops = vec![];
 
     ops.extend(collect_session_ops(base_dir, data)?);
@@ -44,7 +44,7 @@ fn collect_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileOp>> {
     Ok(ops)
 }
 
-fn collect_session_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileOp>> {
+fn collect_session_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>> {
     let sessions_dir = base_dir.join("sessions");
 
     let transcripts_by_session: HashMap<&str, &Transcript> = data
@@ -143,7 +143,7 @@ fn collect_session_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<File
     Ok(ops)
 }
 
-fn collect_human_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileOp>> {
+fn collect_human_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>> {
     let humans_dir = base_dir.join("humans");
 
     let ops = data
@@ -161,7 +161,7 @@ fn collect_human_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileOp
     Ok(ops)
 }
 
-fn collect_organization_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileOp>> {
+fn collect_organization_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>> {
     let orgs_dir = base_dir.join("organizations");
 
     let ops = data

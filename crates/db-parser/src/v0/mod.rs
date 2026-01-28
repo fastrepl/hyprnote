@@ -7,7 +7,7 @@ use crate::Result;
 use crate::types::*;
 use convert::{html_to_markdown, session_to_transcript};
 
-pub async fn parse_from_sqlite(path: &Path) -> Result<MigrationData> {
+pub async fn parse_from_sqlite(path: &Path) -> Result<Collection> {
     let db = hypr_db_core::DatabaseBuilder::default()
         .local(path)
         .build()
@@ -158,7 +158,7 @@ pub async fn parse_from_sqlite(path: &Path) -> Result<MigrationData> {
         })
         .collect();
 
-    Ok(MigrationData {
+    Ok(Collection {
         sessions,
         transcripts,
         humans,

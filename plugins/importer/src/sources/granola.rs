@@ -1,4 +1,4 @@
-use crate::types::{ImportData, Session, Tag, TagMapping, Transcript, Word};
+use crate::types::{Collection, Session, Tag, TagMapping, Transcript, Word};
 use hypr_granola::api::Document;
 use hypr_granola::cache::{CacheData, CacheDocument, TranscriptSegment};
 use hypr_granola::prosemirror::convert_to_plain_text;
@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::time::Duration;
 
-pub async fn import_all_from_path(path: &Path) -> Result<ImportData, crate::Error> {
+pub async fn import_all_from_path(path: &Path) -> Result<Collection, crate::Error> {
     let supabase_content = std::fs::read(path)?;
 
     let client = hypr_granola::api::GranolaClient::new(&supabase_content, Duration::from_secs(30))?;
@@ -57,7 +57,7 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportData, crate::Erro
         vec![]
     };
 
-    Ok(ImportData {
+    Ok(Collection {
         sessions,
         transcripts,
         humans: vec![],

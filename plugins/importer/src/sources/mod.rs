@@ -4,9 +4,9 @@ mod hyprnote;
 
 pub use as_is::AsIsData;
 
-use crate::types::{ImportData, ImportSource, ImportSourceInfo, TransformKind};
+use crate::types::{Collection, ImportSource, ImportSourceInfo, TransformKind};
 
-pub async fn import_all(source: &ImportSource) -> Result<ImportData, crate::Error> {
+pub async fn import_all(source: &ImportSource) -> Result<Collection, crate::Error> {
     match source.transform {
         TransformKind::HyprnoteV0 => hyprnote::v0::import_all_from_path(&source.path).await,
         TransformKind::Granola => granola::import_all_from_path(&source.path).await,

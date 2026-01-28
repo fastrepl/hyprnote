@@ -15,7 +15,7 @@ use cell::is_tombstone;
 use parsers::*;
 use types::{SpeakerHintRaw, TranscriptRaw, WordWithTranscript};
 
-pub async fn parse_from_sqlite(path: &Path) -> Result<MigrationData> {
+pub async fn parse_from_sqlite(path: &Path) -> Result<Collection> {
     let db = libsql::Builder::new_local(path).build().await?;
     let conn = db.connect()?;
 
@@ -34,7 +34,7 @@ pub async fn parse_from_sqlite(path: &Path) -> Result<MigrationData> {
     parse_store(&store)
 }
 
-fn parse_store(store: &Value) -> Result<MigrationData> {
+fn parse_store(store: &Value) -> Result<Collection> {
     let tables = store
         .get(0)
         .and_then(|v| v.get(0))
@@ -62,7 +62,7 @@ fn parse_store(store: &Value) -> Result<MigrationData> {
     let transcripts =
         merge_transcript_data(transcripts_raw, words_table, hints_table, &session_titles);
 
-    Ok(MigrationData {
+    Ok(Collection {
         sessions,
         transcripts,
         humans,

@@ -1,4 +1,4 @@
-use crate::types::ImportData;
+use crate::types::Collection;
 use serde::Serialize;
 use serde_json::{Map, Value};
 
@@ -89,7 +89,7 @@ struct TagSessionMappingOutput {
     session_id: String,
 }
 
-pub(crate) fn to_tinybase_json(data: &ImportData, user_id: &str) -> Value {
+pub(crate) fn to_tinybase_json(data: &Collection, user_id: &str) -> Value {
     let mut tables: Map<String, Value> = Map::new();
 
     insert_organizations(&mut tables, data, user_id);
@@ -103,7 +103,7 @@ pub(crate) fn to_tinybase_json(data: &ImportData, user_id: &str) -> Value {
     serde_json::json!([Value::Object(tables), Value::Null])
 }
 
-fn insert_organizations(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+fn insert_organizations(tables: &mut Map<String, Value>, data: &Collection, user_id: &str) {
     if data.organizations.is_empty() {
         return;
     }
@@ -124,7 +124,7 @@ fn insert_organizations(tables: &mut Map<String, Value>, data: &ImportData, user
     tables.insert("organizations".to_string(), Value::Object(entries));
 }
 
-fn insert_humans(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+fn insert_humans(tables: &mut Map<String, Value>, data: &Collection, user_id: &str) {
     if data.humans.is_empty() {
         return;
     }
@@ -150,7 +150,7 @@ fn insert_humans(tables: &mut Map<String, Value>, data: &ImportData, user_id: &s
     tables.insert("humans".to_string(), Value::Object(entries));
 }
 
-fn insert_sessions(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+fn insert_sessions(tables: &mut Map<String, Value>, data: &Collection, user_id: &str) {
     if data.sessions.is_empty() {
         return;
     }
@@ -174,7 +174,7 @@ fn insert_sessions(tables: &mut Map<String, Value>, data: &ImportData, user_id: 
     tables.insert("sessions".to_string(), Value::Object(entries));
 }
 
-fn insert_enhanced_notes(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+fn insert_enhanced_notes(tables: &mut Map<String, Value>, data: &Collection, user_id: &str) {
     if data.enhanced_notes.is_empty() {
         return;
     }
@@ -199,7 +199,7 @@ fn insert_enhanced_notes(tables: &mut Map<String, Value>, data: &ImportData, use
     tables.insert("enhanced_notes".to_string(), Value::Object(entries));
 }
 
-fn insert_transcripts_and_words(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+fn insert_transcripts_and_words(tables: &mut Map<String, Value>, data: &Collection, user_id: &str) {
     if data.transcripts.is_empty() {
         return;
     }
@@ -237,7 +237,7 @@ fn insert_transcripts_and_words(tables: &mut Map<String, Value>, data: &ImportDa
     tables.insert("transcripts".to_string(), Value::Object(transcript_entries));
 }
 
-fn insert_participants(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+fn insert_participants(tables: &mut Map<String, Value>, data: &Collection, user_id: &str) {
     if data.participants.is_empty() {
         return;
     }
@@ -264,7 +264,7 @@ fn insert_participants(tables: &mut Map<String, Value>, data: &ImportData, user_
     );
 }
 
-fn insert_tags(tables: &mut Map<String, Value>, data: &ImportData, user_id: &str) {
+fn insert_tags(tables: &mut Map<String, Value>, data: &Collection, user_id: &str) {
     if data.tags.is_empty() {
         return;
     }

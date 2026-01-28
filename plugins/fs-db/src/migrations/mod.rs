@@ -1,3 +1,4 @@
+mod utils;
 mod v1_0_2_extract_from_sqlite;
 mod v1_0_2_nightly_3_move_uuid_folders;
 mod v1_0_2_nightly_4_rename_transcript;

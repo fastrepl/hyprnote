@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::future::Future;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::pin::Pin;
 
 use hypr_db_parser::{
@@ -9,6 +9,7 @@ use hypr_db_parser::{
 use hypr_frontmatter::Document;
 use hypr_version::Version;
 
+use super::utils::{FileOp, apply_ops};
 use super::version_from_name;
 use crate::Result;
 
@@ -20,24 +21,6 @@ pub fn run(base_dir: &Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 
     Box::pin(run_inner(base_dir))
 }
 
-struct FileWrite {
-    path: PathBuf,
-    content: String,
-}
-
-fn write_all(writes: Vec<FileWrite>) -> Result<()> {
-    for write in writes {
-        if write.path.exists() {
-            continue;
-        }
-        if let Some(parent) = write.path.parent() {
-            std::fs::create_dir_all(parent)?;
-        }
-        std::fs::write(&write.path, &write.content)?;
-    }
-    Ok(())
-}
-
 async fn run_inner(base_dir: &Path) -> Result<()> {
     let sqlite_path = base_dir.join("db.sqlite");
     if !sqlite_path.exists() {
@@ -45,23 +28,23 @@ async fn run_inner(base_dir: &Path) -> Result<()> {
     }
 
     let data = hypr_db_parser::v1::parse_from_sqlite(&sqlite_path).await?;
-    let writes = collect_writes(base_dir, &data)?;
-    write_all(writes)?;
+    let ops = collect_ops(base_dir, &data)?;
+    apply_ops(ops)?;
 
     Ok(())
 }
 
-fn collect_writes(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileWrite>> {
-    let mut writes = vec![];
+fn collect_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileOp>> {
+    let mut ops = vec![];
 
-    writes.extend(collect_session_writes(base_dir, data)?);
-    writes.extend(collect_human_writes(base_dir, data)?);
-    writes.extend(collect_organization_writes(base_dir, data)?);
+    ops.extend(collect_session_ops(base_dir, data)?);
+    ops.extend(collect_human_ops(base_dir, data)?);
+    ops.extend(collect_organization_ops(base_dir, data)?);
 
-    Ok(writes)
+    Ok(ops)
 }
 
-fn collect_session_writes(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileWrite>> {
+fn collect_session_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileOp>> {
     let sessions_dir = base_dir.join("sessions");
 
     let transcripts_by_session: HashMap<&str, &Transcript> = data
@@ -103,7 +86,7 @@ fn collect_session_writes(base_dir: &Path, data: &MigrationData) -> Result<Vec<F
         map
     };
 
-    let mut writes = vec![];
+    let mut ops = vec![];
 
     for session in &data.sessions {
         let dir = sessions_dir.join(&session.id);
@@ -123,14 +106,14 @@ fn collect_session_writes(base_dir: &Path, data: &MigrationData) -> Result<Vec<F
             .unwrap_or(&[]);
 
         // sessions/{id}/_meta.json
-        writes.push(FileWrite {
+        ops.push(FileOp::Write {
             path: dir.join("_meta.json"),
             content: build_session_meta(session, participants, tags),
         });
 
         // sessions/{id}/transcript.json
         if let Some(t) = transcript {
-            writes.push(FileWrite {
+            ops.push(FileOp::Write {
                 path: dir.join("transcript.json"),
                 content: build_transcript_json(t),
             });
@@ -139,7 +122,7 @@ fn collect_session_writes(base_dir: &Path, data: &MigrationData) -> Result<Vec<F
         // sessions/{id}/note.md
         if let Some(raw_md) = &session.raw_md {
             if !raw_md.is_empty() {
-                writes.push(FileWrite {
+                ops.push(FileOp::Write {
                     path: dir.join("note.md"),
                     content: raw_md.clone(),
                 });
@@ -149,7 +132,7 @@ fn collect_session_writes(base_dir: &Path, data: &MigrationData) -> Result<Vec<F
         // sessions/{id}/{note_id}.md
         for note in enhanced_notes {
             if let Some(content) = build_enhanced_note_doc(note) {
-                writes.push(FileWrite {
+                ops.push(FileOp::Write {
                     path: dir.join(format!("{}.md", note.id)),
                     content,
                 });
@@ -157,43 +140,43 @@ fn collect_session_writes(base_dir: &Path, data: &MigrationData) -> Result<Vec<F
         }
     }
 
-    Ok(writes)
+    Ok(ops)
 }
 
-fn collect_human_writes(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileWrite>> {
+fn collect_human_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileOp>> {
     let humans_dir = base_dir.join("humans");
 
-    let writes = data
+    let ops = data
         .humans
         .iter()
         .map(|human| {
             // humans/{id}.md
-            FileWrite {
+            FileOp::Write {
                 path: humans_dir.join(format!("{}.md", human.id)),
                 content: build_human_doc(human),
             }
         })
         .collect();
 
-    Ok(writes)
+    Ok(ops)
 }
 
-fn collect_organization_writes(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileWrite>> {
+fn collect_organization_ops(base_dir: &Path, data: &MigrationData) -> Result<Vec<FileOp>> {
     let orgs_dir = base_dir.join("organizations");
 
-    let writes = data
+    let ops = data
         .organizations
         .iter()
         .map(|org| {
             // organizations/{id}.md
-            FileWrite {
+            FileOp::Write {
                 path: orgs_dir.join(format!("{}.md", org.id)),
                 content: build_organization_doc(org),
             }
         })
         .collect();
 
-    Ok(writes)
+    Ok(ops)
 }
 
 fn build_session_meta(

@@ -727,9 +727,9 @@ importers:
       '@hypr/agent-designer':
         specifier: workspace:^
         version: link:../../packages/agent-designer
-      '@hypr/agent-internal':
+      '@hypr/agent-support':
         specifier: workspace:^
-        version: link:../../packages/agent-internal
+        version: link:../../packages/agent-support
       '@langchain/core':
         specifier: ^1.1.15
         version: 1.1.15(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.4.0(@opentelemetry/api@1.9.0))(openai@6.16.0(ws@8.19.0)(zod@4.3.5))
@@ -1184,7 +1184,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/agent-internal:
+  packages/agent-support:
     dependencies:
       '@hypr/agent-core':
         specifier: workspace:^

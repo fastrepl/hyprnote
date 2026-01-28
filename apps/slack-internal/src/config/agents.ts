@@ -1,6 +1,6 @@
 import { agent as designerAgent } from "@hypr/agent-designer";
-import type { CompiledAgentGraph } from "@hypr/agent-internal";
-import { agent as internalAgent } from "@hypr/agent-internal";
+import type { CompiledAgentGraph } from "@hypr/agent-support";
+import { agent as internalAgent } from "@hypr/agent-support";
 
 import { env } from "../env";
 

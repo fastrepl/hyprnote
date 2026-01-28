@@ -3,7 +3,7 @@ on:
   push:
     paths:
       - "apps/slack-internal/**"
-      - "packages/agent-internal/**"
+      - "packages/agent-support/**"
       - "packages/agent-designer/**"
     branches:
       - main

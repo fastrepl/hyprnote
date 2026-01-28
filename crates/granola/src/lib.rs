@@ -2,6 +2,7 @@ pub mod api;
 pub mod cache;
 pub mod error;
 pub mod fs;
+pub mod importer;
 pub mod markdown;
 pub mod prosemirror;
 pub mod transcript;

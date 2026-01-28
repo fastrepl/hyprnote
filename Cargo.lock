@@ -7378,6 +7378,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "dirs 6.0.0",
+ "importer-interface",
  "regex",
  "reqwest",
  "serde",
@@ -7386,6 +7387,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.17",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

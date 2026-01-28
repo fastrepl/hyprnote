@@ -11,7 +11,8 @@ import { loopsTool } from "./loops";
 import { stripeTool } from "./stripe";
 import { supabaseTool } from "./supabase";
 
-tools.push(loopsTool, stripeTool, supabaseTool);
+tools.push(executeCodeTool, loopsTool, stripeTool, supabaseTool);
+toolsByName[executeCodeTool.name] = executeCodeTool;
 toolsByName[loopsTool.name] = loopsTool;
 toolsByName[stripeTool.name] = stripeTool;
 toolsByName[supabaseTool.name] = supabaseTool;

@@ -1,3 +1,6 @@
+import { downloadDir } from "@tauri-apps/api/path";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
 import { Bug, Lightbulb, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -42,7 +45,6 @@ export function FeedbackModal() {
   const [type, setType] = useState<FeedbackType>(initialType);
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [gitHash, setGitHash] = useState<string>("");
   const [attachLogs, setAttachLogs] = useState(false);
 
   useEffect(() => {
@@ -64,12 +66,8 @@ export function FeedbackModal() {
   useEffect(() => {
     if (isOpen) {
       setType(initialType);
-      miscCommands.getGitHash().then((result) => {
-        setGitHash(result.status === "ok" ? result.data : "unknown");
-      });
     } else {
       setDescription("");
-      setGitHash("");
       setAttachLogs(false);
     }
   }, [isOpen, initialType]);
@@ -99,26 +97,20 @@ export function FeedbackModal() {
       const title =
         firstLine || (type === "bug" ? "Bug Report" : "Feature Request");
 
-      let logSection = "";
-      if (attachLogs) {
-        const logContent = await getLogContent();
-        if (logContent) {
-          logSection = `
+      const currentType = type;
+      const shouldAttachLogs = attachLogs;
 
-## Application Logs (last 1000 lines, redacted)
-<details>
-<summary>Click to expand logs</summary>
+      close();
 
-\`\`\`
-${logContent}
-\`\`\`
+      const logSection = shouldAttachLogs
+        ? `
 
-</details>
-`;
-        }
-      }
+## Application Logs
+Logs will be saved to a file. Please attach the saved log file to this issue.
+`
+        : "";
 
-      if (type === "bug") {
+      if (currentType === "bug") {
         const body = `## Description
 ${trimmedDescription}
 
@@ -156,7 +148,25 @@ ${logSection}
         await openerCommands.openUrl(url.toString(), null);
       }
 
-      close();
+      if (shouldAttachLogs) {
+        const logContent = await getLogContent();
+        if (logContent) {
+          const defaultPath = await downloadDir();
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          const defaultFileName = `hyprnote-logs-${timestamp}.txt`;
+
+          const filePath = await save({
+            title: "Save Application Logs",
+            defaultPath: `${defaultPath}/${defaultFileName}`,
+            filters: [{ name: "Text Files", extensions: ["txt", "log"] }],
+          });
+
+          if (filePath) {
+            await writeTextFile(filePath, logContent);
+            await openerCommands.revealItemInDir(filePath);
+          }
+        }
+      }
     } catch (error) {
       console.error("Failed to submit feedback:", error);
     } finally {
@@ -267,15 +277,9 @@ ${logSection}
                   htmlFor="attach-logs"
                   className="text-sm text-neutral-600 cursor-pointer"
                 >
-                  Attach application logs (user info redacted)
+                  Save application logs to file (for manual attachment)
                 </label>
               </div>
-
-              {gitHash && (
-                <div className="mt-4 text-[10px] text-neutral-100 font-mono">
-                  {gitHash}
-                </div>
-              )}
             </div>
 
             <div className="flex justify-start mt-4">

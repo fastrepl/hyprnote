@@ -4326,6 +4326,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-extensions",
  "tauri-plugin-flag",
+ "tauri-plugin-fs",
  "tauri-plugin-fs-db",
  "tauri-plugin-fs-sync",
  "tauri-plugin-fs2",

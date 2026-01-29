@@ -2769,9 +2769,9 @@ dependencies = [
 
 [[package]]
 name = "cidre"
-version = "0.11.10"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "257ba26764941d079e5d7232f7ff61fbde7d62e813955e1dd00eb9188cd8078f"
+checksum = "aeb5b1ace98faf1a55e3631d63427f267897cfab7b65b1d5928cb0b8e6a4a194"
 dependencies = [
  "cidre-macros",
  "half",
@@ -2781,9 +2781,9 @@ dependencies = [
 
 [[package]]
 name = "cidre-macros"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82bc2f84c0baaa09299da3a03864491549685912c1e338a54211e00589dc1e4c"
+checksum = "5da2cdee573cf967cf4fec1f95f12a16dce31efb6d104238a8cb114cbdae1780"
 
 [[package]]
 name = "cipher"

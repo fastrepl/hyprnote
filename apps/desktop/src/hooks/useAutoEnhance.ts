@@ -22,6 +22,8 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
 
   const listenerStatus = useListener((state) => state.live.status);
   const prevListenerStatus = usePrevious(listenerStatus);
+  const liveSessionId = useListener((state) => state.live.sessionId);
+  const prevLiveSessionId = usePrevious(liveSessionId);
 
   const indexes = main.UI.useIndexes(main.STORE_ID);
 
@@ -162,11 +164,18 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   useEffect(() => {
     const listenerJustStopped =
       prevListenerStatus === "active" && listenerStatus !== "active";
+    const wasThisSessionListening = prevLiveSessionId === sessionId;
 
-    if (listenerJustStopped) {
+    if (listenerJustStopped && wasThisSessionListening) {
       createAndStartEnhance();
     }
-  }, [listenerStatus, prevListenerStatus, createAndStartEnhance]);
+  }, [
+    listenerStatus,
+    prevListenerStatus,
+    prevLiveSessionId,
+    sessionId,
+    createAndStartEnhance,
+  ]);
 
   useEffect(() => {
     if (listenerStatus === "finalizing" && indexes) {

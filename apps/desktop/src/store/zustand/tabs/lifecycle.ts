@@ -6,12 +6,14 @@ export type LifecycleState = {
   onClose: ((tab: Tab) => void) | null;
   onEmpty: (() => void) | null;
   canClose: ((tab: Tab) => boolean) | null;
+  pendingCloseConfirmationTab: Tab | null;
 };
 
 export type LifecycleActions = {
   registerOnClose: (handler: (tab: Tab) => void) => void;
   registerOnEmpty: (handler: () => void) => void;
   registerCanClose: (handler: (tab: Tab) => boolean) => void;
+  setPendingCloseConfirmationTab: (tab: Tab | null) => void;
 };
 
 export const createLifecycleSlice = <T extends LifecycleState>(
@@ -21,9 +23,12 @@ export const createLifecycleSlice = <T extends LifecycleState>(
   onClose: null,
   onEmpty: null,
   canClose: null,
+  pendingCloseConfirmationTab: null,
   registerOnClose: (handler) => set({ onClose: handler } as Partial<T>),
   registerOnEmpty: (handler) => set({ onEmpty: handler } as Partial<T>),
   registerCanClose: (handler) => set({ canClose: handler } as Partial<T>),
+  setPendingCloseConfirmationTab: (tab) =>
+    set({ pendingCloseConfirmationTab: tab } as Partial<T>),
 });
 
 type LifecycleMiddleware = <

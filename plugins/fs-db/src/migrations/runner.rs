@@ -41,6 +41,7 @@ pub async fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
         write_version(base_dir, migration.to)?;
     }
 
+    write_version(base_dir, app_version)?;
     Ok(())
 }
 

@@ -99,6 +99,11 @@ pub async fn resize_window_for_sidebar<R: tauri::Runtime>(
     window: tauri::Window<R>,
 ) -> Result<(), String> {
     let outer_size = window.outer_size().map_err(|e| e.to_string())?;
+
+    if outer_size.width > 840 {
+        return Ok(());
+    }
+
     let current_monitor = window.current_monitor().map_err(|e| e.to_string())?;
 
     if let Some(monitor) = current_monitor {

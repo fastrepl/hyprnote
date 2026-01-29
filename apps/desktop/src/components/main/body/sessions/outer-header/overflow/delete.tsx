@@ -7,29 +7,51 @@ import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
-import { deleteSessionCascade } from "../../../../../../store/tinybase/store/deleteSession";
+import { deleteSessionData } from "../../../../../../store/tinybase/store/deleteSession";
 import * as main from "../../../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../../../store/zustand/tabs";
+import { useUndoDeleteStore } from "../../../../../../store/zustand/undo-delete";
 
 export function DeleteNote({ sessionId }: { sessionId: string }) {
   const store = main.UI.useStore(main.STORE_ID);
   const indexes = main.UI.useIndexes(main.STORE_ID);
+  const checkpoints = main.UI.useCheckpoints(main.STORE_ID);
   const invalidateResource = useTabs((state) => state.invalidateResource);
+  const scheduleDeletion = useUndoDeleteStore(
+    (state) => state.scheduleDeletion,
+  );
+
+  const sessionTitle =
+    (main.UI.useCell("sessions", sessionId, "title", main.STORE_ID) as
+      | string
+      | undefined) || "Note";
 
   const handleDeleteNote = useCallback(() => {
-    if (!store) {
+    if (!store || !checkpoints) {
       return;
     }
 
-    invalidateResource("sessions", sessionId);
+    const checkpointId = checkpoints.addCheckpoint(
+      `delete_session:${sessionId}`,
+    );
 
-    void deleteSessionCascade(store, indexes, sessionId);
+    invalidateResource("sessions", sessionId);
+    deleteSessionData(store, indexes, sessionId);
+    scheduleDeletion(sessionId, sessionTitle as string, checkpointId);
 
     void analyticsCommands.event({
       event: "session_deleted",
       includes_recording: true,
     });
-  }, [store, indexes, sessionId, invalidateResource]);
+  }, [
+    store,
+    indexes,
+    checkpoints,
+    sessionId,
+    sessionTitle,
+    invalidateResource,
+    scheduleDeletion,
+  ]);
 
   return (
     <DropdownMenuItem

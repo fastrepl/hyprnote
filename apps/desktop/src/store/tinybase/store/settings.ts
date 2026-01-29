@@ -61,6 +61,22 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["ai", "current_stt_model"],
     },
+    pre_pro_stt_provider: {
+      type: "string",
+      path: ["ai", "pre_pro_stt_provider"],
+    },
+    pre_pro_stt_model: {
+      type: "string",
+      path: ["ai", "pre_pro_stt_model"],
+    },
+    pre_pro_llm_provider: {
+      type: "string",
+      path: ["ai", "pre_pro_llm_provider"],
+    },
+    pre_pro_llm_model: {
+      type: "string",
+      path: ["ai", "pre_pro_llm_model"],
+    },
     trial_expired_modal_dismissed_at: {
       type: "number",
       path: ["billing", "trial_expired_modal_dismissed_at"],

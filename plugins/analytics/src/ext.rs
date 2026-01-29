@@ -67,6 +67,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Analytics<'a, R, M> {
             .props
             .entry("bundle_id".into())
             .or_insert(bundle_id.into());
+
+        payload.props.entry("$set".into()).or_insert_with(|| {
+            serde_json::json!({
+                "app_version": app_version
+            })
+        });
     }
 
     pub fn set_disabled(&self, disabled: bool) -> Result<(), crate::Error> {

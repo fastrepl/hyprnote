@@ -233,8 +233,16 @@ export function buildTimelineBuckets({
   }
 
   items.sort((a, b) => {
-    const timeA = a.type === "event" ? a.data.started_at : a.data.created_at;
-    const timeB = b.type === "event" ? b.data.started_at : b.data.created_at;
+    const timeA =
+      a.type === "event"
+        ? a.data.started_at
+        : ((a.data as unknown as TimelineSessionRow).event_started_at ??
+          a.data.created_at);
+    const timeB =
+      b.type === "event"
+        ? b.data.started_at
+        : ((b.data as unknown as TimelineSessionRow).event_started_at ??
+          b.data.created_at);
     const dateA = safeParseDate(timeA);
     const dateB = safeParseDate(timeB);
     const timeAValue = dateA?.getTime() ?? 0;

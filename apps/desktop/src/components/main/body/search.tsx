@@ -1,11 +1,12 @@
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { useSearch } from "../../../contexts/search/ui";
+import { useShell } from "../../../contexts/shell";
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 
 export function Search({
@@ -97,8 +98,21 @@ function ExpandedSearch({
 }) {
   const { query, setQuery, isSearching, isIndexing, inputRef, results } =
     useSearch();
+  const { leftsidebar } = useShell();
   const [isFocused, setIsFocused] = useState(false);
   const isCmdPressed = useCmdKeyPressed();
+  const prevQueryRef = useRef(query);
+
+  useEffect(() => {
+    const wasEmpty = prevQueryRef.current.trim() === "";
+    const isNowNonEmpty = query.trim() !== "";
+
+    if (wasEmpty && isNowNonEmpty && !leftsidebar.expanded) {
+      leftsidebar.expandWithResize();
+    }
+
+    prevQueryRef.current = query;
+  }, [query, leftsidebar]);
 
   const showLoading = isSearching || isIndexing;
   const showShortcut = isCmdPressed && !query;

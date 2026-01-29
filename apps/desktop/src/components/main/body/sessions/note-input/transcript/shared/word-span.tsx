@@ -154,21 +154,52 @@ function useTranscriptSearchHighlights(word: SegmentWord) {
 
 function createSegments(text: string, query: string): HighlightSegment[] {
   const lowerText = text.toLowerCase();
-  const lowerQuery = query.toLowerCase();
-  const segments: HighlightSegment[] = [];
+  const queryTerms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((term) => term.length > 0);
 
-  let cursor = 0;
-  let index = lowerText.indexOf(lowerQuery, cursor);
+  if (queryTerms.length === 0) {
+    return [{ text, isMatch: false }];
+  }
 
-  while (index !== -1) {
-    if (index > cursor) {
-      segments.push({ text: text.slice(cursor, index), isMatch: false });
+  const matches: Array<{ start: number; end: number }> = [];
+
+  for (const term of queryTerms) {
+    let index = lowerText.indexOf(term);
+    while (index !== -1) {
+      matches.push({ start: index, end: index + term.length });
+      index = lowerText.indexOf(term, index + 1);
     }
+  }
 
-    const end = index + query.length;
-    segments.push({ text: text.slice(index, end), isMatch: true });
-    cursor = end;
-    index = lowerText.indexOf(lowerQuery, cursor);
+  if (matches.length === 0) {
+    return [{ text, isMatch: false }];
+  }
+
+  matches.sort((a, b) => a.start - b.start);
+
+  const merged: Array<{ start: number; end: number }> = [];
+  for (const match of matches) {
+    if (merged.length === 0 || match.start > merged[merged.length - 1].end) {
+      merged.push({ ...match });
+    } else {
+      merged[merged.length - 1].end = Math.max(
+        merged[merged.length - 1].end,
+        match.end,
+      );
+    }
+  }
+
+  const segments: HighlightSegment[] = [];
+  let cursor = 0;
+
+  for (const match of merged) {
+    if (match.start > cursor) {
+      segments.push({ text: text.slice(cursor, match.start), isMatch: false });
+    }
+    segments.push({ text: text.slice(match.start, match.end), isMatch: true });
+    cursor = match.end;
   }
 
   if (cursor < text.length) {

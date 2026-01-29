@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-outlit = "0.1"
+outlit = "0.1.0-canary.202601290014.da7ab3f"
 posthog = { git = "https://github.com/yujonglee/posthog-rs", package = "async-posthog", rev = "1779042" }
 posthog-core = { git = "https://github.com/yujonglee/posthog-rs", package = "posthog-core", rev = "1779042" }
 

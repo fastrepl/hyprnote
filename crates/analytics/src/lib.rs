@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 mod error;
 pub use error::*;
@@ -19,14 +19,10 @@ pub struct AnalyticsClient {
     client: reqwest::Client,
     api_key: Option<String>,
     outlit: Option<Arc<outlit::Outlit>>,
-    email: Arc<RwLock<Option<String>>>,
 }
 
 impl AnalyticsClient {
-    pub fn new(
-        api_key: Option<impl Into<String>>,
-        outlit_key: Option<impl Into<String>>,
-    ) -> Self {
+    pub fn new(api_key: Option<impl Into<String>>, outlit_key: Option<impl Into<String>>) -> Self {
         let client = reqwest::Client::new();
         let outlit = outlit_key.and_then(|k| {
             let key: String = k.into();
@@ -40,7 +36,6 @@ impl AnalyticsClient {
             client,
             api_key: api_key.map(|k| k.into()),
             outlit,
-            email: Arc::new(RwLock::new(None)),
         }
     }
 
@@ -73,17 +68,13 @@ impl AnalyticsClient {
         }
 
         if let Some(outlit) = &self.outlit {
-            let email_opt = self.email.read().unwrap().clone();
-            if let Some(email_str) = email_opt {
-                let mut builder = outlit
-                    .track(&payload.event, outlit::email(&email_str))
-                    .user_id(&distinct_id);
-                for (k, v) in &payload.props {
-                    builder = builder.property(k, value_to_string(v));
-                }
-                if let Err(e) = builder.send().await {
-                    tracing::warn!("outlit track error: {:?}", e);
-                }
+            let mut builder =
+                outlit.track_by_fingerprint(&payload.event, outlit::fingerprint(&distinct_id));
+            for (k, v) in &payload.props {
+                builder = builder.property(k, value_to_string(v));
+            }
+            if let Err(e) = builder.send().await {
+                tracing::warn!("outlit track error: {:?}", e);
             }
         }
 
@@ -96,14 +87,6 @@ impl AnalyticsClient {
         payload: PropertiesPayload,
     ) -> Result<(), Error> {
         let distinct_id = distinct_id.into();
-
-        if let Some(email) = payload.set.get("email").and_then(|v| v.as_str()) {
-            *self.email.write().unwrap() = Some(email.to_string());
-        }
-        if payload.set.get("is_signed_up") == Some(&serde_json::json!(false)) {
-            *self.email.write().unwrap() = None;
-        }
-
         let mut e = posthog::Event::new("$set", &distinct_id);
         e.set_timestamp(chrono::Utc::now().naive_utc());
 
@@ -138,11 +121,10 @@ impl AnalyticsClient {
         }
 
         if let Some(outlit) = &self.outlit {
-            let email_opt = self.email.read().unwrap().clone();
-            if let Some(email_str) = email_opt {
+            if let Some(email_str) = payload.set.get("email").and_then(|v| v.as_str()) {
                 let mut builder = outlit
-                    .identify(outlit::email(&email_str))
-                    .user_id(&distinct_id);
+                    .identify(outlit::email(email_str))
+                    .fingerprint(&distinct_id);
                 for (k, v) in &payload.set {
                     builder = builder.trait_(k, value_to_string(v));
                 }

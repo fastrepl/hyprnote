@@ -329,6 +329,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::get_env::<tauri::Wry>,
             commands::show_devtool,
             commands::resize_window_for_chat::<tauri::Wry>,
+            commands::resize_window_for_sidebar::<tauri::Wry>,
             commands::get_tinybase_values::<tauri::Wry>,
             commands::set_tinybase_values::<tauri::Wry>,
         ])

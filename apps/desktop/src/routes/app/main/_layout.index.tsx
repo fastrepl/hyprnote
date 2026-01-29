@@ -11,6 +11,7 @@ import {
 import { ChatView } from "../../../components/chat/view";
 import { Body } from "../../../components/main/body";
 import { LeftSidebar } from "../../../components/main/sidebar";
+import { useSearch } from "../../../contexts/search/ui";
 import { useShell } from "../../../contexts/shell";
 import { commands } from "../../../types/tauri.gen";
 
@@ -22,7 +23,9 @@ const CHAT_MIN_WIDTH_PX = 280;
 
 function Component() {
   const { leftsidebar, chat } = useShell();
+  const { query } = useSearch();
   const previousModeRef = useRef(chat.mode);
+  const previousQueryRef = useRef(query);
   const bodyPanelRef = useRef<ComponentRef<typeof ResizablePanel>>(null);
 
   const isChatOpen = chat.mode === "RightPanelOpen";
@@ -40,6 +43,18 @@ function Component() {
 
     previousModeRef.current = chat.mode;
   }, [chat.mode]);
+
+  useEffect(() => {
+    const isStartingSearch =
+      query.trim() !== "" && previousQueryRef.current.trim() === "";
+
+    if (isStartingSearch && !leftsidebar.expanded) {
+      leftsidebar.setExpanded(true);
+      commands.resizeWindowForSidebar();
+    }
+
+    previousQueryRef.current = query;
+  }, [query, leftsidebar]);
 
   return (
     <div

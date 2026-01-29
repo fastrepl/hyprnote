@@ -14,7 +14,7 @@ export function cleanupDuplicateEvents(ctx: Ctx): number {
     Array<{ id: string; createdAt: string }>
   >();
 
-  ctx.store.forEachRow("events", (rowId) => {
+  ctx.store.forEachRow("events", (rowId, _forEachCell) => {
     const event = ctx.store.getRow("events", rowId);
     if (!event) return;
 

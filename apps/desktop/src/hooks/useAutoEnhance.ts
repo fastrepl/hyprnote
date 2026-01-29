@@ -78,26 +78,33 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     ? createTaskId(autoEnhancedNoteId, "enhance")
     : createTaskId("placeholder", "enhance");
 
-  const handleEnhanceSuccess = useCallback(
-    ({ text }: { text: string }) => {
+  const handleEnhanceComplete = useCallback(
+    (text: string) => {
       if (text && autoEnhancedNoteId && store) {
         try {
           const jsonContent = md2json(text);
           store.setPartialRow("enhanced_notes", autoEnhancedNoteId, {
             content: JSON.stringify(jsonContent),
           });
-
-          const currentTitle = store.getCell("sessions", sessionId, "title");
-          const trimmedTitle =
-            typeof currentTitle === "string" ? currentTitle.trim() : "";
-          if (!trimmedTitle && model) {
-            void titleTask.start({
-              model,
-              args: { sessionId },
-            });
-          }
         } catch (error) {
           console.error("Failed to convert markdown to JSON:", error);
+        }
+      }
+    },
+    [autoEnhancedNoteId, store],
+  );
+
+  const handleEnhanceSuccess = useCallback(
+    ({ text }: { text: string }) => {
+      if (text && autoEnhancedNoteId && store) {
+        const currentTitle = store.getCell("sessions", sessionId, "title");
+        const trimmedTitle =
+          typeof currentTitle === "string" ? currentTitle.trim() : "";
+        if (!trimmedTitle && model) {
+          void titleTask.start({
+            model,
+            args: { sessionId },
+          });
         }
       }
     },
@@ -105,6 +112,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   );
 
   const enhanceTask = useAITaskTask(enhanceTaskId, "enhance", {
+    onComplete: handleEnhanceComplete,
     onSuccess: handleEnhanceSuccess,
   });
 

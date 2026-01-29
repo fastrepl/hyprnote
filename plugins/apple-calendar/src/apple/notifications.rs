@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use block2::RcBlock;
 use objc2::{msg_send, rc::Retained};
-use objc2_event_kit::EKEventStore;
+use objc2_event_kit::{EKAuthorizationStatus, EKEntityType, EKEventStore};
 use objc2_foundation::{NSNotification, NSNotificationCenter, NSObject, NSString};
 
 struct NotificationObserver {
@@ -19,6 +19,11 @@ where
     F: Fn() + Send + Sync + 'static,
 {
     std::thread::spawn(move || {
+        let status = unsafe { EKEventStore::authorizationStatusForEntityType(EKEntityType::Event) };
+        if !matches!(status, EKAuthorizationStatus::FullAccess) {
+            return;
+        }
+
         let event_store = unsafe { EKEventStore::new() };
 
         let on_change = Arc::new(on_change);

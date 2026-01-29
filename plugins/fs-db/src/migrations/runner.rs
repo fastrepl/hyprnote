@@ -28,6 +28,9 @@ fn migrations_to_apply(detected: &DetectedVersion, to: &Version) -> Vec<Migratio
     result
 }
 
+// Version file tracks migration level, not app version. If no migrations run,
+// the version file stays at the last migration version (not updated to app_version).
+// For cold-start users, updater2 calls ensure_version_file() as a fallback before updates.
 pub async fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
     let detected = detect_version(base_dir);
 

@@ -10,9 +10,8 @@ export function createToolRegistry(
   initialTools: StructuredToolInterface[],
 ): ToolRegistry {
   const tools: StructuredToolInterface[] = [...initialTools];
-  const toolsByName: Record<string, StructuredToolInterface> = Object.fromEntries(
-    tools.map((t) => [t.name, t]),
-  );
+  const toolsByName: Record<string, StructuredToolInterface> =
+    Object.fromEntries(tools.map((t) => [t.name, t]));
 
   function registerTool(tool: StructuredToolInterface): void {
     tools.push(tool);

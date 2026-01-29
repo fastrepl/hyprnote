@@ -26,11 +26,11 @@ export interface AgentPackage extends ToolRegistry {
 export function createAgentPackage(options: AgentPackageOptions): AgentPackage {
   const { tools, promptDir } = options;
 
-  const prompt = loadPrompt(promptDir);
-  const agentNode = createAgentNode(prompt, tools);
-  const graph = createAgentGraph(agentNode, tools);
-
   const { tools: registryTools, toolsByName, registerTool } = createToolRegistry(tools);
+
+  const prompt = loadPrompt(promptDir);
+  const agentNode = createAgentNode(prompt, registryTools);
+  const graph = createAgentGraph(agentNode, registryTools);
 
   function setupLangSmithTracing(): void {
     process.env.LANGSMITH_TRACING = env.LANGSMITH_API_KEY ? "true" : "false";

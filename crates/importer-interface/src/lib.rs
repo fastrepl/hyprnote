@@ -18,6 +18,37 @@ pub struct Collection {
     pub tag_mappings: Vec<TagMapping>,
 }
 
+impl std::fmt::Display for Collection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "sessions: {}", self.sessions.len())?;
+        writeln!(f, "transcripts: {}", self.transcripts.len())?;
+        writeln!(f, "humans: {}", self.humans.len())?;
+        writeln!(f, "organizations: {}", self.organizations.len())?;
+        writeln!(f, "participants: {}", self.participants.len())?;
+        writeln!(f, "templates: {}", self.templates.len())?;
+        writeln!(f, "enhanced_notes: {}", self.enhanced_notes.len())?;
+        writeln!(f, "tags: {}", self.tags.len())?;
+        writeln!(f, "tag_mappings: {}", self.tag_mappings.len())?;
+
+        if let Some(s) = self.sessions.first() {
+            writeln!(f, "\nFirst session: {:?}", s)?;
+        }
+        if let Some(t) = self.transcripts.first() {
+            writeln!(
+                f,
+                "\nFirst transcript: id={}, session_id={}, words={}",
+                t.id,
+                t.session_id,
+                t.words.len()
+            )?;
+            if !t.words.is_empty() {
+                writeln!(f, "  First 3 words: {:?}", &t.words[..t.words.len().min(3)])?;
+            }
+        }
+        Ok(())
+    }
+}
+
 common_derives! {
     pub struct Session {
         pub id: String,

@@ -16,4 +16,5 @@ thiserror = { workspace = true }
 htmd = { workspace = true }
 
 [dev-dependencies]
+dirs = { workspace = true }
 tokio = { workspace = true }

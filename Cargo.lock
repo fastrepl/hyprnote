@@ -3976,6 +3976,7 @@ version = "0.1.0"
 dependencies = [
  "db-core",
  "db-user",
+ "dirs 6.0.0",
  "htmd",
  "importer-interface",
  "owhisper-interface",

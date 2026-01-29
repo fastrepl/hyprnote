@@ -1,2 +1,2 @@
-export { PostHogClient, createPostHogClient } from "./posthog";
-export type { PostHogClientConfig, EventProperties } from "./posthog";
+export { PostHog } from "./posthog";
+export type { PostHogOptions } from "./posthog";

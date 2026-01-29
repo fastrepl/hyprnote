@@ -113,6 +113,16 @@ function ChangelogSection({ changelog }: { changelog: ChangelogWithMeta }) {
               ? `${currentVersion.major}.${currentVersion.minor}.${currentVersion.patch}`
               : changelog.version}
           </h2>
+          <time
+            className="text-sm text-neutral-500 mt-1"
+            dateTime={changelog.date}
+          >
+            {new Date(changelog.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </time>
         </div>
 
         <DownloadLinks version={changelog.version} />

@@ -26,6 +26,11 @@ macro_rules! migrations {
         fn all_migrations() -> Vec<Migration> {
             vec![$(Migration { to: $module::version(), run: $module::run }),*]
         }
+
+        pub fn latest_migration_version() -> &'static Version {
+            let migrations = all_migrations();
+            migrations.into_iter().map(|m| m.to).max().expect("at least one migration must exist")
+        }
     };
 }
 

@@ -45,7 +45,6 @@ export function FeedbackModal() {
   const [type, setType] = useState<FeedbackType>(initialType);
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [gitHash, setGitHash] = useState<string>("");
   const [attachLogs, setAttachLogs] = useState(false);
 
   useEffect(() => {
@@ -67,12 +66,8 @@ export function FeedbackModal() {
   useEffect(() => {
     if (isOpen) {
       setType(initialType);
-      miscCommands.getGitHash().then((result) => {
-        setGitHash(result.status === "ok" ? result.data : "unknown");
-      });
     } else {
       setDescription("");
-      setGitHash("");
       setAttachLogs(false);
     }
   }, [isOpen, initialType]);

@@ -107,30 +107,13 @@ export function FeedbackModal() {
 
       close();
 
-      let logSection = "";
-      if (shouldAttachLogs) {
-        const logContent = await getLogContent();
-        if (logContent) {
-          const defaultPath = await downloadDir();
-          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-          const defaultFileName = `hyprnote-logs-${timestamp}.txt`;
-
-          const filePath = await save({
-            title: "Save Application Logs",
-            defaultPath: `${defaultPath}/${defaultFileName}`,
-            filters: [{ name: "Text Files", extensions: ["txt", "log"] }],
-          });
-
-          if (filePath) {
-            await writeTextFile(filePath, logContent);
-            logSection = `
+      const logSection = shouldAttachLogs
+        ? `
 
 ## Application Logs
-Logs have been saved to a file. Please attach the saved log file to this issue.
-`;
-          }
-        }
-      }
+Logs will be saved to a file. Please attach the saved log file to this issue.
+`
+        : "";
 
       if (currentType === "bug") {
         const body = `## Description
@@ -168,6 +151,25 @@ ${logSection}
         url.searchParams.set("body", body);
 
         await openerCommands.openUrl(url.toString(), null);
+      }
+
+      if (shouldAttachLogs) {
+        const logContent = await getLogContent();
+        if (logContent) {
+          const defaultPath = await downloadDir();
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          const defaultFileName = `hyprnote-logs-${timestamp}.txt`;
+
+          const filePath = await save({
+            title: "Save Application Logs",
+            defaultPath: `${defaultPath}/${defaultFileName}`,
+            filters: [{ name: "Text Files", extensions: ["txt", "log"] }],
+          });
+
+          if (filePath) {
+            await writeTextFile(filePath, logContent);
+          }
+        }
       }
     } catch (error) {
       console.error("Failed to submit feedback:", error);

@@ -125,15 +125,22 @@ export const createTasksSlice = <T extends TasksState>(
       onComplete?: (text: string) => void;
     },
   ) => {
+    console.log("[AI Task] generate called", {
+      taskId,
+      taskType: config.taskType,
+      args: config.args,
+    });
     const abortController = new AbortController();
     const taskConfig = TASK_CONFIGS[config.taskType];
 
     try {
+      console.log("[AI Task] transformArgs starting");
       const enrichedArgs = await taskConfig.transformArgs(
         config.args,
         deps.persistedStore,
         deps.settingsStore,
       );
+      console.log("[AI Task] transformArgs completed");
 
       set((state) =>
         mutate(state, (draft) => {
@@ -200,6 +207,10 @@ export const createTasksSlice = <T extends TasksState>(
         }
       }
 
+      console.log(
+        "[AI Task] stream completed, fullText length:",
+        fullText.length,
+      );
       set((state) =>
         mutate(state, (draft) => {
           draft.tasks[taskId] = {
@@ -213,12 +224,15 @@ export const createTasksSlice = <T extends TasksState>(
         }),
       );
 
+      console.log("[AI Task] calling onComplete");
       config.onComplete?.(fullText);
     } catch (err) {
+      console.error("[AI Task] error caught:", err);
       if (
         err instanceof Error &&
         (err.name === "AbortError" || err.message === "Aborted")
       ) {
+        console.log("[AI Task] task was aborted");
         set((state) =>
           mutate(state, (draft) => {
             draft.tasks[taskId] = {
@@ -233,6 +247,7 @@ export const createTasksSlice = <T extends TasksState>(
         );
       } else {
         const error = extractUnderlyingError(err);
+        console.error("[AI Task] task failed with error:", error);
         set((state) =>
           mutate(state, (draft) => {
             draft.tasks[taskId] = {

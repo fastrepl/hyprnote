@@ -28,8 +28,7 @@ fn migrations_to_apply(detected: &DetectedVersion, to: &Version) -> Vec<Migratio
     result
 }
 
-// Version file tracks migration level, not app version. If no migrations run,
-// the version file stays at the last migration version (not updated to app_version).
+// Version file tracks app_version so we know what migrations to apply after OTA updates.
 // For cold-start users, updater2 calls ensure_version_file() as a fallback before updates.
 pub async fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
     let detected = detect_version(base_dir);
@@ -44,6 +43,7 @@ pub async fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
         write_version(base_dir, migration.to)?;
     }
 
+    write_version(base_dir, app_version)?;
     Ok(())
 }
 

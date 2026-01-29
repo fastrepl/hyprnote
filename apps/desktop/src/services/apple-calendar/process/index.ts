@@ -1,5 +1,6 @@
 export {
   type EventsSyncResult,
+  cleanupDuplicateEvents,
   executeForEventsSync,
   syncEvents,
 } from "./events";

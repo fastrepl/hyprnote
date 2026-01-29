@@ -1,12 +1,52 @@
 import type { EventStorage } from "@hypr/store";
 
-import { id } from "../../../../utils";
+import { deterministicEventId } from "../../../../utils";
 import type { Ctx } from "../../ctx";
 import type { EventsSyncOutput } from "./types";
 
 export type EventsSyncResult = {
   trackingIdToEventId: Map<string, string>;
 };
+
+export function cleanupDuplicateEvents(ctx: Ctx): number {
+  const eventsByKey = new Map<
+    string,
+    Array<{ id: string; createdAt: string }>
+  >();
+
+  ctx.store.forEachRow("events", (rowId) => {
+    const event = ctx.store.getRow("events", rowId);
+    if (!event) return;
+
+    const trackingId = event.tracking_id_event as string | undefined;
+    const startedAt = event.started_at as string | undefined;
+    if (!trackingId || !startedAt) return;
+
+    const key = `${trackingId}::${startedAt}`;
+    const existing = eventsByKey.get(key) ?? [];
+    existing.push({
+      id: rowId,
+      createdAt: (event.created_at as string) ?? "",
+    });
+    eventsByKey.set(key, existing);
+  });
+
+  let deletedCount = 0;
+  ctx.store.transaction(() => {
+    for (const [, events] of eventsByKey) {
+      if (events.length <= 1) continue;
+
+      events.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+      for (let i = 1; i < events.length; i++) {
+        ctx.store.delRow("events", events[i].id);
+        deletedCount++;
+      }
+    }
+  });
+
+  return deletedCount;
+}
 
 function getIgnoredRecurringSeries(ctx: Ctx): Set<string> {
   const raw = ctx.store.getValue("ignored_recurring_series");
@@ -63,7 +103,10 @@ export function executeForEventsSync(
         continue;
       }
 
-      const eventId = id();
+      const eventId = deterministicEventId(
+        incomingEvent.tracking_id_event,
+        incomingEvent.started_at ?? "",
+      );
       trackingIdToEventId.set(incomingEvent.tracking_id_event, eventId);
 
       const shouldIgnore =

@@ -5,6 +5,24 @@ export * from "./segment";
 
 export const id = () => crypto.randomUUID() as string;
 
+export const deterministicEventId = (
+  trackingIdEvent: string,
+  startedAt: string,
+): string => {
+  const input = `${trackingIdEvent}::${startedAt}`;
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+  const hashHex = Math.abs(hash).toString(16).padStart(8, "0");
+  return `${hashHex.slice(0, 8)}-${hashHex.slice(0, 4)}-4${hashHex.slice(1, 4)}-8${hashHex.slice(0, 3)}-${trackingIdEvent
+    .slice(0, 12)
+    .replace(/[^a-f0-9]/gi, "0")
+    .padEnd(12, "0")}`;
+};
+
 export const getScheme = async (): Promise<string> => {
   const id = await getIdentifier();
   const schemes: Record<string, string> = {

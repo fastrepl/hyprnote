@@ -8,6 +8,7 @@ import {
   fetchIncomingEvents,
 } from "./fetch";
 import {
+  cleanupDuplicateEvents,
   executeForEventsSync,
   executeForParticipantsSync,
   syncEvents,
@@ -30,6 +31,13 @@ async function run(store: Store, queries: Queries<Schemas>) {
   const ctx = createCtx(store, queries);
   if (!ctx) {
     return null;
+  }
+
+  const deletedDuplicates = cleanupDuplicateEvents(ctx);
+  if (deletedDuplicates > 0) {
+    console.log(
+      `[calendar-sync] Cleaned up ${deletedDuplicates} duplicate events`,
+    );
   }
 
   let incoming;

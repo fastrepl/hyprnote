@@ -35,8 +35,8 @@ function Component() {
         >
           <span>
             Mac (Apple Silicon) features on-device speech-to-text. Intel Mac
-            available with cloud-based transcription. Other platforms coming
-            soon.
+            available with cloud-based transcription. Windows and Linux coming
+            March 2026.
           </span>
         </div>
 
@@ -86,18 +86,16 @@ function Component() {
                 <DownloadCard
                   iconName="simple-icons:linux"
                   spec="Linux (AppImage)"
-                  downloadUrl="/download/linux-appimage"
-                  available={true}
+                  downloadUrl="#"
+                  available={false}
                   platform="linux-appimage"
-                  beta={true}
                 />
                 <DownloadCard
                   iconName="simple-icons:linux"
                   spec="Linux (.deb)"
-                  downloadUrl="/download/linux-deb"
-                  available={true}
+                  downloadUrl="#"
+                  available={false}
                   platform="linux-deb"
-                  beta={true}
                 />
               </div>
             </div>
@@ -268,7 +266,7 @@ function FAQSection() {
     {
       question: "Which platforms are currently supported?",
       answer:
-        "macOS 14.2+ with Apple Silicon is currently available. macOS Intel and Windows are planned for January 2026, Linux for February 2026, and iOS/Android for April 2026. Please note that these dates are subject to change and may be delayed.",
+        "macOS 14.2+ with Apple Silicon is currently available. Windows and Linux are planned for March 2026, and iOS/Android for April 2026. Please note that these dates are subject to change and may be delayed.",
     },
     {
       question: "What's special about the Mac version?",

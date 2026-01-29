@@ -161,25 +161,11 @@ to = "https://char.com"
 status = 301
 force = true
 
-[[redirects]]
-from = "https://www.hyprnote.com/*"
-to = "https://char.com/:splat"
-status = 301
-force = true
+# Note: www.hyprnote.com and http variants are handled by Netlify's built-in
+# www redirect (www -> apex) and HTTPS enforcement. After those redirects,
+# the selective rules above will apply to hyprnote.com.
 
-[[redirects]]
-from = "http://hyprnote.com"
-to = "https://char.com"
-status = 301
-force = true
-
-[[redirects]]
-from = "http://www.hyprnote.com/*"
-to = "https://char.com/:splat"
-status = 301
-force = true
-
-# Secondary domains -> char.com
+# Secondary domains-> char.com
 [[redirects]]
 from = "https://getchar.com/*"
 to = "https://char.com/:splat"

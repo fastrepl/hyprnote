@@ -11535,7 +11535,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
 dependencies = [
  "libc",
- "windows-sys 0.45.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -11554,9 +11554,9 @@ dependencies = [
 
 [[package]]
 name = "outlit"
-version = "0.1.0-canary.202601290014.da7ab3f"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95af71bc6e87a30b493f03588425965dec5f5e300e086f725e64c4115dc0e1d3"
+checksum = "2ab50638c262efc1feb0731b77f73d89741df3362bfffafe3066a0f6853618d7"
 dependencies = [
  "reqwest",
  "serde",

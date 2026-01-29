@@ -22,7 +22,7 @@ pub fn cold_start(base_dir: &Path) -> DetectedVersion {
         Ok(entries) => entries,
         Err(_) => {
             return DetectedVersion::Known(VaultVersion {
-                version: latest_nightly(),
+                version: latest_migration_version(),
                 source: VersionSource::Heuristic("sessions_dir_read_error"),
             });
         }
@@ -35,7 +35,7 @@ pub fn cold_start(base_dir: &Path) -> DetectedVersion {
 
     if session_dirs.is_empty() {
         return DetectedVersion::Known(VaultVersion {
-            version: latest_nightly(),
+            version: latest_migration_version(),
             source: VersionSource::Heuristic("empty_sessions_dir"),
         });
     }
@@ -52,12 +52,12 @@ pub fn cold_start(base_dir: &Path) -> DetectedVersion {
     }
 
     DetectedVersion::Known(VaultVersion {
-        version: latest_nightly(),
+        version: latest_migration_version(),
         source: VersionSource::Heuristic("all_sessions_have_meta"),
     })
 }
 
-fn latest_nightly() -> Version {
+fn latest_migration_version() -> Version {
     super::super::migrations::latest_introduced_version().clone()
 }
 
@@ -116,7 +116,7 @@ mod tests {
         assert_eq!(
             result,
             DetectedVersion::Known(VaultVersion {
-                version: latest_nightly(),
+                version: latest_migration_version(),
                 source: VersionSource::Heuristic("all_sessions_have_meta"),
             })
         );
@@ -132,7 +132,7 @@ mod tests {
         assert_eq!(
             result,
             DetectedVersion::Known(VaultVersion {
-                version: latest_nightly(),
+                version: latest_migration_version(),
                 source: VersionSource::Heuristic("empty_sessions_dir"),
             })
         );
@@ -150,7 +150,7 @@ mod tests {
         assert_eq!(
             result,
             DetectedVersion::Known(VaultVersion {
-                version: latest_nightly(),
+                version: latest_migration_version(),
                 source: VersionSource::Heuristic("empty_sessions_dir"),
             })
         );

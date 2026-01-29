@@ -1,0 +1,134 @@
+on:
+  workflow_dispatch:
+    inputs:
+      cn_url:
+        description: "CrabNebula release URL (e.g., https://web.crabnebula.cloud/org/fastrepl/hyprnote2/releases/01KG4HJGJN7YW7TGD6QBDSJYY9)"
+        required: true
+        type: string
+
+env:
+  CN_APPLICATION: "fastrepl/hyprnote2"
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+      channel: ${{ steps.parse.outputs.channel }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: release-id
+        run: |
+          RELEASE_ID=$(echo "${{ inputs.cn_url }}" | sed 's|.*/releases/||')
+          echo "id=$RELEASE_ID" >> $GITHUB_OUTPUT
+      - id: cn-show
+        uses: ./.github/actions/cn_release
+        with:
+          raw: release show ${{ env.CN_APPLICATION }} ${{ steps.release-id.outputs.id }}
+          key: ${{ secrets.CN_API_KEY }}
+      - id: parse
+        run: |
+          OUTPUT="${{ steps.cn-show.outputs.raw }}"
+          VERSION=$(echo "$OUTPUT" | grep -oP 'version:\s*\K[^\s]+' || echo "$OUTPUT" | grep -oP '"version":\s*"\K[^"]+')
+          CHANNEL=$(echo "$OUTPUT" | grep -oP 'channel:\s*\K[^\s]+' || echo "$OUTPUT" | grep -oP '"channel":\s*"\K[^"]+')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
+
+  cn-publish:
+    needs: parse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.parse.outputs.version }}"
+      - uses: ./.github/actions/cn_release
+        with:
+          cmd: publish
+          app: ${{ env.CN_APPLICATION }}
+          key: ${{ secrets.CN_API_KEY }}
+          channel: ${{ needs.parse.outputs.channel }}
+          framework: tauri
+          working-directory: ./apps/desktop
+
+  release:
+    needs: [parse, cn-publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - id: download-macos
+        continue-on-error: true
+        run: |
+          aws s3 cp \
+            "s3://hyprnote-build/desktop/${{ needs.parse.outputs.version }}/hyprnote-macos-aarch64.dmg" \
+            "hyprnote-macos-aarch64.dmg" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+          aws s3 cp \
+            "s3://hyprnote-build/desktop/${{ needs.parse.outputs.version }}/hyprnote-macos-x86_64.dmg" \
+            "hyprnote-macos-x86_64.dmg" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+      - id: download-linux
+        continue-on-error: true
+        run: |
+          aws s3 cp \
+            "s3://hyprnote-build/desktop/${{ needs.parse.outputs.version }}/hyprnote-linux-x86_64.AppImage" \
+            "hyprnote-linux-x86_64.AppImage" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+          aws s3 cp \
+            "s3://hyprnote-build/desktop/${{ needs.parse.outputs.version }}/hyprnote-linux-x86_64.deb" \
+            "hyprnote-linux-x86_64.deb" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+      - if: ${{ steps.download-macos.outcome == 'failure' && steps.download-linux.outcome == 'failure' }}
+        run: |
+          echo "No artifacts found for version ${{ needs.parse.outputs.version }}"
+          exit 1
+      - uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: desktop_v${{ needs.parse.outputs.version }}
+          tag_prefix: ""
+      - id: checksums
+        uses: ./.github/actions/generate_checksums
+        with:
+          files: |
+            ${{ steps.download-macos.outcome == 'success' && 'hyprnote-macos-aarch64.dmg' || '' }}
+            ${{ steps.download-macos.outcome == 'success' && 'hyprnote-macos-x86_64.dmg' || '' }}
+            ${{ steps.download-linux.outcome == 'success' && 'hyprnote-linux-x86_64.AppImage' || '' }}
+            ${{ steps.download-linux.outcome == 'success' && 'hyprnote-linux-x86_64.deb' || '' }}
+      - id: artifacts
+        run: |
+          ARTIFACTS=""
+          if [[ "${{ steps.download-macos.outcome }}" == "success" ]]; then
+            ARTIFACTS="hyprnote-macos-aarch64.dmg,hyprnote-macos-x86_64.dmg"
+          fi
+          if [[ "${{ steps.download-linux.outcome }}" == "success" ]]; then
+            if [[ -n "$ARTIFACTS" ]]; then
+              ARTIFACTS="$ARTIFACTS,hyprnote-linux-x86_64.AppImage,hyprnote-linux-x86_64.deb"
+            else
+              ARTIFACTS="hyprnote-linux-x86_64.AppImage,hyprnote-linux-x86_64.deb"
+            fi
+          fi
+          if [[ -z "$ARTIFACTS" ]]; then
+            echo "No artifacts to release" >&2
+            exit 1
+          fi
+          if [[ -n "${{ steps.checksums.outputs.checksum_files }}" ]]; then
+            ARTIFACTS="$ARTIFACTS,${{ steps.checksums.outputs.checksum_files }}"
+          fi
+          echo "list=$ARTIFACTS" >> $GITHUB_OUTPUT
+      - uses: ncipollo/release-action@v1
+        with:
+          tag: desktop_v${{ needs.parse.outputs.version }}
+          name: desktop_v${{ needs.parse.outputs.version }}
+          body: "https://hyprnote.com/changelog/${{ needs.parse.outputs.version }}"
+          artifacts: ${{ steps.artifacts.outputs.list }}

@@ -61,22 +61,6 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["ai", "current_stt_model"],
     },
-    trial_expired_modal_dismissed_at: {
-      type: "number",
-      path: ["billing", "trial_expired_modal_dismissed_at"],
-    },
-    trial_start_checked_at: {
-      type: "number",
-      path: ["billing", "trial_start_checked_at"],
-    },
-    trial_begin_modal_pending: {
-      type: "boolean",
-      path: ["billing", "trial_begin_modal_pending"],
-    },
-    pro_subscription_modal_shown_at: {
-      type: "number",
-      path: ["billing", "pro_subscription_modal_shown_at"],
-    },
   },
   tables: {
     ai_providers: {

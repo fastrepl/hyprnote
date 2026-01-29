@@ -1,12 +1,54 @@
 ---
-title: "Testing"
+title: "Release"
 section: "Developers"
-description: "Testing and data paths in Hyprnote"
+description: "Release commands and testing in Hyprnote"
 ---
 
-## Fresh Start Testing
+## Release Commands
 
-> If you got `“Hyprnote Staging” is an app downloaded from the Internet`, it might prevent you from onboarding.
+Release builds can be triggered via PR comments. These commands are only available to authorized users.
+
+### Nightly Release
+
+```
+/nightly
+```
+
+Triggers a nightly release from the merged PR's commit. This will build artifacts for all platforms, upload to Crabnebula, publish the release, and create a GitHub release.
+
+To build and upload without publishing (for manual testing):
+
+```
+/nightly --no-publish
+```
+
+This uploads artifacts to Crabnebula as a draft and to S3, but skips publishing and GitHub release creation. You can then manually download from Crabnebula, test the build, and later publish via the Crabnebula dashboard or by running the workflow again with `publish=true`.
+
+### Stable Release
+
+```
+/stable
+```
+
+Triggers a stable release from the latest nightly tag. Same options apply:
+
+```
+/stable --no-publish
+```
+
+### Staging Build
+
+```
+/staging
+```
+
+Triggers a staging build for testing. Staging builds are never published to Crabnebula or GitHub releases.
+
+## Testing
+
+### Fresh Start Testing
+
+> If you got `"Hyprnote Staging" is an app downloaded from the Internet`, it might prevent you from onboarding.
 > Press `cmd+shift+q` to force quit the app, and rerun the command.
 
 ```bash
@@ -21,14 +63,14 @@ This will:
 The timestamp is used to detect fresh launches vs relaunches (e.g., during permission setup).
 If the timestamp is older than 2.5 seconds, it's treated as a restart and `--onboarding` will be ignored.
 
-## Data Paths
+### Data Paths
 
 There are two base directories:
 
 1. **`global_base`** - Fixed per build/environment
 2. **`vault_base`** - Can be overridden via env or config file in global_base
 
-### global_base
+#### global_base
 
 | Environment | Bundle ID | Folder Name |
 |-------------|-----------|-------------|
@@ -39,7 +81,7 @@ There are two base directories:
 
 Stable and nightly share the same folder (`hyprnote`) in production builds.
 
-### vault_base
+#### vault_base
 
 Priority**:**
 1. `VAULT_BASE` env var (highest)
@@ -51,16 +93,16 @@ Example:
 VAULT_BASE="$HOME/Library/Application Support/hyprnote" pnpm -F desktop tauri:dev
 ```
 
-### Platform Paths
+#### Platform Paths
 
 | Platform | Base Path |
 |----------|-----------|
 | macOS | `~/Library/Application Support/{folder}/` |
 | Linux | `~/.local/share/{folder}/` |
 
-## Files by Base Path
+### Files by Base Path
 
-### At global_base (cannot be redirected)
+#### At global_base (cannot be redirected)
 
 | File/Dir | Description |
 |----------|-------------|
@@ -71,7 +113,7 @@ VAULT_BASE="$HOME/Library/Application Support/hyprnote" pnpm -F desktop tauri:de
 | `models/llm/` | LLM models |
 | `extensions/` | User extensions |
 
-### At vault_base (can be redirected)
+#### At vault_base (can be redirected)
 
 | File/Dir | Description |
 |----------|-------------|
@@ -88,7 +130,7 @@ VAULT_BASE="$HOME/Library/Application Support/hyprnote" pnpm -F desktop tauri:de
 | `templates.json` | Note templates |
 | `chat_shortcuts.json` | Chat shortcuts |
 
-### Summary
+#### Summary
 
 | What | Base | Env Override |
 |------|------|--------------|

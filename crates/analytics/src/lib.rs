@@ -121,10 +121,18 @@ impl AnalyticsClient {
         }
 
         if let Some(outlit) = &self.outlit {
-            if let Some(email_str) = payload.set.get("email").and_then(|v| v.as_str()) {
+            let email_str = payload
+                .email
+                .as_deref()
+                .or_else(|| payload.set.get("email").and_then(|v| v.as_str()));
+
+            if let Some(email) = email_str {
                 let mut builder = outlit
-                    .identify(outlit::email(email_str))
+                    .identify(outlit::email(email))
                     .fingerprint(&distinct_id);
+                if let Some(user_id) = &payload.user_id {
+                    builder = builder.user_id(user_id);
+                }
                 for (k, v) in &payload.set {
                     builder = builder.trait_(k, value_to_string(v));
                 }
@@ -170,6 +178,8 @@ pub struct PropertiesPayload {
     pub set_once: HashMap<String, serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_id: Option<String>,
 }
 
 #[derive(Clone)]

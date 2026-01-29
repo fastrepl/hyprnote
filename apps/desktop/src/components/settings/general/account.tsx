@@ -251,6 +251,8 @@ function BillingButton() {
       const trialEndDate = new Date();
       trialEndDate.setDate(trialEndDate.getDate() + 14);
       void analyticsCommands.setProperties({
+        email: auth?.session?.user.email,
+        user_id: auth?.session?.user.id,
         set: {
           plan: "pro",
           trial_end_date: trialEndDate.toISOString(),

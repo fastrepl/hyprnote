@@ -38,7 +38,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
             Ok(Some(last_version)) if !last_version.is_empty() => {
                 (last_version != current_version, Some(last_version))
             }
-            Ok(_) => (true, None),
+            Ok(_) => (false, None),
             Err(e) => {
                 tracing::error!("failed_to_get_last_seen_version: {}", e);
                 (false, None)

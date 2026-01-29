@@ -12,6 +12,105 @@ NODE_VERSION = "22"
 [images]
 # https://docs.netlify.com/build/image-cdn/overview/#remote-path
 remote_images = [
+  "https://char\\.com/.*",
   "https://hyprnote\\.com/.*",
   "https://ijoptyyjrfqwaqhyxkxj\\.supabase\\.co/.*",
 ]
+
+# Domain migration: hyprnote.com -> char.com (301 for SEO)
+[[redirects]]
+from = "https://hyprnote.com/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://www.hyprnote.com/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "http://hyprnote.com/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "http://www.hyprnote.com/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+# Secondary domains -> char.com
+[[redirects]]
+from = "https://getchar.com/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://www.getchar.com/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "http://getchar.com/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "http://www.getchar.com/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://char.so/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://www.char.so/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "http://char.so/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "http://www.char.so/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://char.notes/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://www.char.notes/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "http://char.notes/*"
+to = "https://char.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "http://www.char.notes/*"
+to = "https://char.com/:splat"
+status = 301
+force = true

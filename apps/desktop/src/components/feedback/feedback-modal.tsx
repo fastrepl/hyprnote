@@ -279,12 +279,6 @@ ${logSection}
                   Save application logs to file (for manual attachment)
                 </label>
               </div>
-
-              {gitHash && (
-                <div className="mt-4 text-[10px] text-neutral-100 font-mono">
-                  {gitHash}
-                </div>
-              )}
             </div>
 
             <div className="flex justify-start mt-4">

@@ -16765,6 +16765,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-settings",
  "tauri-specta",
+ "tempfile",
  "thiserror 2.0.17",
  "tokio",
  "uuid",

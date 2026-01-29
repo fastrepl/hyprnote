@@ -26,7 +26,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
             let base_dir = match app.settings().fresh_vault_base() {
                 Ok(dir) => dir,
-                Err(_) => return Ok(()),
+                Err(_) => {
+                    return Ok(());
+                }
             };
 
             let app_version = app.config().version.as_ref().map_or_else(
@@ -51,7 +53,6 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             .join()
             .expect("migration thread panicked")?;
 
-            version::write_version(&base_dir, &app_version)?;
             Ok(())
         })
         .build()

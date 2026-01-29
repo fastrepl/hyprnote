@@ -15,7 +15,35 @@ use cell::is_tombstone;
 use parsers::*;
 use types::{SpeakerHintRaw, TranscriptRaw, WordWithTranscript};
 
+pub async fn validate(path: &Path) -> Result<()> {
+    let db = libsql::Builder::new_local(path).build().await?;
+    let conn = db.connect()?;
+
+    let mut rows = conn
+        .query(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+            (),
+        )
+        .await?;
+
+    let mut tables = Vec::new();
+    while let Some(row) = rows.next().await? {
+        tables.push(row.get::<String>(0)?);
+    }
+
+    if tables.len() != 1 || tables[0] != "main" {
+        return Err(Error::InvalidData(format!(
+            "v1 database expected single 'main' table, found: {:?}",
+            tables
+        )));
+    }
+
+    Ok(())
+}
+
 pub async fn parse_from_sqlite(path: &Path) -> Result<Collection> {
+    validate(path).await?;
+
     let db = libsql::Builder::new_local(path).build().await?;
     let conn = db.connect()?;
 

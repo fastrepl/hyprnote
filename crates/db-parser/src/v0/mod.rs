@@ -1,13 +1,53 @@
 mod convert;
 
+use hypr_db_core::libsql;
 use hypr_db_user::UserDatabase;
 use std::path::Path;
 
-use crate::Result;
 use crate::types::*;
+use crate::{Error, Result};
 use convert::{html_to_markdown, session_to_transcript};
 
+const EXPECTED_TABLES: &[&str] = &["sessions", "humans", "organizations", "templates", "tags"];
+
+pub async fn validate(path: &Path) -> Result<()> {
+    let db = libsql::Builder::new_local(path).build().await?;
+    let conn = db.connect()?;
+
+    let mut rows = conn
+        .query(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+            (),
+        )
+        .await?;
+
+    let mut tables = Vec::new();
+    while let Some(row) = rows.next().await? {
+        tables.push(row.get::<String>(0)?);
+    }
+
+    for expected in EXPECTED_TABLES {
+        if !tables.iter().any(|t| t == *expected) {
+            return Err(Error::InvalidData(format!(
+                "v0 database missing required table: {}",
+                expected
+            )));
+        }
+    }
+
+    if tables.len() < 10 {
+        return Err(Error::InvalidData(format!(
+            "v0 database expected 10+ tables, found {}",
+            tables.len()
+        )));
+    }
+
+    Ok(())
+}
+
 pub async fn parse_from_sqlite(path: &Path) -> Result<Collection> {
+    validate(path).await?;
+
     let db = hypr_db_core::DatabaseBuilder::default()
         .local(path)
         .build()

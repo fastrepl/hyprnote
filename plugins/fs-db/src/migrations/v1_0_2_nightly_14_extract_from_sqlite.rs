@@ -120,13 +120,13 @@ fn collect_session_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>
         }
 
         // sessions/{id}/note.md
-        if let Some(raw_md) = &session.raw_md {
-            if !raw_md.is_empty() {
-                ops.push(FileOp::Write {
-                    path: dir.join("note.md"),
-                    content: raw_md.clone(),
-                });
-            }
+        if let Some(raw_md) = &session.raw_md
+            && !raw_md.is_empty()
+        {
+            ops.push(FileOp::Write {
+                path: dir.join("note.md"),
+                content: raw_md.clone(),
+            });
         }
 
         // sessions/{id}/{note_id}.md

@@ -11,11 +11,11 @@ on:
           - nightly
           - stable
       cn_publish:
-        description: "Publish to Crabnebula (enables auto-updates)"
+        description: "Publish to Crabnebula (ignored for staging)"
         type: boolean
         default: true
       gh_release:
-        description: "Create GitHub release"
+        description: "Create GitHub release (ignored for staging)"
         type: boolean
         default: true
 

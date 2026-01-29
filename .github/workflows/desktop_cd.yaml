@@ -14,7 +14,7 @@ on:
         description: "Publish to Crabnebula (enables auto-updates)"
         type: boolean
         default: true
-      create_release:
+      gh_release:
         description: "Create GitHub release"
         type: boolean
         default: true
@@ -320,7 +320,7 @@ jobs:
           working-directory: ./apps/desktop
 
   release:
-    if: ${{ inputs.channel != 'staging' && inputs.create_release && !cancelled() && (needs.cn-publish.result == 'success' || needs.cn-publish.result == 'skipped') }}
+    if: ${{ inputs.channel != 'staging' && inputs.gh_release && !cancelled() && (needs.cn-publish.result == 'success' || needs.cn-publish.result == 'skipped') && (needs.build-macos.result == 'success' || needs.build-linux.result == 'success') }}
     needs: [compute-version, build-macos, build-linux, cn-publish]
     runs-on: ubuntu-latest
     permissions:

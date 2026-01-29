@@ -4,11 +4,7 @@ on:
       channel:
         required: true
         type: string
-      cn_publish:
-        required: false
-        type: boolean
-        default: true
-      gh_release:
+      publish:
         required: false
         type: boolean
         default: true
@@ -93,8 +89,7 @@ jobs:
           workflow: desktop_cd.yaml
           ref: ${{ steps.resolve.outputs.branch }}
           channel: ${{ inputs.channel }}
-          cn_publish: ${{ inputs.cn_publish }}
-          gh_release: ${{ inputs.gh_release }}
+          publish: ${{ inputs.publish }}
           token: ${{ secrets.GITHUB_TOKEN }}
           repo: ${{ github.repository }}
           max_attempts: "10"

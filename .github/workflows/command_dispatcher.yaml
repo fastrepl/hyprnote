@@ -26,23 +26,17 @@ jobs:
     if: needs.check-permission.outputs.allowed == 'true' && contains(github.event.comment.body, '/nightly')
     runs-on: ubuntu-latest
     outputs:
-      cn_publish: ${{ steps.parse.outputs.cn_publish }}
-      gh_release: ${{ steps.parse.outputs.gh_release }}
+      publish: ${{ steps.parse.outputs.publish }}
     steps:
       - id: parse
         env:
           COMMENT: ${{ github.event.comment.body }}
         run: |
-          CN_PUBLISH="true"
-          GH_RELEASE="true"
+          PUBLISH="true"
           if [[ "$COMMENT" =~ --no-publish ]]; then
-            CN_PUBLISH="false"
+            PUBLISH="false"
           fi
-          if [[ "$COMMENT" =~ --no-release ]]; then
-            GH_RELEASE="false"
-          fi
-          echo "cn_publish=$CN_PUBLISH" >> $GITHUB_OUTPUT
-          echo "gh_release=$GH_RELEASE" >> $GITHUB_OUTPUT
+          echo "publish=$PUBLISH" >> $GITHUB_OUTPUT
 
   handle-nightly:
     needs: [check-permission, parse-nightly-options]
@@ -50,8 +44,7 @@ jobs:
     uses: ./.github/workflows/handle_release.yaml
     with:
       channel: nightly
-      cn_publish: ${{ needs.parse-nightly-options.outputs.cn_publish == 'true' }}
-      gh_release: ${{ needs.parse-nightly-options.outputs.gh_release == 'true' }}
+      publish: ${{ needs.parse-nightly-options.outputs.publish == 'true' }}
       issue_number: ${{ github.event.issue.number }}
       comment_id: ${{ github.event.comment.id }}
     secrets: inherit
@@ -61,23 +54,17 @@ jobs:
     if: needs.check-permission.outputs.allowed == 'true' && contains(github.event.comment.body, '/stable')
     runs-on: ubuntu-latest
     outputs:
-      cn_publish: ${{ steps.parse.outputs.cn_publish }}
-      gh_release: ${{ steps.parse.outputs.gh_release }}
+      publish: ${{ steps.parse.outputs.publish }}
     steps:
       - id: parse
         env:
           COMMENT: ${{ github.event.comment.body }}
         run: |
-          CN_PUBLISH="true"
-          GH_RELEASE="true"
+          PUBLISH="true"
           if [[ "$COMMENT" =~ --no-publish ]]; then
-            CN_PUBLISH="false"
+            PUBLISH="false"
           fi
-          if [[ "$COMMENT" =~ --no-release ]]; then
-            GH_RELEASE="false"
-          fi
-          echo "cn_publish=$CN_PUBLISH" >> $GITHUB_OUTPUT
-          echo "gh_release=$GH_RELEASE" >> $GITHUB_OUTPUT
+          echo "publish=$PUBLISH" >> $GITHUB_OUTPUT
 
   handle-stable:
     needs: [check-permission, parse-stable-options]
@@ -85,8 +72,7 @@ jobs:
     uses: ./.github/workflows/handle_release.yaml
     with:
       channel: stable
-      cn_publish: ${{ needs.parse-stable-options.outputs.cn_publish == 'true' }}
-      gh_release: ${{ needs.parse-stable-options.outputs.gh_release == 'true' }}
+      publish: ${{ needs.parse-stable-options.outputs.publish == 'true' }}
       issue_number: ${{ github.event.issue.number }}
       comment_id: ${{ github.event.comment.id }}
     secrets: inherit

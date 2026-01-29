@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { getIdentifier } from "@tauri-apps/api/app";
 import { arch, platform } from "@tauri-apps/plugin-os";
 
 import { commands as openerCommands } from "@hypr/plugin-opener2";
@@ -10,14 +9,6 @@ export function SettingsLab() {
   const handleOpenControlWindow = async () => {
     await windowsCommands.windowShow({ type: "control" });
   };
-
-  const identifierQuery = useQuery({
-    queryKey: ["app-identifier"],
-    queryFn: () => getIdentifier(),
-    staleTime: Infinity,
-  });
-
-  const isStable = identifierQuery.data === "com.hyprnote.stable";
 
   return (
     <div className="flex flex-col gap-4">
@@ -34,7 +25,7 @@ export function SettingsLab() {
         </Button>
       </div>
 
-      {isStable && <DownloadNightlyButton />}
+      <DownloadNightlyButton />
     </div>
   );
 }

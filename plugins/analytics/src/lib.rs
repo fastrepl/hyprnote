@@ -49,7 +49,18 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
             let outlit_key = option_env!("OUTLIT_PUBLIC_KEY");
 
-            let client = hypr_analytics::AnalyticsClient::new(posthog_key, outlit_key);
+            let client = {
+                let mut builder = hypr_analytics::AnalyticsClientBuilder::default();
+                if let Some(key) = posthog_key {
+                    builder = builder.with_posthog(key);
+                }
+                if let Some(key) = outlit_key {
+                    builder = builder.with_outlit(key);
+                }
+
+                builder.build()
+            };
+
             assert!(app.manage(client));
             Ok(())
         })

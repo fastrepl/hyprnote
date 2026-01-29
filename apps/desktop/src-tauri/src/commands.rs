@@ -99,14 +99,23 @@ pub async fn resize_window_for_sidebar<R: tauri::Runtime>(
     window: tauri::Window<R>,
 ) -> Result<(), String> {
     let outer_size = window.outer_size().map_err(|e| e.to_string())?;
+    let current_monitor = window.current_monitor().map_err(|e| e.to_string())?;
 
-    let new_size = tauri::PhysicalSize {
-        width: outer_size.width + 280,
-        height: outer_size.height,
-    };
-    window
-        .set_size(tauri::Size::Physical(new_size))
-        .map_err(|e| e.to_string())?;
+    if let Some(monitor) = current_monitor {
+        let monitor_size = monitor.size();
+        let new_width = outer_size.width + 280;
+
+        let constrained_width = new_width.min(monitor_size.width);
+
+        let new_size = tauri::PhysicalSize {
+            width: constrained_width,
+            height: outer_size.height,
+        };
+
+        window
+            .set_size(tauri::Size::Physical(new_size))
+            .map_err(|e| e.to_string())?;
+    }
 
     Ok(())
 }

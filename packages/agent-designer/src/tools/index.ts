@@ -1,21 +1,12 @@
-import type { StructuredToolInterface } from "@langchain/core/tools";
-
-import { readUrlTool, toolsRequiringApproval } from "@hypr/agent-core";
+import { createToolRegistry, readUrlTool, toolsRequiringApproval } from "@hypr/agent-core";
 
 import { magicPatternsTool } from "./magic-patterns";
 
-// Create isolated tools array for designer agent (don't mutate shared core array)
-export const tools: StructuredToolInterface[] = [
+const registry = createToolRegistry([
   readUrlTool,
   magicPatternsTool,
-];
+]);
 
-export const toolsByName: Record<string, StructuredToolInterface> =
-  Object.fromEntries(tools.map((t) => [t.name, t]));
-
-export function registerTool(tool: StructuredToolInterface): void {
-  tools.push(tool);
-  toolsByName[tool.name] = tool;
-}
+export const { tools, toolsByName, registerTool } = registry;
 
 export { magicPatternsTool, readUrlTool, toolsRequiringApproval };

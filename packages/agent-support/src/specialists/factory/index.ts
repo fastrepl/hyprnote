@@ -22,7 +22,7 @@ import {
   type SpecialistConfig,
 } from "@hypr/agent-core";
 
-import { executeCodeTool } from "./tools";
+import { executeCodeTool } from "../../tools/execute-code";
 
 const SpecialistState = Annotation.Root({
   ...MessagesAnnotation.spec,

@@ -1,35 +1,5 @@
 // Re-export everything from agent-core for backwards compatibility
-export {
-  AgentState,
-  type AgentStateType,
-  type AgentStreamState,
-  checkpointer,
-  clearThread,
-  type CompiledPrompt,
-  compilePrompt,
-  compressMessages,
-  createAgentGraph,
-  createAgentNode,
-  createModel,
-  ensureMessageIds,
-  extractOutput,
-  generateRunId,
-  getImages,
-  getInterruptToolArgs,
-  getInterruptToolName,
-  getLangSmithUrl,
-  humanApprovalNode,
-  type HumanInterrupt,
-  type HumanResponse,
-  type ImageContent,
-  isInterrupted,
-  isRetryableError,
-  loadPrompt,
-  parseRequest,
-  type PromptConfig,
-  setupCheckpointer,
-  type SpecialistConfig,
-} from "@hypr/agent-core";
+export * from "@hypr/agent-core";
 
 // Main agent exports
 export { agent } from "./agent";

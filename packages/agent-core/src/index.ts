@@ -57,6 +57,10 @@ export {
   setExecuteCodeFunction,
 } from "./tools/execute-code";
 
+// Tool Registry
+export type { ToolRegistry } from "./tools/registry";
+export { createToolRegistry } from "./tools/registry";
+
 // Nodes
 export { createAgentNode } from "./nodes/createAgentNode";
 export { humanApprovalNode } from "./nodes/humanApprovalNode";
@@ -64,6 +68,10 @@ export { humanApprovalNode } from "./nodes/humanApprovalNode";
 // Graph
 export { createAgentGraph } from "./graph/createAgentGraph";
 export type { CompiledAgentGraph } from "./graph/createAgentGraph";
+
+// Agent Package Factory
+export type { AgentPackage, AgentPackageOptions } from "./createAgentPackage";
+export { createAgentPackage } from "./createAgentPackage";
 
 // Environment
 export { env } from "./env";

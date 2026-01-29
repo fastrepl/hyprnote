@@ -31,16 +31,22 @@ function getMatchingElements(
   container: HTMLElement | null,
   query: string,
 ): HTMLElement[] {
-  if (!container || !query) {
+  if (!container || !query.trim()) {
     return [];
   }
+
+  const terms = query
+    .toLowerCase()
+    .trim()
+    .split(/\s+/); // split by spaces, not characters
 
   const allSpans = Array.from(
     container.querySelectorAll<HTMLElement>("[data-word-id]"),
   );
+
   return allSpans.filter((span) => {
-    const text = span.textContent || "";
-    return text.toLowerCase().includes(query.toLowerCase());
+    const text = (span.textContent || "").toLowerCase();
+    return terms.every((term) => text.includes(term));
   });
 }
 

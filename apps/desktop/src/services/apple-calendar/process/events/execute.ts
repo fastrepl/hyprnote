@@ -2,6 +2,7 @@ import type { EventStorage } from "@hypr/store";
 
 import { deterministicEventId } from "../../../../utils";
 import type { Ctx } from "../../ctx";
+import { getSessionForEvent } from "../utils";
 import type { EventsSyncOutput } from "./types";
 
 export type EventsSyncResult = {
@@ -11,7 +12,7 @@ export type EventsSyncResult = {
 export function cleanupDuplicateEvents(ctx: Ctx): number {
   const eventsByKey = new Map<
     string,
-    Array<{ id: string; createdAt: string }>
+    Array<{ id: string; createdAt: string; hasSession: boolean }>
   >();
 
   ctx.store.forEachRow("events", (rowId, _forEachCell) => {
@@ -22,11 +23,14 @@ export function cleanupDuplicateEvents(ctx: Ctx): number {
     const startedAt = event.started_at as string | undefined;
     if (!trackingId || !startedAt) return;
 
+    const sessionId = getSessionForEvent(ctx.store, rowId);
+
     const key = `${trackingId}::${startedAt}`;
     const existing = eventsByKey.get(key) ?? [];
     existing.push({
       id: rowId,
       createdAt: (event.created_at as string) ?? "",
+      hasSession: !!sessionId,
     });
     eventsByKey.set(key, existing);
   });
@@ -36,10 +40,24 @@ export function cleanupDuplicateEvents(ctx: Ctx): number {
     for (const [, events] of eventsByKey) {
       if (events.length <= 1) continue;
 
-      events.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      const eventWithSession = events.find((e) => e.hasSession);
+      const eventToKeep =
+        eventWithSession ??
+        events.sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
 
-      for (let i = 1; i < events.length; i++) {
-        ctx.store.delRow("events", events[i].id);
+      for (const event of events) {
+        if (event.id === eventToKeep.id) continue;
+
+        if (event.hasSession) {
+          const sessionId = getSessionForEvent(ctx.store, event.id);
+          if (sessionId) {
+            ctx.store.setPartialRow("sessions", sessionId, {
+              event_id: eventToKeep.id,
+            });
+          }
+        }
+
+        ctx.store.delRow("events", event.id);
         deletedCount++;
       }
     }

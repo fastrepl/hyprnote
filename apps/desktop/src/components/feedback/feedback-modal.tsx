@@ -102,8 +102,13 @@ export function FeedbackModal() {
       const title =
         firstLine || (type === "bug" ? "Bug Report" : "Feature Request");
 
+      const currentType = type;
+      const shouldAttachLogs = attachLogs;
+
+      close();
+
       let logSection = "";
-      if (attachLogs) {
+      if (shouldAttachLogs) {
         const logContent = await getLogContent();
         if (logContent) {
           const defaultPath = await downloadDir();
@@ -127,7 +132,7 @@ Logs have been saved to a file. Please attach the saved log file to this issue.
         }
       }
 
-      if (type === "bug") {
+      if (currentType === "bug") {
         const body = `## Description
 ${trimmedDescription}
 
@@ -164,8 +169,6 @@ ${logSection}
 
         await openerCommands.openUrl(url.toString(), null);
       }
-
-      close();
     } catch (error) {
       console.error("Failed to submit feedback:", error);
     } finally {

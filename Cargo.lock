@@ -3978,7 +3978,7 @@ dependencies = [
  "db-user",
  "dirs 6.0.0",
  "htmd",
- "importer-interface",
+ "importer-core",
  "owhisper-interface",
  "serde",
  "serde_json",
@@ -7379,7 +7379,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "dirs 6.0.0",
- "importer-interface",
+ "importer-core",
  "regex",
  "reqwest",
  "serde",
@@ -8553,10 +8553,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8a5a9a0ff0086c7a148acb942baaabeadf9504d10400b5a05645853729b9cd2"
 
 [[package]]
-name = "importer-interface"
+name = "importer-core"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -16893,7 +16895,7 @@ dependencies = [
  "db-parser",
  "dirs 6.0.0",
  "granola",
- "importer-interface",
+ "importer-core",
  "serde",
  "serde_json",
  "specta",

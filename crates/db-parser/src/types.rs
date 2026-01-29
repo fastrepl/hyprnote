@@ -1,1 +1,1 @@
-pub use hypr_importer_interface::*;
+pub use hypr_importer_core::ir::*;

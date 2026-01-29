@@ -17,7 +17,7 @@ specta-typescript = { workspace = true }
 [dependencies]
 hypr-db-parser = { workspace = true }
 hypr-granola = { workspace = true }
-hypr-importer-interface = { workspace = true }
+hypr-importer-core = { workspace = true }
 
 tauri-plugin-settings = { workspace = true }
 

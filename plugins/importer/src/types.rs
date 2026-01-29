@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-pub use hypr_importer_interface::{
+pub use hypr_importer_core::ir::{
     Collection, EnhancedNote, Human, Organization, Session, SessionParticipant, Tag, TagMapping,
     Template, TemplateSection, Transcript, Word,
 };

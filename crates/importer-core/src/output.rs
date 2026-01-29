@@ -1,6 +1,4 @@
-// THE FORMAT MUST BE COMPAT WITH LATEST TINYBASE STORE
-
-use crate::types::Collection;
+use crate::ir::Collection;
 use serde::Serialize;
 use serde_json::{Map, Value};
 
@@ -91,7 +89,7 @@ struct TagSessionMappingOutput {
     session_id: String,
 }
 
-pub(crate) fn to_tinybase_json(data: &Collection, user_id: &str) -> Value {
+pub fn to_tinybase_json(data: &Collection, user_id: &str) -> Value {
     let mut tables: Map<String, Value> = Map::new();
 
     insert_organizations(&mut tables, data, user_id);

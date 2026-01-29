@@ -64,7 +64,7 @@ hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-granola = { path = "crates/granola", package = "granola" }
 hypr-host = { path = "crates/host", package = "host" }
-hypr-importer-interface = { path = "crates/importer-interface", package = "importer-interface" }
+hypr-importer-core = { path = "crates/importer-core", package = "importer-core" }
 hypr-intercept = { path = "crates/intercept", package = "intercept" }
 hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
 hypr-language = { path = "crates/language", package = "language" }

@@ -69,53 +69,91 @@ mod tests {
         let nightly_14 =
             super::super::v1_0_2_nightly_14_extract_from_sqlite::Migrate.introduced_in();
 
-        let cases: &[(DetectedVersion, &str, Vec<&Version>)] = &[
-            (DetectedVersion::Fresh, "1.0.2", vec![]),
-            (DetectedVersion::Unknown, "1.0.2", vec![]),
-            (
-                known("1.0.1"),
-                "1.0.2",
-                vec![nightly_1, nightly_3, nightly_4, nightly_14],
-            ),
-            (known("1.0.2-nightly.2"), "1.0.2-nightly.3", vec![nightly_3]),
-            (
-                known("1.0.2-nightly.2"),
-                "1.0.2-nightly.4",
-                vec![nightly_3, nightly_4],
-            ),
-            (
-                known("1.0.2-nightly.12"),
-                "1.0.2-nightly.14",
-                vec![nightly_14],
-            ),
-            (
-                known("1.0.2-nightly.13"),
-                "1.0.2-nightly.14",
-                vec![nightly_14],
-            ),
-            (known("1.0.2-nightly.14"), "1.0.2-nightly.15", vec![]),
-            (known("1.0.2-nightly.14"), "1.0.2", vec![]),
-            (known("1.0.2"), "1.0.3", vec![]),
-            (known("1.0.2-nightly.14"), "1.0.3-nightly.1", vec![]),
-            (
-                known("1.0.2-nightly.2"),
-                "1.0.2",
-                vec![nightly_3, nightly_4, nightly_14],
-            ),
-            (
-                known("1.0.2-nightly.3"),
-                "1.0.2",
-                vec![nightly_4, nightly_14],
-            ),
-            (known("1.0.2-nightly.4"), "1.0.2", vec![nightly_14]),
+        struct Case {
+            from: DetectedVersion,
+            to: &'static str,
+            expected: Vec<&'static Version>,
+        }
+
+        let cases: &[Case] = &[
+            Case {
+                from: DetectedVersion::Fresh,
+                to: "1.0.2",
+                expected: vec![],
+            },
+            Case {
+                from: DetectedVersion::Unknown,
+                to: "1.0.2",
+                expected: vec![],
+            },
+            Case {
+                from: known("1.0.1"),
+                to: "1.0.2",
+                expected: vec![nightly_1, nightly_3, nightly_4, nightly_14],
+            },
+            Case {
+                from: known("1.0.2-nightly.2"),
+                to: "1.0.2-nightly.3",
+                expected: vec![nightly_3],
+            },
+            Case {
+                from: known("1.0.2-nightly.2"),
+                to: "1.0.2-nightly.4",
+                expected: vec![nightly_3, nightly_4],
+            },
+            Case {
+                from: known("1.0.2-nightly.12"),
+                to: "1.0.2-nightly.14",
+                expected: vec![nightly_14],
+            },
+            Case {
+                from: known("1.0.2-nightly.13"),
+                to: "1.0.2-nightly.14",
+                expected: vec![nightly_14],
+            },
+            Case {
+                from: known("1.0.2-nightly.14"),
+                to: "1.0.2-nightly.15",
+                expected: vec![],
+            },
+            Case {
+                from: known("1.0.2-nightly.14"),
+                to: "1.0.2",
+                expected: vec![],
+            },
+            Case {
+                from: known("1.0.2"),
+                to: "1.0.3",
+                expected: vec![],
+            },
+            Case {
+                from: known("1.0.2-nightly.14"),
+                to: "1.0.3-nightly.1",
+                expected: vec![],
+            },
+            Case {
+                from: known("1.0.2-nightly.2"),
+                to: "1.0.2",
+                expected: vec![nightly_3, nightly_4, nightly_14],
+            },
+            Case {
+                from: known("1.0.2-nightly.3"),
+                to: "1.0.2",
+                expected: vec![nightly_4, nightly_14],
+            },
+            Case {
+                from: known("1.0.2-nightly.4"),
+                to: "1.0.2",
+                expected: vec![nightly_14],
+            },
         ];
 
-        for (detected, to, expected) in cases {
-            let result: Vec<_> = migrations_to_apply(detected, &v(to))
+        for Case { from, to, expected } in cases {
+            let result: Vec<_> = migrations_to_apply(from, &v(to))
                 .iter()
                 .map(|m| m.introduced_in())
                 .collect();
-            assert_eq!(result, *expected, "detected {detected:?} to {to}");
+            assert_eq!(result, *expected, "from {from:?} to {to}");
         }
     }
 }

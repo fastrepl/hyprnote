@@ -3,7 +3,6 @@ use tauri::Wry;
 mod commands;
 mod error;
 mod ext;
-mod output;
 mod sources;
 mod types;
 

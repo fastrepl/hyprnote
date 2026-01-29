@@ -12,24 +12,21 @@ use crate::version::version_from_name;
 
 pub use runner::run;
 
-type MigrationFn = for<'a> fn(&'a Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>;
-
-struct Migration {
-    to: &'static Version,
-    run: MigrationFn,
+pub trait Migration: Send + Sync {
+    fn version(&self) -> &'static Version;
+    fn run<'a>(&self, base_dir: &'a Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>;
 }
 
 macro_rules! migrations {
     ($($module:ident),* $(,)?) => {
         $(mod $module;)*
 
-        fn all_migrations() -> Vec<Migration> {
-            vec![$(Migration { to: $module::version(), run: $module::run }),*]
+        fn all_migrations() -> Vec<&'static dyn Migration> {
+            vec![$(&$module::Migrate),*]
         }
 
         pub fn latest_migration_version() -> &'static Version {
-            let migrations = all_migrations();
-            migrations.into_iter().map(|m| m.to).max().expect("at least one migration must exist")
+            all_migrations().into_iter().map(|m| m.version()).max().expect("at least one migration must exist")
         }
     };
 }

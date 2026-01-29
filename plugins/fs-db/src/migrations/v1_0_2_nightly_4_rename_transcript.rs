@@ -7,12 +7,16 @@ use hypr_version::Version;
 use super::version_from_name;
 use crate::Result;
 
-pub fn version() -> &'static Version {
-    version_from_name!()
-}
+pub struct Migrate;
 
-pub fn run(base_dir: &Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + '_>> {
-    Box::pin(run_inner(base_dir))
+impl super::Migration for Migrate {
+    fn version(&self) -> &'static Version {
+        version_from_name!()
+    }
+
+    fn run<'a>(&self, base_dir: &'a Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>> {
+        Box::pin(run_inner(base_dir))
+    }
 }
 
 async fn run_inner(base_dir: &Path) -> Result<()> {

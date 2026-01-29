@@ -168,6 +168,7 @@ ${logSection}
 
           if (filePath) {
             await writeTextFile(filePath, logContent);
+            await openerCommands.revealItemInDir(filePath);
           }
         }
       }

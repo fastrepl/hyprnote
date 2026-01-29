@@ -25,6 +25,7 @@ specta = { workspace = true }
 
 hypr-db-parser = { workspace = true }
 hypr-frontmatter = { workspace = true }
+hypr-tiptap = { workspace = true }
 hypr-version = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

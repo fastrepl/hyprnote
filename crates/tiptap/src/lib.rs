@@ -748,7 +748,7 @@ mod tests {
 
         Unicode: café, naïve, 中文, العربية
 
-        Special chars: & < > " ' \`
+        Special chars: & < > " ' `
 
         Math symbols: × ÷ ≠ ≤ ≥ ∞
 

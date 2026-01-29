@@ -26,7 +26,11 @@ export interface AgentPackage extends ToolRegistry {
 export function createAgentPackage(options: AgentPackageOptions): AgentPackage {
   const { tools, promptDir } = options;
 
-  const { tools: registryTools, toolsByName, registerTool } = createToolRegistry(tools);
+  const {
+    tools: registryTools,
+    toolsByName,
+    registerTool,
+  } = createToolRegistry(tools);
 
   const prompt = loadPrompt(promptDir);
   const agentNode = createAgentNode(prompt, registryTools);

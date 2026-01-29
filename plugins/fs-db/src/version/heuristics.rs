@@ -58,7 +58,7 @@ pub fn cold_start(base_dir: &Path) -> DetectedVersion {
 }
 
 fn latest_nightly() -> Version {
-    super::super::migrations::latest_migration_version().clone()
+    super::super::migrations::latest_introduced_version().clone()
 }
 
 #[cfg(test)]

@@ -1,3 +1,5 @@
+// THE FORMAT MUST BE COMPAT WITH LATEST TINYBASE STORE
+
 use crate::types::Collection;
 use serde::Serialize;
 use serde_json::{Map, Value};

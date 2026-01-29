@@ -21,11 +21,6 @@ mod files {
     pub const TRANSCRIPT: &str = "transcript.json";
 }
 
-fn tiptap_to_md(json_str: &str) -> Option<String> {
-    let json: serde_json::Value = serde_json::from_str(json_str).ok()?;
-    hypr_tiptap::tiptap_json_to_md(&json).ok()
-}
-
 fn sanitize_filename(name: &str) -> String {
     name.chars()
         .map(|c| match c {
@@ -74,6 +69,10 @@ fn resolve_session_tags<'a>(
         .collect()
 }
 
+async fn is_v0_database(path: &Path) -> bool {
+    hypr_db_parser::v0::validate(path).await.is_ok()
+}
+
 pub struct Migrate;
 
 impl super::Migration for Migrate {
@@ -92,11 +91,11 @@ async fn run_inner(base_dir: &Path) -> Result<()> {
         return Ok(());
     }
 
-    if hypr_db_parser::v1::validate(&sqlite_path).await.is_err() {
+    if !is_v0_database(&sqlite_path).await {
         return Ok(());
     }
 
-    let data = hypr_db_parser::v1::parse_from_sqlite(&sqlite_path).await?;
+    let data = hypr_db_parser::v0::parse_from_sqlite(&sqlite_path).await?;
     let ops = collect_ops(base_dir, &data)?;
     apply_ops(ops)?;
 
@@ -131,13 +130,11 @@ fn collect_session_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>
         let session_participants = participants.get(sid).map(|v| v.as_slice()).unwrap_or(&[]);
         let session_tags = resolve_session_tags(sid, &data.tag_mappings, &tag_names);
 
-        // _meta.json (always)
         ops.push(FileOp::Write {
             path: dir.join(files::META),
             content: build_meta_json(session, session_participants, &session_tags),
         });
 
-        // transcript.json (if exists)
         if let Some(transcripts) = transcripts.get(sid) {
             if let Some(t) = transcripts.first() {
                 ops.push(FileOp::Write {
@@ -147,10 +144,8 @@ fn collect_session_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>
             }
         }
 
-        // _memo.md (if user has notes)
         ops.extend(build_memo_op(&dir, session));
 
-        // _summary.md or {template}.md (AI-generated notes)
         if let Some(notes) = enhanced_notes.get(sid) {
             ops.extend(build_enhanced_note_ops(&dir, notes, &template_titles));
         }
@@ -165,12 +160,9 @@ fn collect_human_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>> 
     let ops = data
         .humans
         .iter()
-        .map(|human| {
-            // humans/{id}.md
-            FileOp::Write {
-                path: humans_dir.join(format!("{}.md", human.id)),
-                content: build_human_doc(human),
-            }
+        .map(|human| FileOp::Write {
+            path: humans_dir.join(format!("{}.md", human.id)),
+            content: build_human_doc(human),
         })
         .collect();
 
@@ -183,12 +175,9 @@ fn collect_organization_ops(base_dir: &Path, data: &Collection) -> Result<Vec<Fi
     let ops = data
         .organizations
         .iter()
-        .map(|org| {
-            // organizations/{id}.md
-            FileOp::Write {
-                path: orgs_dir.join(format!("{}.md", org.id)),
-                content: build_organization_doc(org),
-            }
+        .map(|org| FileOp::Write {
+            path: orgs_dir.join(format!("{}.md", org.id)),
+            content: build_organization_doc(org),
         })
         .collect();
 
@@ -296,27 +285,17 @@ fn build_memo_content(session: &Session) -> Option<String> {
         return None;
     }
 
-    let md_content = tiptap_to_md(raw_md).unwrap_or_default();
-    if md_content.trim().is_empty() {
-        return None;
-    }
-
     let frontmatter = serde_json::json!({
         "id": session.id,
         "session_id": session.id,
     });
 
-    let doc = Document::new(frontmatter, &md_content);
+    let doc = Document::new(frontmatter, raw_md);
     doc.render().ok()
 }
 
 fn build_enhanced_note_content(note: &EnhancedNote) -> Option<String> {
     if note.content.is_empty() {
-        return None;
-    }
-
-    let md_content = tiptap_to_md(&note.content).unwrap_or_default();
-    if md_content.trim().is_empty() {
         return None;
     }
 
@@ -335,7 +314,7 @@ fn build_enhanced_note_content(note: &EnhancedNote) -> Option<String> {
         frontmatter["title"] = serde_json::json!(note.title);
     }
 
-    let doc = Document::new(frontmatter, &md_content);
+    let doc = Document::new(frontmatter, &note.content);
     doc.render().ok()
 }
 

@@ -10,7 +10,7 @@ use crate::Result;
 pub struct Migrate;
 
 impl super::Migration for Migrate {
-    fn version(&self) -> &'static Version {
+    fn introduced_in(&self) -> &'static Version {
         version_from_name!()
     }
 

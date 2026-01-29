@@ -21,22 +21,58 @@ jobs:
           user: ${{ github.event.comment.user.login }}
           allowed-users: yujonglee|ComputelessComputer
 
-  handle-nightly:
+  parse-nightly-options:
     needs: check-permission
+    if: needs.check-permission.outputs.allowed == 'true' && contains(github.event.comment.body, '/nightly')
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.parse.outputs.publish }}
+    steps:
+      - id: parse
+        env:
+          COMMENT: ${{ github.event.comment.body }}
+        run: |
+          PUBLISH="true"
+          if [[ "$COMMENT" =~ --no-publish ]]; then
+            PUBLISH="false"
+          fi
+          echo "publish=$PUBLISH" >> $GITHUB_OUTPUT
+
+  handle-nightly:
+    needs: [check-permission, parse-nightly-options]
     if: needs.check-permission.outputs.allowed == 'true' && contains(github.event.comment.body, '/nightly')
     uses: ./.github/workflows/handle_release.yaml
     with:
       channel: nightly
+      publish: ${{ needs.parse-nightly-options.outputs.publish == 'true' }}
       issue_number: ${{ github.event.issue.number }}
       comment_id: ${{ github.event.comment.id }}
     secrets: inherit
 
-  handle-stable:
+  parse-stable-options:
     needs: check-permission
+    if: needs.check-permission.outputs.allowed == 'true' && contains(github.event.comment.body, '/stable')
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.parse.outputs.publish }}
+    steps:
+      - id: parse
+        env:
+          COMMENT: ${{ github.event.comment.body }}
+        run: |
+          PUBLISH="true"
+          if [[ "$COMMENT" =~ --no-publish ]]; then
+            PUBLISH="false"
+          fi
+          echo "publish=$PUBLISH" >> $GITHUB_OUTPUT
+
+  handle-stable:
+    needs: [check-permission, parse-stable-options]
     if: needs.check-permission.outputs.allowed == 'true' && contains(github.event.comment.body, '/stable')
     uses: ./.github/workflows/handle_release.yaml
     with:
       channel: stable
+      publish: ${{ needs.parse-stable-options.outputs.publish == 'true' }}
       issue_number: ${{ github.event.issue.number }}
       comment_id: ${{ github.event.comment.id }}
     secrets: inherit

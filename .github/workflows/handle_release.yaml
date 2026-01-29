@@ -4,6 +4,10 @@ on:
       channel:
         required: true
         type: string
+      publish:
+        required: false
+        type: boolean
+        default: true
       issue_number:
         required: true
         type: number
@@ -85,6 +89,7 @@ jobs:
           workflow: desktop_cd.yaml
           ref: ${{ steps.resolve.outputs.branch }}
           channel: ${{ inputs.channel }}
+          publish: ${{ inputs.publish }}
           token: ${{ secrets.GITHUB_TOKEN }}
           repo: ${{ github.repository }}
           max_attempts: "10"

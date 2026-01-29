@@ -11,6 +11,10 @@ inputs:
   channel:
     description: Channel input for the workflow
     required: true
+  publish:
+    description: Publish to Crabnebula and create GitHub release
+    required: false
+    default: "true"
   token:
     description: GitHub token
     required: true
@@ -35,7 +39,7 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.token }}
       run: |
-        gh workflow run ${{ inputs.workflow }} --repo ${{ inputs.repo }} --ref "${{ inputs.ref }}" -f channel=${{ inputs.channel }}
+        gh workflow run ${{ inputs.workflow }} --repo ${{ inputs.repo }} --ref "${{ inputs.ref }}" -f channel=${{ inputs.channel }} -f publish=${{ inputs.publish }}
         for i in $(seq 1 ${{ inputs.max_attempts }}); do
           sleep 5
           RUN_ID=$(gh run list --workflow=${{ inputs.workflow }} --repo ${{ inputs.repo }} --branch="${{ inputs.ref }}" --json databaseId,createdAt --jq 'sort_by(.createdAt) | reverse | .[0].databaseId // empty')

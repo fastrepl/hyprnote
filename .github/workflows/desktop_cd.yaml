@@ -10,6 +10,10 @@ on:
           - staging
           - nightly
           - stable
+      publish:
+        description: "Publish to Crabnebula and create GitHub release (ignored for staging)"
+        type: boolean
+        default: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.channel }}
@@ -296,7 +300,7 @@ jobs:
           retention-days: 3
 
   cn-publish:
-    if: ${{ inputs.channel != 'staging' }}
+    if: ${{ inputs.channel != 'staging' && inputs.publish }}
     needs: [compute-version, build-macos, build-linux]
     runs-on: ubuntu-latest
     steps:
@@ -312,7 +316,7 @@ jobs:
           working-directory: ./apps/desktop
 
   release:
-    if: ${{ inputs.channel != 'staging' }}
+    if: ${{ inputs.channel != 'staging' && inputs.publish && !cancelled() && (needs.cn-publish.result == 'success' || needs.cn-publish.result == 'skipped') && (needs.build-macos.result == 'success' || needs.build-linux.result == 'success') }}
     needs: [compute-version, build-macos, build-linux, cn-publish]
     runs-on: ubuntu-latest
     permissions:

@@ -50,7 +50,7 @@ function Component() {
 
     if (isStartingSearch && !leftsidebar.expanded) {
       leftsidebar.setExpanded(true);
-      commands.resizeWindowForSidebar();
+      commands.resizeWindowForSidebar().catch(console.error);
     }
 
     previousQueryRef.current = query;

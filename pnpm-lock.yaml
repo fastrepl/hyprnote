@@ -724,6 +724,9 @@ importers:
 
   apps/slack-internal:
     dependencies:
+      '@hypr/agent-analytic':
+        specifier: workspace:^
+        version: link:../../packages/agent-analytic
       '@hypr/agent-designer':
         specifier: workspace:^
         version: link:../../packages/agent-designer

@@ -1,49 +1,61 @@
 use std::collections::HashMap;
 
 mod error;
+mod outlit;
+mod posthog;
+
 pub use error::*;
+
+use outlit::OutlitClient;
+use posthog::PosthogClient;
 
 #[derive(Clone)]
 pub struct AnalyticsClient {
-    client: reqwest::Client,
-    api_key: Option<String>,
+    posthog: Option<PosthogClient>,
+    outlit: Option<OutlitClient>,
+}
+
+#[derive(Default)]
+pub struct AnalyticsClientBuilder {
+    posthog: Option<PosthogClient>,
+    outlit: Option<OutlitClient>,
+}
+
+impl AnalyticsClientBuilder {
+    pub fn with_posthog(mut self, key: impl Into<String>) -> Self {
+        self.posthog = Some(PosthogClient::new(key));
+        self
+    }
+
+    pub fn with_outlit(mut self, key: impl Into<String>) -> Self {
+        self.outlit = OutlitClient::new(key);
+        self
+    }
+
+    pub fn build(self) -> AnalyticsClient {
+        AnalyticsClient {
+            posthog: self.posthog,
+            outlit: self.outlit,
+        }
+    }
 }
 
 impl AnalyticsClient {
-    pub fn new(api_key: Option<impl Into<String>>) -> Self {
-        let client = reqwest::Client::new();
-
-        Self {
-            client,
-            api_key: api_key.map(|k| k.into()),
-        }
-    }
-
     pub async fn event(
         &self,
         distinct_id: impl Into<String>,
         payload: AnalyticsPayload,
     ) -> Result<(), Error> {
-        let mut e = posthog::Event::new(payload.event, distinct_id.into());
-        e.set_timestamp(chrono::Utc::now().naive_utc());
+        let distinct_id = distinct_id.into();
 
-        for (key, value) in payload.props {
-            let _ = e.insert_prop(key, value);
+        if let Some(posthog) = &self.posthog {
+            posthog.event(&distinct_id, &payload).await?;
+        } else {
+            tracing::info!("event: {:?}", payload);
         }
 
-        if let Some(api_key) = &self.api_key {
-            let inner_event = posthog_core::event::InnerEvent::new(e, api_key.clone());
-
-            let _ = self
-                .client
-                .post("https://us.i.posthog.com/i/v0/e/")
-                .json(&inner_event)
-                .send()
-                .await?
-                .error_for_status()?;
-        } else {
-            let inner_event = posthog_core::event::InnerEvent::new(e, "".to_string());
-            tracing::info!("event: {}", serde_json::to_string(&inner_event).unwrap());
+        if let Some(outlit) = &self.outlit {
+            outlit.event(&distinct_id, &payload).await;
         }
 
         Ok(())
@@ -55,50 +67,15 @@ impl AnalyticsClient {
         payload: PropertiesPayload,
     ) -> Result<(), Error> {
         let distinct_id = distinct_id.into();
-        let mut e = posthog::Event::new("$set", &distinct_id);
-        e.set_timestamp(chrono::Utc::now().naive_utc());
 
-        if !payload.set.is_empty() {
-            let _ = e.insert_prop("$set", serde_json::json!(payload.set));
-        }
-
-        if !payload.set_once.is_empty() {
-            let _ = e.insert_prop("$set_once", serde_json::json!(payload.set_once));
-        }
-
-        if let Some(api_key) = &self.api_key {
-            let inner_event = posthog_core::event::InnerEvent::new(e, api_key.clone());
-
-            let _ = self
-                .client
-                .post("https://us.i.posthog.com/i/v0/e/")
-                .json(&inner_event)
-                .send()
-                .await?
-                .error_for_status()?;
+        if let Some(posthog) = &self.posthog {
+            posthog.set_properties(&distinct_id, &payload).await?;
         } else {
-            let inner_event = posthog_core::event::InnerEvent::new(e, "".to_string());
-            tracing::info!(
-                "set_properties: {}",
-                serde_json::to_string(&inner_event).unwrap()
-            );
+            tracing::info!("set_properties: {:?}", payload);
         }
 
-        Ok(())
-    }
-
-    pub async fn event2(&self, user_id: impl Into<String>) -> Result<(), Error> {
-        let payload = serde_json::json!({ "user_id": user_id.into() });
-        if let Some(_api_key) = &self.api_key {
-            let _ = self
-                .client
-                .post("https://us.i.posthog.com/i/v0/e/")
-                .query(&payload)
-                .send()
-                .await?
-                .error_for_status()?;
-        } else {
-            tracing::info!("event2: {}", serde_json::to_string(&payload).unwrap());
+        if let Some(outlit) = &self.outlit {
+            outlit.identify(&distinct_id, &payload).await;
         }
 
         Ok(())
@@ -118,6 +95,10 @@ pub struct PropertiesPayload {
     pub set: HashMap<String, serde_json::Value>,
     #[serde(default)]
     pub set_once: HashMap<String, serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_id: Option<String>,
 }
 
 #[derive(Clone)]
@@ -160,7 +141,7 @@ mod tests {
     #[ignore]
     #[tokio::test]
     async fn test_analytics() {
-        let client = AnalyticsClient::new(Some(""));
+        let client = AnalyticsClientBuilder::default().build();
         let payload = AnalyticsPayload::builder("test_event")
             .with("key1", "value1")
             .with("key2", 2)

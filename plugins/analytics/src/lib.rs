@@ -33,7 +33,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let api_key = {
+            let posthog_key = {
                 #[cfg(not(debug_assertions))]
                 {
                     let v = env!("POSTHOG_API_KEY");
@@ -47,7 +47,20 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 }
             };
 
-            let client = hypr_analytics::AnalyticsClient::new(api_key);
+            let outlit_key = option_env!("OUTLIT_PUBLIC_KEY");
+
+            let client = {
+                let mut builder = hypr_analytics::AnalyticsClientBuilder::default();
+                if let Some(key) = posthog_key {
+                    builder = builder.with_posthog(key);
+                }
+                if let Some(key) = outlit_key {
+                    builder = builder.with_outlit(key);
+                }
+
+                builder.build()
+            };
+
             assert!(app.manage(client));
             Ok(())
         })

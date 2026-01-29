@@ -267,6 +267,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         void (async () => {
           const appVersion = await getVersion();
           void analyticsCommands.setProperties({
+            email: session.user.email,
+            user_id: session.user.id,
             set_once: {
               account_created_date: new Date().toISOString(),
             },

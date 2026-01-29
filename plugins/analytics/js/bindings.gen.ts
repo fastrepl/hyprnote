@@ -52,7 +52,7 @@ async isDisabled() : Promise<Result<boolean, string>> {
 
 export type AnalyticsPayload = (Partial<{ [key in string]: null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }> }>) & { event: string }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type PropertiesPayload = { set?: Partial<{ [key in string]: JsonValue }>; set_once?: Partial<{ [key in string]: JsonValue }> }
+export type PropertiesPayload = { set?: Partial<{ [key in string]: JsonValue }>; set_once?: Partial<{ [key in string]: JsonValue }>; email?: string | null; user_id?: string | null }
 
 /** tauri-specta globals **/
 

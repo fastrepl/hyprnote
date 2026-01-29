@@ -360,6 +360,7 @@ version = "0.1.0"
 dependencies = [
  "async-posthog",
  "chrono",
+ "outlit",
  "posthog-core",
  "reqwest",
  "serde",
@@ -11576,6 +11577,20 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "outlit"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ab50638c262efc1feb0731b77f73d89741df3362bfffafe3066a0f6853618d7"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

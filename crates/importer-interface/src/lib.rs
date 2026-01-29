@@ -31,20 +31,59 @@ impl std::fmt::Display for Collection {
         writeln!(f, "tag_mappings: {}", self.tag_mappings.len())?;
 
         if let Some(s) = self.sessions.first() {
-            writeln!(f, "\nFirst session: {:?}", s)?;
-        }
-        if let Some(t) = self.transcripts.first() {
-            writeln!(
-                f,
-                "\nFirst transcript: id={}, session_id={}, words={}",
-                t.id,
-                t.session_id,
-                t.words.len()
-            )?;
-            if !t.words.is_empty() {
-                writeln!(f, "  First 3 words: {:?}", &t.words[..t.words.len().min(3)])?;
+            writeln!(f, "\n[First Session]")?;
+            writeln!(f, "  id: {}", s.id)?;
+            writeln!(f, "  title: {}", s.title)?;
+            writeln!(f, "  created_at: {}", s.created_at)?;
+            if let Some(ref md) = s.raw_md {
+                let preview: String = md.chars().take(100).collect();
+                writeln!(f, "  raw_md: {}...", preview)?;
             }
         }
+
+        if let Some(t) = self.transcripts.first() {
+            writeln!(f, "\n[First Transcript]")?;
+            writeln!(f, "  id: {}", t.id)?;
+            writeln!(f, "  session_id: {}", t.session_id)?;
+            writeln!(f, "  started_at: {}", t.started_at)?;
+            writeln!(f, "  words: {}", t.words.len())?;
+            if let (Some(start), Some(end)) = (t.start_ms, t.end_ms) {
+                let duration_secs = (end - start) / 1000.0;
+                writeln!(
+                    f,
+                    "  duration: {:.1}s ({}ms - {}ms)",
+                    duration_secs, start, end
+                )?;
+            }
+            if !t.words.is_empty() {
+                let first = &t.words[0];
+                writeln!(
+                    f,
+                    "  first_word: {:?} (ch={}, {}ms-{}ms, speaker={:?})",
+                    first.text.trim(),
+                    first.channel,
+                    first.start_ms.unwrap_or(0.0),
+                    first.end_ms.unwrap_or(0.0),
+                    first.speaker
+                )?;
+                let text: String = t.words.iter().take(20).map(|w| w.text.as_str()).collect();
+                writeln!(f, "  preview: {}", text.trim())?;
+
+                let unique_speakers: std::collections::HashSet<_> =
+                    t.words.iter().filter_map(|w| w.speaker.as_ref()).collect();
+                writeln!(f, "  unique_speakers: {:?}", unique_speakers)?;
+            }
+        }
+
+        if let Some(h) = self.humans.first() {
+            writeln!(f, "\n[First Human]")?;
+            writeln!(f, "  id: {}", h.id)?;
+            writeln!(f, "  name: {}", h.name)?;
+            if let Some(ref email) = h.email {
+                writeln!(f, "  email: {}", email)?;
+            }
+        }
+
         Ok(())
     }
 }

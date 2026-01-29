@@ -160,8 +160,8 @@ fn merge_transcript_data(
                         Word {
                             id: w.word.id,
                             text: w.word.text,
-                            start_ms: w.word.start_ms.map(|ms| ms - t.started_at),
-                            end_ms: w.word.end_ms.map(|ms| ms - t.started_at),
+                            start_ms: w.word.start_ms,
+                            end_ms: w.word.end_ms,
                             channel: w.word.channel,
                             speaker: Some(speaker),
                         }

@@ -5,11 +5,12 @@ on:
       - "apps/slack-internal/**"
       - "packages/agent-support/**"
       - "packages/agent-designer/**"
+      - "packages/agent-analytic/**"
     branches:
       - main
 
 env:
-  AGENT_CHANNEL_MAP: '{"C0AB7TVP9B5":"designer","C0AA8650ERE":"internal"}'
+  AGENT_CHANNEL_MAP: '{"C0AB7TVP9B5":"designer","C0AA8650ERE":"internal","C0ABRF9TQ3W":"analytic"}'
 
 jobs:
   deploy:

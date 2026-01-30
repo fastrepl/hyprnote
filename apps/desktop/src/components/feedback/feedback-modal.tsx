@@ -1,5 +1,4 @@
 import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
-import { generateText } from "ai";
 import { Bug, Lightbulb, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -12,7 +11,6 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { env } from "../../env";
-import { useLanguageModel } from "../../hooks/useLLMConnection";
 
 type FeedbackType = "bug" | "feature";
 
@@ -36,7 +34,6 @@ export function FeedbackModal() {
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<string>("");
-  const model = useLanguageModel();
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -69,100 +66,68 @@ export function FeedbackModal() {
     }
 
     setIsSubmitting(true);
-    setSubmitStatus("");
+    setSubmitStatus("Submitting...");
 
     try {
       const gitHashResult = await miscCommands.getGitHash();
       const gitHash =
         gitHashResult.status === "ok" ? gitHashResult.data : "unknown";
 
-      const deviceInfo = [
-        `**Platform:** ${platform()}`,
-        `**Architecture:** ${arch()}`,
-        `**OS Version:** ${osVersion()}`,
-        `**App Version:** ${env.VITE_APP_VERSION ?? "unknown"}`,
-        `**Git Hash:** ${gitHash}`,
-      ].join("\n");
-
-      const trimmedDescription = description.trim();
-      const firstLine = trimmedDescription.split("\n")[0].slice(0, 100).trim();
-      const title =
-        firstLine || (type === "bug" ? "Bug Report" : "Feature Request");
-
-      let logSection = "";
+      let logs: string | undefined;
       if (type === "bug") {
-        setSubmitStatus("Analyzing logs...");
+        setSubmitStatus("Collecting logs...");
         const logsResult = await tracingCommands.logContent();
-        if (logsResult.status === "ok" && logsResult.data && model) {
-          try {
-            const { text } = await generateText({
-              model,
-              maxOutputTokens: 200,
-              prompt: `Extract only ERROR and WARNING log entries from the last 50 lines. Output max 500 chars, no explanation:\n\n${logsResult.data.slice(-10000)}`,
-            });
-            const logSummary = text.slice(0, 500);
-            if (logSummary.trim()) {
-              logSection = `
-
-## Log Summary
-\`\`\`
-${logSummary}
-\`\`\`
-`;
-            }
-          } catch {
-            // LLM analysis failed, continue without log summary
-          }
+        if (logsResult.status === "ok" && logsResult.data) {
+          logs = logsResult.data.slice(-10000);
         }
-        setSubmitStatus("Opening...");
       }
 
-      if (type === "bug") {
-        const body = `## Description
-${trimmedDescription}
+      setSubmitStatus("Submitting...");
 
-## Device Information
-${deviceInfo}
-${logSection}
----
-*This issue was submitted from the Hyprnote desktop app.*
-`;
+      const response = await fetch(`${env.VITE_API_URL}/feedback/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          description: description.trim(),
+          logs,
+          deviceInfo: {
+            platform: platform(),
+            arch: arch(),
+            osVersion: osVersion(),
+            appVersion: env.VITE_APP_VERSION ?? "unknown",
+            gitHash,
+          },
+        }),
+      });
 
-        const url = new URL("https://github.com/fastrepl/hyprnote/issues/new");
-        url.searchParams.set("title", title);
-        url.searchParams.set("body", body);
-        url.searchParams.set("labels", "bug,user-reported");
+      const data = (await response.json()) as {
+        success: boolean;
+        issueUrl?: string;
+        error?: string;
+      };
 
-        await openerCommands.openUrl(url.toString(), null);
+      if (data.success && data.issueUrl) {
+        await openerCommands.openUrl(data.issueUrl, null);
+        close();
       } else {
-        const body = `## Feature Request
-${trimmedDescription}
-
-## Submitted From
-${deviceInfo}
-
----
-*This feature request was submitted from the Hyprnote desktop app.*
-`;
-
-        const url = new URL(
-          "https://github.com/fastrepl/hyprnote/discussions/new",
+        console.error(
+          "Failed to submit feedback:",
+          data.error ?? `HTTP ${response.status}`,
         );
-        url.searchParams.set("category", "ideas");
-        url.searchParams.set("title", title);
-        url.searchParams.set("body", body);
-
-        await openerCommands.openUrl(url.toString(), null);
+        setSubmitStatus("Failed to submit");
       }
-
-      close();
     } catch (error) {
-      console.error("Failed to submit feedback:", error);
+      console.error(
+        "Failed to submit feedback:",
+        error instanceof Error ? error.message : String(error),
+      );
+      setSubmitStatus("Failed to submit");
     } finally {
       setIsSubmitting(false);
-      setSubmitStatus("");
+      setTimeout(() => setSubmitStatus(""), 2000);
     }
-  }, [description, type, close, model]);
+  }, [description, type, close]);
 
   if (!isOpen) {
     return null;

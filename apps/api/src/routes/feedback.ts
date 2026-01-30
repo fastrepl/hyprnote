@@ -66,7 +66,7 @@ async function createGitHubIssue(
   title: string,
   body: string,
   labels: string[],
-): Promise<{ url: string } | { error: string }> {
+): Promise<{ url: string; number: number } | { error: string }> {
   if (!env.YUJONGLEE_GITHUB_TOKEN_REPO) {
     return { error: "GitHub bot token not configured" };
   }
@@ -93,12 +93,37 @@ async function createGitHubIssue(
     return { error: `GitHub API error: ${response.status} - ${errorText}` };
   }
 
-  const data = (await response.json()) as { html_url?: string };
-  if (!data.html_url) {
+  const data = (await response.json()) as {
+    html_url?: string;
+    number?: number;
+  };
+  if (!data.html_url || !data.number) {
     return { error: "GitHub API did not return issue URL" };
   }
 
-  return { url: data.html_url };
+  return { url: data.html_url, number: data.number };
+}
+
+async function addCommentToIssue(
+  issueNumber: number,
+  comment: string,
+): Promise<void> {
+  if (!env.YUJONGLEE_GITHUB_TOKEN_REPO) {
+    return;
+  }
+
+  await fetch(
+    `https://api.github.com/repos/fastrepl/hyprnote/issues/${issueNumber}/comments`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.YUJONGLEE_GITHUB_TOKEN_REPO}`,
+        Accept: "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ body: comment }),
+    },
+  );
 }
 
 export const feedback = new Hono<AppBindings>();
@@ -151,20 +176,6 @@ feedback.post(
       `**Git Hash:** ${deviceInfo.gitHash}`,
     ].join("\n");
 
-    let logSection = "";
-    if (type === "bug" && logs) {
-      const logSummary = await analyzeLogsWithAI(logs);
-      if (logSummary?.trim()) {
-        logSection = `
-
-## Log Summary
-\`\`\`
-${logSummary}
-\`\`\`
-`;
-      }
-    }
-
     const body =
       type === "bug"
         ? `## Description
@@ -172,7 +183,7 @@ ${trimmedDescription}
 
 ## Device Information
 ${deviceInfoSection}
-${logSection}
+
 ---
 *This issue was submitted from the Hyprnote desktop app.*
 `
@@ -195,6 +206,24 @@ ${deviceInfoSection}
 
     if ("error" in result) {
       return c.json({ success: false, error: result.error }, 500);
+    }
+
+    if (logs) {
+      const logSummary = await analyzeLogsWithAI(logs);
+      const logComment = `## Log Analysis
+
+${logSummary?.trim() ? `### Summary\n\`\`\`\n${logSummary}\n\`\`\`` : "_No errors or warnings found._"}
+
+<details>
+<summary>Raw Logs (last 10KB)</summary>
+
+\`\`\`
+${logs.slice(-10000)}
+\`\`\`
+
+</details>`;
+
+      await addCommentToIssue(result.number, logComment);
     }
 
     return c.json({ success: true, issueUrl: result.url }, 200);

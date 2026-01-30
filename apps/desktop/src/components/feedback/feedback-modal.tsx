@@ -1,3 +1,4 @@
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
 import { Bug, Lightbulb, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -32,8 +33,10 @@ export function FeedbackModal() {
   const { isOpen, initialType, close } = useFeedbackModal();
   const [type, setType] = useState<FeedbackType>(initialType);
   const [description, setDescription] = useState("");
+  const [attachLogs, setAttachLogs] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -56,15 +59,24 @@ export function FeedbackModal() {
       setType(initialType);
     } else {
       setDescription("");
+      setAttachLogs(true);
       setSubmitStatus("");
+      setErrorMessage("");
     }
   }, [isOpen, initialType]);
 
   const handleSubmit = useCallback(async () => {
-    if (!description.trim()) {
+    const trimmed = description.trim();
+    if (!trimmed) {
       return;
     }
 
+    if (trimmed.length < 10) {
+      setErrorMessage("Description must be at least 10 characters");
+      return;
+    }
+
+    setErrorMessage("");
     setIsSubmitting(true);
     setSubmitStatus("Submitting...");
 
@@ -74,7 +86,7 @@ export function FeedbackModal() {
         gitHashResult.status === "ok" ? gitHashResult.data : "unknown";
 
       let logs: string | undefined;
-      if (type === "bug") {
+      if (type === "bug" && attachLogs) {
         setSubmitStatus("Collecting logs...");
         const logsResult = await tracingCommands.logContent();
         if (logsResult.status === "ok" && logsResult.data) {
@@ -84,12 +96,12 @@ export function FeedbackModal() {
 
       setSubmitStatus("Submitting...");
 
-      const response = await fetch(`${env.VITE_API_URL}/feedback/submit`, {
+      const response = await tauriFetch(`${env.VITE_API_URL}/feedback/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type,
-          description: description.trim(),
+          description: trimmed,
           logs,
           deviceInfo: {
             platform: platform(),
@@ -111,23 +123,19 @@ export function FeedbackModal() {
         await openerCommands.openUrl(data.issueUrl, null);
         close();
       } else {
-        console.error(
-          "Failed to submit feedback:",
-          data.error ?? `HTTP ${response.status}`,
-        );
-        setSubmitStatus("Failed to submit");
+        setErrorMessage(data.error ?? "Failed to submit feedback");
       }
     } catch (error) {
       console.error(
         "Failed to submit feedback:",
         error instanceof Error ? error.message : String(error),
       );
-      setSubmitStatus("Failed to submit");
+      setErrorMessage("Failed to submit feedback. Please try again.");
     } finally {
       setIsSubmitting(false);
-      setTimeout(() => setSubmitStatus(""), 2000);
+      setSubmitStatus("");
     }
-  }, [description, type, close]);
+  }, [description, type, attachLogs, close]);
 
   if (!isOpen) {
     return null;
@@ -205,7 +213,10 @@ export function FeedbackModal() {
                 <textarea
                   id="feedback-description"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (errorMessage) setErrorMessage("");
+                  }}
                   placeholder={
                     isBug
                       ? "What happened? What did you expect to happen? Steps to reproduce..."
@@ -214,13 +225,31 @@ export function FeedbackModal() {
                   rows={6}
                   className={cn([
                     "w-full px-2.5 py-1.5 rounded-md",
-                    "border border-neutral-200",
+                    "border",
+                    errorMessage ? "border-red-500" : "border-neutral-200",
                     "text-sm resize-none",
                     "focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-1",
                   ])}
                   maxLength={5000}
                 />
+                {errorMessage && (
+                  <p className="text-xs text-red-500 mt-1">{errorMessage}</p>
+                )}
               </div>
+
+              {isBug && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={attachLogs}
+                    onChange={(e) => setAttachLogs(e.target.checked)}
+                    className="rounded border-neutral-300"
+                  />
+                  <span className="text-sm text-neutral-600">
+                    Attach app logs to help diagnose the issue
+                  </span>
+                </label>
+              )}
             </div>
 
             <div className="flex justify-start mt-4">

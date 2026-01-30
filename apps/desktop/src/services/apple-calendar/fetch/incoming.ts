@@ -3,6 +3,7 @@ import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 
 import type { Ctx } from "../ctx";
+import { createAppleEventId } from "../utils/event-id";
 import type {
   EventParticipant,
   IncomingEvent,
@@ -76,12 +77,15 @@ async function normalizeAppleEvent(appleEvent: AppleEvent): Promise<{
     eventParticipants.push(normalizeParticipant(attendee, false));
   }
 
+  const startedAt = appleEvent.start_date;
+
   return {
     event: {
-      tracking_id_event: appleEvent.event_identifier,
+      id: createAppleEventId(appleEvent, startedAt),
+      tracking_id_event: appleEvent.calendar_item_identifier,
       tracking_id_calendar: appleEvent.calendar.id,
       title: appleEvent.title,
-      started_at: appleEvent.start_date,
+      started_at: startedAt,
       ended_at: appleEvent.end_date,
       location: appleEvent.location ?? undefined,
       meeting_link: meetingLink ?? undefined,

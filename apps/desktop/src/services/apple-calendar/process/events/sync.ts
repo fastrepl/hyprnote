@@ -1,11 +1,8 @@
 import type { Ctx } from "../../ctx";
 import type { ExistingEvent, IncomingEvent } from "../../fetch/types";
+import { isLegacyEventId } from "../../utils/event-id";
 import { getSessionForEvent, isSessionEmpty } from "../utils";
 import type { EventsSyncInput, EventsSyncOutput } from "./types";
-
-function getEventKey(trackingId: string, startedAt?: string): string {
-  return startedAt ? `${trackingId}::${startedAt}` : trackingId;
-}
 
 export function syncEvents(
   ctx: Ctx,
@@ -17,10 +14,9 @@ export function syncEvents(
     toAdd: [],
   };
 
-  const incomingEventMap = new Map(
-    incoming.map((e) => [getEventKey(e.tracking_id_event, e.started_at), e]),
-  );
-  const handledEventKeys = new Set<string>();
+  const incomingEventMap = new Map(incoming.map((e) => [e.id, e]));
+  const existingEventMap = new Map(existing.map((e) => [e.id, e]));
+  const handledEventIds = new Set<string>();
 
   for (const storeEvent of existing) {
     const sessionId = getSessionForEvent(ctx.store, storeEvent.id);
@@ -34,25 +30,19 @@ export function syncEvents(
       continue;
     }
 
-    const trackingId = storeEvent.tracking_id_event;
-    const eventKey = trackingId
-      ? getEventKey(trackingId, storeEvent.started_at ?? undefined)
-      : undefined;
-    const matchingIncomingEvent = eventKey
-      ? incomingEventMap.get(eventKey)
-      : undefined;
+    const matchingIncomingEvent = incomingEventMap.get(storeEvent.id);
 
-    if (matchingIncomingEvent && trackingId && eventKey) {
+    if (matchingIncomingEvent) {
       out.toUpdate.push({
         ...storeEvent,
         ...matchingIncomingEvent,
         id: storeEvent.id,
-        tracking_id_event: trackingId,
+        tracking_id_event: matchingIncomingEvent.tracking_id_event,
         user_id: storeEvent.user_id,
         created_at: storeEvent.created_at,
         calendar_id: storeEvent.calendar_id,
       });
-      handledEventKeys.add(eventKey);
+      handledEventIds.add(storeEvent.id);
       continue;
     }
 
@@ -60,42 +50,31 @@ export function syncEvents(
       continue;
     }
 
-    const rescheduledEvent = findRescheduledEvent(ctx, storeEvent, incoming);
-    const rescheduledEventKey = rescheduledEvent
-      ? getEventKey(
-          rescheduledEvent.tracking_id_event,
-          rescheduledEvent.started_at,
-        )
-      : undefined;
-
-    if (
-      rescheduledEvent &&
-      rescheduledEventKey &&
-      !handledEventKeys.has(rescheduledEventKey)
-    ) {
-      out.toUpdate.push({
-        ...storeEvent,
-        ...rescheduledEvent,
-        id: storeEvent.id,
-        tracking_id_event: rescheduledEvent.tracking_id_event,
-        user_id: storeEvent.user_id,
-        created_at: storeEvent.created_at,
-        calendar_id: storeEvent.calendar_id,
-      });
-      handledEventKeys.add(rescheduledEventKey);
-      continue;
+    if (isLegacyEventId(storeEvent.id)) {
+      const rescheduledEvent = findRescheduledEvent(ctx, storeEvent, incoming);
+      if (rescheduledEvent && !handledEventIds.has(rescheduledEvent.id)) {
+        out.toUpdate.push({
+          ...storeEvent,
+          ...rescheduledEvent,
+          id: storeEvent.id,
+          tracking_id_event: rescheduledEvent.tracking_id_event,
+          user_id: storeEvent.user_id,
+          created_at: storeEvent.created_at,
+          calendar_id: storeEvent.calendar_id,
+        });
+        handledEventIds.add(rescheduledEvent.id);
+        continue;
+      }
     }
 
     out.toDelete.push(storeEvent.id);
   }
 
   for (const incomingEvent of incoming) {
-    const incomingEventKey = getEventKey(
-      incomingEvent.tracking_id_event,
-      incomingEvent.started_at,
-    );
-    if (!handledEventKeys.has(incomingEventKey)) {
-      out.toAdd.push(incomingEvent);
+    if (!handledEventIds.has(incomingEvent.id)) {
+      if (!existingEventMap.has(incomingEvent.id)) {
+        out.toAdd.push(incomingEvent);
+      }
     }
   }
 

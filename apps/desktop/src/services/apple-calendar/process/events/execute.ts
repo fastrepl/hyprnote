@@ -1,6 +1,5 @@
 import type { EventStorage } from "@hypr/store";
 
-import { id } from "../../../../utils";
 import type { Ctx } from "../../ctx";
 import type { EventsSyncOutput } from "./types";
 
@@ -63,7 +62,7 @@ export function executeForEventsSync(
         continue;
       }
 
-      const eventId = id();
+      const eventId = incomingEvent.id;
       trackingIdToEventId.set(incomingEvent.tracking_id_event, eventId);
 
       const shouldIgnore =

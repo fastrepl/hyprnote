@@ -1,0 +1,10 @@
+---
+source: crates/specta-zod/src/tinybase.rs
+assertion_line: 173
+expression: output
+---
+export const with_optionalTinybaseSchema = {
+  required: { type: "string" },
+  optional: { type: "string" },
+  optional_num: { type: "number" },
+};

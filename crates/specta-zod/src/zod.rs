@@ -237,7 +237,9 @@ fn field_type(s: &mut String, types: &TypeCollection, field: &Field) -> Result<(
         return Ok(());
     };
 
-    if field.optional() {
+    let is_nullable = matches!(ty, DataType::Nullable(_));
+
+    if field.optional() && !is_nullable {
         s.push_str("z.preprocess((val) => val ?? undefined, ");
         datatype(s, types, ty, false)?;
         s.push_str(".optional())");

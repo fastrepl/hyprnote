@@ -6,12 +6,20 @@ use hypr_version::Version;
 
 use super::version_from_name;
 use crate::Result;
+use crate::version::{DetectedVersion, InferredVersion};
 
 pub struct Migrate;
 
 impl super::Migration for Migrate {
     fn introduced_in(&self) -> &'static Version {
         version_from_name!()
+    }
+
+    fn applies_to(&self, detected: &DetectedVersion) -> bool {
+        matches!(
+            detected,
+            DetectedVersion::Inferred(InferredVersion::V1_0_2NightlyEarly)
+        )
     }
 
     fn run<'a>(&self, base_dir: &'a Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>> {

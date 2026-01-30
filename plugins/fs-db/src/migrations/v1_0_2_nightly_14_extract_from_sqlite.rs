@@ -13,6 +13,7 @@ use hypr_version::Version;
 use super::utils::{FileOp, apply_ops};
 use super::version_from_name;
 use crate::Result;
+use crate::version::{DetectedVersion, InferredVersion};
 
 mod files {
     pub const META: &str = "_meta.json";
@@ -79,6 +80,13 @@ pub struct Migrate;
 impl super::Migration for Migrate {
     fn introduced_in(&self) -> &'static Version {
         version_from_name!()
+    }
+
+    fn applies_to(&self, detected: &DetectedVersion) -> bool {
+        !matches!(
+            detected,
+            DetectedVersion::Inferred(InferredVersion::V0_0_84)
+        )
     }
 
     fn run<'a>(&self, base_dir: &'a Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>> {

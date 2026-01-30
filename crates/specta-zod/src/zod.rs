@@ -537,6 +537,7 @@ fn to_camel_case(name: &str) -> String {
 mod tests {
     use super::*;
     use specta::Type;
+    use std::collections::HashMap;
 
     #[derive(Type)]
     struct SimpleStruct {
@@ -563,6 +564,77 @@ mod tests {
         One,
         Two,
         Three,
+    }
+
+    #[derive(Type)]
+    struct NewtypeWrapper(String);
+
+    #[derive(Type)]
+    struct TupleStruct(String, i32);
+
+    #[derive(Type)]
+    struct WithMap {
+        data: HashMap<String, i32>,
+    }
+
+    #[derive(Type)]
+    struct WithNestedOptional {
+        nested: Option<Vec<String>>,
+    }
+
+    #[derive(Type)]
+    #[serde(tag = "type")]
+    enum InternallyTaggedEnum {
+        Variant1 { value: String },
+        Variant2 { count: i32 },
+    }
+
+    #[derive(Type)]
+    #[serde(tag = "type", content = "data")]
+    enum AdjacentlyTaggedEnum {
+        Text(String),
+        Number(i32),
+    }
+
+    #[derive(Type)]
+    #[serde(untagged)]
+    enum UntaggedEnum {
+        Str(String),
+        Num(i32),
+    }
+
+    #[derive(Type)]
+    enum ExternallyTaggedEnum {
+        Unit,
+        WithData(String),
+        WithStruct { field: i32 },
+    }
+
+    #[derive(Type)]
+    struct WithReference {
+        simple: SimpleStruct,
+    }
+
+    #[derive(Type)]
+    struct WithTuple {
+        pair: (String, i32),
+    }
+
+    #[derive(Type)]
+    struct AllPrimitives {
+        a_i8: i8,
+        a_i16: i16,
+        a_i32: i32,
+        a_i64: i64,
+        a_u8: u8,
+        a_u16: u16,
+        a_u32: u32,
+        a_u64: u64,
+        a_f32: f32,
+        a_f64: f64,
+        a_bool: bool,
+        a_string: String,
+        a_char: char,
     }
 
     #[test]
@@ -611,5 +683,180 @@ mod tests {
         let output = zod.export(&types).unwrap();
 
         assert!(output.contains("z.enum([\"One\", \"Two\", \"Three\"])"));
+    }
+
+    #[test]
+    fn test_newtype_wrapper() {
+        let mut types = TypeCollection::default();
+        types.register::<NewtypeWrapper>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("export const newtypeWrapperSchema = z.string()"));
+    }
+
+    #[test]
+    fn test_tuple_struct() {
+        let mut types = TypeCollection::default();
+        types.register::<TupleStruct>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("z.tuple([z.string(), z.number()])"));
+    }
+
+    #[test]
+    fn test_map_field() {
+        let mut types = TypeCollection::default();
+        types.register::<WithMap>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("jsonObject(z.record(z.string(), z.number()))"));
+    }
+
+    #[test]
+    fn test_nested_optional() {
+        let mut types = TypeCollection::default();
+        types.register::<WithNestedOptional>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains(
+            "z.preprocess((val) => val ?? undefined, jsonObject(z.array(z.string())).optional())"
+        ));
+    }
+
+    #[test]
+    fn test_internally_tagged_enum() {
+        let mut types = TypeCollection::default();
+        types.register::<InternallyTaggedEnum>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("z.union(["));
+        assert!(output.contains("type: z.literal(\"Variant1\")"));
+        assert!(output.contains("type: z.literal(\"Variant2\")"));
+    }
+
+    #[test]
+    fn test_adjacently_tagged_enum() {
+        let mut types = TypeCollection::default();
+        types.register::<AdjacentlyTaggedEnum>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("z.union(["));
+        assert!(output.contains("type: z.literal(\"Text\")"));
+        assert!(output.contains("data: z.string()"));
+    }
+
+    #[test]
+    fn test_untagged_enum() {
+        let mut types = TypeCollection::default();
+        types.register::<UntaggedEnum>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("z.union([z.string(), z.number()])"));
+    }
+
+    #[test]
+    fn test_externally_tagged_enum() {
+        let mut types = TypeCollection::default();
+        types.register::<ExternallyTaggedEnum>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("z.union(["));
+        assert!(output.contains("z.literal(\"Unit\")"));
+        assert!(output.contains("\"WithData\": z.string()"));
+        assert!(output.contains("\"WithStruct\": z.object({ field: z.number() })"));
+    }
+
+    #[test]
+    fn test_with_reference() {
+        let mut types = TypeCollection::default();
+        types.register::<WithReference>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("simple: simpleStructSchema"));
+    }
+
+    #[test]
+    fn test_tuple_field() {
+        let mut types = TypeCollection::default();
+        types.register::<WithTuple>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("jsonObject(z.tuple([z.string(), z.number()]))"));
+    }
+
+    #[test]
+    fn test_all_primitives() {
+        let mut types = TypeCollection::default();
+        types.register::<AllPrimitives>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("a_i8: z.number()"));
+        assert!(output.contains("a_i16: z.number()"));
+        assert!(output.contains("a_i32: z.number()"));
+        assert!(output.contains("a_i64: z.number()"));
+        assert!(output.contains("a_u8: z.number()"));
+        assert!(output.contains("a_u16: z.number()"));
+        assert!(output.contains("a_u32: z.number()"));
+        assert!(output.contains("a_u64: z.number()"));
+        assert!(output.contains("a_f32: z.number()"));
+        assert!(output.contains("a_f64: z.number()"));
+        assert!(output.contains("a_bool: z.boolean()"));
+        assert!(output.contains("a_string: z.string()"));
+        assert!(output.contains("a_char: z.string()"));
+    }
+
+    #[test]
+    fn test_camel_case_conversion() {
+        assert_eq!(to_camel_case("SimpleStruct"), "simpleStruct");
+        assert_eq!(to_camel_case("my_struct"), "myStruct");
+        assert_eq!(to_camel_case("my-struct"), "myStruct");
+        assert_eq!(to_camel_case("MyStruct"), "myStruct");
+        assert_eq!(to_camel_case("ABC"), "aBC");
+    }
+
+    #[test]
+    fn test_custom_header() {
+        let mut types = TypeCollection::default();
+        types.register::<SimpleStruct>();
+
+        let custom_header = "// Custom header\nimport { z } from 'zod';\n\n";
+        let zod = Zod::new().header(custom_header);
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.starts_with("// Custom header"));
+    }
+
+    #[test]
+    fn test_type_export() {
+        let mut types = TypeCollection::default();
+        types.register::<SimpleStruct>();
+
+        let zod = Zod::new().header("");
+        let output = zod.export(&types).unwrap();
+
+        assert!(output.contains("export const simpleStructSchema ="));
+        assert!(output.contains("export type SimpleStruct = z.infer<typeof simpleStructSchema>"));
     }
 }

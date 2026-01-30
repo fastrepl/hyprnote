@@ -1,7 +1,7 @@
 import type { AppleEvent } from "@hypr/plugin-apple-calendar";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 
-import type { Schemas, Store } from "../../../store/tinybase/store/main";
+import type { Store } from "../../../store/tinybase/store/main";
 import { createAppleEventId, isLegacyEventId } from "../utils/event-id";
 
 interface LegacyEvent {
@@ -24,7 +24,7 @@ interface LegacyEvent {
 export async function migrateEventIds(store: Store): Promise<void> {
   const legacyEvents: LegacyEvent[] = [];
 
-  store.forEachRow("events", (rowId) => {
+  store.forEachRow("events", (rowId, _forEachCell) => {
     if (isLegacyEventId(rowId)) {
       const event = store.getRow("events", rowId);
       if (event) {
@@ -140,7 +140,7 @@ export async function migrateEventIds(store: Store): Promise<void> {
 function getEnabledCalendarIds(store: Store): string[] {
   const calendarIds: string[] = [];
 
-  store.forEachRow("calendars", (rowId) => {
+  store.forEachRow("calendars", (rowId, _forEachCell) => {
     const calendar = store.getRow("calendars", rowId);
     if (
       calendar &&
@@ -160,7 +160,7 @@ function getEnabledCalendarIds(store: Store): string[] {
 function hasSessionForEvent(store: Store, eventId: string): boolean {
   let hasSession = false;
 
-  store.forEachRow("sessions", (sessionId) => {
+  store.forEachRow("sessions", (sessionId, _forEachCell) => {
     const session = store.getRow("sessions", sessionId);
     if (session && session.event_id === eventId) {
       const rawMd = session.raw_md as string | undefined;
@@ -178,7 +178,7 @@ function updateSessionEventId(
   oldEventId: string,
   newEventId: string,
 ): void {
-  store.forEachRow("sessions", (sessionId) => {
+  store.forEachRow("sessions", (sessionId, _forEachCell) => {
     const session = store.getRow("sessions", sessionId);
     if (session && session.event_id === oldEventId) {
       store.setCell("sessions", sessionId, "event_id", newEventId);

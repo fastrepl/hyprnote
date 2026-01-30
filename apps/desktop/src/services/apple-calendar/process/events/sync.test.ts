@@ -227,6 +227,149 @@ describe("syncEvents", () => {
     });
   });
 
+  describe("rescheduled events", () => {
+    test("rescheduled event (same tracking_id, different time) should update, not duplicate", () => {
+      const ctx = createMockCtx();
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "track-1",
+            started_at: "2024-01-16T10:00:00Z",
+            ended_at: "2024-01-16T11:00:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T10:00:00Z",
+            ended_at: "2024-01-15T11:00:00Z",
+          }),
+        ],
+      });
+
+      expect(result.toUpdate).toHaveLength(1);
+      expect(result.toAdd).toHaveLength(0);
+      expect(result.toDelete).toHaveLength(0);
+    });
+
+    test("rescheduled event with non-empty session should still update", () => {
+      const ctx = createMockCtx({
+        eventToSession: new Map([["event-1", "session-1"]]),
+        nonEmptySessions: new Set(["session-1"]),
+      });
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "track-1",
+            started_at: "2024-01-16T10:00:00Z",
+            ended_at: "2024-01-16T11:00:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T10:00:00Z",
+            ended_at: "2024-01-15T11:00:00Z",
+          }),
+        ],
+      });
+
+      expect(result.toUpdate).toHaveLength(1);
+      expect(result.toAdd).toHaveLength(0);
+      expect(result.toDelete).toHaveLength(0);
+    });
+
+    test("rescheduled event backward in time should update correctly", () => {
+      const ctx = createMockCtx();
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "track-1",
+            started_at: "2024-01-14T10:00:00Z",
+            ended_at: "2024-01-14T11:00:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T10:00:00Z",
+            ended_at: "2024-01-15T11:00:00Z",
+          }),
+        ],
+      });
+
+      expect(result.toUpdate).toHaveLength(1);
+      expect(result.toUpdate[0].started_at).toBe("2024-01-14T10:00:00Z");
+      expect(result.toAdd).toHaveLength(0);
+      expect(result.toDelete).toHaveLength(0);
+    });
+
+    test("rescheduled event preserves store identity fields", () => {
+      const ctx = createMockCtx();
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "track-1",
+            started_at: "2024-01-16T10:00:00Z",
+            ended_at: "2024-01-16T11:00:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "track-1",
+            user_id: "user-1",
+            created_at: "2024-01-01T00:00:00Z",
+            calendar_id: "cal-1",
+            started_at: "2024-01-15T10:00:00Z",
+            ended_at: "2024-01-15T11:00:00Z",
+          }),
+        ],
+      });
+
+      expect(result.toUpdate).toHaveLength(1);
+      const updated = result.toUpdate[0];
+      expect(updated.id).toBe("event-1");
+      expect(updated.user_id).toBe("user-1");
+      expect(updated.created_at).toBe("2024-01-01T00:00:00Z");
+      expect(updated.calendar_id).toBe("cal-1");
+      expect(updated.tracking_id_event).toBe("track-1");
+    });
+
+    test("recurring events (same tracking_id, multiple occurrences) should NOT use tracking-id-only match", () => {
+      const ctx = createMockCtx();
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "recurring-1",
+            started_at: "2024-01-15T10:00:00Z",
+            ended_at: "2024-01-15T11:00:00Z",
+          }),
+          createIncomingEvent({
+            tracking_id_event: "recurring-1",
+            started_at: "2024-01-22T10:00:00Z",
+            ended_at: "2024-01-22T11:00:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "recurring-1",
+            started_at: "2024-01-08T10:00:00Z",
+            ended_at: "2024-01-08T11:00:00Z",
+          }),
+        ],
+      });
+
+      expect(result.toUpdate).toHaveLength(0);
+      expect(result.toDelete).toHaveLength(1);
+      expect(result.toAdd).toHaveLength(2);
+    });
+  });
+
   describe("disabled calendar cleanup", () => {
     test("preserves events with non-empty sessions when calendar disabled", () => {
       const ctx = createMockCtx({

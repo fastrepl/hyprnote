@@ -22,6 +22,22 @@ export function syncEvents(
   );
   const handledEventKeys = new Set<string>();
 
+  const uniqueTrackingIdMap = new Map<string, IncomingEvent>();
+  {
+    const trackingIdCounts = new Map<string, number>();
+    for (const e of incoming) {
+      trackingIdCounts.set(
+        e.tracking_id_event,
+        (trackingIdCounts.get(e.tracking_id_event) ?? 0) + 1,
+      );
+    }
+    for (const e of incoming) {
+      if (trackingIdCounts.get(e.tracking_id_event) === 1) {
+        uniqueTrackingIdMap.set(e.tracking_id_event, e);
+      }
+    }
+  }
+
   for (const storeEvent of existing) {
     const sessionId = getSessionForEvent(ctx.store, storeEvent.id);
     const hasNonEmptySession =
@@ -54,6 +70,29 @@ export function syncEvents(
       });
       handledEventKeys.add(eventKey);
       continue;
+    }
+
+    if (trackingId) {
+      const trackingIdMatch = uniqueTrackingIdMap.get(trackingId);
+      if (trackingIdMatch) {
+        const matchKey = getEventKey(
+          trackingIdMatch.tracking_id_event,
+          trackingIdMatch.started_at,
+        );
+        if (!handledEventKeys.has(matchKey)) {
+          out.toUpdate.push({
+            ...storeEvent,
+            ...trackingIdMatch,
+            id: storeEvent.id,
+            tracking_id_event: trackingId,
+            user_id: storeEvent.user_id,
+            created_at: storeEvent.created_at,
+            calendar_id: storeEvent.calendar_id,
+          });
+          handledEventKeys.add(matchKey);
+          continue;
+        }
+      }
     }
 
     if (hasNonEmptySession) {

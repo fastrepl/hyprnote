@@ -15304,6 +15304,8 @@ dependencies = [
 name = "specta-zod"
 version = "0.1.0"
 dependencies = [
+ "insta",
+ "serde",
  "specta",
  "thiserror 2.0.17",
 ]

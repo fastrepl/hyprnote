@@ -28,10 +28,7 @@ fn main() {
     let zod_output = Zod::new().export(&types).unwrap();
 
     // Generate TinyBase schemas
-    let tinybase_output = TinyBase::new()
-        .header("")
-        .export(&types)
-        .unwrap();
+    let tinybase_output = TinyBase::new().header("").export(&types).unwrap();
 
     // Print the complete schema.ts file
     print_schema_file(&zod_output, &tinybase_output);
@@ -61,11 +58,10 @@ export type ParticipantSource = z.infer<typeof participantSourceSchema>;
     );
 
     // Remove the header from zod_output since we already printed our own
-    let zod_without_header = zod_output
-        .replace(
-            "import { z } from \"zod\";\nimport { jsonObject } from \"./shared\";\n\n",
-            "",
-        );
+    let zod_without_header = zod_output.replace(
+        "import { z } from \"zod\";\nimport { jsonObject } from \"./shared\";\n\n",
+        "",
+    );
 
     // Print Zod schemas (modified to use enum references where needed)
     let modified_zod = zod_without_header

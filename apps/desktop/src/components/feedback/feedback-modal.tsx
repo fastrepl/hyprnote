@@ -29,12 +29,13 @@ export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
   close: () => set({ isOpen: false }),
 }));
 
-async function getLogContent(): Promise<string | null> {
-  const result = await tracingCommands.logContent();
-  if (result.status !== "ok") {
-    return null;
+async function openLogsDir(): Promise<boolean> {
+  const result = await tracingCommands.logsDir();
+  if (result.status === "ok") {
+    const revealResult = await openerCommands.revealItemInDir(result.data);
+    return revealResult.status === "ok";
   }
-  return result.data ?? null;
+  return false;
 }
 
 export function FeedbackModal() {
@@ -101,19 +102,12 @@ export function FeedbackModal() {
 
       let logSection = "";
       if (attachLogs) {
-        const logContent = await getLogContent();
-        if (logContent) {
+        const logsOpened = await openLogsDir();
+        if (logsOpened) {
           logSection = `
 
-## Application Logs (last 1000 lines, redacted)
-<details>
-<summary>Click to expand logs</summary>
-
-\`\`\`
-${logContent}
-\`\`\`
-
-</details>
+## Application Logs
+Logs will be opened in a separate window. Please attach the log file to this issue.
 `;
         }
       }
@@ -267,7 +261,7 @@ ${logSection}
                   htmlFor="attach-logs"
                   className="text-sm text-neutral-600 cursor-pointer"
                 >
-                  Attach application logs (user info redacted)
+                  Open log directory (for manual attachment)
                 </label>
               </div>
 

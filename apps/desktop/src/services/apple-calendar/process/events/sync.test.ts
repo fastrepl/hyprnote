@@ -260,4 +260,92 @@ describe("syncEvents", () => {
       expect(result.toDelete).toContain("event-1");
     });
   });
+
+  describe("rescheduled events", () => {
+    test("updates event when rescheduled with same tracking_id but different time", () => {
+      const ctx = createMockCtx();
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "existing-1",
+            title: "Meeting",
+            started_at: "2024-01-15T14:00:00Z",
+            ended_at: "2024-01-15T15:00:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            tracking_id_event: "existing-1",
+            title: "Meeting",
+            started_at: "2024-01-15T10:00:00Z",
+            ended_at: "2024-01-15T11:00:00Z",
+          }),
+        ],
+      });
+
+      expect(result.toUpdate).toHaveLength(1);
+      expect(result.toUpdate[0].started_at).toBe("2024-01-15T14:00:00Z");
+      expect(result.toAdd).toHaveLength(0);
+      expect(result.toDelete).toHaveLength(0);
+    });
+
+    test("updates event with notes when rescheduled with same tracking_id", () => {
+      const ctx = createMockCtx({
+        eventToSession: new Map([["event-1", "session-1"]]),
+        nonEmptySessions: new Set(["session-1"]),
+      });
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "existing-1",
+            title: "Meeting",
+            started_at: "2024-01-15T14:00:00Z",
+            ended_at: "2024-01-15T15:00:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            tracking_id_event: "existing-1",
+            title: "Meeting",
+            started_at: "2024-01-15T10:00:00Z",
+            ended_at: "2024-01-15T11:00:00Z",
+          }),
+        ],
+      });
+
+      expect(result.toUpdate).toHaveLength(1);
+      expect(result.toUpdate[0].started_at).toBe("2024-01-15T14:00:00Z");
+      expect(result.toAdd).toHaveLength(0);
+      expect(result.toDelete).toHaveLength(0);
+    });
+
+    test("does not create duplicate when event with notes is rescheduled", () => {
+      const ctx = createMockCtx({
+        eventToSession: new Map([["event-1", "session-1"]]),
+        nonEmptySessions: new Set(["session-1"]),
+      });
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "existing-1",
+            title: "Meeting",
+            started_at: "2024-01-15T21:30:00Z",
+            ended_at: "2024-01-15T22:30:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            tracking_id_event: "existing-1",
+            title: "Meeting",
+            started_at: "2024-01-15T22:00:00Z",
+            ended_at: "2024-01-15T23:00:00Z",
+          }),
+        ],
+      });
+
+      expect(result.toUpdate).toHaveLength(1);
+      expect(result.toAdd).toHaveLength(0);
+      expect(result.toDelete).toHaveLength(0);
+    });
+  });
 });

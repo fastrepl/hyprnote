@@ -138,10 +138,6 @@ function findRescheduledEvent(
       return false;
     }
 
-    if (incoming.tracking_id_event === storeEvent.tracking_id_event) {
-      return false;
-    }
-
     return true;
   });
 }

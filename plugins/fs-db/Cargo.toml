@@ -29,5 +29,5 @@ hypr-tiptap = { workspace = true }
 hypr-version = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true, features = ["rt"] }
+tokio = { workspace = true, features = ["rt", "fs"] }
 uuid = { workspace = true }

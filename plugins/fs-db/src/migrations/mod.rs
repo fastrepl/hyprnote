@@ -33,7 +33,7 @@ macro_rules! migrations {
 
 migrations! {
     v1_0_2_nightly_1_from_v0,
-    v1_0_2_nightly_3_move_uuid_folders,
-    v1_0_2_nightly_4_rename_transcript,
+    v1_0_2_nightly_6_move_uuid_folders,
+    v1_0_2_nightly_6_rename_transcript,
     v1_0_2_nightly_14_extract_from_sqlite,
 }

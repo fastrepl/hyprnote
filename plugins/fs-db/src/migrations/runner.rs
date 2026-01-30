@@ -12,20 +12,13 @@ fn migrations_to_apply(detected: &DetectedVersion, to: &Version) -> Vec<&'static
         DetectedVersion::Known(v) => v.version.clone(),
     };
 
-    let mut current = current;
-    let mut result = vec![];
-
     let mut migrations = all_migrations();
     migrations.sort_by(|a, b| a.introduced_in().cmp(b.introduced_in()));
 
-    for migration in migrations {
-        if current < *migration.introduced_in() && *migration.introduced_in() <= *to {
-            current = migration.introduced_in().clone();
-            result.push(migration);
-        }
-    }
-
-    result
+    migrations
+        .into_iter()
+        .filter(|m| current < *m.introduced_in() && *m.introduced_in() <= *to)
+        .collect()
 }
 
 pub async fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
@@ -63,10 +56,11 @@ mod tests {
 
     #[test]
     fn test_migrations_to_apply() {
-        let nightly_1 = super::super::v1_0_2_nightly_1_from_v0::Migrate.introduced_in();
-        let nightly_3 = super::super::v1_0_2_nightly_3_move_uuid_folders::Migrate.introduced_in();
-        let nightly_4 = super::super::v1_0_2_nightly_4_rename_transcript::Migrate.introduced_in();
-        let nightly_14 =
+        let to_uuid_folder =
+            super::super::v1_0_2_nightly_6_move_uuid_folders::Migrate.introduced_in();
+        let rename_transcript =
+            super::super::v1_0_2_nightly_6_rename_transcript::Migrate.introduced_in();
+        let v1_sqlite =
             super::super::v1_0_2_nightly_14_extract_from_sqlite::Migrate.introduced_in();
 
         struct Case {
@@ -76,75 +70,37 @@ mod tests {
         }
 
         let cases: &[Case] = &[
+            // Unlikely any nightly.3 users are updating to nightly.15,
+            // but we did some uuid/transcript cleanup, so this is just a precaution.
             Case {
-                from: DetectedVersion::Fresh,
-                to: "1.0.2",
-                expected: vec![],
+                from: known("1.0.2-nightly.3"),
+                to: "1.0.2-nightly.15",
+                expected: vec![to_uuid_folder, rename_transcript, v1_sqlite],
             },
-            Case {
-                from: DetectedVersion::Unknown,
-                to: "1.0.2",
-                expected: vec![],
-            },
-            Case {
-                from: known("1.0.1"),
-                to: "1.0.2",
-                expected: vec![nightly_1, nightly_3, nightly_4, nightly_14],
-            },
-            Case {
-                from: known("1.0.2-nightly.2"),
-                to: "1.0.2-nightly.3",
-                expected: vec![nightly_3],
-            },
-            Case {
-                from: known("1.0.2-nightly.2"),
-                to: "1.0.2-nightly.4",
-                expected: vec![nightly_3, nightly_4],
-            },
-            Case {
-                from: known("1.0.2-nightly.12"),
-                to: "1.0.2-nightly.14",
-                expected: vec![nightly_14],
-            },
-            Case {
-                from: known("1.0.2-nightly.13"),
-                to: "1.0.2-nightly.14",
-                expected: vec![nightly_14],
-            },
+            // 1.0.2-nightly.14 is empty release, so 0 users upgrading from it
             Case {
                 from: known("1.0.2-nightly.14"),
                 to: "1.0.2-nightly.15",
                 expected: vec![],
             },
+            // 1.0.2-nightly.1x users already had data replicated to the filesystem,
+            // so the v1_sqlite migration is just a safeguard because the `load` call was removed from the frontend local persister in 1.0.2-nightly.15
             Case {
-                from: known("1.0.2-nightly.14"),
-                to: "1.0.2",
+                from: known("1.0.2-nightly.10"),
+                to: "1.0.2-nightly.15",
+                expected: vec![v1_sqlite],
+            },
+            Case {
+                from: known("1.0.2-nightly.13"),
+                to: "1.0.2-nightly.15",
+                expected: vec![v1_sqlite],
+            },
+            // No need to run v1_sqlite going forward.
+            // It's safe to rerun v1_sqlite as long as we don't diverge from the data structure it generates.
+            Case {
+                from: known("1.0.2-nightly.15"),
+                to: "1.0.2-nightly.16",
                 expected: vec![],
-            },
-            Case {
-                from: known("1.0.2"),
-                to: "1.0.3",
-                expected: vec![],
-            },
-            Case {
-                from: known("1.0.2-nightly.14"),
-                to: "1.0.3-nightly.1",
-                expected: vec![],
-            },
-            Case {
-                from: known("1.0.2-nightly.2"),
-                to: "1.0.2",
-                expected: vec![nightly_3, nightly_4, nightly_14],
-            },
-            Case {
-                from: known("1.0.2-nightly.3"),
-                to: "1.0.2",
-                expected: vec![nightly_4, nightly_14],
-            },
-            Case {
-                from: known("1.0.2-nightly.4"),
-                to: "1.0.2",
-                expected: vec![nightly_14],
             },
         ];
 

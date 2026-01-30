@@ -100,7 +100,7 @@ function Component() {
       const email = payload.email;
       const userId = payload.sub;
 
-      if (email) {
+      if (email && userId) {
         identify({
           email,
           userId,

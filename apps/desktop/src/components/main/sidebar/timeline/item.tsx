@@ -318,21 +318,22 @@ const SessionItem = memo(
     const isFinalizing = sessionMode === "finalizing";
     const showSpinner = !selected && (isFinalizing || isEnhancing);
 
-    const calendarId = useMemo(() => {
-      if (!store || !item.data.event_id) {
-        return null;
-      }
-      const event = store.getRow("events", item.data.event_id);
-      return event?.calendar_id ? String(event.calendar_id) : null;
-    }, [store, item.data.event_id]);
+    const eventIdStr = item.data.event_id ? String(item.data.event_id) : "";
 
-    const eventStartedAt = useMemo(() => {
-      if (!store || !item.data.event_id) {
-        return null;
-      }
-      const event = store.getRow("events", item.data.event_id);
-      return event?.started_at ? String(event.started_at) : null;
-    }, [store, item.data.event_id]);
+    const eventCalendarId = main.UI.useCell(
+      "events",
+      eventIdStr,
+      "calendar_id",
+      main.STORE_ID,
+    ) as string | undefined;
+    const calendarId = eventCalendarId ?? null;
+
+    const eventStartedAt = main.UI.useCell(
+      "events",
+      eventIdStr,
+      "started_at",
+      main.STORE_ID,
+    ) as string | undefined;
 
     const displayTime = useMemo(
       () =>

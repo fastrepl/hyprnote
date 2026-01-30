@@ -95,10 +95,6 @@ export function syncEvents(
       }
     }
 
-    if (hasNonEmptySession) {
-      continue;
-    }
-
     const rescheduledEvent = findRescheduledEvent(ctx, storeEvent, incoming);
     const rescheduledEventKey = rescheduledEvent
       ? getEventKey(
@@ -122,6 +118,10 @@ export function syncEvents(
         calendar_id: storeEvent.calendar_id,
       });
       handledEventKeys.add(rescheduledEventKey);
+      continue;
+    }
+
+    if (hasNonEmptySession) {
       continue;
     }
 

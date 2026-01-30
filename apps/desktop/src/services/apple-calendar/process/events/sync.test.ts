@@ -339,6 +339,138 @@ describe("syncEvents", () => {
       expect(updated.tracking_id_event).toBe("track-1");
     });
 
+    test("rescheduled event with different tracking_id and non-empty session should update via heuristic", () => {
+      const ctx = createMockCtx({
+        eventToSession: new Map([["event-1", "session-1"]]),
+        nonEmptySessions: new Set(["session-1"]),
+      });
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "track-2",
+            started_at: "2024-01-16T10:00:00Z",
+            ended_at: "2024-01-16T11:00:00Z",
+            title: "Test Event",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T10:00:00Z",
+            ended_at: "2024-01-15T11:00:00Z",
+            title: "Test Event",
+            calendar_id: "cal-1",
+          }),
+        ],
+      });
+
+      expect(result.toUpdate).toHaveLength(1);
+      expect(result.toUpdate[0].started_at).toBe("2024-01-16T10:00:00Z");
+      expect(result.toUpdate[0].tracking_id_event).toBe("track-2");
+      expect(result.toUpdate[0].id).toBe("event-1");
+      expect(result.toAdd).toHaveLength(0);
+      expect(result.toDelete).toHaveLength(0);
+    });
+
+    test("sequential reschedules should always update (forward then backward)", () => {
+      const ctx = createMockCtx();
+      const firstResult = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T22:15:00Z",
+            ended_at: "2024-01-15T23:15:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T22:00:00Z",
+            ended_at: "2024-01-15T23:00:00Z",
+          }),
+        ],
+      });
+
+      expect(firstResult.toUpdate).toHaveLength(1);
+      expect(firstResult.toUpdate[0].started_at).toBe("2024-01-15T22:15:00Z");
+
+      const secondResult = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T21:30:00Z",
+            ended_at: "2024-01-15T22:30:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T22:15:00Z",
+            ended_at: "2024-01-15T23:15:00Z",
+          }),
+        ],
+      });
+
+      expect(secondResult.toUpdate).toHaveLength(1);
+      expect(secondResult.toUpdate[0].started_at).toBe("2024-01-15T21:30:00Z");
+      expect(secondResult.toAdd).toHaveLength(0);
+      expect(secondResult.toDelete).toHaveLength(0);
+    });
+
+    test("sequential reschedules with non-empty session should always update", () => {
+      const ctx = createMockCtx({
+        eventToSession: new Map([["event-1", "session-1"]]),
+        nonEmptySessions: new Set(["session-1"]),
+      });
+
+      const firstResult = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T22:15:00Z",
+            ended_at: "2024-01-15T23:15:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T22:00:00Z",
+            ended_at: "2024-01-15T23:00:00Z",
+          }),
+        ],
+      });
+
+      expect(firstResult.toUpdate).toHaveLength(1);
+      expect(firstResult.toUpdate[0].started_at).toBe("2024-01-15T22:15:00Z");
+
+      const secondResult = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T21:30:00Z",
+            ended_at: "2024-01-15T22:30:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "track-1",
+            started_at: "2024-01-15T22:15:00Z",
+            ended_at: "2024-01-15T23:15:00Z",
+          }),
+        ],
+      });
+
+      expect(secondResult.toUpdate).toHaveLength(1);
+      expect(secondResult.toUpdate[0].started_at).toBe("2024-01-15T21:30:00Z");
+      expect(secondResult.toAdd).toHaveLength(0);
+      expect(secondResult.toDelete).toHaveLength(0);
+    });
+
     test("recurring events (same tracking_id, multiple occurrences) should NOT use tracking-id-only match", () => {
       const ctx = createMockCtx();
       const result = syncEvents(ctx, {

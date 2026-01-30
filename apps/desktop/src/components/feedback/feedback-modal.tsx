@@ -1,4 +1,5 @@
 import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
+import { generateText } from "ai";
 import { Bug, Lightbulb, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -8,10 +9,10 @@ import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as tracingCommands } from "@hypr/plugin-tracing";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Checkbox } from "@hypr/ui/components/ui/checkbox";
 import { cn } from "@hypr/utils";
 
 import { env } from "../../env";
+import { useLanguageModel } from "../../hooks/useLLMConnection";
 
 type FeedbackType = "bug" | "feature";
 
@@ -29,22 +30,13 @@ export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
   close: () => set({ isOpen: false }),
 }));
 
-async function openLogsDir(): Promise<boolean> {
-  const result = await tracingCommands.logsDir();
-  if (result.status === "ok") {
-    const revealResult = await openerCommands.revealItemInDir(result.data);
-    return revealResult.status === "ok";
-  }
-  return false;
-}
-
 export function FeedbackModal() {
   const { isOpen, initialType, close } = useFeedbackModal();
   const [type, setType] = useState<FeedbackType>(initialType);
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [gitHash, setGitHash] = useState<string>("");
-  const [attachLogs, setAttachLogs] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<string>("");
+  const model = useLanguageModel();
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -65,13 +57,9 @@ export function FeedbackModal() {
   useEffect(() => {
     if (isOpen) {
       setType(initialType);
-      miscCommands.getGitHash().then((result) => {
-        setGitHash(result.status === "ok" ? result.data : "unknown");
-      });
     } else {
       setDescription("");
-      setGitHash("");
-      setAttachLogs(false);
+      setSubmitStatus("");
     }
   }, [isOpen, initialType]);
 
@@ -81,6 +69,7 @@ export function FeedbackModal() {
     }
 
     setIsSubmitting(true);
+    setSubmitStatus("");
 
     try {
       const gitHashResult = await miscCommands.getGitHash();
@@ -101,15 +90,31 @@ export function FeedbackModal() {
         firstLine || (type === "bug" ? "Bug Report" : "Feature Request");
 
       let logSection = "";
-      if (attachLogs) {
-        const logsOpened = await openLogsDir();
-        if (logsOpened) {
-          logSection = `
+      if (type === "bug") {
+        setSubmitStatus("Analyzing logs...");
+        const logsResult = await tracingCommands.logContent();
+        if (logsResult.status === "ok" && logsResult.data && model) {
+          try {
+            const { text } = await generateText({
+              model,
+              maxOutputTokens: 200,
+              prompt: `Extract only ERROR and WARNING log entries from the last 50 lines. Output max 500 chars, no explanation:\n\n${logsResult.data.slice(-10000)}`,
+            });
+            const logSummary = text.slice(0, 500);
+            if (logSummary.trim()) {
+              logSection = `
 
-## Application Logs
-Logs will be opened in a separate window. Please attach the log file to this issue.
+## Log Summary
+\`\`\`
+${logSummary}
+\`\`\`
 `;
+            }
+          } catch {
+            // LLM analysis failed, continue without log summary
+          }
         }
+        setSubmitStatus("Opening...");
       }
 
       if (type === "bug") {
@@ -135,7 +140,7 @@ ${trimmedDescription}
 
 ## Submitted From
 ${deviceInfo}
-${logSection}
+
 ---
 *This feature request was submitted from the Hyprnote desktop app.*
 `;
@@ -155,8 +160,9 @@ ${logSection}
       console.error("Failed to submit feedback:", error);
     } finally {
       setIsSubmitting(false);
+      setSubmitStatus("");
     }
-  }, [description, type, close, attachLogs]);
+  }, [description, type, close, model]);
 
   if (!isOpen) {
     return null;
@@ -250,26 +256,6 @@ ${logSection}
                   maxLength={5000}
                 />
               </div>
-
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="attach-logs"
-                  checked={attachLogs}
-                  onCheckedChange={(checked) => setAttachLogs(checked === true)}
-                />
-                <label
-                  htmlFor="attach-logs"
-                  className="text-sm text-neutral-600 cursor-pointer"
-                >
-                  Open log directory (for manual attachment)
-                </label>
-              </div>
-
-              {gitHash && (
-                <div className="mt-4 text-[10px] text-neutral-100 font-mono">
-                  {gitHash}
-                </div>
-              )}
             </div>
 
             <div className="flex justify-start mt-4">
@@ -279,7 +265,7 @@ ${logSection}
                 className="h-8 text-sm"
               >
                 {isSubmitting
-                  ? "Opening..."
+                  ? submitStatus || "Opening..."
                   : isBug
                     ? "Report Bug"
                     : "Suggest Feature"}

@@ -29,11 +29,13 @@ export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
   close: () => set({ isOpen: false }),
 }));
 
-async function openLogsDir(): Promise<void> {
+async function openLogsDir(): Promise<boolean> {
   const result = await tracingCommands.logsDir();
   if (result.status === "ok") {
     await openerCommands.revealItemInDir(result.data);
+    return true;
   }
+  return false;
 }
 
 export function FeedbackModal() {
@@ -98,13 +100,17 @@ export function FeedbackModal() {
       const title =
         firstLine || (type === "bug" ? "Bug Report" : "Feature Request");
 
-      const logSection = attachLogs
-        ? `
+      let logSection = "";
+      if (attachLogs) {
+        const logsOpened = await openLogsDir();
+        if (logsOpened) {
+          logSection = `
 
 ## Application Logs
 Logs will be opened in a separate window. Please attach the log file to this issue.
-`
-        : "";
+`;
+        }
+      }
 
       if (type === "bug") {
         const body = `## Description
@@ -142,10 +148,6 @@ ${logSection}
         url.searchParams.set("body", body);
 
         await openerCommands.openUrl(url.toString(), null);
-      }
-
-      if (attachLogs) {
-        await openLogsDir();
       }
 
       close();

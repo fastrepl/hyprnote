@@ -174,6 +174,12 @@ export const tagSchema = z.object({
 });
 export type Tag = z.infer<typeof tagSchema>;
 
+export const templateSectionSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+});
+export type TemplateSection = z.infer<typeof templateSectionSchema>;
+
 export const templateSchema = z.object({
   user_id: z.string(),
   title: z.string(),
@@ -186,12 +192,6 @@ export const templateSchema = z.object({
   sections: jsonObject(z.array(templateSectionSchema)),
 });
 export type Template = z.infer<typeof templateSchema>;
-
-export const templateSectionSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-});
-export type TemplateSection = z.infer<typeof templateSectionSchema>;
 
 export const transcriptSchema = z.object({
   user_id: z.string(),
@@ -243,31 +243,9 @@ export const aiProviderSchema = z
 export type ProviderSpeakerIndexHint = z.infer<
   typeof providerSpeakerIndexSchema
 >;
-
-export type Human = z.infer<typeof humanSchema>;
-export type Event = z.infer<typeof eventSchema>;
-export type Calendar = z.infer<typeof calendarSchema>;
-export type CalendarStorage = ToStorageType<typeof calendarSchema>;
-export type Organization = z.infer<typeof organizationSchema>;
-export type Session = z.infer<typeof sessionSchema>;
-export type Transcript = z.infer<typeof transcriptSchema>;
-export type Word = z.infer<typeof wordSchema>;
-export type SpeakerHint = z.infer<typeof speakerHintSchema>;
-export type MappingSessionParticipant = z.infer<
-  typeof mappingSessionParticipantSchema
->;
-export type Tag = z.infer<typeof tagSchema>;
-export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
-export type Template = z.infer<typeof templateSchema>;
-export type TemplateSection = z.infer<typeof templateSectionSchema>;
-export type ChatGroup = z.infer<typeof chatGroupSchema>;
-export type ChatMessage = z.infer<typeof chatMessageSchema>;
-export type ChatShortcut = z.infer<typeof chatShortcutSchema>;
-export type EnhancedNote = z.infer<typeof enhancedNoteSchema>;
-export type Prompt = z.infer<typeof promptSchema>;
 export type AIProvider = z.infer<typeof aiProviderSchema>;
-export type General = z.infer<typeof generalSchema>;
 
+export type CalendarStorage = ToStorageType<typeof calendarSchema>;
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
 export type TranscriptStorage = ToStorageType<typeof transcriptSchema>;
 export type WordStorage = ToStorageType<typeof wordSchema>;

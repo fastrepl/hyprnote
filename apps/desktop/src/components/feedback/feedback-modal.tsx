@@ -32,8 +32,8 @@ export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
 async function openLogsDir(): Promise<boolean> {
   const result = await tracingCommands.logsDir();
   if (result.status === "ok") {
-    await openerCommands.revealItemInDir(result.data);
-    return true;
+    const revealResult = await openerCommands.revealItemInDir(result.data);
+    return revealResult.status === "ok";
   }
   return false;
 }

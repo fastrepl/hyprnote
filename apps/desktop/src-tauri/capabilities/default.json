@@ -67,8 +67,6 @@
       ]
     },
     "misc:default",
-    "fs:default",
-    "fs:allow-write-text-file",
     "fs-db:default",
     "fs-sync:default",
     "fs2:default",

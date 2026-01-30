@@ -66,6 +66,7 @@ async function createGitHubIssue(
   title: string,
   body: string,
   labels: string[],
+  issueType: string,
 ): Promise<{ url: string; number: number } | { error: string }> {
   if (!env.YUJONGLEE_GITHUB_TOKEN_REPO) {
     return { error: "GitHub bot token not configured" };
@@ -84,6 +85,7 @@ async function createGitHubIssue(
         title,
         body,
         labels,
+        type: issueType,
       }),
     },
   );
@@ -197,12 +199,10 @@ ${deviceInfoSection}
 *This feature request was submitted from the Hyprnote desktop app.*
 `;
 
-    const labels =
-      type === "bug"
-        ? ["bug", "user-reported"]
-        : ["enhancement", "user-reported"];
+    const labels = ["product/desktop"];
+    const issueType = type === "bug" ? "Bug" : "Feature";
 
-    const result = await createGitHubIssue(title, body, labels);
+    const result = await createGitHubIssue(title, body, labels, issueType);
 
     if ("error" in result) {
       return c.json({ success: false, error: result.error }, 500);

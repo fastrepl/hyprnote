@@ -80,16 +80,16 @@ impl PosthogClient {
 
         let _ = e.insert_prop("$anon_distinct_id", anon_distinct_id);
 
-        if !payload.set.is_empty() {
-            let _ = e.insert_prop("$set", serde_json::json!(payload.set));
+        let mut set_props = payload.set.clone();
+        if let Some(email) = &payload.email {
+            set_props.insert("email".to_string(), serde_json::json!(email));
+        }
+        if !set_props.is_empty() {
+            let _ = e.insert_prop("$set", serde_json::json!(set_props));
         }
 
         if !payload.set_once.is_empty() {
             let _ = e.insert_prop("$set_once", serde_json::json!(payload.set_once));
-        }
-
-        if let Some(email) = &payload.email {
-            let _ = e.insert_prop("$set", serde_json::json!({ "email": email }));
         }
 
         let inner_event = InnerEvent::new(e, self.api_key.clone());

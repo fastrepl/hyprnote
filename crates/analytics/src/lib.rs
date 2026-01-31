@@ -80,6 +80,35 @@ impl AnalyticsClient {
 
         Ok(())
     }
+
+    pub async fn identify(
+        &self,
+        user_id: impl Into<String>,
+        anon_distinct_id: impl Into<String>,
+        payload: PropertiesPayload,
+    ) -> Result<(), Error> {
+        let user_id = user_id.into();
+        let anon_distinct_id = anon_distinct_id.into();
+
+        if let Some(posthog) = &self.posthog {
+            posthog
+                .identify(&user_id, &anon_distinct_id, &payload)
+                .await?;
+        } else {
+            tracing::info!(
+                "identify: user_id={}, anon_distinct_id={}, payload={:?}",
+                user_id,
+                anon_distinct_id,
+                payload
+            );
+        }
+
+        if let Some(outlit) = &self.outlit {
+            outlit.identify(&user_id, &payload).await;
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]

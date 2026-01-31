@@ -69,6 +69,7 @@ pub fn build_proxy_with_url(
     selected: &SelectedProvider,
     upstream_url: &str,
     config: &SttProxyConfig,
+    analytics_ctx: super::AnalyticsContext,
 ) -> Result<WebSocketProxy, crate::ProxyError> {
     let provider = selected.provider();
     let builder = WebSocketProxy::builder()
@@ -77,5 +78,5 @@ pub fn build_proxy_with_url(
         .control_message_types(provider.control_message_types())
         .apply_auth(selected);
 
-    finalize_proxy_builder!(builder, provider, config)
+    finalize_proxy_builder!(builder, provider, config, analytics_ctx)
 }

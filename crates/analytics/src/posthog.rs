@@ -68,4 +68,39 @@ impl PosthogClient {
 
         Ok(())
     }
+
+    pub async fn identify(
+        &self,
+        user_id: &str,
+        anon_distinct_id: &str,
+        payload: &PropertiesPayload,
+    ) -> Result<(), Error> {
+        let mut e = Event::new("$identify", user_id);
+        e.set_timestamp(chrono::Utc::now().naive_utc());
+
+        let _ = e.insert_prop("$anon_distinct_id", anon_distinct_id);
+
+        if !payload.set.is_empty() {
+            let _ = e.insert_prop("$set", serde_json::json!(payload.set));
+        }
+
+        if !payload.set_once.is_empty() {
+            let _ = e.insert_prop("$set_once", serde_json::json!(payload.set_once));
+        }
+
+        if let Some(email) = &payload.email {
+            let _ = e.insert_prop("$set", serde_json::json!({ "email": email }));
+        }
+
+        let inner_event = InnerEvent::new(e, self.api_key.clone());
+
+        self.client
+            .post("https://us.i.posthog.com/i/v0/e/")
+            .json(&inner_event)
+            .send()
+            .await?
+            .error_for_status()?;
+
+        Ok(())
+    }
 }

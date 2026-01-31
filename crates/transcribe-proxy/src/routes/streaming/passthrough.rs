@@ -57,7 +57,12 @@ pub async fn build_proxy(
     let provider = selected.provider();
 
     if let Some(custom_url) = selected.upstream_url() {
-        return Ok(build_proxy_with_url(selected, custom_url, &state.config)?);
+        return Ok(build_proxy_with_url(
+            selected,
+            custom_url,
+            &state.config,
+            analytics_ctx,
+        )?);
     }
 
     match provider.auth() {
@@ -65,7 +70,12 @@ pub async fn build_proxy(
             let url = init_session(state, selected, header_name, params)
                 .await
                 .map_err(ProxyBuildError::SessionInitFailed)?;
-            Ok(build_proxy_with_url(selected, &url, &state.config)?)
+            Ok(build_proxy_with_url(
+                selected,
+                &url,
+                &state.config,
+                analytics_ctx,
+            )?)
         }
         _ => Ok(build_relay(selected, params, &state.config, analytics_ctx)?),
     }

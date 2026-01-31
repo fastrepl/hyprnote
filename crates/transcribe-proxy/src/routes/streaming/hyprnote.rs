@@ -191,7 +191,12 @@ pub async fn build_proxy(
     let provider = selected.provider();
 
     if let Some(custom_url) = selected.upstream_url() {
-        return Ok(build_proxy_with_url(selected, custom_url, &state.config)?);
+        return Ok(build_proxy_with_url(
+            selected,
+            custom_url,
+            &state.config,
+            analytics_ctx,
+        )?);
     }
 
     match provider.auth() {

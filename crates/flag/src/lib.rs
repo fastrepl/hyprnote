@@ -1,40 +1,42 @@
+mod cache;
 mod error;
 mod types;
 
 pub use error::Error;
 pub use types::*;
 
-use std::sync::Arc;
 use std::time::Duration;
 
-use moka::future::Cache;
-use tokio::sync::RwLock;
+use cache::SwrCache;
 
 #[derive(Clone)]
 pub struct FlagClient {
     client: reqwest::Client,
     api_key: String,
-    cache: Cache<String, FlagsResponse>,
-    stale_cache: Arc<RwLock<std::collections::HashMap<String, FlagsResponse>>>,
+    cache: SwrCache<String, FlagsResponse>,
 }
 
 impl FlagClient {
     pub fn new(api_key: impl Into<String>) -> Self {
+        Self::with_cache_ttls(api_key, Duration::from_secs(10), Duration::from_secs(3600))
+    }
+
+    pub fn with_cache_ttls(
+        api_key: impl Into<String>,
+        fresh_ttl: Duration,
+        stale_ttl: Duration,
+    ) -> Self {
         let client = {
             let d = Duration::from_secs(10);
             reqwest::Client::builder().timeout(d).build().unwrap()
         };
 
-        let cache = {
-            let d = Duration::from_secs(100);
-            Cache::builder().time_to_live(d).build()
-        };
+        let cache = SwrCache::new(fresh_ttl, stale_ttl);
 
         Self {
             client,
             api_key: api_key.into(),
             cache,
-            stale_cache: Arc::new(RwLock::new(std::collections::HashMap::new())),
         }
     }
 
@@ -55,17 +57,18 @@ impl FlagClient {
     ) -> Result<FlagsResponse, Error> {
         let cache_key = Self::build_cache_key(distinct_id, &options);
 
-        if let Some(cached) = self.cache.get(&cache_key).await {
-            return Ok(cached);
-        }
+        let client = self.clone();
+        let distinct_id = distinct_id.to_string();
+        let options_clone = options.clone();
 
-        let response = self.fetch_flags(distinct_id, options).await?;
-        self.cache.insert(cache_key.clone(), response.clone()).await;
-        self.stale_cache
-            .write()
-            .await
-            .insert(cache_key, response.clone());
-        Ok(response)
+        let result = self
+            .cache
+            .get_with(cache_key, |_| async move {
+                client.fetch_flags(&distinct_id, options_clone).await.ok()
+            })
+            .await;
+
+        result.ok_or(Error::ComputeError)
     }
 
     /// Try to get flags without blocking. Returns cached value immediately if available
@@ -78,28 +81,15 @@ impl FlagClient {
     ) -> Option<FlagsResponse> {
         let cache_key = Self::build_cache_key(distinct_id, &options);
 
-        // First check the fresh cache
-        if let Some(cached) = self.cache.get(&cache_key).await {
-            return Some(cached);
-        }
+        let client = self.clone();
+        let distinct_id = distinct_id.to_string();
+        let options_clone = options.clone();
 
-        // Check stale cache and trigger background refresh
-        let stale_value = self.stale_cache.read().await.get(&cache_key).cloned();
-
-        if stale_value.is_some() {
-            // Trigger background refresh
-            let client = self.clone();
-            let distinct_id = distinct_id.to_string();
-            tokio::spawn(async move {
-                if let Ok(response) = client.fetch_flags(&distinct_id, options).await {
-                    let key = Self::build_cache_key(&distinct_id, &None);
-                    client.cache.insert(key.clone(), response.clone()).await;
-                    client.stale_cache.write().await.insert(key, response);
-                }
-            });
-        }
-
-        stale_value
+        self.cache
+            .get_with_swr(cache_key, |_| async move {
+                client.fetch_flags(&distinct_id, options_clone).await.ok()
+            })
+            .await
     }
 
     async fn fetch_flags(

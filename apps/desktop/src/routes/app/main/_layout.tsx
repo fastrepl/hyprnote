@@ -28,7 +28,6 @@ function Component() {
     from: "__root__",
   });
   const { registerOnEmpty, registerCanClose, openNew, pin } = useTabs();
-  const tabs = useTabs((state) => state.tabs);
   const hasOpenedInitialTab = useRef(false);
   const liveSessionId = useListener((state) => state.live.sessionId);
   const liveStatus = useListener((state) => state.live.status);

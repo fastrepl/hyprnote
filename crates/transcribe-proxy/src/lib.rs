@@ -16,5 +16,6 @@ pub use hyprnote_routing::{
 };
 pub use provider_selector::{ProviderSelector, SelectedProvider};
 pub use relay::{ClientRequestBuilder, UpstreamError, WebSocketProxy, detect_upstream_error};
+pub use routes::streaming::{DistinctId, OptionalDistinctId};
 pub use routes::{listen_router, router};
 pub use upstream_url::UpstreamUrlBuilder;

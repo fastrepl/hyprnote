@@ -23,17 +23,23 @@ pub fn parse_param<T: std::str::FromStr>(params: &QueryParams, key: &str, defaul
 
 macro_rules! finalize_proxy_builder {
     ($builder:expr, $provider:expr, $config:expr) => {
+        finalize_proxy_builder!($builder, $provider, $config, None::<String>)
+    };
+    ($builder:expr, $provider:expr, $config:expr, $distinct_id:expr) => {
         match &$config.analytics {
             Some(analytics) => {
                 let analytics = analytics.clone();
                 let provider_name = format!("{:?}", $provider).to_lowercase();
+                let distinct_id: Option<String> = $distinct_id;
                 $builder
                     .on_close(move |duration| {
                         let analytics = analytics.clone();
                         let provider_name = provider_name.clone();
+                        let distinct_id = distinct_id.clone();
                         async move {
                             analytics
                                 .report_stt($crate::analytics::SttEvent {
+                                    distinct_id,
                                     provider: provider_name,
                                     duration,
                                 })

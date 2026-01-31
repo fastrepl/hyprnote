@@ -10,8 +10,8 @@ use std::time::{Duration, Instant};
 
 use axum::{
     Json, Router,
-    extract::State,
-    http::StatusCode,
+    extract::{FromRequestParts, State},
+    http::{StatusCode, request::Parts},
     response::{IntoResponse, Response},
     routing::post,
 };
@@ -138,8 +138,26 @@ pub fn chat_completions_router(config: LlmProxyConfig) -> Router {
         .with_state(state)
 }
 
+#[derive(Clone)]
+pub struct DistinctId(pub String);
+
+pub struct OptionalDistinctId(pub Option<String>);
+
+impl<S> FromRequestParts<S> for OptionalDistinctId
+where
+    S: Send + Sync,
+{
+    type Rejection = std::convert::Infallible;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let distinct_id = parts.extensions.get::<DistinctId>().map(|id| id.0.clone());
+        Ok(OptionalDistinctId(distinct_id))
+    }
+}
+
 async fn completions_handler(
     State(state): State<AppState>,
+    OptionalDistinctId(distinct_id): OptionalDistinctId,
     Json(request): Json<ChatCompletionRequest>,
 ) -> Response {
     let start_time = Instant::now();
@@ -233,8 +251,8 @@ async fn completions_handler(
     };
 
     if stream {
-        handle_stream_response(state, response, start_time).await
+        handle_stream_response(state, response, start_time, distinct_id).await
     } else {
-        handle_non_stream_response(state, response, start_time).await
+        handle_non_stream_response(state, response, start_time, distinct_id).await
     }
 }

@@ -4,6 +4,7 @@ use hypr_analytics::{AnalyticsClient, AnalyticsPayload};
 
 #[derive(Debug, Clone)]
 pub struct SttEvent {
+    pub distinct_id: Option<String>,
     pub provider: String,
     pub duration: Duration,
 }
@@ -25,7 +26,10 @@ impl SttAnalyticsReporter for AnalyticsClient {
                 .with("$stt_provider", event.provider.clone())
                 .with("$stt_duration", event.duration.as_secs_f64())
                 .build();
-            let _ = self.event(uuid::Uuid::new_v4().to_string(), payload).await;
+            let distinct_id = event
+                .distinct_id
+                .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+            let _ = self.event(distinct_id, payload).await;
         })
     }
 }

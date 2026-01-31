@@ -9,8 +9,8 @@ mod tests;
 use std::collections::BTreeMap;
 
 use axum::{
-    extract::{State, WebSocketUpgrade},
-    http::StatusCode,
+    extract::{FromRequestParts, State, WebSocketUpgrade},
+    http::{StatusCode, request::Parts},
     response::{IntoResponse, Response},
 };
 
@@ -20,8 +20,26 @@ use crate::query_params::{QueryParams, QueryValue};
 use super::AppState;
 use common::{ProxyBuildError, parse_param};
 
+#[derive(Clone)]
+pub struct DistinctId(pub String);
+
+pub struct OptionalDistinctId(pub Option<String>);
+
+impl<S> FromRequestParts<S> for OptionalDistinctId
+where
+    S: Send + Sync,
+{
+    type Rejection = std::convert::Infallible;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let distinct_id = parts.extensions.get::<DistinctId>().map(|id| id.0.clone());
+        Ok(OptionalDistinctId(distinct_id))
+    }
+}
+
 pub async fn handler(
     State(state): State<AppState>,
+    OptionalDistinctId(distinct_id): OptionalDistinctId,
     ws: WebSocketUpgrade,
     mut params: QueryParams,
 ) -> Response {
@@ -79,9 +97,9 @@ pub async fn handler(
     });
 
     let proxy = if is_hyprnote_routing {
-        hyprnote::build_proxy(&state, &selected, &params).await
+        hyprnote::build_proxy(&state, &selected, &params, distinct_id).await
     } else {
-        passthrough::build_proxy(&state, &selected, &params).await
+        passthrough::build_proxy(&state, &selected, &params, distinct_id).await
     };
 
     let proxy = match proxy {

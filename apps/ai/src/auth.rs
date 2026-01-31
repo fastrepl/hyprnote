@@ -55,7 +55,7 @@ impl IntoResponse for AuthError {
 
 pub async fn require_pro(
     State(state): State<AuthState>,
-    request: Request,
+    mut request: Request,
     next: Next,
 ) -> Result<Response, AuthError> {
     let auth_header = request
@@ -80,7 +80,7 @@ pub async fn require_pro(
 
     sentry::configure_scope(|scope| {
         scope.set_user(Some(sentry::User {
-            id: device_fingerprint,
+            id: device_fingerprint.clone(),
             email: claims.email.clone(),
             username: Some(claims.sub.clone()),
             ..Default::default()
@@ -100,6 +100,15 @@ pub async fn require_pro(
         );
         scope.set_context("user_claims", sentry::protocol::Context::Other(ctx));
     });
+
+    if let Some(fingerprint) = device_fingerprint {
+        request
+            .extensions_mut()
+            .insert(hypr_llm_proxy::DistinctId(fingerprint.clone()));
+        request
+            .extensions_mut()
+            .insert(hypr_transcribe_proxy::DistinctId(fingerprint));
+    }
 
     Ok(next.run(request).await)
 }

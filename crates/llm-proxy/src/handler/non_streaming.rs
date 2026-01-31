@@ -14,6 +14,7 @@ pub(super) async fn handle_non_stream_response(
     state: AppState,
     response: reqwest::Response,
     start_time: Instant,
+    distinct_id: Option<String>,
 ) -> Response {
     let status = response.status();
     let http_status = status.as_u16();
@@ -53,6 +54,7 @@ pub(super) async fn handle_non_stream_response(
         });
 
         let event = GenerationEvent {
+            distinct_id,
             generation_id: metadata.generation_id,
             model: metadata.model.unwrap_or_default(),
             input_tokens: metadata.input_tokens,

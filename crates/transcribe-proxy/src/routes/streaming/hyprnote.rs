@@ -119,6 +119,7 @@ fn build_proxy_with_adapter(
     selected: &SelectedProvider,
     client_params: &QueryParams,
     config: &SttProxyConfig,
+    distinct_id: Option<String>,
 ) -> Result<WebSocketProxy, crate::ProxyError> {
     let provider = selected.provider();
     let mut listen_params = build_listen_params(client_params);
@@ -160,13 +161,14 @@ fn build_proxy_with_adapter(
         builder = builder.initial_message(msg);
     }
 
-    finalize_proxy_builder!(builder, provider, config)
+    finalize_proxy_builder!(builder, provider, config, distinct_id)
 }
 
 fn build_proxy_with_url_and_transformer(
     selected: &SelectedProvider,
     upstream_url: &str,
     config: &SttProxyConfig,
+    distinct_id: Option<String>,
 ) -> Result<WebSocketProxy, crate::ProxyError> {
     let provider = selected.provider();
     let builder = WebSocketProxy::builder()
@@ -176,13 +178,14 @@ fn build_proxy_with_url_and_transformer(
         .response_transformer(build_response_transformer(provider))
         .apply_auth(selected);
 
-    finalize_proxy_builder!(builder, provider, config)
+    finalize_proxy_builder!(builder, provider, config, distinct_id)
 }
 
 pub async fn build_proxy(
     state: &AppState,
     selected: &SelectedProvider,
     params: &QueryParams,
+    distinct_id: Option<String>,
 ) -> Result<WebSocketProxy, ProxyBuildError> {
     let provider = selected.provider();
 
@@ -195,10 +198,16 @@ pub async fn build_proxy(
             let url = init_session(state, selected, header_name, params)
                 .await
                 .map_err(ProxyBuildError::SessionInitFailed)?;
-            let proxy = build_proxy_with_url_and_transformer(selected, &url, &state.config)?;
+            let proxy =
+                build_proxy_with_url_and_transformer(selected, &url, &state.config, distinct_id)?;
             Ok(proxy)
         }
-        _ => Ok(build_proxy_with_adapter(selected, params, &state.config)?),
+        _ => Ok(build_proxy_with_adapter(
+            selected,
+            params,
+            &state.config,
+            distinct_id,
+        )?),
     }
 }
 

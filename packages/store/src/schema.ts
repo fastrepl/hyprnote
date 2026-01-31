@@ -413,4 +413,7 @@ export const valueSchemaForTinybase = {
   current_llm_model: { type: "string" },
   current_stt_provider: { type: "string" },
   current_stt_model: { type: "string" },
-} as const satisfies InferTinyBaseSchema<typeof generalSchema>;
+  trial_expired_modal_dismissed_at: { type: "number" },
+  trial_begin_modal_pending: { type: "boolean" },
+  pro_subscription_modal_shown_at: { type: "number" },
+} as const;

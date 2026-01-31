@@ -9,14 +9,14 @@ import { useAuth } from "../auth";
 import { getEntitlementsFromToken, useBillingAccess } from "../billing";
 import { useTrialBeginModal } from "../components/devtool/trial-begin-modal";
 import { env } from "../env";
-import * as settings from "../store/tinybase/store/settings";
+import * as main from "../store/tinybase/store/main";
 import { useOnboardingState } from "./useOnboardingState";
 
 export function useTrialStartOnFirstLaunch() {
   const auth = useAuth();
   const { canStartTrial } = useBillingAccess();
   const { open: openTrialBeginModal } = useTrialBeginModal();
-  const store = settings.UI.useStore(settings.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
   const hasCheckedRef = useRef(false);
   const hasShownModalRef = useRef(false);
 
@@ -70,13 +70,6 @@ export function useTrialStartOnFirstLaunch() {
       return;
     }
 
-    const checkedAt = store.getValue("trial_start_checked_at");
-    if (checkedAt) {
-      hasCheckedRef.current = true;
-      return;
-    }
-
-    store.setValue("trial_start_checked_at", Date.now());
     hasCheckedRef.current = true;
 
     if (canStartTrial) {

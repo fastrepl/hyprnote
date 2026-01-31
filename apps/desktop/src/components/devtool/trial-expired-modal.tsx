@@ -6,7 +6,7 @@ import { create } from "zustand";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../billing";
-import * as settings from "../../store/tinybase/store/settings";
+import * as main from "../../store/tinybase/store/main";
 
 type TrialExpiredModalStore = {
   isOpen: boolean;
@@ -23,7 +23,7 @@ export const useTrialExpiredModal = create<TrialExpiredModalStore>((set) => ({
 export function TrialExpiredModal() {
   const { isOpen, close } = useTrialExpiredModal();
   const { upgradeToPro } = useBillingAccess();
-  const store = settings.UI.useStore(settings.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
 
   const handleUpgrade = () => {
     upgradeToPro();

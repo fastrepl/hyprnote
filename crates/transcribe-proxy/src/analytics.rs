@@ -4,7 +4,7 @@ use hypr_analytics::{AnalyticsClient, AnalyticsPayload};
 
 #[derive(Debug, Clone)]
 pub struct SttEvent {
-    pub distinct_id: Option<String>,
+    pub fingerprint: Option<String>,
     pub user_id: Option<String>,
     pub provider: String,
     pub duration: Duration,
@@ -33,7 +33,7 @@ impl SttAnalyticsReporter for AnalyticsClient {
                 payload
             };
 
-            let distinct_id = event.distinct_id.unwrap_or_else(|| {
+            let distinct_id = event.fingerprint.unwrap_or_else(|| {
                 let fallback_id = uuid::Uuid::new_v4().to_string();
                 tracing::warn!(
                     fallback_id = %fallback_id,

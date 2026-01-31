@@ -11,11 +11,11 @@ mod upstream_url;
 pub use analytics::{SttAnalyticsReporter, SttEvent};
 pub use config::*;
 pub use error::*;
+pub use hypr_analytics::{AuthenticatedUserId, DeviceFingerprint};
 pub use hyprnote_routing::{
     HyprnoteRouter, HyprnoteRoutingConfig, RetryConfig, is_retryable_error,
 };
 pub use provider_selector::{ProviderSelector, SelectedProvider};
 pub use relay::{ClientRequestBuilder, UpstreamError, WebSocketProxy, detect_upstream_error};
-pub use routes::streaming::{DistinctId, UserId};
 pub use routes::{listen_router, router};
 pub use upstream_url::UpstreamUrlBuilder;

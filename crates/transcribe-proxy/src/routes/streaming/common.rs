@@ -28,7 +28,7 @@ macro_rules! finalize_proxy_builder {
             $provider,
             $config,
             super::AnalyticsContext {
-                distinct_id: None,
+                fingerprint: None,
                 user_id: None,
             }
         )
@@ -43,12 +43,12 @@ macro_rules! finalize_proxy_builder {
                     .on_close(move |duration| {
                         let analytics = analytics.clone();
                         let provider_name = provider_name.clone();
-                        let distinct_id = analytics_ctx.distinct_id.clone();
+                        let fingerprint = analytics_ctx.fingerprint.clone();
                         let user_id = analytics_ctx.user_id.clone();
                         async move {
                             analytics
                                 .report_stt($crate::analytics::SttEvent {
-                                    distinct_id,
+                                    fingerprint,
                                     user_id,
                                     provider: provider_name,
                                     duration,

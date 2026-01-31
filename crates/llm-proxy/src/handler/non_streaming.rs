@@ -54,7 +54,7 @@ pub(super) async fn handle_non_stream_response(
         });
 
         let event = GenerationEvent {
-            distinct_id: analytics_ctx.distinct_id,
+            fingerprint: analytics_ctx.fingerprint,
             user_id: analytics_ctx.user_id,
             generation_id: metadata.generation_id,
             model: metadata.model.unwrap_or_default(),

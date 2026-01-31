@@ -6,6 +6,12 @@ mod posthog;
 
 pub use error::*;
 
+#[derive(Clone)]
+pub struct DeviceFingerprint(pub String);
+
+#[derive(Clone)]
+pub struct AuthenticatedUserId(pub String);
+
 use outlit::OutlitClient;
 use posthog::PosthogClient;
 

@@ -64,7 +64,7 @@ pub(super) async fn handle_stream_response(
         if let Some(analytics) = analytics
             && let Some(generation_id) = accumulator.generation_id {
                 let event = GenerationEvent {
-                    distinct_id: analytics_ctx.distinct_id,
+                    fingerprint: analytics_ctx.fingerprint,
                     user_id: analytics_ctx.user_id,
                     generation_id,
                     model: accumulator.model.unwrap_or_default(),

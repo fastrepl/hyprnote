@@ -104,19 +104,13 @@ pub async fn require_pro(
     if let Some(fingerprint) = device_fingerprint {
         request
             .extensions_mut()
-            .insert(hypr_llm_proxy::DistinctId(fingerprint.clone()));
-        request
-            .extensions_mut()
-            .insert(hypr_transcribe_proxy::DistinctId(fingerprint));
+            .insert(hypr_analytics::DeviceFingerprint(fingerprint));
     }
 
     let user_id = claims.sub.clone();
     request
         .extensions_mut()
-        .insert(hypr_llm_proxy::UserId(user_id.clone()));
-    request
-        .extensions_mut()
-        .insert(hypr_transcribe_proxy::UserId(user_id));
+        .insert(hypr_analytics::AuthenticatedUserId(user_id));
 
     Ok(next.run(request).await)
 }

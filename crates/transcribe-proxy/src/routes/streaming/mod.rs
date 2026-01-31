@@ -20,14 +20,10 @@ use crate::query_params::{QueryParams, QueryValue};
 use super::AppState;
 use common::{ProxyBuildError, parse_param};
 
-#[derive(Clone)]
-pub struct DistinctId(pub String);
-
-#[derive(Clone)]
-pub struct UserId(pub String);
+use hypr_analytics::{AuthenticatedUserId, DeviceFingerprint};
 
 pub struct AnalyticsContext {
-    pub distinct_id: Option<String>,
+    pub fingerprint: Option<String>,
     pub user_id: Option<String>,
 }
 
@@ -38,10 +34,16 @@ where
     type Rejection = std::convert::Infallible;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let distinct_id = parts.extensions.get::<DistinctId>().map(|id| id.0.clone());
-        let user_id = parts.extensions.get::<UserId>().map(|id| id.0.clone());
+        let fingerprint = parts
+            .extensions
+            .get::<DeviceFingerprint>()
+            .map(|id| id.0.clone());
+        let user_id = parts
+            .extensions
+            .get::<AuthenticatedUserId>()
+            .map(|id| id.0.clone());
         Ok(AnalyticsContext {
-            distinct_id,
+            fingerprint,
             user_id,
         })
     }

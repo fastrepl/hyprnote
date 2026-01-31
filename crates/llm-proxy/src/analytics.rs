@@ -2,7 +2,7 @@ use hypr_analytics::{AnalyticsClient, AnalyticsPayload};
 
 #[derive(Debug, Clone)]
 pub struct GenerationEvent {
-    pub distinct_id: Option<String>,
+    pub fingerprint: Option<String>,
     pub user_id: Option<String>,
     pub generation_id: String,
     pub model: String,
@@ -50,7 +50,7 @@ impl AnalyticsReporter for AnalyticsClient {
                 payload
             };
 
-            let distinct_id = event.distinct_id.unwrap_or_else(|| {
+            let distinct_id = event.fingerprint.unwrap_or_else(|| {
                 tracing::warn!(
                     generation_id = %event.generation_id,
                     "device_fingerprint missing, falling back to generation_id for distinct_id"

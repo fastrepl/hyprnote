@@ -26,6 +26,12 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - id: install-cli
+      shell: bash
+      run: |
+        curl -L "https://cdn.crabnebula.app/download/crabnebula/cn-cli/cn_linux_x86_64" -o cn
+        chmod +x cn
+        sudo mv cn /usr/local/bin/cn
     - id: download
       shell: bash
       env:

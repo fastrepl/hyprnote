@@ -7,6 +7,7 @@ import {
   fetchExistingEvents,
   fetchIncomingEvents,
 } from "./fetch";
+import { migrateEventIds } from "./migrate/event-ids";
 import {
   executeForEventsSync,
   executeForParticipantsSync,
@@ -16,10 +17,17 @@ import {
 
 export const CALENDAR_SYNC_TASK_ID = "calendarSync";
 
+let migrationRun = false;
+
 export async function syncCalendarEvents(
   store: Store,
   queries: Queries<Schemas>,
 ): Promise<void> {
+  if (!migrationRun) {
+    await migrateEventIds(store);
+    migrationRun = true;
+  }
+
   await Promise.all([
     new Promise((resolve) => setTimeout(resolve, 250)),
     run(store, queries),

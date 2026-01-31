@@ -64,13 +64,16 @@ function createMockCtx(
 }
 
 function createIncomingEvent(
-  overrides: Partial<IncomingEvent> = {},
+  overrides: Partial<IncomingEvent> & { id?: string } = {},
 ): IncomingEvent {
+  const startedAt = overrides.started_at ?? "2024-01-15T10:00:00Z";
+  const trackingIdEvent = overrides.tracking_id_event ?? "incoming-1";
   return {
-    tracking_id_event: "incoming-1",
+    id: overrides.id ?? `apple:${trackingIdEvent}:${startedAt}`,
+    tracking_id_event: trackingIdEvent,
     tracking_id_calendar: "tracking-cal-1",
     title: "Test Event",
-    started_at: "2024-01-15T10:00:00Z",
+    started_at: startedAt,
     ended_at: "2024-01-15T11:00:00Z",
     ...overrides,
   };
@@ -79,14 +82,16 @@ function createIncomingEvent(
 function createExistingEvent(
   overrides: Partial<ExistingEvent> = {},
 ): ExistingEvent {
+  const startedAt = overrides.started_at ?? "2024-01-15T10:00:00Z";
+  const trackingIdEvent = overrides.tracking_id_event ?? "existing-1";
   return {
-    id: "event-1",
-    tracking_id_event: "existing-1",
+    id: overrides.id ?? `apple:${trackingIdEvent}:${startedAt}`,
+    tracking_id_event: trackingIdEvent,
     calendar_id: "cal-1",
     user_id: "user-1",
     created_at: "2024-01-01T00:00:00Z",
     title: "Existing Event",
-    started_at: "2024-01-15T10:00:00Z",
+    started_at: startedAt,
     ended_at: "2024-01-15T11:00:00Z",
     ...overrides,
   };
@@ -107,19 +112,27 @@ describe("syncEvents", () => {
 
   test("deletes events from disabled calendars", () => {
     const ctx = createMockCtx({ calendarIds: new Set(["cal-2"]) });
+    const existingEvent = createExistingEvent();
     const result = syncEvents(ctx, {
       incoming: [],
-      existing: [createExistingEvent()],
+      existing: [existingEvent],
     });
 
-    expect(result.toDelete).toContain("event-1");
+    expect(result.toDelete).toContain(existingEvent.id);
   });
 
-  test("updates existing events with matching tracking id", () => {
+  test("updates existing events with matching id", () => {
     const ctx = createMockCtx();
+    const existingEvent = createExistingEvent({
+      tracking_id_event: "shared-1",
+    });
+    const incomingEvent = createIncomingEvent({
+      id: existingEvent.id,
+      tracking_id_event: "shared-1",
+    });
     const result = syncEvents(ctx, {
-      incoming: [createIncomingEvent({ tracking_id_event: "existing-1" })],
-      existing: [createExistingEvent()],
+      incoming: [incomingEvent],
+      existing: [existingEvent],
     });
 
     expect(result.toUpdate).toHaveLength(1);
@@ -129,12 +142,13 @@ describe("syncEvents", () => {
 
   test("deletes orphaned events without matching incoming", () => {
     const ctx = createMockCtx();
+    const existingEvent = createExistingEvent();
     const result = syncEvents(ctx, {
       incoming: [],
-      existing: [createExistingEvent()],
+      existing: [existingEvent],
     });
 
-    expect(result.toDelete).toContain("event-1");
+    expect(result.toDelete).toContain(existingEvent.id);
   });
 
   describe("removed calendar cleanup", () => {
@@ -144,51 +158,53 @@ describe("syncEvents", () => {
         calendarTrackingIdToId: new Map([["tracking-cal-1", "cal-1"]]),
       });
 
+      const event1 = createExistingEvent({ tracking_id_event: "track-1" });
+      const event2 = createExistingEvent({ tracking_id_event: "track-2" });
+
       const result = syncEvents(ctx, {
         incoming: [],
-        existing: [
-          createExistingEvent({ id: "event-1", tracking_id_event: "track-1" }),
-          createExistingEvent({ id: "event-2", tracking_id_event: "track-2" }),
-        ],
+        existing: [event1, event2],
       });
 
-      expect(result.toDelete).toContain("event-1");
-      expect(result.toDelete).toContain("event-2");
+      expect(result.toDelete).toContain(event1.id);
+      expect(result.toDelete).toContain(event2.id);
       expect(result.toDelete).toHaveLength(2);
     });
 
     test("preserves events with non-empty sessions when calendar removed", () => {
+      const event1 = createExistingEvent({ tracking_id_event: "track-1" });
+      const event2 = createExistingEvent({ tracking_id_event: "track-2" });
+
       const ctx = createMockCtx({
         calendarIds: new Set(["cal-1"]),
-        eventToSession: new Map([["event-1", "session-1"]]),
+        eventToSession: new Map([[event1.id, "session-1"]]),
         nonEmptySessions: new Set(["session-1"]),
       });
 
       const result = syncEvents(ctx, {
         incoming: [],
-        existing: [
-          createExistingEvent({ id: "event-1", tracking_id_event: "track-1" }),
-          createExistingEvent({ id: "event-2", tracking_id_event: "track-2" }),
-        ],
+        existing: [event1, event2],
       });
 
-      expect(result.toDelete).not.toContain("event-1");
-      expect(result.toDelete).toContain("event-2");
+      expect(result.toDelete).not.toContain(event1.id);
+      expect(result.toDelete).toContain(event2.id);
     });
 
     test("deletes events with empty sessions when calendar removed", () => {
+      const event1 = createExistingEvent({ tracking_id_event: "track-1" });
+
       const ctx = createMockCtx({
         calendarIds: new Set(["cal-1"]),
-        eventToSession: new Map([["event-1", "session-1"]]),
+        eventToSession: new Map([[event1.id, "session-1"]]),
         nonEmptySessions: new Set(),
       });
 
       const result = syncEvents(ctx, {
         incoming: [],
-        existing: [createExistingEvent({ id: "event-1" })],
+        existing: [event1],
       });
 
-      expect(result.toDelete).toContain("event-1");
+      expect(result.toDelete).toContain(event1.id);
     });
 
     test("only deletes events from removed calendar, keeps events from active calendars", () => {
@@ -200,64 +216,62 @@ describe("syncEvents", () => {
         ]),
       });
 
-      const result = syncEvents(ctx, {
-        incoming: [
-          createIncomingEvent({
-            tracking_id_event: "track-2",
-            tracking_id_calendar: "tracking-cal-2",
-          }),
-        ],
-        existing: [
-          createExistingEvent({
-            id: "event-1",
-            calendar_id: "cal-1",
-            tracking_id_event: "track-1",
-          }),
-          createExistingEvent({
-            id: "event-2",
-            calendar_id: "cal-2",
-            tracking_id_event: "track-2",
-          }),
-        ],
+      const event1 = createExistingEvent({
+        calendar_id: "cal-1",
+        tracking_id_event: "track-1",
+      });
+      const event2 = createExistingEvent({
+        calendar_id: "cal-2",
+        tracking_id_event: "track-2",
+      });
+      const incomingEvent2 = createIncomingEvent({
+        id: event2.id,
+        tracking_id_event: "track-2",
+        tracking_id_calendar: "tracking-cal-2",
       });
 
-      expect(result.toDelete).toContain("event-1");
-      expect(result.toDelete).not.toContain("event-2");
+      const result = syncEvents(ctx, {
+        incoming: [incomingEvent2],
+        existing: [event1, event2],
+      });
+
+      expect(result.toDelete).toContain(event1.id);
+      expect(result.toDelete).not.toContain(event2.id);
       expect(result.toUpdate).toHaveLength(1);
     });
   });
 
   describe("disabled calendar cleanup", () => {
     test("preserves events with non-empty sessions when calendar disabled", () => {
+      const event1 = createExistingEvent({ calendar_id: "cal-1" });
+
       const ctx = createMockCtx({
         calendarIds: new Set(["cal-2"]),
-        eventToSession: new Map([["event-1", "session-1"]]),
+        eventToSession: new Map([[event1.id, "session-1"]]),
         nonEmptySessions: new Set(["session-1"]),
       });
 
       const result = syncEvents(ctx, {
         incoming: [],
-        existing: [
-          createExistingEvent({ id: "event-1", calendar_id: "cal-1" }),
-        ],
+        existing: [event1],
       });
 
-      expect(result.toDelete).not.toContain("event-1");
+      expect(result.toDelete).not.toContain(event1.id);
     });
 
     test("deletes events from disabled calendar without sessions", () => {
+      const event1 = createExistingEvent({ calendar_id: "cal-1" });
+
       const ctx = createMockCtx({
         calendarIds: new Set(["cal-2"]),
       });
 
       const result = syncEvents(ctx, {
         incoming: [],
-        existing: [
-          createExistingEvent({ id: "event-1", calendar_id: "cal-1" }),
-        ],
+        existing: [event1],
       });
 
-      expect(result.toDelete).toContain("event-1");
+      expect(result.toDelete).toContain(event1.id);
     });
   });
 });

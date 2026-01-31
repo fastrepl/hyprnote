@@ -8,6 +8,7 @@ export type EventParticipant = {
 };
 
 export type IncomingEvent = {
+  id: string;
   tracking_id_event: string;
   tracking_id_calendar: string;
   title?: string;

@@ -19,10 +19,7 @@ use backon::{ExponentialBuilder, Retryable};
 use reqwest::Client;
 
 use crate::analytics::{AnalyticsReporter, GenerationEvent};
-use crate::config::{
-    DEFAULT_MODELS_DEFAULT, DEFAULT_MODELS_TOOL_CALLING, FLAG_MODELS_DEFAULT,
-    FLAG_MODELS_TOOL_CALLING, LlmProxyConfig,
-};
+use crate::config::LlmProxyConfig;
 use crate::types::{ChatCompletionRequest, ToolChoice};
 
 async fn report_with_cost(
@@ -180,12 +177,11 @@ async fn completions_handler(
     let needs_tool_calling = request.tools.as_ref().is_some_and(|t| !t.is_empty())
         && !matches!(&request.tool_choice, Some(ToolChoice::String(s)) if s == "none");
 
-    let (flag_key, defaults) = if needs_tool_calling {
-        (FLAG_MODELS_TOOL_CALLING, &*DEFAULT_MODELS_TOOL_CALLING)
+    let models: Vec<String> = if needs_tool_calling {
+        state.config.get_models_tool_calling().await
     } else {
-        (FLAG_MODELS_DEFAULT, &*DEFAULT_MODELS_DEFAULT)
+        state.config.get_models_default().await
     };
-    let models: Vec<String> = state.config.get_flag_payload(flag_key, defaults).await;
 
     let stream = request.stream.unwrap_or(false);
 

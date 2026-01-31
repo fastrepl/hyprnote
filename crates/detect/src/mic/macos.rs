@@ -247,7 +247,18 @@ extern "C-unwind" fn system_listener(
             let mic_in_use = is_mic_running(&new_device);
             *device_guard = Some(new_device);
             drop(device_guard);
-            data.ctx.handle_mic_change(mic_in_use);
+
+            if let Ok(mut state_guard) = data.ctx.state.lock() {
+                state_guard.last_state = mic_in_use;
+                state_guard.last_change = Instant::now();
+                if mic_in_use {
+                    state_guard.active_apps = crate::list_mic_using_apps();
+                    data.ctx.polling_active.store(true, Ordering::SeqCst);
+                } else {
+                    state_guard.active_apps.clear();
+                    data.ctx.polling_active.store(false, Ordering::SeqCst);
+                }
+            }
         }
     }
 

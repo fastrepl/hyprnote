@@ -3,8 +3,12 @@ import type { ExistingEvent, IncomingEvent } from "../../fetch/types";
 import { getSessionForEvent, isSessionEmpty } from "../utils";
 import type { EventsSyncInput, EventsSyncOutput } from "./types";
 
-function getEventKey(trackingId: string, startedAt?: string): string {
-  return startedAt ? `${trackingId}::${startedAt}` : trackingId;
+function getEventKey(
+  trackingId: string,
+  startedAt?: string,
+  isRecurring?: boolean,
+): string {
+  return isRecurring && startedAt ? `${trackingId}::${startedAt}` : trackingId;
 }
 
 export function syncEvents(
@@ -18,7 +22,10 @@ export function syncEvents(
   };
 
   const incomingEventMap = new Map(
-    incoming.map((e) => [getEventKey(e.tracking_id_event, e.started_at), e]),
+    incoming.map((e) => [
+      getEventKey(e.tracking_id_event, e.started_at, !!e.recurrence_series_id),
+      e,
+    ]),
   );
   const handledEventKeys = new Set<string>();
 
@@ -36,7 +43,11 @@ export function syncEvents(
 
     const trackingId = storeEvent.tracking_id_event;
     const eventKey = trackingId
-      ? getEventKey(trackingId, storeEvent.started_at ?? undefined)
+      ? getEventKey(
+          trackingId,
+          storeEvent.started_at ?? undefined,
+          !!storeEvent.recurrence_series_id,
+        )
       : undefined;
     const matchingIncomingEvent = eventKey
       ? incomingEventMap.get(eventKey)
@@ -65,6 +76,7 @@ export function syncEvents(
       ? getEventKey(
           rescheduledEvent.tracking_id_event,
           rescheduledEvent.started_at,
+          !!rescheduledEvent.recurrence_series_id,
         )
       : undefined;
 
@@ -93,6 +105,7 @@ export function syncEvents(
     const incomingEventKey = getEventKey(
       incomingEvent.tracking_id_event,
       incomingEvent.started_at,
+      !!incomingEvent.recurrence_series_id,
     );
     if (!handledEventKeys.has(incomingEventKey)) {
       out.toAdd.push(incomingEvent);

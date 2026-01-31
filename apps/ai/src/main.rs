@@ -1,5 +1,6 @@
 mod auth;
 mod env;
+mod flagsmith;
 
 use std::net::SocketAddr;
 use std::time::Duration;
@@ -12,6 +13,7 @@ use tracing_subscriber::prelude::*;
 
 use auth::AuthState;
 use env::env;
+use flagsmith::create_feature_flags;
 
 pub use auth::DEVICE_FINGERPRINT_HEADER;
 
@@ -156,6 +158,11 @@ fn main() -> std::io::Result<()> {
         .init();
 
     env.log_configured_providers();
+
+    let feature_flags = create_feature_flags(env.flagsmith_server_side_environment_key.clone());
+    if feature_flags.is_configured() {
+        tracing::info!("feature_flags_ready");
+    }
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()

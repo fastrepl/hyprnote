@@ -9,6 +9,7 @@ pub struct Env {
     pub sentry_dsn: Option<String>,
     pub supabase_url: String,
     pub openrouter_api_key: String,
+    pub flagsmith_server_side_environment_key: Option<String>,
     api_keys: HashMap<Provider, String>,
 }
 
@@ -41,6 +42,9 @@ impl Env {
             sentry_dsn: optional("SENTRY_DSN"),
             supabase_url: required("SUPABASE_URL"),
             openrouter_api_key: required("OPENROUTER_API_KEY"),
+            flagsmith_server_side_environment_key: optional(
+                "FLAGSMITH_SERVER_SIDE_ENVIRONMENT_KEY",
+            ),
             api_keys,
         }
     }

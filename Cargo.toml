@@ -311,6 +311,8 @@ whichlang = "0.1"
 swift-rs = { git = "https://github.com/yujonglee/swift-rs", rev = "41a1605" }
 sysinfo = "0.37.0"
 
+flagsmith = "2.1.0"
+
 [patch.crates-io]
 cpal = { git = "https://github.com/RustAudio/cpal", rev = "51c3b43" }
 esaxx-rs = { git = "https://github.com/thewh1teagle/esaxx-rs.git", branch = "feat/dynamic-msvc-link" }

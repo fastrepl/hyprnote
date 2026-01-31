@@ -250,6 +250,7 @@ dependencies = [
  "analytics",
  "axum 0.8.8",
  "dotenvy",
+ "flag",
  "jsonwebtoken",
  "llm-proxy",
  "owhisper-client",
@@ -5402,6 +5403,7 @@ checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
 name = "flag"
 version = "0.1.0"
 dependencies = [
+ "moka",
  "reqwest",
  "serde",
  "serde_json",
@@ -9695,6 +9697,7 @@ dependencies = [
  "axum 0.8.8",
  "backon",
  "bytes",
+ "flag",
  "futures-util",
  "reqwest",
  "sentry",
@@ -10244,6 +10247,26 @@ dependencies = [
  "log",
  "wasi 0.11.1+wasi-snapshot-preview1",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "moka"
+version = "0.12.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4ac832c50ced444ef6be0767a008b02c106a909ba79d1d830501e94b96f6b7e"
+dependencies = [
+ "async-lock",
+ "crossbeam-channel",
+ "crossbeam-epoch",
+ "crossbeam-utils",
+ "equivalent",
+ "event-listener",
+ "futures-util",
+ "parking_lot 0.12.5",
+ "portable-atomic",
+ "smallvec 1.15.1",
+ "tagptr",
+ "uuid",
 ]
 
 [[package]]
@@ -16116,6 +16139,12 @@ dependencies = [
  "toml 0.8.23",
  "version-compare",
 ]
+
+[[package]]
+name = "tagptr"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b2093cf4c8eb1e67749a6762251bc9cd836b6fc171623bd0a9d324d37af2417"
 
 [[package]]
 name = "tantivy"

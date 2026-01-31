@@ -4,21 +4,53 @@ mod types;
 pub use error::Error;
 pub use types::*;
 
+use std::time::Duration;
+
+use moka::future::Cache;
+
 #[derive(Clone)]
 pub struct FlagClient {
     client: reqwest::Client,
     api_key: String,
+    cache: Cache<String, FlagsResponse>,
 }
 
 impl FlagClient {
     pub fn new(api_key: impl Into<String>) -> Self {
+        let client = {
+            let d = Duration::from_secs(10);
+            reqwest::Client::builder().timeout(d).build().unwrap()
+        };
+
+        let cache = {
+            let d = Duration::from_secs(100);
+            Cache::builder().time_to_live(d).build()
+        };
+
         Self {
-            client: reqwest::Client::new(),
+            client,
             api_key: api_key.into(),
+            cache,
         }
     }
 
     pub async fn get_flags(
+        &self,
+        distinct_id: &str,
+        options: Option<FlagOptions>,
+    ) -> Result<FlagsResponse, Error> {
+        let cache_key = distinct_id.to_string();
+
+        if let Some(cached) = self.cache.get(&cache_key).await {
+            return Ok(cached);
+        }
+
+        let response = self.fetch_flags(distinct_id, options).await?;
+        self.cache.insert(cache_key, response.clone()).await;
+        Ok(response)
+    }
+
+    async fn fetch_flags(
         &self,
         distinct_id: &str,
         options: Option<FlagOptions>,

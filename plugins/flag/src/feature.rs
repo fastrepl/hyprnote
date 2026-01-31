@@ -5,7 +5,7 @@ use strum::{EnumString, VariantNames};
 #[derive(Debug, Clone, Copy)]
 pub enum FlagStrategy {
     Debug,
-    Posthog(&'static str),
+    Posthog { key: &'static str, default: bool },
     Hardcoded(bool),
 }
 
@@ -21,7 +21,10 @@ pub enum Feature {
 impl Feature {
     pub fn strategy(&self) -> FlagStrategy {
         match self {
-            Feature::Chat => FlagStrategy::Debug,
+            Feature::Chat => FlagStrategy::Posthog {
+                key: "chat",
+                default: false,
+            },
         }
     }
 }

@@ -56,10 +56,6 @@ export function syncEvents(
       continue;
     }
 
-    if (hasNonEmptySession) {
-      continue;
-    }
-
     const rescheduledEvent = findRescheduledEvent(ctx, storeEvent, incoming);
     const rescheduledEventKey = rescheduledEvent
       ? getEventKey(
@@ -83,6 +79,10 @@ export function syncEvents(
         calendar_id: storeEvent.calendar_id,
       });
       handledEventKeys.add(rescheduledEventKey);
+      continue;
+    }
+
+    if (hasNonEmptySession) {
       continue;
     }
 
@@ -135,10 +135,6 @@ function findRescheduledEvent(
         (1000 * 60 * 60 * 24),
     );
     if (daysDiff > 30) {
-      return false;
-    }
-
-    if (incoming.tracking_id_event === storeEvent.tracking_id_event) {
       return false;
     }
 

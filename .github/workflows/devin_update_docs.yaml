@@ -1,0 +1,69 @@
+name: devin_update_docs
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/devin
+        with:
+          api_key: ${{ secrets.DEVIN_API_KEY }}
+          prompt: |
+            You are tasked with updating Hyprnote's technical documentation based on recent code changes.
+
+            ## Context
+            Hyprnote is a Tauri-based desktop app for AI meeting notes that prioritizes privacy.
+            Repository: fastrepl/hyprnote
+
+            ## Your Task
+            1. **Analyze Recent Changes**
+               - Review git commits from the last 7 days using: `git log --since="7 days ago" --stat --oneline`
+               - Focus on changes in: crates/, apps/desktop/, apps/web/, packages/, plugins/
+               - Pay special attention to:
+                 * New features or API endpoints
+                 * Changes to analytics/telemetry (PostHog, feature flags)
+                 * New CLI commands or environment variables
+                 * Updates to hooks, extensions, or agents
+                 * Changes to local model support or LLM configuration
+                 * New keyboard shortcuts or settings
+
+            2. **Identify Documentation Gaps**
+               - Check if features mentioned in commits are documented in apps/web/content/docs/
+               - Look for outdated information (e.g., API changes not reflected in docs)
+               - Check for new environment variables not in developers/1.env.mdx
+               - Verify analytics documentation matches actual implementation
+
+            3. **Update Documentation**
+               Update the following files as needed:
+               - `apps/web/content/docs/developers/*.mdx` - Setup, API, analytics, CLI, hooks, etc.
+               - `apps/web/content/docs/faq/*.mdx` - Features, technical, troubleshooting, settings
+               - `apps/web/content/docs/guides/*.mdx` - Migration guides, data handling
+               - `apps/web/content/docs/getting-started/*.mdx` - If installation or onboarding changed
+
+               For each update:
+               - Ensure accuracy against current codebase
+               - Keep examples up-to-date
+               - Update version numbers if relevant
+               - Maintain existing tone and style
+
+            4. **Create a Summary**
+               After making changes, create a PR with a summary of:
+               - What changed in the codebase
+               - Which docs were updated and why
+               - Any documentation gaps that need human attention
+
+            ## Important Notes
+            - Only update docs if there are actual relevant code changes
+            - Do not make stylistic changes or reformatting
+            - If no updates are needed, report that in a comment and exit
+            - Use `git diff HEAD~7..HEAD` to see detailed recent changes
+            - Test that MDX syntax is valid using dprint
+          title: ${{ github.run_id }}-docs-update
+          tags: '["docs_update"]'

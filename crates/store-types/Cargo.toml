@@ -9,6 +9,7 @@ serde_json = { workspace = true }
 specta = { workspace = true, features = ["derive"] }
 specta-zod = { path = "../specta-zod" }
 
-[[bin]]
-name = "generate-store-types"
-path = "src/bin/generate.rs"
+[build-dependencies]
+serde = { workspace = true, features = ["derive"] }
+specta = { workspace = true, features = ["derive"] }
+specta-zod = { path = "../specta-zod" }

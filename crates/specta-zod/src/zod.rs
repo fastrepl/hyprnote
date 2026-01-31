@@ -10,6 +10,41 @@ use specta::{
 
 use crate::Error;
 
+#[derive(Debug, Default)]
+struct ZodFieldAttrs {
+    default: Option<String>,
+    schema: Option<String>,
+    json: Option<String>,
+}
+
+fn parse_zod_attrs(docs: &str) -> ZodFieldAttrs {
+    let mut attrs = ZodFieldAttrs::default();
+
+    for line in docs.lines() {
+        let line = line.trim();
+        if let Some(rest) = line.strip_prefix("@zod.") {
+            if let Some(value) = rest
+                .strip_prefix("default(")
+                .and_then(|s| s.strip_suffix(")"))
+            {
+                attrs.default = Some(value.to_string());
+            } else if let Some(value) = rest
+                .strip_prefix("schema(")
+                .and_then(|s| s.strip_suffix(")"))
+            {
+                attrs.schema = Some(value.to_string());
+            } else if let Some(value) = rest.strip_prefix("json(").and_then(|s| s.strip_suffix(")"))
+            {
+                attrs.json = Some(value.to_string());
+            } else if rest == "json" {
+                attrs.json = Some(String::new());
+            }
+        }
+    }
+
+    attrs
+}
+
 pub struct Zod {
     pub header: Cow<'static, str>,
 }
@@ -237,12 +272,63 @@ fn field_type(s: &mut String, types: &TypeCollection, field: &Field) -> Result<(
         return Ok(());
     };
 
+    let attrs = parse_zod_attrs(field.docs());
     let is_nullable = matches!(ty, DataType::Nullable(_));
+
+    if let Some(schema) = &attrs.schema {
+        s.push_str(schema);
+        if let Some(default) = &attrs.default {
+            write!(s, ".default({})", default)?;
+        }
+        return Ok(());
+    }
+
+    if let Some(json_inner) = &attrs.json {
+        let is_optional = field.optional() || is_nullable;
+        if is_optional {
+            s.push_str("z.preprocess((val) => val ?? undefined, jsonObject(");
+            if json_inner.is_empty() {
+                if is_nullable {
+                    if let DataType::Nullable(inner) = ty {
+                        datatype(s, types, inner, true)?;
+                    }
+                } else {
+                    datatype(s, types, ty, true)?;
+                }
+            } else {
+                s.push_str(json_inner);
+            }
+            s.push_str(").optional())");
+        } else {
+            s.push_str("jsonObject(");
+            if json_inner.is_empty() {
+                datatype(s, types, ty, true)?;
+            } else {
+                s.push_str(json_inner);
+            }
+            s.push(')');
+        }
+        if let Some(default) = &attrs.default {
+            write!(s, ".default({})", default)?;
+        }
+        return Ok(());
+    }
 
     if field.optional() && !is_nullable {
         s.push_str("z.preprocess((val) => val ?? undefined, ");
         datatype(s, types, ty, false)?;
         s.push_str(".optional())");
+    } else if let Some(default) = &attrs.default {
+        if is_nullable {
+            write!(s, "z.preprocess((val) => val ?? {}, ", default)?;
+            if let DataType::Nullable(inner) = ty {
+                datatype(s, types, inner, false)?;
+            }
+            s.push(')');
+        } else {
+            datatype(s, types, ty, false)?;
+            write!(s, ".default({})", default)?;
+        }
     } else {
         datatype(s, types, ty, false)?;
     }

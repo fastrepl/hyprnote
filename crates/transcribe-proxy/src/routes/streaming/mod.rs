@@ -23,9 +23,15 @@ use common::{ProxyBuildError, parse_param};
 #[derive(Clone)]
 pub struct DistinctId(pub String);
 
-pub struct OptionalDistinctId(pub Option<String>);
+#[derive(Clone)]
+pub struct UserId(pub String);
 
-impl<S> FromRequestParts<S> for OptionalDistinctId
+pub struct AnalyticsContext {
+    pub distinct_id: Option<String>,
+    pub user_id: Option<String>,
+}
+
+impl<S> FromRequestParts<S> for AnalyticsContext
 where
     S: Send + Sync,
 {
@@ -33,13 +39,17 @@ where
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let distinct_id = parts.extensions.get::<DistinctId>().map(|id| id.0.clone());
-        Ok(OptionalDistinctId(distinct_id))
+        let user_id = parts.extensions.get::<UserId>().map(|id| id.0.clone());
+        Ok(AnalyticsContext {
+            distinct_id,
+            user_id,
+        })
     }
 }
 
 pub async fn handler(
     State(state): State<AppState>,
-    OptionalDistinctId(distinct_id): OptionalDistinctId,
+    analytics_ctx: AnalyticsContext,
     ws: WebSocketUpgrade,
     mut params: QueryParams,
 ) -> Response {
@@ -97,9 +107,9 @@ pub async fn handler(
     });
 
     let proxy = if is_hyprnote_routing {
-        hyprnote::build_proxy(&state, &selected, &params, distinct_id).await
+        hyprnote::build_proxy(&state, &selected, &params, analytics_ctx).await
     } else {
-        passthrough::build_proxy(&state, &selected, &params, distinct_id).await
+        passthrough::build_proxy(&state, &selected, &params, analytics_ctx).await
     };
 
     let proxy = match proxy {

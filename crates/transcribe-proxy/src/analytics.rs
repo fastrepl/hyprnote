@@ -5,6 +5,7 @@ use hypr_analytics::{AnalyticsClient, AnalyticsPayload};
 #[derive(Debug, Clone)]
 pub struct SttEvent {
     pub distinct_id: Option<String>,
+    pub user_id: Option<String>,
     pub provider: String,
     pub duration: Duration,
 }
@@ -24,12 +25,24 @@ impl SttAnalyticsReporter for AnalyticsClient {
         Box::pin(async move {
             let payload = AnalyticsPayload::builder("$stt_request")
                 .with("$stt_provider", event.provider.clone())
-                .with("$stt_duration", event.duration.as_secs_f64())
-                .build();
-            let distinct_id = event
-                .distinct_id
-                .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-            let _ = self.event(distinct_id, payload).await;
+                .with("$stt_duration", event.duration.as_secs_f64());
+
+            let payload = if let Some(user_id) = &event.user_id {
+                payload.with("user_id", user_id.clone())
+            } else {
+                payload
+            };
+
+            let distinct_id = event.distinct_id.unwrap_or_else(|| {
+                let fallback_id = uuid::Uuid::new_v4().to_string();
+                tracing::warn!(
+                    fallback_id = %fallback_id,
+                    provider = %event.provider,
+                    "device_fingerprint missing, falling back to random UUID for distinct_id"
+                );
+                fallback_id
+            });
+            let _ = self.event(distinct_id, payload.build()).await;
         })
     }
 }

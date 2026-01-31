@@ -141,9 +141,15 @@ pub fn chat_completions_router(config: LlmProxyConfig) -> Router {
 #[derive(Clone)]
 pub struct DistinctId(pub String);
 
-pub struct OptionalDistinctId(pub Option<String>);
+#[derive(Clone)]
+pub struct UserId(pub String);
 
-impl<S> FromRequestParts<S> for OptionalDistinctId
+pub struct AnalyticsContext {
+    pub distinct_id: Option<String>,
+    pub user_id: Option<String>,
+}
+
+impl<S> FromRequestParts<S> for AnalyticsContext
 where
     S: Send + Sync,
 {
@@ -151,13 +157,17 @@ where
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let distinct_id = parts.extensions.get::<DistinctId>().map(|id| id.0.clone());
-        Ok(OptionalDistinctId(distinct_id))
+        let user_id = parts.extensions.get::<UserId>().map(|id| id.0.clone());
+        Ok(AnalyticsContext {
+            distinct_id,
+            user_id,
+        })
     }
 }
 
 async fn completions_handler(
     State(state): State<AppState>,
-    OptionalDistinctId(distinct_id): OptionalDistinctId,
+    analytics_ctx: AnalyticsContext,
     Json(request): Json<ChatCompletionRequest>,
 ) -> Response {
     let start_time = Instant::now();
@@ -251,8 +261,8 @@ async fn completions_handler(
     };
 
     if stream {
-        handle_stream_response(state, response, start_time, distinct_id).await
+        handle_stream_response(state, response, start_time, analytics_ctx).await
     } else {
-        handle_non_stream_response(state, response, start_time, distinct_id).await
+        handle_non_stream_response(state, response, start_time, analytics_ctx).await
     }
 }

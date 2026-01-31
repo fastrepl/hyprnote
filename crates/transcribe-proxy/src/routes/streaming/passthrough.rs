@@ -6,6 +6,7 @@ use crate::query_params::{QueryParams, QueryValue};
 use crate::relay::WebSocketProxy;
 use crate::routes::AppState;
 
+use super::AnalyticsContext;
 use super::common::{ProxyBuildError, build_proxy_with_url, finalize_proxy_builder};
 use super::session::init_session;
 
@@ -13,7 +14,7 @@ fn build_relay(
     selected: &SelectedProvider,
     client_params: &QueryParams,
     config: &SttProxyConfig,
-    distinct_id: Option<String>,
+    analytics_ctx: AnalyticsContext,
 ) -> Result<WebSocketProxy, crate::ProxyError> {
     let provider = selected.provider();
     let ws_url = provider.default_ws_url();
@@ -44,14 +45,14 @@ fn build_relay(
         .control_message_types(provider.control_message_types())
         .apply_auth(selected);
 
-    finalize_proxy_builder!(builder, provider, config, distinct_id)
+    finalize_proxy_builder!(builder, provider, config, analytics_ctx)
 }
 
 pub async fn build_proxy(
     state: &AppState,
     selected: &SelectedProvider,
     params: &QueryParams,
-    distinct_id: Option<String>,
+    analytics_ctx: AnalyticsContext,
 ) -> Result<WebSocketProxy, ProxyBuildError> {
     let provider = selected.provider();
 
@@ -66,6 +67,6 @@ pub async fn build_proxy(
                 .map_err(ProxyBuildError::SessionInitFailed)?;
             Ok(build_proxy_with_url(selected, &url, &state.config)?)
         }
-        _ => Ok(build_relay(selected, params, &state.config, distinct_id)?),
+        _ => Ok(build_relay(selected, params, &state.config, analytics_ctx)?),
     }
 }

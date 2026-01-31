@@ -110,5 +110,13 @@ pub async fn require_pro(
             .insert(hypr_transcribe_proxy::DistinctId(fingerprint));
     }
 
+    let user_id = claims.sub.clone();
+    request
+        .extensions_mut()
+        .insert(hypr_llm_proxy::UserId(user_id.clone()));
+    request
+        .extensions_mut()
+        .insert(hypr_transcribe_proxy::UserId(user_id));
+
     Ok(next.run(request).await)
 }

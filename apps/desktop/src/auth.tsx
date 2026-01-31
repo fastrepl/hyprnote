@@ -260,10 +260,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           void clearAuthStorage();
         }
       }
-      if (event === "SIGNED_IN" && session) {
-        void analyticsCommands.event({
-          event: "user_signed_in",
-        });
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
         void (async () => {
           const appVersion = await getVersion();
           void analyticsCommands.identify(session.user.id, {
@@ -279,6 +276,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             },
           });
         })();
+
+        if (event === "SIGNED_IN") {
+          void analyticsCommands.event({
+            event: "user_signed_in",
+          });
+        }
       }
       setSession(session);
     });

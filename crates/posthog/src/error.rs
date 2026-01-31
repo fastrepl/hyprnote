@@ -3,7 +3,9 @@ use serde::{Serialize, ser::Serializer};
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    PosthogError(#[from] hypr_posthog::Error),
+    PosthogError(#[from] posthog_rs::Error),
+    #[error(transparent)]
+    ReqwestError(#[from] reqwest::Error),
 }
 
 impl Serialize for Error {

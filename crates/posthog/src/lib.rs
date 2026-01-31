@@ -1,7 +1,10 @@
-use crate::{AnalyticsPayload, Error, PropertiesPayload};
+use std::collections::HashMap;
 
-use posthog::Event;
 use posthog_core::event::InnerEvent;
+use posthog_rs::Event;
+
+mod error;
+pub use error::Error;
 
 #[derive(Clone)]
 pub struct PosthogClient {
@@ -17,11 +20,16 @@ impl PosthogClient {
         }
     }
 
-    pub async fn event(&self, distinct_id: &str, payload: &AnalyticsPayload) -> Result<(), Error> {
-        let mut e = Event::new(&payload.event, &distinct_id.to_string());
+    pub async fn event(
+        &self,
+        distinct_id: &str,
+        event_name: &str,
+        props: &HashMap<String, serde_json::Value>,
+    ) -> Result<(), Error> {
+        let mut e = Event::new(event_name, &distinct_id.to_string());
         e.set_timestamp(chrono::Utc::now().naive_utc());
 
-        for (key, value) in &payload.props {
+        for (key, value) in props {
             let _ = e.insert_prop(key, value.clone());
         }
 
@@ -40,20 +48,22 @@ impl PosthogClient {
     pub async fn set_properties(
         &self,
         distinct_id: &str,
-        payload: &PropertiesPayload,
+        set: &HashMap<String, serde_json::Value>,
+        set_once: &HashMap<String, serde_json::Value>,
+        email: Option<&str>,
     ) -> Result<(), Error> {
         let mut e = Event::new("$set", &distinct_id.to_string());
         e.set_timestamp(chrono::Utc::now().naive_utc());
 
-        if !payload.set.is_empty() {
-            let _ = e.insert_prop("$set", serde_json::json!(payload.set));
+        if !set.is_empty() {
+            let _ = e.insert_prop("$set", serde_json::json!(set));
         }
 
-        if !payload.set_once.is_empty() {
-            let _ = e.insert_prop("$set_once", serde_json::json!(payload.set_once));
+        if !set_once.is_empty() {
+            let _ = e.insert_prop("$set_once", serde_json::json!(set_once));
         }
 
-        if let Some(email) = &payload.email {
+        if let Some(email) = email {
             let _ = e.insert_prop("$email", serde_json::json!(email));
         }
 
@@ -73,23 +83,25 @@ impl PosthogClient {
         &self,
         user_id: &str,
         anon_distinct_id: &str,
-        payload: &PropertiesPayload,
+        set: &HashMap<String, serde_json::Value>,
+        set_once: &HashMap<String, serde_json::Value>,
+        email: Option<&str>,
     ) -> Result<(), Error> {
         let mut e = Event::new("$identify", user_id);
         e.set_timestamp(chrono::Utc::now().naive_utc());
 
         let _ = e.insert_prop("$anon_distinct_id", anon_distinct_id);
 
-        let mut set_props = payload.set.clone();
-        if let Some(email) = &payload.email {
+        let mut set_props = set.clone();
+        if let Some(email) = email {
             set_props.insert("email".to_string(), serde_json::json!(email));
         }
         if !set_props.is_empty() {
             let _ = e.insert_prop("$set", serde_json::json!(set_props));
         }
 
-        if !payload.set_once.is_empty() {
-            let _ = e.insert_prop("$set_once", serde_json::json!(payload.set_once));
+        if !set_once.is_empty() {
+            let _ = e.insert_prop("$set_once", serde_json::json!(set_once));
         }
 
         let inner_event = InnerEvent::new(e, self.api_key.clone());

@@ -359,11 +359,8 @@ dependencies = [
 name = "analytics"
 version = "0.1.0"
 dependencies = [
- "async-posthog",
- "chrono",
  "outlit",
- "posthog-core",
- "reqwest",
+ "posthog",
  "serde",
  "serde_json",
  "specta",
@@ -12436,6 +12433,19 @@ dependencies = [
  "postgres-protocol",
  "serde_core",
  "serde_json",
+]
+
+[[package]]
+name = "posthog"
+version = "0.1.0"
+dependencies = [
+ "async-posthog",
+ "chrono",
+ "posthog-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
 ]
 
 [[package]]

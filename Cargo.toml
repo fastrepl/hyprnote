@@ -40,6 +40,7 @@ hypr-agc = { path = "crates/agc", package = "agc" }
 hypr-am = { path = "crates/am", package = "am" }
 hypr-am2 = { path = "crates/am2", package = "am2" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
+hypr-posthog = { path = "crates/posthog", package = "posthog" }
 hypr-apple-note = { path = "crates/apple-note", package = "apple-note" }
 hypr-askama-utils = { path = "crates/askama-utils", package = "askama-utils" }
 hypr-audio = { path = "crates/audio", package = "audio" }

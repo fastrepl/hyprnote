@@ -40,7 +40,6 @@ hypr-agc = { path = "crates/agc", package = "agc" }
 hypr-am = { path = "crates/am", package = "am" }
 hypr-am2 = { path = "crates/am2", package = "am2" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
-hypr-posthog = { path = "crates/posthog", package = "posthog" }
 hypr-apple-note = { path = "crates/apple-note", package = "apple-note" }
 hypr-askama-utils = { path = "crates/askama-utils", package = "askama-utils" }
 hypr-audio = { path = "crates/audio", package = "audio" }
@@ -60,6 +59,7 @@ hypr-download-interface = { path = "crates/download-interface", package = "downl
 hypr-eval = { path = "crates/eval", package = "eval" }
 hypr-extensions-runtime = { path = "crates/extensions-runtime", package = "extensions-runtime" }
 hypr-file = { path = "crates/file", package = "file" }
+hypr-flag = { path = "crates/flag", package = "flag" }
 hypr-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
@@ -84,6 +84,7 @@ hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
 hypr-openstatus = { path = "crates/openstatus", package = "openstatus" }
+hypr-posthog = { path = "crates/posthog", package = "posthog" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
 hypr-s3 = { path = "crates/s3", package = "s3" }

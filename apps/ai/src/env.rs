@@ -7,6 +7,7 @@ use owhisper_client::Provider;
 pub struct Env {
     pub port: u16,
     pub sentry_dsn: Option<String>,
+    pub posthog_api_key: Option<String>,
     pub supabase_url: String,
     pub openrouter_api_key: String,
     api_keys: HashMap<Provider, String>,
@@ -39,6 +40,7 @@ impl Env {
         Self {
             port: parse_or("PORT", 3001),
             sentry_dsn: optional("SENTRY_DSN"),
+            posthog_api_key: optional("POSTHOG_API_KEY"),
             supabase_url: required("SUPABASE_URL"),
             openrouter_api_key: required("OPENROUTER_API_KEY"),
             api_keys,

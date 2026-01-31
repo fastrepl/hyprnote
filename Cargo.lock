@@ -247,6 +247,7 @@ dependencies = [
 name = "ai"
 version = "0.1.0"
 dependencies = [
+ "analytics",
  "axum 0.8.8",
  "dotenvy",
  "jsonwebtoken",

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+hypr-analytics = { workspace = true }
 hypr-llm-proxy = { workspace = true }
 hypr-supabase-auth = { workspace = true }
 hypr-transcribe-proxy = { workspace = true }

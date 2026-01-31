@@ -1,0 +1,15 @@
+[package]
+name = "store-types"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+specta = { workspace = true, features = ["derive"] }
+specta-zod = { path = "../specta-zod" }
+
+[build-dependencies]
+serde = { workspace = true, features = ["derive"] }
+specta = { workspace = true, features = ["derive"] }
+specta-zod = { path = "../specta-zod" }

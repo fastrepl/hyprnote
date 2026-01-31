@@ -1,0 +1,10 @@
+---
+source: crates/specta-zod/src/tinybase.rs
+assertion_line: 165
+expression: output
+---
+export const simple_structTinybaseSchema = {
+  name: { type: "string" },
+  age: { type: "number" },
+  active: { type: "boolean" },
+};

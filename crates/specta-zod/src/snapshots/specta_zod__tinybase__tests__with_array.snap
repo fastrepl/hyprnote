@@ -1,0 +1,9 @@
+---
+source: crates/specta-zod/src/tinybase.rs
+assertion_line: 181
+expression: output
+---
+export const with_arrayTinybaseSchema = {
+  tags: { type: "string" },
+  scores: { type: "string" },
+};

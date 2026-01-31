@@ -68,6 +68,7 @@ import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/s
 import { Route as ViewSolutionResearchRouteImport } from './routes/_view/solution/research'
 import { Route as ViewSolutionRecruitingRouteImport } from './routes/_view/solution/recruiting'
 import { Route as ViewSolutionProjectManagementRouteImport } from './routes/_view/solution/project-management'
+import { Route as ViewSolutionMeetingRouteImport } from './routes/_view/solution/meeting'
 import { Route as ViewSolutionMediaRouteImport } from './routes/_view/solution/media'
 import { Route as ViewSolutionLegalRouteImport } from './routes/_view/solution/legal'
 import { Route as ViewSolutionJournalismRouteImport } from './routes/_view/solution/journalism'
@@ -430,6 +431,11 @@ const ViewSolutionProjectManagementRoute =
     path: '/solution/project-management',
     getParentRoute: () => ViewRouteRoute,
   } as any)
+const ViewSolutionMeetingRoute = ViewSolutionMeetingRouteImport.update({
+  id: '/solution/meeting',
+  path: '/solution/meeting',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewSolutionMediaRoute = ViewSolutionMediaRouteImport.update({
   id: '/solution/media',
   path: '/solution/media',
@@ -834,6 +840,7 @@ export interface FileRoutesByFullPath {
   '/solution/journalism': typeof ViewSolutionJournalismRoute
   '/solution/legal': typeof ViewSolutionLegalRoute
   '/solution/media': typeof ViewSolutionMediaRoute
+  '/solution/meeting': typeof ViewSolutionMeetingRoute
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/research': typeof ViewSolutionResearchRoute
@@ -953,6 +960,7 @@ export interface FileRoutesByTo {
   '/solution/journalism': typeof ViewSolutionJournalismRoute
   '/solution/legal': typeof ViewSolutionLegalRoute
   '/solution/media': typeof ViewSolutionMediaRoute
+  '/solution/meeting': typeof ViewSolutionMeetingRoute
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/research': typeof ViewSolutionResearchRoute
@@ -1078,6 +1086,7 @@ export interface FileRoutesById {
   '/_view/solution/journalism': typeof ViewSolutionJournalismRoute
   '/_view/solution/legal': typeof ViewSolutionLegalRoute
   '/_view/solution/media': typeof ViewSolutionMediaRoute
+  '/_view/solution/meeting': typeof ViewSolutionMeetingRoute
   '/_view/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/_view/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/_view/solution/research': typeof ViewSolutionResearchRoute
@@ -1203,6 +1212,7 @@ export interface FileRouteTypes {
     | '/solution/journalism'
     | '/solution/legal'
     | '/solution/media'
+    | '/solution/meeting'
     | '/solution/project-management'
     | '/solution/recruiting'
     | '/solution/research'
@@ -1322,6 +1332,7 @@ export interface FileRouteTypes {
     | '/solution/journalism'
     | '/solution/legal'
     | '/solution/media'
+    | '/solution/meeting'
     | '/solution/project-management'
     | '/solution/recruiting'
     | '/solution/research'
@@ -1446,6 +1457,7 @@ export interface FileRouteTypes {
     | '/_view/solution/journalism'
     | '/_view/solution/legal'
     | '/_view/solution/media'
+    | '/_view/solution/meeting'
     | '/_view/solution/project-management'
     | '/_view/solution/recruiting'
     | '/_view/solution/research'
@@ -1953,6 +1965,13 @@ declare module '@tanstack/react-router' {
       path: '/solution/project-management'
       fullPath: '/solution/project-management'
       preLoaderRoute: typeof ViewSolutionProjectManagementRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/meeting': {
+      id: '/_view/solution/meeting'
+      path: '/solution/meeting'
+      fullPath: '/solution/meeting'
+      preLoaderRoute: typeof ViewSolutionMeetingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/solution/media': {
@@ -2499,6 +2518,7 @@ interface ViewRouteRouteChildren {
   ViewSolutionJournalismRoute: typeof ViewSolutionJournalismRoute
   ViewSolutionLegalRoute: typeof ViewSolutionLegalRoute
   ViewSolutionMediaRoute: typeof ViewSolutionMediaRoute
+  ViewSolutionMeetingRoute: typeof ViewSolutionMeetingRoute
   ViewSolutionProjectManagementRoute: typeof ViewSolutionProjectManagementRoute
   ViewSolutionRecruitingRoute: typeof ViewSolutionRecruitingRoute
   ViewSolutionResearchRoute: typeof ViewSolutionResearchRoute
@@ -2571,6 +2591,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewSolutionJournalismRoute: ViewSolutionJournalismRoute,
   ViewSolutionLegalRoute: ViewSolutionLegalRoute,
   ViewSolutionMediaRoute: ViewSolutionMediaRoute,
+  ViewSolutionMeetingRoute: ViewSolutionMeetingRoute,
   ViewSolutionProjectManagementRoute: ViewSolutionProjectManagementRoute,
   ViewSolutionRecruitingRoute: ViewSolutionRecruitingRoute,
   ViewSolutionResearchRoute: ViewSolutionResearchRoute,

@@ -12,6 +12,7 @@ import {
   type TimelineBucket,
   type TimelineItem,
   type TimelinePrecision,
+  type TimelineSessionRow,
 } from "../../../../utils/timeline";
 import { useAnchor, useAutoScrollToAnchor } from "./anchor";
 import { TimelineItemComponent } from "./item";
@@ -292,7 +293,10 @@ function useTimelineData(): TimelineBucket[] {
 }
 
 function getItemTimestamp(item: TimelineItem): Date | null {
-  const value =
-    item.type === "event" ? item.data.started_at : item.data.created_at;
+  if (item.type === "event") {
+    return safeParseDate(item.data.started_at);
+  }
+  const sessionRow = item.data as unknown as TimelineSessionRow;
+  const value = sessionRow.event_started_at ?? item.data.created_at;
   return safeParseDate(value);
 }

@@ -129,3 +129,20 @@ pub async fn set_tinybase_values<R: tauri::Runtime>(
 ) -> Result<(), String> {
     app.set_tinybase_values(v)
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_pinned_tabs<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<String>, String> {
+    app.get_pinned_tabs()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_pinned_tabs<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    v: String,
+) -> Result<(), String> {
+    app.set_pinned_tabs(v)
+}

@@ -27,23 +27,8 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
 
-  cn-publish:
+  gh-release:
     needs: parse
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.parse.outputs.version }}"
-      - uses: ./.github/actions/cn_release
-        with:
-          cmd: publish
-          app: ${{ env.CN_APPLICATION }}
-          key: ${{ secrets.CN_API_KEY }}
-          channel: ${{ needs.parse.outputs.channel }}
-          framework: tauri
-          working-directory: ./apps/desktop
-
-  release:
-    needs: [parse, cn-publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -140,3 +125,16 @@ jobs:
           name: desktop_v${{ needs.parse.outputs.version }}
           body: "https://hyprnote.com/changelog/${{ needs.parse.outputs.version }}"
           artifacts: ${{ steps.artifacts.outputs.list }}
+
+  cn-publish:
+    needs: [parse, gh-release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/cn_release
+        with:
+          cmd: publish
+          app: ${{ env.CN_APPLICATION }}
+          key: ${{ secrets.CN_API_KEY }}
+          channel: ${{ needs.parse.outputs.channel }}
+          version: ${{ needs.parse.outputs.version }}

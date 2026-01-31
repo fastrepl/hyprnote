@@ -31,6 +31,7 @@ pub enum SourceMsg {
     MicChunk(AudioChunk),
     SpeakerChunk(AudioChunk),
     StreamFailed(String),
+    DeviceChanged,
 }
 
 pub struct SourceArgs {
@@ -77,8 +78,8 @@ impl DeviceChangeWatcher {
         loop {
             match event_rx.recv() {
                 Ok(DeviceSwitch::DefaultInputChanged) => {
-                    tracing::info!("default_input_changed_restarting_source");
-                    actor.stop(Some("device_change".to_string()));
+                    tracing::info!("default_input_changed_hot_swapping_device");
+                    let _ = actor.cast(SourceMsg::DeviceChanged);
                 }
                 Ok(_) => {}
                 Err(_) => break,
@@ -179,15 +180,60 @@ impl Actor for SourceActor {
                 st.pipeline.flush(st.current_mode);
             }
             SourceMsg::StreamFailed(reason) => {
-                tracing::error!(%reason, "source_stream_failed_stopping");
-                let _ = (SessionErrorEvent::AudioError {
+                let is_device_error = reason.contains("mic_open_failed")
+                    || reason.contains("mic_stream_setup_failed")
+                    || reason.contains("mic_stream_ended");
+
+                if is_device_error {
+                    tracing::warn!(%reason, "device_error_attempting_recovery");
+
+                    st.mic_device = Some(AudioInput::get_default_device_name());
+
+                    let _ = (SessionErrorEvent::AudioError {
+                        session_id: st.session_id.clone(),
+                        error: reason.clone(),
+                        device: st.mic_device.clone(),
+                        is_fatal: false,
+                    })
+                    .emit(&st.app);
+
+                    if let Err(e) = start_source_loop(&myself, st).await {
+                        tracing::error!(error = ?e, "device_recovery_failed_stopping");
+                        myself.stop(Some("recovery_failed".to_string()));
+                    }
+                } else {
+                    tracing::error!(%reason, "source_stream_failed_stopping");
+                    let _ = (SessionErrorEvent::AudioError {
+                        session_id: st.session_id.clone(),
+                        error: reason.clone(),
+                        device: st.mic_device.clone(),
+                        is_fatal: true,
+                    })
+                    .emit(&st.app);
+                    myself.stop(Some(reason));
+                }
+            }
+            SourceMsg::DeviceChanged => {
+                tracing::info!("handling_device_change_hot_swap");
+
+                st.mic_device = Some(AudioInput::get_default_device_name());
+                tracing::info!(new_mic_device = ?st.mic_device, "device_changed_to_new_default");
+
+                let _ = (SessionProgressEvent::AudioInitializing {
                     session_id: st.session_id.clone(),
-                    error: reason.clone(),
-                    device: st.mic_device.clone(),
-                    is_fatal: true,
                 })
                 .emit(&st.app);
-                myself.stop(Some(reason));
+
+                if let Err(e) = start_source_loop(&myself, st).await {
+                    tracing::error!(error = ?e, "device_change_recovery_failed");
+                    let _ = (SessionErrorEvent::AudioError {
+                        session_id: st.session_id.clone(),
+                        error: format!("device_change_failed: {:?}", e),
+                        device: st.mic_device.clone(),
+                        is_fatal: false,
+                    })
+                    .emit(&st.app);
+                }
             }
         }
 

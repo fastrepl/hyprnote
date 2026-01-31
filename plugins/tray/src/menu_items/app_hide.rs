@@ -11,7 +11,7 @@ impl MenuItemHandler for AppHide {
     const ID: &'static str = "hypr_app_hide";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = MenuItem::with_id(app, Self::ID, "Hide", true, Some("cmd+q"))?;
+        let item = MenuItem::with_id(app, Self::ID, "Close All", true, Some("cmd+q"))?;
         Ok(MenuItemKind::MenuItem(item))
     }
 

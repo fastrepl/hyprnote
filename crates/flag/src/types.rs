@@ -73,8 +73,8 @@ impl FlagsResponse {
         Self { flags }
     }
 
-    pub fn is_enabled(&self, key: &str) -> bool {
-        self.flags.get(key).map(|f| f.enabled).unwrap_or(false)
+    pub fn is_enabled(&self, key: &str, default: bool) -> bool {
+        self.flags.get(key).map(|f| f.enabled).unwrap_or(default)
     }
 
     pub fn get_variant(&self, key: &str) -> Option<&str> {
@@ -83,6 +83,11 @@ impl FlagsResponse {
 
     pub fn get_payload(&self, key: &str) -> Option<&serde_json::Value> {
         self.flags.get(key).and_then(|f| f.payload.as_ref())
+    }
+
+    pub fn get_payload_as<T: serde::de::DeserializeOwned>(&self, key: &str) -> Option<T> {
+        self.get_payload(key)
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
     }
 
     pub fn get(&self, key: &str) -> Option<&FlagValue> {

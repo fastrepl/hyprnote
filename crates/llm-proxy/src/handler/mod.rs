@@ -177,10 +177,10 @@ async fn completions_handler(
     let needs_tool_calling = request.tools.as_ref().is_some_and(|t| !t.is_empty())
         && !matches!(&request.tool_choice, Some(ToolChoice::String(s)) if s == "none");
 
-    let models = if needs_tool_calling {
-        state.config.models_tool_calling.clone()
+    let models: Vec<String> = if needs_tool_calling {
+        state.config.get_models_tool_calling().await
     } else {
-        state.config.models_default.clone()
+        state.config.get_models_default().await
     };
 
     let stream = request.stream.unwrap_or(false);

@@ -27,8 +27,11 @@ fn app() -> Router {
         Arc::new(builder.build())
     };
 
-    let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key)
+    let mut llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key)
         .with_analytics(analytics.clone());
+    if let Some(key) = &env().posthog_api_key {
+        llm_config = llm_config.with_flag_client(hypr_flag::FlagClient::new(key));
+    }
     let stt_config =
         hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys()).with_analytics(analytics);
     let auth_state = AuthState::new(&env().supabase_url);

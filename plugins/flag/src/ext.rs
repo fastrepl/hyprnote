@@ -10,34 +10,34 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Flag<'a, R, M> {
         match feature.strategy() {
             FlagStrategy::Debug => cfg!(debug_assertions),
             FlagStrategy::Hardcoded(v) => v,
-            FlagStrategy::Posthog(key) => self.get_posthog_flag(key).await,
+            FlagStrategy::Posthog { key, default } => self.get_posthog_flag(key, default).await,
         }
     }
 
-    async fn get_posthog_flag(&self, key: &str) -> bool {
+    async fn get_posthog_flag(&self, key: &str, default: bool) -> bool {
         let state = self.manager.state::<ManagedState>();
 
         let client = match &state.client {
             Some(c) => c,
-            None => return false,
+            None => return default,
         };
 
         {
             let cache = state.cache.read().await;
             if let Some(ref flags) = *cache {
-                return flags.is_enabled(key);
+                return flags.is_enabled(key, default);
             }
         }
 
         let distinct_id = hypr_host::fingerprint();
         match client.get_flags(&distinct_id, None).await {
             Ok(flags) => {
-                let enabled = flags.is_enabled(key);
+                let enabled = flags.is_enabled(key, default);
                 let mut cache = state.cache.write().await;
                 *cache = Some(flags);
                 enabled
             }
-            Err(_) => false,
+            Err(_) => default,
         }
     }
 }

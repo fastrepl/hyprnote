@@ -77,6 +77,7 @@ export const SETTINGS_MAPPING = {
       type: "number",
       path: ["billing", "pro_subscription_modal_shown_at"],
     },
+    timezone: { type: "string", path: ["general", "timezone"] },
   },
   tables: {
     ai_providers: {

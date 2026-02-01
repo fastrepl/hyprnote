@@ -143,6 +143,6 @@ export const CONFIG_REGISTRY = {
 
   timezone: {
     key: "timezone",
-    default: undefined,
+    default: undefined as string | undefined,
   },
 } satisfies Record<ConfigKey, ConfigDefinition>;

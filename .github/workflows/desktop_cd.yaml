@@ -142,6 +142,7 @@ jobs:
           OUTLIT_PUBLIC_KEY: ${{ secrets.OUTLIT_PUBLIC_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN_HYPRNOTE_2 }}
           APP_VERSION: ${{ needs.compute-version.outputs.version }}
+          BUNDLE_IDENTIFIER: com.hyprnote.${{ inputs.channel }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -234,6 +235,7 @@ jobs:
           OUTLIT_PUBLIC_KEY: ${{ secrets.OUTLIT_PUBLIC_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           APP_VERSION: ${{ needs.compute-version.outputs.version }}
+          BUNDLE_IDENTIFIER: com.hyprnote.${{ inputs.channel }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}

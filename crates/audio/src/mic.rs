@@ -109,21 +109,24 @@ impl MicInput {
             fn build_stream<S: ToSample<f32> + SizedSample>(
                 device: &cpal::Device,
                 config: &cpal::SupportedStreamConfig,
-                mut tx: mpsc::UnboundedSender<Vec<f32>>,
+                tx: mpsc::UnboundedSender<Vec<f32>>,
             ) -> Result<cpal::Stream, cpal::BuildStreamError> {
                 let channels = config.channels() as usize;
+                let mut tx_data = tx.clone();
+                let tx_error = tx.clone();
                 device.build_input_stream::<S, _, _>(
                     &config.config(),
                     move |data: &[S], _input_callback_info: &_| {
-                        let _ = tx.start_send(
+                        let _ = tx_data.start_send(
                             data.iter()
                                 .step_by(channels)
                                 .map(|&x| x.to_sample())
                                 .collect(),
                         );
                     },
-                    |err| {
+                    move |err| {
                         tracing::error!("an error occurred on stream: {}", err);
+                        tx_error.close_channel();
                     },
                     None,
                 )

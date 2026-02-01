@@ -125,10 +125,19 @@ function createSpeakerState(
     completeChannels.add(1);
   }
 
+  const maxSpeakerIndex =
+    options?.numSpeakers !== undefined && options.numSpeakers > 0
+      ? options.numSpeakers - 1
+      : undefined;
+
   for (const hint of speakerHints) {
     const current = assignmentByWordIndex.get(hint.wordIndex) ?? {};
     if (hint.data.type === "provider_speaker_index") {
-      current.speaker_index = hint.data.speaker_index;
+      let speakerIndex = hint.data.speaker_index;
+      if (maxSpeakerIndex !== undefined && speakerIndex > maxSpeakerIndex) {
+        speakerIndex = speakerIndex % (maxSpeakerIndex + 1);
+      }
+      current.speaker_index = speakerIndex;
     } else {
       current.human_id = hint.data.human_id;
     }

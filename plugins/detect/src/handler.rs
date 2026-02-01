@@ -47,9 +47,6 @@ async fn handle_mic_started<R: Runtime>(
     app_handle: &AppHandle<R>,
     apps: Vec<hypr_detect::InstalledApp>,
 ) {
-    let state = app_handle.state::<SharedState>();
-    let state_guard = state.lock().await;
-
     let is_listening = {
         let listener_state = app_handle.listener().get_state().await;
         matches!(
@@ -58,6 +55,9 @@ async fn handle_mic_started<R: Runtime>(
                 | tauri_plugin_listener::fsm::State::Finalizing
         )
     };
+
+    let state = app_handle.state::<SharedState>();
+    let state_guard = state.lock().await;
 
     let is_dnd = state_guard.policy.respect_dnd && dnd::is_do_not_disturb();
 
@@ -89,9 +89,6 @@ async fn handle_mic_stopped<R: Runtime>(
     app_handle: &AppHandle<R>,
     apps: Vec<hypr_detect::InstalledApp>,
 ) {
-    let state = app_handle.state::<SharedState>();
-    let state_guard = state.lock().await;
-
     let is_listening = {
         let listener_state = app_handle.listener().get_state().await;
         matches!(
@@ -100,6 +97,9 @@ async fn handle_mic_stopped<R: Runtime>(
                 | tauri_plugin_listener::fsm::State::Finalizing
         )
     };
+
+    let state = app_handle.state::<SharedState>();
+    let state_guard = state.lock().await;
 
     let is_dnd = state_guard.policy.respect_dnd && dnd::is_do_not_disturb();
 

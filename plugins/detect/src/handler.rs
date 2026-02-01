@@ -59,7 +59,7 @@ async fn handle_mic_started<R: Runtime>(
     let state = app_handle.state::<SharedState>();
     let state_guard = state.lock().await;
 
-    let is_dnd = state_guard.policy.respect_dnd && dnd::is_do_not_disturb();
+    let is_dnd = dnd::is_do_not_disturb();
 
     let ctx = PolicyContext {
         apps: &apps,
@@ -101,7 +101,7 @@ async fn handle_mic_stopped<R: Runtime>(
     let state = app_handle.state::<SharedState>();
     let state_guard = state.lock().await;
 
-    let is_dnd = state_guard.policy.respect_dnd && dnd::is_do_not_disturb();
+    let is_dnd = dnd::is_do_not_disturb();
 
     let ctx = PolicyContext {
         apps: &apps,

@@ -149,49 +149,6 @@ importers:
         specifier: ^2.1.9
         version: 2.1.9(@types/node@20.19.30)(jsdom@27.4.0)(lightningcss@1.30.2)
 
-  apps/control:
-    dependencies:
-      '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
-      react:
-        specifier: ^19.2.3
-        version: 19.2.3
-      react-dom:
-        specifier: ^19.2.3
-        version: 19.2.3(react@19.2.3)
-    devDependencies:
-      '@tailwindcss/postcss':
-        specifier: ^4.1.18
-        version: 4.1.18
-      '@tauri-apps/cli':
-        specifier: ^2.9.6
-        version: 2.9.6
-      '@types/node':
-        specifier: ^24.10.9
-        version: 24.10.9
-      '@types/react':
-        specifier: ^19.2.8
-        version: 19.2.8
-      '@types/react-dom':
-        specifier: ^19.2.3
-        version: 19.2.3(@types/react@19.2.8)
-      '@vitejs/plugin-react':
-        specifier: ^4.7.0
-        version: 4.7.0(vite@7.3.1(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
-      postcss:
-        specifier: ^8.5.6
-        version: 8.5.6
-      tailwindcss:
-        specifier: ^4.1.18
-        version: 4.1.18
-      typescript:
-        specifier: ~5.8.3
-        version: 5.8.3
-      vite:
-        specifier: ^7.3.1
-        version: 7.3.1(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
-
   apps/desktop:
     dependencies:
       '@ai-sdk/amazon-bedrock':
@@ -485,6 +442,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      cmdk:
+        specifier: 1.1.1
+        version: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       codemirror-readonly-ranges:
         specifier: 0.1.0-alpha.2
         version: 0.1.0-alpha.2(@codemirror/state@6.5.4)(@codemirror/view@6.39.11)

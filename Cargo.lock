@@ -17357,11 +17357,13 @@ version = "0.1.0"
 dependencies = [
  "detect",
  "host",
+ "notification-interface",
  "serde",
  "specta",
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-listener",
  "tauri-plugin-windows",
  "tauri-specta",
  "thiserror 2.0.17",

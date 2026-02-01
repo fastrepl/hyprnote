@@ -7,22 +7,31 @@ mod error;
 mod events;
 mod ext;
 mod handler;
+mod policy;
 
 pub use dnd::*;
 pub use error::*;
 pub use events::*;
 pub use ext::*;
+pub use policy::*;
 
 const PLUGIN_NAME: &str = "detect";
 
 pub type SharedState = Mutex<State>;
 
-#[derive(Default)]
 pub struct State {
     #[allow(dead_code)]
     pub(crate) detector: hypr_detect::Detector,
-    pub(crate) ignored_bundle_ids: Vec<String>,
-    pub(crate) respect_do_not_disturb: bool,
+    pub(crate) policy: policy::MicNotificationPolicy,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            detector: hypr_detect::Detector::default(),
+            policy: policy::MicNotificationPolicy::default(),
+        }
+    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

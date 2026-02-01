@@ -22,6 +22,8 @@ specta-typescript = { workspace = true }
 [dependencies]
 hypr-detect = { workspace = true, features = ["mic", "list", "language", "sleep"] }
 hypr-host = { workspace = true }
+hypr-notification-interface = { workspace = true }
+tauri-plugin-listener = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }
 tauri-plugin-windows = { workspace = true }

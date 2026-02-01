@@ -68,6 +68,9 @@ pub async fn main() {
     // https://v2.tauri.app/plugin/deep-linking/#desktop
     // should always be the first plugin
     {
+        #[cfg(target_os = "macos")]
+        cleanup_stale_single_instance_socket();
+
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             app.windows().show(AppWindow::Main).unwrap();
         }));
@@ -315,6 +318,43 @@ fn get_onboarding_flag() -> Option<bool> {
                 .ok()
                 .and_then(|v| parse_value(&v))
         })
+}
+
+#[cfg(target_os = "macos")]
+fn cleanup_stale_single_instance_socket() {
+    use std::os::unix::net::UnixStream;
+    use std::path::Path;
+    use std::time::Duration;
+
+    let context = tauri::generate_context!();
+    let identifier = context
+        .config()
+        .identifier
+        .replace(['.', '-'].as_ref(), "_");
+    let socket_path = format!("/tmp/{}_si.sock", identifier);
+
+    if !Path::new(&socket_path).exists() {
+        return;
+    }
+
+    let is_stale = match UnixStream::connect(&socket_path) {
+        Ok(stream) => {
+            let _ = stream.set_read_timeout(Some(Duration::from_millis(100)));
+            false
+        }
+        Err(e) => {
+            matches!(
+                e.kind(),
+                std::io::ErrorKind::ConnectionRefused | std::io::ErrorKind::NotFound
+            )
+        }
+    };
+
+    if is_stale {
+        if std::fs::remove_file(&socket_path).is_ok() {
+            tracing::info!("removed stale single-instance socket: {}", socket_path);
+        }
+    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

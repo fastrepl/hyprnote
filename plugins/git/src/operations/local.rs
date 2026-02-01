@@ -275,18 +275,89 @@ pub fn commit(path: &Path, message: &str) -> Result<String, crate::Error> {
         let index = repo
             .index_or_empty()
             .map_err(|e| crate::Error::Custom(e.to_string()))?;
-        let mut tree = gix::objs::Tree::empty();
+
+        let mut trees: std::collections::HashMap<Vec<u8>, gix::objs::Tree> =
+            std::collections::HashMap::new();
 
         for entry in index.entries() {
-            tree.entries.push(gix::objs::tree::Entry {
-                mode: gix::objs::tree::EntryKind::Blob.into(),
-                filename: entry.path(&index).into(),
-                oid: entry.id,
-            });
+            let path_bytes = entry.path(&index);
+            let path_str =
+                std::str::from_utf8(path_bytes).map_err(|e| crate::Error::Custom(e.to_string()))?;
+            let parts: Vec<&str> = path_str.split('/').collect();
+
+            if parts.len() == 1 {
+                trees
+                    .entry(Vec::new())
+                    .or_insert_with(gix::objs::Tree::empty)
+                    .entries
+                    .push(gix::objs::tree::Entry {
+                        mode: gix::objs::tree::EntryKind::Blob.into(),
+                        filename: parts[0].as_bytes().into(),
+                        oid: entry.id,
+                    });
+            } else {
+                for i in 0..parts.len() {
+                    let parent_path = if i == 0 {
+                        Vec::new()
+                    } else {
+                        parts[..i].join("/").into_bytes()
+                    };
+
+                    if i == parts.len() - 1 {
+                        trees
+                            .entry(parent_path)
+                            .or_insert_with(gix::objs::Tree::empty)
+                            .entries
+                            .push(gix::objs::tree::Entry {
+                                mode: gix::objs::tree::EntryKind::Blob.into(),
+                                filename: parts[i].as_bytes().into(),
+                                oid: entry.id,
+                            });
+                    } else {
+                        trees
+                            .entry(parent_path)
+                            .or_insert_with(gix::objs::Tree::empty);
+                    }
+                }
+            }
         }
 
-        repo.write_object(&tree)
-            .map_err(|e| crate::Error::Custom(e.to_string()))?
+        let mut written_trees: std::collections::HashMap<Vec<u8>, gix::ObjectId> =
+            std::collections::HashMap::new();
+        let mut sorted_paths: Vec<Vec<u8>> = trees.keys().cloned().collect();
+        sorted_paths.sort_by(|a, b| b.len().cmp(&a.len()));
+
+        for tree_path in sorted_paths {
+            let mut tree = trees.remove(&tree_path).unwrap();
+
+            for entry in &mut tree.entries {
+                let child_path = if tree_path.is_empty() {
+                    std::str::from_utf8(&entry.filename)
+                        .unwrap()
+                        .as_bytes()
+                        .to_vec()
+                } else {
+                    [&tree_path[..], b"/", &entry.filename[..]].concat()
+                };
+
+                if let Some(&child_tree_id) = written_trees.get(&child_path) {
+                    entry.mode = gix::objs::tree::EntryKind::Tree.into();
+                    entry.oid = child_tree_id;
+                }
+            }
+
+            tree.entries.sort_by(|a, b| a.filename.cmp(&b.filename));
+
+            let tree_id = repo
+                .write_object(&tree)
+                .map_err(|e| crate::Error::Custom(e.to_string()))?;
+            written_trees.insert(tree_path, tree_id.into());
+        }
+
+        written_trees
+            .get(&Vec::new())
+            .copied()
+            .ok_or_else(|| crate::Error::Custom("Failed to create root tree".to_string()))?
     };
 
     let parents: Vec<gix::ObjectId> = repo
@@ -370,7 +441,7 @@ pub fn get_current_branch(path: &Path) -> Result<String, crate::Error> {
     }
 }
 
-fn create_stat_from_metadata(metadata: &std::fs::Metadata) -> gix::index::entry::Stat {
+pub(super) fn create_stat_from_metadata(metadata: &std::fs::Metadata) -> gix::index::entry::Stat {
     use std::time::UNIX_EPOCH;
 
     let mtime = metadata

@@ -94,8 +94,12 @@ pub fn pull(path: &Path, remote_name: &str, branch: &str) -> Result<PullResult, 
         Err(_) => return Ok(PullResult::AlreadyUpToDate),
     };
 
-    let local_commit = match repo.head_id() {
-        Ok(id) => id.detach(),
+    let local_ref = format!("refs/heads/{}", branch);
+    let local_commit = match repo.find_reference(&local_ref) {
+        Ok(mut reference) => reference
+            .peel_to_id_in_place()
+            .map_err(|e| crate::Error::Custom(e.to_string()))?
+            .detach(),
         Err(_) => {
             let head_ref = repo.git_dir().join("refs/heads").join(branch);
             if let Some(parent) = head_ref.parent() {

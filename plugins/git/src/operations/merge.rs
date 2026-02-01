@@ -52,5 +52,139 @@ pub fn abort_merge(path: &Path) -> Result<(), crate::Error> {
         std::fs::remove_file(merge_mode)?;
     }
 
+    let head_commit = repo
+        .head_id()
+        .map_err(|e| crate::Error::Custom(e.to_string()))?
+        .detach();
+
+    let head_tree = repo
+        .find_object(head_commit)
+        .map_err(|e| crate::Error::Custom(e.to_string()))?
+        .try_into_commit()
+        .map_err(|e| crate::Error::Custom(e.to_string()))?
+        .tree_id()
+        .map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+    let workdir = repo
+        .workdir()
+        .ok_or_else(|| crate::Error::Custom("No working directory".to_string()))?;
+
+    let tree_obj = repo
+        .find_object(head_tree)
+        .map_err(|e| crate::Error::Custom(e.to_string()))?
+        .try_into_tree()
+        .map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+    let entries: Result<Vec<_>, _> = tree_obj.iter().collect();
+    let entries = entries.map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+    for entry in entries {
+        restore_tree_entry(&repo, workdir, entry.inner.into(), Vec::new())?;
+    }
+
+    let mut new_state = gix::index::State::new(repo.object_hash());
+    populate_index_from_tree(&repo, &mut new_state, head_tree.into(), Vec::new())?;
+
+    let index_path = git_dir.join("index");
+    let new_index = gix::index::File::from_state(new_state, index_path.clone());
+    let options = gix::index::write::Options::default();
+    let file = std::fs::File::create(&index_path)?;
+    new_index
+        .write_to(file, options)
+        .map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+    Ok(())
+}
+
+fn restore_tree_entry(
+    repo: &gix::Repository,
+    workdir: &Path,
+    entry: gix::objs::tree::Entry,
+    parent_path: Vec<u8>,
+) -> Result<(), crate::Error> {
+    let entry_path = if parent_path.is_empty() {
+        entry.filename.to_vec()
+    } else {
+        [&parent_path[..], b"/", &entry.filename[..]].concat()
+    };
+
+    let file_path = workdir.join(std::str::from_utf8(&entry_path).unwrap());
+
+    if entry.mode.is_tree() {
+        if !file_path.exists() {
+            std::fs::create_dir_all(&file_path)?;
+        }
+
+        let tree_obj = repo
+            .find_object(entry.oid)
+            .map_err(|e| crate::Error::Custom(e.to_string()))?
+            .try_into_tree()
+            .map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+        let child_entries: Result<Vec<_>, _> = tree_obj.iter().collect();
+        let child_entries = child_entries.map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+        for child_entry in child_entries {
+            restore_tree_entry(repo, workdir, child_entry.inner.into(), entry_path.clone())?;
+        }
+    } else {
+        let blob = repo
+            .find_object(entry.oid)
+            .map_err(|e| crate::Error::Custom(e.to_string()))?
+            .try_into_blob()
+            .map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+        if let Some(parent) = file_path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(&file_path, &blob.data)?;
+    }
+
+    Ok(())
+}
+
+fn populate_index_from_tree(
+    repo: &gix::Repository,
+    state: &mut gix::index::State,
+    tree_id: gix::ObjectId,
+    parent_path: Vec<u8>,
+) -> Result<(), crate::Error> {
+    let tree_obj = repo
+        .find_object(tree_id)
+        .map_err(|e| crate::Error::Custom(e.to_string()))?
+        .try_into_tree()
+        .map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+    let workdir = repo
+        .workdir()
+        .ok_or_else(|| crate::Error::Custom("No working directory".to_string()))?;
+
+    let entries: Result<Vec<_>, _> = tree_obj.iter().collect();
+    let entries = entries.map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+    for entry in entries {
+        let entry_path = if parent_path.is_empty() {
+            entry.inner.filename.to_vec()
+        } else {
+            [&parent_path[..], b"/", &entry.inner.filename[..]].concat()
+        };
+
+        if entry.inner.mode.is_tree() {
+            populate_index_from_tree(repo, state, entry.inner.oid.into(), entry_path)?;
+        } else {
+            let file_path = workdir.join(std::str::from_utf8(&entry_path).unwrap());
+            let metadata = std::fs::metadata(&file_path)?;
+            let stat = super::local::create_stat_from_metadata(&metadata);
+
+            state.dangerously_push_entry(
+                stat,
+                entry.inner.oid.into(),
+                gix::index::entry::Flags::empty(),
+                gix::index::entry::Mode::FILE,
+                entry_path.as_slice().into(),
+            );
+        }
+    }
+
     Ok(())
 }

@@ -17,6 +17,9 @@ pub trait AppExt<R: tauri::Runtime> {
 
     fn get_pinned_tabs(&self) -> Result<Option<String>, String>;
     fn set_pinned_tabs(&self, v: String) -> Result<(), String>;
+
+    fn get_recently_opened_sessions(&self) -> Result<Option<String>, String>;
+    fn set_recently_opened_sessions(&self, v: String) -> Result<(), String>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
@@ -109,6 +112,23 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
         let store = self.desktop_store()?;
         store
             .set(StoreKey::PinnedTabs, v)
+            .map_err(|e| e.to_string())?;
+        store.save().map_err(|e| e.to_string())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn get_recently_opened_sessions(&self) -> Result<Option<String>, String> {
+        let store = self.desktop_store()?;
+        store
+            .get(StoreKey::RecentlyOpenedSessions)
+            .map_err(|e| e.to_string())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn set_recently_opened_sessions(&self, v: String) -> Result<(), String> {
+        let store = self.desktop_store()?;
+        store
+            .set(StoreKey::RecentlyOpenedSessions, v)
             .map_err(|e| e.to_string())?;
         store.save().map_err(|e| e.to_string())
     }

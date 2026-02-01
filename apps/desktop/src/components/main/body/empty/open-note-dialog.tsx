@@ -1,5 +1,5 @@
 import { Command as CommandPrimitive } from "cmdk";
-import { FileTextIcon, SearchIcon } from "lucide-react";
+import { ClockIcon, FileTextIcon, SearchIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -9,41 +9,84 @@ import { cn } from "@hypr/utils";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 
+const MAX_RECENT_DISPLAY = 5;
+
 interface OpenNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+type Session = {
+  id: string;
+  title: string;
+  createdAt: string;
+};
+
 export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const openCurrent = useTabs((state) => state.openCurrent);
+  const recentlyOpenedSessionIds = useTabs(
+    (state) => state.recentlyOpenedSessionIds,
+  );
 
   const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
   const store = main.UI.useStore(main.STORE_ID);
 
-  const sessions = useMemo(() => {
-    if (!store || !sessionIds) return [];
+  const sessionsMap = useMemo(() => {
+    if (!store || !sessionIds) return new Map<string, Session>();
 
-    return sessionIds
-      .map((id) => ({
+    const map = new Map<string, Session>();
+    for (const id of sessionIds) {
+      map.set(id, {
         id,
         title: (store.getCell("sessions", id, "title") as string) || "Untitled",
         createdAt: store.getCell("sessions", id, "created_at") as string,
-      }))
-      .sort((a, b) => {
-        if (!a.createdAt || !b.createdAt) return 0;
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
       });
+    }
+    return map;
   }, [sessionIds, store]);
 
-  const filteredSessions = useMemo(() => {
-    if (!query.trim()) return sessions;
+  const allSessionsSortedByDate = useMemo(() => {
+    return Array.from(sessionsMap.values()).sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [sessionsMap]);
+
+  const recentSessions = useMemo(() => {
+    return recentlyOpenedSessionIds
+      .slice(0, MAX_RECENT_DISPLAY)
+      .map((id) => sessionsMap.get(id))
+      .filter((s): s is Session => s !== undefined);
+  }, [recentlyOpenedSessionIds, sessionsMap]);
+
+  const recentSessionIdSet = useMemo(() => {
+    return new Set(recentSessions.map((s) => s.id));
+  }, [recentSessions]);
+
+  const otherSessions = useMemo(() => {
+    return allSessionsSortedByDate.filter((s) => !recentSessionIdSet.has(s.id));
+  }, [allSessionsSortedByDate, recentSessionIdSet]);
+
+  const filteredRecentSessions = useMemo(() => {
+    if (!query.trim()) return recentSessions;
     const lowerQuery = query.toLowerCase();
-    return sessions.filter((s) => s.title.toLowerCase().includes(lowerQuery));
-  }, [sessions, query]);
+    return recentSessions.filter((s) =>
+      s.title.toLowerCase().includes(lowerQuery),
+    );
+  }, [recentSessions, query]);
+
+  const filteredOtherSessions = useMemo(() => {
+    if (!query.trim()) return otherSessions;
+    const lowerQuery = query.toLowerCase();
+    return otherSessions.filter((s) =>
+      s.title.toLowerCase().includes(lowerQuery),
+    );
+  }, [otherSessions, query]);
+
+  const hasAnyResults =
+    filteredRecentSessions.length > 0 || filteredOtherSessions.length > 0;
 
   useEffect(() => {
     if (open) {
@@ -120,27 +163,68 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
             </div>
 
             <CommandPrimitive.List className="max-h-80 overflow-y-auto p-2">
-              {filteredSessions.length === 0 ? (
+              {!hasAnyResults ? (
                 <CommandPrimitive.Empty className="py-6 text-center text-sm text-neutral-500">
                   No notes found.
                 </CommandPrimitive.Empty>
               ) : (
-                filteredSessions.map((session) => (
-                  <CommandPrimitive.Item
-                    key={session.id}
-                    value={session.id}
-                    onSelect={() => handleSelect(session.id)}
-                    className={cn([
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer",
-                      "text-sm text-neutral-700",
-                      "data-[selected=true]:bg-neutral-200/60",
-                      "transition-colors",
-                    ])}
-                  >
-                    <FileTextIcon className="w-4 h-4 text-neutral-400 shrink-0" />
-                    <span className="truncate">{session.title}</span>
-                  </CommandPrimitive.Item>
-                ))
+                <>
+                  {filteredRecentSessions.length > 0 && (
+                    <CommandPrimitive.Group
+                      heading={
+                        <div className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                          <ClockIcon className="w-3 h-3" />
+                          <span>Recent</span>
+                        </div>
+                      }
+                    >
+                      {filteredRecentSessions.map((session) => (
+                        <CommandPrimitive.Item
+                          key={`recent-${session.id}`}
+                          value={`recent-${session.id}`}
+                          onSelect={() => handleSelect(session.id)}
+                          className={cn([
+                            "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer",
+                            "text-sm text-neutral-700",
+                            "data-[selected=true]:bg-neutral-200/60",
+                            "transition-colors",
+                          ])}
+                        >
+                          <FileTextIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+                          <span className="truncate">{session.title}</span>
+                        </CommandPrimitive.Item>
+                      ))}
+                    </CommandPrimitive.Group>
+                  )}
+
+                  {filteredOtherSessions.length > 0 && (
+                    <CommandPrimitive.Group
+                      heading={
+                        <div className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                          <FileTextIcon className="w-3 h-3" />
+                          <span>All Notes</span>
+                        </div>
+                      }
+                    >
+                      {filteredOtherSessions.map((session) => (
+                        <CommandPrimitive.Item
+                          key={session.id}
+                          value={session.id}
+                          onSelect={() => handleSelect(session.id)}
+                          className={cn([
+                            "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer",
+                            "text-sm text-neutral-700",
+                            "data-[selected=true]:bg-neutral-200/60",
+                            "transition-colors",
+                          ])}
+                        >
+                          <FileTextIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+                          <span className="truncate">{session.title}</span>
+                        </CommandPrimitive.Item>
+                      ))}
+                    </CommandPrimitive.Group>
+                  )}
+                </>
               )}
             </CommandPrimitive.List>
 

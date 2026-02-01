@@ -17,6 +17,7 @@ import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 import { StorageSettingsView } from "./storage";
+import { TimezoneView } from "./timezone";
 
 function useSettingsForm() {
   const value = useConfigValues([
@@ -27,6 +28,7 @@ function useSettingsForm() {
     "ai_language",
     "spoken_languages",
     "current_stt_provider",
+    "timezone",
   ] as const);
 
   const setPartialValues = settings.UI.useSetPartialValuesCallback(
@@ -55,6 +57,7 @@ function useSettingsForm() {
       telemetry_consent: value.telemetry_consent,
       ai_language: value.ai_language,
       spoken_languages: value.spoken_languages,
+      timezone: value.timezone,
     },
     listeners: {
       onChange: ({ formApi }) => {
@@ -195,7 +198,7 @@ export function SettingsApp() {
 
       <div>
         <h2 className="text-lg font-semibold font-serif mb-4">
-          Language & Vocabulary
+          Language & Region
         </h2>
         <div className="flex flex-col gap-6">
           <form.Field name="ai_language">
@@ -220,6 +223,14 @@ export function SettingsApp() {
                   not work properly.
                 </span>
               </>
+            )}
+          </form.Field>
+          <form.Field name="timezone">
+            {(field) => (
+              <TimezoneView
+                value={field.state.value}
+                onChange={(val) => field.handleChange(val)}
+              />
             )}
           </form.Field>
         </div>

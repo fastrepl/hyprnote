@@ -6,6 +6,7 @@ import { cn } from "@hypr/utils";
 import { type SearchResult } from "../../../../contexts/search/ui";
 import * as main from "../../../../store/tinybase/store/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
+import { useTimezone } from "../../../../utils/timezone";
 import { getInitials } from "../../body/contacts/shared";
 
 export function SearchResultItem({ result }: { result: SearchResult }) {
@@ -141,6 +142,8 @@ function SessionSearchResultItem({
   result: SearchResult;
   onClick: () => void;
 }) {
+  const timezone = useTimezone();
+
   const displayTitle = useMemo(() => {
     const sanitized = DOMPurify.sanitize(result.titleHighlighted, {
       ALLOWED_TAGS: ["mark"],
@@ -198,7 +201,10 @@ function SessionSearchResultItem({
   } else if (diffDays === 1) {
     timeAgo = "Yesterday";
   } else if (diffDays < 7) {
-    timeAgo = createdAt.toLocaleDateString("en-US", { weekday: "long" });
+    timeAgo = createdAt.toLocaleDateString("en-US", {
+      weekday: "long",
+      timeZone: timezone,
+    });
   } else if (diffDays < 30) {
     const weeks = Math.floor(diffDays / 7);
     timeAgo = weeks === 1 ? "a week ago" : `${weeks} weeks ago`;

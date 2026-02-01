@@ -199,6 +199,7 @@ export const generalSchema = z.object({
   current_llm_model: z.string().optional(),
   current_stt_provider: z.string().optional(),
   current_stt_model: z.string().optional(),
+  timezone: z.string().optional(),
 });
 
 export const aiProviderSchema = z

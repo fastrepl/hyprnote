@@ -23,6 +23,7 @@ import {
   type TimelineItem,
   TimelinePrecision,
 } from "../../../../utils/timeline";
+import { useTimezone } from "../../../../utils/timezone";
 import { InteractiveButton } from "../../../interactive-button";
 
 export const TimelineItemComponent = memo(
@@ -109,6 +110,7 @@ const EventItem = memo(
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
     const invalidateResource = useTabs((state) => state.invalidateResource);
+    const timezone = useTimezone();
 
     const eventId = item.id;
 
@@ -155,8 +157,8 @@ const EventItem = memo(
     const calendarId = item.data.calendar_id ?? null;
     const recurrenceSeriesId = item.data.recurrence_series_id;
     const displayTime = useMemo(
-      () => formatDisplayTime(item.data.started_at, precision),
-      [item.data.started_at, precision],
+      () => formatDisplayTime(item.data.started_at, precision, timezone),
+      [item.data.started_at, precision, timezone],
     );
 
     const openEvent = useCallback(
@@ -306,6 +308,7 @@ const SessionItem = memo(
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
     const invalidateResource = useTabs((state) => state.invalidateResource);
+    const timezone = useTimezone();
 
     const sessionId = item.id;
     const title =
@@ -336,8 +339,12 @@ const SessionItem = memo(
 
     const displayTime = useMemo(
       () =>
-        formatDisplayTime(eventStartedAt ?? item.data.created_at, precision),
-      [eventStartedAt, item.data.created_at, precision],
+        formatDisplayTime(
+          eventStartedAt ?? item.data.created_at,
+          precision,
+          timezone,
+        ),
+      [eventStartedAt, item.data.created_at, precision, timezone],
     );
 
     const handleClick = useCallback(() => {
@@ -399,6 +406,7 @@ const SessionItem = memo(
 function formatDisplayTime(
   timestamp: string | null | undefined,
   precision: TimelinePrecision,
+  timezone: string,
 ): string {
   const date = safeParseDate(timestamp);
   if (!date) {
@@ -408,6 +416,7 @@ function formatDisplayTime(
   const time = date.toLocaleTimeString([], {
     hour: "numeric",
     minute: "numeric",
+    timeZone: timezone,
   });
 
   if (precision === "time") {
@@ -416,11 +425,16 @@ function formatDisplayTime(
 
   const sameYear = date.getFullYear() === new Date().getFullYear();
   const dateStr = sameYear
-    ? date.toLocaleDateString([], { month: "short", day: "numeric" })
+    ? date.toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        timeZone: timezone,
+      })
     : date.toLocaleDateString([], {
         month: "short",
         day: "numeric",
         year: "numeric",
+        timeZone: timezone,
       });
 
   return `${dateStr}, ${time}`;

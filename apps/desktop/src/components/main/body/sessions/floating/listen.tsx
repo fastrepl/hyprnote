@@ -1,4 +1,4 @@
-import { Icon } from "@iconify-icon/react";
+import { HeadsetIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { commands as openerCommands } from "@hypr/plugin-opener2";
@@ -132,13 +132,15 @@ function SplitMeetingButtons({
   const getMeetingIcon = () => {
     switch (remote.type) {
       case "zoom":
-        return <Icon icon="logos:zoom-icon" width={20} />;
+        return <img src="/assets/zoom.png" width={20} height={20} />;
       case "google-meet":
-        return <Icon icon="logos:google-meet" width={20} />;
+        return <img src="/assets/meet.png" width={20} height={20} />;
       case "webex":
-        return <Icon icon="simple-icons:webex" width={20} />;
+        return <img src="/assets/webex.png" width={20} height={20} />;
       case "teams":
-        return <Icon icon="logos:microsoft-teams" width={20} />;
+        return <img src="/assets/teams.png" width={20} height={20} />;
+      default:
+        return <HeadsetIcon size={20} />;
     }
   };
 

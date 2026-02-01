@@ -108,11 +108,13 @@ function ChangelogSection({ changelog }: { changelog: ChangelogWithMeta }) {
               )}
             </div>
           )}
-          <h2 className="text-4xl font-mono font-medium text-stone-700">
-            {currentVersion
-              ? `${currentVersion.major}.${currentVersion.minor}.${currentVersion.patch}`
-              : changelog.version}
-          </h2>
+          <Link to="/changelog/$slug/" params={{ slug: changelog.slug }}>
+            <h2 className="text-4xl font-mono font-medium text-stone-700 hover:text-stone-900 transition-colors cursor-pointer">
+              {currentVersion
+                ? `${currentVersion.major}.${currentVersion.minor}.${currentVersion.patch}`
+                : changelog.version}
+            </h2>
+          </Link>
           <time
             className="text-sm text-neutral-500 mt-1"
             dateTime={changelog.date}

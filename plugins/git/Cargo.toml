@@ -15,7 +15,7 @@ specta-typescript = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
-gix = { version = "0.72", default-features = false, features = ["basic", "index"] }
+gix = { version = "0.72", default-features = false, features = ["basic", "index", "status", "blob-diff", "dirwalk", "excludes", "blocking-network-client", "blocking-http-transport-reqwest", "credentials", "worktree-mutation"] }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
@@ -25,3 +25,4 @@ serde_json = { workspace = true }
 specta = { workspace = true }
 
 thiserror = { workspace = true }
+walkdir = "2"

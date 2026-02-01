@@ -1,6 +1,8 @@
 mod commands;
 mod error;
 mod ext;
+mod operations;
+pub mod types;
 
 pub use error::{Error, Result};
 pub use ext::*;
@@ -11,10 +13,21 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::is_repo::<tauri::Wry>,
             commands::init::<tauri::Wry>,
-            commands::add::<tauri::Wry>,
-            commands::commit::<tauri::Wry>,
             commands::status::<tauri::Wry>,
+            commands::add::<tauri::Wry>,
+            commands::reset::<tauri::Wry>,
+            commands::commit::<tauri::Wry>,
+            commands::log::<tauri::Wry>,
+            commands::add_remote::<tauri::Wry>,
+            commands::list_remotes::<tauri::Wry>,
+            commands::fetch::<tauri::Wry>,
+            commands::push::<tauri::Wry>,
+            commands::pull::<tauri::Wry>,
+            commands::check_conflicts::<tauri::Wry>,
+            commands::abort_merge::<tauri::Wry>,
+            commands::get_current_branch::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

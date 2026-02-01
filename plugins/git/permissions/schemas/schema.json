@@ -295,6 +295,18 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the abort_merge command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-abort-merge",
+          "markdownDescription": "Enables the abort_merge command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the abort_merge command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-abort-merge",
+          "markdownDescription": "Denies the abort_merge command without any pre-configured scope."
+        },
+        {
           "description": "Enables the add command without any pre-configured scope.",
           "type": "string",
           "const": "allow-add",
@@ -305,6 +317,30 @@
           "type": "string",
           "const": "deny-add",
           "markdownDescription": "Denies the add command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the add_remote command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-add-remote",
+          "markdownDescription": "Enables the add_remote command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the add_remote command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-add-remote",
+          "markdownDescription": "Denies the add_remote command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the check_conflicts command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-check-conflicts",
+          "markdownDescription": "Enables the check_conflicts command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the check_conflicts command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-check-conflicts",
+          "markdownDescription": "Denies the check_conflicts command without any pre-configured scope."
         },
         {
           "description": "Enables the commit command without any pre-configured scope.",
@@ -319,6 +355,30 @@
           "markdownDescription": "Denies the commit command without any pre-configured scope."
         },
         {
+          "description": "Enables the fetch command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-fetch",
+          "markdownDescription": "Enables the fetch command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-fetch",
+          "markdownDescription": "Denies the fetch command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_current_branch command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-current-branch",
+          "markdownDescription": "Enables the get_current_branch command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_current_branch command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-current-branch",
+          "markdownDescription": "Denies the get_current_branch command without any pre-configured scope."
+        },
+        {
           "description": "Enables the init command without any pre-configured scope.",
           "type": "string",
           "const": "allow-init",
@@ -331,16 +391,76 @@
           "markdownDescription": "Denies the init command without any pre-configured scope."
         },
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the is_repo command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
+          "const": "allow-is-repo",
+          "markdownDescription": "Enables the is_repo command without any pre-configured scope."
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the is_repo command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
+          "const": "deny-is-repo",
+          "markdownDescription": "Denies the is_repo command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_remotes command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-remotes",
+          "markdownDescription": "Enables the list_remotes command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_remotes command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-remotes",
+          "markdownDescription": "Denies the list_remotes command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the log command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-log",
+          "markdownDescription": "Enables the log command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the log command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-log",
+          "markdownDescription": "Denies the log command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the pull command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-pull",
+          "markdownDescription": "Enables the pull command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the pull command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-pull",
+          "markdownDescription": "Denies the pull command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the push command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-push",
+          "markdownDescription": "Enables the push command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the push command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-push",
+          "markdownDescription": "Denies the push command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the reset command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-reset",
+          "markdownDescription": "Enables the reset command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the reset command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-reset",
+          "markdownDescription": "Denies the reset command without any pre-configured scope."
         },
         {
           "description": "Enables the status command without any pre-configured scope.",
@@ -355,10 +475,10 @@
           "markdownDescription": "Denies the status command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-init`\n- `allow-add`\n- `allow-commit`\n- `allow-status`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-is-repo`\n- `allow-init`\n- `allow-status`\n- `allow-add`\n- `allow-reset`\n- `allow-commit`\n- `allow-log`\n- `allow-add-remote`\n- `allow-list-remotes`\n- `allow-fetch`\n- `allow-push`\n- `allow-pull`\n- `allow-check-conflicts`\n- `allow-abort-merge`\n- `allow-get-current-branch`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-init`\n- `allow-add`\n- `allow-commit`\n- `allow-status`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-is-repo`\n- `allow-init`\n- `allow-status`\n- `allow-add`\n- `allow-reset`\n- `allow-commit`\n- `allow-log`\n- `allow-add-remote`\n- `allow-list-remotes`\n- `allow-fetch`\n- `allow-push`\n- `allow-pull`\n- `allow-check-conflicts`\n- `allow-abort-merge`\n- `allow-get-current-branch`"
         }
       ]
     }

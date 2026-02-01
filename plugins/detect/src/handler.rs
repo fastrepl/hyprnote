@@ -1,10 +1,9 @@
-use hypr_notification_interface::NotificationKey;
 use tauri::{AppHandle, EventTarget, Manager, Runtime};
 use tauri_plugin_listener::ListenerPluginExt;
 use tauri_plugin_windows::WindowImpl;
 use tauri_specta::Event;
 
-use crate::{DetectEvent, SharedState, dnd, policy::PolicyContext};
+use crate::{DetectEvent, SharedState, dnd, policy::{MicEventType, PolicyContext}};
 
 pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.app_handle().clone();
@@ -59,24 +58,21 @@ async fn handle_mic_started<R: Runtime>(
 
     let is_dnd = state_guard.policy.respect_dnd && dnd::is_do_not_disturb();
 
-    let notification_key = NotificationKey::mic_started(apps.iter().map(|a| a.id.clone()));
-    let dedup_key = notification_key.to_dedup_key();
-
     let ctx = PolicyContext {
         apps: &apps,
         is_listening,
         is_dnd,
-        notification_key: &notification_key,
+        event_type: MicEventType::Started,
     };
 
     match state_guard.policy.evaluate(&ctx) {
-        Ok(filtered_apps) => {
+        Ok(result) => {
             drop(state_guard);
             emit_to_main(
                 app_handle,
                 DetectEvent::MicStarted {
-                    key: dedup_key,
-                    apps: filtered_apps,
+                    key: result.dedup_key,
+                    apps: result.filtered_apps,
                 },
             );
         }
@@ -104,22 +100,20 @@ async fn handle_mic_stopped<R: Runtime>(
 
     let is_dnd = state_guard.policy.respect_dnd && dnd::is_do_not_disturb();
 
-    let notification_key = NotificationKey::mic_stopped(apps.iter().map(|a| a.id.clone()));
-
     let ctx = PolicyContext {
         apps: &apps,
         is_listening,
         is_dnd,
-        notification_key: &notification_key,
+        event_type: MicEventType::Stopped,
     };
 
     match state_guard.policy.evaluate(&ctx) {
-        Ok(filtered_apps) => {
+        Ok(result) => {
             drop(state_guard);
             emit_to_main(
                 app_handle,
                 DetectEvent::MicStopped {
-                    apps: filtered_apps,
+                    apps: result.filtered_apps,
                 },
             );
         }

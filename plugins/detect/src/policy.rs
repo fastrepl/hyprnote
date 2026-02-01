@@ -4,6 +4,12 @@ use std::time::{Duration, Instant};
 
 use hypr_notification_interface::NotificationKey;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MicEventType {
+    Started,
+    Stopped,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SkipReason {
     HyprnoteListening,
@@ -150,7 +156,12 @@ pub struct PolicyContext<'a> {
     pub apps: &'a [hypr_detect::InstalledApp],
     pub is_listening: bool,
     pub is_dnd: bool,
-    pub notification_key: &'a NotificationKey,
+    pub event_type: MicEventType,
+}
+
+pub struct PolicyResult {
+    pub filtered_apps: Vec<hypr_detect::InstalledApp>,
+    pub dedup_key: String,
 }
 
 pub struct MicNotificationPolicy {
@@ -162,10 +173,7 @@ pub struct MicNotificationPolicy {
 }
 
 impl MicNotificationPolicy {
-    pub fn evaluate(
-        &self,
-        ctx: &PolicyContext,
-    ) -> Result<Vec<hypr_detect::InstalledApp>, SkipReason> {
+    pub fn evaluate(&self, ctx: &PolicyContext) -> Result<PolicyResult, SkipReason> {
         if self.skip_when_listening && ctx.is_listening {
             tracing::info!(reason = "hyprnote_listening", "skip_notification");
             return Err(SkipReason::HyprnoteListening);
@@ -202,23 +210,33 @@ impl MicNotificationPolicy {
             return Err(SkipReason::AllAppsFiltered);
         }
 
-        if let Some(ago) = self
-            .recent_notifications
-            .check_and_record(&ctx.notification_key)
-        {
+        let notification_key = match ctx.event_type {
+            MicEventType::Started => {
+                NotificationKey::mic_started(filtered_apps.iter().map(|a| a.id.clone()))
+            }
+            MicEventType::Stopped => {
+                NotificationKey::mic_stopped(filtered_apps.iter().map(|a| a.id.clone()))
+            }
+        };
+
+        if let Some(ago) = self.recent_notifications.check_and_record(&notification_key) {
+            let dedup_key = notification_key.to_dedup_key();
             tracing::info!(
                 reason = "recently_notified",
-                key = ctx.notification_key.to_dedup_key(),
+                key = dedup_key,
                 ago_secs = ago.as_secs(),
                 "skip_notification"
             );
             return Err(SkipReason::RecentlyNotified {
-                key: ctx.notification_key.to_dedup_key(),
+                key: dedup_key,
                 ago,
             });
         }
 
-        Ok(filtered_apps)
+        Ok(PolicyResult {
+            filtered_apps,
+            dedup_key: notification_key.to_dedup_key(),
+        })
     }
 }
 

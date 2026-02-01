@@ -63,7 +63,7 @@ jobs:
             - Only update docs if there are actual relevant code changes
             - Do not make stylistic changes or reformatting
             - If no updates are needed, report that in a comment and exit
-            - Use `git diff HEAD~7..HEAD` to see detailed recent changes
+            - To see detailed recent changes, use time-based diff: `git diff $(git log --since="7 days ago" --format="%H" | tail -1)..HEAD` or rely on the git log command above
             - Test that MDX syntax is valid using dprint
           title: ${{ github.run_id }}-docs-update
           tags: '["docs_update"]'

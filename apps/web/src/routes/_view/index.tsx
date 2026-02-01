@@ -174,6 +174,8 @@ function Component() {
         <SlashSeparator />
         <GitHubOpenSource />
         <SlashSeparator />
+        <FAQSection />
+        <SlashSeparator />
         <ManifestoSection />
         <SlashSeparator />
         <BlogSection />
@@ -1832,6 +1834,79 @@ function DetailsDesktopView() {
   );
 }
 
+const faqItems = [
+  {
+    question: "What languages does Hyprnote support?",
+    answer:
+      "45+ languages including English, Spanish, French, German, Japanese, Mandarin, and more.",
+  },
+  {
+    question: "Can I import existing recordings?",
+    answer:
+      "Yes. Upload audio files or transcripts to turn them into searchable, summarized notes.",
+  },
+  {
+    question: "Does Hyprnote train AI models on my data?",
+    answer:
+      "No. Hyprnote does not use your recordings, transcripts, or notes to train AI models. When using cloud providers, your data is processed according to their privacy policies, but Hyprnote itself never collects or uses your data for training.",
+  },
+  {
+    question: "Is Hyprnote safe?",
+    answer:
+      "Hyprnote doesn't store your conversations. Every meeting audio, transcript, and note is a file on your computer. You decide if your data ever leaves your device.",
+  },
+  {
+    question: "How is Hyprnote different from other AI note-takers?",
+    answer:
+      "Plain markdown files instead of proprietary databases. System audio capture instead of meeting bots. Your choice of AI provider instead of vendor lock-in. Open source instead of a black box.",
+  },
+];
+
+function FAQSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <section className="py-16 px-4 laptop:px-0">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-serif text-stone-600 mb-4">
+            Frequently Asked Questions
+          </h2>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {faqItems.map((item, index) => (
+            <div
+              key={index}
+              className="border border-neutral-200 rounded-lg overflow-hidden"
+            >
+              <button
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 hover:bg-stone-50 transition-colors"
+              >
+                <span className="font-medium text-stone-700">
+                  {item.question}
+                </span>
+                <Icon
+                  icon={
+                    openIndex === index ? "mdi:chevron-up" : "mdi:chevron-down"
+                  }
+                  className="text-xl text-stone-500 flex-shrink-0"
+                />
+              </button>
+              {openIndex === index && (
+                <div className="px-6 pb-4 text-neutral-600 leading-relaxed">
+                  {item.answer}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ManifestoSection() {
   return (
     <section className="py-16 px-4 laptop:px-0 bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
@@ -1856,8 +1931,8 @@ function ManifestoSection() {
               <p>
                 We believe in the power of notetaking, not notetakers. Meetings
                 should be moments of presence, not passive attendance. If you
-                are not added value, your time is better spent elsewhere for you
-                and your team.
+                are not adding value, your time is better spent elsewhere for
+                you and your team.
               </p>
               <p>
                 Hyprnote exists to preserve what makes us human: conversations

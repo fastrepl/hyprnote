@@ -940,6 +940,121 @@ describe("buildSegments", () => {
         }),
       ],
     },
+    {
+      name: "clamps speaker_index to numSpeakers when participants are specified",
+      finalWords: [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 150, end_ms: 250, channel: 0 },
+        { text: "2", start_ms: 300, end_ms: 400, channel: 0 },
+      ],
+      partialWords: [],
+      speakerHints: [
+        {
+          wordIndex: 0,
+          data: {
+            type: "provider_speaker_index" as const,
+            speaker_index: 0,
+          },
+        },
+        {
+          wordIndex: 1,
+          data: {
+            type: "provider_speaker_index" as const,
+            speaker_index: 1,
+          },
+        },
+        {
+          wordIndex: 2,
+          data: {
+            type: "provider_speaker_index" as const,
+            speaker_index: 2,
+          },
+        },
+      ],
+      numSpeakers: 2,
+      expected: [
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 0, speaker_index: 0 }),
+          words: [expect.objectContaining({ text: "0" })],
+        }),
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 0, speaker_index: 1 }),
+          words: [expect.objectContaining({ text: "1" })],
+        }),
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 0, speaker_index: 0 }),
+          words: [expect.objectContaining({ text: "2" })],
+        }),
+      ],
+    },
+    {
+      name: "clamps high speaker_index values using modulo when numSpeakers is specified",
+      finalWords: [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 150, end_ms: 250, channel: 0 },
+      ],
+      partialWords: [],
+      speakerHints: [
+        {
+          wordIndex: 0,
+          data: {
+            type: "provider_speaker_index" as const,
+            speaker_index: 5,
+          },
+        },
+        {
+          wordIndex: 1,
+          data: {
+            type: "provider_speaker_index" as const,
+            speaker_index: 3,
+          },
+        },
+      ],
+      numSpeakers: 2,
+      expected: [
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 0, speaker_index: 1 }),
+          words: [
+            expect.objectContaining({ text: "0" }),
+            expect.objectContaining({ text: "1" }),
+          ],
+        }),
+      ],
+    },
+    {
+      name: "does not clamp speaker_index when numSpeakers is not specified",
+      finalWords: [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 150, end_ms: 250, channel: 0 },
+      ],
+      partialWords: [],
+      speakerHints: [
+        {
+          wordIndex: 0,
+          data: {
+            type: "provider_speaker_index" as const,
+            speaker_index: 5,
+          },
+        },
+        {
+          wordIndex: 1,
+          data: {
+            type: "provider_speaker_index" as const,
+            speaker_index: 3,
+          },
+        },
+      ],
+      expected: [
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 0, speaker_index: 5 }),
+          words: [expect.objectContaining({ text: "0" })],
+        }),
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 0, speaker_index: 3 }),
+          words: [expect.objectContaining({ text: "1" })],
+        }),
+      ],
+    },
   ];
 
   test.each(testCases)(

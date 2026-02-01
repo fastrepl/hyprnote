@@ -6,6 +6,8 @@ pub enum Error {
     ReqwestError(#[from] reqwest::Error),
     #[error("Failed to compute feature flags")]
     ComputeError,
+    #[error("Remote config payload not found for key")]
+    PayloadNotFound,
 }
 
 impl Serialize for Error {

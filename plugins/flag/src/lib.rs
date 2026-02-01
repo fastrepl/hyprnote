@@ -15,7 +15,7 @@ pub use feature::*;
 pub use hypr_flag;
 
 pub struct FlagState {
-    pub client: Option<hypr_flag::FlagClient>,
+    pub client: Option<hypr_flag::RemoteConfigClient>,
     pub cache: Arc<RwLock<Option<hypr_flag::FlagsResponse>>>,
 }
 
@@ -40,7 +40,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .setup(|app, _api| {
             let posthog_key = option_env!("POSTHOG_API_KEY");
 
-            let client = posthog_key.map(hypr_flag::FlagClient::new);
+            let client = posthog_key.map(hypr_flag::RemoteConfigClient::new);
             let state = FlagState {
                 client,
                 cache: Arc::new(RwLock::new(None)),

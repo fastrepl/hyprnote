@@ -30,7 +30,7 @@ fn app() -> Router {
     let mut llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key)
         .with_analytics(analytics.clone());
     if let Some(key) = &env().posthog_api_key {
-        llm_config = llm_config.with_flag_client(hypr_flag::FlagClient::new(key));
+        llm_config = llm_config.with_remote_config(hypr_flag::RemoteConfigClient::new(key));
     }
     let stt_config =
         hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys()).with_analytics(analytics);

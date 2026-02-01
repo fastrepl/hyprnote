@@ -8,8 +8,8 @@ const DEFAULT_TIMEOUT_MS: u64 = 120_000;
 const DEFAULT_NUM_RETRIES: usize = 1;
 const DEFAULT_MAX_DELAY_SECS: u64 = 2;
 
-pub const FLAG_MODELS_TOOL_CALLING: &str = "llm-models-tool-calling";
-pub const FLAG_MODELS_DEFAULT: &str = "llm-models-default";
+pub const REMOTE_CONFIG_MODELS_TOOL_CALLING: &str = "llm-models-tool-calling";
+pub const REMOTE_CONFIG_MODELS_DEFAULT: &str = "llm-models-default";
 
 pub static DEFAULT_MODELS_TOOL_CALLING: LazyLock<Vec<String>> = LazyLock::new(|| {
     vec![
@@ -48,7 +48,7 @@ pub struct LlmProxyConfig {
     pub analytics: Option<Arc<dyn AnalyticsReporter>>,
     pub provider: Arc<dyn Provider>,
     pub retry_config: RetryConfig,
-    flag_client: Option<hypr_flag::FlagClient>,
+    remote_config: Option<hypr_flag::RemoteConfigClient>,
     models_default_override: Option<Vec<String>>,
     models_tool_calling_override: Option<Vec<String>>,
 }
@@ -61,7 +61,7 @@ impl LlmProxyConfig {
             analytics: None,
             provider: Arc::new(OpenRouterProvider::default()),
             retry_config: RetryConfig::default(),
-            flag_client: None,
+            remote_config: None,
             models_default_override: None,
             models_tool_calling_override: None,
         }
@@ -87,8 +87,8 @@ impl LlmProxyConfig {
         self
     }
 
-    pub fn with_flag_client(mut self, flag_client: hypr_flag::FlagClient) -> Self {
-        self.flag_client = Some(flag_client);
+    pub fn with_remote_config(mut self, client: hypr_flag::RemoteConfigClient) -> Self {
+        self.remote_config = Some(client);
         self
     }
 
@@ -109,7 +109,7 @@ impl LlmProxyConfig {
         if let Some(models) = &self.models_default_override {
             return models.clone();
         }
-        self.try_get_flag_payload(FLAG_MODELS_DEFAULT, &*DEFAULT_MODELS_DEFAULT)
+        self.try_get_remote_config(REMOTE_CONFIG_MODELS_DEFAULT, &*DEFAULT_MODELS_DEFAULT)
             .await
     }
 
@@ -120,47 +120,45 @@ impl LlmProxyConfig {
         if let Some(models) = &self.models_tool_calling_override {
             return models.clone();
         }
-        self.try_get_flag_payload(FLAG_MODELS_TOOL_CALLING, &*DEFAULT_MODELS_TOOL_CALLING)
+        self.try_get_remote_config(REMOTE_CONFIG_MODELS_TOOL_CALLING, &*DEFAULT_MODELS_TOOL_CALLING)
             .await
     }
 
-    /// Non-blocking flag payload fetch. Returns cached value immediately (even if stale)
+    /// Non-blocking remote config fetch. Returns cached value immediately (even if stale)
     /// and triggers background refresh. Falls back to default if no cached value exists.
-    pub async fn try_get_flag_payload<T: serde::de::DeserializeOwned + Clone>(
+    ///
+    /// Similar to PostHog's `getRemoteConfigPayload(key)` but uses SWR pattern.
+    pub async fn try_get_remote_config<T: serde::de::DeserializeOwned + Clone>(
         &self,
-        flag_key: &str,
+        key: &str,
         default: &T,
     ) -> T {
-        let Some(client) = &self.flag_client else {
+        let Some(client) = &self.remote_config else {
             return default.clone();
         };
 
-        // Try non-blocking fetch first (returns stale cache if fresh cache expired)
-        if let Some(flags) = client.try_get_flags("global", None).await {
-            if let Some(payload) = flags.get_payload_as::<T>(flag_key) {
-                return payload;
-            }
-        }
-
-        default.clone()
+        client
+            .try_get_remote_config::<T>(key)
+            .await
+            .unwrap_or_else(|| default.clone())
     }
 
-    /// Blocking flag payload fetch. Waits for network call if cache is expired.
-    pub async fn get_flag_payload<T: serde::de::DeserializeOwned + Clone>(
+    /// Blocking remote config fetch. Waits for network call if cache is expired.
+    ///
+    /// Similar to PostHog's `getRemoteConfigPayload(key)`.
+    pub async fn get_remote_config<T: serde::de::DeserializeOwned + Clone>(
         &self,
-        flag_key: &str,
+        key: &str,
         default: &T,
     ) -> T {
-        let Some(client) = &self.flag_client else {
+        let Some(client) = &self.remote_config else {
             return default.clone();
         };
 
-        match client.get_flags("global", None).await {
-            Ok(flags) => flags
-                .get_payload_as::<T>(flag_key)
-                .unwrap_or_else(|| default.clone()),
+        match client.get_remote_config::<T>(key).await {
+            Ok(value) => value,
             Err(e) => {
-                tracing::warn!(error = %e, flag_key = %flag_key, "get_flag_payload_failed");
+                tracing::warn!(error = %e, key = %key, "get_remote_config_failed");
                 default.clone()
             }
         }

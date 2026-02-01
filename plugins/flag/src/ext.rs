@@ -29,8 +29,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Flag<'a, R, M> {
             }
         }
 
-        let distinct_id = hypr_host::fingerprint();
-        match client.get_flags(&distinct_id, None).await {
+        match client.get_all_flags().await {
             Ok(flags) => {
                 let enabled = flags.is_enabled(key, default);
                 let mut cache = state.cache.write().await;

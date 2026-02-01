@@ -49,28 +49,22 @@ pub fn kill_processes_by_matcher(matcher: ProcessMatcher) -> u16 {
 
 #[cfg(target_os = "macos")]
 pub fn cleanup_stale_single_instance_socket(identifier: &str) -> bool {
-    use std::path::Path;
-
+    // https://github.com/tauri-apps/plugins-workspace/blob/v2/plugins/single-instance/src/platform_impl/macos.rs#L60-L71
     let normalized_identifier = identifier.replace(['.', '-'], "_");
     let socket_path = format!("/tmp/{}_si.sock", normalized_identifier);
 
-    if !Path::new(&socket_path).exists() {
+    if !std::path::Path::new(&socket_path).exists() {
         return false;
     }
 
     let is_stale = match UnixStream::connect(&socket_path) {
         Ok(_) => false,
+        // https://github.com/tauri-apps/plugins-workspace/blob/v2/plugins/single-instance/src/platform_impl/macos.rs#L29-L43
         Err(e) if e.kind() == std::io::ErrorKind::ConnectionRefused => true,
         Err(_) => false,
     };
 
-    if is_stale {
-        if std::fs::remove_file(&socket_path).is_ok() {
-            return true;
-        }
-    }
-
-    false
+    is_stale && std::fs::remove_file(&socket_path).is_ok()
 }
 
 #[cfg(test)]

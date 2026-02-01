@@ -69,10 +69,9 @@ pub async fn main() {
     // should always be the first plugin
     {
         #[cfg(target_os = "macos")]
-        if let Some(identifier) = option_env!("TAURI_ENV_IDENTIFIER") {
-            if hypr_host::cleanup_stale_single_instance_socket(identifier) {
-                tracing::info!("removed stale single-instance socket for {}", identifier);
-            }
+        {
+            let identifier = env!("BUNDLE_IDENTIFIER");
+            let _ = hypr_host::cleanup_stale_single_instance_socket(identifier);
         }
 
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {

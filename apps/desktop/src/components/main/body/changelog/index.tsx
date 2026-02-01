@@ -197,11 +197,14 @@ function ChangelogHeader({
             variant="ghost"
             className="gap-1.5 text-neutral-600 hover:text-black"
             onClick={() =>
-              openerCommands.openUrl("https://hyprnote.com/changelog", null)
+              openerCommands.openUrl(
+                `https://hyprnote.com/changelog/${version}`,
+                null,
+              )
             }
           >
             <ExternalLinkIcon size={14} className="-mt-0.5" />
-            <span>See all</span>
+            <span>Open in web</span>
           </Button>
         </div>
       </div>

@@ -26,23 +26,18 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - id: install-cli
-      shell: bash
-      run: |
-        curl -L "https://cdn.crabnebula.app/download/crabnebula/cn-cli/cn_linux_x86_64" -o cn
-        chmod +x cn
-        sudo mv cn /usr/local/bin/cn
+    - id: get-assets
+      uses: crabnebula-dev/cloud-release@v0
+      with:
+        command: release show ${{ inputs.app }} ${{ inputs.version }} --channel ${{ inputs.channel }}
+        api-key: ${{ inputs.key }}
     - id: download
       shell: bash
       env:
-        CN_API_KEY: ${{ inputs.key }}
-        APP: ${{ inputs.app }}
-        VERSION: ${{ inputs.version }}
-        CHANNEL: ${{ inputs.channel }}
+        ASSETS: ${{ steps.get-assets.outputs.stdout }}
         PLATFORM: ${{ inputs.platform }}
         OUTPUT: ${{ inputs.output }}
       run: |
-        ASSETS=$(cn release show "$APP" "$VERSION" --channel "$CHANNEL" --api-key "$CN_API_KEY")
         ASSET_ID=$(echo "$ASSETS" | jq -r --arg platform "$PLATFORM" '.assets[] | select(.publicPlatform == $platform) | .id')
         if [[ -z "$ASSET_ID" || "$ASSET_ID" == "null" ]]; then
           echo "Asset not found for platform $PLATFORM"

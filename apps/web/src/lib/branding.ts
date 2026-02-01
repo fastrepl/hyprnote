@@ -3,6 +3,7 @@
  *
  * This module provides domain-based branding configuration.
  */
+import { env } from "@/env";
 
 export type Brand = "hyprnote" | "char";
 
@@ -54,12 +55,19 @@ export function getBrandingFromHostname(hostname: string): BrandingConfig {
 }
 
 /**
- * Get current hostname - works in browser only
- * Returns empty string on server (use request URL instead)
+ * Get current hostname - works in browser and during SSR
+ * Uses VITE_APP_URL as fallback during SSR to avoid hydration mismatch
  */
 export function getCurrentHostname(): string {
   if (typeof window !== "undefined") {
     return window.location.hostname;
   }
-  return "";
+
+  // During SSR, extract hostname from VITE_APP_URL to avoid hydration mismatch
+  try {
+    const url = new URL(env.VITE_APP_URL);
+    return url.hostname;
+  } catch {
+    return "";
+  }
 }

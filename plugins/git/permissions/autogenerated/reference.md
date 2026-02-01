@@ -99,32 +99,6 @@ Denies the init command without any pre-configured scope.
 <tr>
 <td>
 
-`git:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`git:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `git:allow-status`
 
 </td>

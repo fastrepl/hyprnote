@@ -104,7 +104,7 @@ async fn handle_mic_stopped<R: Runtime>(
 
     let is_dnd = state_guard.policy.respect_dnd && dnd::is_do_not_disturb();
 
-    let notification_key = NotificationKey::mic_started(apps.iter().map(|a| a.id.clone()));
+    let notification_key = NotificationKey::mic_stopped(apps.iter().map(|a| a.id.clone()));
 
     let ctx = PolicyContext {
         apps: &apps,

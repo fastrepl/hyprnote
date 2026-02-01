@@ -11,6 +11,7 @@ pub enum NotificationEvent {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NotificationKey {
     MicStarted { apps: BTreeSet<String> },
+    MicStopped { apps: BTreeSet<String> },
     CalendarEvent { event_id: String },
     Custom(String),
 }
@@ -18,6 +19,12 @@ pub enum NotificationKey {
 impl NotificationKey {
     pub fn mic_started(app_bundle_ids: impl IntoIterator<Item = String>) -> Self {
         Self::MicStarted {
+            apps: app_bundle_ids.into_iter().collect(),
+        }
+    }
+
+    pub fn mic_stopped(app_bundle_ids: impl IntoIterator<Item = String>) -> Self {
+        Self::MicStopped {
             apps: app_bundle_ids.into_iter().collect(),
         }
     }
@@ -33,6 +40,10 @@ impl NotificationKey {
             Self::MicStarted { apps } => {
                 let sorted: Vec<_> = apps.iter().cloned().collect();
                 format!("mic-started:{}", sorted.join(","))
+            }
+            Self::MicStopped { apps } => {
+                let sorted: Vec<_> = apps.iter().cloned().collect();
+                format!("mic-stopped:{}", sorted.join(","))
             }
             Self::CalendarEvent { event_id } => {
                 format!("event:{event_id}")

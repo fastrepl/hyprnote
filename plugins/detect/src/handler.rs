@@ -3,7 +3,10 @@ use tauri_plugin_listener::ListenerPluginExt;
 use tauri_plugin_windows::WindowImpl;
 use tauri_specta::Event;
 
-use crate::{DetectEvent, SharedState, dnd, policy::{MicEventType, PolicyContext}};
+use crate::{
+    DetectEvent, SharedState, dnd,
+    policy::{MicEventType, PolicyContext},
+};
 
 pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.app_handle().clone();

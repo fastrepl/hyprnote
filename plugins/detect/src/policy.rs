@@ -219,7 +219,10 @@ impl MicNotificationPolicy {
             }
         };
 
-        if let Some(ago) = self.recent_notifications.check_and_record(&notification_key) {
+        if let Some(ago) = self
+            .recent_notifications
+            .check_and_record(&notification_key)
+        {
             let dedup_key = notification_key.to_dedup_key();
             tracing::info!(
                 reason = "recently_notified",

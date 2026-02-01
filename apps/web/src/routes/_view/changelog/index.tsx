@@ -108,7 +108,18 @@ function ChangelogSection({ changelog }: { changelog: ChangelogWithMeta }) {
               )}
             </div>
           )}
-          <h2 className="text-4xl font-mono font-medium text-stone-700">
+          <Link
+            to="/changelog/$slug/"
+            params={{ slug: changelog.slug }}
+            className="hidden md:block"
+          >
+            <h2 className="text-4xl font-mono font-medium text-stone-700 hover:text-stone-900 transition-colors cursor-pointer">
+              {currentVersion
+                ? `${currentVersion.major}.${currentVersion.minor}.${currentVersion.patch}`
+                : changelog.version}
+            </h2>
+          </Link>
+          <h2 className="md:hidden text-4xl font-mono font-medium text-stone-700">
             {currentVersion
               ? `${currentVersion.major}.${currentVersion.minor}.${currentVersion.patch}`
               : changelog.version}

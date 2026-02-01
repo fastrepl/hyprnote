@@ -6,7 +6,7 @@ import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query
 
 import { BrandingProvider } from "./contexts/BrandingProvider";
 import { env } from "./env";
-import { getCurrentHostname } from "./lib/feature-flags";
+import { getCurrentHostname } from "./lib/branding";
 import { PostHogProvider } from "./providers/posthog";
 import { routeTree } from "./routeTree.gen";
 

@@ -1,8 +1,7 @@
 /**
- * Feature Flags System
+ * Branding System
  *
- * This module provides domain-based feature flags for branding.
- * Designed to be extended with PostHog flags in the future.
+ * This module provides domain-based branding configuration.
  */
 
 export type Brand = "hyprnote" | "char";

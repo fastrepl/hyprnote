@@ -143,9 +143,10 @@ const fetchCustomerEntitlements = (customerId: string) =>
 const deleteAllEntitlements = (customerId: string) =>
   Effect.tryPromise({
     try: () =>
-      pool.query(`DELETE FROM stripe.active_entitlements WHERE customer = $1`, [
-        customerId,
-      ]),
+      pool.query(
+        `DELETE FROM stripe.active_entitlements WHERE customer = $1 AND id NOT LIKE 'lifetime_%'`,
+        [customerId],
+      ),
     catch: (e) => new DbError(e instanceof Error ? e.message : String(e)),
   }).pipe(
     Effect.map((result) => ({
@@ -173,7 +174,7 @@ const syncEntitlements = (
     const deleteResult = yield* Effect.tryPromise({
       try: () =>
         pool.query(
-          `DELETE FROM stripe.active_entitlements WHERE customer = $1 AND lookup_key != ALL($2)`,
+          `DELETE FROM stripe.active_entitlements WHERE customer = $1 AND lookup_key != ALL($2) AND id NOT LIKE 'lifetime_%'`,
           [customerId, activeLookupKeys],
         ),
       catch: (e) => new DbError(e instanceof Error ? e.message : String(e)),

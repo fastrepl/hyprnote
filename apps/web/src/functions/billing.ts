@@ -192,6 +192,20 @@ export const syncAfterSuccess = createServerFn({ method: "POST" }).handler(
       return { status: "none" };
     }
 
+    const { data: entitlements } = await supabase
+      .schema("stripe")
+      .from("active_entitlements")
+      .select("lookup_key")
+      .eq("customer", stripeCustomerId);
+
+    const hasProEntitlement = entitlements?.some(
+      (e) => e.lookup_key === "hyprnote_pro",
+    );
+
+    if (!hasProEntitlement) {
+      return { status: "none" };
+    }
+
     const stripe = getStripeClient();
 
     const subscriptions = await stripe.subscriptions.list({
@@ -199,14 +213,12 @@ export const syncAfterSuccess = createServerFn({ method: "POST" }).handler(
       status: "all",
     });
 
-    // Prioritize active subscriptions over trialing ones
-    // This ensures paid users see "active" status even if they had a previous trial
     const subscription =
       subscriptions.data.find((sub) => sub.status === "active") ||
       subscriptions.data.find((sub) => sub.status === "trialing");
 
     if (!subscription) {
-      return { status: "none" };
+      return { status: "active" };
     }
 
     return {

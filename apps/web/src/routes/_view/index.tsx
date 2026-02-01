@@ -27,39 +27,38 @@ const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
 const mainFeatures = [
   {
     icon: "mdi:text-box-outline",
-    title: "Transcript",
-    description: "Realtime transcript and speaker identification",
+    title: "Real-time transcription",
+    description:
+      "While you take notes, Hyprnote listens and generates a live transcript",
     image: "/api/images/hyprnote/transcript.jpg",
     link: "/product/ai-notetaking#transcription",
   },
   {
     icon: "mdi:file-document-outline",
-    title: "Summary",
+    title: "AI summary",
     description:
-      "Create customized summaries with templates for various formats",
+      "Hyprnote combines your notes and the transcript to create a perfect summary",
     image: "/api/images/hyprnote/summary.jpg",
     link: "/product/ai-notetaking#summaries",
   },
   {
     icon: "mdi:chat-outline",
-    title: "Chat",
+    title: "AI Chat",
     description:
-      "Get context-aware answers in realtime, even from past meetings",
+      "Use natural language to get answers pulled directly from your transcript",
     image: "/api/images/hyprnote/chat.jpg",
     link: "/product/ai-assistant",
   },
   {
     icon: "mdi:window-restore",
-    title: "Floating Panel",
-    description:
-      "Compact notepad with transcript, summary, and chat during meetings",
+    title: "Floating panel",
+    description: "Overlay to quick access recording controls during calls",
     comingSoon: true,
   },
   {
-    icon: "mdi:calendar-check-outline",
-    title: "Daily Note",
-    description:
-      "Track todos and navigate emails and events throughout the day",
+    icon: "mdi:keyboard-outline",
+    title: "Keyboard shortcuts",
+    description: "Navigate and format quickly without touching your mouse",
     comingSoon: true,
   },
 ];
@@ -85,11 +84,11 @@ const detailsFeatures = [
     link: "/product/ai-notetaking#transcription",
   },
   {
-    icon: "mdi:account-multiple-outline",
-    title: "Contacts",
-    description: "Organize and manage your contacts with ease",
+    icon: "mdi:file-document-multiple-outline",
+    title: "Custom templates",
+    description: "Define what matters for each meeting type",
     image: "/api/images/hyprnote/contacts.jpg",
-    link: "/product/mini-apps#contacts",
+    link: "/product/ai-notetaking#templates",
   },
   {
     icon: "mdi:calendar-outline",
@@ -295,13 +294,13 @@ function HeroSection({
         >
           <div className="flex flex-col gap-6 max-w-4xl">
             <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
-              The AI notepad for <br className="block sm:hidden" />
-              private meetings
+              Take Meeting Notes With <br className="block sm:hidden" />
+              AI of Your Choice
             </h1>
             <p className="text-lg sm:text-xl text-neutral-600">
-              Hyprnote listens and summarizes your meetings{" "}
+              The only AI note-taker that lets you choose{" "}
               <br className="hidden sm:block" />
-              without sending any voice to remote servers
+              your preferred STT and LLM provider
             </p>
           </div>
 
@@ -437,26 +436,30 @@ function ValuePropsGrid() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 border-t border-neutral-100">
       <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">Private</h3>
+        <h3 className="font-medium mb-1 text-neutral-900 font-mono">
+          No Forced Stack
+        </h3>
         <p className="text-sm text-neutral-600 leading-relaxed">
-          Your notes stay local by default. Sync to a cloud only when you
-          choose.
+          Use our managed cloud, bring your own API keys, or run fully local
+          models.
         </p>
       </div>
       <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
         <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-          Effortless
+          You Own Your Data
         </h3>
         <p className="text-sm text-neutral-600 leading-relaxed">
-          A simple notepad that just works—fast, minimal, and distraction-free.
+          Plain markdown files on your device. Works with Obsidian, Notion, or
+          any tool.
         </p>
       </div>
       <div className="p-6 text-left">
         <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-          Flexible
+          Just Works
         </h3>
         <p className="text-sm text-neutral-600 leading-relaxed">
-          Use any STT or LLM. Local or cloud. No lock-ins, no forced stack.
+          A simple, familiar notepad with real-time transcription and AI
+          summaries.
         </p>
       </div>
     </div>
@@ -649,7 +652,7 @@ export function CoolStuffSection() {
     <section>
       <div className="text-center border-b border-neutral-100">
         <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
-          What makes Hyprnote different
+          Secure by Design
         </p>
       </div>
 
@@ -664,7 +667,7 @@ export function CoolStuffSection() {
               <h3 className="text-2xl font-serif text-stone-600">No bots</h3>
             </div>
             <p className="text-base text-neutral-600 leading-relaxed">
-              No intrusive bots joining your meetings.
+              Captures system audio—no bots join your calls.
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -680,11 +683,11 @@ export function CoolStuffSection() {
             <div className="flex items-center gap-3">
               <Icon icon="mdi:wifi-off" className="text-3xl text-stone-600" />
               <h3 className="text-2xl font-serif text-stone-600">
-                No internet
+                Fully local option
               </h3>
             </div>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Hyprnote is local-first. Take notes anywhere.
+              Audio, transcripts, and notes stay on your device as files.
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -708,7 +711,7 @@ export function CoolStuffSection() {
               <h3 className="text-xl font-serif text-stone-600">No bots</h3>
             </div>
             <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-              No intrusive bots joining your meetings.
+              Captures system audio—no bots join your calls.
             </p>
           </div>
           <div className="overflow-hidden">
@@ -723,10 +726,12 @@ export function CoolStuffSection() {
           <div className="p-6">
             <div className="flex items-center gap-3 mb-3">
               <Icon icon="mdi:wifi-off" className="text-2xl text-stone-600" />
-              <h3 className="text-xl font-serif text-stone-600">No internet</h3>
+              <h3 className="text-xl font-serif text-stone-600">
+                Fully local option
+              </h3>
             </div>
             <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-              Hyprnote is local-first. Take notes anywhere.
+              Audio, transcripts, and notes stay on your device as files.
             </p>
           </div>
           <div className="overflow-hidden">
@@ -2065,12 +2070,11 @@ export function CTASection({
           />
         </div>
         <h2 className="text-2xl sm:text-3xl font-serif">
-          Where conversations
-          <br className="sm:hidden" /> stay yours
+          Your meetings. Your data.
+          <br className="sm:hidden" /> Your control.
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Start using Hyprnote today and bring clarity to your back-to-back
-          meetings
+          Start taking meeting notes with AI—without the lock-in
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           {platformCTA.action === "download" ? (

@@ -50,7 +50,6 @@ pub fn kill_processes_by_matcher(matcher: ProcessMatcher) -> u16 {
 #[cfg(target_os = "macos")]
 pub fn cleanup_stale_single_instance_socket(identifier: &str) -> bool {
     use std::path::Path;
-    use std::time::Duration;
 
     let normalized_identifier = identifier.replace(['.', '-'], "_");
     let socket_path = format!("/tmp/{}_si.sock", normalized_identifier);
@@ -60,16 +59,9 @@ pub fn cleanup_stale_single_instance_socket(identifier: &str) -> bool {
     }
 
     let is_stale = match UnixStream::connect(&socket_path) {
-        Ok(stream) => {
-            let _ = stream.set_read_timeout(Some(Duration::from_millis(100)));
-            false
-        }
-        Err(e) => {
-            matches!(
-                e.kind(),
-                std::io::ErrorKind::ConnectionRefused | std::io::ErrorKind::NotFound
-            )
-        }
+        Ok(_) => false,
+        Err(e) if e.kind() == std::io::ErrorKind::ConnectionRefused => true,
+        Err(_) => false,
     };
 
     if is_stale {

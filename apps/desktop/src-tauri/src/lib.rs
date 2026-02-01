@@ -70,16 +70,9 @@ pub async fn main() {
     {
         #[cfg(target_os = "macos")]
         {
-            let identifiers = [
-                "com.hyprnote.dev",
-                "com.hyprnote.staging",
-                "com.hyprnote.nightly",
-                "com.hyprnote.stable",
-            ];
-            for identifier in identifiers {
-                if hypr_host::cleanup_stale_single_instance_socket(identifier) {
-                    tracing::info!("removed stale single-instance socket for {}", identifier);
-                }
+            let identifier = env!("TAURI_ENV_IDENTIFIER");
+            if hypr_host::cleanup_stale_single_instance_socket(identifier) {
+                tracing::info!("removed stale single-instance socket for {}", identifier);
             }
         }
 

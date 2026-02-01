@@ -120,8 +120,11 @@ impl LlmProxyConfig {
         if let Some(models) = &self.models_tool_calling_override {
             return models.clone();
         }
-        self.try_get_remote_config(REMOTE_CONFIG_MODELS_TOOL_CALLING, &*DEFAULT_MODELS_TOOL_CALLING)
-            .await
+        self.try_get_remote_config(
+            REMOTE_CONFIG_MODELS_TOOL_CALLING,
+            &*DEFAULT_MODELS_TOOL_CALLING,
+        )
+        .await
     }
 
     /// Non-blocking remote config fetch. Returns cached value immediately (even if stale)

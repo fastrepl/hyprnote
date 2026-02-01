@@ -1,113 +1,26 @@
+use hypr_notification_interface::NotificationKey;
 use tauri::{AppHandle, EventTarget, Manager, Runtime};
+use tauri_plugin_listener::ListenerPluginExt;
 use tauri_plugin_windows::WindowImpl;
 use tauri_specta::Event;
 
-use crate::{DetectEvent, SharedState, dnd};
-
-pub(crate) fn default_ignored_bundle_ids() -> Vec<String> {
-    let hyprnote = [
-        "com.hyprnote.dev",
-        "com.hyprnote.stable",
-        "com.hyprnote.nightly",
-        "com.hyprnote.staging",
-    ];
-
-    let dictation_apps = [
-        "com.electron.wispr-flow",
-        "com.seewillow.WillowMac",
-        "com.superduper.superwhisper",
-        "com.prakashjoshipax.VoiceInk",
-        "com.goodsnooze.macwhisper",
-        "com.descript.beachcube",
-        "com.apple.VoiceMemos",
-        "com.electron.aqua-voice",
-    ];
-
-    let ides = [
-        "dev.warp.Warp-Stable",
-        "com.exafunction.windsurf",
-        "com.microsoft.VSCode",
-        "com.todesktop.230313mzl4w4u92",
-    ];
-
-    let screen_recording = [
-        "so.cap.desktop",
-        "com.timpler.screenstudio",
-        "com.loom.desktop",
-        "com.obsproject.obs-studio",
-    ];
-
-    let ai_assistants = ["com.openai.chat", "com.anthropic.claudefordesktop"];
-
-    let other = [
-        "com.raycast.macos",
-        "com.apple.garageband10",
-        "com.apple.Sound-Settings.extension",
-    ];
-
-    dictation_apps
-        .into_iter()
-        .chain(hyprnote)
-        .chain(ides)
-        .chain(screen_recording)
-        .chain(ai_assistants)
-        .chain(other)
-        .map(String::from)
-        .collect()
-}
+use crate::{DetectEvent, SharedState, dnd, policy::PolicyContext};
 
 pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.app_handle().clone();
     let callback = hypr_detect::new_callback(move |event| {
-        let state = app_handle.state::<SharedState>();
+        let app_handle_clone = app_handle.clone();
 
         match event {
             hypr_detect::DetectEvent::MicStarted(apps) => {
-                let state_guard = state.blocking_lock();
-
-                if state_guard.respect_do_not_disturb && dnd::is_do_not_disturb() {
-                    tracing::info!(reason = "respect_do_not_disturb", "skip_notification");
-                    return;
-                }
-
-                let filtered_apps = filter_apps(apps, &state_guard.ignored_bundle_ids);
-                drop(state_guard);
-
-                if filtered_apps.is_empty() {
-                    tracing::info!(reason = "all_apps_filtered", "skip_notification");
-                    return;
-                }
-
-                emit_to_main(
-                    &app_handle,
-                    DetectEvent::MicStarted {
-                        key: uuid::Uuid::new_v4().to_string(),
-                        apps: filtered_apps,
-                    },
-                );
+                tauri::async_runtime::spawn(async move {
+                    handle_mic_started(&app_handle_clone, apps).await;
+                });
             }
             hypr_detect::DetectEvent::MicStopped(apps) => {
-                let state_guard = state.blocking_lock();
-
-                if state_guard.respect_do_not_disturb && dnd::is_do_not_disturb() {
-                    tracing::info!(reason = "respect_do_not_disturb", "skip_mic_stopped");
-                    return;
-                }
-
-                let filtered_apps = filter_apps(apps, &state_guard.ignored_bundle_ids);
-                drop(state_guard);
-
-                if filtered_apps.is_empty() {
-                    tracing::info!(reason = "all_apps_filtered", "skip_mic_stopped");
-                    return;
-                }
-
-                emit_to_main(
-                    &app_handle,
-                    DetectEvent::MicStopped {
-                        apps: filtered_apps,
-                    },
-                );
+                tauri::async_runtime::spawn(async move {
+                    handle_mic_stopped(&app_handle_clone, apps).await;
+                });
             }
             #[cfg(all(target_os = "macos", feature = "zoom"))]
             hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {
@@ -128,15 +41,92 @@ pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::er
     Ok(())
 }
 
-fn filter_apps(
+async fn handle_mic_started<R: Runtime>(
+    app_handle: &AppHandle<R>,
     apps: Vec<hypr_detect::InstalledApp>,
-    ignored_bundle_ids: &[String],
-) -> Vec<hypr_detect::InstalledApp> {
-    let default_ignored = default_ignored_bundle_ids();
-    apps.into_iter()
-        .filter(|app| !ignored_bundle_ids.contains(&app.id))
-        .filter(|app| !default_ignored.contains(&app.id))
-        .collect()
+) {
+    let state = app_handle.state::<SharedState>();
+    let state_guard = state.lock().await;
+
+    let is_listening = {
+        let listener_state = app_handle.listener().get_state().await;
+        matches!(
+            listener_state,
+            tauri_plugin_listener::fsm::State::Active
+                | tauri_plugin_listener::fsm::State::Finalizing
+        )
+    };
+
+    let is_dnd = state_guard.policy.respect_dnd && dnd::is_do_not_disturb();
+
+    let notification_key = NotificationKey::mic_started(apps.iter().map(|a| a.id.clone()));
+    let dedup_key = notification_key.to_dedup_key();
+
+    let ctx = PolicyContext {
+        apps: &apps,
+        is_listening,
+        is_dnd,
+        notification_key: &notification_key,
+    };
+
+    match state_guard.policy.evaluate(&ctx) {
+        Ok(filtered_apps) => {
+            drop(state_guard);
+            emit_to_main(
+                app_handle,
+                DetectEvent::MicStarted {
+                    key: dedup_key,
+                    apps: filtered_apps,
+                },
+            );
+        }
+        Err(reason) => {
+            tracing::info!(?reason, "skip_notification");
+        }
+    }
+}
+
+async fn handle_mic_stopped<R: Runtime>(
+    app_handle: &AppHandle<R>,
+    apps: Vec<hypr_detect::InstalledApp>,
+) {
+    let state = app_handle.state::<SharedState>();
+    let state_guard = state.lock().await;
+
+    let is_listening = {
+        let listener_state = app_handle.listener().get_state().await;
+        matches!(
+            listener_state,
+            tauri_plugin_listener::fsm::State::Active
+                | tauri_plugin_listener::fsm::State::Finalizing
+        )
+    };
+
+    let is_dnd = state_guard.policy.respect_dnd && dnd::is_do_not_disturb();
+
+    let notification_key = NotificationKey::mic_started(apps.iter().map(|a| a.id.clone()));
+
+    let ctx = PolicyContext {
+        apps: &apps,
+        is_listening,
+        is_dnd,
+        notification_key: &notification_key,
+    };
+
+    match state_guard.policy.evaluate(&ctx) {
+        Ok(filtered_apps) => {
+            drop(state_guard);
+            emit_to_main(
+                app_handle,
+                DetectEvent::MicStopped {
+                    apps: filtered_apps,
+                },
+            );
+        }
+        Err(reason) => {
+            tracing::info!(?reason, "skip_mic_stopped");
+        }
+    }
 }
 
 fn emit_to_main<R: Runtime>(app_handle: &AppHandle<R>, event: DetectEvent) {

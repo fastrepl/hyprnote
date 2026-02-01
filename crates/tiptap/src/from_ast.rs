@@ -12,7 +12,51 @@ pub fn mdast_to_markdown(node: &mdast::Node) -> Result<String, String> {
     )
     .map_err(|e| e.to_string())?;
 
-    Ok(inject_task_checkboxes(&md, &task_items))
+    let md = inject_task_checkboxes(&md, &task_items);
+    Ok(unescape_markdown(&md))
+}
+
+fn unescape_markdown(md: &str) -> String {
+    let mut result = String::with_capacity(md.len());
+    let mut chars = md.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            if let Some(&next) = chars.peek() {
+                if is_markdown_escapable(next) {
+                    result.push(next);
+                    chars.next();
+                    continue;
+                }
+            }
+        }
+        result.push(c);
+    }
+
+    result
+}
+
+fn is_markdown_escapable(c: char) -> bool {
+    matches!(
+        c,
+        '\\' | '`'
+            | '*'
+            | '_'
+            | '{'
+            | '}'
+            | '['
+            | ']'
+            | '('
+            | ')'
+            | '#'
+            | '+'
+            | '-'
+            | '.'
+            | '!'
+            | '|'
+            | '<'
+            | '>'
+    )
 }
 
 fn collect_task_items(node: &mdast::Node) -> Vec<Option<bool>> {

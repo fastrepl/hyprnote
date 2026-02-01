@@ -16,6 +16,9 @@ export const Route = createFileRoute("/_view/jobs/$slug")({
     if (!job) {
       throw notFound();
     }
+    if (!import.meta.env.DEV && job.published === false) {
+      throw notFound();
+    }
     return { job };
   },
   head: ({ loaderData }) => {

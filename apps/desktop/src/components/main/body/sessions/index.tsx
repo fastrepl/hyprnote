@@ -2,21 +2,33 @@ import { useQuery } from "@tanstack/react-query";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import { md2json } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/utils";
 
+import { useAITask } from "../../../../contexts/ai-task";
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
 import { useShell } from "../../../../contexts/shell";
 import { useAutoEnhance } from "../../../../hooks/useAutoEnhance";
-import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
+import {
+  useCreateEnhancedNote,
+  useIsSessionEnhancing,
+} from "../../../../hooks/useEnhancedNotes";
+import {
+  useLanguageModel,
+  useLLMConnection,
+} from "../../../../hooks/useLLMConnection";
 import { useStartListening } from "../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import { useTitleGeneration } from "../../../../hooks/useTitleGeneration";
 import * as main from "../../../../store/tinybase/store/main";
+import { createTaskId } from "../../../../store/zustand/ai-task/task-configs";
+import { listenerStore } from "../../../../store/zustand/listener/instance";
 import {
   rowIdfromTab,
   type Tab,
@@ -48,6 +60,8 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   handleCloseAll,
   handlePinThis,
   handleUnpinThis,
+  pendingCloseConfirmationTab,
+  setPendingCloseConfirmationTab,
 }) => {
   const title = main.UI.useCell(
     "sessions",
@@ -56,10 +70,120 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
     main.STORE_ID,
   );
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
+  const stop = useListener((state) => state.stop);
   const isEnhancing = useIsSessionEnhancing(tab.id);
   const isActive = sessionMode === "active" || sessionMode === "finalizing";
   const isFinalizing = sessionMode === "finalizing";
   const showSpinner = !tab.active && (isFinalizing || isEnhancing);
+
+  const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
+  const indexes = main.UI.useIndexes(main.STORE_ID);
+  const model = useLanguageModel();
+  const { conn: llmConn } = useLLMConnection();
+  const createEnhancedNote = useCreateEnhancedNote();
+  const generate = useAITask((state) => state.generate);
+
+  const triggerEnhancementOnClose = useCallback(() => {
+    if (!store || !indexes || !model) {
+      return;
+    }
+
+    const sessionId = tab.id;
+
+    const transcriptIds = indexes.getSliceRowIds(
+      main.INDEXES.transcriptBySession,
+      sessionId,
+    );
+    if (!transcriptIds || transcriptIds.length === 0) {
+      return;
+    }
+
+    const firstTranscriptId = transcriptIds[0];
+    const wordsJson = store.getCell("transcripts", firstTranscriptId, "words");
+    const words = wordsJson
+      ? (JSON.parse(wordsJson as string) as unknown[])
+      : [];
+    if (words.length < 5) {
+      return;
+    }
+
+    const enhancedNoteId = createEnhancedNote(sessionId);
+    if (!enhancedNoteId) {
+      return;
+    }
+
+    void analyticsCommands.event({
+      event: "note_enhanced",
+      is_auto: true,
+      llm_provider: llmConn?.providerId,
+      llm_model: llmConn?.modelId,
+    });
+
+    const taskId = createTaskId(enhancedNoteId, "enhance");
+    void generate(taskId, {
+      model,
+      taskType: "enhance",
+      args: { sessionId, enhancedNoteId },
+      onComplete: (text) => {
+        if (!text || !store) return;
+        try {
+          const jsonContent = md2json(text);
+          store.setPartialRow("enhanced_notes", enhancedNoteId, {
+            content: JSON.stringify(jsonContent),
+          });
+
+          const currentTitle = store.getCell("sessions", sessionId, "title");
+          const trimmedTitle =
+            typeof currentTitle === "string" ? currentTitle.trim() : "";
+          if (!trimmedTitle) {
+            const titleTaskId = createTaskId(sessionId, "title");
+            void generate(titleTaskId, {
+              model,
+              taskType: "title",
+              args: { sessionId },
+              onComplete: (titleText) => {
+                if (titleText && store) {
+                  const trimmed = titleText.trim();
+                  if (trimmed && trimmed !== "<EMPTY>") {
+                    store.setPartialRow("sessions", sessionId, {
+                      title: trimmed,
+                    });
+                  }
+                }
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Failed to convert markdown to JSON:", error);
+        }
+      },
+    });
+  }, [tab.id, store, indexes, model, llmConn, createEnhancedNote, generate]);
+
+  const showCloseConfirmation =
+    pendingCloseConfirmationTab?.type === "sessions" &&
+    pendingCloseConfirmationTab?.id === tab.id;
+
+  const handleCloseConfirmationChange = (show: boolean) => {
+    if (!show) {
+      setPendingCloseConfirmationTab?.(null);
+    }
+  };
+
+  const handleCloseWithStop = useCallback(() => {
+    if (isActive) {
+      handleCloseThis(tab);
+      stop();
+      const unsubscribe = listenerStore.subscribe((state) => {
+        if (state.live.status === "inactive") {
+          unsubscribe();
+          triggerEnhancementOnClose();
+        }
+      });
+    } else {
+      handleCloseThis(tab);
+    }
+  }, [isActive, triggerEnhancementOnClose, stop, tab, handleCloseThis]);
 
   return (
     <TabItemBase
@@ -70,7 +194,9 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
       finalizing={showSpinner}
       pinned={tab.pinned}
       tabIndex={tabIndex}
-      handleCloseThis={() => handleCloseThis(tab)}
+      showCloseConfirmation={showCloseConfirmation}
+      onCloseConfirmationChange={handleCloseConfirmationChange}
+      handleCloseThis={handleCloseWithStop}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}

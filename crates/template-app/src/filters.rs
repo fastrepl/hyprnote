@@ -1,4 +1,3 @@
-use chrono::Utc;
 use isolang::Language;
 
 #[askama::filter_fn]
@@ -9,7 +8,7 @@ pub fn current_date<T: ?Sized>(_value: &T, _env: &dyn askama::Values) -> askama:
     }
     #[cfg(not(test))]
     {
-        Ok(Utc::now().format("%Y-%m-%d").to_string())
+        Ok(chrono::Utc::now().format("%Y-%m-%d").to_string())
     }
 }
 
@@ -42,7 +41,7 @@ mod tests {
 
     use super::*;
     use askama::Template;
-    use askama_utils::tpl_assert;
+    use hypr_askama_utils::tpl_assert;
 
     #[test]
     fn test_isolang() {

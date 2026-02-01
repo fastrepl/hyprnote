@@ -1,19 +1,61 @@
 mod convert;
 
+use hypr_db_core::libsql;
 use hypr_db_user::UserDatabase;
 use std::path::Path;
 
-use crate::Result;
 use crate::types::*;
+use crate::{Error, Result};
 use convert::{html_to_markdown, session_to_transcript};
 
-pub async fn parse_from_sqlite(path: &Path) -> Result<MigrationData> {
+const EXPECTED_TABLES: &[&str] = &["sessions", "humans", "organizations", "templates", "tags"];
+
+pub async fn validate(path: &Path) -> Result<()> {
+    let db = libsql::Builder::new_local(path).build().await?;
+    let conn = db.connect()?;
+
+    let mut rows = conn
+        .query(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+            (),
+        )
+        .await?;
+
+    let mut tables = Vec::new();
+    while let Some(row) = rows.next().await? {
+        tables.push(row.get::<String>(0)?);
+    }
+
+    for expected in EXPECTED_TABLES {
+        if !tables.iter().any(|t| t == *expected) {
+            return Err(Error::InvalidData(format!(
+                "v0 database missing required table: {}",
+                expected
+            )));
+        }
+    }
+
+    if tables.len() < 10 {
+        return Err(Error::InvalidData(format!(
+            "v0 database expected 10+ tables, found {}",
+            tables.len()
+        )));
+    }
+
+    Ok(())
+}
+
+pub async fn parse_from_sqlite(path: &Path) -> Result<Collection> {
+    validate(path).await?;
+
     let db = hypr_db_core::DatabaseBuilder::default()
         .local(path)
         .build()
         .await?;
     let db = UserDatabase::from(db);
 
+    // Older Hyprnote DBs can have `sessions.words` as NULL/empty, but db-user's
+    // `Session::from_row` expects a non-null JSON string.
     let conn = db.conn()?;
     conn.execute(
         "UPDATE sessions SET words = '[]' WHERE words IS NULL OR words = ''",
@@ -79,20 +121,26 @@ pub async fn parse_from_sqlite(path: &Path) -> Result<MigrationData> {
             });
         }
 
-        let raw_md = if !session.raw_memo_html.is_empty() {
-            Some(html_to_markdown(&session.raw_memo_html))
-        } else {
-            None
-        };
+        if !session.is_empty() {
+            let raw_md = if !session.raw_memo_html.is_empty() {
+                Some(html_to_markdown(&session.raw_memo_html))
+            } else {
+                None
+            };
 
-        let is_empty = session.title.is_empty() && raw_md.is_none();
-        if !is_empty {
+            let enhanced_content = session
+                .enhanced_memo_html
+                .as_ref()
+                .filter(|s| !s.is_empty())
+                .map(|s| html_to_markdown(s));
+
             sessions.push(Session {
                 id: session.id.clone(),
                 user_id: String::new(),
                 created_at: session.created_at.to_rfc3339(),
                 title: session.title,
                 raw_md,
+                enhanced_content,
                 folder_id: None,
                 event_id: session.calendar_event_id,
             });
@@ -150,7 +198,7 @@ pub async fn parse_from_sqlite(path: &Path) -> Result<MigrationData> {
         })
         .collect();
 
-    Ok(MigrationData {
+    Ok(Collection {
         sessions,
         transcripts,
         humans,

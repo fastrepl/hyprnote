@@ -15,8 +15,8 @@ pub trait AppExt<R: tauri::Runtime> {
     fn get_tinybase_values(&self) -> Result<Option<String>, String>;
     fn set_tinybase_values(&self, v: String) -> Result<(), String>;
 
-    fn get_local_persister_loaded(&self) -> Result<bool, String>;
-    fn set_local_persister_loaded(&self, v: bool) -> Result<(), String>;
+    fn get_pinned_tabs(&self) -> Result<Option<String>, String>;
+    fn set_pinned_tabs(&self, v: String) -> Result<(), String>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
@@ -99,19 +99,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    fn get_local_persister_loaded(&self) -> Result<bool, String> {
+    fn get_pinned_tabs(&self) -> Result<Option<String>, String> {
         let store = self.desktop_store()?;
-        store
-            .get(StoreKey::LocalPersisterLoaded)
-            .map(|opt| opt.unwrap_or(false))
-            .map_err(|e| e.to_string())
+        store.get(StoreKey::PinnedTabs).map_err(|e| e.to_string())
     }
 
     #[tracing::instrument(skip_all)]
-    fn set_local_persister_loaded(&self, v: bool) -> Result<(), String> {
+    fn set_pinned_tabs(&self, v: String) -> Result<(), String> {
         let store = self.desktop_store()?;
         store
-            .set(StoreKey::LocalPersisterLoaded, v)
-            .map_err(|e| e.to_string())
+            .set(StoreKey::PinnedTabs, v)
+            .map_err(|e| e.to_string())?;
+        store.save().map_err(|e| e.to_string())
     }
 }

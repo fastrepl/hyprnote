@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ExternalLinkIcon } from "lucide-react";
+import { Brain, Cloud, ExternalLinkIcon, Puzzle, Sparkle } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
@@ -113,21 +113,23 @@ export function AccountSettings() {
 
     if (isPending) {
       return (
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <h2 className="text-sm font-medium">Waiting for sign-in...</h2>
-            <p className="text-xs text-neutral-500">
+        <div className="flex flex-col items-center gap-6 text-center">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-2xl font-semibold font-serif">
+              Waiting for sign-in...
+            </h2>
+            <p className="text-base text-neutral-500">
               Complete the sign-in process in your browser
             </p>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 w-full max-w-xs">
             <Button onClick={handleSignIn} variant="outline" className="w-full">
               Reopen sign-in page
             </Button>
             <Button
               onClick={() => setDevMode(true)}
               variant="ghost"
-              className="w-full text-xs"
+              className="w-full text-sm"
             >
               Having trouble? Paste callback URL manually
             </Button>
@@ -137,18 +139,45 @@ export function AccountSettings() {
     }
 
     return (
-      <Container
-        title="Sign in to Hyprnote"
-        description="Hyprnote account is required to access pro plan."
-        action={
-          <button
-            onClick={handleSignIn}
-            className="px-4 h-[34px] rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-xs font-mono text-center transition-opacity duration-150 hover:opacity-90"
-          >
-            Get Started
-          </button>
-        }
-      ></Container>
+      <div className="flex flex-col items-center gap-6 text-center">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-2xl font-semibold font-serif">
+            Sign in to Hyprnote
+          </h2>
+          <p className="text-base text-neutral-500">
+            Get started without an account. Sign in to unlock more.
+          </p>
+        </div>
+
+        <button
+          onClick={handleSignIn}
+          className="px-6 h-[42px] rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-mono text-center transition-opacity duration-150 hover:opacity-90"
+        >
+          Get Started
+        </button>
+
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide mt-4">
+          {[
+            { label: "Pro AI models", icon: Sparkle, comingSoon: false },
+            { label: "Cloud sync", icon: Cloud, comingSoon: true },
+            { label: "Memory", icon: Brain, comingSoon: true },
+            { label: "Integrations", icon: Puzzle, comingSoon: true },
+          ].map(({ label, icon: Icon, comingSoon }) => (
+            <div
+              key={label}
+              className="relative overflow-hidden flex flex-col items-center justify-center gap-2 w-20 h-20 shrink-0 rounded-lg bg-linear-to-b from-white to-stone-50 border border-neutral-200 text-neutral-600"
+            >
+              {comingSoon && (
+                <span className="absolute top-0 px-1.5 py-0.5 text-[10px] rounded-b bg-neutral-200 text-neutral-500 opacity-50">
+                  Soon
+                </span>
+              )}
+              <Icon className="h-5 w-5" />
+              <span className="text-xs text-center leading-tight">{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -251,6 +280,8 @@ function BillingButton() {
       const trialEndDate = new Date();
       trialEndDate.setDate(trialEndDate.getDate() + 14);
       void analyticsCommands.setProperties({
+        email: auth?.session?.user.email,
+        user_id: auth?.session?.user.id,
         set: {
           plan: "pro",
           trial_end_date: trialEndDate.toISOString(),

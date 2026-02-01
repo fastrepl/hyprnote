@@ -18,28 +18,7 @@ import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 import { StorageSettingsView } from "./storage";
 
-type SettingsSection =
-  | "app"
-  | "language"
-  | "notifications"
-  | "permissions"
-  | "audio"
-  | "lab";
-
-export function SettingsGeneral({
-  appRef,
-  languageRef,
-  notificationsRef,
-  permissionsRef,
-  audioRef,
-}: {
-  appRef?: React.Ref<HTMLDivElement>;
-  languageRef?: React.Ref<HTMLDivElement>;
-  notificationsRef?: React.Ref<HTMLDivElement>;
-  permissionsRef?: React.Ref<HTMLDivElement>;
-  audioRef?: React.Ref<HTMLDivElement>;
-  activeSection?: SettingsSection;
-} = {}) {
+function useSettingsForm() {
   const value = useConfigValues([
     "autostart",
     "notification_detect",
@@ -49,37 +28,6 @@ export function SettingsGeneral({
     "spoken_languages",
     "current_stt_provider",
   ] as const);
-
-  const supportedLanguagesQuery = useQuery({
-    queryKey: ["documented-language-codes", "live"],
-    queryFn: async () => {
-      const result = await listenerCommands.listDocumentedLanguageCodesLive();
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-    staleTime: Infinity,
-  });
-  const supportedLanguages = supportedLanguagesQuery.data ?? ["en"];
-
-  const suggestedProviders = useQuery({
-    enabled: !!value.spoken_languages?.length,
-    queryKey: ["suggested-stt-providers", value.spoken_languages],
-    queryFn: async () => {
-      const result = await listenerCommands.suggestProvidersForLanguagesLive(
-        value.spoken_languages ?? [],
-      );
-
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-
-      return result.data.filter(
-        (provider) => !["fireworks", "openai"].includes(provider),
-      );
-    },
-  });
 
   const setPartialValues = settings.UI.useSetPartialValuesCallback(
     (row: Partial<General>) =>
@@ -143,74 +91,112 @@ export function SettingsGeneral({
     },
   });
 
+  return { form, value };
+}
+
+export function SettingsAccount() {
   return (
-    <div className="flex flex-col gap-8">
-      <div className="pt-3">
+    <div className="h-full flex items-center justify-center">
+      <div className="w-full max-w-md">
         <AccountSettings />
       </div>
+    </div>
+  );
+}
 
-      <div ref={appRef}>
-        <form.Field name="autostart">
-          {(autostartField) => (
-            <form.Field name="notification_detect">
-              {(notificationDetectField) => (
-                <form.Field name="save_recordings">
-                  {(saveRecordingsField) => (
-                    <form.Field name="telemetry_consent">
-                      {(telemetryConsentField) => (
-                        <AppSettingsView
-                          autostart={{
-                            title: "Start Hyprnote automatically at login",
-                            description:
-                              "Hyprnote will always be ready for action without you having to turn it on",
-                            value: autostartField.state.value,
-                            onChange: (val) => autostartField.handleChange(val),
-                          }}
-                          notificationDetect={{
-                            title:
-                              "Start/Stop listening to meetings automatically",
-                            description:
-                              "You don't have to press button every time — we'll start/stop listening for you",
-                            value: notificationDetectField.state.value,
-                            onChange: (val) =>
-                              notificationDetectField.handleChange(val),
-                          }}
-                          saveRecordings={{
-                            title: "Save recordings",
-                            description:
-                              "Audio files of meetings will be saved locally and won't be leaving your device",
-                            value: saveRecordingsField.state.value,
-                            onChange: (val) =>
-                              saveRecordingsField.handleChange(val),
-                          }}
-                          telemetryConsent={{
-                            title: "Share usage data",
-                            description:
-                              "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
-                            value: telemetryConsentField.state.value,
-                            onChange: (val) =>
-                              telemetryConsentField.handleChange(val),
-                          }}
-                        />
-                      )}
-                    </form.Field>
-                  )}
-                </form.Field>
-              )}
-            </form.Field>
-          )}
-        </form.Field>
-      </div>
+export function SettingsApp() {
+  const { form } = useSettingsForm();
+
+  const supportedLanguagesQuery = useQuery({
+    queryKey: ["documented-language-codes", "live"],
+    queryFn: async () => {
+      const result = await listenerCommands.listDocumentedLanguageCodesLive();
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+    staleTime: Infinity,
+  });
+  const supportedLanguages = supportedLanguagesQuery.data ?? ["en"];
+
+  const value = useConfigValues(["spoken_languages"] as const);
+
+  const suggestedProviders = useQuery({
+    enabled: !!value.spoken_languages?.length,
+    queryKey: ["suggested-stt-providers", value.spoken_languages],
+    queryFn: async () => {
+      const result = await listenerCommands.suggestProvidersForLanguagesLive(
+        value.spoken_languages ?? [],
+      );
+
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+
+      return result.data.filter(
+        (provider) => !["fireworks", "openai"].includes(provider),
+      );
+    },
+  });
+
+  return (
+    <div className="flex flex-col gap-8 pt-3">
+      <form.Field name="autostart">
+        {(autostartField) => (
+          <form.Field name="notification_detect">
+            {(notificationDetectField) => (
+              <form.Field name="save_recordings">
+                {(saveRecordingsField) => (
+                  <form.Field name="telemetry_consent">
+                    {(telemetryConsentField) => (
+                      <AppSettingsView
+                        autostart={{
+                          title: "Start Hyprnote automatically at login",
+                          description:
+                            "Hyprnote will always be ready for action without you having to turn it on",
+                          value: autostartField.state.value,
+                          onChange: (val) => autostartField.handleChange(val),
+                        }}
+                        notificationDetect={{
+                          title:
+                            "Start/Stop listening to meetings automatically",
+                          description:
+                            "You don't have to press button every time — we'll start/stop listening for you",
+                          value: notificationDetectField.state.value,
+                          onChange: (val) =>
+                            notificationDetectField.handleChange(val),
+                        }}
+                        saveRecordings={{
+                          title: "Save recordings",
+                          description:
+                            "Audio files of meetings will be saved locally and won't be leaving your device",
+                          value: saveRecordingsField.state.value,
+                          onChange: (val) =>
+                            saveRecordingsField.handleChange(val),
+                        }}
+                        telemetryConsent={{
+                          title: "Share usage data",
+                          description:
+                            "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
+                          value: telemetryConsentField.state.value,
+                          onChange: (val) =>
+                            telemetryConsentField.handleChange(val),
+                        }}
+                      />
+                    )}
+                  </form.Field>
+                )}
+              </form.Field>
+            )}
+          </form.Field>
+        )}
+      </form.Field>
 
       <div>
-        <StorageSettingsView />
-        <div className="mt-6">
-          <Data />
-        </div>
-      </div>
-
-      <div ref={languageRef}>
-        <h2 className="font-semibold font-serif mb-4">Language & Vocabulary</h2>
+        <h2 className="text-lg font-semibold font-serif mb-4">
+          Language & Vocabulary
+        </h2>
         <div className="flex flex-col gap-6">
           <form.Field name="ai_language">
             {(field) => (
@@ -239,18 +225,29 @@ export function SettingsGeneral({
         </div>
       </div>
 
-      <div ref={notificationsRef}>
-        <h2 className="font-semibold font-serif mb-4">Notifications</h2>
-        <NotificationSettingsView />
-      </div>
+      <StorageSettingsView />
 
-      <div ref={permissionsRef}>
-        <Permissions />
+      <div>
+        <h2 className="text-lg font-semibold font-serif mb-4">Data</h2>
+        <Data />
       </div>
+    </div>
+  );
+}
 
-      <div ref={audioRef}>
-        <Audio />
-      </div>
+export function SettingsNotifications() {
+  return (
+    <div className="pt-3">
+      <NotificationSettingsView />
+    </div>
+  );
+}
+
+export function SettingsSystem() {
+  return (
+    <div className="flex flex-col gap-8 pt-3">
+      <Permissions />
+      <Audio />
     </div>
   );
 }

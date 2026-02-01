@@ -6,6 +6,7 @@ import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provi
 import { useListener } from "../../../../../../../contexts/listener";
 import * as main from "../../../../../../../store/tinybase/store/main";
 import type { RuntimeSpeakerHint } from "../../../../../../../utils/segment";
+import { TranscriptEmptyState } from "../empty-state";
 import {
   useAutoScroll,
   usePlaybackAutoScroll,
@@ -107,8 +108,9 @@ export function TranscriptContainer({
 
   const shouldShowButton = !isAtBottom && currentActive;
 
+  // TOOD: this can't handle words=[]
   if (transcriptIds.length === 0) {
-    return null;
+    return <TranscriptEmptyState />;
   }
 
   const handleSelectionAction = (action: string, selectedText: string) => {

@@ -99,9 +99,21 @@ function Component() {
                 alt="Hyprnote"
                 className="size-32 rounded-2xl"
               />
-              <h1 className="text-3xl sm:text-4xl font-mono font-medium text-stone-600">
-                {changelog.version}
-              </h1>
+              <div className="flex flex-col items-center gap-2">
+                <h1 className="text-3xl sm:text-4xl font-mono font-medium text-stone-600">
+                  {changelog.version}
+                </h1>
+                <time
+                  className="text-sm text-neutral-500"
+                  dateTime={changelog.date}
+                >
+                  {new Date(changelog.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </time>
+              </div>
             </div>
 
             <DownloadLinksHero version={changelog.version} />
@@ -118,9 +130,21 @@ function Component() {
                 alt="Hyprnote"
                 className="size-16 rounded-2xl"
               />
-              <h1 className="text-3xl font-mono font-medium text-stone-600">
-                {changelog.version}
-              </h1>
+              <div className="flex flex-col items-center gap-2">
+                <h1 className="text-3xl font-mono font-medium text-stone-600">
+                  {changelog.version}
+                </h1>
+                <time
+                  className="text-sm text-neutral-500"
+                  dateTime={changelog.date}
+                >
+                  {new Date(changelog.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </time>
+              </div>
             </div>
 
             <DownloadLinksHeroMobile version={changelog.version} />

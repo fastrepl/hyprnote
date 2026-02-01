@@ -24,7 +24,7 @@ common_derives! {
 mod tests {
     use super::*;
     use crate::{Segment, TemplateSection};
-    use askama_utils::{tpl_assert, tpl_snapshot};
+    use hypr_askama_utils::{tpl_assert, tpl_snapshot};
 
     tpl_assert!(
         test_language_as_specified,

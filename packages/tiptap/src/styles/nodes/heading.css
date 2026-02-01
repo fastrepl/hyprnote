@@ -1,6 +1,10 @@
 .tiptap {
   h1,
-  h2 {
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     color: #374151;
     font-weight: 600;
     font-size: 1.25rem;
@@ -8,6 +12,12 @@
     margin-bottom: 0.25rem;
     min-height: 1.5rem;
     position: relative;
+  }
+
+  :not(:first-child) {
+    &:is(h1, h2, h3, h4, h5, h6) {
+      margin-top: 1rem;
+    }
   }
 }
 

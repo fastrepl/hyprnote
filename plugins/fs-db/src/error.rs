@@ -9,7 +9,13 @@ pub enum Error {
     #[error(transparent)]
     DbParser(#[from] hypr_db_parser::Error),
     #[error(transparent)]
+    Frontmatter(#[from] hypr_frontmatter::Error),
+    #[error(transparent)]
     Json(#[from] serde_json::Error),
+    #[error(transparent)]
+    Settings(#[from] tauri_plugin_settings::Error),
+    #[error("tiptap: {0}")]
+    Tiptap(String),
 }
 
 impl Serialize for Error {

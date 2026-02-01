@@ -1,4 +1,4 @@
-import { Brain, Cloud, ExternalLink, Puzzle, Sparkle, X } from "lucide-react";
+import { Brain, Cloud, Puzzle, Sparkle, X } from "lucide-react";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { create } from "zustand";
@@ -79,33 +79,33 @@ export function TrialBeginModal() {
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-2 max-w-md">
+            <div className="flex gap-3 justify-center overflow-x-auto scrollbar-hide">
               {[
-                { label: "Pro AI models", icon: Sparkle },
-                { label: "Cloud sync", icon: Cloud },
-                { label: "Memory", icon: Brain },
-                { label: "Integrations", icon: Puzzle },
-                { label: "Shareable links", icon: ExternalLink },
-                { label: "and more", icon: null },
-              ].map(({ label, icon: Icon }) => (
+                { label: "Pro AI models", icon: Sparkle, comingSoon: false },
+                { label: "Cloud sync", icon: Cloud, comingSoon: true },
+                { label: "Memory", icon: Brain, comingSoon: true },
+                { label: "Integrations", icon: Puzzle, comingSoon: true },
+              ].map(({ label, icon: Icon, comingSoon }) => (
                 <div
                   key={label}
-                  className={cn([
-                    "px-4 h-8 flex items-center text-sm rounded-full",
-                    "bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700",
-                    "shadow-xs hover:shadow-md hover:scale-[102%] transition-all",
-                    Icon && "gap-2",
-                  ])}
+                  className="relative overflow-hidden flex flex-col items-center justify-center gap-2 w-20 h-20 shrink-0 rounded-lg bg-linear-to-b from-white to-stone-50 border border-neutral-200 text-neutral-600"
                 >
-                  {Icon && <Icon className="h-4 w-4" />}
-                  {label}
+                  {comingSoon && (
+                    <span className="absolute top-0 px-1.5 py-0.5 text-[10px] rounded-b bg-neutral-200 text-neutral-500 opacity-50">
+                      Soon
+                    </span>
+                  )}
+                  <Icon className="h-5 w-5" />
+                  <span className="text-xs text-center leading-tight">
+                    {label}
+                  </span>
                 </div>
               ))}
             </div>
 
             <button
               onClick={close}
-              className="px-6 py-2 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
+              className="px-6 h-[42px] rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-mono transition-opacity duration-150 hover:opacity-90"
             >
               Let's go!
             </button>

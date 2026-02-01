@@ -1,3 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
+import { arch, platform } from "@tauri-apps/plugin-os";
+
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 
@@ -20,6 +24,58 @@ export function SettingsLab() {
           Open
         </Button>
       </div>
+
+      <DownloadNightlyButton />
+    </div>
+  );
+}
+
+function DownloadNightlyButton() {
+  const platformName = platform();
+  const archQuery = useQuery({
+    queryKey: ["target-arch"],
+    queryFn: () => arch(),
+    staleTime: Infinity,
+  });
+
+  const getNightlyDownloadUrl = () => {
+    const targetArch = archQuery.data;
+    if (platformName === "macos") {
+      if (targetArch === "aarch64") {
+        return "https://desktop2.hyprnote.com/download/latest/dmg-aarch64?channel=nightly";
+      }
+      return "https://desktop2.hyprnote.com/download/latest/dmg-x86_64?channel=nightly";
+    }
+    if (platformName === "linux") {
+      return "https://desktop2.hyprnote.com/download/latest/appimage-x86_64?channel=nightly";
+    }
+    return null;
+  };
+
+  const downloadUrl = getNightlyDownloadUrl();
+
+  const handleDownload = async () => {
+    if (downloadUrl) {
+      await openerCommands.openUrl(downloadUrl, null);
+    }
+  };
+
+  if (!downloadUrl) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex-1">
+        <h3 className="text-sm font-medium mb-1">Nightly Build</h3>
+        <p className="text-xs text-neutral-600">
+          Download the latest nightly build to try new features before they are
+          released. Nightly builds may be less stable.
+        </p>
+      </div>
+      <Button variant="outline" size="sm" onClick={handleDownload}>
+        Download
+      </Button>
     </div>
   );
 }

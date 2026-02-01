@@ -1,0 +1,140 @@
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (e.g., 1.0.2 or 1.0.2-nightly.15)"
+        required: true
+        type: string
+
+env:
+  CN_APPLICATION: "fastrepl/hyprnote2"
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+      channel: ${{ steps.parse.outputs.channel }}
+    steps:
+      - id: parse
+        run: |
+          VERSION="${{ inputs.version }}"
+          if [[ "$VERSION" == *"-nightly"* ]]; then
+            CHANNEL="nightly"
+          else
+            CHANNEL="stable"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
+
+  cn-publish:
+    needs: parse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/cn_release
+        with:
+          cmd: publish
+          app: ${{ env.CN_APPLICATION }}
+          key: ${{ secrets.CN_API_KEY }}
+          channel: ${{ needs.parse.outputs.channel }}
+          version: ${{ needs.parse.outputs.version }}
+
+  gh-release:
+    needs: [parse, cn-publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - id: download-macos-aarch64
+        continue-on-error: true
+        uses: ./.github/actions/cn_download
+        with:
+          app: ${{ env.CN_APPLICATION }}
+          version: ${{ needs.parse.outputs.version }}
+          channel: ${{ needs.parse.outputs.channel }}
+          platform: dmg-aarch64
+          output: hyprnote-macos-aarch64.dmg
+          key: ${{ secrets.CN_API_KEY }}
+      - id: download-macos-x86_64
+        continue-on-error: true
+        uses: ./.github/actions/cn_download
+        with:
+          app: ${{ env.CN_APPLICATION }}
+          version: ${{ needs.parse.outputs.version }}
+          channel: ${{ needs.parse.outputs.channel }}
+          platform: dmg-x86_64
+          output: hyprnote-macos-x86_64.dmg
+          key: ${{ secrets.CN_API_KEY }}
+      - id: download-linux-appimage
+        continue-on-error: true
+        uses: ./.github/actions/cn_download
+        with:
+          app: ${{ env.CN_APPLICATION }}
+          version: ${{ needs.parse.outputs.version }}
+          channel: ${{ needs.parse.outputs.channel }}
+          platform: appimage-x86_64
+          output: hyprnote-linux-x86_64.AppImage
+          key: ${{ secrets.CN_API_KEY }}
+      - id: download-linux-deb
+        continue-on-error: true
+        uses: ./.github/actions/cn_download
+        with:
+          app: ${{ env.CN_APPLICATION }}
+          version: ${{ needs.parse.outputs.version }}
+          channel: ${{ needs.parse.outputs.channel }}
+          platform: debian-x86_64
+          output: hyprnote-linux-x86_64.deb
+          key: ${{ secrets.CN_API_KEY }}
+      - id: check-downloads
+        run: |
+          MACOS_OK="false"
+          LINUX_OK="false"
+          if [[ "${{ steps.download-macos-aarch64.outputs.success }}" == "true" && "${{ steps.download-macos-x86_64.outputs.success }}" == "true" ]]; then
+            MACOS_OK="true"
+          fi
+          if [[ "${{ steps.download-linux-appimage.outputs.success }}" == "true" && "${{ steps.download-linux-deb.outputs.success }}" == "true" ]]; then
+            LINUX_OK="true"
+          fi
+          if [[ "$MACOS_OK" == "false" && "$LINUX_OK" == "false" ]]; then
+            echo "No artifacts found for version ${{ needs.parse.outputs.version }}"
+            exit 1
+          fi
+          echo "macos=$MACOS_OK" >> $GITHUB_OUTPUT
+          echo "linux=$LINUX_OK" >> $GITHUB_OUTPUT
+      - id: checksums
+        uses: ./.github/actions/generate_checksums
+        with:
+          files: |
+            ${{ steps.check-downloads.outputs.macos == 'true' && 'hyprnote-macos-aarch64.dmg' || '' }}
+            ${{ steps.check-downloads.outputs.macos == 'true' && 'hyprnote-macos-x86_64.dmg' || '' }}
+            ${{ steps.check-downloads.outputs.linux == 'true' && 'hyprnote-linux-x86_64.AppImage' || '' }}
+            ${{ steps.check-downloads.outputs.linux == 'true' && 'hyprnote-linux-x86_64.deb' || '' }}
+      - id: artifacts
+        run: |
+          ARTIFACTS=""
+          if [[ "${{ steps.check-downloads.outputs.macos }}" == "true" ]]; then
+            ARTIFACTS="hyprnote-macos-aarch64.dmg,hyprnote-macos-x86_64.dmg"
+          fi
+          if [[ "${{ steps.check-downloads.outputs.linux }}" == "true" ]]; then
+            if [[ -n "$ARTIFACTS" ]]; then
+              ARTIFACTS="$ARTIFACTS,hyprnote-linux-x86_64.AppImage,hyprnote-linux-x86_64.deb"
+            else
+              ARTIFACTS="hyprnote-linux-x86_64.AppImage,hyprnote-linux-x86_64.deb"
+            fi
+          fi
+          if [[ -z "$ARTIFACTS" ]]; then
+            echo "No artifacts to release" >&2
+            exit 1
+          fi
+          if [[ -n "${{ steps.checksums.outputs.checksum_files }}" ]]; then
+            ARTIFACTS="$ARTIFACTS,${{ steps.checksums.outputs.checksum_files }}"
+          fi
+          echo "list=$ARTIFACTS" >> $GITHUB_OUTPUT
+      - uses: ncipollo/release-action@v1
+        with:
+          tag: desktop_v${{ needs.parse.outputs.version }}
+          name: desktop_v${{ needs.parse.outputs.version }}
+          body: "https://hyprnote.com/changelog/${{ needs.parse.outputs.version }}"
+          artifacts: ${{ steps.artifacts.outputs.list }}

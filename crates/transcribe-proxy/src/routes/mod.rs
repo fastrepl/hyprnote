@@ -1,5 +1,5 @@
 mod batch;
-mod streaming;
+pub mod streaming;
 
 use std::sync::Arc;
 

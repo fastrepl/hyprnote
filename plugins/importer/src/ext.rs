@@ -1,7 +1,7 @@
-use crate::output::to_tinybase_json;
 use crate::types::{
     ImportDataResult, ImportSource, ImportSourceInfo, ImportSourceKind, ImportStats,
 };
+use hypr_importer_core::output::to_tinybase_json;
 
 pub struct Importer<R: tauri::Runtime> {
     _runtime: std::marker::PhantomData<fn() -> R>,
@@ -31,7 +31,7 @@ impl<R: tauri::Runtime> Importer<R> {
         }
 
         let data = crate::sources::import_all(source).await?;
-        let stats = data.stats();
+        let stats = ImportStats::from_data(&data);
         let tinybase_json = to_tinybase_json(&data, &user_id);
 
         Ok(ImportDataResult {
@@ -57,7 +57,7 @@ impl<R: tauri::Runtime> Importer<R> {
         }
 
         let data = crate::sources::import_all(source).await?;
-        Ok(data.stats())
+        Ok(ImportStats::from_data(&data))
     }
 }
 

@@ -26,6 +26,17 @@ export type {
   TemplatesState,
 };
 
+export type SettingsTab =
+  | "account"
+  | "app"
+  | "notifications"
+  | "system"
+  | "lab";
+
+export type SettingsState = {
+  tab: SettingsTab | null;
+};
+
 export const isEnhancedView = (
   view: EditorView,
 ): view is { type: "enhanced"; id: string } => view.type === "enhanced";
@@ -84,7 +95,7 @@ export type Tab =
       type: "changelog";
       state: ChangelogState;
     })
-  | (BaseTab & { type: "settings" })
+  | (BaseTab & { type: "settings"; state: SettingsState })
   | (BaseTab & {
       type: "ai";
       state: AiState;
@@ -171,7 +182,7 @@ export const getDefaultState = (tab: TabInput): Tab => {
         state: tab.state,
       };
     case "settings":
-      return { ...base, type: "settings" };
+      return { ...base, type: "settings", state: { tab: "account" } };
     case "ai":
       return {
         ...base,

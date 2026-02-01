@@ -5,11 +5,9 @@ import type { App } from "@slack/bolt";
 import type { KnownBlock } from "@slack/types";
 import { Blocks, Section } from "jsx-slack";
 
-import {
-  agent,
-  type AgentStateType,
-  type HumanResponse,
-} from "@hypr/agent-internal";
+import type { AgentStateType, HumanResponse } from "@hypr/agent-support";
+
+import { getAgentForChannel } from "../../config/agents";
 
 export function registerAgentApprovalAction(app: App) {
   app.action(
@@ -39,6 +37,7 @@ export function registerAgentApprovalAction(app: App) {
       });
 
       try {
+        const { agent } = getAgentForChannel(channel);
         const resumeValue: HumanResponse = { type: "accept", args: null };
         const result = (await agent.invoke(
           new Command({ resume: resumeValue }),
@@ -99,6 +98,7 @@ export function registerAgentApprovalAction(app: App) {
       });
 
       try {
+        const { agent } = getAgentForChannel(channel);
         const resumeValue: HumanResponse = { type: "ignore", args: null };
         const result = (await agent.invoke(
           new Command({ resume: resumeValue }),

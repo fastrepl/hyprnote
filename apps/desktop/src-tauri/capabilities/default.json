@@ -70,6 +70,7 @@
     "fs-db:default",
     "fs-sync:default",
     "fs2:default",
+    "git:default",
     "os:default",
     "opener2:default",
     "detect:default",

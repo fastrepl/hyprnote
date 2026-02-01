@@ -1,11 +1,11 @@
-import { Icon } from "@iconify-icon/react";
-import { useMediaQuery } from "@uidotdev/usehooks";
-import { useCallback } from "react";
+import { HeadsetIcon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
 import { useListener } from "../../../../../contexts/listener";
+import { useShell } from "../../../../../contexts/shell";
 import { useEventCountdown } from "../../../../../hooks/useEventCountdown";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import * as main from "../../../../../store/tinybase/store/main";
@@ -86,6 +86,10 @@ function BeforeMeeingButton({
   );
 }
 
+const SIDEBAR_WIDTH = 280;
+const LAYOUT_PADDING = 4;
+const EDITOR_WIDTH_THRESHOLD = 590;
+
 function SplitMeetingButtons({
   remote,
   disabled,
@@ -103,7 +107,22 @@ function SplitMeetingButtons({
 }) {
   const openNew = useTabs((state) => state.openNew);
   const countdown = useEventCountdown(sessionId);
-  const isNarrow = useMediaQuery("(max-width: 870px)");
+  const { leftsidebar } = useShell();
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useEffect(() => {
+    const calculateIsNarrow = () => {
+      const sidebarOffset = leftsidebar.expanded
+        ? SIDEBAR_WIDTH + LAYOUT_PADDING
+        : 0;
+      const availableWidth = window.innerWidth - sidebarOffset;
+      setIsNarrow(availableWidth < EDITOR_WIDTH_THRESHOLD);
+    };
+
+    calculateIsNarrow();
+    window.addEventListener("resize", calculateIsNarrow);
+    return () => window.removeEventListener("resize", calculateIsNarrow);
+  }, [leftsidebar.expanded]);
 
   const handleConfigure = useCallback(() => {
     onStartListening();
@@ -113,13 +132,15 @@ function SplitMeetingButtons({
   const getMeetingIcon = () => {
     switch (remote.type) {
       case "zoom":
-        return <Icon icon="logos:zoom-icon" width={20} />;
+        return <img src="/assets/zoom.png" width={20} height={20} />;
       case "google-meet":
-        return <Icon icon="logos:google-meet" width={20} />;
+        return <img src="/assets/meet.png" width={20} height={20} />;
       case "webex":
-        return <Icon icon="simple-icons:webex" width={20} />;
+        return <img src="/assets/webex.png" width={20} height={20} />;
       case "teams":
-        return <Icon icon="logos:microsoft-teams" width={20} />;
+        return <img src="/assets/teams.png" width={20} height={20} />;
+      default:
+        return <HeadsetIcon size={20} />;
     }
   };
 

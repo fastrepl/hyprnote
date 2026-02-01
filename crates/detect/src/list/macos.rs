@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use cidre::core_audio as ca;
 use hypr_bundle::{is_app_bundle, read_bundle_info};
+use objc2_app_kit::NSRunningApplication;
 use sysinfo::{Pid, System};
 
 use super::InstalledApp;
@@ -75,20 +76,26 @@ fn resolve_to_app(pid: i32) -> Option<InstalledApp> {
 }
 
 fn resolve_via_nsrunningapp(pid: i32) -> Option<InstalledApp> {
-    let running_app = cidre::ns::RunningApp::with_pid(pid)?;
+    std::panic::catch_unwind(|| resolve_via_nsrunningapp_inner(pid))
+        .ok()
+        .flatten()
+}
 
-    if let Some(bundle_url) = running_app.bundle_url() {
+fn resolve_via_nsrunningapp_inner(pid: i32) -> Option<InstalledApp> {
+    let app = NSRunningApplication::runningApplicationWithProcessIdentifier(pid)?;
+
+    if let Some(bundle_url) = app.bundleURL() {
         if let Some(path_ns) = bundle_url.path() {
             let path_str = path_ns.to_string();
-            if let Some(app) = find_outermost_app(Path::new(&path_str)) {
-                return Some(app);
+            if let Some(resolved) = find_outermost_app(Path::new(&path_str)) {
+                return Some(resolved);
             }
         }
     }
 
-    let bundle_id = running_app.bundle_id()?.to_string();
-    let name = running_app
-        .localized_name()
+    let bundle_id = app.bundleIdentifier()?.to_string();
+    let name = app
+        .localizedName()
         .map(|s| s.to_string())
         .unwrap_or_else(|| bundle_id.clone());
 
@@ -140,6 +147,7 @@ mod tests {
         }
     }
 
+    // cargo test -p detect --features list test_list_mic_using_apps -- --ignored --nocapture
     #[test]
     #[ignore]
     fn test_list_mic_using_apps() {

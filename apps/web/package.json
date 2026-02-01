@@ -52,7 +52,7 @@
     "mermaid": "^11.12.2",
     "motion": "^11.18.2",
     "postgres": "^3.4.8",
-    "posthog-js": "^1.335.2",
+    "posthog-js": "^1.336.1",
     "react": "^19.2.3",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.3",

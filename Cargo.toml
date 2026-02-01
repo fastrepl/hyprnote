@@ -11,7 +11,6 @@ debug = false
 resolver = "2"
 members = [
   "apps/*",
-  "apps/control/src-tauri",
   "apps/desktop/src-tauri",
   "crates/*",
   "plugins/*",
@@ -30,6 +29,7 @@ exclude = [
   "apps/api",
   "apps/bot",
   "apps/web",
+  "plugins/cli2",
   "plugins/db",
   "plugins/export",
 ]
@@ -59,11 +59,13 @@ hypr-download-interface = { path = "crates/download-interface", package = "downl
 hypr-eval = { path = "crates/eval", package = "eval" }
 hypr-extensions-runtime = { path = "crates/extensions-runtime", package = "extensions-runtime" }
 hypr-file = { path = "crates/file", package = "file" }
+hypr-flag = { path = "crates/flag", package = "flag" }
 hypr-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-granola = { path = "crates/granola", package = "granola" }
 hypr-host = { path = "crates/host", package = "host" }
+hypr-importer-core = { path = "crates/importer-core", package = "importer-core" }
 hypr-intercept = { path = "crates/intercept", package = "intercept" }
 hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
 hypr-language = { path = "crates/language", package = "language" }
@@ -82,6 +84,7 @@ hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
 hypr-openstatus = { path = "crates/openstatus", package = "openstatus" }
+hypr-posthog = { path = "crates/posthog", package = "posthog" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
@@ -149,6 +152,7 @@ tauri-plugin-flag = { path = "plugins/flag" }
 tauri-plugin-fs-db = { path = "plugins/fs-db" }
 tauri-plugin-fs-sync = { path = "plugins/fs-sync" }
 tauri-plugin-fs2 = { path = "plugins/fs2" }
+tauri-plugin-git = { path = "plugins/git" }
 tauri-plugin-hooks = { path = "plugins/hooks" }
 tauri-plugin-icon = { path = "plugins/icon" }
 tauri-plugin-importer = { path = "plugins/importer" }
@@ -275,7 +279,7 @@ specta = "2.0.0-rc.22"
 specta-typescript = "0.0.9"
 tauri-specta = "2.0.0-rc.21"
 
-cidre = "0.11.4"
+cidre = "0.13"
 cpal = "0.15.3"
 dasp = { version = "0.11.0", features = ["interpolate", "interpolate-linear"] }
 earshot = "0.1.0"

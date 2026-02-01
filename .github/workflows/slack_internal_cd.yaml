@@ -3,9 +3,14 @@ on:
   push:
     paths:
       - "apps/slack-internal/**"
-      - "packages/agent-internal/**"
+      - "packages/agent-support/**"
+      - "packages/agent-designer/**"
+      - "packages/agent-analytic/**"
     branches:
       - main
+
+env:
+  AGENT_CHANNEL_MAP: '{"C0AB7TVP9B5":"designer","C0AA8650ERE":"internal","C0ABRF9TQ3W":"analytic"}'
 
 jobs:
   deploy:
@@ -15,6 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl secrets set AGENT_CHANNEL_MAP='${{ env.AGENT_CHANNEL_MAP }}' --stage --app hyprnote-slack-internal
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       - run: flyctl deploy --config apps/slack-internal/fly.toml --remote-only --build-arg GIT_SHA=${{ github.sha }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

@@ -95,6 +95,26 @@ pub async fn resize_window_for_chat<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn resize_window_for_sidebar<R: tauri::Runtime>(
+    window: tauri::Window<R>,
+) -> Result<(), String> {
+    let outer_size = window.outer_size().map_err(|e| e.to_string())?;
+
+    if outer_size.width < 840 {
+        let new_size = tauri::PhysicalSize {
+            width: outer_size.width + 280,
+            height: outer_size.height,
+        };
+        window
+            .set_size(tauri::Size::Physical(new_size))
+            .map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn get_tinybase_values<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Option<String>, String> {
@@ -112,17 +132,17 @@ pub async fn set_tinybase_values<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_local_persister_loaded<R: tauri::Runtime>(
+pub async fn get_pinned_tabs<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<bool, String> {
-    app.get_local_persister_loaded()
+) -> Result<Option<String>, String> {
+    app.get_pinned_tabs()
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn set_local_persister_loaded<R: tauri::Runtime>(
+pub async fn set_pinned_tabs<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    v: bool,
+    v: String,
 ) -> Result<(), String> {
-    app.set_local_persister_loaded(v)
+    app.set_pinned_tabs(v)
 }

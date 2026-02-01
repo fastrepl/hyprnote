@@ -40,8 +40,8 @@ pub(super) fn session_to_transcript(session: &hypr_db_user::Session) -> Transcri
         .unwrap_or_default();
     let ended_at = session.record_end.map(|dt| dt.timestamp_millis() as f64);
 
-    let start_ms = session.record_start.map(|dt| dt.timestamp_millis() as f64);
-    let end_ms = session.record_end.map(|dt| dt.timestamp_millis() as f64);
+    let start_ms = words.first().and_then(|w| w.start_ms);
+    let end_ms = words.last().and_then(|w| w.end_ms);
 
     Transcript {
         id: session.id.clone(),

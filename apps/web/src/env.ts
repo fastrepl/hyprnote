@@ -34,6 +34,7 @@ export const env = createEnv({
     VITE_POSTHOG_HOST: z.string().default("https://us.i.posthog.com"),
     VITE_SENTRY_DSN: z.string().min(1).optional(),
     VITE_APP_VERSION: z.string().min(1).optional(),
+    VITE_OUTLIT_PUBLIC_KEY: z.string().min(1),
   },
 
   runtimeEnv: { ...process.env, ...import.meta.env },

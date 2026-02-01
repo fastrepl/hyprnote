@@ -24,6 +24,7 @@ pub(super) fn parse_session(id: &str, cells: &serde_json::Map<String, Value>) ->
             .to_string(),
         title: title.to_string(),
         raw_md: raw_md.map(String::from),
+        enhanced_content: None,
         folder_id: get_cell_str(cells, "folder_id").map(String::from),
         event_id: get_cell_str(cells, "event_id").map(String::from),
     })
@@ -103,7 +104,7 @@ pub(super) fn resolve_speaker_hint(hint: &SpeakerHintRaw) -> Option<String> {
     }
 }
 
-pub(super) fn parse_inline_words(json: &str, started_at: f64) -> Vec<Word> {
+pub(super) fn parse_inline_words(json: &str, _started_at: f64) -> Vec<Word> {
     let Ok(arr) = serde_json::from_str::<Vec<Value>>(json) else {
         return vec![];
     };
@@ -120,14 +121,8 @@ pub(super) fn parse_inline_words(json: &str, started_at: f64) -> Vec<Word> {
                     .and_then(|v| v.as_str())
                     .unwrap_or_default()
                     .to_string(),
-                start_ms: obj
-                    .get("start_ms")
-                    .and_then(|v| v.as_f64())
-                    .map(|ms| ms - started_at),
-                end_ms: obj
-                    .get("end_ms")
-                    .and_then(|v| v.as_f64())
-                    .map(|ms| ms - started_at),
+                start_ms: obj.get("start_ms").and_then(|v| v.as_f64()),
+                end_ms: obj.get("end_ms").and_then(|v| v.as_f64()),
                 channel: obj
                     .get("channel")
                     .and_then(|v| v.as_i64())

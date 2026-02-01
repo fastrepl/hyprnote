@@ -22,6 +22,8 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
 
   const listenerStatus = useListener((state) => state.live.status);
   const prevListenerStatus = usePrevious(listenerStatus);
+  const liveSessionId = useListener((state) => state.live.sessionId);
+  const prevLiveSessionId = usePrevious(liveSessionId);
 
   const indexes = main.UI.useIndexes(main.STORE_ID);
 
@@ -55,58 +57,13 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const store = main.UI.useStore(main.STORE_ID);
 
   const titleTaskId = createTaskId(sessionId, "title");
-  const handleTitleSuccess = useCallback(
-    ({ text }: { text: string }) => {
-      if (text && store) {
-        const trimmedTitle = text.trim();
-        if (!trimmedTitle || trimmedTitle === "<EMPTY>") {
-          setSkipReason("Could not generate a meaningful title");
-          return;
-        }
-        store.setPartialRow("sessions", sessionId, {
-          title: trimmedTitle,
-        });
-      }
-    },
-    [store, sessionId],
-  );
-  const titleTask = useAITaskTask(titleTaskId, "title", {
-    onSuccess: handleTitleSuccess,
-  });
+  const titleTask = useAITaskTask(titleTaskId, "title");
 
   const enhanceTaskId = autoEnhancedNoteId
     ? createTaskId(autoEnhancedNoteId, "enhance")
     : createTaskId("placeholder", "enhance");
 
-  const handleEnhanceSuccess = useCallback(
-    ({ text }: { text: string }) => {
-      if (text && autoEnhancedNoteId && store) {
-        try {
-          const jsonContent = md2json(text);
-          store.setPartialRow("enhanced_notes", autoEnhancedNoteId, {
-            content: JSON.stringify(jsonContent),
-          });
-
-          const currentTitle = store.getCell("sessions", sessionId, "title");
-          const trimmedTitle =
-            typeof currentTitle === "string" ? currentTitle.trim() : "";
-          if (!trimmedTitle && model) {
-            void titleTask.start({
-              model,
-              args: { sessionId },
-            });
-          }
-        } catch (error) {
-          console.error("Failed to convert markdown to JSON:", error);
-        }
-      }
-    },
-    [autoEnhancedNoteId, store, sessionId, model, titleTask.start],
-  );
-
-  const enhanceTask = useAITaskTask(enhanceTaskId, "enhance", {
-    onSuccess: handleEnhanceSuccess,
-  });
+  const enhanceTask = useAITaskTask(enhanceTaskId, "enhance");
 
   const createAndStartEnhance = useCallback(() => {
     if (!hasTranscript) {
@@ -152,21 +109,80 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
           llm_model: llmConn?.modelId,
         });
       }
+
+      const capturedStore = store;
+      const capturedNoteId = autoEnhancedNoteId;
+      const capturedSessionId = sessionId;
+      const capturedModel = model;
+      const capturedTitleStart = titleTask.start;
+
       void enhanceTask.start({
         model,
         args: { sessionId, enhancedNoteId: autoEnhancedNoteId },
+        onComplete: (text) => {
+          if (text && capturedStore && capturedNoteId) {
+            try {
+              const jsonContent = md2json(text);
+              capturedStore.setPartialRow("enhanced_notes", capturedNoteId, {
+                content: JSON.stringify(jsonContent),
+              });
+
+              const currentTitle = capturedStore.getCell(
+                "sessions",
+                capturedSessionId,
+                "title",
+              );
+              const trimmedTitle =
+                typeof currentTitle === "string" ? currentTitle.trim() : "";
+              if (!trimmedTitle && capturedModel) {
+                void capturedTitleStart({
+                  model: capturedModel,
+                  args: { sessionId: capturedSessionId },
+                  onComplete: (titleText) => {
+                    if (titleText && capturedStore) {
+                      const trimmed = titleText.trim();
+                      if (trimmed && trimmed !== "<EMPTY>") {
+                        capturedStore.setPartialRow(
+                          "sessions",
+                          capturedSessionId,
+                          { title: trimmed },
+                        );
+                      }
+                    }
+                  },
+                });
+              }
+            } catch (error) {
+              console.error("Failed to convert markdown to JSON:", error);
+            }
+          }
+        },
       });
     }
-  }, [autoEnhancedNoteId, model, sessionId, enhanceTask.start]);
+  }, [
+    autoEnhancedNoteId,
+    model,
+    sessionId,
+    store,
+    enhanceTask.start,
+    titleTask.start,
+  ]);
 
   useEffect(() => {
     const listenerJustStopped =
       prevListenerStatus === "active" && listenerStatus !== "active";
+    const wasThisSessionListening = prevLiveSessionId === sessionId;
 
-    if (listenerJustStopped) {
+    if (listenerJustStopped && wasThisSessionListening) {
       createAndStartEnhance();
     }
-  }, [listenerStatus, prevListenerStatus, createAndStartEnhance]);
+  }, [
+    listenerStatus,
+    prevListenerStatus,
+    prevLiveSessionId,
+    sessionId,
+    createAndStartEnhance,
+  ]);
 
   useEffect(() => {
     if (listenerStatus === "finalizing" && indexes) {

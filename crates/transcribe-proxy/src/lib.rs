@@ -11,6 +11,7 @@ mod upstream_url;
 pub use analytics::{SttAnalyticsReporter, SttEvent};
 pub use config::*;
 pub use error::*;
+pub use hypr_analytics::{AuthenticatedUserId, DeviceFingerprint};
 pub use hyprnote_routing::{
     HyprnoteRouter, HyprnoteRoutingConfig, RetryConfig, is_retryable_error,
 };

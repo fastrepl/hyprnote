@@ -2,6 +2,7 @@ mod auth;
 mod env;
 
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Duration;
 
 use axum::{Router, body::Body, extract::MatchedPath, http::Request, middleware};
@@ -10,14 +11,26 @@ use tower::ServiceBuilder;
 use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
 use tracing_subscriber::prelude::*;
 
+use hypr_analytics::AnalyticsClientBuilder;
+
 use auth::AuthState;
 use env::env;
 
 pub use auth::DEVICE_FINGERPRINT_HEADER;
 
 fn app() -> Router {
-    let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key);
-    let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys());
+    let analytics = {
+        let mut builder = AnalyticsClientBuilder::default();
+        if let Some(key) = &env().posthog_api_key {
+            builder = builder.with_posthog(key);
+        }
+        Arc::new(builder.build())
+    };
+
+    let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key)
+        .with_analytics(analytics.clone());
+    let stt_config =
+        hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys()).with_analytics(analytics);
     let auth_state = AuthState::new(&env().supabase_url);
 
     let protected_routes = Router::new()

@@ -244,7 +244,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
             className="absolute bottom-full left-0 right-0 mb-1"
           >
             <div className="bg-neutral-50 rounded-xl overflow-hidden shadow-xs border">
-              <div className="pt-1">
+              <div className="py-1">
                 <AnimatePresence mode="wait">
                   {currentView === "main" ? (
                     <motion.div

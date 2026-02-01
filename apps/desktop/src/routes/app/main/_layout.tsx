@@ -17,7 +17,7 @@ import { ShellProvider } from "../../../contexts/shell";
 import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
 import { useDeeplinkHandler } from "../../../hooks/useDeeplinkHandler";
-import { useTabs } from "../../../store/zustand/tabs";
+import { restorePinnedTabsToStore, useTabs } from "../../../store/zustand/tabs";
 
 export const Route = createFileRoute("/app/main/_layout")({
   component: Component,
@@ -27,15 +27,11 @@ function Component() {
   const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({
     from: "__root__",
   });
-  const { registerOnEmpty, registerCanClose, registerOnClose, openNew, pin } =
-    useTabs();
-  const tabs = useTabs((state) => state.tabs);
+  const { registerOnEmpty, registerCanClose, openNew, pin } = useTabs();
   const hasOpenedInitialTab = useRef(false);
   const liveSessionId = useListener((state) => state.live.sessionId);
   const liveStatus = useListener((state) => state.live.status);
   const prevLiveStatus = usePrevious(liveStatus);
-  const getSessionMode = useListener((state) => state.getSessionMode);
-  const stop = useListener((state) => state.stop);
 
   useDeeplinkHandler();
 
@@ -44,13 +40,24 @@ function Component() {
   }, [openNew]);
 
   useEffect(() => {
-    if (tabs.length === 0 && !hasOpenedInitialTab.current) {
-      hasOpenedInitialTab.current = true;
-      openDefaultEmptyTab();
-    }
+    const initializeTabs = async () => {
+      if (!hasOpenedInitialTab.current) {
+        hasOpenedInitialTab.current = true;
+        await restorePinnedTabsToStore(
+          openNew,
+          pin,
+          () => useTabs.getState().tabs,
+        );
+        const currentTabs = useTabs.getState().tabs;
+        if (currentTabs.length === 0) {
+          openDefaultEmptyTab();
+        }
+      }
+    };
 
+    initializeTabs();
     registerOnEmpty(openDefaultEmptyTab);
-  }, [tabs.length, openDefaultEmptyTab, registerOnEmpty]);
+  }, [openNew, pin, openDefaultEmptyTab, registerOnEmpty]);
 
   useEffect(() => {
     const justStartedListening =
@@ -65,18 +72,6 @@ function Component() {
       }
     }
   }, [liveStatus, prevLiveStatus, liveSessionId, pin]);
-
-  useEffect(() => {
-    registerOnClose((tab) => {
-      if (tab.type !== "sessions") {
-        return;
-      }
-      const mode = getSessionMode(tab.id);
-      if (mode === "active" || mode === "finalizing") {
-        stop();
-      }
-    });
-  }, [registerOnClose, getSessionMode, stop]);
 
   useEffect(() => {
     registerCanClose(() => true);

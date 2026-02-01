@@ -37,6 +37,14 @@ async isDisabled() : Promise<Result<boolean, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async identify(userId: string, payload: PropertiesPayload) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:analytics|identify", { userId, payload }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -52,7 +60,7 @@ async isDisabled() : Promise<Result<boolean, string>> {
 
 export type AnalyticsPayload = (Partial<{ [key in string]: null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }> }>) & { event: string }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type PropertiesPayload = { set?: Partial<{ [key in string]: JsonValue }>; set_once?: Partial<{ [key in string]: JsonValue }> }
+export type PropertiesPayload = { set?: Partial<{ [key in string]: JsonValue }>; set_once?: Partial<{ [key in string]: JsonValue }>; email?: string | null; user_id?: string | null }
 
 /** tauri-specta globals **/
 

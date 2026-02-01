@@ -7,7 +7,6 @@ import { useChatPersister } from "../persister/chat";
 import { useChatShortcutPersister } from "../persister/chat-shortcuts";
 import { useEventsPersister } from "../persister/events";
 import { useHumanPersister } from "../persister/human";
-import { useLocalPersister } from "../persister/local";
 import { useOrganizationPersister } from "../persister/organization";
 import { usePromptPersister } from "../persister/prompts";
 import { useSessionPersister } from "../persister/session";
@@ -18,7 +17,6 @@ import { type Store } from "./main";
 import { registerSaveHandler } from "./save";
 
 export function useMainPersisters(store: Store) {
-  const localPersister = useLocalPersister(store);
   const valuesPersister = useValuesPersister(store);
   const sessionPersister = useSessionPersister(store);
   const organizationPersister = useOrganizationPersister(store);
@@ -36,7 +34,6 @@ export function useMainPersisters(store: Store) {
     }
 
     const persisters = [
-      { id: "local", persister: localPersister },
       { id: "values", persister: valuesPersister },
       { id: "session", persister: sessionPersister },
       { id: "organization", persister: organizationPersister },
@@ -61,7 +58,6 @@ export function useMainPersisters(store: Store) {
       unsubscribes.forEach((unsub) => unsub());
     };
   }, [
-    localPersister,
     valuesPersister,
     sessionPersister,
     organizationPersister,
@@ -77,7 +73,6 @@ export function useMainPersisters(store: Store) {
   useInitializeStore(store);
 
   return {
-    localPersister,
     valuesPersister,
     sessionPersister,
     organizationPersister,

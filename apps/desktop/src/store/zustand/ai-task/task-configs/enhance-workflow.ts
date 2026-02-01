@@ -18,7 +18,6 @@ import type { TaskArgsMapTransformed, TaskConfig } from ".";
 import type { Store } from "../../../tinybase/store/main";
 import { getCustomPrompt } from "../../../tinybase/store/prompts";
 import {
-  addMarkdownSectionSeparators,
   normalizeBulletPoints,
   trimBeforeMarker,
 } from "../shared/transform_impl";
@@ -35,7 +34,6 @@ export const enhanceWorkflow: Pick<
   transforms: [
     trimBeforeMarker("#"),
     normalizeBulletPoints(),
-    addMarkdownSectionSeparators(),
     smoothStream({ delayInMs: 250, chunking: "line" }),
   ],
 };
@@ -147,21 +145,21 @@ async function generateTemplateIfNeeded(params: {
         temperature: 0,
         output: Output.object({ schema }),
         abortSignal: signal,
-        prompt: `Analyze this meeting content and suggest appropriate section headings for a comprehensive summary. 
+        prompt: `Analyze this meeting content and suggest appropriate section headings for a comprehensive summary.
   The sections should cover the main themes and topics discussed.
   Generate around 5-7 sections based on the content depth.
   Give me in bullet points.
-  
-  Content: 
+
+  Content:
   ---
   ${userPrompt}
   ---
-  
+
   Follow this JSON schema for your response. No additional properties.
   ---
   ${JSON.stringify(z.toJSONSchema(schema))}
   ---
-  
+
   IMPORTANT: Start with '{', NO \`\`\`json. (I will directly parse it with JSON.parse())`,
       });
 

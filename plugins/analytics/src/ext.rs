@@ -67,6 +67,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Analytics<'a, R, M> {
             .props
             .entry("bundle_id".into())
             .or_insert(bundle_id.into());
+
+        payload.props.entry("$set".into()).or_insert_with(|| {
+            serde_json::json!({
+                "app_version": app_version
+            })
+        });
     }
 
     pub fn set_disabled(&self, disabled: bool) -> Result<(), crate::Error> {
@@ -93,6 +99,25 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Analytics<'a, R, M> {
             let client = self.manager.state::<crate::ManagedState>();
             client
                 .set_properties(machine_id, payload)
+                .await
+                .map_err(crate::Error::HyprAnalytics)?;
+        }
+
+        Ok(())
+    }
+
+    pub async fn identify(
+        &self,
+        user_id: impl Into<String>,
+        payload: hypr_analytics::PropertiesPayload,
+    ) -> Result<(), crate::Error> {
+        if !self.is_disabled()? {
+            let machine_id = hypr_host::fingerprint();
+            let user_id = user_id.into();
+
+            let client = self.manager.state::<crate::ManagedState>();
+            client
+                .identify(user_id, machine_id, payload)
                 .await
                 .map_err(crate::Error::HyprAnalytics)?;
         }

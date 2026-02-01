@@ -52,10 +52,14 @@ function HeroSection() {
 }
 
 function JobsSection() {
+  const jobs = allJobs.filter(
+    (j) => import.meta.env.DEV || j.published !== false,
+  );
+
   return (
     <section className="pb-16 lg:pb-24">
       <div className="grid grid-cols-1 md:grid-cols-2">
-        {allJobs.map((job, index) => (
+        {jobs.map((job, index) => (
           <JobCard key={job.slug} job={job} hasBorder={index === 0} />
         ))}
       </div>

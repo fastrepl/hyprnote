@@ -1,8 +1,15 @@
 use std::path::Path;
 
 pub fn should_skip_path(relative_path: &str, path: &Path) -> bool {
-    if path.file_name().is_some_and(|name| name == ".DS_Store") {
-        return true;
+    if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+        if name == ".DS_Store" {
+            return true;
+        }
+
+        // https://docs.rs/tempfile/latest/tempfile/struct.Builder.html#method.prefix
+        if name.starts_with(".tmp") {
+            return true;
+        }
     }
 
     if relative_path == "store.json" {
@@ -39,6 +46,18 @@ mod tests {
     fn test_skip_ds_store() {
         let path = PathBuf::from("/some/path/.DS_Store");
         assert!(should_skip_path("some/path/.DS_Store", &path));
+    }
+
+    #[test]
+    fn test_skip_tmp_prefix() {
+        let path = PathBuf::from("/vault/.tmp6s1cca");
+        assert!(should_skip_path(".tmp6s1cca", &path));
+
+        let path = PathBuf::from("/vault/.tmpvdaLsp");
+        assert!(should_skip_path(".tmpvdaLsp", &path));
+
+        let path = PathBuf::from("/vault/subdir/.tmpABC123");
+        assert!(should_skip_path("subdir/.tmpABC123", &path));
     }
 
     #[test]

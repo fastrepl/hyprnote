@@ -44,10 +44,10 @@ async runImportDry(source: ImportSourceKind) : Promise<Result<ImportStats, strin
 
 export type ImportDataResult = { stats: ImportStats; data: JsonValue }
 export type ImportSourceInfo = { kind: ImportSourceKind | null; transform: TransformKind; name: string; path: string; revealPath: string }
-export type ImportSourceKind = "granola" | "hyprnote_v0_stable" | "hyprnote_v0_nightly" | "hyprnote_v1_sqlite" | "as_is"
-export type ImportStats = { notesCount: number; transcriptsCount: number; humansCount: number; organizationsCount: number; participantsCount: number; templatesCount: number; enhancedNotesCount: number }
+export type ImportSourceKind = "granola" | "hyprnote_v0_stable" | "hyprnote_v0_nightly" | "as_is"
+export type ImportStats = { sessionsCount: number; transcriptsCount: number; humansCount: number; organizationsCount: number; participantsCount: number; templatesCount: number; enhancedNotesCount: number }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type TransformKind = "hyprnote_v0" | "hyprnote_v1_sqlite" | "granola" | "as_is"
+export type TransformKind = "hyprnote_v0" | "granola" | "as_is"
 
 /** tauri-specta globals **/
 

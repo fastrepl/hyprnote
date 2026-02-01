@@ -15,6 +15,10 @@ import {
   type NavigationState,
 } from "./navigation";
 import {
+  pinnedPersistenceMiddleware,
+  restorePinnedTabsToStore,
+} from "./pinned-persistence";
+import {
   createRestoreSlice,
   type RestoreActions,
   restoreMiddleware,
@@ -22,8 +26,9 @@ import {
 } from "./restore";
 import { createStateUpdaterSlice, type StateBasicActions } from "./state";
 
-export type { Tab, TabInput } from "./schema";
+export type { SettingsState, SettingsTab, Tab, TabInput } from "./schema";
 export { isSameTab, rowIdfromTab, uniqueIdfromTab } from "./schema";
+export { restorePinnedTabsToStore };
 
 type State = BasicState & NavigationState & LifecycleState & RestoreState;
 type Actions = BasicActions &
@@ -34,15 +39,20 @@ type Actions = BasicActions &
 type Store = State & Actions;
 
 export const useTabs = create<Store>()(
-  restoreMiddleware(
-    lifecycleMiddleware(
-      navigationMiddleware((set, get) => ({
-        ...wrapSliceWithLogging("basic", createBasicSlice(set, get)),
-        ...wrapSliceWithLogging("state", createStateUpdaterSlice(set, get)),
-        ...wrapSliceWithLogging("navigation", createNavigationSlice(set, get)),
-        ...wrapSliceWithLogging("lifecycle", createLifecycleSlice(set, get)),
-        ...wrapSliceWithLogging("restore", createRestoreSlice(set, get)),
-      })),
+  pinnedPersistenceMiddleware(
+    restoreMiddleware(
+      lifecycleMiddleware(
+        navigationMiddleware((set, get) => ({
+          ...wrapSliceWithLogging("basic", createBasicSlice(set, get)),
+          ...wrapSliceWithLogging("state", createStateUpdaterSlice(set, get)),
+          ...wrapSliceWithLogging(
+            "navigation",
+            createNavigationSlice(set, get),
+          ),
+          ...wrapSliceWithLogging("lifecycle", createLifecycleSlice(set, get)),
+          ...wrapSliceWithLogging("restore", createRestoreSlice(set, get)),
+        })),
+      ),
     ),
   ),
 );

@@ -146,6 +146,8 @@ async fn run_stream_loop(ctx: StreamContext, mode: ChannelMode) {
 fn setup_mic_stream(
     ctx: &StreamContext,
 ) -> Result<impl futures_util::Stream<Item = Result<Vec<f32>, hypr_audio_utils::Error>>, ()> {
+    tracing::info!(device = ?ctx.mic_device, "setting up mic stream");
+
     let mut mic_input = match AudioInput::from_mic(ctx.mic_device.clone()) {
         Ok(input) => input,
         Err(err) => {

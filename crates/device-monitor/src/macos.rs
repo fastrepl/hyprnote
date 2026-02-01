@@ -298,6 +298,13 @@ extern "C-unwind" fn system_listener<S: EventSender>(
     for addr in addresses {
         match addr.selector {
             ca::PropSelector::HW_DEFAULT_INPUT_DEVICE => {
+                let device_name = ca::System::default_input_device()
+                    .ok()
+                    .and_then(|d| d.name().ok())
+                    .map(|n| n.to_string());
+
+                tracing::info!(device.switch = "input", device.name = ?device_name, "default device changed");
+
                 if ctx.listen_switch {
                     ctx.event_tx.send_switch(DeviceSwitch::DefaultInputChanged);
                 }
@@ -306,8 +313,16 @@ extern "C-unwind" fn system_listener<S: EventSender>(
                 }
             }
             ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE => {
+                let headphone = is_headphone_from_default_output_device();
+
+                let device_name = ca::System::default_output_device()
+                    .ok()
+                    .and_then(|d| d.name().ok())
+                    .map(|n| n.to_string());
+
+                tracing::info!(device.switch = "output", device.name = ?device_name, device.headphone = ?headphone, "default device changed");
+
                 if ctx.listen_switch {
-                    let headphone = is_headphone_from_default_output_device();
                     ctx.event_tx
                         .send_switch(DeviceSwitch::DefaultOutputChanged { headphone });
                 }
@@ -316,6 +331,8 @@ extern "C-unwind" fn system_listener<S: EventSender>(
                 }
             }
             ca::PropSelector::HW_DEVICES => {
+                tracing::info!(device.switch = "list", "device list changed");
+
                 if ctx.listen_switch {
                     ctx.event_tx.send_switch(DeviceSwitch::DeviceListChanged);
                 }

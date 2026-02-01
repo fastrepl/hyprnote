@@ -48,7 +48,13 @@ impl DetectorState {
         if new_state == self.last_state {
             return false;
         }
-        if now.duration_since(self.last_change) < self.debounce_duration {
+        let elapsed = now.duration_since(self.last_change);
+        if elapsed < self.debounce_duration {
+            tracing::info!(
+                mic.new_state = new_state,
+                mic.elapsed_ms = elapsed.as_millis() as u64,
+                "mic state change debounced"
+            );
             return false;
         }
         self.last_state = new_state;
@@ -199,7 +205,9 @@ extern "C-unwind" fn device_listener(
             continue;
         }
         if let Ok(device) = ca::System::default_input_device() {
-            data.ctx.handle_mic_change(is_mic_running(&device));
+            let mic_in_use = is_mic_running(&device);
+            tracing::info!(mic.in_use = mic_in_use, "device_listener callback");
+            data.ctx.handle_mic_change(mic_in_use);
         }
     }
 
@@ -232,6 +240,8 @@ extern "C-unwind" fn system_listener(
             );
         }
 
+        tracing::info!(mic.event = "input_device_changed", "switching listener");
+
         let Ok(new_device) = ca::System::default_input_device() else {
             continue;
         };
@@ -245,6 +255,11 @@ extern "C-unwind" fn system_listener(
             .is_ok()
         {
             let mic_in_use = is_mic_running(&new_device);
+            tracing::info!(
+                mic.event = "listener_attached",
+                mic.in_use = mic_in_use,
+                "new listener ready"
+            );
             *device_guard = Some(new_device);
             drop(device_guard);
             data.ctx.handle_mic_change(mic_in_use);

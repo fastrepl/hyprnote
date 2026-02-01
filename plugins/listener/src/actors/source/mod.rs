@@ -76,11 +76,14 @@ impl DeviceChangeWatcher {
     fn event_loop(event_rx: Receiver<DeviceSwitch>, actor: ActorRef<SourceMsg>) {
         loop {
             match event_rx.recv() {
-                Ok(DeviceSwitch::DefaultInputChanged) => {
-                    tracing::info!("default_input_changed_restarting_source");
-                    actor.stop(Some("device_change".to_string()));
+                Ok(event) => {
+                    let restart = matches!(event, DeviceSwitch::DefaultInputChanged);
+                    tracing::info!(device.event = ?event, source.will_restart = restart, "device watcher received");
+                    if restart {
+                        tracing::warn!("source actor stopping due to input device change");
+                        actor.stop(Some("input_device_changed".to_string()));
+                    }
                 }
-                Ok(_) => {}
                 Err(_) => break,
             }
         }

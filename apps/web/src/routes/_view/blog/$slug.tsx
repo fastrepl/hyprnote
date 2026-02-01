@@ -121,7 +121,7 @@ function HeroSection({ article }: { article: any }) {
   const avatarUrl = AUTHOR_AVATARS[article.author];
 
   return (
-    <header className="py-12 lg:py-16 text-center max-w-200 mx-auto px-4">
+    <header className="py-12 lg:py-16 text-center px-4">
       <Link
         to="/blog/"
         className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8"
@@ -129,6 +129,12 @@ function HeroSection({ article }: { article: any }) {
         <span>←</span>
         <span>Back to Blog</span>
       </Link>
+
+      {article.category && (
+        <p className="text-sm font-mono text-stone-500 mb-4">
+          {article.category}
+        </p>
+      )}
 
       <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-600 mb-6">
         {article.title}

@@ -96,7 +96,7 @@ pub fn abort_merge(path: &Path) -> Result<(), crate::Error> {
     Ok(())
 }
 
-fn restore_tree_entry(
+pub(super) fn restore_tree_entry(
     repo: &gix::Repository,
     workdir: &Path,
     entry: gix::objs::tree::Entry,
@@ -143,7 +143,7 @@ fn restore_tree_entry(
     Ok(())
 }
 
-fn populate_index_from_tree(
+pub(super) fn populate_index_from_tree(
     repo: &gix::Repository,
     state: &mut gix::index::State,
     tree_id: gix::ObjectId,

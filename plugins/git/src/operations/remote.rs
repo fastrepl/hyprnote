@@ -117,5 +117,41 @@ pub fn pull(path: &Path, remote_name: &str, branch: &str) -> Result<PullResult, 
     let head_ref = repo.git_dir().join("refs/heads").join(branch);
     std::fs::write(&head_ref, format!("{}\n", remote_commit))?;
 
+    let remote_tree = repo
+        .find_object(remote_commit)
+        .map_err(|e| crate::Error::Custom(e.to_string()))?
+        .try_into_commit()
+        .map_err(|e| crate::Error::Custom(e.to_string()))?
+        .tree_id()
+        .map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+    let workdir = repo
+        .workdir()
+        .ok_or_else(|| crate::Error::Custom("No working directory".to_string()))?;
+
+    let tree_obj = repo
+        .find_object(remote_tree)
+        .map_err(|e| crate::Error::Custom(e.to_string()))?
+        .try_into_tree()
+        .map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+    let entries: Result<Vec<_>, _> = tree_obj.iter().collect();
+    let entries = entries.map_err(|e| crate::Error::Custom(e.to_string()))?;
+
+    for entry in entries {
+        super::merge::restore_tree_entry(&repo, workdir, entry.inner.into(), Vec::new())?;
+    }
+
+    let mut new_state = gix::index::State::new(repo.object_hash());
+    super::merge::populate_index_from_tree(&repo, &mut new_state, remote_tree.into(), Vec::new())?;
+
+    let index_path = repo.git_dir().join("index");
+    let new_index = gix::index::File::from_state(new_state, index_path.clone());
+    let options = gix::index::write::Options::default();
+    let file = std::fs::File::create(&index_path)?;
+    new_index
+        .write_to(file, options)
+        .map_err(|e| crate::Error::Custom(e.to_string()))?;
+
     Ok(PullResult::Success { commits_pulled: 1 })
 }

@@ -1,6 +1,9 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 use sysinfo::System;
 
+#[cfg(target_os = "macos")]
+use std::os::unix::net::UnixStream;
+
 pub fn cpu_arch() -> String {
     System::cpu_arch()
 }
@@ -42,6 +45,40 @@ pub fn kill_processes_by_matcher(matcher: ProcessMatcher) -> u16 {
     }
 
     killed_count
+}
+
+#[cfg(target_os = "macos")]
+pub fn cleanup_stale_single_instance_socket(identifier: &str) -> bool {
+    use std::path::Path;
+    use std::time::Duration;
+
+    let normalized_identifier = identifier.replace(['.', '-'], "_");
+    let socket_path = format!("/tmp/{}_si.sock", normalized_identifier);
+
+    if !Path::new(&socket_path).exists() {
+        return false;
+    }
+
+    let is_stale = match UnixStream::connect(&socket_path) {
+        Ok(stream) => {
+            let _ = stream.set_read_timeout(Some(Duration::from_millis(100)));
+            false
+        }
+        Err(e) => {
+            matches!(
+                e.kind(),
+                std::io::ErrorKind::ConnectionRefused | std::io::ErrorKind::NotFound
+            )
+        }
+    };
+
+    if is_stale {
+        if std::fs::remove_file(&socket_path).is_ok() {
+            return true;
+        }
+    }
+
+    false
 }
 
 #[cfg(test)]

@@ -26,7 +26,7 @@ impl PosthogClient {
         event_name: &str,
         props: &HashMap<String, serde_json::Value>,
     ) -> Result<(), Error> {
-        let mut e = Event::new(event_name, &distinct_id.to_string());
+        let mut e = Event::new(event_name, distinct_id);
         e.set_timestamp(chrono::Utc::now().naive_utc());
 
         for (key, value) in props {
@@ -52,7 +52,7 @@ impl PosthogClient {
         set_once: &HashMap<String, serde_json::Value>,
         email: Option<&str>,
     ) -> Result<(), Error> {
-        let mut e = Event::new("$set", &distinct_id.to_string());
+        let mut e = Event::new("$set", distinct_id);
         e.set_timestamp(chrono::Utc::now().naive_utc());
 
         if !set.is_empty() {

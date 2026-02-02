@@ -289,16 +289,16 @@ function HeroSection({
   // A/B test feature flag for hero section
   const flagVariant = useFeatureFlagVariantKey("hero-ab-test");
 
-  // Determine which hero content to show based on variant
-  const heroContent = useMemo(() => {
+  // Determine which variant to use (validated against known variants)
+  const variant = useMemo(() => {
     if (typeof flagVariant !== "string" || !(flagVariant in HERO_VARIANTS)) {
-      return HERO_VARIANTS.control;
+      return "control";
     }
-    return HERO_VARIANTS[flagVariant as HeroVariant];
+    return flagVariant as HeroVariant;
   }, [flagVariant]);
 
-  // Get variant name for tracking
-  const variant = typeof flagVariant === "string" ? flagVariant : "control";
+  // Get hero content based on validated variant
+  const heroContent = HERO_VARIANTS[variant];
 
   // Track when the hero section is viewed with the variant
   useEffect(() => {

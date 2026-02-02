@@ -4,6 +4,7 @@ import { type ReactNode, useMemo } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn, safeParseDate, startOfDay } from "@hypr/utils";
 
+import { useConfigValue } from "../../../../config/use-config";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import {
@@ -280,14 +281,21 @@ function useTimelineData(): TimelineBucket[] {
     eventsWithoutSessionTable,
     sessionsWithMaybeEventTable,
   );
+  const timezone = useConfigValue("timezone");
 
   return useMemo(
     () =>
       buildTimelineBuckets({
         eventsWithoutSessionTable,
         sessionsWithMaybeEventTable,
+        timezone: timezone || undefined,
       }),
-    [eventsWithoutSessionTable, sessionsWithMaybeEventTable, currentTimeMs],
+    [
+      eventsWithoutSessionTable,
+      sessionsWithMaybeEventTable,
+      currentTimeMs,
+      timezone,
+    ],
   );
 }
 

@@ -1,12 +1,70 @@
 import type { Event, Session } from "@hypr/store";
 import {
   differenceInCalendarMonths,
-  differenceInDays,
   isPast,
   safeFormat,
   safeParseDate,
   startOfDay,
 } from "@hypr/utils";
+
+function getDateInTimezone(date: Date, timezone?: string): Date {
+  if (!timezone) {
+    return date;
+  }
+
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date);
+  const getPart = (type: string) =>
+    parts.find((p) => p.type === type)?.value ?? "0";
+
+  return new Date(
+    parseInt(getPart("year")),
+    parseInt(getPart("month")) - 1,
+    parseInt(getPart("day")),
+    parseInt(getPart("hour")),
+    parseInt(getPart("minute")),
+    parseInt(getPart("second")),
+  );
+}
+
+function startOfDayInTimezone(date: Date, timezone?: string): Date {
+  if (!timezone) {
+    return startOfDay(date);
+  }
+
+  const dateInTz = getDateInTimezone(date, timezone);
+  return new Date(
+    dateInTz.getFullYear(),
+    dateInTz.getMonth(),
+    dateInTz.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
+}
+
+function differenceInDaysInTimezone(
+  dateLeft: Date,
+  dateRight: Date,
+  timezone?: string,
+): number {
+  const leftStart = startOfDayInTimezone(dateLeft, timezone);
+  const rightStart = startOfDayInTimezone(dateRight, timezone);
+  return Math.round(
+    (leftStart.getTime() - rightStart.getTime()) / (1000 * 60 * 60 * 24),
+  );
+}
 
 export type TimelineEventRow = {
   started_at?: string | null;
@@ -54,14 +112,17 @@ export type TimelineBucket = {
   items: TimelineItem[];
 };
 
-export function getBucketInfo(date: Date): {
+export function getBucketInfo(
+  date: Date,
+  timezone?: string,
+): {
   label: string;
   sortKey: number;
   precision: TimelinePrecision;
 } {
-  const now = startOfDay(new Date());
-  const targetDay = startOfDay(date);
-  const daysDiff = differenceInDays(targetDay, now);
+  const now = startOfDayInTimezone(new Date(), timezone);
+  const targetDay = startOfDayInTimezone(date, timezone);
+  const daysDiff = differenceInDaysInTimezone(targetDay, now, timezone);
   const sortKey = targetDay.getTime();
   const absDays = Math.abs(daysDiff);
 
@@ -85,8 +146,9 @@ export function getBucketInfo(date: Date): {
     if (absDays <= 27) {
       const weeks = Math.max(1, Math.round(absDays / 7));
       const weekRangeEndDay = Math.max(7, weeks * 7 - 3);
-      const weekRangeEnd = startOfDay(
+      const weekRangeEnd = startOfDayInTimezone(
         new Date(now.getTime() - weekRangeEndDay * 24 * 60 * 60 * 1000),
+        timezone,
       );
       const weekSortKey = weekRangeEnd.getTime();
 
@@ -101,11 +163,13 @@ export function getBucketInfo(date: Date): {
     if (months === 0) {
       months = 1;
     }
-    const monthStart = startOfDay(
+    const monthStart = startOfDayInTimezone(
       new Date(targetDay.getFullYear(), targetDay.getMonth(), 1),
+      timezone,
     );
-    const lastDayInMonthBucket = startOfDay(
+    const lastDayInMonthBucket = startOfDayInTimezone(
       new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000),
+      timezone,
     );
     const monthSortKey = Math.min(
       monthStart.getTime(),
@@ -125,8 +189,9 @@ export function getBucketInfo(date: Date): {
   if (absDays <= 27) {
     const weeks = Math.max(1, Math.round(absDays / 7));
     const weekRangeStartDay = Math.max(7, weeks * 7 - 3);
-    const weekRangeStart = startOfDay(
+    const weekRangeStart = startOfDayInTimezone(
       new Date(now.getTime() + weekRangeStartDay * 24 * 60 * 60 * 1000),
+      timezone,
     );
     const weekSortKey = weekRangeStart.getTime();
 
@@ -141,11 +206,13 @@ export function getBucketInfo(date: Date): {
   if (months === 0) {
     months = 1;
   }
-  const monthStart = startOfDay(
+  const monthStart = startOfDayInTimezone(
     new Date(targetDay.getFullYear(), targetDay.getMonth(), 1),
+    timezone,
   );
-  const firstDayInMonthBucket = startOfDay(
+  const firstDayInMonthBucket = startOfDayInTimezone(
     new Date(now.getTime() + 28 * 24 * 60 * 60 * 1000),
+    timezone,
   );
   const monthSortKey = Math.max(
     monthStart.getTime(),
@@ -180,9 +247,11 @@ export function calculateIndicatorIndex(
 export function buildTimelineBuckets({
   eventsWithoutSessionTable,
   sessionsWithMaybeEventTable,
+  timezone,
 }: {
   eventsWithoutSessionTable: EventsWithoutSessionTable;
   sessionsWithMaybeEventTable: SessionsWithMaybeEventTable;
+  timezone?: string;
 }): TimelineBucket[] {
   const items: TimelineItem[] = [];
   const seenEvents = new Set<string>();
@@ -263,7 +332,7 @@ export function buildTimelineBuckets({
           item.data.created_at);
     const itemDate =
       safeParseDate(timestamp) ?? new Date(item.date + "T12:00:00");
-    const bucket = getBucketInfo(itemDate);
+    const bucket = getBucketInfo(itemDate, timezone);
 
     if (!bucketMap.has(bucket.label)) {
       bucketMap.set(bucket.label, {

@@ -1,9 +1,10 @@
 import { Icon } from "@iconify-icon/react";
+import { useFeatureFlagVariantKey } from "@posthog/react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -23,6 +24,55 @@ import { getHeroCTA, getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { useAnalytics } from "@/hooks/use-posthog";
 
 const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
+
+// Hero A/B test variants
+const HERO_VARIANTS = {
+  control: {
+    title: "Take Meeting Notes With AI of Your Choice",
+    subtitle:
+      "The only AI note-taker that lets you choose your preferred STT and LLM provider",
+    valueProps: [
+      {
+        title: "No Forced Stack",
+        description:
+          "Use our managed cloud, bring your own API keys, or run fully local models.",
+      },
+      {
+        title: "You Own Your Data",
+        description:
+          "Plain markdown files on your device. Works with Obsidian, Notion, or any tool.",
+      },
+      {
+        title: "Just Works",
+        description:
+          "A simple, familiar notepad with real-time transcription and AI summaries.",
+      },
+    ],
+  },
+  variant_a: {
+    title: "AI Notepad for Meetings—No Strings Attached.",
+    subtitle: "Own your data. Pick your AI provider. No bots. No lock-in",
+    valueProps: [
+      {
+        title: "No forced stack",
+        description:
+          "Choose your preferred STT and LLM provider. Use our managed service, bring your own Key, or run local models.",
+      },
+      {
+        title: "Files over apps",
+        description:
+          "Unlike other AI note-takers that lock your history in their app, Hyprnote saves notes as markdown files on your device.",
+      },
+      {
+        title: "Private by design",
+        description:
+          "System audio capture—no bot joins your calls, no calendar permissions needed. Data stays on your device.",
+      },
+    ],
+  },
+} as const;
+
+type HeroVariant = keyof typeof HERO_VARIANTS;
 
 const mainFeatures = [
   {
@@ -235,6 +285,27 @@ function HeroSection({
   const { track } = useAnalytics();
   const [shake, setShake] = useState(false);
 
+  // A/B test feature flag for hero section
+  const variant = useFeatureFlagVariantKey("hero-ab-test");
+
+  // Determine which hero content to show based on variant
+  const heroContent = useMemo(() => {
+    if (!variant || !(variant in HERO_VARIANTS)) {
+      return HERO_VARIANTS.control;
+    }
+    return HERO_VARIANTS[variant as HeroVariant];
+  }, [variant]);
+
+  // Track when the hero section is viewed with the variant
+  useEffect(() => {
+    if (variant) {
+      track("hero_section_viewed", {
+        variant,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [variant, track]);
+
   const mutation = useMutation({
     mutationFn: async (email: string) => {
       const intent = platform === "mobile" ? "Reminder" : "Waitlist";
@@ -245,6 +316,7 @@ function HeroSection({
         platform: platform,
         timestamp: new Date().toISOString(),
         email: email,
+        hero_variant: variant,
       });
 
       await addContact({
@@ -296,13 +368,10 @@ function HeroSection({
         >
           <div className="flex flex-col gap-6 max-w-4xl">
             <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
-              Take Meeting Notes With <br className="block sm:hidden" />
-              AI of Your Choice
+              {heroContent.title}
             </h1>
             <p className="text-lg sm:text-xl text-neutral-600">
-              The only AI note-taker that lets you choose{" "}
-              <br className="hidden sm:block" />
-              your preferred STT and LLM provider
+              {heroContent.subtitle}
             </p>
           </div>
 
@@ -421,7 +490,7 @@ function HeroSection({
         </div>
 
         <div className="w-full">
-          <ValuePropsGrid />
+          <ValuePropsGrid valueProps={heroContent.valueProps} />
           <div className="relative aspect-video w-full border-t border-neutral-100 hidden md:block overflow-hidden">
             <VideoThumbnail
               playbackId={MUX_PLAYBACK_ID}
@@ -434,36 +503,30 @@ function HeroSection({
   );
 }
 
-function ValuePropsGrid() {
+function ValuePropsGrid({
+  valueProps,
+}: {
+  valueProps: (typeof HERO_VARIANTS)["control"]["valueProps"];
+}) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 border-t border-neutral-100">
-      <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-          No Forced Stack
-        </h3>
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          Use our managed cloud, bring your own API keys, or run fully local
-          models.
-        </p>
-      </div>
-      <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-          You Own Your Data
-        </h3>
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          Plain markdown files on your device. Works with Obsidian, Notion, or
-          any tool.
-        </p>
-      </div>
-      <div className="p-6 text-left">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-          Just Works
-        </h3>
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          A simple, familiar notepad with real-time transcription and AI
-          summaries.
-        </p>
-      </div>
+      {valueProps.map((prop, index) => (
+        <div
+          key={prop.title}
+          className={cn([
+            "p-6 text-left border-b md:border-b-0",
+            index < valueProps.length - 1 && "md:border-r",
+            "border-neutral-100",
+          ])}
+        >
+          <h3 className="font-medium mb-1 text-neutral-900 font-mono">
+            {prop.title}
+          </h3>
+          <p className="text-sm text-neutral-600 leading-relaxed">
+            {prop.description}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import type { Ctx } from "../../ctx";
-import type { ExistingEvent, IncomingEvent } from "../../fetch/types";
+import type { IncomingEvent } from "../../fetch/types";
 import { getSessionForEvent, isSessionEmpty } from "../utils";
 import type { EventsSyncInput, EventsSyncOutput } from "./types";
 
@@ -92,34 +92,6 @@ export function syncEvents(
       continue;
     }
 
-    const rescheduledEvent = findRescheduledEvent(ctx, storeEvent, incoming);
-    const rescheduledEventKey = rescheduledEvent
-      ? getEventKey(
-          rescheduledEvent.tracking_id_event,
-          rescheduledEvent.started_at,
-          rescheduledEvent.has_recurrence_rules,
-        )
-      : undefined;
-
-    if (
-      rescheduledEvent &&
-      rescheduledEventKey &&
-      !handledEventKeys.has(rescheduledEventKey)
-    ) {
-      out.toUpdate.push({
-        ...storeEvent,
-        ...rescheduledEvent,
-        id: storeEvent.id,
-        tracking_id_event: rescheduledEvent.tracking_id_event,
-        user_id: storeEvent.user_id,
-        created_at: storeEvent.created_at,
-        calendar_id: storeEvent.calendar_id,
-        has_recurrence_rules: rescheduledEvent.has_recurrence_rules,
-      });
-      handledEventKeys.add(rescheduledEventKey);
-      continue;
-    }
-
     out.toDelete.push(storeEvent.id);
     if (sessionId) {
       out.toDeleteSessions.push(sessionId);
@@ -138,48 +110,4 @@ export function syncEvents(
   }
 
   return out;
-}
-
-function findRescheduledEvent(
-  ctx: Ctx,
-  storeEvent: ExistingEvent,
-  incomingEvents: IncomingEvent[],
-): IncomingEvent | undefined {
-  if (!storeEvent.started_at) {
-    return undefined;
-  }
-
-  const storeStartDate = new Date(storeEvent.started_at);
-
-  return incomingEvents.find((incoming) => {
-    if (!incoming.started_at) {
-      return false;
-    }
-
-    if (incoming.title !== storeEvent.title) {
-      return false;
-    }
-
-    const incomingCalendarId = ctx.calendarTrackingIdToId.get(
-      incoming.tracking_id_calendar,
-    );
-    if (incomingCalendarId !== storeEvent.calendar_id) {
-      return false;
-    }
-
-    const incomingStartDate = new Date(incoming.started_at);
-    const daysDiff = Math.abs(
-      (incomingStartDate.getTime() - storeStartDate.getTime()) /
-        (1000 * 60 * 60 * 24),
-    );
-    if (daysDiff > 30) {
-      return false;
-    }
-
-    if (incoming.tracking_id_event === storeEvent.tracking_id_event) {
-      return false;
-    }
-
-    return true;
-  });
 }

@@ -30,18 +30,30 @@ export const TimelineItemComponent = memo(
     item,
     precision,
     selected,
+    timezone,
   }: {
     item: TimelineItem;
     precision: TimelinePrecision;
     selected: boolean;
+    timezone?: string;
   }) => {
     if (item.type === "event") {
       return (
-        <EventItem item={item} precision={precision} selected={selected} />
+        <EventItem
+          item={item}
+          precision={precision}
+          selected={selected}
+          timezone={timezone}
+        />
       );
     }
     return (
-      <SessionItem item={item} precision={precision} selected={selected} />
+      <SessionItem
+        item={item}
+        precision={precision}
+        selected={selected}
+        timezone={timezone}
+      />
     );
   },
 );
@@ -99,10 +111,12 @@ const EventItem = memo(
     item,
     precision,
     selected,
+    timezone,
   }: {
     item: EventTimelineItem;
     precision: TimelinePrecision;
     selected: boolean;
+    timezone?: string;
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
     const indexes = main.UI.useIndexes(main.STORE_ID);
@@ -155,8 +169,8 @@ const EventItem = memo(
     const calendarId = item.data.calendar_id ?? null;
     const recurrenceSeriesId = item.data.recurrence_series_id;
     const displayTime = useMemo(
-      () => formatDisplayTime(item.data.started_at, precision),
-      [item.data.started_at, precision],
+      () => formatDisplayTime(item.data.started_at, precision, timezone),
+      [item.data.started_at, precision, timezone],
     );
 
     const openEvent = useCallback(
@@ -296,10 +310,12 @@ const SessionItem = memo(
     item,
     precision,
     selected,
+    timezone,
   }: {
     item: SessionTimelineItem;
     precision: TimelinePrecision;
     selected: boolean;
+    timezone?: string;
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
     const indexes = main.UI.useIndexes(main.STORE_ID);
@@ -336,8 +352,12 @@ const SessionItem = memo(
 
     const displayTime = useMemo(
       () =>
-        formatDisplayTime(eventStartedAt ?? item.data.created_at, precision),
-      [eventStartedAt, item.data.created_at, precision],
+        formatDisplayTime(
+          eventStartedAt ?? item.data.created_at,
+          precision,
+          timezone,
+        ),
+      [eventStartedAt, item.data.created_at, precision, timezone],
     );
 
     const handleClick = useCallback(() => {
@@ -399,29 +419,49 @@ const SessionItem = memo(
 function formatDisplayTime(
   timestamp: string | null | undefined,
   precision: TimelinePrecision,
+  timezone?: string,
 ): string {
   const date = safeParseDate(timestamp);
   if (!date) {
     return "";
   }
 
-  const time = date.toLocaleTimeString([], {
+  const timeOptions: Intl.DateTimeFormatOptions = {
     hour: "numeric",
     minute: "numeric",
-  });
+    timeZone: timezone,
+  };
+
+  const time = date.toLocaleTimeString([], timeOptions);
 
   if (precision === "time") {
     return time;
   }
 
-  const sameYear = date.getFullYear() === new Date().getFullYear();
-  const dateStr = sameYear
-    ? date.toLocaleDateString([], { month: "short", day: "numeric" })
-    : date.toLocaleDateString([], {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
+  const now = new Date();
+  const yearInTz = timezone
+    ? parseInt(
+        new Intl.DateTimeFormat("en-US", {
+          year: "numeric",
+          timeZone: timezone,
+        }).format(date),
+      )
+    : date.getFullYear();
+  const currentYearInTz = timezone
+    ? parseInt(
+        new Intl.DateTimeFormat("en-US", {
+          year: "numeric",
+          timeZone: timezone,
+        }).format(now),
+      )
+    : now.getFullYear();
+  const sameYear = yearInTz === currentYearInTz;
+
+  const dateOptions: Intl.DateTimeFormatOptions = sameYear
+    ? { month: "short", day: "numeric", timeZone: timezone }
+    : { month: "short", day: "numeric", year: "numeric", timeZone: timezone };
+
+  const dateStr = date.toLocaleDateString([], dateOptions);
 
   return `${dateStr}, ${time}`;
 }

@@ -61,6 +61,10 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["ai", "current_stt_model"],
     },
+    timezone: {
+      type: "string",
+      path: ["general", "timezone"],
+    },
     trial_expired_modal_dismissed_at: {
       type: "number",
       path: ["billing", "trial_expired_modal_dismissed_at"],

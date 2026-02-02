@@ -261,8 +261,8 @@ sentry = "=0.42.0"
 vergen-gix = "1"
 
 askama = "0.15"
-markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
-mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
+markdown = "1"
+mdast_util_to_markdown = "0.0.2"
 minijinja = "2.7.0"
 minijinja-contrib = "2.7.0"
 

@@ -38,7 +38,14 @@ export const loadRecentlyOpenedSessions = async (): Promise<string[]> => {
   const result = await commands.getRecentlyOpenedSessions();
   if (result.status === "ok" && result.data) {
     try {
-      return JSON.parse(result.data) as string[];
+      const parsed = JSON.parse(result.data);
+      if (
+        Array.isArray(parsed) &&
+        parsed.every((id) => typeof id === "string")
+      ) {
+        return parsed;
+      }
+      return [];
     } catch {
       return [];
     }

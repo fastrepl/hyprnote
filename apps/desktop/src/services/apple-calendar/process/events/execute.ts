@@ -39,6 +39,10 @@ export function executeForEventsSync(
       ctx.store.delRow("events", eventId);
     }
 
+    for (const sessionId of out.toDeleteSessions) {
+      ctx.store.delRow("sessions", sessionId);
+    }
+
     for (const event of out.toUpdate) {
       ctx.store.setPartialRow("events", event.id, {
         tracking_id_event: event.tracking_id_event,
@@ -50,7 +54,8 @@ export function executeForEventsSync(
         meeting_link: event.meeting_link,
         description: event.description,
         recurrence_series_id: event.recurrence_series_id,
-        ignored: event.ignored as boolean | undefined,
+        ignored: event.ignored,
+        has_recurrence_rules: event.has_recurrence_rules,
       });
       trackingIdToEventId.set(event.tracking_id_event!, event.id);
     }
@@ -83,6 +88,7 @@ export function executeForEventsSync(
         description: incomingEvent.description,
         recurrence_series_id: incomingEvent.recurrence_series_id,
         ignored: shouldIgnore || undefined,
+        has_recurrence_rules: incomingEvent.has_recurrence_rules,
       } satisfies EventStorage);
     }
   });

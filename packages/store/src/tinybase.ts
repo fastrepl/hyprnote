@@ -98,6 +98,7 @@ export const tableSchemaForTinybase = {
     note: { type: "string" },
     ignored: { type: "boolean" },
     recurrence_series_id: { type: "string" },
+    has_recurrence_rules: { type: "boolean" },
   } as const satisfies InferTinyBaseSchema<typeof eventSchema>,
   mapping_session_participant: {
     user_id: { type: "string" },

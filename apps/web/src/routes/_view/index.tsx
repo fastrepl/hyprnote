@@ -1,9 +1,10 @@
 import { Icon } from "@iconify-icon/react";
+import { useFeatureFlagVariantKey } from "@posthog/react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -12,6 +13,7 @@ import { GitHubOpenSource } from "@/components/github-open-source";
 import { GithubStars } from "@/components/github-stars";
 import { Image } from "@/components/image";
 import { LogoCloud } from "@/components/logo-cloud";
+import { FAQ, FAQItem } from "@/components/mdx-jobs";
 import { MockWindow } from "@/components/mock-window";
 import { SlashSeparator } from "@/components/slash-separator";
 import { SocialCard } from "@/components/social-card";
@@ -24,42 +26,90 @@ import { useAnalytics } from "@/hooks/use-posthog";
 
 const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
 
+// Hero A/B test variants
+const HERO_VARIANTS = {
+  control: {
+    title: "Take Meeting Notes With AI of Your Choice",
+    subtitle:
+      "The only AI note-taker that lets you choose your preferred STT and LLM provider",
+    valueProps: [
+      {
+        title: "No Forced Stack",
+        description:
+          "Use our managed cloud, bring your own API keys, or run fully local models.",
+      },
+      {
+        title: "You Own Your Data",
+        description:
+          "Plain markdown files on your device. Works with Obsidian, Notion, or any tool.",
+      },
+      {
+        title: "Just Works",
+        description:
+          "A simple, familiar notepad with real-time transcription and AI summaries.",
+      },
+    ],
+  },
+  variant_a: {
+    title: "AI Notepad for Meetings—No Strings Attached.",
+    subtitle: "Own your data. Pick your AI provider. No bots. No lock-in",
+    valueProps: [
+      {
+        title: "No forced stack",
+        description:
+          "Choose your preferred STT and LLM provider. Use our managed service, bring your own Key, or run local models.",
+      },
+      {
+        title: "Files over apps",
+        description:
+          "Unlike other AI note-takers that lock your history in their app, Hyprnote saves notes as markdown files on your device.",
+      },
+      {
+        title: "Private by design",
+        description:
+          "System audio capture—no bot joins your calls, no calendar permissions needed. Data stays on your device.",
+      },
+    ],
+  },
+} as const;
+
+type HeroVariant = keyof typeof HERO_VARIANTS;
+
 const mainFeatures = [
   {
     icon: "mdi:text-box-outline",
-    title: "Transcript",
-    description: "Realtime transcript and speaker identification",
+    title: "Real-time transcription",
+    description:
+      "While you take notes, Hyprnote listens and generates a live transcript",
     image: "/api/images/hyprnote/transcript.jpg",
     link: "/product/ai-notetaking#transcription",
   },
   {
     icon: "mdi:file-document-outline",
-    title: "Summary",
+    title: "AI summary",
     description:
-      "Create customized summaries with templates for various formats",
+      "Hyprnote combines your notes and the transcript to create a perfect summary",
     image: "/api/images/hyprnote/summary.jpg",
     link: "/product/ai-notetaking#summaries",
   },
   {
     icon: "mdi:chat-outline",
-    title: "Chat",
+    title: "AI Chat",
     description:
-      "Get context-aware answers in realtime, even from past meetings",
+      "Use natural language to get answers pulled directly from your transcript",
     image: "/api/images/hyprnote/chat.jpg",
     link: "/product/ai-assistant",
   },
   {
     icon: "mdi:window-restore",
-    title: "Floating Panel",
-    description:
-      "Compact notepad with transcript, summary, and chat during meetings",
+    title: "Floating panel",
+    description: "Overlay to quick access recording controls during calls",
     comingSoon: true,
   },
   {
-    icon: "mdi:calendar-check-outline",
-    title: "Daily Note",
-    description:
-      "Track todos and navigate emails and events throughout the day",
+    icon: "mdi:keyboard-outline",
+    title: "Keyboard shortcuts",
+    description: "Navigate and format quickly without touching your mouse",
     comingSoon: true,
   },
 ];
@@ -85,11 +135,11 @@ const detailsFeatures = [
     link: "/product/ai-notetaking#transcription",
   },
   {
-    icon: "mdi:account-multiple-outline",
-    title: "Contacts",
-    description: "Organize and manage your contacts with ease",
+    icon: "mdi:file-document-multiple-outline",
+    title: "Custom templates",
+    description: "Define what matters for each meeting type",
     image: "/api/images/hyprnote/contacts.jpg",
-    link: "/product/mini-apps#contacts",
+    link: "/product/ai-notetaking#templates",
   },
   {
     icon: "mdi:calendar-outline",
@@ -175,6 +225,8 @@ function Component() {
         <SlashSeparator />
         <GitHubOpenSource />
         <SlashSeparator />
+        <FAQSection />
+        <SlashSeparator />
         <ManifestoSection />
         <SlashSeparator />
         <BlogSection />
@@ -234,6 +286,30 @@ function HeroSection({
   const { track } = useAnalytics();
   const [shake, setShake] = useState(false);
 
+  // A/B test feature flag for hero section
+  const flagVariant = useFeatureFlagVariantKey("hero-ab-test");
+
+  // Determine which variant to use (validated against known variants)
+  const variant = useMemo(() => {
+    if (typeof flagVariant !== "string" || !(flagVariant in HERO_VARIANTS)) {
+      return "control";
+    }
+    return flagVariant as HeroVariant;
+  }, [flagVariant]);
+
+  // Get hero content based on validated variant
+  const heroContent = HERO_VARIANTS[variant];
+
+  // Track when the hero section is viewed with the variant
+  useEffect(() => {
+    if (variant) {
+      track("hero_section_viewed", {
+        variant,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [variant, track]);
+
   const mutation = useMutation({
     mutationFn: async (email: string) => {
       const intent = platform === "mobile" ? "Reminder" : "Waitlist";
@@ -244,6 +320,7 @@ function HeroSection({
         platform: platform,
         timestamp: new Date().toISOString(),
         email: email,
+        hero_variant: variant,
       });
 
       await addContact({
@@ -295,13 +372,10 @@ function HeroSection({
         >
           <div className="flex flex-col gap-6 max-w-4xl">
             <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
-              The AI notepad for <br className="block sm:hidden" />
-              private meetings
+              {heroContent.title}
             </h1>
             <p className="text-lg sm:text-xl text-neutral-600">
-              Hyprnote listens and summarizes your meetings{" "}
-              <br className="hidden sm:block" />
-              without sending any voice to remote servers
+              {heroContent.subtitle}
             </p>
           </div>
 
@@ -420,7 +494,7 @@ function HeroSection({
         </div>
 
         <div className="w-full">
-          <ValuePropsGrid />
+          <ValuePropsGrid valueProps={heroContent.valueProps} />
           <div className="relative aspect-video w-full border-t border-neutral-100 hidden md:block overflow-hidden">
             <VideoThumbnail
               playbackId={MUX_PLAYBACK_ID}
@@ -433,32 +507,33 @@ function HeroSection({
   );
 }
 
-function ValuePropsGrid() {
+function ValuePropsGrid({
+  valueProps,
+}: {
+  valueProps: ReadonlyArray<{
+    readonly title: string;
+    readonly description: string;
+  }>;
+}) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 border-t border-neutral-100">
-      <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">Private</h3>
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          Your notes stay local by default. Sync to a cloud only when you
-          choose.
-        </p>
-      </div>
-      <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-          Effortless
-        </h3>
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          A simple notepad that just works—fast, minimal, and distraction-free.
-        </p>
-      </div>
-      <div className="p-6 text-left">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-          Flexible
-        </h3>
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          Use any STT or LLM. Local or cloud. No lock-ins, no forced stack.
-        </p>
-      </div>
+      {valueProps.map((prop, index) => (
+        <div
+          key={prop.title}
+          className={cn([
+            "p-6 text-left border-b md:border-b-0",
+            index < valueProps.length - 1 && "md:border-r",
+            "border-neutral-100",
+          ])}
+        >
+          <h3 className="font-medium mb-1 text-neutral-900 font-mono">
+            {prop.title}
+          </h3>
+          <p className="text-sm text-neutral-600 leading-relaxed">
+            {prop.description}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
@@ -649,7 +724,7 @@ export function CoolStuffSection() {
     <section>
       <div className="text-center border-b border-neutral-100">
         <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
-          What makes Hyprnote different
+          Secure by Design
         </p>
       </div>
 
@@ -664,7 +739,7 @@ export function CoolStuffSection() {
               <h3 className="text-2xl font-serif text-stone-600">No bots</h3>
             </div>
             <p className="text-base text-neutral-600 leading-relaxed">
-              No intrusive bots joining your meetings.
+              Captures system audio—no bots join your calls.
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -680,11 +755,11 @@ export function CoolStuffSection() {
             <div className="flex items-center gap-3">
               <Icon icon="mdi:wifi-off" className="text-3xl text-stone-600" />
               <h3 className="text-2xl font-serif text-stone-600">
-                No internet
+                Fully local option
               </h3>
             </div>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Hyprnote is local-first. Take notes anywhere.
+              Audio, transcripts, and notes stay on your device as files.
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -708,7 +783,7 @@ export function CoolStuffSection() {
               <h3 className="text-xl font-serif text-stone-600">No bots</h3>
             </div>
             <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-              No intrusive bots joining your meetings.
+              Captures system audio—no bots join your calls.
             </p>
           </div>
           <div className="overflow-hidden">
@@ -723,10 +798,12 @@ export function CoolStuffSection() {
           <div className="p-6">
             <div className="flex items-center gap-3 mb-3">
               <Icon icon="mdi:wifi-off" className="text-2xl text-stone-600" />
-              <h3 className="text-xl font-serif text-stone-600">No internet</h3>
+              <h3 className="text-xl font-serif text-stone-600">
+                Fully local option
+              </h3>
             </div>
             <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-              Hyprnote is local-first. Take notes anywhere.
+              Audio, transcripts, and notes stay on your device as files.
             </p>
           </div>
           <div className="overflow-hidden">
@@ -1827,6 +1904,51 @@ function DetailsDesktopView() {
   );
 }
 
+function FAQSection() {
+  return (
+    <section className="py-16 px-4 laptop:px-0">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-serif text-stone-600 mb-4">
+            Frequently Asked Questions
+          </h2>
+        </div>
+
+        <FAQ>
+          <FAQItem question="What languages does Hyprnote support?">
+            45+ languages including English, Spanish, French, German, Japanese,
+            Mandarin, and more.
+          </FAQItem>
+
+          <FAQItem question="Can I import existing recordings?">
+            Yes. Upload audio files or transcripts to turn them into searchable,
+            summarized notes.
+          </FAQItem>
+
+          <FAQItem question="Does Hyprnote train AI models on my data?">
+            No. Hyprnote does not use your recordings, transcripts, or notes to
+            train AI models. When using cloud providers, your data is processed
+            according to their privacy policies, but Hyprnote itself never
+            collects or uses your data for training.
+          </FAQItem>
+
+          <FAQItem question="Is Hyprnote safe?">
+            Hyprnote doesn't store your conversations. Every meeting audio,
+            transcript, and note is a file on your computer. You decide if your
+            data ever leaves your device.
+          </FAQItem>
+
+          <FAQItem question="How is Hyprnote different from other AI note-takers?">
+            Plain markdown files instead of proprietary databases. System audio
+            capture instead of meeting bots. Your choice of AI provider instead
+            of vendor lock-in. Open source instead of a black box.
+          </FAQItem>
+        </FAQ>
+      </div>
+    </section>
+  );
+}
+
 function ManifestoSection() {
   return (
     <section className="py-16 px-4 laptop:px-0 bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
@@ -1851,8 +1973,8 @@ function ManifestoSection() {
               <p>
                 We believe in the power of notetaking, not notetakers. Meetings
                 should be moments of presence, not passive attendance. If you
-                are not added value, your time is better spent elsewhere for you
-                and your team.
+                are not adding value, your time is better spent elsewhere for
+                you and your team.
               </p>
               <p>
                 Hyprnote exists to preserve what makes us human: conversations
@@ -2065,12 +2187,11 @@ export function CTASection({
           />
         </div>
         <h2 className="text-2xl sm:text-3xl font-serif">
-          Where conversations
-          <br className="sm:hidden" /> stay yours
+          Your meetings. Your data.
+          <br className="sm:hidden" /> Your control.
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Start using Hyprnote today and bring clarity to your back-to-back
-          meetings
+          Start taking meeting notes with AI—without the lock-in
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           {platformCTA.action === "download" ? (

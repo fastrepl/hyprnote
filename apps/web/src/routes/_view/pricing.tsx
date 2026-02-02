@@ -10,8 +10,12 @@ import { fetchUser } from "@/functions/auth";
 export const Route = createFileRoute("/_view/pricing")({
   component: Component,
   loader: async () => {
-    const user = await fetchUser();
-    return { isAuthenticated: !!user };
+    try {
+      const user = await fetchUser();
+      return { isAuthenticated: !!user };
+    } catch {
+      return { isAuthenticated: false };
+    }
   },
 });
 

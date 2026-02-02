@@ -9,9 +9,9 @@ import { SlashSeparator } from "@/components/slash-separator";
 import {
   CoolStuffSection,
   CTASection,
-  DetailsSection,
   HowItWorksSection,
   MainFeaturesSection,
+  TemplatesSection,
 } from "@/routes/_view/index";
 
 export const Route = createFileRoute("/_view/vs/$slug")({
@@ -54,20 +54,9 @@ export const Route = createFileRoute("/_view/vs/$slug")({
 
 function Component() {
   const { doc } = Route.useLoaderData();
-  const [selectedDetail, setSelectedDetail] = useState(0);
   const [selectedFeature, setSelectedFeature] = useState(0);
-  const detailsScrollRef = useRef<HTMLDivElement>(null);
   const featuresScrollRef = useRef<HTMLDivElement>(null);
   const heroInputRef = useRef<HTMLInputElement>(null);
-
-  const scrollToDetail = (index: number) => {
-    setSelectedDetail(index);
-    if (detailsScrollRef.current) {
-      const container = detailsScrollRef.current;
-      const scrollLeft = container.offsetWidth * index;
-      container.scrollTo({ left: scrollLeft, behavior: "smooth" });
-    }
-  };
 
   const scrollToFeature = (index: number) => {
     setSelectedFeature(index);
@@ -102,12 +91,7 @@ function Component() {
           scrollToFeature={scrollToFeature}
         />
         <SlashSeparator />
-        <DetailsSection
-          detailsScrollRef={detailsScrollRef}
-          selectedDetail={selectedDetail}
-          setSelectedDetail={setSelectedDetail}
-          scrollToDetail={scrollToDetail}
-        />
+        <TemplatesSection />
         <SlashSeparator />
         <GitHubOpenSource />
         <SlashSeparator />

@@ -51,6 +51,7 @@ export function executeForEventsSync(
         description: event.description,
         recurrence_series_id: event.recurrence_series_id,
         ignored: event.ignored,
+        has_recurrence_rules: event.has_recurrence_rules,
       });
       trackingIdToEventId.set(event.tracking_id_event!, event.id);
     }
@@ -83,6 +84,7 @@ export function executeForEventsSync(
         description: incomingEvent.description,
         recurrence_series_id: incomingEvent.recurrence_series_id,
         ignored: shouldIgnore || undefined,
+        has_recurrence_rules: incomingEvent.has_recurrence_rules,
       } satisfies EventStorage);
     }
   });

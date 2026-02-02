@@ -34,6 +34,10 @@ export const eventSchema = z.object({
     (val) => val ?? undefined,
     z.string().optional(),
   ),
+  has_recurrence_rules: z.preprocess(
+    (val) => val ?? undefined,
+    z.boolean().optional(),
+  ),
 });
 
 export const calendarProviderSchema = z.enum(["apple", "google", "outlook"]);

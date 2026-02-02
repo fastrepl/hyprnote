@@ -3,8 +3,15 @@ import type { ExistingEvent, IncomingEvent } from "../../fetch/types";
 import { getSessionForEvent, isSessionEmpty } from "../utils";
 import type { EventsSyncInput, EventsSyncOutput } from "./types";
 
-function getEventKey(trackingId: string, startedAt?: string): string {
-  return startedAt ? `${trackingId}::${startedAt}` : trackingId;
+function getEventKey(
+  trackingId: string,
+  startedAt: string | undefined,
+  hasRecurrenceRules: boolean,
+): string {
+  if (hasRecurrenceRules && startedAt) {
+    return `${trackingId}::${startedAt}`;
+  }
+  return trackingId;
 }
 
 export function syncEvents(
@@ -18,29 +25,50 @@ export function syncEvents(
   };
 
   const incomingEventMap = new Map(
-    incoming.map((e) => [getEventKey(e.tracking_id_event, e.started_at), e]),
+    incoming.map((e) => [
+      getEventKey(e.tracking_id_event, e.started_at, e.has_recurrence_rules),
+      e,
+    ]),
   );
   const handledEventKeys = new Set<string>();
 
   for (const storeEvent of existing) {
     const sessionId = getSessionForEvent(ctx.store, storeEvent.id);
-    const hasNonEmptySession =
-      sessionId && !isSessionEmpty(ctx.store, sessionId);
+    const hasNonEmptySession = sessionId
+      ? !isSessionEmpty(ctx.store, sessionId)
+      : false;
 
     if (!ctx.calendarIds.has(storeEvent.calendar_id!)) {
       if (!hasNonEmptySession) {
+        // who deletes the leftover session?
         out.toDelete.push(storeEvent.id);
       }
       continue;
     }
 
     const trackingId = storeEvent.tracking_id_event;
-    const eventKey = trackingId
-      ? getEventKey(trackingId, storeEvent.started_at ?? undefined)
-      : undefined;
-    const matchingIncomingEvent = eventKey
-      ? incomingEventMap.get(eventKey)
-      : undefined;
+    let eventKey: string | undefined;
+    let matchingIncomingEvent: IncomingEvent | undefined;
+    if (!trackingId) {
+      eventKey = undefined;
+      matchingIncomingEvent = undefined;
+    } else if (storeEvent.has_recurrence_rules === undefined) {
+      // if a stored event does not have a has_recurrence_rules field,
+      // we check for both non-recurrent events and recurrent events.
+      eventKey = getEventKey(trackingId, storeEvent.started_at, false);
+      matchingIncomingEvent = incomingEventMap.get(eventKey);
+      if (!matchingIncomingEvent) {
+        eventKey = getEventKey(trackingId, storeEvent.started_at, true);
+        matchingIncomingEvent = incomingEventMap.get(eventKey);
+      }
+    } else {
+      eventKey = getEventKey(
+        trackingId,
+        storeEvent.started_at,
+        storeEvent.has_recurrence_rules,
+      );
+      matchingIncomingEvent = incomingEventMap.get(eventKey);
+    }
 
     if (matchingIncomingEvent && trackingId && eventKey) {
       out.toUpdate.push({
@@ -51,6 +79,7 @@ export function syncEvents(
         user_id: storeEvent.user_id,
         created_at: storeEvent.created_at,
         calendar_id: storeEvent.calendar_id,
+        has_recurrence_rules: matchingIncomingEvent.has_recurrence_rules,
       });
       handledEventKeys.add(eventKey);
       continue;
@@ -65,6 +94,7 @@ export function syncEvents(
       ? getEventKey(
           rescheduledEvent.tracking_id_event,
           rescheduledEvent.started_at,
+          rescheduledEvent.has_recurrence_rules,
         )
       : undefined;
 
@@ -81,6 +111,7 @@ export function syncEvents(
         user_id: storeEvent.user_id,
         created_at: storeEvent.created_at,
         calendar_id: storeEvent.calendar_id,
+        has_recurrence_rules: rescheduledEvent.has_recurrence_rules,
       });
       handledEventKeys.add(rescheduledEventKey);
       continue;
@@ -93,6 +124,7 @@ export function syncEvents(
     const incomingEventKey = getEventKey(
       incomingEvent.tracking_id_event,
       incomingEvent.started_at,
+      incomingEvent.has_recurrence_rules,
     );
     if (!handledEventKeys.has(incomingEventKey)) {
       out.toAdd.push(incomingEvent);

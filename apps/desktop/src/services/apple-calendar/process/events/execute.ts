@@ -39,6 +39,10 @@ export function executeForEventsSync(
       ctx.store.delRow("events", eventId);
     }
 
+    for (const sessionId of out.toDeleteSessions) {
+      ctx.store.delRow("sessions", sessionId);
+    }
+
     for (const event of out.toUpdate) {
       ctx.store.setPartialRow("events", event.id, {
         tracking_id_event: event.tracking_id_event,

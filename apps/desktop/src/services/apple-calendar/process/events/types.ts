@@ -1,6 +1,7 @@
 import type { ExistingEvent, IncomingEvent } from "../../fetch/types";
 
 export type EventId = string;
+export type SessionId = string;
 
 export type EventsSyncInput = {
   incoming: IncomingEvent[];
@@ -12,6 +13,7 @@ export type EventToUpdate = ExistingEvent &
 
 export type EventsSyncOutput = {
   toDelete: EventId[];
+  toDeleteSessions: SessionId[];
   toUpdate: EventToUpdate[];
   toAdd: IncomingEvent[];
 };

@@ -20,6 +20,7 @@ export function syncEvents(
 ): EventsSyncOutput {
   const out: EventsSyncOutput = {
     toDelete: [],
+    toDeleteSessions: [],
     toUpdate: [],
     toAdd: [],
   };
@@ -40,8 +41,10 @@ export function syncEvents(
 
     if (!ctx.calendarIds.has(storeEvent.calendar_id!)) {
       if (!hasNonEmptySession) {
-        // who deletes the leftover session?
         out.toDelete.push(storeEvent.id);
+        if (sessionId) {
+          out.toDeleteSessions.push(sessionId);
+        }
       }
       continue;
     }
@@ -118,6 +121,9 @@ export function syncEvents(
     }
 
     out.toDelete.push(storeEvent.id);
+    if (sessionId) {
+      out.toDeleteSessions.push(sessionId);
+    }
   }
 
   for (const incomingEvent of incoming) {

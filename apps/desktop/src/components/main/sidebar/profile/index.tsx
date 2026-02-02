@@ -6,6 +6,7 @@ import {
   FileTextIcon,
   FolderOpenIcon,
   MessageSquareIcon,
+  SearchIcon,
   SettingsIcon,
   SparklesIcon,
   UsersIcon,
@@ -168,6 +169,11 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openFeedback, closeMenu]);
 
+  const handleClickAdvancedSearch = useCallback(() => {
+    openNew({ type: "search" });
+    closeMenu();
+  }, [openNew, closeMenu]);
+
   // const handleClickData = useCallback(() => {
   //   openNew({ type: "data" });
   //   closeMenu();
@@ -197,6 +203,12 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       label: "Calendar",
       onClick: handleClickCalendar,
       badge: <Kbd className={kbdClass}>⌘ ⇧ C</Kbd>,
+    },
+    {
+      icon: SearchIcon,
+      label: "Advanced Search",
+      onClick: handleClickAdvancedSearch,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ F</Kbd>,
     },
     {
       icon: FileTextIcon,
@@ -265,7 +277,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                       {menuItems.map((item, index) => (
                         <div key={item.label}>
                           <MenuItem {...item} />
-                          {(index === 2 || index === 5 || index === 7) && (
+                          {(index === 3 || index === 6 || index === 8) && (
                             <div className="my-1 border-t border-neutral-100" />
                           )}
                         </div>

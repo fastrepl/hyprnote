@@ -28,6 +28,7 @@ import {
   TimelinePrecision,
 } from "../../../../utils/timeline";
 import { InteractiveButton } from "../../../interactive-button";
+import { DissolvingContainer } from "../../../ui/dissolving-container";
 
 export const TimelineItemComponent = memo(
   ({
@@ -320,7 +321,7 @@ const EventItem = memo(
       recurrenceSeriesId,
     ]);
 
-    return (
+    const content = (
       <ItemBase
         title={title}
         displayTime={displayTime}
@@ -331,6 +332,16 @@ const EventItem = memo(
         contextMenu={contextMenu}
       />
     );
+
+    if (attachedSessionId) {
+      return (
+        <DissolvingContainer sessionId={attachedSessionId} variant="sidebar">
+          {content}
+        </DissolvingContainer>
+      );
+    }
+
+    return content;
   },
 );
 
@@ -449,16 +460,18 @@ const SessionItem = memo(
     );
 
     return (
-      <ItemBase
-        title={title}
-        displayTime={displayTime}
-        calendarId={calendarId}
-        showSpinner={showSpinner}
-        selected={selected}
-        onClick={handleClick}
-        onCmdClick={handleCmdClick}
-        contextMenu={contextMenu}
-      />
+      <DissolvingContainer sessionId={sessionId} variant="sidebar">
+        <ItemBase
+          title={title}
+          displayTime={displayTime}
+          calendarId={calendarId}
+          showSpinner={showSpinner}
+          selected={selected}
+          onClick={handleClick}
+          onCmdClick={handleCmdClick}
+          contextMenu={contextMenu}
+        />
+      </DissolvingContainer>
     );
   },
 );

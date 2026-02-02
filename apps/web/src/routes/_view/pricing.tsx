@@ -5,9 +5,14 @@ import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
+import { fetchUser } from "@/functions/auth";
 
 export const Route = createFileRoute("/_view/pricing")({
   component: Component,
+  loader: async () => {
+    const user = await fetchUser();
+    return { isAuthenticated: !!user };
+  },
 });
 
 interface PricingPlan {
@@ -135,18 +140,30 @@ function HeroSection() {
 }
 
 function PricingCardsSection() {
+  const { isAuthenticated } = Route.useLoaderData();
+
   return (
     <section className="py-16 px-4 laptop:px-0">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
         {pricingPlans.map((plan) => (
-          <PricingCard key={plan.name} plan={plan} />
+          <PricingCard
+            key={plan.name}
+            plan={plan}
+            isAuthenticated={isAuthenticated}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function PricingCard({ plan }: { plan: PricingPlan }) {
+function PricingCard({
+  plan,
+  isAuthenticated,
+}: {
+  plan: PricingPlan;
+  isAuthenticated: boolean;
+}) {
   return (
     <div
       className={cn([
@@ -250,15 +267,28 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
         </div>
 
         {plan.price ? (
-          <Link
-            to="/auth/"
-            className={cn([
-              "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
-              "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
-            ])}
-          >
-            Get Started
-          </Link>
+          isAuthenticated ? (
+            <Link
+              to="/app/checkout/"
+              className={cn([
+                "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
+                "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+              ])}
+            >
+              Get Started
+            </Link>
+          ) : (
+            <Link
+              to="/auth/"
+              search={{ flow: "web", redirect: "/app/checkout" }}
+              className={cn([
+                "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
+                "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+              ])}
+            >
+              Get Started
+            </Link>
+          )
         ) : (
           <Link
             to="/download/"

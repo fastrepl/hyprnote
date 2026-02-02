@@ -73,7 +73,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
   const upgradeToPro = useCallback(async () => {
     const scheme = await getScheme();
     void openerCommands.openUrl(
-      `${env.VITE_APP_URL}/app/checkout?period=monthly&scheme=${scheme}`,
+      `${env.VITE_APP_URL}/app/checkout?scheme=${scheme}`,
       null,
     );
   }, []);

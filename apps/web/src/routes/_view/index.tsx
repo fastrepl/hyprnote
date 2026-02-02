@@ -34,17 +34,17 @@ const HERO_VARIANTS = {
       "The only AI note-taker that lets you choose your preferred STT and LLM provider",
     valueProps: [
       {
-        title: "No Forced Stack",
+        title: "No forced stack",
         description:
           "Use our managed cloud, bring your own API keys, or run fully local models.",
       },
       {
-        title: "You Own Your Data",
+        title: "You own your data",
         description:
           "Plain markdown files on your device. Works with Obsidian, Notion, or any tool.",
       },
       {
-        title: "Just Works",
+        title: "Just works",
         description:
           "A simple, familiar notepad with real-time transcription and AI summaries.",
       },
@@ -286,10 +286,8 @@ function HeroSection({
   const { track } = useAnalytics();
   const [shake, setShake] = useState(false);
 
-  // A/B test feature flag for hero section
   const flagVariant = useFeatureFlagVariantKey("hero-ab-test");
 
-  // Determine which variant to use (validated against known variants)
   const variant = useMemo(() => {
     if (typeof flagVariant !== "string" || !(flagVariant in HERO_VARIANTS)) {
       return "control";
@@ -297,10 +295,8 @@ function HeroSection({
     return flagVariant as HeroVariant;
   }, [flagVariant]);
 
-  // Get hero content based on validated variant
   const heroContent = HERO_VARIANTS[variant];
 
-  // Track when the hero section is viewed with the variant
   useEffect(() => {
     if (variant) {
       track("hero_section_viewed", {
@@ -370,7 +366,7 @@ function HeroSection({
           id="hero"
           className="flex flex-col items-center text-center gap-12 py-24 px-4 laptop:px-0"
         >
-          <div className="flex flex-col gap-6 max-w-4xl">
+          <div className="flex flex-col gap-6">
             <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
               {heroContent.title}
             </h1>
@@ -1726,7 +1722,7 @@ function DetailsTabletView({
           onMouseEnter={() => onPauseChange(true)}
           onMouseLeave={() => onPauseChange(false)}
         >
-          {detailsFeatures[selectedDetail].image ? (
+          {detailsFeatures[selectedDetail]?.image ? (
             <Image
               src={detailsFeatures[selectedDetail].image}
               alt={`${detailsFeatures[selectedDetail].title} feature`}
@@ -1735,7 +1731,7 @@ function DetailsTabletView({
           ) : (
             <img
               src="/api/images/hyprnote/static.webp"
-              alt={`${detailsFeatures[selectedDetail].title} feature`}
+              alt={`${detailsFeatures[selectedDetail]?.title ?? "Detail"} feature`}
               className="w-full h-full object-contain"
             />
           )}

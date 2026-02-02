@@ -77,7 +77,7 @@ export function SearchableSelect({
           aria-expanded={open}
           className={cn([
             "justify-between font-normal bg-white shadow-none focus-visible:ring-0",
-            "rounded-md px-3",
+            "rounded-lg px-3",
             className,
           ])}
         >

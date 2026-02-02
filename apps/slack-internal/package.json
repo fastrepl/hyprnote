@@ -7,7 +7,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@hypr/agent-analytic": "workspace:^",
     "@hypr/agent-designer": "workspace:^",
     "@hypr/agent-support": "workspace:^",
     "@langchain/core": "^1.1.18",

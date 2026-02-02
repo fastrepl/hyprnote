@@ -17,10 +17,7 @@ import { ShellProvider } from "../../../contexts/shell";
 import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
 import { useDeeplinkHandler } from "../../../hooks/useDeeplinkHandler";
-import * as main from "../../../store/tinybase/store/main";
 import {
-  restorePinnedTabsToStore,
-  restoreRecentlyOpenedToStore,
   usePinnedTabsSync,
   useRecentlyOpenedSync,
   useTabs,
@@ -35,7 +32,6 @@ function Component() {
     from: "__root__",
   });
   const { registerOnEmpty, registerCanClose, openNew, pin } = useTabs();
-  const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
   const hasOpenedInitialTab = useRef(false);
   const liveSessionId = useListener((state) => state.live.sessionId);
   const liveStatus = useListener((state) => state.live.status);
@@ -50,28 +46,15 @@ function Component() {
   }, [openNew]);
 
   useEffect(() => {
-    const initializeTabs = () => {
-      if (!hasOpenedInitialTab.current && store) {
-        hasOpenedInitialTab.current = true;
-        restorePinnedTabsToStore(
-          store,
-          openNew,
-          pin,
-          () => useTabs.getState().tabs,
-        );
-        restoreRecentlyOpenedToStore(store, (ids) => {
-          useTabs.setState({ recentlyOpenedSessionIds: ids });
-        });
-        const currentTabs = useTabs.getState().tabs;
-        if (currentTabs.length === 0) {
-          openDefaultEmptyTab();
-        }
+    if (!hasOpenedInitialTab.current) {
+      hasOpenedInitialTab.current = true;
+      const currentTabs = useTabs.getState().tabs;
+      if (currentTabs.length === 0) {
+        openDefaultEmptyTab();
       }
-    };
-
-    initializeTabs();
+    }
     registerOnEmpty(openDefaultEmptyTab);
-  }, [openNew, pin, openDefaultEmptyTab, registerOnEmpty, store]);
+  }, [openDefaultEmptyTab, registerOnEmpty]);
 
   useEffect(() => {
     const justStartedListening =

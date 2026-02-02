@@ -14,12 +14,10 @@ import {
   navigationMiddleware,
   type NavigationState,
 } from "./navigation";
-import { restorePinnedTabsToStore } from "./pinned-persistence";
 import {
   createRecentlyOpenedSlice,
   type RecentlyOpenedActions,
   type RecentlyOpenedState,
-  restoreRecentlyOpenedToStore,
 } from "./recently-opened";
 import {
   createRestoreSlice,
@@ -31,7 +29,6 @@ import { createStateUpdaterSlice, type StateBasicActions } from "./state";
 
 export type { SettingsState, SettingsTab, Tab, TabInput } from "./schema";
 export { isSameTab, rowIdfromTab, uniqueIdfromTab } from "./schema";
-export { restorePinnedTabsToStore, restoreRecentlyOpenedToStore };
 export { usePinnedTabsSync } from "./usePinnedTabsSync";
 export { useRecentlyOpenedSync } from "./useRecentlyOpenedSync";
 

@@ -107,7 +107,7 @@ function EmptyView() {
         />
         <ActionItem
           label="AI Settings"
-          shortcut={["⌘", "⇧", "A"]}
+          shortcut={["⌘", "⇧", ","]}
           onClick={openAiSettings}
         />
       </div>

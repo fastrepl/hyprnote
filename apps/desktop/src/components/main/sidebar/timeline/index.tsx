@@ -24,6 +24,7 @@ import {
 
 export function TimelineView() {
   const buckets = useTimelineData();
+  const timezone = useConfigValue("timezone") || undefined;
   const hasToday = useMemo(
     () => buckets.some((bucket) => bucket.label === "Today"),
     [buckets],
@@ -124,6 +125,7 @@ export function TimelineView() {
                   registerIndicator={setCurrentTimeIndicatorRef}
                   selectedSessionId={selectedSessionId}
                   selectedEventId={selectedEventId}
+                  timezone={timezone}
                 />
               ) : (
                 bucket.items.map((item) => {
@@ -137,6 +139,7 @@ export function TimelineView() {
                       item={item}
                       precision={bucket.precision}
                       selected={selected}
+                      timezone={timezone}
                     />
                   );
                 })
@@ -182,12 +185,14 @@ function TodayBucket({
   registerIndicator,
   selectedSessionId,
   selectedEventId,
+  timezone,
 }: {
   items: TimelineItem[];
   precision: TimelinePrecision;
   registerIndicator: (node: HTMLDivElement | null) => void;
   selectedSessionId: string | undefined;
   selectedEventId: string | undefined;
+  timezone?: string;
 }) {
   const currentTimeMs = useCurrentTimeMs();
 
@@ -242,6 +247,7 @@ function TodayBucket({
           item={entry.item}
           precision={precision}
           selected={selected}
+          timezone={timezone}
         />,
       );
     });
@@ -263,6 +269,7 @@ function TodayBucket({
     registerIndicator,
     selectedSessionId,
     selectedEventId,
+    timezone,
   ]);
 
   return renderedEntries;

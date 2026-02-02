@@ -235,7 +235,7 @@ function processChangelogContent(raw: string): {
   const markdown = fixImageUrls(body);
   const json = md2json(markdown);
   return {
-    content: addEmptyParagraphsBeforeHeaders(json),
+    content: json,
     date,
   };
 }

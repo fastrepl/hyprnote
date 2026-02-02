@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 import { cn } from "@hypr/utils";
 
 type DropdownOption = {
@@ -20,13 +22,25 @@ export function ParticipantDropdown({
   onSelect: (option: DropdownOption) => void;
   onHover: (index: number) => void;
 }) {
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+
+    const selectedElement = list.children[selectedIndex] as HTMLElement;
+    if (selectedElement) {
+      selectedElement.scrollIntoView({ block: "nearest" });
+    }
+  }, [selectedIndex]);
+
   if (options.length === 0) {
     return null;
   }
 
   return (
     <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md overflow-hidden">
-      <div className="max-h-[200px] overflow-auto py-1">
+      <div ref={listRef} className="max-h-[200px] overflow-auto py-1">
         {options.map((option, index) => (
           <button
             key={option.id}

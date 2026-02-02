@@ -34,6 +34,7 @@ import { ChatFloatingButton } from "../../chat";
 import { NotificationBadge } from "../../ui/notification-badge";
 import { TrafficLights } from "../../window/traffic-lights";
 import { useNewNote } from "../shared";
+import { TabContentSearch, TabItemSearch } from "./advanced-search";
 import { TabContentAI, TabItemAI } from "./ai";
 import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
@@ -543,6 +544,20 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "search") {
+    return (
+      <TabItemSearch
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
+      />
+    );
+  }
   return null;
 }
 
@@ -588,6 +603,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "ai") {
     return <TabContentAI tab={tab} />;
+  }
+  if (tab.type === "search") {
+    return <TabContentSearch tab={tab} />;
   }
   return null;
 }
@@ -942,6 +960,17 @@ function useTabsShortcuts() {
   useHotkeys(
     "mod+shift+l",
     () => openNew({ type: "folders", id: null }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+f",
+    () => openNew({ type: "search" }),
     {
       preventDefault: true,
       enableOnFormTags: true,

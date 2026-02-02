@@ -79,3 +79,10 @@ crate::common_derives! {
         pub tab: Option<AiTab>,
     }
 }
+
+crate::common_derives! {
+    #[derive(Default)]
+    pub struct SearchState {
+        pub selected_types: Option<Vec<String>>,
+    }
+}

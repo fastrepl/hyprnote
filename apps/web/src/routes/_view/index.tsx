@@ -286,15 +286,18 @@ function HeroSection({
   const [shake, setShake] = useState(false);
 
   // A/B test feature flag for hero section
-  const variant = useFeatureFlagVariantKey("hero-ab-test");
+  const flagVariant = useFeatureFlagVariantKey("hero-ab-test");
 
   // Determine which hero content to show based on variant
   const heroContent = useMemo(() => {
-    if (!variant || !(variant in HERO_VARIANTS)) {
+    if (typeof flagVariant !== "string" || !(flagVariant in HERO_VARIANTS)) {
       return HERO_VARIANTS.control;
     }
-    return HERO_VARIANTS[variant as HeroVariant];
-  }, [variant]);
+    return HERO_VARIANTS[flagVariant as HeroVariant];
+  }, [flagVariant]);
+
+  // Get variant name for tracking
+  const variant = typeof flagVariant === "string" ? flagVariant : "control";
 
   // Track when the hero section is viewed with the variant
   useEffect(() => {
@@ -506,7 +509,10 @@ function HeroSection({
 function ValuePropsGrid({
   valueProps,
 }: {
-  valueProps: (typeof HERO_VARIANTS)["control"]["valueProps"];
+  valueProps: ReadonlyArray<{
+    readonly title: string;
+    readonly description: string;
+  }>;
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 border-t border-neutral-100">

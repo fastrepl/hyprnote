@@ -217,7 +217,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       icon: SparklesIcon,
       label: "AI Settings",
       onClick: handleClickAI,
-      badge: <Kbd className={kbdClass}>⌘ ⇧ A</Kbd>,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ ,</Kbd>,
     },
     {
       icon: SettingsIcon,

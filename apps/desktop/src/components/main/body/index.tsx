@@ -912,7 +912,7 @@ function useTabsShortcuts() {
   );
 
   useHotkeys(
-    "mod+shift+a",
+    "mod+shift+comma",
     () => openNew({ type: "ai" }),
     {
       preventDefault: true,

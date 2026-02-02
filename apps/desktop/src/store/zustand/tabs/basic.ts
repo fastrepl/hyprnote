@@ -7,6 +7,10 @@ import { listenerStore } from "../listener/instance";
 import type { LifecycleState } from "./lifecycle";
 import type { NavigationState, TabHistory } from "./navigation";
 import { pushHistory } from "./navigation";
+import type {
+  RecentlyOpenedActions,
+  RecentlyOpenedState,
+} from "./recently-opened";
 import { getDefaultState, isSameTab, type Tab, type TabInput } from "./schema";
 
 export type BasicState = {
@@ -29,7 +33,11 @@ export type BasicActions = {
 };
 
 export const createBasicSlice = <
-  T extends BasicState & NavigationState & LifecycleState,
+  T extends BasicState &
+    NavigationState &
+    LifecycleState &
+    RecentlyOpenedState &
+    RecentlyOpenedActions,
 >(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
@@ -37,7 +45,7 @@ export const createBasicSlice = <
   tabs: [],
   currentTab: null,
   openCurrent: (tab) => {
-    const { tabs, history } = get();
+    const { tabs, history, addRecentlyOpened } = get();
     const currentActiveTab = tabs.find((t) => t.active);
 
     const isCurrentTabListening =
@@ -51,24 +59,38 @@ export const createBasicSlice = <
     } else {
       set(openTab(tabs, tab, history, true));
     }
+
+    if (tab.type === "sessions") {
+      addRecentlyOpened(tab.id);
+    }
+
     void analyticsCommands.event({
       event: "tab_opened",
       view: tab.type,
     });
   },
   openNew: (tab) => {
-    const { tabs, history } = get();
+    const { tabs, history, addRecentlyOpened } = get();
     set(openTab(tabs, tab, history, false));
+
+    if (tab.type === "sessions") {
+      addRecentlyOpened(tab.id);
+    }
+
     void analyticsCommands.event({
       event: "tab_opened",
       view: tab.type,
     });
   },
   select: (tab) => {
-    const { tabs } = get();
+    const { tabs, addRecentlyOpened } = get();
     const nextTabs = setActiveFlags(tabs, tab);
     const currentTab = nextTabs.find((t) => t.active) || null;
     set({ tabs: nextTabs, currentTab } as Partial<T>);
+
+    if (tab.type === "sessions") {
+      addRecentlyOpened(tab.id);
+    }
   },
   selectNext: () => {
     const { tabs, currentTab } = get();

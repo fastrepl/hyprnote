@@ -7,6 +7,7 @@ pub enum StoreKey {
     OnboardingLocal,
     TinybaseValues,
     PinnedTabs,
+    RecentlyOpenedSessions,
 }
 
 impl ScopedStoreKey for StoreKey {}

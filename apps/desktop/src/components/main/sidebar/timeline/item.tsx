@@ -12,11 +12,15 @@ import { cn, safeParseDate } from "@hypr/utils";
 
 import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
-import { deleteSessionCascade } from "../../../../store/tinybase/store/deleteSession";
+import {
+  captureSessionData,
+  deleteSessionCascade,
+} from "../../../../store/tinybase/store/deleteSession";
 import * as main from "../../../../store/tinybase/store/main";
 import { save } from "../../../../store/tinybase/store/save";
 import { getOrCreateSessionForEventId } from "../../../../store/tinybase/store/sessions";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
+import { useUndoDelete } from "../../../../store/zustand/undo-delete";
 import {
   type EventTimelineItem,
   type SessionTimelineItem,
@@ -123,6 +127,7 @@ const EventItem = memo(
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
     const invalidateResource = useTabs((state) => state.invalidateResource);
+    const { setDeletedSession, setTimeoutId, clear } = useUndoDelete();
 
     const eventId = item.id;
 
@@ -237,10 +242,34 @@ const EventItem = memo(
       if (!store || !attachedSessionId) {
         return;
       }
+
+      const capturedData = captureSessionData(
+        store,
+        indexes,
+        attachedSessionId,
+      );
+
       store.setPartialRow("events", eventId, { ignored: true });
       invalidateResource("sessions", attachedSessionId);
       void deleteSessionCascade(store, indexes, attachedSessionId);
-    }, [store, indexes, attachedSessionId, invalidateResource, eventId]);
+
+      if (capturedData) {
+        setDeletedSession(capturedData);
+        const timeoutId = setTimeout(() => {
+          clear();
+        }, 5000);
+        setTimeoutId(timeoutId);
+      }
+    }, [
+      store,
+      indexes,
+      attachedSessionId,
+      invalidateResource,
+      eventId,
+      setDeletedSession,
+      setTimeoutId,
+      clear,
+    ]);
 
     const handleRevealInFinder = useCallback(async () => {
       if (!attachedSessionId) {
@@ -322,6 +351,7 @@ const SessionItem = memo(
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
     const invalidateResource = useTabs((state) => state.invalidateResource);
+    const { setDeletedSession, setTimeoutId, clear } = useUndoDelete();
 
     const sessionId = item.id;
     const title =
@@ -370,9 +400,28 @@ const SessionItem = memo(
       if (!store) {
         return;
       }
+
+      const capturedData = captureSessionData(store, indexes, sessionId);
+
       invalidateResource("sessions", sessionId);
       void deleteSessionCascade(store, indexes, sessionId);
-    }, [store, indexes, sessionId, invalidateResource]);
+
+      if (capturedData) {
+        setDeletedSession(capturedData);
+        const timeoutId = setTimeout(() => {
+          clear();
+        }, 5000);
+        setTimeoutId(timeoutId);
+      }
+    }, [
+      store,
+      indexes,
+      sessionId,
+      invalidateResource,
+      setDeletedSession,
+      setTimeoutId,
+      clear,
+    ]);
 
     const handleRevealInFinder = useCallback(async () => {
       await save();

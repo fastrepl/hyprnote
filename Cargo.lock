@@ -17467,7 +17467,6 @@ dependencies = [
  "thiserror 2.0.17",
  "tiptap",
  "tokio",
- "tracing",
  "uuid",
  "version",
 ]

@@ -1,5 +1,4 @@
-import type { Event, Session } from "@hypr/store";
-import { isPast, safeFormat, safeParseDate } from "@hypr/utils";
+import { isPast, safeParseDate } from "@hypr/utils";
 
 interface DateParts {
   year: number;
@@ -53,26 +52,29 @@ function getSortKeyForDateInTimezone(date: Date, timezone?: string): number {
   return datePartsToUtcMidnight(parts);
 }
 
+// comes from QUERIES.timelineEvents
 export type TimelineEventRow = {
-  started_at?: string | null;
-  created_at?: string | null;
   title?: string | null;
-  [key: string]: unknown;
+  started_at?: string | null;
+  ended_at?: string | null;
+  calendar_id?: string | null;
+  recurrence_series_id?: string | null;
 };
 
+// comes from QUERIES.timelineSessions
 export type TimelineSessionRow = {
-  event_started_at?: string | null;
+  title?: string | null;
   created_at?: string | null;
   event_id?: string | null;
-  title?: string | null;
-  [key: string]: unknown;
+  folder_id?: string | null;
+  event_started_at?: string | null;
 };
 
-export type EventsWithoutSessionTable =
+export type TimelineEventsTable =
   | Record<string, TimelineEventRow>
   | null
   | undefined;
-export type SessionsWithMaybeEventTable =
+export type TimelineSessionsTable =
   | Record<string, TimelineSessionRow>
   | null
   | undefined;
@@ -80,14 +82,12 @@ export type SessionsWithMaybeEventTable =
 export type EventTimelineItem = {
   type: "event";
   id: string;
-  date: string;
-  data: Event;
+  data: TimelineEventRow;
 };
 export type SessionTimelineItem = {
   type: "session";
   id: string;
-  date: string;
-  data: Session;
+  data: TimelineSessionRow;
 };
 export type TimelineItem = EventTimelineItem | SessionTimelineItem;
 
@@ -234,76 +234,72 @@ export function calculateIndicatorIndex(
   return index;
 }
 
+export function getItemTimestamp(item: TimelineItem): Date | null {
+  const value =
+    item.type === "event"
+      ? item.data.started_at
+      : (item.data.event_started_at ?? item.data.created_at);
+  return safeParseDate(value);
+}
+
 export function buildTimelineBuckets({
-  eventsWithoutSessionTable,
-  sessionsWithMaybeEventTable,
+  timelineEventsTable,
+  timelineSessionsTable,
   timezone,
 }: {
-  eventsWithoutSessionTable: EventsWithoutSessionTable;
-  sessionsWithMaybeEventTable: SessionsWithMaybeEventTable;
+  timelineEventsTable: TimelineEventsTable;
+  timelineSessionsTable: TimelineSessionsTable;
   timezone?: string;
 }): TimelineBucket[] {
   const items: TimelineItem[] = [];
   const seenEvents = new Set<string>();
 
-  if (eventsWithoutSessionTable) {
-    Object.entries(eventsWithoutSessionTable).forEach(([eventId, row]) => {
+  if (timelineEventsTable) {
+    Object.entries(timelineEventsTable).forEach(([eventId, row]) => {
       const eventStartTime = safeParseDate(row.started_at);
 
       if (!eventStartTime) {
         return;
       }
 
-      const eventEndTime = safeParseDate((row as unknown as Event).ended_at);
+      const eventEndTime = safeParseDate(row.ended_at);
       const timeToCheck = eventEndTime || eventStartTime;
 
       if (!isPast(timeToCheck)) {
         items.push({
           type: "event",
           id: eventId,
-          date: safeFormat(eventStartTime, "yyyy-MM-dd"),
-          data: row as unknown as Event,
+          data: row,
         });
         seenEvents.add(eventId);
       }
     });
   }
 
-  if (sessionsWithMaybeEventTable) {
-    Object.entries(sessionsWithMaybeEventTable).forEach(([sessionId, row]) => {
+  if (timelineSessionsTable) {
+    Object.entries(timelineSessionsTable).forEach(([sessionId, row]) => {
       const eventId = row.event_id ? String(row.event_id) : undefined;
       if (eventId && seenEvents.has(eventId)) {
         return;
       }
 
-      const date = safeParseDate(row.event_started_at ?? row.created_at);
+      const startTime = safeParseDate(row.event_started_at ?? row.created_at);
 
-      if (!date) {
+      if (!startTime) {
         return;
       }
 
       items.push({
         type: "session",
         id: sessionId,
-        date: safeFormat(date, "yyyy-MM-dd"),
-        data: row as unknown as Session,
+        data: row,
       });
     });
   }
 
   items.sort((a, b) => {
-    const timeA =
-      a.type === "event"
-        ? a.data.started_at
-        : ((a.data as unknown as TimelineSessionRow).event_started_at ??
-          a.data.created_at);
-    const timeB =
-      b.type === "event"
-        ? b.data.started_at
-        : ((b.data as unknown as TimelineSessionRow).event_started_at ??
-          b.data.created_at);
-    const dateA = safeParseDate(timeA);
-    const dateB = safeParseDate(timeB);
+    const dateA = getItemTimestamp(a);
+    const dateB = getItemTimestamp(b);
     const timeAValue = dateA?.getTime() ?? 0;
     const timeBValue = dateB?.getTime() ?? 0;
     return timeBValue - timeAValue;
@@ -315,14 +311,10 @@ export function buildTimelineBuckets({
   >();
 
   items.forEach((item) => {
-    const timestamp =
-      item.type === "event"
-        ? item.data.started_at
-        : ((item.data as unknown as TimelineSessionRow).event_started_at ??
-          item.data.created_at);
-    const itemDate =
-      safeParseDate(timestamp) ?? new Date(item.date + "T12:00:00");
-    const bucket = getBucketInfo(itemDate, timezone);
+    const bucket = getBucketInfo(
+      getItemTimestamp(item) ?? new Date(0),
+      timezone,
+    );
 
     if (!bucketMap.has(bucket.label)) {
       bucketMap.set(bucket.label, {

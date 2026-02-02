@@ -2,7 +2,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn, safeParseDate, startOfDay } from "@hypr/utils";
+import { cn, startOfDay } from "@hypr/utils";
 
 import { useConfigValue } from "../../../../config/use-config";
 import * as main from "../../../../store/tinybase/store/main";
@@ -10,6 +10,7 @@ import { useTabs } from "../../../../store/zustand/tabs";
 import {
   buildTimelineBuckets,
   calculateIndicatorIndex,
+  getItemTimestamp,
   type TimelineBucket,
   type TimelineItem,
   type TimelinePrecision,
@@ -75,15 +76,10 @@ export function TimelineView() {
       (bucket) =>
         bucket.items.length > 0 &&
         (() => {
-          const firstItem = bucket.items[0];
-          const timestamp =
-            firstItem.type === "event"
-              ? firstItem.data.started_at
-              : firstItem.data.created_at;
-          if (!timestamp) {
+          const itemDate = getItemTimestamp(bucket.items[0]);
+          if (!itemDate) {
             return false;
           }
-          const itemDate = new Date(timestamp);
           return itemDate.getTime() < todayTimestamp;
         })(),
     );
@@ -276,38 +272,42 @@ function TodayBucket({
 }
 
 function useTimelineData(): TimelineBucket[] {
-  const eventsWithoutSessionTable = main.UI.useResultTable(
-    main.QUERIES.eventsWithoutSession,
+  const timelineEventsTable = main.UI.useResultTable(
+    main.QUERIES.timelineEvents,
     main.STORE_ID,
   );
-  const sessionsWithMaybeEventTable = main.UI.useResultTable(
-    main.QUERIES.sessionsWithMaybeEvent,
+  const timelineSessionsTable = main.UI.useResultTable(
+    main.QUERIES.timelineSessions,
     main.STORE_ID,
   );
+  const filteredTimelineEventsTable = useMemo(() => {
+    const sessionEventIds = new Set(
+      Object.values(timelineSessionsTable).map((session) => session.event_id),
+    );
+    return Object.fromEntries(
+      Object.entries(timelineEventsTable).filter(
+        ([key]) => !sessionEventIds.has(key),
+      ),
+    );
+  }, [timelineEventsTable, timelineSessionsTable]);
   const currentTimeMs = useSmartCurrentTime(
-    eventsWithoutSessionTable,
-    sessionsWithMaybeEventTable,
+    filteredTimelineEventsTable,
+    timelineSessionsTable,
   );
   const timezone = useConfigValue("timezone");
 
   return useMemo(
     () =>
       buildTimelineBuckets({
-        eventsWithoutSessionTable,
-        sessionsWithMaybeEventTable,
+        timelineEventsTable: filteredTimelineEventsTable,
+        timelineSessionsTable: timelineSessionsTable,
         timezone: timezone || undefined,
       }),
     [
-      eventsWithoutSessionTable,
-      sessionsWithMaybeEventTable,
+      filteredTimelineEventsTable,
+      timelineSessionsTable,
       currentTimeMs,
       timezone,
     ],
   );
-}
-
-function getItemTimestamp(item: TimelineItem): Date | null {
-  const value =
-    item.type === "event" ? item.data.started_at : item.data.created_at;
-  return safeParseDate(value);
 }

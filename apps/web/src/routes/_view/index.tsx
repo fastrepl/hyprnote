@@ -13,6 +13,7 @@ import { GitHubOpenSource } from "@/components/github-open-source";
 import { GithubStars } from "@/components/github-stars";
 import { Image } from "@/components/image";
 import { LogoCloud } from "@/components/logo-cloud";
+import { FAQ, FAQItem } from "@/components/mdx-jobs";
 import { MockWindow } from "@/components/mock-window";
 import { SlashSeparator } from "@/components/slash-separator";
 import { SocialCard } from "@/components/social-card";
@@ -1903,37 +1904,7 @@ function DetailsDesktopView() {
   );
 }
 
-const faqItems = [
-  {
-    question: "What languages does Hyprnote support?",
-    answer:
-      "45+ languages including English, Spanish, French, German, Japanese, Mandarin, and more.",
-  },
-  {
-    question: "Can I import existing recordings?",
-    answer:
-      "Yes. Upload audio files or transcripts to turn them into searchable, summarized notes.",
-  },
-  {
-    question: "Does Hyprnote train AI models on my data?",
-    answer:
-      "No. Hyprnote does not use your recordings, transcripts, or notes to train AI models. When using cloud providers, your data is processed according to their privacy policies, but Hyprnote itself never collects or uses your data for training.",
-  },
-  {
-    question: "Is Hyprnote safe?",
-    answer:
-      "Hyprnote doesn't store your conversations. Every meeting audio, transcript, and note is a file on your computer. You decide if your data ever leaves your device.",
-  },
-  {
-    question: "How is Hyprnote different from other AI note-takers?",
-    answer:
-      "Plain markdown files instead of proprietary databases. System audio capture instead of meeting bots. Your choice of AI provider instead of vendor lock-in. Open source instead of a black box.",
-  },
-];
-
 function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
   return (
     <section className="py-16 px-4 laptop:px-0">
       <div className="max-w-4xl mx-auto">
@@ -1943,34 +1914,36 @@ function FAQSection() {
           </h2>
         </div>
 
-        <div className="flex flex-col gap-4">
-          {faqItems.map((item, index) => (
-            <div
-              key={index}
-              className="border border-neutral-200 rounded-lg overflow-hidden"
-            >
-              <button
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 hover:bg-stone-50 transition-colors"
-              >
-                <span className="font-medium text-stone-700">
-                  {item.question}
-                </span>
-                <Icon
-                  icon={
-                    openIndex === index ? "mdi:chevron-up" : "mdi:chevron-down"
-                  }
-                  className="text-xl text-stone-500 flex-shrink-0"
-                />
-              </button>
-              {openIndex === index && (
-                <div className="px-6 pb-4 text-neutral-600 leading-relaxed">
-                  {item.answer}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        <FAQ>
+          <FAQItem question="What languages does Hyprnote support?">
+            45+ languages including English, Spanish, French, German, Japanese,
+            Mandarin, and more.
+          </FAQItem>
+
+          <FAQItem question="Can I import existing recordings?">
+            Yes. Upload audio files or transcripts to turn them into searchable,
+            summarized notes.
+          </FAQItem>
+
+          <FAQItem question="Does Hyprnote train AI models on my data?">
+            No. Hyprnote does not use your recordings, transcripts, or notes to
+            train AI models. When using cloud providers, your data is processed
+            according to their privacy policies, but Hyprnote itself never
+            collects or uses your data for training.
+          </FAQItem>
+
+          <FAQItem question="Is Hyprnote safe?">
+            Hyprnote doesn't store your conversations. Every meeting audio,
+            transcript, and note is a file on your computer. You decide if your
+            data ever leaves your device.
+          </FAQItem>
+
+          <FAQItem question="How is Hyprnote different from other AI note-takers?">
+            Plain markdown files instead of proprietary databases. System audio
+            capture instead of meeting bots. Your choice of AI provider instead
+            of vendor lock-in. Open source instead of a black box.
+          </FAQItem>
+        </FAQ>
       </div>
     </section>
   );

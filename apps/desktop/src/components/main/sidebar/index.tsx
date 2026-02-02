@@ -71,9 +71,12 @@ export function LeftSidebar() {
                 <PanelLeftCloseIcon size={16} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="flex items-center gap-2">
+            <TooltipContent
+              side="bottom"
+              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm text-neutral-700 border border-neutral-200/50 shadow-lg"
+            >
               <span>Toggle sidebar</span>
-              <Kbd>⌘ \</Kbd>
+              <Kbd className="animate-kbd-press">⌘ \</Kbd>
             </TooltipContent>
           </Tooltip>
         </div>

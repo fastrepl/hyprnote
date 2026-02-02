@@ -22,15 +22,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AuthPluginExt<R> for T {
 
     fn remove_item(&self, key: String) -> Result<(), crate::Error> {
         let store = self.store2().scoped_store(crate::PLUGIN_NAME)?;
-        store.set(key, serde_json::Value::Null)?;
+        store.delete(key)?;
         store.save()?;
         Ok(())
     }
 
     fn clear_auth(&self) -> Result<(), crate::Error> {
-        let store = self.store2().scoped_store(crate::PLUGIN_NAME)?;
-        store.set("access_token".to_string(), serde_json::Value::Null)?;
-        store.set("refresh_token".to_string(), serde_json::Value::Null)?;
+        let store = self.store2().scoped_store::<String>(crate::PLUGIN_NAME)?;
+        store.clear()?;
         store.save()?;
         Ok(())
     }

@@ -173,4 +173,8 @@ export const valueSchemaForTinybase = {
   current_llm_model: { type: "string" },
   current_stt_provider: { type: "string" },
   current_stt_model: { type: "string" },
+  timezone: { type: "string" },
+  pinned_tabs: { type: "string" },
+  recently_opened_sessions: { type: "string" },
+  dismissed_toasts: { type: "string" },
 } as const satisfies InferTinyBaseSchema<typeof generalSchema>;

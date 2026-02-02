@@ -200,6 +200,9 @@ export const generalSchema = z.object({
   current_stt_provider: z.string().optional(),
   current_stt_model: z.string().optional(),
   timezone: z.string().optional(),
+  pinned_tabs: z.string().default("[]"),
+  recently_opened_sessions: z.string().default("[]"),
+  dismissed_toasts: z.string().default("[]"),
 });
 
 export const aiProviderSchema = z

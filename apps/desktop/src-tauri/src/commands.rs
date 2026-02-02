@@ -19,23 +19,6 @@ pub async fn set_onboarding_needed<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_dismissed_toasts<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<Vec<String>, String> {
-    app.get_dismissed_toasts()
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn set_dismissed_toasts<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    v: Vec<String>,
-) -> Result<(), String> {
-    app.set_dismissed_toasts(v)
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn get_onboarding_local<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {
@@ -128,38 +111,4 @@ pub async fn set_tinybase_values<R: tauri::Runtime>(
     v: String,
 ) -> Result<(), String> {
     app.set_tinybase_values(v)
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn get_pinned_tabs<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<Option<String>, String> {
-    app.get_pinned_tabs()
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn set_pinned_tabs<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    v: String,
-) -> Result<(), String> {
-    app.set_pinned_tabs(v)
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn get_recently_opened_sessions<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<Option<String>, String> {
-    app.get_recently_opened_sessions()
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn set_recently_opened_sessions<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    v: String,
-) -> Result<(), String> {
-    app.set_recently_opened_sessions(v)
 }

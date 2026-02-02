@@ -17,9 +17,12 @@ import { ShellProvider } from "../../../contexts/shell";
 import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
 import { useDeeplinkHandler } from "../../../hooks/useDeeplinkHandler";
+import * as main from "../../../store/tinybase/store/main";
 import {
   restorePinnedTabsToStore,
   restoreRecentlyOpenedToStore,
+  usePinnedTabsSync,
+  useRecentlyOpenedSync,
   useTabs,
 } from "../../../store/zustand/tabs";
 
@@ -32,27 +35,31 @@ function Component() {
     from: "__root__",
   });
   const { registerOnEmpty, registerCanClose, openNew, pin } = useTabs();
+  const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
   const hasOpenedInitialTab = useRef(false);
   const liveSessionId = useListener((state) => state.live.sessionId);
   const liveStatus = useListener((state) => state.live.status);
   const prevLiveStatus = usePrevious(liveStatus);
 
   useDeeplinkHandler();
+  usePinnedTabsSync();
+  useRecentlyOpenedSync();
 
   const openDefaultEmptyTab = useCallback(() => {
     openNew({ type: "empty" });
   }, [openNew]);
 
   useEffect(() => {
-    const initializeTabs = async () => {
-      if (!hasOpenedInitialTab.current) {
+    const initializeTabs = () => {
+      if (!hasOpenedInitialTab.current && store) {
         hasOpenedInitialTab.current = true;
-        await restorePinnedTabsToStore(
+        restorePinnedTabsToStore(
+          store,
           openNew,
           pin,
           () => useTabs.getState().tabs,
         );
-        await restoreRecentlyOpenedToStore((ids) => {
+        restoreRecentlyOpenedToStore(store, (ids) => {
           useTabs.setState({ recentlyOpenedSessionIds: ids });
         });
         const currentTabs = useTabs.getState().tabs;
@@ -64,7 +71,7 @@ function Component() {
 
     initializeTabs();
     registerOnEmpty(openDefaultEmptyTab);
-  }, [openNew, pin, openDefaultEmptyTab, registerOnEmpty]);
+  }, [openNew, pin, openDefaultEmptyTab, registerOnEmpty, store]);
 
   useEffect(() => {
     const justStartedListening =

@@ -1,15 +1,11 @@
 import { useMemo } from "react";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@hypr/ui/components/ui/select";
-
 import { useConfigValue } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/store/settings";
+import {
+  SearchableSelect,
+  type SearchableSelectOption,
+} from "./searchable-select";
 
 const COMMON_TIMEZONES = [
   { value: "Pacific/Honolulu", label: "Hawaii (UTC-10)" },
@@ -49,6 +45,14 @@ export function TimezoneSelector() {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
   }, []);
 
+  const options: SearchableSelectOption[] = useMemo(
+    () => [
+      { value: "system", label: `System (${systemTimezone})` },
+      ...COMMON_TIMEZONES,
+    ],
+    [systemTimezone],
+  );
+
   const displayValue = value || "system";
 
   const handleChange = (val: string) => {
@@ -56,29 +60,21 @@ export function TimezoneSelector() {
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex-1">
+    <div className="flex flex-row items-center justify-between">
+      <div>
         <h3 className="text-sm font-medium mb-1">Timezone</h3>
-        <p className="text-xs text-neutral-600 mb-3">
-          Override the timezone used for the sidebar timeline. System timezone:{" "}
-          {systemTimezone}
+        <p className="text-xs text-neutral-600">
+          Override the timezone used for the sidebar timeline
         </p>
       </div>
-      <Select value={displayValue} onValueChange={handleChange}>
-        <SelectTrigger className="w-full focus:ring-0 focus:ring-offset-0">
-          <SelectValue placeholder="Select timezone" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="system">
-            Use system timezone ({systemTimezone})
-          </SelectItem>
-          {COMMON_TIMEZONES.map((tz) => (
-            <SelectItem key={tz.value} value={tz.value}>
-              {tz.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <SearchableSelect
+        value={displayValue}
+        onChange={handleChange}
+        options={options}
+        placeholder="Select timezone"
+        searchPlaceholder="Search timezone..."
+        className="w-56"
+      />
     </div>
   );
 }

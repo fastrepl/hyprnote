@@ -51,11 +51,3 @@ export const loadRecentlyOpenedSessions = (store: Store): string[] => {
   }
   return [];
 };
-
-export const restoreRecentlyOpenedToStore = (
-  store: Store,
-  set: (ids: string[]) => void,
-): void => {
-  const sessionIds = loadRecentlyOpenedSessions(store);
-  set(sessionIds);
-};

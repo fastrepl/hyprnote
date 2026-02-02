@@ -1,10 +1,5 @@
 import type { Store } from "../../tinybase/store/main";
-import {
-  getDefaultState,
-  type Tab,
-  type TabInput,
-  uniqueIdfromTab,
-} from "./schema";
+import { type Tab, type TabInput } from "./schema";
 
 export type PinnedTab = TabInput & { pinned: true };
 
@@ -41,28 +36,4 @@ export const loadPinnedTabs = (store: Store): PinnedTab[] => {
     return deserializePinnedTabs(data);
   }
   return [];
-};
-
-export const restorePinnedTabsToStore = (
-  store: Store,
-  openNew: (tab: TabInput) => void,
-  pin: (tab: Tab) => void,
-  getTabs: () => Tab[],
-): void => {
-  const pinnedTabs = loadPinnedTabs(store);
-
-  for (const pinnedTab of pinnedTabs) {
-    const { pinned, ...tabInput } = pinnedTab;
-    openNew(tabInput);
-
-    const tabs = getTabs();
-    const newTab = tabs.find((t) => {
-      const tabWithDefaults = getDefaultState(tabInput);
-      return uniqueIdfromTab(t) === uniqueIdfromTab(tabWithDefaults as Tab);
-    });
-
-    if (newTab && !newTab.pinned) {
-      pin(newTab);
-    }
-  }
 };

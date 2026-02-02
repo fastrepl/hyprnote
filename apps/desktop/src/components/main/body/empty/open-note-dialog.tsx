@@ -1,5 +1,5 @@
 import { Command as CommandPrimitive } from "cmdk";
-import { ClockIcon, FileTextIcon, SearchIcon } from "lucide-react";
+import { FileTextIcon, SearchIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -118,6 +118,11 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
       className="fixed inset-0 z-50 bg-black/20 backdrop-blur-xs"
       onClick={() => onOpenChange(false)}
     >
+      <div
+        data-tauri-drag-region
+        className="absolute top-0 left-0 right-0 h-[15%]"
+        onClick={(e) => e.stopPropagation()}
+      />
       <div className="absolute left-1/2 top-[15%] -translate-x-1/2 w-full max-w-lg px-4">
         <div
           className={cn([
@@ -171,10 +176,12 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                 <>
                   {filteredRecentSessions.length > 0 && (
                     <CommandPrimitive.Group
+                      className={
+                        filteredOtherSessions.length > 0 ? "pb-1.5" : ""
+                      }
                       heading={
-                        <div className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                          <ClockIcon className="w-3 h-3" />
-                          <span>Recent</span>
+                        <div className="px-2 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                          Recent
                         </div>
                       }
                     >
@@ -200,9 +207,13 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                   {filteredOtherSessions.length > 0 && (
                     <CommandPrimitive.Group
                       heading={
-                        <div className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                          <FileTextIcon className="w-3 h-3" />
-                          <span>All Notes</span>
+                        <div className="flex flex-col gap-3">
+                          {filteredRecentSessions.length > 0 && (
+                            <div className="h-px bg-neutral-200 mx-2" />
+                          )}
+                          <div className="px-2 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                            All Notes
+                          </div>
                         </div>
                       }
                     >

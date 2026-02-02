@@ -1,3 +1,5 @@
+import { createAppAuth } from "@octokit/auth-app";
+import { Octokit } from "@octokit/rest";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
@@ -62,70 +64,74 @@ async function analyzeLogsWithAI(logs: string): Promise<string | null> {
   }
 }
 
+function getGitHubClient(): Octokit | null {
+  if (
+    !env.GITHUB_APP_ID ||
+    !env.GITHUB_APP_PRIVATE_KEY ||
+    !env.GITHUB_APP_INSTALLATION_ID
+  ) {
+    return null;
+  }
+
+  return new Octokit({
+    authStrategy: createAppAuth,
+    auth: {
+      appId: env.GITHUB_APP_ID,
+      privateKey: env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      installationId: env.GITHUB_APP_INSTALLATION_ID,
+    },
+  });
+}
+
 async function createGitHubIssue(
   title: string,
   body: string,
   labels: string[],
-  issueType: string,
 ): Promise<{ url: string; number: number } | { error: string }> {
-  if (!env.YUJONGLEE_GITHUB_TOKEN_REPO) {
-    return { error: "GitHub bot token not configured" };
+  const octokit = getGitHubClient();
+  if (!octokit) {
+    return { error: "GitHub App credentials not configured" };
   }
 
-  const response = await fetch(
-    "https://api.github.com/repos/fastrepl/hyprnote/issues",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.YUJONGLEE_GITHUB_TOKEN_REPO}`,
-        Accept: "application/vnd.github.v3+json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        body,
-        labels,
-        type: issueType,
-      }),
-    },
-  );
+  try {
+    const response = await octokit.issues.create({
+      owner: "fastrepl",
+      repo: "hyprnote",
+      title,
+      body,
+      labels,
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    return { error: `GitHub API error: ${response.status} - ${errorText}` };
+    return {
+      url: response.data.html_url,
+      number: response.data.number,
+    };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return { error: `GitHub API error: ${errorMessage}` };
   }
-
-  const data = (await response.json()) as {
-    html_url?: string;
-    number?: number;
-  };
-  if (!data.html_url || !data.number) {
-    return { error: "GitHub API did not return issue URL" };
-  }
-
-  return { url: data.html_url, number: data.number };
 }
 
 async function addCommentToIssue(
   issueNumber: number,
   comment: string,
 ): Promise<void> {
-  if (!env.YUJONGLEE_GITHUB_TOKEN_REPO) {
+  const octokit = getGitHubClient();
+  if (!octokit) {
     return;
   }
 
-  await fetch(
-    `https://api.github.com/repos/fastrepl/hyprnote/issues/${issueNumber}/comments`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.YUJONGLEE_GITHUB_TOKEN_REPO}`,
-        Accept: "application/vnd.github.v3+json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ body: comment }),
-    },
-  );
+  try {
+    await octokit.issues.createComment({
+      owner: "fastrepl",
+      repo: "hyprnote",
+      issue_number: issueNumber,
+      body: comment,
+    });
+  } catch {
+    // Silently fail for comment creation
+  }
 }
 
 export const feedback = new Hono<AppBindings>();
@@ -200,9 +206,8 @@ ${deviceInfoSection}
 `;
 
     const labels = ["product/desktop"];
-    const issueType = type === "bug" ? "Bug" : "Feature";
 
-    const result = await createGitHubIssue(title, body, labels, issueType);
+    const result = await createGitHubIssue(title, body, labels);
 
     if ("error" in result) {
       return c.json({ success: false, error: result.error }, 500);

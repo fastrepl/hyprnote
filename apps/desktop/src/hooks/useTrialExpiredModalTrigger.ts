@@ -23,7 +23,7 @@ export function useTrialExpiredModalTrigger() {
       return;
     }
 
-    if (canStartTrial.isPending) {
+    if (!isPro && canStartTrial.isPending) {
       return;
     }
 

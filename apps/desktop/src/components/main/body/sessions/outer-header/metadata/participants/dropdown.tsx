@@ -41,7 +41,7 @@ export function ParticipantDropdown({
 
   return (
     <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md overflow-hidden">
-      <div ref={listRef} className="max-h-[200px] overflow-auto py-1">
+      <div ref={listRef} className="max-h-50 overflow-auto py-1">
         {options.map((option, index) => (
           <button
             key={option.id}

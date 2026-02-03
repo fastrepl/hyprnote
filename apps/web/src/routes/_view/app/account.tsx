@@ -18,11 +18,13 @@ const VALID_SCHEMES = [
   "hypr",
 ] as const;
 
-const validateSearch = z.object({
-  success: z.coerce.boolean().default(false),
-  trial: z.enum(["started"]).optional(),
-  scheme: z.enum(VALID_SCHEMES).optional(),
-});
+const validateSearch = z
+  .object({
+    success: z.coerce.boolean(),
+    trial: z.enum(["started"]),
+    scheme: z.enum(VALID_SCHEMES),
+  })
+  .partial();
 
 export const Route = createFileRoute("/_view/app/account")({
   validateSearch,

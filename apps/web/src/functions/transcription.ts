@@ -9,7 +9,7 @@ import {
 } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 
-import { env } from "@/env";
+import { env, requireEnv } from "@/env";
 import { getSupabaseServerClient } from "@/functions/supabase";
 
 export type PipelineStatusType =
@@ -158,7 +158,9 @@ export const transcribeAudio = createServerFn({ method: "POST" })
       return { error: true, message: "Unauthorized" };
     }
 
-    const deepgram = createDeepgramClient(env.DEEPGRAM_API_KEY);
+    const deepgram = createDeepgramClient(
+      requireEnv(env.DEEPGRAM_API_KEY, "DEEPGRAM_API_KEY"),
+    );
 
     const transcriptionRecord = await supabase
       .from("transcriptions")

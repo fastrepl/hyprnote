@@ -9,6 +9,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { SearchTrigger } from "@/components/search";
+import { useBranding } from "@/contexts/BrandingProvider";
 import { useDocsDrawer } from "@/hooks/use-docs-drawer";
 import { useHandbookDrawer } from "@/hooks/use-handbook-drawer";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
@@ -243,12 +244,14 @@ function DrawerButton({
 }
 
 function Logo() {
+  const branding = useBranding();
+
   return (
     <Link
       to="/"
       className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
     >
-      <img src="/api/images/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
+      <img src={branding.logo} alt={branding.productName} className="h-6" />
     </Link>
   );
 }

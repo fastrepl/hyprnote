@@ -4,7 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
+import { BrandingProvider } from "./contexts/BrandingProvider";
 import { env } from "./env";
+import { getCurrentHostname } from "./lib/branding";
 import { PostHogProvider } from "./providers/posthog";
 import { routeTree } from "./routeTree.gen";
 
@@ -18,14 +20,20 @@ export function getRouter() {
     scrollRestoration: true,
     trailingSlash: "always",
     Wrap: (props: { children: React.ReactNode }) => {
+      const hostname = getCurrentHostname();
       return (
-        <PostHogProvider>
-          <OutlitProvider publicKey={env.VITE_OUTLIT_PUBLIC_KEY} trackPageviews>
-            <QueryClientProvider client={queryClient}>
-              {props.children}
-            </QueryClientProvider>
-          </OutlitProvider>
-        </PostHogProvider>
+        <BrandingProvider hostname={hostname}>
+          <PostHogProvider>
+            <OutlitProvider
+              publicKey={env.VITE_OUTLIT_PUBLIC_KEY}
+              trackPageviews
+            >
+              <QueryClientProvider client={queryClient}>
+                {props.children}
+              </QueryClientProvider>
+            </OutlitProvider>
+          </PostHogProvider>
+        </BrandingProvider>
       );
     },
   });

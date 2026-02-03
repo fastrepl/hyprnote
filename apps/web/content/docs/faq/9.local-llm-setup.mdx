@@ -32,6 +32,18 @@ If Hyprnote cannot connect to LM Studio:
 - Check that the port matches (default is 1234)
 - Make sure no firewall is blocking the connection
 
+#### Context Length Error {#lmstudio-context-length}
+
+If you see an error like "Cannot truncate prompt with n_keep >= n_ctx" or "request exceeds the available context size", this means the model's context length is too small for your conversation or transcript.
+
+To fix this:
+
+1. Open LM Studio and go to the **Context** tab in the model settings (on the right panel)
+2. Increase the **Context Length** value - try setting it to at least 16384 or higher depending on your needs
+3. Note that higher context lengths require more memory, so adjust based on your system's capabilities
+
+![Increase Context Length in LM Studio](/api/images/docs/faq/lmstudio-context-length.jpg)
+
 ## Ollama Setup
 
 [Ollama](https://ollama.ai) is a command-line tool for running large language models locally.

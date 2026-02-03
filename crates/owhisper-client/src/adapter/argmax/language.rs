@@ -32,17 +32,32 @@ fn pick_single_language(params: &ListenParams) -> hypr_language::Language {
     if model.contains("parakeet") && model.contains("v2") {
         hypr_language::ISO639::En.into()
     } else if model.contains("parakeet") && model.contains("v3") {
-        params
-            .languages
-            .iter()
-            .find(|lang| PARAKEET_V3_LANGS.contains(&lang.iso639().code()))
-            .cloned()
-            .unwrap_or_else(|| hypr_language::ISO639::En.into())
+        pick_preferred_language(&params.languages, |lang| {
+            PARAKEET_V3_LANGS.contains(&lang.iso639().code())
+        })
     } else {
-        params
-            .languages
-            .first()
-            .cloned()
-            .unwrap_or_else(|| hypr_language::ISO639::En.into())
+        pick_preferred_language(&params.languages, |_| true)
     }
+}
+
+fn pick_preferred_language(
+    languages: &[hypr_language::Language],
+    is_supported: impl Fn(&hypr_language::Language) -> bool,
+) -> hypr_language::Language {
+    let prefers_non_english = languages.iter().any(|lang| lang.iso639().code() != "en");
+
+    if prefers_non_english {
+        if let Some(lang) = languages
+            .iter()
+            .find(|lang| lang.iso639().code() != "en" && is_supported(lang))
+        {
+            return lang.clone();
+        }
+    }
+
+    languages
+        .iter()
+        .find(|lang| is_supported(lang))
+        .cloned()
+        .unwrap_or_else(|| hypr_language::ISO639::En.into())
 }

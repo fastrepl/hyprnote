@@ -33,7 +33,7 @@ export function ParticipantDropdown({
     if (selectedElement) {
       selectedElement.scrollIntoView({ block: "nearest" });
     }
-  }, [selectedIndex]);
+  }, [selectedIndex, options]);
 
   if (options.length === 0) {
     return null;

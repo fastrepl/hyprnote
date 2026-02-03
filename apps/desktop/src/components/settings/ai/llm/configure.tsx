@@ -107,7 +107,9 @@ function ProviderContext({
                 ? "Visit [AI Studio](https://aistudio.google.com/api-keys) to create an API key."
                 : "";
 
-  const buttonLabel = canStartTrial ? "Start Free Trial" : "Upgrade to Pro";
+  const buttonLabel = canStartTrial.data
+    ? "Start Free Trial"
+    : "Upgrade to Pro";
 
   if (providerId === "hyprnote" && !isPro) {
     return (

@@ -9,7 +9,11 @@ export function useProSettingsReset() {
   const hasResetRef = useRef(false);
 
   useEffect(() => {
-    if (isPro || canStartTrial || hasResetRef.current || !store) {
+    if (isPro || hasResetRef.current || !store) {
+      return;
+    }
+
+    if (canStartTrial.isPending || canStartTrial.data) {
       return;
     }
 

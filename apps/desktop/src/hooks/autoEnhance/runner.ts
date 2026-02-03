@@ -1,10 +1,12 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { md2json } from "@hypr/tiptap/shared";
 
+import { useAITask } from "../../contexts/ai-task";
 import * as main from "../../store/tinybase/store/main";
 import { createTaskId } from "../../store/zustand/ai-task/task-configs";
+import { getTaskState } from "../../store/zustand/ai-task/tasks";
 import { useTabs } from "../../store/zustand/tabs";
 import type { Tab } from "../../store/zustand/tabs/schema";
 import { useAITaskTask } from "../useAITaskTask";
@@ -38,11 +40,12 @@ export function useAutoEnhanceRunner(
   const tabRef = useRef(tab);
   tabRef.current = tab;
 
-  const enhanceTaskId = currentNoteIdRef.current
-    ? createTaskId(currentNoteIdRef.current, "enhance")
-    : null;
-
   const titleTaskId = createTaskId(sessionId, "title");
+
+  const { generate, tasks } = useAITask((state) => ({
+    generate: state.generate,
+    tasks: state.tasks,
+  }));
 
   const handleTitleSuccess = useCallback(
     ({ text }: { text: string }) => {
@@ -61,7 +64,7 @@ export function useAutoEnhanceRunner(
   });
 
   const handleEnhanceSuccess = useCallback(
-    ({ text }: { text: string }) => {
+    (text: string) => {
       const noteId = currentNoteIdRef.current;
       if (!text || !store || !noteId) return;
 
@@ -85,9 +88,26 @@ export function useAutoEnhanceRunner(
     [store, sessionId, model, titleTask.start],
   );
 
-  const enhanceTask = useAITaskTask(enhanceTaskId, "enhance", {
-    onSuccess: handleEnhanceSuccess,
-  });
+  const prevEnhanceStatusRef = useRef<string>("idle");
+
+  useEffect(() => {
+    const noteId = currentNoteIdRef.current;
+    if (!noteId) return;
+
+    const enhanceTaskId = createTaskId(noteId, "enhance");
+    const taskState = getTaskState(tasks, enhanceTaskId);
+    const status = taskState?.status ?? "idle";
+
+    if (
+      prevEnhanceStatusRef.current === "generating" &&
+      status === "success" &&
+      taskState?.streamedText
+    ) {
+      handleEnhanceSuccess(taskState.streamedText);
+    }
+
+    prevEnhanceStatusRef.current = status;
+  }, [tasks, handleEnhanceSuccess]);
 
   const run = useCallback((): RunResult => {
     const eligibility = getEligibility(hasTranscript, transcriptIds, store);
@@ -122,8 +142,10 @@ export function useAutoEnhanceRunner(
       });
     }
 
-    void enhanceTask.start({
+    const enhanceTaskId = createTaskId(enhancedNoteId, "enhance");
+    void generate(enhanceTaskId, {
       model,
+      taskType: "enhance",
       args: { sessionId, enhancedNoteId },
     });
 
@@ -137,11 +159,19 @@ export function useAutoEnhanceRunner(
     createEnhancedNote,
     updateSessionTabState,
     llmConn,
-    enhanceTask.start,
+    generate,
   ]);
+
+  const currentEnhanceTaskId = currentNoteIdRef.current
+    ? createTaskId(currentNoteIdRef.current, "enhance")
+    : null;
+  const currentEnhanceTaskState = currentEnhanceTaskId
+    ? getTaskState(tasks, currentEnhanceTaskId)
+    : undefined;
+  const isEnhancing = currentEnhanceTaskState?.status === "generating";
 
   return {
     run,
-    isEnhancing: enhanceTask.isGenerating,
+    isEnhancing,
   };
 }

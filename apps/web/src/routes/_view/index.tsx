@@ -1,4 +1,5 @@
 import { Icon } from "@iconify-icon/react";
+import MuxPlayer, { type MuxPlayerRefAttributes } from "@mux/mux-player-react";
 import { useFeatureFlagVariantKey } from "@posthog/react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
@@ -82,7 +83,8 @@ const mainFeatures = [
     description:
       "While you take notes, Hyprnote listens and generates a live transcript",
     image: "/api/images/hyprnote/transcript.jpg",
-    link: "/product/ai-notetaking#transcription",
+    muxPlaybackId: "rbkYuZpGJGLHx023foq9DCSt3pY1RegJU5PvMCkRE3rE",
+    link: "/product/ai-notetaking/#transcription",
   },
   {
     icon: "mdi:file-document-outline",
@@ -90,7 +92,8 @@ const mainFeatures = [
     description:
       "Hyprnote combines your notes and the transcript to create a perfect summary",
     image: "/api/images/hyprnote/summary.jpg",
-    link: "/product/ai-notetaking#summaries",
+    muxPlaybackId: "lKr5l1fWGNnRqOehiz15mV79VHtFOCiuO9urmgqs6V8",
+    link: "/product/ai-notetaking/#summaries",
   },
   {
     icon: "mdi:chat-outline",
@@ -104,62 +107,21 @@ const mainFeatures = [
     icon: "mdi:window-restore",
     title: "Floating panel",
     description: "Overlay to quick access recording controls during calls",
-    comingSoon: true,
+    image: "/api/images/hyprnote/floating.jpg",
+    link: "/product/ai-notetaking/#floating-panel",
   },
   {
     icon: "mdi:keyboard-outline",
     title: "Keyboard shortcuts",
     description: "Navigate and format quickly without touching your mouse",
-    comingSoon: true,
-  },
-];
-
-const activeFeatureIndices = mainFeatures
-  .map((f, i) => (!f.comingSoon ? i : -1))
-  .filter((i) => i !== -1);
-const FEATURES_AUTO_ADVANCE_DURATION = 5000;
-
-const detailsFeatures = [
-  {
-    icon: "mdi:text-box-edit-outline",
-    title: "Notion-like Editor",
-    description: "Full markdown support with distraction-free writing",
     image: "/api/images/hyprnote/editor.jpg",
-    link: "/product/ai-notetaking#editor",
-  },
-  {
-    icon: "mdi:upload-outline",
-    title: "Upload Audio",
-    description: "Import audio files or transcripts to convert into notes",
-    image: "/api/images/hyprnote/upload-audio.jpg",
-    link: "/product/ai-notetaking#transcription",
-  },
-  {
-    icon: "mdi:file-document-multiple-outline",
-    title: "Custom templates",
-    description: "Define what matters for each meeting type",
-    image: "/api/images/hyprnote/contacts.jpg",
-    link: "/product/ai-notetaking#templates",
-  },
-  {
-    icon: "mdi:calendar-outline",
-    title: "Calendar",
-    description: "Stay on top of your schedule with integrated calendar",
-    image: "/api/images/hyprnote/calendar.jpg",
-    link: "/product/mini-apps#calendar",
-  },
-  {
-    icon: "mdi:bookshelf",
-    title: "Noteshelf",
-    description: "Browse and organize all your notes in one place",
-    comingSoon: true,
+    muxPlaybackId: "sMWkuSxKWfH3RYnX51Xa2acih01ZP5yfQy01Q00XRd1yTQ",
+    link: "/docs/faq/keyboard-shortcuts",
   },
 ];
 
-const activeDetailIndices = detailsFeatures
-  .map((f, i) => (!f.comingSoon ? i : -1))
-  .filter((i) => i !== -1);
-const DETAILS_AUTO_ADVANCE_DURATION = 5000;
+const activeFeatureIndices = mainFeatures.map((_, i) => i);
+const FEATURES_AUTO_ADVANCE_DURATION = 5000;
 
 export const Route = createFileRoute("/_view/")({
   component: Component,
@@ -167,20 +129,9 @@ export const Route = createFileRoute("/_view/")({
 
 function Component() {
   const [expandedVideo, setExpandedVideo] = useState<string | null>(null);
-  const [selectedDetail, setSelectedDetail] = useState(0);
   const [selectedFeature, setSelectedFeature] = useState(0);
-  const detailsScrollRef = useRef<HTMLDivElement>(null);
   const featuresScrollRef = useRef<HTMLDivElement>(null);
   const heroInputRef = useRef<HTMLInputElement>(null);
-
-  const scrollToDetail = (index: number) => {
-    setSelectedDetail(index);
-    if (detailsScrollRef.current) {
-      const container = detailsScrollRef.current;
-      const scrollLeft = container.offsetWidth * index;
-      container.scrollTo({ left: scrollLeft, behavior: "smooth" });
-    }
-  };
 
   const scrollToFeature = (index: number) => {
     setSelectedFeature(index);
@@ -216,12 +167,7 @@ function Component() {
           scrollToFeature={scrollToFeature}
         />
         <SlashSeparator />
-        <DetailsSection
-          detailsScrollRef={detailsScrollRef}
-          selectedDetail={selectedDetail}
-          setSelectedDetail={setSelectedDetail}
-          scrollToDetail={scrollToDetail}
-        />
+        <TemplatesSection />
         <SlashSeparator />
         <GitHubOpenSource />
         <SlashSeparator />
@@ -1164,7 +1110,6 @@ export function MainFeaturesSection({
   scrollToFeature: (index: number) => void;
 }) {
   const [progress, setProgress] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const progressRef = useRef(0);
 
   const handleFeatureIndexChange = useCallback(
@@ -1172,16 +1117,11 @@ export function MainFeaturesSection({
       setSelectedFeature(nextIndex);
       setProgress(0);
       progressRef.current = 0;
-
-      const feature = mainFeatures[nextIndex];
-      setIsPaused(!!feature?.comingSoon);
     },
     [setSelectedFeature],
   );
 
   useEffect(() => {
-    if (isPaused) return;
-
     const startTime =
       Date.now() - (progressRef.current / 100) * FEATURES_AUTO_ADVANCE_DURATION;
     let animationId: number;
@@ -1219,14 +1159,12 @@ export function MainFeaturesSection({
 
     animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
-  }, [selectedFeature, setSelectedFeature, featuresScrollRef, isPaused]);
+  }, [selectedFeature, setSelectedFeature, featuresScrollRef]);
 
   const handleScrollToFeature = (index: number) => {
     scrollToFeature(index);
     setProgress(0);
     progressRef.current = 0;
-    const feature = mainFeatures[index];
-    setIsPaused(!!feature?.comingSoon);
   };
 
   return (
@@ -1314,11 +1252,6 @@ function FeaturesMobileCarousel({
                     <h3 className="text-lg font-serif text-stone-600">
                       {feature.title}
                     </h3>
-                    {feature.comingSoon && (
-                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
-                        Coming Soon
-                      </span>
-                    )}
                   </div>
                   <p className="text-sm text-neutral-600">
                     {feature.description}
@@ -1331,7 +1264,7 @@ function FeaturesMobileCarousel({
       </div>
 
       <div className="flex justify-center gap-2 py-6">
-        {mainFeatures.map((feature, index) => (
+        {mainFeatures.map((_, index) => (
           <button
             key={index}
             onClick={() => scrollToFeature(index)}
@@ -1343,7 +1276,7 @@ function FeaturesMobileCarousel({
             ])}
             aria-label={`Go to feature ${index + 1}`}
           >
-            {selectedFeature === index && !feature.comingSoon && (
+            {selectedFeature === index && (
               <div
                 className="h-full bg-stone-600 transition-none"
                 style={{ width: `${progress}%` }}
@@ -1352,6 +1285,60 @@ function FeaturesMobileCarousel({
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+function FeatureVideo({
+  playbackId,
+  alt,
+  isHovered,
+}: {
+  playbackId: string;
+  alt: string;
+  isHovered: boolean;
+}) {
+  const playerRef = useRef<MuxPlayerRefAttributes>(null);
+  const thumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
+
+  useEffect(() => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    if (isHovered) {
+      player.play();
+    } else {
+      player.pause();
+      player.currentTime = 0;
+    }
+  }, [isHovered]);
+
+  return (
+    <div className="w-full h-full relative">
+      <img
+        src={thumbnailUrl}
+        alt={alt}
+        className={cn([
+          "w-full h-full object-contain absolute inset-0 transition-opacity duration-300",
+          isHovered ? "opacity-0" : "opacity-100",
+        ])}
+      />
+      <MuxPlayer
+        ref={playerRef}
+        playbackId={playbackId}
+        muted
+        loop
+        playsInline
+        className={cn([
+          "w-full h-full object-contain transition-opacity duration-300",
+          isHovered ? "opacity-100" : "opacity-0",
+        ])}
+        style={
+          {
+            "--controls": "none",
+          } as React.CSSProperties & { [key: `--${string}`]: string }
+        }
+      />
     </div>
   );
 }
@@ -1377,46 +1364,27 @@ function FeaturesDesktopGrid() {
             "border-neutral-100 overflow-hidden flex flex-col",
           )}
         >
-          <div
+          <Link
+            to={feature.link}
             className={cn([
-              "aspect-video border-b border-neutral-100 overflow-hidden relative group",
-              feature.image && "bg-neutral-100",
+              "aspect-video border-b border-neutral-100 overflow-hidden relative group block",
+              (feature.image || feature.muxPlaybackId) && "bg-neutral-100",
             ])}
             onMouseEnter={() => setHoveredFeature(index)}
             onMouseLeave={() => setHoveredFeature(null)}
           >
-            {feature.image ? (
-              <>
-                <Image
-                  src={feature.image}
-                  alt={`${feature.title} feature`}
-                  className="w-full h-full object-contain"
-                />
-                {feature.link && (
-                  <div
-                    className={cn([
-                      "absolute bottom-0 left-0 right-0",
-                      "transition-all duration-300 ease-out",
-                      hoveredFeature === index
-                        ? "translate-y-0 opacity-100"
-                        : "translate-y-full opacity-0",
-                    ])}
-                  >
-                    <Link
-                      to={feature.link}
-                      className={cn([
-                        "w-full py-4 text-xs font-mono cursor-pointer block text-center",
-                        "bg-stone-100/95 text-stone-800",
-                        "hover:bg-stone-200/95 active:bg-stone-400/95",
-                        "transition-all duration-150",
-                        "backdrop-blur-xs",
-                      ])}
-                    >
-                      Learn more
-                    </Link>
-                  </div>
-                )}
-              </>
+            {feature.muxPlaybackId ? (
+              <FeatureVideo
+                playbackId={feature.muxPlaybackId}
+                alt={`${feature.title} feature`}
+                isHovered={hoveredFeature === index}
+              />
+            ) : feature.image ? (
+              <Image
+                src={feature.image}
+                alt={`${feature.title} feature`}
+                className="w-full h-full object-contain"
+              />
             ) : (
               <img
                 src="/api/images/hyprnote/static.webp"
@@ -1424,20 +1392,13 @@ function FeaturesDesktopGrid() {
                 className="w-full h-full object-cover"
               />
             )}
-          </div>
+          </Link>
           <div className="p-6 flex-1">
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <div className="flex items-center gap-3">
-                <Icon icon={feature.icon} className="text-2xl text-stone-600" />
-                <h3 className="text-lg font-serif text-stone-600">
-                  {feature.title}
-                </h3>
-              </div>
-              {feature.comingSoon && (
-                <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
-                  Coming Soon
-                </span>
-              )}
+            <div className="flex items-center gap-3 mb-2">
+              <Icon icon={feature.icon} className="text-2xl text-stone-600" />
+              <h3 className="text-lg font-serif text-stone-600">
+                {feature.title}
+              </h3>
             </div>
             <p className="text-sm text-neutral-600">{feature.description}</p>
           </div>
@@ -1447,455 +1408,144 @@ function FeaturesDesktopGrid() {
   );
 }
 
-export function DetailsSection({
-  detailsScrollRef,
-  selectedDetail,
-  setSelectedDetail,
-  scrollToDetail,
-}: {
-  detailsScrollRef: React.RefObject<HTMLDivElement | null>;
-  selectedDetail: number;
-  setSelectedDetail: (index: number) => void;
-  scrollToDetail: (index: number) => void;
-}) {
-  const [progress, setProgress] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const progressRef = useRef(0);
+const templateCategories = [
+  {
+    icon: "mdi:handshake-outline",
+    category: "Sales",
+    description: "Close deals with organized discovery and follow-ups",
+    templates: ["Sales Discovery Call", "Client Kickoff", "Investor Pitch"],
+  },
+  {
+    icon: "mdi:lightbulb-outline",
+    category: "Product",
+    description: "Build the right things with clear alignment",
+    templates: [
+      "Product Roadmap Review",
+      "Brainstorming Session",
+      "Project Kickoff",
+    ],
+  },
+  {
+    icon: "mdi:code-braces",
+    category: "Engineering",
+    description: "Ship faster with focused technical discussions",
+    templates: [
+      "Sprint Planning",
+      "Sprint Retrospective",
+      "Technical Design Review",
+    ],
+  },
+];
 
-  const handleDetailIndexChange = useCallback(
-    (nextIndex: number) => {
-      setSelectedDetail(nextIndex);
-      setProgress(0);
-      progressRef.current = 0;
-
-      const feature = detailsFeatures[nextIndex];
-      setIsPaused(!!feature?.comingSoon);
-    },
-    [setSelectedDetail],
-  );
-
-  useEffect(() => {
-    if (isPaused) return;
-
-    const startTime =
-      Date.now() - (progressRef.current / 100) * DETAILS_AUTO_ADVANCE_DURATION;
-    let animationId: number;
-
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const newProgress = Math.min(
-        (elapsed / DETAILS_AUTO_ADVANCE_DURATION) * 100,
-        100,
-      );
-      setProgress(newProgress);
-      progressRef.current = newProgress;
-
-      if (newProgress >= 100) {
-        const currentActiveIndex = activeDetailIndices.indexOf(selectedDetail);
-        const nextActiveIndex =
-          (currentActiveIndex + 1) % activeDetailIndices.length;
-        const nextIndex = activeDetailIndices[nextActiveIndex];
-        setSelectedDetail(nextIndex);
-        setProgress(0);
-        progressRef.current = 0;
-        if (detailsScrollRef.current) {
-          const container = detailsScrollRef.current;
-          const scrollLeft = container.offsetWidth * nextIndex;
-          container.scrollTo({
-            left: scrollLeft,
-            behavior: "smooth",
-          });
-        }
-      } else {
-        animationId = requestAnimationFrame(animate);
-      }
-    };
-
-    animationId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationId);
-  }, [selectedDetail, setSelectedDetail, detailsScrollRef, isPaused]);
-
-  const handleTabClick = (index: number) => {
-    setSelectedDetail(index);
-    setProgress(0);
-    progressRef.current = 0;
-    const feature = detailsFeatures[index];
-    setIsPaused(!!feature?.comingSoon);
-  };
-
-  const handleScrollToDetail = (index: number) => {
-    scrollToDetail(index);
-    setProgress(0);
-    progressRef.current = 0;
-    const feature = detailsFeatures[index];
-    setIsPaused(!!feature?.comingSoon);
-  };
-
+export function TemplatesSection() {
   return (
-    <div>
-      <DetailsSectionHeader />
-      <DetailsMobileCarousel
-        detailsScrollRef={detailsScrollRef}
-        selectedDetail={selectedDetail}
-        onIndexChange={handleDetailIndexChange}
-        scrollToDetail={handleScrollToDetail}
-        progress={progress}
-      />
-      <DetailsTabletView
-        selectedDetail={selectedDetail}
-        progress={progress}
-        onTabClick={handleTabClick}
-        onPauseChange={setIsPaused}
-      />
-      <DetailsDesktopView />
-    </div>
-  );
-}
-
-function DetailsSectionHeader() {
-  return (
-    <div className="text-center py-12 px-4 laptop:px-0">
-      <h2 className="text-3xl font-serif text-stone-600 mb-4">
-        We focus on every bit of details
-      </h2>
-      <p className="text-neutral-600 max-w-lg mx-auto">
-        From powerful editing to seamless organization, every feature is crafted
-        with care
-      </p>
-    </div>
-  );
-}
-
-function DetailsMobileCarousel({
-  detailsScrollRef,
-  selectedDetail,
-  onIndexChange,
-  scrollToDetail,
-  progress,
-}: {
-  detailsScrollRef: React.RefObject<HTMLDivElement | null>;
-  selectedDetail: number;
-  onIndexChange: (index: number) => void;
-  scrollToDetail: (index: number) => void;
-  progress: number;
-}) {
-  return (
-    <div className="max-[800px]:block hidden">
-      <div
-        ref={detailsScrollRef}
-        className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
-        onScroll={(e) => {
-          const container = e.currentTarget;
-          const scrollLeft = container.scrollLeft;
-          const itemWidth = container.offsetWidth;
-          const index = Math.round(scrollLeft / itemWidth);
-          if (index !== selectedDetail) {
-            onIndexChange(index);
-          }
-        }}
-      >
-        <div className="flex">
-          {detailsFeatures.map((feature, index) => (
-            <div key={index} className="w-full shrink-0 snap-center">
-              <div className="border-y border-neutral-100 overflow-hidden flex flex-col">
-                <div className="aspect-video border-y border-neutral-100 overflow-hidden">
-                  {feature.image ? (
-                    <Image
-                      src={feature.image}
-                      alt={`${feature.title} feature`}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <img
-                      src="/api/images/hyprnote/static.webp"
-                      alt={`${feature.title} feature`}
-                      className="w-full h-full object-contain"
-                    />
-                  )}
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <h3 className="text-lg font-serif text-stone-600">
-                      {feature.title}
-                    </h3>
-                    {feature.comingSoon && (
-                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
-                        Coming Soon
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-neutral-600">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+    <section>
+      <div className="text-center py-12 px-4 laptop:px-0">
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">
+          A template for every meeting
+        </h2>
+        <p className="text-neutral-600">
+          Hyprnote adapts to how you work with customizable templates for any
+          meeting type
+        </p>
       </div>
 
-      <div className="flex justify-center gap-2 py-6">
-        {detailsFeatures.map((feature, index) => (
-          <button
-            key={index}
-            onClick={() => scrollToDetail(index)}
-            className={cn([
-              "h-1 rounded-full cursor-pointer overflow-hidden",
-              selectedDetail === index
-                ? "w-8 bg-neutral-300"
-                : "w-8 bg-neutral-300 hover:bg-neutral-400",
-            ])}
-            aria-label={`Go to detail ${index + 1}`}
-          >
-            {selectedDetail === index && !feature.comingSoon && (
-              <div
-                className="h-full bg-stone-600 transition-none"
-                style={{ width: `${progress}%` }}
-              />
-            )}
-          </button>
-        ))}
+      <TemplatesMobileView />
+      <TemplatesDesktopView />
+
+      <div className="text-center py-8 border-t border-neutral-100">
+        <Link
+          to="/templates/"
+          className={cn([
+            "inline-flex items-center gap-2",
+            "text-stone-600 hover:text-stone-800",
+            "font-medium transition-colors",
+          ])}
+        >
+          View all templates
+          <Icon icon="mdi:arrow-right" className="text-lg" />
+        </Link>
       </div>
-    </div>
+    </section>
   );
 }
 
-function DetailsTabletView({
-  selectedDetail,
-  progress,
-  onTabClick,
-  onPauseChange,
-}: {
-  selectedDetail: number;
-  progress: number;
-  onTabClick: (index: number) => void;
-  onPauseChange: (paused: boolean) => void;
-}) {
+function TemplatesMobileView() {
   return (
-    <div className="min-[800px]:max-[1200px]:block hidden border-t border-neutral-100">
-      <div className="flex flex-col">
-        <div className="overflow-x-auto scrollbar-hide border-b border-neutral-100">
-          <div className="flex">
-            {detailsFeatures.map((feature, index) => (
-              <button
-                key={index}
-                onClick={() => onTabClick(index)}
-                onMouseEnter={() =>
-                  selectedDetail === index && onPauseChange(true)
-                }
-                onMouseLeave={() =>
-                  selectedDetail === index && onPauseChange(false)
-                }
+    <div className="md:hidden border-t border-neutral-100">
+      {templateCategories.map((category, index) => (
+        <div
+          key={category.category}
+          className={cn([
+            "p-6",
+            index < templateCategories.length - 1 &&
+              "border-b border-neutral-100",
+          ])}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <Icon icon={category.icon} className="text-2xl text-stone-600" />
+            <h3 className="text-lg font-serif text-stone-600">
+              {category.category}
+            </h3>
+          </div>
+          <p className="text-sm text-neutral-600 mb-4">
+            {category.description}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {category.templates.map((template) => (
+              <span
+                key={template}
                 className={cn([
-                  "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-70 text-left transition-colors relative overflow-hidden",
-                  selectedDetail !== index && "hover:bg-neutral-50",
+                  "text-xs px-3 py-1.5 rounded-full",
+                  "bg-stone-100 text-stone-700",
                 ])}
               >
-                {selectedDetail === index && !feature.comingSoon && (
-                  <div
-                    className="absolute inset-0 bg-stone-100 transition-none"
-                    style={{ width: `${progress}%` }}
-                  />
-                )}
-                <div className="relative">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <h3 className="text-base font-serif font-medium text-stone-600">
-                      {feature.title}
-                    </h3>
-                    {feature.comingSoon && (
-                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
-                        Coming Soon
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-neutral-600">
-                    {feature.description}
-                  </p>
-                </div>
-              </button>
+                {template}
+              </span>
             ))}
           </div>
         </div>
-
-        <div
-          className="aspect-video"
-          onMouseEnter={() => onPauseChange(true)}
-          onMouseLeave={() => onPauseChange(false)}
-        >
-          {detailsFeatures[selectedDetail]?.image ? (
-            <Image
-              src={detailsFeatures[selectedDetail].image}
-              alt={`${detailsFeatures[selectedDetail].title} feature`}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <img
-              src="/api/images/hyprnote/static.webp"
-              alt={`${detailsFeatures[selectedDetail]?.title ?? "Detail"} feature`}
-              className="w-full h-full object-contain"
-            />
-          )}
-        </div>
-      </div>
+      ))}
     </div>
   );
 }
 
-function DetailsDesktopView() {
-  const [selectedDetail, setSelectedDetail] = useState<number>(0);
-  const [hoveredDetail, setHoveredDetail] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const progressRef = useRef(0);
-  const selectedFeature =
-    selectedDetail !== null ? detailsFeatures[selectedDetail] : null;
-
-  useEffect(() => {
-    if (isPaused) return;
-    if (detailsFeatures[selectedDetail]?.comingSoon) return;
-
-    const startTime =
-      Date.now() - (progressRef.current / 100) * DETAILS_AUTO_ADVANCE_DURATION;
-    let animationId: number;
-
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const newProgress = Math.min(
-        (elapsed / DETAILS_AUTO_ADVANCE_DURATION) * 100,
-        100,
-      );
-      setProgress(newProgress);
-      progressRef.current = newProgress;
-
-      if (newProgress >= 100) {
-        const currentActiveIndex = activeDetailIndices.indexOf(selectedDetail);
-        const nextActiveIndex =
-          (currentActiveIndex + 1) % activeDetailIndices.length;
-        const nextIndex = activeDetailIndices[nextActiveIndex];
-        setSelectedDetail(nextIndex);
-        setProgress(0);
-        progressRef.current = 0;
-      } else {
-        animationId = requestAnimationFrame(animate);
-      }
-    };
-
-    animationId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationId);
-  }, [selectedDetail, isPaused]);
-
-  const handleTabClick = (index: number) => {
-    setSelectedDetail(index);
-    setProgress(0);
-    progressRef.current = 0;
-  };
-
+function TemplatesDesktopView() {
   return (
-    <div className="min-[1200px]:grid hidden grid-cols-2 border-t border-neutral-100">
-      <div
-        className="border-r border-neutral-100 relative overflow-hidden"
-        style={{ paddingBottom: "56.25%" }}
-      >
-        <div className="absolute inset-0 overflow-y-auto">
-          {detailsFeatures.map((feature, index) => (
-            <div
-              key={index}
-              onClick={() => handleTabClick(index)}
-              onMouseEnter={() => selectedDetail === index && setIsPaused(true)}
-              onMouseLeave={() =>
-                selectedDetail === index && setIsPaused(false)
-              }
-              className={cn([
-                "p-6 cursor-pointer transition-colors relative overflow-hidden",
-                index < detailsFeatures.length - 1 &&
-                  "border-b border-neutral-100",
-                selectedDetail !== index && "hover:bg-neutral-50",
-              ])}
-            >
-              {selectedDetail === index && !feature.comingSoon && (
-                <div
-                  className="absolute inset-0 bg-stone-100 transition-none"
-                  style={{ width: `${progress}%` }}
-                />
-              )}
-              <div className="relative">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-2">
-                    <Icon
-                      icon={feature.icon}
-                      className="text-xl text-stone-600"
-                    />
-                    <h3 className="text-base font-serif font-medium text-stone-600">
-                      {feature.title}
-                    </h3>
-                  </div>
-                  {feature.comingSoon && (
-                    <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full whitespace-nowrap">
-                      Coming Soon
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-neutral-600">
-                  {feature.description}
-                </p>
-              </div>
-            </div>
-          ))}
+    <div className="hidden md:grid grid-cols-3 border-t border-neutral-100">
+      {templateCategories.map((category, index) => (
+        <div
+          key={category.category}
+          className={cn([
+            "p-6",
+            index < templateCategories.length - 1 &&
+              "border-r border-neutral-100",
+          ])}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <Icon icon={category.icon} className="text-2xl text-stone-600" />
+            <h3 className="text-lg font-serif text-stone-600">
+              {category.category}
+            </h3>
+          </div>
+          <p className="text-sm text-neutral-600 mb-4">
+            {category.description}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {category.templates.map((template) => (
+              <span
+                key={template}
+                className={cn([
+                  "text-xs px-3 py-1.5 rounded-full",
+                  "bg-stone-100 text-stone-700",
+                ])}
+              >
+                {template}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div
-        className="aspect-video overflow-hidden bg-neutral-100 relative group"
-        onMouseEnter={() => {
-          setHoveredDetail(selectedDetail);
-          setIsPaused(true);
-        }}
-        onMouseLeave={() => {
-          setHoveredDetail(null);
-          setIsPaused(false);
-        }}
-      >
-        {selectedFeature &&
-          (selectedFeature.image ? (
-            <>
-              <Image
-                src={selectedFeature.image}
-                alt={`${selectedFeature.title} feature`}
-                className="w-full h-full object-contain"
-              />
-              {selectedFeature.link && (
-                <div
-                  className={cn([
-                    "absolute bottom-0 left-0 right-0",
-                    "transition-all duration-300 ease-out",
-                    hoveredDetail === selectedDetail
-                      ? "translate-y-0 opacity-100"
-                      : "translate-y-full opacity-0",
-                  ])}
-                >
-                  <Link
-                    to={selectedFeature.link}
-                    className={cn([
-                      "w-full py-4 text-xs font-mono cursor-pointer block text-center",
-                      "bg-stone-100/95 text-stone-800",
-                      "hover:bg-stone-200/95 active:bg-stone-400/95",
-                      "transition-all duration-150",
-                      "backdrop-blur-xs",
-                    ])}
-                  >
-                    Learn more
-                  </Link>
-                </div>
-              )}
-            </>
-          ) : (
-            <img
-              src="/api/images/hyprnote/static.webp"
-              alt={`${selectedFeature.title} feature`}
-              className="w-full h-full object-contain"
-            />
-          ))}
-      </div>
+      ))}
     </div>
   );
 }

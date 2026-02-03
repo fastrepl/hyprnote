@@ -1444,7 +1444,7 @@ export function TemplatesSection() {
         <h2 className="text-3xl font-serif text-stone-600 mb-4">
           A template for every meeting
         </h2>
-        <p className="text-neutral-600 max-w-lg mx-auto">
+        <p className="text-neutral-600">
           Hyprnote adapts to how you work with customizable templates for any
           meeting type
         </p>

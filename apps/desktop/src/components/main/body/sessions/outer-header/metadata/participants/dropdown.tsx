@@ -45,10 +45,12 @@ export function ParticipantDropdown({
           <button
             key={option.id}
             type="button"
+            tabIndex={-1}
             className={cn([
-              "w-full px-3 py-1.5 text-left text-sm transition-colors",
-              "hover:bg-accent hover:text-accent-foreground",
-              selectedIndex === index && "bg-accent text-accent-foreground",
+              "w-full px-3 py-1.5 text-left text-sm",
+              selectedIndex === index
+                ? "bg-neutral-100"
+                : "hover:bg-neutral-50",
             ])}
             onClick={() => onSelect(option)}
             onMouseEnter={() => onHover(index)}

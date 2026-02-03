@@ -1299,7 +1299,7 @@ function FeatureVideo({
   isHovered: boolean;
 }) {
   const playerRef = useRef<MuxPlayerRefAttributes>(null);
-  const thumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
+  const thumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg?width=1920&height=1080&fit_mode=smartcrop`;
 
   useEffect(() => {
     const player = playerRef.current;
@@ -1329,6 +1329,8 @@ function FeatureVideo({
         muted
         loop
         playsInline
+        maxResolution="1080p"
+        minResolution="720p"
         className={cn([
           "w-full h-full object-contain transition-opacity duration-300",
           isHovered ? "opacity-100" : "opacity-0",

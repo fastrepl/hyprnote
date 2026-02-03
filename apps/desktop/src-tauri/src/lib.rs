@@ -67,17 +67,15 @@ pub async fn main() {
 
     // https://v2.tauri.app/plugin/deep-linking/#desktop
     // should always be the first plugin
-    {
-        #[cfg(target_os = "macos")]
-        {
-            let identifier = env!("BUNDLE_IDENTIFIER");
-            let _ = hypr_host::cleanup_stale_single_instance_socket(identifier);
-        }
-
-        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            app.windows().show(AppWindow::Main).unwrap();
-        }));
-    }
+    //
+    // Note: We intentionally do NOT clean up the single-instance socket before the plugin
+    // initializes. The plugin already handles stale sockets correctly (removes them when
+    // it gets ConnectionRefused or NotFound). Pre-cleaning the socket would break
+    // single-instance detection when a legitimate instance is already running.
+    // See: https://github.com/tauri-apps/plugins-workspace/blob/v2/plugins/single-instance/src/platform_impl/macos.rs
+    builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+        app.windows().show(AppWindow::Main).unwrap();
+    }));
 
     builder = builder
         .plugin(tauri_plugin_opener::init())

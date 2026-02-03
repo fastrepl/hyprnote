@@ -1,3 +1,7 @@
 export { fetchExistingEvents } from "./existing";
-export { CalendarFetchError, fetchIncomingEvents } from "./incoming";
-export type { ExistingEvent, IncomingEvent } from "./types";
+export {
+  CalendarFetchError,
+  fetchEventParticipants,
+  fetchIncomingEvents,
+} from "./incoming";
+export type { EventParticipant, ExistingEvent, IncomingEvent } from "./types";

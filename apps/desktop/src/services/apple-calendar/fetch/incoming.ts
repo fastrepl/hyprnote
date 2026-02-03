@@ -116,3 +116,45 @@ function normalizeParticipant(
     is_current_user: participant.is_current_user,
   };
 }
+
+export async function fetchEventParticipants(
+  calendarTrackingId: string,
+  eventTrackingId: string,
+  eventStartedAt: string,
+): Promise<EventParticipant[]> {
+  const startDate = new Date(eventStartedAt);
+  const from = new Date(startDate);
+  from.setDate(from.getDate() - 1);
+  const to = new Date(startDate);
+  to.setDate(to.getDate() + 1);
+
+  const result = await appleCalendarCommands.listEvents({
+    calendar_tracking_id: calendarTrackingId,
+    from: from.toISOString(),
+    to: to.toISOString(),
+  });
+
+  if (result.status === "error") {
+    return [];
+  }
+
+  const matchingEvent = result.data.find(
+    (e) => e.event_identifier === eventTrackingId,
+  );
+
+  if (!matchingEvent) {
+    return [];
+  }
+
+  const participants: EventParticipant[] = [];
+
+  if (matchingEvent.organizer) {
+    participants.push(normalizeParticipant(matchingEvent.organizer, true));
+  }
+
+  for (const attendee of matchingEvent.attendees) {
+    participants.push(normalizeParticipant(attendee, false));
+  }
+
+  return participants;
+}

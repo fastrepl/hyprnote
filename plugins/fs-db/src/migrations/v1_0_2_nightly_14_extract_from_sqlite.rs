@@ -143,6 +143,7 @@ fn collect_session_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>
         ops.push(FileOp::Write {
             path: dir.join(files::META),
             content: build_meta_json(session, session_participants, &session_tags),
+            force: false,
         });
 
         // transcript.json (if exists)
@@ -151,6 +152,7 @@ fn collect_session_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>
                 ops.push(FileOp::Write {
                     path: dir.join(files::TRANSCRIPT),
                     content: build_transcript_json(t),
+                    force: false,
                 });
             }
         }
@@ -178,6 +180,7 @@ fn collect_human_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>> 
             FileOp::Write {
                 path: humans_dir.join(format!("{}.md", human.id)),
                 content: build_human_doc(human),
+                force: false,
             }
         })
         .collect();
@@ -196,6 +199,7 @@ fn collect_organization_ops(base_dir: &Path, data: &Collection) -> Result<Vec<Fi
             FileOp::Write {
                 path: orgs_dir.join(format!("{}.md", org.id)),
                 content: build_organization_doc(org),
+                force: false,
             }
         })
         .collect();
@@ -277,6 +281,7 @@ fn build_memo_op(dir: &Path, session: &Session) -> Option<FileOp> {
     Some(FileOp::Write {
         path: dir.join(files::MEMO),
         content,
+        force: false,
     })
 }
 
@@ -293,6 +298,7 @@ fn build_enhanced_note_ops(
             Some(FileOp::Write {
                 path: dir.join(filename),
                 content,
+                force: false,
             })
         })
         .collect()

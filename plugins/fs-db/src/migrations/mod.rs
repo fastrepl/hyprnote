@@ -41,4 +41,5 @@ migrations! {
     v1_0_2_nightly_6_move_uuid_folders,
     v1_0_2_nightly_6_rename_transcript,
     v1_0_2_nightly_14_extract_from_sqlite,
+    v1_0_4_nightly_2_fix_speaker_hints,
 }

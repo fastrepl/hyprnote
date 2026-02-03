@@ -157,9 +157,6 @@ export const promptSchema = z.object({
 });
 
 export const wordSchema = z.object({
-  user_id: z.string(),
-  created_at: z.string(),
-  transcript_id: z.string(),
   text: z.string(),
   start_ms: z.number(),
   end_ms: z.number(),
@@ -172,9 +169,6 @@ export const wordSchema = z.object({
 });
 
 export const speakerHintSchema = z.object({
-  user_id: z.string(),
-  created_at: z.string(),
-  transcript_id: z.string(),
   word_id: z.string(),
   type: z.string(),
   value: jsonObject(z.record(z.string(), z.unknown())),

@@ -119,13 +119,10 @@ export const useRunBatch = (sessionId: string) => {
 
             newWords.push({
               id: wordId,
-              transcript_id: transcriptId,
               text: word.text,
               start_ms: word.start_ms,
               end_ms: word.end_ms,
               channel: word.channel,
-              user_id: user_id ?? "",
-              created_at: new Date().toISOString(),
             });
 
             newWordIds.push(wordId);
@@ -147,7 +144,6 @@ export const useRunBatch = (sessionId: string) => {
 
             newHints.push({
               id: id(),
-              transcript_id: transcriptId,
               word_id: wordId,
               type: "provider_speaker_index",
               value: JSON.stringify({
@@ -155,8 +151,6 @@ export const useRunBatch = (sessionId: string) => {
                 channel: hint.data.channel ?? word.channel,
                 speaker_index: hint.data.speaker_index,
               }),
-              user_id: user_id ?? "",
-              created_at: new Date().toISOString(),
             });
           });
 

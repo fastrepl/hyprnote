@@ -7,29 +7,54 @@ import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
-import { deleteSessionCascade } from "../../../../../../store/tinybase/store/deleteSession";
+import {
+  captureSessionData,
+  deleteSessionCascade,
+} from "../../../../../../store/tinybase/store/deleteSession";
 import * as main from "../../../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../../../store/zustand/tabs";
+import { useUndoDelete } from "../../../../../../store/zustand/undo-delete";
+
+const UNDO_TIMEOUT_MS = 5000;
 
 export function DeleteNote({ sessionId }: { sessionId: string }) {
   const store = main.UI.useStore(main.STORE_ID);
   const indexes = main.UI.useIndexes(main.STORE_ID);
   const invalidateResource = useTabs((state) => state.invalidateResource);
+  const { setDeletedSession, setTimeoutId, clear } = useUndoDelete();
 
   const handleDeleteNote = useCallback(() => {
     if (!store) {
       return;
     }
 
-    invalidateResource("sessions", sessionId);
+    const capturedData = captureSessionData(store, indexes, sessionId);
 
+    invalidateResource("sessions", sessionId);
     void deleteSessionCascade(store, indexes, sessionId);
+
+    if (capturedData) {
+      setDeletedSession(capturedData);
+
+      const timeoutId = setTimeout(() => {
+        clear();
+      }, UNDO_TIMEOUT_MS);
+      setTimeoutId(timeoutId);
+    }
 
     void analyticsCommands.event({
       event: "session_deleted",
       includes_recording: true,
     });
-  }, [store, indexes, sessionId, invalidateResource]);
+  }, [
+    store,
+    indexes,
+    sessionId,
+    invalidateResource,
+    setDeletedSession,
+    setTimeoutId,
+    clear,
+  ]);
 
   return (
     <DropdownMenuItem

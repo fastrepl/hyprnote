@@ -28,7 +28,8 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
         setSkipReason(result.reason);
       }
     }
-  }, [justStopped, reset, runner.run]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [justStopped, reset]);
 
   useEffect(() => {
     if (skipReason) {

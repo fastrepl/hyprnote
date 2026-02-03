@@ -1,3 +1,4 @@
+import { CornerDownLeft } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { cn } from "@hypr/utils";
@@ -55,20 +56,25 @@ export function ParticipantDropdown({
             onClick={() => onSelect(option)}
             onMouseEnter={() => onHover(index)}
           >
-            {option.isNew ? (
-              <span>
-                Add "<span className="font-medium">{option.name}</span>"
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <span className="font-medium">{option.name}</span>
-                {option.jobTitle && (
-                  <span className="text-xs text-muted-foreground">
-                    {option.jobTitle}
-                  </span>
-                )}
-              </span>
-            )}
+            <span className="flex items-center justify-between w-full">
+              {option.isNew ? (
+                <span>
+                  Add "<span className="font-medium">{option.name}</span>"
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <span className="font-medium">{option.name}</span>
+                  {option.jobTitle && (
+                    <span className="text-xs text-muted-foreground">
+                      {option.jobTitle}
+                    </span>
+                  )}
+                </span>
+              )}
+              {selectedIndex === index && (
+                <CornerDownLeft className="size-3 text-muted-foreground" />
+              )}
+            </span>
           </button>
         ))}
       </div>

@@ -14,7 +14,7 @@ if (typeof window !== "undefined" && env.VITE_POSTHOG_API_KEY && !isDev) {
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  if (!env.VITE_POSTHOG_API_KEY) {
+  if (!env.VITE_POSTHOG_API_KEY || isDev) {
     return <>{children}</>;
   }
   return (

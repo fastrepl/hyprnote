@@ -14,7 +14,7 @@ import { useOnboardingState } from "./useOnboardingState";
 
 export function useTrialStartOnFirstLaunch() {
   const auth = useAuth();
-  const { canStartTrial } = useBillingAccess();
+  const { canStartTrial, canStartTrialLoading } = useBillingAccess();
   const { open: openTrialBeginModal } = useTrialBeginModal();
   const store = settings.UI.useStore(settings.STORE_ID);
   const hasCheckedRef = useRef(false);
@@ -70,19 +70,22 @@ export function useTrialStartOnFirstLaunch() {
       return;
     }
 
+    if (canStartTrialLoading) {
+      return;
+    }
+
     const checkedAt = store.getValue("trial_start_checked_at");
     if (checkedAt) {
       hasCheckedRef.current = true;
       return;
     }
 
-    store.setValue("trial_start_checked_at", Date.now());
-    hasCheckedRef.current = true;
-
     if (canStartTrial) {
+      store.setValue("trial_start_checked_at", Date.now());
+      hasCheckedRef.current = true;
       startTrial();
     }
-  }, [isAuthenticated, canStartTrial, store, startTrial]);
+  }, [isAuthenticated, canStartTrial, canStartTrialLoading, store, startTrial]);
 
   useEffect(() => {
     if (hasShownModalRef.current || !store || isOnboarding) {

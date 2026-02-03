@@ -29,6 +29,7 @@ type BillingContextValue = {
   entitlements: string[];
   isPro: boolean;
   canStartTrial: boolean;
+  canStartTrialLoading: boolean;
   upgradeToPro: () => void;
 };
 
@@ -68,7 +69,8 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const canStartTrial = isPro ? false : (canTrialQuery.data ?? true);
+  const canStartTrial = isPro ? false : (canTrialQuery.data ?? false);
+  const canStartTrialLoading = canTrialQuery.isLoading;
 
   const upgradeToPro = useCallback(async () => {
     const scheme = await getScheme();
@@ -83,9 +85,10 @@ export function BillingProvider({ children }: { children: ReactNode }) {
       entitlements,
       isPro,
       canStartTrial,
+      canStartTrialLoading,
       upgradeToPro,
     }),
-    [entitlements, isPro, canStartTrial, upgradeToPro],
+    [entitlements, isPro, canStartTrial, canStartTrialLoading, upgradeToPro],
   );
 
   return (

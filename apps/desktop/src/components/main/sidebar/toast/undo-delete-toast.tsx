@@ -67,12 +67,16 @@ export function useDissolvingProgress(sessionId: string | null) {
       setProgress(newProgress);
 
       if (newProgress > 0) {
-        requestAnimationFrame(updateProgress);
+        animationIdRef.current = requestAnimationFrame(updateProgress);
       }
     };
 
-    const animationId = requestAnimationFrame(updateProgress);
-    return () => cancelAnimationFrame(animationId);
+    const animationIdRef = { current: requestAnimationFrame(updateProgress) };
+    return () => {
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+    };
   }, [isDissolving, deletedSession]);
 
   return { isDissolving, progress };

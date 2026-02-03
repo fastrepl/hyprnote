@@ -61,6 +61,10 @@ export function getSitemap(): Sitemap<TRoutes> {
         priority: 0.7,
         changeFrequency: "monthly",
       },
+      "/eval/": {
+        priority: 0.7,
+        changeFrequency: "weekly",
+      },
       "/gallery/": {
         priority: 0.7,
         changeFrequency: "weekly",

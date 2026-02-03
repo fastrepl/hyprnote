@@ -57,6 +57,27 @@ struct ProgressData {
     cancellation_token: CancellationToken,
 }
 
+struct ProgressDataGuard {
+    ptr: *mut std::ffi::c_void,
+    owned: bool,
+}
+
+impl ProgressDataGuard {
+    fn new(ptr: *mut std::ffi::c_void) -> Self {
+        Self { ptr, owned: true }
+    }
+}
+
+impl Drop for ProgressDataGuard {
+    fn drop(&mut self) {
+        if self.owned && !self.ptr.is_null() {
+            unsafe {
+                let _ = Box::from_raw(self.ptr as *mut ProgressData);
+            }
+        }
+    }
+}
+
 impl Llama {
     fn get_backend() -> Arc<LlamaBackend> {
         LLAMA_BACKEND
@@ -123,7 +144,7 @@ impl Llama {
             llama_cpp_2::context::LlamaContext<'a>,
             LlamaBatch,
             i32,
-            *mut std::ffi::c_void,
+            ProgressDataGuard,
             u32,
         ),
         crate::Error,
@@ -159,6 +180,7 @@ impl Llama {
             cancellation_token,
         });
         let progress_data_ptr = Box::into_raw(progress_data) as *mut std::ffi::c_void;
+        let progress_data_guard = ProgressDataGuard::new(progress_data_ptr);
 
         extern "C" fn cb_eval_fn(
             _t: *mut llama_cpp_sys_2::ggml_tensor,
@@ -243,7 +265,13 @@ impl Llama {
             }));
         }
 
-        Ok((ctx, batch, last_index, progress_data_ptr, max_output_tokens))
+        Ok((
+            ctx,
+            batch,
+            last_index,
+            progress_data_guard,
+            max_output_tokens,
+        ))
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -254,7 +282,7 @@ impl Llama {
         last_index: i32,
         request: &LlamaRequest,
         response_sender: tokio::sync::mpsc::UnboundedSender<Response>,
-        progress_data_ptr: *mut std::ffi::c_void,
+        progress_data_guard: ProgressDataGuard,
         cancellation_token: CancellationToken,
         max_output_tokens: u32,
     ) {
@@ -302,10 +330,7 @@ impl Llama {
         }
 
         drop(response_sender);
-
-        unsafe {
-            let _ = Box::from_raw(progress_data_ptr as *mut ProgressData);
-        }
+        drop(progress_data_guard);
     }
 
     fn setup_log() {

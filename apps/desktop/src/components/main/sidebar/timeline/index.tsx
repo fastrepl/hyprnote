@@ -282,10 +282,10 @@ function useTimelineData(): TimelineBucket[] {
   );
   const filteredTimelineEventsTable = useMemo(() => {
     const sessionEventIds = new Set(
-      Object.values(timelineSessionsTable).map((session) => session.event_id),
+      Object.values(timelineSessionsTable || {}).map((session) => session.event_id),
     );
     return Object.fromEntries(
-      Object.entries(timelineEventsTable).filter(
+      Object.entries(timelineEventsTable || {}).filter(
         ([key]) => !sessionEventIds.has(key),
       ),
     );

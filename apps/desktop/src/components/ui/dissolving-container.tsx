@@ -98,14 +98,6 @@ export function DissolvingContainer({
             </button>
           </motion.div>
         </div>
-
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-neutral-200 rounded-b-xl overflow-hidden">
-          <motion.div
-            className="h-full bg-neutral-400"
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.1 }}
-          />
-        </div>
       </div>
     );
   }
@@ -151,14 +143,6 @@ export function DissolvingContainer({
           </button>
         </motion.div>
       )}
-
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-200 rounded-b overflow-hidden">
-        <motion.div
-          className="h-full bg-neutral-400"
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.1 }}
-        />
-      </div>
     </div>
   );
 }

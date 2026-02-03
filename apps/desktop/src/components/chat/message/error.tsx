@@ -28,7 +28,7 @@ export function ErrorMessage({
 
   const handleOpenFaq = () => {
     void openerCommands.openUrl(
-      `${WEB_APP_BASE_URL}/docs/faq/local-llm-setup#lmstudio-context-length`,
+      `${WEB_APP_BASE_URL}/docs/faq/local-llm-setup#context-length-error`,
       null,
     );
   };

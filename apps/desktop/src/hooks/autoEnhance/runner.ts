@@ -4,6 +4,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { md2json } from "@hypr/tiptap/shared";
 
 import { useAITask } from "../../contexts/ai-task";
+import { useListener } from "../../contexts/listener";
 import * as main from "../../store/tinybase/store/main";
 import { createTaskId } from "../../store/zustand/ai-task/task-configs";
 import { getTaskState } from "../../store/zustand/ai-task/tasks";
@@ -26,13 +27,15 @@ export function useAutoEnhanceRunner(
 ): {
   run: () => RunResult;
   isEnhancing: boolean;
-  reset: () => void;
 } {
   const sessionId = tab.id;
   const model = useLanguageModel();
   const { conn: llmConn } = useLLMConnection();
   const { updateSessionTabState } = useTabs();
   const createEnhancedNote = useCreateEnhancedNote();
+
+  const listenerStatus = useListener((state) => state.live.status);
+  const liveSessionId = useListener((state) => state.live.sessionId);
 
   const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
 
@@ -41,6 +44,12 @@ export function useAutoEnhanceRunner(
   const hasRunRef = useRef(false);
   const tabRef = useRef(tab);
   tabRef.current = tab;
+
+  useEffect(() => {
+    if (listenerStatus === "active" && liveSessionId === sessionId) {
+      hasRunRef.current = false;
+    }
+  }, [listenerStatus, liveSessionId, sessionId]);
 
   const titleTaskId = createTaskId(sessionId, "title");
 
@@ -183,8 +192,5 @@ export function useAutoEnhanceRunner(
   return {
     run,
     isEnhancing,
-    reset: useCallback(() => {
-      hasRunRef.current = false;
-    }, []),
   };
 }

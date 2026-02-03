@@ -1,9 +1,6 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 use sysinfo::System;
 
-#[cfg(target_os = "macos")]
-use std::os::unix::net::UnixStream;
-
 pub fn cpu_arch() -> String {
     System::cpu_arch()
 }
@@ -50,21 +47,22 @@ pub fn kill_processes_by_matcher(matcher: ProcessMatcher) -> u16 {
 #[cfg(target_os = "macos")]
 pub fn cleanup_stale_single_instance_socket(identifier: &str) -> bool {
     // https://github.com/tauri-apps/plugins-workspace/blob/v2/plugins/single-instance/src/platform_impl/macos.rs#L60-L71
+    //
+    // Simply remove the socket file if it exists. The single-instance plugin will
+    // recreate it. This avoids blocking I/O that can hang during startup if the
+    // socket is in an inconsistent state.
+    //
+    // Previous implementation used UnixStream::connect() which could block indefinitely
+    // if the socket exists but is not accepting connections, causing app startup hangs.
     let normalized_identifier = identifier.replace(['.', '-'], "_");
     let socket_path = format!("/tmp/{}_si.sock", normalized_identifier);
 
-    if !std::path::Path::new(&socket_path).exists() {
-        return false;
+    if std::path::Path::new(&socket_path).exists() {
+        // If removal fails (permissions, etc.), the single-instance plugin will handle it
+        std::fs::remove_file(&socket_path).is_ok()
+    } else {
+        false
     }
-
-    let is_stale = match UnixStream::connect(&socket_path) {
-        Ok(_) => false,
-        // https://github.com/tauri-apps/plugins-workspace/blob/v2/plugins/single-instance/src/platform_impl/macos.rs#L29-L43
-        Err(e) if e.kind() == std::io::ErrorKind::ConnectionRefused => true,
-        Err(_) => false,
-    };
-
-    is_stale && std::fs::remove_file(&socket_path).is_ok()
 }
 
 #[cfg(test)]

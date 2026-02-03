@@ -69,23 +69,6 @@ function fixImageUrls(content: string): string {
   );
 }
 
-function addEmptyParagraphsBeforeHeaders(
-  json: ReturnType<typeof md2json>,
-): ReturnType<typeof md2json> {
-  if (!json.content) return json;
-
-  const newContent: typeof json.content = [];
-  for (let i = 0; i < json.content.length; i++) {
-    const node = json.content[i];
-    if (node.type === "heading" && i > 0) {
-      newContent.push({ type: "paragraph" });
-    }
-    newContent.push(node);
-  }
-
-  return { ...json, content: newContent };
-}
-
 export const TabItemChangelog: TabItem<Extract<Tab, { type: "changelog" }>> = ({
   tab,
   tabIndex,

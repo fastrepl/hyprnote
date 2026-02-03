@@ -6,7 +6,10 @@ import { cn } from "@hypr/utils";
 import { restoreSessionData } from "../../store/tinybase/store/deleteSession";
 import * as main from "../../store/tinybase/store/main";
 import { useTabs } from "../../store/zustand/tabs";
-import { useUndoDelete } from "../../store/zustand/undo-delete";
+import {
+  UNDO_TIMEOUT_MS,
+  useUndoDelete,
+} from "../../store/zustand/undo-delete";
 import { useDissolvingProgress } from "../main/sidebar/toast/undo-delete-toast";
 
 type DissolvingContainerProps = {
@@ -102,13 +105,18 @@ export function DissolvingContainer({
     );
   }
 
+  const remainingSeconds = Math.ceil(
+    (progress / 100) * (UNDO_TIMEOUT_MS / 1000),
+  );
+
   return (
     <div
-      className={cn(["relative", className])}
+      className={cn(["relative flex items-center", className])}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
+        className="flex-1"
         animate={{
           opacity: Math.max(0.3, opacity),
           filter: `blur(${blur}px) grayscale(${(100 - progress) / 100})`,
@@ -117,6 +125,12 @@ export function DissolvingContainer({
       >
         {children}
       </motion.div>
+
+      {!isPaused && (
+        <span className="text-xs text-neutral-400 tabular-nums mr-2">
+          {remainingSeconds}
+        </span>
+      )}
 
       {isPaused && (
         <motion.div

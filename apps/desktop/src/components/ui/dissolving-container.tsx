@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -23,10 +23,17 @@ export function DissolvingContainer({
   variant = "sidebar",
 }: DissolvingContainerProps) {
   const store = main.UI.useStore(main.STORE_ID);
-  const { deletedSession, clear } = useUndoDelete();
+  const { deletedSession, clear, pause, resume, isPaused } = useUndoDelete();
   const openCurrent = useTabs((state) => state.openCurrent);
   const { isDissolving, progress } = useDissolvingProgress(sessionId);
-  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseEnter = useCallback(() => {
+    pause();
+  }, [pause]);
+
+  const handleMouseLeave = useCallback(() => {
+    resume();
+  }, [resume]);
 
   const handleRestore = useCallback(() => {
     if (!store || !deletedSession) return;
@@ -46,8 +53,8 @@ export function DissolvingContainer({
     return (
       <div
         className={cn(["relative h-full", className])}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <motion.div
           className="h-full"
@@ -70,8 +77,8 @@ export function DissolvingContainer({
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{
-              opacity: isHovered ? 1 : 0,
-              scale: isHovered ? 1 : 0.9,
+              opacity: isPaused ? 1 : 0,
+              scale: isPaused ? 1 : 0.9,
             }}
             transition={{ duration: 0.15 }}
             className="pointer-events-auto"
@@ -106,8 +113,8 @@ export function DissolvingContainer({
   return (
     <div
       className={cn(["relative", className])}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <motion.div
         animate={{
@@ -119,7 +126,7 @@ export function DissolvingContainer({
         {children}
       </motion.div>
 
-      {isHovered && (
+      {isPaused && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

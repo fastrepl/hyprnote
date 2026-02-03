@@ -55,18 +55,37 @@ export type DeletedSessionData = {
   deletedAt: number;
 };
 
+export const UNDO_TIMEOUT_MS = 5000;
+
 interface UndoDeleteState {
   deletedSession: DeletedSessionData | null;
   timeoutId: ReturnType<typeof setTimeout> | null;
-  setDeletedSession: (data: DeletedSessionData | null) => void;
+  isPaused: boolean;
+  remainingTime: number;
+  onDeleteConfirm: (() => void) | null;
+  setDeletedSession: (
+    data: DeletedSessionData | null,
+    onConfirm?: () => void,
+  ) => void;
   setTimeoutId: (id: ReturnType<typeof setTimeout> | null) => void;
+  pause: () => void;
+  resume: () => void;
   clear: () => void;
+  confirmDelete: () => void;
 }
 
 export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
   deletedSession: null,
   timeoutId: null,
-  setDeletedSession: (data) => set({ deletedSession: data }),
+  isPaused: false,
+  remainingTime: UNDO_TIMEOUT_MS,
+  onDeleteConfirm: null,
+  setDeletedSession: (data, onConfirm) =>
+    set({
+      deletedSession: data,
+      remainingTime: UNDO_TIMEOUT_MS,
+      onDeleteConfirm: onConfirm ?? null,
+    }),
   setTimeoutId: (id) => {
     const currentId = get().timeoutId;
     if (currentId) {
@@ -74,11 +93,51 @@ export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
     }
     set({ timeoutId: id });
   },
+  pause: () => {
+    const { timeoutId, deletedSession, isPaused } = get();
+    if (isPaused || !deletedSession) return;
+
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
+    const elapsed = Date.now() - deletedSession.deletedAt;
+    const remaining = Math.max(0, UNDO_TIMEOUT_MS - elapsed);
+    set({ isPaused: true, remainingTime: remaining, timeoutId: null });
+  },
+  resume: () => {
+    const { isPaused, remainingTime, deletedSession, confirmDelete } = get();
+    if (!isPaused || !deletedSession) return;
+
+    const newDeletedAt = Date.now() - (UNDO_TIMEOUT_MS - remainingTime);
+    set({
+      isPaused: false,
+      deletedSession: { ...deletedSession, deletedAt: newDeletedAt },
+    });
+
+    const timeoutId = setTimeout(() => {
+      confirmDelete();
+    }, remainingTime);
+    set({ timeoutId });
+  },
   clear: () => {
     const currentId = get().timeoutId;
     if (currentId) {
       clearTimeout(currentId);
     }
-    set({ deletedSession: null, timeoutId: null });
+    set({
+      deletedSession: null,
+      timeoutId: null,
+      isPaused: false,
+      remainingTime: UNDO_TIMEOUT_MS,
+      onDeleteConfirm: null,
+    });
+  },
+  confirmDelete: () => {
+    const { onDeleteConfirm, clear } = get();
+    if (onDeleteConfirm) {
+      onDeleteConfirm();
+    }
+    clear();
   },
 }));

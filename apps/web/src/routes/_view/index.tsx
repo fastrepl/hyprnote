@@ -1,4 +1,5 @@
 import { Icon } from "@iconify-icon/react";
+import MuxPlayer, { type MuxPlayerRefAttributes } from "@mux/mux-player-react";
 import { useFeatureFlagVariantKey } from "@posthog/react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
@@ -82,6 +83,7 @@ const mainFeatures = [
     description:
       "While you take notes, Hyprnote listens and generates a live transcript",
     image: "/api/images/hyprnote/transcript.jpg",
+    muxPlaybackId: "rbkYuZpGJGLHx023foq9DCSt3pY1RegJU5PvMCkRE3rE",
     link: "/product/ai-notetaking/#transcription",
   },
   {
@@ -90,6 +92,7 @@ const mainFeatures = [
     description:
       "Hyprnote combines your notes and the transcript to create a perfect summary",
     image: "/api/images/hyprnote/summary.jpg",
+    muxPlaybackId: "lKr5l1fWGNnRqOehiz15mV79VHtFOCiuO9urmgqs6V8",
     link: "/product/ai-notetaking/#summaries",
   },
   {
@@ -112,6 +115,7 @@ const mainFeatures = [
     title: "Keyboard shortcuts",
     description: "Navigate and format quickly without touching your mouse",
     image: "/api/images/hyprnote/editor.jpg",
+    muxPlaybackId: "sMWkuSxKWfH3RYnX51Xa2acih01ZP5yfQy01Q00XRd1yTQ",
     link: "/docs/faq/keyboard-shortcuts",
   },
 ];
@@ -1285,6 +1289,60 @@ function FeaturesMobileCarousel({
   );
 }
 
+function FeatureVideo({
+  playbackId,
+  alt,
+  isHovered,
+}: {
+  playbackId: string;
+  alt: string;
+  isHovered: boolean;
+}) {
+  const playerRef = useRef<MuxPlayerRefAttributes>(null);
+  const thumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
+
+  useEffect(() => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    if (isHovered) {
+      player.play();
+    } else {
+      player.pause();
+      player.currentTime = 0;
+    }
+  }, [isHovered]);
+
+  return (
+    <div className="w-full h-full relative">
+      <img
+        src={thumbnailUrl}
+        alt={alt}
+        className={cn([
+          "w-full h-full object-contain absolute inset-0 transition-opacity duration-300",
+          isHovered ? "opacity-0" : "opacity-100",
+        ])}
+      />
+      <MuxPlayer
+        ref={playerRef}
+        playbackId={playbackId}
+        muted
+        loop
+        playsInline
+        className={cn([
+          "w-full h-full object-contain transition-opacity duration-300",
+          isHovered ? "opacity-100" : "opacity-0",
+        ])}
+        style={
+          {
+            "--controls": "none",
+          } as React.CSSProperties & { [key: `--${string}`]: string }
+        }
+      />
+    </div>
+  );
+}
+
 function FeaturesDesktopGrid() {
   const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
 
@@ -1306,46 +1364,27 @@ function FeaturesDesktopGrid() {
             "border-neutral-100 overflow-hidden flex flex-col",
           )}
         >
-          <div
+          <Link
+            to={feature.link}
             className={cn([
-              "aspect-video border-b border-neutral-100 overflow-hidden relative group",
-              feature.image && "bg-neutral-100",
+              "aspect-video border-b border-neutral-100 overflow-hidden relative group block",
+              (feature.image || feature.muxPlaybackId) && "bg-neutral-100",
             ])}
             onMouseEnter={() => setHoveredFeature(index)}
             onMouseLeave={() => setHoveredFeature(null)}
           >
-            {feature.image ? (
-              <>
-                <Image
-                  src={feature.image}
-                  alt={`${feature.title} feature`}
-                  className="w-full h-full object-contain"
-                />
-                {feature.link && (
-                  <div
-                    className={cn([
-                      "absolute bottom-0 left-0 right-0",
-                      "transition-all duration-300 ease-out",
-                      hoveredFeature === index
-                        ? "translate-y-0 opacity-100"
-                        : "translate-y-full opacity-0",
-                    ])}
-                  >
-                    <Link
-                      to={feature.link}
-                      className={cn([
-                        "w-full py-4 text-xs font-mono cursor-pointer block text-center",
-                        "bg-stone-100/95 text-stone-800",
-                        "hover:bg-stone-200/95 active:bg-stone-400/95",
-                        "transition-all duration-150",
-                        "backdrop-blur-xs",
-                      ])}
-                    >
-                      Learn more
-                    </Link>
-                  </div>
-                )}
-              </>
+            {feature.muxPlaybackId ? (
+              <FeatureVideo
+                playbackId={feature.muxPlaybackId}
+                alt={`${feature.title} feature`}
+                isHovered={hoveredFeature === index}
+              />
+            ) : feature.image ? (
+              <Image
+                src={feature.image}
+                alt={`${feature.title} feature`}
+                className="w-full h-full object-contain"
+              />
             ) : (
               <img
                 src="/api/images/hyprnote/static.webp"
@@ -1353,7 +1392,7 @@ function FeaturesDesktopGrid() {
                 className="w-full h-full object-cover"
               />
             )}
-          </div>
+          </Link>
           <div className="p-6 flex-1">
             <div className="flex items-center gap-3 mb-2">
               <Icon icon={feature.icon} className="text-2xl text-stone-600" />
@@ -1371,26 +1410,10 @@ function FeaturesDesktopGrid() {
 
 const templateCategories = [
   {
-    icon: "mdi:account-group-outline",
-    category: "Management",
-    description: "Lead your team with structured conversations",
-    templates: ["1:1 Meeting", "Performance Review", "Executive Briefing"],
-  },
-  {
     icon: "mdi:handshake-outline",
     category: "Sales",
     description: "Close deals with organized discovery and follow-ups",
     templates: ["Sales Discovery Call", "Client Kickoff", "Investor Pitch"],
-  },
-  {
-    icon: "mdi:code-braces",
-    category: "Engineering",
-    description: "Ship faster with focused technical discussions",
-    templates: [
-      "Sprint Planning",
-      "Sprint Retrospective",
-      "Technical Design Review",
-    ],
   },
   {
     icon: "mdi:lightbulb-outline",
@@ -1403,10 +1426,14 @@ const templateCategories = [
     ],
   },
   {
-    icon: "mdi:file-document-multiple-outline",
-    category: "Other",
-    description: "Capture every type of meeting",
-    templates: ["Lecture Notes", "Board Meeting", "Daily Standup"],
+    icon: "mdi:code-braces",
+    category: "Engineering",
+    description: "Ship faster with focused technical discussions",
+    templates: [
+      "Sprint Planning",
+      "Sprint Retrospective",
+      "Technical Design Review",
+    ],
   },
 ];
 
@@ -1485,15 +1512,14 @@ function TemplatesMobileView() {
 
 function TemplatesDesktopView() {
   return (
-    <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 border-t border-neutral-100">
+    <div className="hidden md:grid grid-cols-3 border-t border-neutral-100">
       {templateCategories.map((category, index) => (
         <div
           key={category.category}
           className={cn([
-            "p-6 border-b border-neutral-100",
-            index % 3 !== 2 && "lg:border-r",
-            index % 2 !== 1 && "md:border-r lg:border-r-0",
-            index % 3 !== 2 && "lg:border-r",
+            "p-6",
+            index < templateCategories.length - 1 &&
+              "border-r border-neutral-100",
           ])}
         >
           <div className="flex items-center gap-3 mb-3">

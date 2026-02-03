@@ -9,7 +9,7 @@ use hypr_db_parser::{
 use hypr_frontmatter::Document;
 use hypr_version::Version;
 
-use super::utils::{FileOp, apply_ops, build_transcript_json_multi};
+use super::utils::{FileOp, apply_ops, build_transcript_json_multi, group_by_session_id};
 use super::version_from_name;
 use crate::Result;
 use crate::version::{DetectedVersion, InferredVersion};
@@ -35,17 +35,6 @@ fn sanitize_filename(name: &str) -> String {
         .collect::<String>()
         .trim()
         .to_string()
-}
-
-fn group_by_session_id<'a, T, F>(items: &'a [T], get_id: F) -> HashMap<&'a str, Vec<&'a T>>
-where
-    F: Fn(&T) -> &str,
-{
-    let mut map: HashMap<&str, Vec<&T>> = HashMap::new();
-    for item in items {
-        map.entry(get_id(item)).or_default().push(item);
-    }
-    map
 }
 
 fn build_tag_names(data: &Collection) -> HashMap<&str, &str> {

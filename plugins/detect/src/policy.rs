@@ -1,6 +1,4 @@
-use std::collections::{BTreeSet, HashMap};
-use std::sync::Mutex;
-use std::time::{Duration, Instant};
+use std::collections::BTreeSet;
 
 use hypr_notification_interface::NotificationKey;
 
@@ -15,7 +13,6 @@ pub enum SkipReason {
     HyprnoteListening,
     DoNotDisturb,
     AllAppsFiltered,
-    RecentlyNotified { key: String, ago: Duration },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -96,44 +93,6 @@ pub fn default_ignored_bundle_ids() -> Vec<String> {
         .collect()
 }
 
-pub struct RecentNotifications {
-    inner: Mutex<HashMap<String, Instant>>,
-    dedupe_window: Duration,
-}
-
-impl RecentNotifications {
-    pub fn new(dedupe_window: Duration) -> Self {
-        Self {
-            inner: Mutex::new(HashMap::new()),
-            dedupe_window,
-        }
-    }
-
-    pub fn check_and_record(&self, key: &NotificationKey) -> Option<Duration> {
-        let dedup_key = key.to_dedup_key();
-        let mut map = self.inner.lock().unwrap();
-        let now = Instant::now();
-
-        map.retain(|_, timestamp| now.duration_since(*timestamp) < self.dedupe_window);
-
-        if let Some(&last_shown) = map.get(&dedup_key) {
-            let ago = now.duration_since(last_shown);
-            if ago < self.dedupe_window {
-                return Some(ago);
-            }
-        }
-
-        map.insert(dedup_key, now);
-        None
-    }
-}
-
-impl Default for RecentNotifications {
-    fn default() -> Self {
-        Self::new(Duration::from_secs(60 * 5))
-    }
-}
-
 pub struct PolicyContext<'a> {
     pub apps: &'a [hypr_detect::InstalledApp],
     pub is_listening: bool,
@@ -151,7 +110,6 @@ pub struct MicNotificationPolicy {
     pub respect_dnd: bool,
     pub ignored_categories: Vec<AppCategory>,
     pub user_ignored_bundle_ids: Vec<String>,
-    pub recent_notifications: RecentNotifications,
 }
 
 impl MicNotificationPolicy {
@@ -198,16 +156,6 @@ impl MicNotificationPolicy {
             }
         };
 
-        if let Some(ago) = self
-            .recent_notifications
-            .check_and_record(&notification_key)
-        {
-            return Err(SkipReason::RecentlyNotified {
-                key: notification_key.to_dedup_key(),
-                ago,
-            });
-        }
-
         Ok(PolicyResult {
             filtered_apps,
             dedup_key: notification_key.to_dedup_key(),
@@ -222,7 +170,6 @@ impl Default for MicNotificationPolicy {
             respect_dnd: false,
             ignored_categories: AppCategory::all().to_vec(),
             user_ignored_bundle_ids: Vec::new(),
-            recent_notifications: RecentNotifications::default(),
         }
     }
 }
@@ -255,18 +202,6 @@ mod tests {
             Some(AppCategory::Hyprnote)
         );
         assert_eq!(AppCategory::find_category("com.zoom.us"), None);
-    }
-
-    #[test]
-    fn test_recent_notifications_dedup() {
-        let recent = RecentNotifications::new(Duration::from_secs(60));
-        let key = NotificationKey::mic_started(["com.zoom.us".to_string()]);
-
-        assert!(recent.check_and_record(&key).is_none());
-        assert!(recent.check_and_record(&key).is_some());
-
-        let different_key = NotificationKey::mic_started(["com.slack.Slack".to_string()]);
-        assert!(recent.check_and_record(&different_key).is_none());
     }
 
     #[test]

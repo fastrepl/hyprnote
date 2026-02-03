@@ -28,6 +28,7 @@ export type TasksActions = {
   ) => Promise<void>;
   cancel: (taskId: string) => void;
   reset: (taskId: string) => void;
+  remove: (taskId: string) => void;
   getState: <T extends TaskType>(taskId: TaskId<T>) => TaskState<T> | undefined;
 };
 
@@ -115,6 +116,13 @@ export const createTasksSlice = <T extends TasksState>(
         }),
       );
     }
+  },
+  remove: (taskId: string) => {
+    set((state) =>
+      mutate(state, (draft) => {
+        delete draft.tasks[taskId];
+      }),
+    );
   },
   generate: async <Task extends TaskType>(
     taskId: TaskId<Task>,

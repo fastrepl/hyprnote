@@ -56,6 +56,9 @@ importers:
       '@octokit/auth-app':
         specifier: ^8.1.2
         version: 8.1.2
+      '@octokit/graphql':
+        specifier: ^9.0.3
+        version: 9.0.3
       '@octokit/rest':
         specifier: ^22.0.1
         version: 22.0.1

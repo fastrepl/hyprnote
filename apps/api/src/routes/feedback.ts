@@ -1,4 +1,5 @@
 import { createAppAuth } from "@octokit/auth-app";
+import { graphql } from "@octokit/graphql";
 import { Octokit } from "@octokit/rest";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
@@ -87,6 +88,7 @@ async function createGitHubIssue(
   title: string,
   body: string,
   labels: string[],
+  issueType: string,
 ): Promise<{ url: string; number: number } | { error: string }> {
   const octokit = getGitHubClient();
   if (!octokit) {
@@ -100,6 +102,7 @@ async function createGitHubIssue(
       title,
       body,
       labels,
+      type: issueType,
     });
 
     return {
@@ -131,6 +134,79 @@ async function addCommentToIssue(
     });
   } catch {
     // Silently fail for comment creation
+  }
+}
+
+async function getInstallationToken(): Promise<string | null> {
+  if (
+    !env.GITHUB_APP_ID ||
+    !env.GITHUB_APP_PRIVATE_KEY ||
+    !env.GITHUB_APP_INSTALLATION_ID
+  ) {
+    return null;
+  }
+
+  const auth = createAppAuth({
+    appId: env.GITHUB_APP_ID,
+    privateKey: env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    installationId: env.GITHUB_APP_INSTALLATION_ID,
+  });
+
+  const { token } = await auth({ type: "installation" });
+  return token;
+}
+
+async function createGitHubDiscussion(
+  title: string,
+  body: string,
+  categoryId: string,
+): Promise<{ url: string } | { error: string }> {
+  const token = await getInstallationToken();
+  if (!token) {
+    return { error: "GitHub App credentials not configured" };
+  }
+
+  try {
+    const graphqlWithAuth = graphql.defaults({
+      headers: {
+        authorization: `token ${token}`,
+      },
+    });
+
+    const result = await graphqlWithAuth<{
+      createDiscussion: {
+        discussion: {
+          url: string;
+        };
+      };
+    }>(
+      `
+      mutation($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
+        createDiscussion(input: {
+          repositoryId: $repositoryId
+          categoryId: $categoryId
+          title: $title
+          body: $body
+        }) {
+          discussion {
+            url
+          }
+        }
+      }
+    `,
+      {
+        repositoryId: env.GITHUB_REPO_ID,
+        categoryId,
+        title,
+        body,
+      },
+    );
+
+    return { url: result.createDiscussion.discussion.url };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return { error: `GitHub API error: ${errorMessage}` };
   }
 }
 
@@ -184,9 +260,8 @@ feedback.post(
       `**Git Hash:** ${deviceInfo.gitHash}`,
     ].join("\n");
 
-    const body =
-      type === "bug"
-        ? `## Description
+    if (type === "bug") {
+      const body = `## Description
 ${trimmedDescription}
 
 ## Device Information
@@ -194,28 +269,18 @@ ${deviceInfoSection}
 
 ---
 *This issue was submitted from the Hyprnote desktop app.*
-`
-        : `## Feature Request
-${trimmedDescription}
-
-## Submitted From
-${deviceInfoSection}
-
----
-*This feature request was submitted from the Hyprnote desktop app.*
 `;
 
-    const labels = ["product/desktop"];
+      const labels = ["product/desktop"];
+      const result = await createGitHubIssue(title, body, labels, "Bug");
 
-    const result = await createGitHubIssue(title, body, labels);
+      if ("error" in result) {
+        return c.json({ success: false, error: result.error }, 500);
+      }
 
-    if ("error" in result) {
-      return c.json({ success: false, error: result.error }, 500);
-    }
-
-    if (logs) {
-      const logSummary = await analyzeLogsWithAI(logs);
-      const logComment = `## Log Analysis
+      if (logs) {
+        const logSummary = await analyzeLogsWithAI(logs);
+        const logComment = `## Log Analysis
 
 ${logSummary?.trim() ? `### Summary\n\`\`\`\n${logSummary}\n\`\`\`` : "_No errors or warnings found._"}
 
@@ -228,9 +293,42 @@ ${logs.slice(-10000)}
 
 </details>`;
 
-      await addCommentToIssue(result.number, logComment);
-    }
+        await addCommentToIssue(result.number, logComment);
+      }
 
-    return c.json({ success: true, issueUrl: result.url }, 200);
+      return c.json({ success: true, issueUrl: result.url }, 200);
+    } else {
+      const body = `## Feature Request
+${trimmedDescription}
+
+## Submitted From
+${deviceInfoSection}
+
+---
+*This feature request was submitted from the Hyprnote desktop app.*
+`;
+
+      if (!env.GITHUB_DISCUSSION_CATEGORY_ID) {
+        return c.json(
+          {
+            success: false,
+            error: "GitHub discussion category not configured",
+          },
+          500,
+        );
+      }
+
+      const result = await createGitHubDiscussion(
+        title,
+        body,
+        env.GITHUB_DISCUSSION_CATEGORY_ID,
+      );
+
+      if ("error" in result) {
+        return c.json({ success: false, error: result.error }, 500);
+      }
+
+      return c.json({ success: true, issueUrl: result.url }, 200);
+    }
   },
 );

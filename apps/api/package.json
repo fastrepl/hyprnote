@@ -14,6 +14,7 @@
     "@hypr/api-client": "workspace:*",
     "@hypr/supabase": "workspace:*",
     "@octokit/auth-app": "^8.1.2",
+    "@octokit/graphql": "^9.0.3",
     "@octokit/rest": "^22.0.1",
     "@posthog/ai": "^7.4.2",
     "@restatedev/restate-sdk-clients": "^1.10.2",

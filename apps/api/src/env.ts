@@ -34,6 +34,8 @@ export const env = createEnv({
     GITHUB_APP_ID: z.string().optional(),
     GITHUB_APP_PRIVATE_KEY: z.string().optional(),
     GITHUB_APP_INSTALLATION_ID: z.string().optional(),
+    GITHUB_REPO_ID: z.string().optional(),
+    GITHUB_DISCUSSION_CATEGORY_ID: z.string().optional(),
   },
   runtimeEnv: Bun.env,
   emptyStringAsUndefined: true,

@@ -17,6 +17,7 @@ import { ShellProvider } from "../../../contexts/shell";
 import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
 import { useDeeplinkHandler } from "../../../hooks/useDeeplinkHandler";
+import { useGlobalAutoEnhance } from "../../../hooks/useGlobalAutoEnhance";
 import {
   restorePinnedTabsToStore,
   restoreRecentlyOpenedToStore,
@@ -96,6 +97,7 @@ function Component() {
             <AITaskProvider store={aiTaskStore}>
               <NotificationProvider>
                 <ToolRegistration />
+                <GlobalAutoEnhance />
                 <Outlet />
               </NotificationProvider>
             </AITaskProvider>
@@ -111,5 +113,10 @@ function ToolRegistration() {
 
   useRegisterTools("chat", () => buildChatTools({ search }), [search]);
 
+  return null;
+}
+
+function GlobalAutoEnhance() {
+  useGlobalAutoEnhance();
   return null;
 }

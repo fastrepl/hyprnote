@@ -5,6 +5,7 @@ use std::pin::Pin;
 
 use hypr_db_parser::{Collection, Transcript};
 use hypr_version::Version;
+use serde_json::Value;
 
 use super::utils::{FileOp, apply_ops};
 use super::version_from_name;
@@ -80,7 +81,8 @@ fn collect_repair_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>>
             .get(sid)
             .map(|v| v.as_slice())
             .unwrap_or(&[]);
-        if sqlite_transcripts.len() <= 1 {
+
+        if sqlite_transcripts.is_empty() {
             continue;
         }
 
@@ -88,8 +90,10 @@ fn collect_repair_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>>
             continue;
         }
 
-        let file_count = count_transcripts_in_file(&transcript_path);
-        if file_count >= sqlite_transcripts.len() {
+        // Check if repair is needed:
+        // 1. File has fewer transcripts than SQLite
+        // 2. SQLite has speaker_hints but file doesn't
+        if !needs_repair(&transcript_path, sqlite_transcripts) {
             continue;
         }
 
@@ -103,19 +107,43 @@ fn collect_repair_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>>
     Ok(ops)
 }
 
-fn count_transcripts_in_file(path: &Path) -> usize {
+fn needs_repair(path: &Path, sqlite_transcripts: &[&Transcript]) -> bool {
     let Ok(content) = std::fs::read_to_string(path) else {
-        return 0;
+        return false;
     };
 
-    let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) else {
-        return 0;
+    let Ok(json) = serde_json::from_str::<Value>(&content) else {
+        return false;
     };
 
-    json.get("transcripts")
-        .and_then(|t| t.as_array())
-        .map(|arr| arr.len())
-        .unwrap_or(0)
+    let Some(file_transcripts) = json.get("transcripts").and_then(|t| t.as_array()) else {
+        return false;
+    };
+
+    // Repair if file has fewer transcripts than SQLite
+    if file_transcripts.len() < sqlite_transcripts.len() {
+        return true;
+    }
+
+    // Repair if SQLite has speaker_hints but file has empty speaker_hints
+    let sqlite_has_hints = sqlite_transcripts
+        .iter()
+        .any(|t| !t.speaker_hints.is_empty());
+
+    if sqlite_has_hints {
+        let file_has_hints = file_transcripts.iter().any(|t| {
+            t.get("speaker_hints")
+                .and_then(|h| h.as_array())
+                .map(|arr| !arr.is_empty())
+                .unwrap_or(false)
+        });
+
+        if !file_has_hints {
+            return true;
+        }
+    }
+
+    false
 }
 
 fn build_transcript_json_multi(transcripts: &[&Transcript]) -> String {
@@ -144,6 +172,21 @@ fn build_transcript_json_multi(transcripts: &[&Transcript]) -> String {
                 })
                 .collect();
 
+            let speaker_hints: Vec<serde_json::Value> = transcript
+                .speaker_hints
+                .iter()
+                .map(|h| {
+                    let value: serde_json::Value = serde_json::from_str(&h.value)
+                        .unwrap_or(serde_json::Value::String(h.value.clone()));
+                    serde_json::json!({
+                        "id": uuid::Uuid::new_v4().to_string(),
+                        "word_id": h.word_id,
+                        "type": h.hint_type,
+                        "value": value,
+                    })
+                })
+                .collect();
+
             serde_json::json!({
                 "id": transcript.id,
                 "user_id": transcript.user_id,
@@ -152,7 +195,7 @@ fn build_transcript_json_multi(transcripts: &[&Transcript]) -> String {
                 "started_at": transcript.started_at as i64,
                 "ended_at": transcript.ended_at.map(|v| v as i64),
                 "words": words,
-                "speaker_hints": [],
+                "speaker_hints": speaker_hints,
             })
         })
         .collect();

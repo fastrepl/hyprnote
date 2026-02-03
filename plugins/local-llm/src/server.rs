@@ -61,10 +61,11 @@ impl ServerState {
     }
 
     pub fn cancel_all(&self) {
-        if let Ok(tokens) = self.cancellation_tokens.lock() {
+        if let Ok(mut tokens) = self.cancellation_tokens.lock() {
             for token in tokens.iter() {
                 token.cancel();
             }
+            tokens.clear();
         }
     }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/store/main";
 import type { Tab } from "../store/zustand/tabs/schema";
 import { useAutoEnhanceRunner } from "./autoEnhance/runner";
@@ -18,6 +19,9 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const { justStopped, reset } = useListenerStopTrigger(sessionId);
   const runner = useAutoEnhanceRunner(tab, transcriptIds ?? [], hasTranscript);
 
+  const listenerStatus = useListener((state) => state.live.status);
+  const liveSessionId = useListener((state) => state.live.sessionId);
+
   const [skipReason, setSkipReason] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,6 +34,12 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [justStopped, reset]);
+
+  useEffect(() => {
+    if (listenerStatus === "active" && liveSessionId === sessionId) {
+      runner.reset();
+    }
+  }, [listenerStatus, liveSessionId, sessionId, runner.reset]);
 
   useEffect(() => {
     if (skipReason) {

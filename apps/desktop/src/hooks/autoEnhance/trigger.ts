@@ -1,5 +1,4 @@
-import { usePrevious } from "@uidotdev/usehooks";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useListener } from "../../contexts/listener";
 
@@ -8,23 +7,29 @@ export function useListenerStopTrigger(sessionId: string): {
   reset: () => void;
 } {
   const listenerStatus = useListener((state) => state.live.status);
-  const prevListenerStatus = usePrevious(listenerStatus);
   const liveSessionId = useListener((state) => state.live.sessionId);
-  const prevLiveSessionId = usePrevious(liveSessionId);
 
-  const [consumed, setConsumed] = useState(false);
+  const [justStopped, setJustStopped] = useState(false);
+  const prevStatusRef = useRef(listenerStatus);
+  const prevSessionIdRef = useRef(liveSessionId);
 
-  const listenerJustBecameInactive =
-    (prevListenerStatus === "active" || prevListenerStatus === "finalizing") &&
-    listenerStatus === "inactive";
-  const wasThisSessionListening = prevLiveSessionId === sessionId;
+  useEffect(() => {
+    const wasActive =
+      prevStatusRef.current === "active" ||
+      prevStatusRef.current === "finalizing";
+    const isNowInactive = listenerStatus === "inactive";
+    const wasThisSession = prevSessionIdRef.current === sessionId;
 
-  const justStopped =
-    listenerJustBecameInactive && wasThisSessionListening && !consumed;
+    if (wasActive && isNowInactive && wasThisSession && !justStopped) {
+      setJustStopped(true);
+    }
+
+    prevStatusRef.current = listenerStatus;
+    prevSessionIdRef.current = liveSessionId;
+  }, [listenerStatus, liveSessionId, sessionId, justStopped]);
 
   const reset = useCallback(() => {
-    setConsumed(true);
-    setTimeout(() => setConsumed(false), 100);
+    setJustStopped(false);
   }, []);
 
   return { justStopped, reset };

@@ -26,6 +26,7 @@ export function useAutoEnhanceRunner(
 ): {
   run: () => RunResult;
   isEnhancing: boolean;
+  reset: () => void;
 } {
   const sessionId = tab.id;
   const model = useLanguageModel();
@@ -37,6 +38,7 @@ export function useAutoEnhanceRunner(
 
   const startedTasksRef = useRef<Set<string>>(new Set());
   const currentNoteIdRef = useRef<string | null>(null);
+  const hasRunRef = useRef(false);
   const tabRef = useRef(tab);
   tabRef.current = tab;
 
@@ -110,6 +112,13 @@ export function useAutoEnhanceRunner(
   }, [tasks, handleEnhanceSuccess]);
 
   const run = useCallback((): RunResult => {
+    if (hasRunRef.current) {
+      return {
+        type: "skipped",
+        reason: "Auto-enhance already triggered for this session",
+      };
+    }
+
     const eligibility = getEligibility(hasTranscript, transcriptIds, store);
 
     if (!eligibility.eligible) {
@@ -125,6 +134,7 @@ export function useAutoEnhanceRunner(
       return { type: "skipped", reason: "Failed to create note" };
     }
 
+    hasRunRef.current = true;
     currentNoteIdRef.current = enhancedNoteId;
 
     updateSessionTabState(tabRef.current, {
@@ -173,5 +183,8 @@ export function useAutoEnhanceRunner(
   return {
     run,
     isEnhancing,
+    reset: useCallback(() => {
+      hasRunRef.current = false;
+    }, []),
   };
 }

@@ -4,6 +4,7 @@ import { type ReactNode, useMemo } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn, safeParseDate, startOfDay } from "@hypr/utils";
 
+import { useConfigValue } from "../../../../config/use-config";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import {
@@ -23,6 +24,7 @@ import {
 
 export function TimelineView() {
   const buckets = useTimelineData();
+  const timezone = useConfigValue("timezone") || undefined;
   const hasToday = useMemo(
     () => buckets.some((bucket) => bucket.label === "Today"),
     [buckets],
@@ -123,6 +125,7 @@ export function TimelineView() {
                   registerIndicator={setCurrentTimeIndicatorRef}
                   selectedSessionId={selectedSessionId}
                   selectedEventId={selectedEventId}
+                  timezone={timezone}
                 />
               ) : (
                 bucket.items.map((item) => {
@@ -136,6 +139,7 @@ export function TimelineView() {
                       item={item}
                       precision={bucket.precision}
                       selected={selected}
+                      timezone={timezone}
                     />
                   );
                 })
@@ -181,12 +185,14 @@ function TodayBucket({
   registerIndicator,
   selectedSessionId,
   selectedEventId,
+  timezone,
 }: {
   items: TimelineItem[];
   precision: TimelinePrecision;
   registerIndicator: (node: HTMLDivElement | null) => void;
   selectedSessionId: string | undefined;
   selectedEventId: string | undefined;
+  timezone?: string;
 }) {
   const currentTimeMs = useCurrentTimeMs();
 
@@ -241,6 +247,7 @@ function TodayBucket({
           item={entry.item}
           precision={precision}
           selected={selected}
+          timezone={timezone}
         />,
       );
     });
@@ -262,6 +269,7 @@ function TodayBucket({
     registerIndicator,
     selectedSessionId,
     selectedEventId,
+    timezone,
   ]);
 
   return renderedEntries;
@@ -280,14 +288,21 @@ function useTimelineData(): TimelineBucket[] {
     eventsWithoutSessionTable,
     sessionsWithMaybeEventTable,
   );
+  const timezone = useConfigValue("timezone");
 
   return useMemo(
     () =>
       buildTimelineBuckets({
         eventsWithoutSessionTable,
         sessionsWithMaybeEventTable,
+        timezone: timezone || undefined,
       }),
-    [eventsWithoutSessionTable, sessionsWithMaybeEventTable, currentTimeMs],
+    [
+      eventsWithoutSessionTable,
+      sessionsWithMaybeEventTable,
+      currentTimeMs,
+      timezone,
+    ],
   );
 }
 

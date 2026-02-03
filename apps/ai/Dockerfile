@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG RUST_VERSION=1.92.0
+ARG RUST_VERSION=1.93.0
 
 FROM rust:${RUST_VERSION}-bookworm AS planner
 RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*

@@ -169,11 +169,13 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   ]);
 
   useEffect(() => {
-    const listenerJustStopped =
-      prevListenerStatus === "active" && listenerStatus !== "active";
+    const listenerJustBecameInactive =
+      (prevListenerStatus === "active" ||
+        prevListenerStatus === "finalizing") &&
+      listenerStatus === "inactive";
     const wasThisSessionListening = prevLiveSessionId === sessionId;
 
-    if (listenerJustStopped && wasThisSessionListening) {
+    if (listenerJustBecameInactive && wasThisSessionListening) {
       createAndStartEnhance();
     }
   }, [
@@ -185,7 +187,11 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   ]);
 
   useEffect(() => {
-    if (listenerStatus === "finalizing" && indexes) {
+    if (
+      listenerStatus === "inactive" &&
+      indexes &&
+      prevLiveSessionId === sessionId
+    ) {
       const enhancedNoteIds = indexes.getSliceRowIds(
         main.INDEXES.enhancedNotesBySession,
         sessionId,
@@ -199,7 +205,13 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
         });
       }
     }
-  }, [listenerStatus, sessionId, indexes, updateSessionTabState]);
+  }, [
+    listenerStatus,
+    sessionId,
+    indexes,
+    updateSessionTabState,
+    prevLiveSessionId,
+  ]);
 
   useEffect(() => {
     if (skipReason) {

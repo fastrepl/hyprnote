@@ -146,3 +146,20 @@ pub async fn set_pinned_tabs<R: tauri::Runtime>(
 ) -> Result<(), String> {
     app.set_pinned_tabs(v)
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_recently_opened_sessions<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<String>, String> {
+    app.get_recently_opened_sessions()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_recently_opened_sessions<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    v: String,
+) -> Result<(), String> {
+    app.set_recently_opened_sessions(v)
+}

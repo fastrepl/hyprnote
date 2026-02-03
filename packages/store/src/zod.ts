@@ -34,6 +34,10 @@ export const eventSchema = z.object({
     (val) => val ?? undefined,
     z.string().optional(),
   ),
+  has_recurrence_rules: z.preprocess(
+    (val) => val ?? undefined,
+    z.boolean().optional(),
+  ),
 });
 
 export const calendarProviderSchema = z.enum(["apple", "google", "outlook"]);
@@ -199,6 +203,7 @@ export const generalSchema = z.object({
   current_llm_model: z.string().optional(),
   current_stt_provider: z.string().optional(),
   current_stt_model: z.string().optional(),
+  timezone: z.string().optional(),
 });
 
 export const aiProviderSchema = z

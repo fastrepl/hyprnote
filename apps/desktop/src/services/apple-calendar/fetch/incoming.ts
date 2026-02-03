@@ -88,6 +88,7 @@ async function normalizeAppleEvent(appleEvent: AppleEvent): Promise<{
       description: appleEvent.notes ?? undefined,
       recurrence_series_id:
         appleEvent.recurrence?.series_identifier ?? undefined,
+      has_recurrence_rules: appleEvent.has_recurrence_rules,
     },
     eventParticipants,
   };

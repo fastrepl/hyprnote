@@ -17,6 +17,7 @@ import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 import { StorageSettingsView } from "./storage";
+import { TimezoneSelector } from "./timezone";
 
 function useSettingsForm() {
   const value = useConfigValues([
@@ -120,26 +121,6 @@ export function SettingsApp() {
   });
   const supportedLanguages = supportedLanguagesQuery.data ?? ["en"];
 
-  const value = useConfigValues(["spoken_languages"] as const);
-
-  const suggestedProviders = useQuery({
-    enabled: !!value.spoken_languages?.length,
-    queryKey: ["suggested-stt-providers", value.spoken_languages],
-    queryFn: async () => {
-      const result = await listenerCommands.suggestProvidersForLanguagesLive(
-        value.spoken_languages ?? [],
-      );
-
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-
-      return result.data.filter(
-        (provider) => !["fireworks", "openai"].includes(provider),
-      );
-    },
-  });
-
   return (
     <div className="flex flex-col gap-8 pt-3">
       <form.Field name="autostart">
@@ -195,7 +176,7 @@ export function SettingsApp() {
 
       <div>
         <h2 className="text-lg font-semibold font-serif mb-4">
-          Language & Vocabulary
+          Language & Region
         </h2>
         <div className="flex flex-col gap-6">
           <form.Field name="ai_language">
@@ -207,21 +188,23 @@ export function SettingsApp() {
               />
             )}
           </form.Field>
+          <TimezoneSelector />
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold font-serif mb-4">Transcription</h2>
+        <div className="flex flex-col gap-6">
           <form.Field name="spoken_languages">
             {(field) => (
-              <>
-                <SpokenLanguagesView
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val)}
-                  supportedLanguages={supportedLanguages}
-                />
-                <span className="text-xs text-neutral-500">
-                  Providers outside {suggestedProviders.data?.join(", ")} may
-                  not work properly.
-                </span>
-              </>
+              <SpokenLanguagesView
+                value={field.state.value}
+                onChange={(val) => field.handleChange(val)}
+                supportedLanguages={supportedLanguages}
+              />
             )}
           </form.Field>
+          <TimezoneSelector />
         </div>
       </div>
 

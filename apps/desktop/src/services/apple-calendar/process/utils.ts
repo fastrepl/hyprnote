@@ -1,3 +1,5 @@
+import { json2md } from "@hypr/tiptap/shared";
+
 import type { Store } from "../../../store/tinybase/store/main";
 
 export function isSessionEmpty(store: Store, sessionId: string): boolean {
@@ -6,8 +8,16 @@ export function isSessionEmpty(store: Store, sessionId: string): boolean {
     return true;
   }
 
-  if (session.raw_md && String(session.raw_md).trim()) {
-    return false;
+  if (session.raw_md) {
+    let raw_md: string;
+    try {
+      raw_md = json2md(JSON.parse(session.raw_md));
+    } catch {
+      raw_md = session.raw_md;
+    }
+    if (raw_md.trim()) {
+      return false;
+    }
   }
 
   let hasEnhancedNotes = false;

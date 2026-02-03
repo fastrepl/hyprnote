@@ -19,7 +19,8 @@ export type ConfigKey =
   | "save_recordings"
   | "telemetry_consent"
   | "current_llm_provider"
-  | "current_llm_model";
+  | "current_llm_model"
+  | "timezone";
 
 type ConfigValueType<K extends ConfigKey> =
   (typeof CONFIG_REGISTRY)[K]["default"];
@@ -138,5 +139,10 @@ export const CONFIG_REGISTRY = {
   current_llm_model: {
     key: "current_llm_model",
     default: undefined,
+  },
+
+  timezone: {
+    key: "timezone",
+    default: undefined as string | undefined,
   },
 } satisfies Record<ConfigKey, ConfigDefinition>;

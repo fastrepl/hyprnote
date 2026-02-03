@@ -68,6 +68,7 @@ import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/s
 import { Route as ViewSolutionResearchRouteImport } from './routes/_view/solution/research'
 import { Route as ViewSolutionRecruitingRouteImport } from './routes/_view/solution/recruiting'
 import { Route as ViewSolutionProjectManagementRouteImport } from './routes/_view/solution/project-management'
+import { Route as ViewSolutionMeetingRouteImport } from './routes/_view/solution/meeting'
 import { Route as ViewSolutionMediaRouteImport } from './routes/_view/solution/media'
 import { Route as ViewSolutionLegalRouteImport } from './routes/_view/solution/legal'
 import { Route as ViewSolutionJournalismRouteImport } from './routes/_view/solution/journalism'
@@ -430,6 +431,11 @@ const ViewSolutionProjectManagementRoute =
     path: '/solution/project-management',
     getParentRoute: () => ViewRouteRoute,
   } as any)
+const ViewSolutionMeetingRoute = ViewSolutionMeetingRouteImport.update({
+  id: '/solution/meeting',
+  path: '/solution/meeting',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewSolutionMediaRoute = ViewSolutionMediaRouteImport.update({
   id: '/solution/media',
   path: '/solution/media',
@@ -761,6 +767,7 @@ const ViewGalleryTypeSlugRoute = ViewGalleryTypeSlugRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof ViewIndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bluesky': typeof BlueskyRoute
@@ -791,7 +798,6 @@ export interface FileRoutesByFullPath {
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
-  '/': typeof ViewIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/checkout': typeof ViewAppCheckoutRoute
@@ -834,6 +840,7 @@ export interface FileRoutesByFullPath {
   '/solution/journalism': typeof ViewSolutionJournalismRoute
   '/solution/legal': typeof ViewSolutionLegalRoute
   '/solution/media': typeof ViewSolutionMediaRoute
+  '/solution/meeting': typeof ViewSolutionMeetingRoute
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/research': typeof ViewSolutionResearchRoute
@@ -844,22 +851,22 @@ export interface FileRoutesByFullPath {
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/api/webhooks/slack-interactive': typeof ApiWebhooksSlackInteractiveRoute
   '/app/': typeof ViewAppIndexRoute
-  '/blog': typeof ViewBlogIndexRoute
-  '/changelog': typeof ViewChangelogIndexRoute
+  '/blog/': typeof ViewBlogIndexRoute
+  '/changelog/': typeof ViewChangelogIndexRoute
   '/company-handbook/': typeof ViewCompanyHandbookIndexRoute
   '/docs/': typeof ViewDocsIndexRoute
-  '/download': typeof ViewDownloadIndexRoute
-  '/eval': typeof ViewEvalIndexRoute
-  '/gallery': typeof ViewGalleryIndexRoute
-  '/jobs': typeof ViewJobsIndexRoute
-  '/k6-reports': typeof ViewK6ReportsIndexRoute
-  '/legal': typeof ViewLegalIndexRoute
-  '/press-kit': typeof ViewPressKitIndexRoute
-  '/roadmap': typeof ViewRoadmapIndexRoute
-  '/shortcuts': typeof ViewShortcutsIndexRoute
-  '/templates': typeof ViewTemplatesIndexRoute
-  '/admin/collections': typeof AdminCollectionsIndexRoute
-  '/admin/media': typeof AdminMediaIndexRoute
+  '/download/': typeof ViewDownloadIndexRoute
+  '/eval/': typeof ViewEvalIndexRoute
+  '/gallery/': typeof ViewGalleryIndexRoute
+  '/jobs/': typeof ViewJobsIndexRoute
+  '/k6-reports/': typeof ViewK6ReportsIndexRoute
+  '/legal/': typeof ViewLegalIndexRoute
+  '/press-kit/': typeof ViewPressKitIndexRoute
+  '/roadmap/': typeof ViewRoadmapIndexRoute
+  '/shortcuts/': typeof ViewShortcutsIndexRoute
+  '/templates/': typeof ViewTemplatesIndexRoute
+  '/admin/collections/': typeof AdminCollectionsIndexRoute
+  '/admin/media/': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
   '/api/admin/blog/upload-image': typeof ApiAdminBlogUploadImageRoute
@@ -953,6 +960,7 @@ export interface FileRoutesByTo {
   '/solution/journalism': typeof ViewSolutionJournalismRoute
   '/solution/legal': typeof ViewSolutionLegalRoute
   '/solution/media': typeof ViewSolutionMediaRoute
+  '/solution/meeting': typeof ViewSolutionMeetingRoute
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/research': typeof ViewSolutionResearchRoute
@@ -1078,6 +1086,7 @@ export interface FileRoutesById {
   '/_view/solution/journalism': typeof ViewSolutionJournalismRoute
   '/_view/solution/legal': typeof ViewSolutionLegalRoute
   '/_view/solution/media': typeof ViewSolutionMediaRoute
+  '/_view/solution/meeting': typeof ViewSolutionMeetingRoute
   '/_view/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/_view/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/_view/solution/research': typeof ViewSolutionResearchRoute
@@ -1130,6 +1139,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/admin'
     | '/auth'
     | '/bluesky'
@@ -1160,7 +1170,6 @@ export interface FileRouteTypes {
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
-    | '/'
     | '/admin/'
     | '/app/account'
     | '/app/checkout'
@@ -1203,6 +1212,7 @@ export interface FileRouteTypes {
     | '/solution/journalism'
     | '/solution/legal'
     | '/solution/media'
+    | '/solution/meeting'
     | '/solution/project-management'
     | '/solution/recruiting'
     | '/solution/research'
@@ -1213,22 +1223,22 @@ export interface FileRouteTypes {
     | '/api/tweet/$id'
     | '/api/webhooks/slack-interactive'
     | '/app/'
-    | '/blog'
-    | '/changelog'
+    | '/blog/'
+    | '/changelog/'
     | '/company-handbook/'
     | '/docs/'
-    | '/download'
-    | '/eval'
-    | '/gallery'
-    | '/jobs'
-    | '/k6-reports'
-    | '/legal'
-    | '/press-kit'
-    | '/roadmap'
-    | '/shortcuts'
-    | '/templates'
-    | '/admin/collections'
-    | '/admin/media'
+    | '/download/'
+    | '/eval/'
+    | '/gallery/'
+    | '/jobs/'
+    | '/k6-reports/'
+    | '/legal/'
+    | '/press-kit/'
+    | '/roadmap/'
+    | '/shortcuts/'
+    | '/templates/'
+    | '/admin/collections/'
+    | '/admin/media/'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
     | '/api/admin/blog/upload-image'
@@ -1322,6 +1332,7 @@ export interface FileRouteTypes {
     | '/solution/journalism'
     | '/solution/legal'
     | '/solution/media'
+    | '/solution/meeting'
     | '/solution/project-management'
     | '/solution/recruiting'
     | '/solution/research'
@@ -1446,6 +1457,7 @@ export interface FileRouteTypes {
     | '/_view/solution/journalism'
     | '/_view/solution/legal'
     | '/_view/solution/media'
+    | '/_view/solution/meeting'
     | '/_view/solution/project-management'
     | '/_view/solution/recruiting'
     | '/_view/solution/research'
@@ -1629,7 +1641,7 @@ declare module '@tanstack/react-router' {
     '/_view': {
       id: '/_view'
       path: ''
-      fullPath: ''
+      fullPath: '/'
       preLoaderRoute: typeof ViewRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -1776,84 +1788,84 @@ declare module '@tanstack/react-router' {
     '/admin/media/': {
       id: '/admin/media/'
       path: '/media'
-      fullPath: '/admin/media'
+      fullPath: '/admin/media/'
       preLoaderRoute: typeof AdminMediaIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/collections/': {
       id: '/admin/collections/'
       path: '/collections'
-      fullPath: '/admin/collections'
+      fullPath: '/admin/collections/'
       preLoaderRoute: typeof AdminCollectionsIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/_view/templates/': {
       id: '/_view/templates/'
       path: '/templates'
-      fullPath: '/templates'
+      fullPath: '/templates/'
       preLoaderRoute: typeof ViewTemplatesIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/shortcuts/': {
       id: '/_view/shortcuts/'
       path: '/shortcuts'
-      fullPath: '/shortcuts'
+      fullPath: '/shortcuts/'
       preLoaderRoute: typeof ViewShortcutsIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/roadmap/': {
       id: '/_view/roadmap/'
       path: '/roadmap'
-      fullPath: '/roadmap'
+      fullPath: '/roadmap/'
       preLoaderRoute: typeof ViewRoadmapIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/press-kit/': {
       id: '/_view/press-kit/'
       path: '/press-kit'
-      fullPath: '/press-kit'
+      fullPath: '/press-kit/'
       preLoaderRoute: typeof ViewPressKitIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/legal/': {
       id: '/_view/legal/'
       path: '/legal'
-      fullPath: '/legal'
+      fullPath: '/legal/'
       preLoaderRoute: typeof ViewLegalIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/k6-reports/': {
       id: '/_view/k6-reports/'
       path: '/k6-reports'
-      fullPath: '/k6-reports'
+      fullPath: '/k6-reports/'
       preLoaderRoute: typeof ViewK6ReportsIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/jobs/': {
       id: '/_view/jobs/'
       path: '/jobs'
-      fullPath: '/jobs'
+      fullPath: '/jobs/'
       preLoaderRoute: typeof ViewJobsIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/gallery/': {
       id: '/_view/gallery/'
       path: '/gallery'
-      fullPath: '/gallery'
+      fullPath: '/gallery/'
       preLoaderRoute: typeof ViewGalleryIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/eval/': {
       id: '/_view/eval/'
       path: '/eval'
-      fullPath: '/eval'
+      fullPath: '/eval/'
       preLoaderRoute: typeof ViewEvalIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/download/': {
       id: '/_view/download/'
       path: '/download'
-      fullPath: '/download'
+      fullPath: '/download/'
       preLoaderRoute: typeof ViewDownloadIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
@@ -1874,14 +1886,14 @@ declare module '@tanstack/react-router' {
     '/_view/changelog/': {
       id: '/_view/changelog/'
       path: '/changelog'
-      fullPath: '/changelog'
+      fullPath: '/changelog/'
       preLoaderRoute: typeof ViewChangelogIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/blog/': {
       id: '/_view/blog/'
       path: '/blog'
-      fullPath: '/blog'
+      fullPath: '/blog/'
       preLoaderRoute: typeof ViewBlogIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
@@ -1953,6 +1965,13 @@ declare module '@tanstack/react-router' {
       path: '/solution/project-management'
       fullPath: '/solution/project-management'
       preLoaderRoute: typeof ViewSolutionProjectManagementRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/meeting': {
+      id: '/_view/solution/meeting'
+      path: '/solution/meeting'
+      fullPath: '/solution/meeting'
+      preLoaderRoute: typeof ViewSolutionMeetingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/solution/media': {
@@ -2499,6 +2518,7 @@ interface ViewRouteRouteChildren {
   ViewSolutionJournalismRoute: typeof ViewSolutionJournalismRoute
   ViewSolutionLegalRoute: typeof ViewSolutionLegalRoute
   ViewSolutionMediaRoute: typeof ViewSolutionMediaRoute
+  ViewSolutionMeetingRoute: typeof ViewSolutionMeetingRoute
   ViewSolutionProjectManagementRoute: typeof ViewSolutionProjectManagementRoute
   ViewSolutionRecruitingRoute: typeof ViewSolutionRecruitingRoute
   ViewSolutionResearchRoute: typeof ViewSolutionResearchRoute
@@ -2571,6 +2591,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewSolutionJournalismRoute: ViewSolutionJournalismRoute,
   ViewSolutionLegalRoute: ViewSolutionLegalRoute,
   ViewSolutionMediaRoute: ViewSolutionMediaRoute,
+  ViewSolutionMeetingRoute: ViewSolutionMeetingRoute,
   ViewSolutionProjectManagementRoute: ViewSolutionProjectManagementRoute,
   ViewSolutionRecruitingRoute: ViewSolutionRecruitingRoute,
   ViewSolutionResearchRoute: ViewSolutionResearchRoute,

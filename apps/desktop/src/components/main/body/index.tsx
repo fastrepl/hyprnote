@@ -14,6 +14,12 @@ import { useShallow } from "zustand/shallow";
 
 import { commands as flagCommands } from "@hypr/plugin-flag";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Kbd } from "@hypr/ui/components/ui/kbd";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../contexts/listener";
@@ -157,14 +163,25 @@ function Header({ tabs }: { tabs: Tab[] }) {
       {!leftsidebar.expanded && isLinux && <TrafficLights className="mr-2" />}
       {!leftsidebar.expanded && (
         <div className="relative">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="shrink-0"
-            onClick={() => leftsidebar.setExpanded(true)}
-          >
-            <PanelLeftOpenIcon size={16} className="text-neutral-600" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="shrink-0"
+                onClick={() => leftsidebar.setExpanded(true)}
+              >
+                <PanelLeftOpenIcon size={16} className="text-neutral-600" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="bottom"
+              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm text-neutral-700 border border-neutral-200/50 shadow-lg"
+            >
+              <span>Toggle sidebar</span>
+              <Kbd className="animate-kbd-press">⌘ \</Kbd>
+            </TooltipContent>
+          </Tooltip>
           <NotificationBadge show={notifications.shouldShowBadge} />
         </div>
       )}
@@ -912,7 +929,7 @@ function useTabsShortcuts() {
   );
 
   useHotkeys(
-    "mod+shift+a",
+    "mod+shift+comma",
     () => openNew({ type: "ai" }),
     {
       preventDefault: true,

@@ -17,7 +17,11 @@ import { ShellProvider } from "../../../contexts/shell";
 import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
 import { useDeeplinkHandler } from "../../../hooks/useDeeplinkHandler";
-import { restorePinnedTabsToStore, useTabs } from "../../../store/zustand/tabs";
+import {
+  restorePinnedTabsToStore,
+  restoreRecentlyOpenedToStore,
+  useTabs,
+} from "../../../store/zustand/tabs";
 
 export const Route = createFileRoute("/app/main/_layout")({
   component: Component,
@@ -48,6 +52,9 @@ function Component() {
           pin,
           () => useTabs.getState().tabs,
         );
+        await restoreRecentlyOpenedToStore((ids) => {
+          useTabs.setState({ recentlyOpenedSessionIds: ids });
+        });
         const currentTabs = useTabs.getState().tabs;
         if (currentTabs.length === 0) {
           openDefaultEmptyTab();

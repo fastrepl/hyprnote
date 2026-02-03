@@ -2,7 +2,7 @@ import { tool } from "@langchain/core/tools";
 import type { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
 
-import { posthogSpecialist } from "@hypr/agent-support";
+import { posthogSpecialist } from "../specialists/posthog";
 
 export const posthogTool = tool(
   async ({ request }: { request: string }, config: LangGraphRunnableConfig) => {

@@ -51,8 +51,7 @@ async fn handle_mic_started<R: Runtime>(
         let listener_state = app_handle.listener().get_state().await;
         matches!(
             listener_state,
-            tauri_plugin_listener::fsm::State::Active
-                | tauri_plugin_listener::fsm::State::Finalizing
+            tauri_plugin_listener::State::Active | tauri_plugin_listener::State::Finalizing
         )
     };
 
@@ -93,8 +92,7 @@ async fn handle_mic_stopped<R: Runtime>(
         let listener_state = app_handle.listener().get_state().await;
         matches!(
             listener_state,
-            tauri_plugin_listener::fsm::State::Active
-                | tauri_plugin_listener::fsm::State::Finalizing
+            tauri_plugin_listener::State::Active | tauri_plugin_listener::State::Finalizing
         )
     };
 

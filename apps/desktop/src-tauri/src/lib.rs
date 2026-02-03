@@ -68,12 +68,6 @@ pub async fn main() {
     // https://v2.tauri.app/plugin/deep-linking/#desktop
     // should always be the first plugin
     {
-        #[cfg(target_os = "macos")]
-        {
-            let identifier = env!("BUNDLE_IDENTIFIER");
-            let _ = hypr_host::cleanup_stale_single_instance_socket(identifier);
-        }
-
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             app.windows().show(AppWindow::Main).unwrap();
         }));

@@ -15,11 +15,9 @@ import {
   organizationSchema,
   promptSchema,
   sessionSchema,
-  speakerHintSchema,
   tagSchema,
   templateSchema,
   transcriptSchema,
-  wordSchema,
 } from "./zod";
 
 export const tableSchemaForTinybase = {
@@ -40,25 +38,6 @@ export const tableSchemaForTinybase = {
     words: { type: "string" },
     speaker_hints: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof transcriptSchema>,
-  words: {
-    user_id: { type: "string" },
-    created_at: { type: "string" },
-    text: { type: "string" },
-    transcript_id: { type: "string" },
-    start_ms: { type: "number" },
-    end_ms: { type: "number" },
-    channel: { type: "number" },
-    speaker: { type: "string" },
-    metadata: { type: "string" },
-  } as const satisfies InferTinyBaseSchema<typeof wordSchema>,
-  speaker_hints: {
-    user_id: { type: "string" },
-    created_at: { type: "string" },
-    transcript_id: { type: "string" },
-    word_id: { type: "string" },
-    type: { type: "string" },
-    value: { type: "string" },
-  } as const satisfies InferTinyBaseSchema<typeof speakerHintSchema>,
   humans: {
     user_id: { type: "string" },
     name: { type: "string" },

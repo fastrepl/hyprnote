@@ -143,14 +143,16 @@ fn collect_session_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>
         ops.push(FileOp::Write {
             path: dir.join(files::META),
             content: build_meta_json(session, session_participants, &session_tags),
+            force: false,
         });
 
         // transcript.json (if exists)
         if let Some(transcripts) = transcripts.get(sid) {
-            if let Some(t) = transcripts.first() {
+            if !transcripts.is_empty() {
                 ops.push(FileOp::Write {
                     path: dir.join(files::TRANSCRIPT),
-                    content: build_transcript_json(t),
+                    content: build_transcript_json_multi(transcripts),
+                    force: false,
                 });
             }
         }
@@ -178,6 +180,7 @@ fn collect_human_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>> 
             FileOp::Write {
                 path: humans_dir.join(format!("{}.md", human.id)),
                 content: build_human_doc(human),
+                force: false,
             }
         })
         .collect();
@@ -196,6 +199,7 @@ fn collect_organization_ops(base_dir: &Path, data: &Collection) -> Result<Vec<Fi
             FileOp::Write {
                 path: orgs_dir.join(format!("{}.md", org.id)),
                 content: build_organization_doc(org),
+                force: false,
             }
         })
         .collect();
@@ -240,33 +244,47 @@ fn build_meta_json(
     serde_json::to_string_pretty(&meta).unwrap()
 }
 
-fn build_transcript_json(transcript: &Transcript) -> String {
-    let words: Vec<serde_json::Value> = transcript
-        .words
+fn build_transcript_json_multi(transcripts: &[&Transcript]) -> String {
+    let mut sorted: Vec<&Transcript> = transcripts.to_vec();
+    sorted.sort_by(|a, b| {
+        a.started_at
+            .partial_cmp(&b.started_at)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    let transcripts_json: Vec<serde_json::Value> = sorted
         .iter()
-        .map(|w| {
+        .map(|transcript| {
+            let words: Vec<serde_json::Value> = transcript
+                .words
+                .iter()
+                .map(|w| {
+                    serde_json::json!({
+                        "id": w.id,
+                        "text": w.text,
+                        "start_ms": w.start_ms.unwrap_or(0.0) as i64,
+                        "end_ms": w.end_ms.unwrap_or(0.0) as i64,
+                        "channel": w.channel,
+                        "speaker": w.speaker,
+                    })
+                })
+                .collect();
+
             serde_json::json!({
-                "id": w.id,
-                "text": w.text,
-                "start_ms": w.start_ms,
-                "end_ms": w.end_ms,
-                "channel": w.channel,
-                "speaker": w.speaker,
+                "id": transcript.id,
+                "user_id": transcript.user_id,
+                "created_at": transcript.created_at,
+                "session_id": transcript.session_id,
+                "started_at": transcript.started_at as i64,
+                "ended_at": transcript.ended_at.map(|v| v as i64),
+                "words": words,
+                "speaker_hints": [],
             })
         })
         .collect();
 
     let data = serde_json::json!({
-        "transcripts": [{
-            "id": transcript.id,
-            "user_id": transcript.user_id,
-            "created_at": transcript.created_at,
-            "session_id": transcript.session_id,
-            "started_at": transcript.started_at,
-            "ended_at": transcript.ended_at,
-            "words": words,
-            "speaker_hints": [],
-        }]
+        "transcripts": transcripts_json
     });
 
     serde_json::to_string_pretty(&data).unwrap()
@@ -277,6 +295,7 @@ fn build_memo_op(dir: &Path, session: &Session) -> Option<FileOp> {
     Some(FileOp::Write {
         path: dir.join(files::MEMO),
         content,
+        force: false,
     })
 }
 
@@ -293,6 +312,7 @@ fn build_enhanced_note_ops(
             Some(FileOp::Write {
                 path: dir.join(filename),
                 content,
+                force: false,
             })
         })
         .collect()

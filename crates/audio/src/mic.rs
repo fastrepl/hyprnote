@@ -197,7 +197,7 @@ pub struct MicStream {
 
 impl Drop for MicStream {
     fn drop(&mut self) {
-        self.drop_tx.send(()).unwrap();
+        let _ = self.drop_tx.send(());
     }
 }
 

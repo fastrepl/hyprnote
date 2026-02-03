@@ -51,6 +51,9 @@ export function DissolvingContainer({
 
   const opacity = progress / 100;
   const blur = ((100 - progress) / 100) * 4;
+  const remainingSeconds = Math.ceil(
+    (progress / 100) * (UNDO_TIMEOUT_MS / 1000),
+  );
 
   if (variant === "content") {
     return (
@@ -77,37 +80,36 @@ export function DissolvingContainer({
             "pointer-events-none",
           ])}
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{
-              opacity: isPaused ? 1 : 0,
-              scale: isPaused ? 1 : 0.9,
-            }}
-            transition={{ duration: 0.15 }}
-            className="pointer-events-auto"
-          >
-            <button
-              onClick={handleRestore}
-              className={cn([
-                "px-6 py-3 rounded-xl",
-                "bg-neutral-900 text-white",
-                "text-sm font-medium",
-                "shadow-2xl",
-                "hover:bg-neutral-800 active:bg-neutral-700",
-                "transition-colors duration-150",
-              ])}
+          {isPaused ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.15 }}
+              className="pointer-events-auto"
             >
-              Restore Note
-            </button>
-          </motion.div>
+              <button
+                onClick={handleRestore}
+                className={cn([
+                  "px-6 py-3 rounded-xl",
+                  "bg-neutral-900 text-white",
+                  "text-sm font-medium",
+                  "shadow-2xl",
+                  "hover:bg-neutral-800 active:bg-neutral-700",
+                  "transition-colors duration-150",
+                ])}
+              >
+                Restore Note
+              </button>
+            </motion.div>
+          ) : (
+            <span className="text-4xl font-medium text-neutral-400 tabular-nums">
+              {remainingSeconds}
+            </span>
+          )}
         </div>
       </div>
     );
   }
-
-  const remainingSeconds = Math.ceil(
-    (progress / 100) * (UNDO_TIMEOUT_MS / 1000),
-  );
 
   return (
     <div

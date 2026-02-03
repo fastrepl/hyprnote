@@ -369,6 +369,10 @@ export const createGeneralSlice = <
       Exit.match(exit, {
         onFailure: (cause) => {
           console.error(JSON.stringify(cause));
+          const currentState = get();
+          if (currentState.live.eventUnlisteners) {
+            currentState.live.eventUnlisteners.forEach((fn) => fn());
+          }
           set((state) =>
             mutate(state, (draft) => {
               if (draft.live.intervalId) {

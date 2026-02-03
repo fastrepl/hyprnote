@@ -5,12 +5,11 @@ use std::pin::Pin;
 
 use hypr_db_parser::{
     Collection, EnhancedNote, Human, Organization, Session, SessionParticipant, TagMapping,
-    Transcript,
 };
 use hypr_frontmatter::Document;
 use hypr_version::Version;
 
-use super::utils::{FileOp, apply_ops};
+use super::utils::{FileOp, apply_ops, build_transcript_json_multi};
 use super::version_from_name;
 use crate::Result;
 use crate::version::{DetectedVersion, InferredVersion};
@@ -242,67 +241,6 @@ fn build_meta_json(
     });
 
     serde_json::to_string_pretty(&meta).unwrap()
-}
-
-fn build_transcript_json_multi(transcripts: &[&Transcript]) -> String {
-    let mut sorted: Vec<&Transcript> = transcripts.to_vec();
-    sorted.sort_by(|a, b| {
-        a.started_at
-            .partial_cmp(&b.started_at)
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
-
-    let transcripts_json: Vec<serde_json::Value> = sorted
-        .iter()
-        .map(|transcript| {
-            let words: Vec<serde_json::Value> = transcript
-                .words
-                .iter()
-                .map(|w| {
-                    serde_json::json!({
-                        "id": w.id,
-                        "text": w.text,
-                        "start_ms": w.start_ms.unwrap_or(0.0) as i64,
-                        "end_ms": w.end_ms.unwrap_or(0.0) as i64,
-                        "channel": w.channel,
-                        "speaker": w.speaker,
-                    })
-                })
-                .collect();
-
-            let speaker_hints: Vec<serde_json::Value> = transcript
-                .speaker_hints
-                .iter()
-                .map(|h| {
-                    let value: serde_json::Value = serde_json::from_str(&h.value)
-                        .unwrap_or(serde_json::Value::String(h.value.clone()));
-                    serde_json::json!({
-                        "id": uuid::Uuid::new_v4().to_string(),
-                        "word_id": h.word_id,
-                        "type": h.hint_type,
-                        "value": value,
-                    })
-                })
-                .collect();
-
-            serde_json::json!({
-                "id": transcript.id,
-                "user_id": transcript.user_id,
-                "created_at": transcript.created_at,
-                "session_id": transcript.session_id,
-                "started_at": transcript.started_at as i64,
-                "ended_at": transcript.ended_at.map(|v| v as i64),
-                "words": words,
-                "speaker_hints": speaker_hints,
-            })
-        })
-        .collect();
-
-    let data = serde_json::json!({
-        "transcripts": transcripts_json
-    });
-
-    serde_json::to_string_pretty(&data).unwrap()
 }
 
 fn build_memo_op(dir: &Path, session: &Session) -> Option<FileOp> {

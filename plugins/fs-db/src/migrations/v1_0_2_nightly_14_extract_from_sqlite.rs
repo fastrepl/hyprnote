@@ -38,7 +38,7 @@ fn sanitize_filename(name: &str) -> String {
         .to_string()
 }
 
-fn group_by_session_id<'a, T, F>(items: &'a [T], get_id: F) -> HashMap<&'a str, Vec<&'a T>>
+fn group_by_session_id<T, F>(items: &[T], get_id: F) -> HashMap<&str, Vec<&T>>
 where
     F: Fn(&T) -> &str,
 {
@@ -146,13 +146,13 @@ fn collect_session_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>
         });
 
         // transcript.json (if exists)
-        if let Some(transcripts) = transcripts.get(sid) {
-            if let Some(t) = transcripts.first() {
-                ops.push(FileOp::Write {
-                    path: dir.join(files::TRANSCRIPT),
-                    content: build_transcript_json(t),
-                });
-            }
+        if let Some(transcripts) = transcripts.get(sid)
+            && let Some(t) = transcripts.first()
+        {
+            ops.push(FileOp::Write {
+                path: dir.join(files::TRANSCRIPT),
+                content: build_transcript_json(t),
+            });
         }
 
         // _memo.md (if user has notes)

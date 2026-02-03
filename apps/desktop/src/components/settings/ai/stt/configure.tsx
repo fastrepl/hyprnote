@@ -203,7 +203,7 @@ function HyprProviderCloudRow() {
 
   const buttonLabel = isPro
     ? "Ready to use"
-    : canStartTrial
+    : canStartTrial.data
       ? "Start Free Trial"
       : "Upgrade to Pro";
 

@@ -23,7 +23,11 @@ export function useTrialExpiredModalTrigger() {
       return;
     }
 
-    if (isAuthenticated && !isPro && !canStartTrial) {
+    if (canStartTrial.isPending) {
+      return;
+    }
+
+    if (isAuthenticated && !isPro && !canStartTrial.data) {
       const dismissedAt = store.getValue("trial_expired_modal_dismissed_at");
       const now = Date.now();
 

@@ -28,7 +28,7 @@ export function getEntitlementsFromToken(accessToken: string): string[] {
 type BillingContextValue = {
   entitlements: string[];
   isPro: boolean;
-  canStartTrial: boolean;
+  canStartTrial: { data: boolean; isPending: boolean };
   upgradeToPro: () => void;
 };
 
@@ -68,7 +68,13 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const canStartTrial = isPro ? false : (canTrialQuery.data ?? true);
+  const canStartTrial = useMemo(
+    () => ({
+      data: isPro ? false : (canTrialQuery.data ?? false),
+      isPending: canTrialQuery.isPending,
+    }),
+    [isPro, canTrialQuery.data, canTrialQuery.isPending],
+  );
 
   const upgradeToPro = useCallback(async () => {
     const scheme = await getScheme();

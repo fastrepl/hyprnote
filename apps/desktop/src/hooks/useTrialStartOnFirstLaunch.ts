@@ -70,6 +70,10 @@ export function useTrialStartOnFirstLaunch() {
       return;
     }
 
+    if (canStartTrial.isPending) {
+      return;
+    }
+
     const checkedAt = store.getValue("trial_start_checked_at");
     if (checkedAt) {
       hasCheckedRef.current = true;
@@ -79,7 +83,7 @@ export function useTrialStartOnFirstLaunch() {
     store.setValue("trial_start_checked_at", Date.now());
     hasCheckedRef.current = true;
 
-    if (canStartTrial) {
+    if (canStartTrial.data) {
       startTrial();
     }
   }, [isAuthenticated, canStartTrial, store, startTrial]);

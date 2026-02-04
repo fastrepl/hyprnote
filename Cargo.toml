@@ -20,6 +20,7 @@ exclude = [
   "apps/desktop",
   "apps/desktop-e2e",
   "apps/k6",
+  "apps/meetingsucks",
   "apps/pro",
   "apps/restate",
   "apps/slack-external",

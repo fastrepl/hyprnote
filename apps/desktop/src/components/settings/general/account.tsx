@@ -1,14 +1,23 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Brain, Cloud, ExternalLinkIcon, Puzzle, Sparkle } from "lucide-react";
+import {
+  Brain,
+  Cloud,
+  ExternalLinkIcon,
+  Puzzle,
+  Sparkle,
+  Sparkles,
+} from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { type SubscriptionStatus } from "@hypr/plugin-auth";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
@@ -16,29 +25,89 @@ import { env } from "../../../env";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
-function getPlanDescription(
-  isPro: boolean,
-  isTrialing: boolean,
-  trialDaysRemaining: number | null,
-): string {
-  if (!isPro) {
-    return "FREE";
+function PlanStatus({
+  subscriptionStatus,
+  trialDaysRemaining,
+}: {
+  subscriptionStatus: SubscriptionStatus | null;
+  trialDaysRemaining: number | null;
+}) {
+  if (!subscriptionStatus) {
+    return <span className="text-neutral-500">FREE</span>;
   }
-  if (isTrialing && trialDaysRemaining !== null) {
-    if (trialDaysRemaining === 0) {
-      return "PRO (Trial ends today)";
+
+  switch (subscriptionStatus) {
+    case "active":
+      return (
+        <span className="inline-flex items-center gap-1 font-medium text-neutral-800">
+          <Sparkles size={13} className="text-neutral-500" />
+          PRO
+        </span>
+      );
+
+    case "trialing": {
+      const isUrgent = trialDaysRemaining !== null && trialDaysRemaining <= 3;
+      let trialText = null;
+      if (trialDaysRemaining !== null) {
+        if (trialDaysRemaining === 0) {
+          trialText = "Trial ends today";
+        } else if (trialDaysRemaining === 1) {
+          trialText = "Trial ends tomorrow";
+        } else {
+          trialText = `${trialDaysRemaining} days left`;
+        }
+      }
+      return (
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 font-medium text-neutral-800">
+            <Sparkles size={13} className="text-neutral-500" />
+            PRO
+          </span>
+          {trialText && (
+            <span
+              className={cn(["text-neutral-500", isUrgent && "text-amber-600"])}
+            >
+              ({trialText})
+            </span>
+          )}
+        </span>
+      );
     }
-    if (trialDaysRemaining === 1) {
-      return "PRO (Trial ends tomorrow)";
-    }
-    return `PRO (${trialDaysRemaining} days left)`;
+
+    case "past_due":
+      return (
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 font-medium text-neutral-800">
+            <Sparkles size={13} className="text-neutral-500" />
+            PRO
+          </span>
+          <span className="text-amber-600">(Payment issue)</span>
+        </span>
+      );
+
+    case "unpaid":
+      return <span className="text-amber-600">Payment failed</span>;
+
+    case "canceled":
+      return <span className="text-neutral-500">Canceled</span>;
+
+    case "incomplete":
+      return <span className="text-neutral-500">Setup incomplete</span>;
+
+    case "incomplete_expired":
+      return <span className="text-neutral-500">Expired</span>;
+
+    case "paused":
+      return <span className="text-neutral-500">Paused</span>;
+
+    default:
+      return <span className="text-neutral-500">FREE</span>;
   }
-  return "PRO";
 }
 
 export function AccountSettings() {
   const auth = useAuth();
-  const { isPro, isTrialing, trialDaysRemaining } = useBillingAccess();
+  const { subscriptionStatus, trialDaysRemaining } = useBillingAccess();
 
   const isAuthenticated = !!auth?.session;
   const [isPending, setIsPending] = useState(false);
@@ -207,7 +276,15 @@ export function AccountSettings() {
 
       <Container
         title="Plan & Billing"
-        description={`Your current plan is ${getPlanDescription(isPro, isTrialing, trialDaysRemaining)}. `}
+        description={
+          <span>
+            Your current plan is{" "}
+            <PlanStatus
+              subscriptionStatus={subscriptionStatus}
+              trialDaysRemaining={trialDaysRemaining}
+            />
+          </span>
+        }
         action={<BillingButton />}
       >
         <div className="text-sm text-neutral-600 flex items-center gap-1">
@@ -347,7 +424,7 @@ function Container({
   children,
 }: {
   title: string;
-  description?: string;
+  description?: ReactNode;
   action?: ReactNode;
   children?: ReactNode;
 }) {

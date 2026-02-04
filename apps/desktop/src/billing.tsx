@@ -9,7 +9,11 @@ import {
 
 import { getRpcCanStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
-import { commands as authCommands, type Claims } from "@hypr/plugin-auth";
+import {
+  commands as authCommands,
+  type Claims,
+  type SubscriptionStatus,
+} from "@hypr/plugin-auth";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 
 import { useAuth } from "./auth";
@@ -40,6 +44,7 @@ async function getInfoFromToken(accessToken: string): Promise<TokenInfo> {
 
 type BillingContextValue = {
   entitlements: string[];
+  subscriptionStatus: SubscriptionStatus | null;
   isPro: boolean;
   isTrialing: boolean;
   trialDaysRemaining: number | null;
@@ -62,8 +67,9 @@ export function BillingProvider({ children }: { children: ReactNode }) {
 
   const tokenInfo = tokenInfoQuery.data ?? DEFAULT_TOKEN_INFO;
   const entitlements = tokenInfo.entitlements ?? [];
+  const subscriptionStatus = tokenInfo.subscription_status ?? null;
   const isPro = entitlements.includes("hyprnote_pro");
-  const isTrialing = tokenInfo.subscription_status === "trialing";
+  const isTrialing = subscriptionStatus === "trialing";
 
   const trialDaysRemaining = useMemo(() => {
     if (!tokenInfo.trialEnd) {
@@ -112,6 +118,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
   const value = useMemo<BillingContextValue>(
     () => ({
       entitlements,
+      subscriptionStatus,
       isPro,
       isTrialing,
       trialDaysRemaining,
@@ -120,6 +127,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     }),
     [
       entitlements,
+      subscriptionStatus,
       isPro,
       isTrialing,
       trialDaysRemaining,

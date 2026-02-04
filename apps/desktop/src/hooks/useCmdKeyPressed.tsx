@@ -27,7 +27,7 @@ export function useCmdKeyPressed(): boolean {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
-      window.removeEventListener("blur-xs", handleBlur);
+      window.removeEventListener("blur", handleBlur);
     };
   }, []);
 

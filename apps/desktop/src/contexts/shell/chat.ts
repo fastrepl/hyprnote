@@ -48,8 +48,14 @@ export function useChatMode() {
   const actorRef = useMemo(() => createActor(chatModeLogic), []);
 
   useEffect(() => {
-    actorRef.subscribe((snapshot) => setMode(snapshot.context));
+    const subscription = actorRef.subscribe((snapshot) =>
+      setMode(snapshot.context),
+    );
     actorRef.start();
+    return () => {
+      subscription.unsubscribe();
+      actorRef.stop();
+    };
   }, [actorRef]);
 
   const sendEvent = useCallback(

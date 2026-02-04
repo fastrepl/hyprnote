@@ -73,7 +73,7 @@ export function Header() {
         setShowMobileHeader(true);
       } else if (currentScrollY > lastScrollY.current) {
         setShowMobileHeader(false);
-      } else if (lastScrollY.current - currentScrollY > 5) {
+      } else if (currentScrollY < lastScrollY.current) {
         setShowMobileHeader(true);
       }
 
@@ -87,9 +87,9 @@ export function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-50 h-17.25 transition-transform duration-300 ${
+        className={`md:sticky top-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-50 h-17.25 transition-transform duration-300 ${
           showMobileHeader ? "translate-y-0" : "-translate-y-full"
-        } md:translate-y-0`}
+        } md:translate-y-0 fixed w-full`}
       >
         <div
           className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 h-full`}

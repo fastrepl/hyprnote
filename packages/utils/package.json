@@ -8,7 +8,7 @@
     "@date-fns/tz": "^1.4.1",
     "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-windows": "workspace:^",
-    "@tauri-apps/api": "^2.9.1",
+    "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-http": "^2.5.6",
     "ai": "^6.0.67",
     "clsx": "^2.1.1",

@@ -119,7 +119,7 @@ owhisper-client = { path = "crates/owhisper-client", package = "owhisper-client"
 owhisper-config = { path = "crates/owhisper-config", package = "owhisper-config" }
 owhisper-interface = { path = "crates/owhisper-interface", package = "owhisper-interface" }
 
-tauri = "2.9"
+tauri = "2.10"
 tauri-build = "2.5"
 tauri-plugin = "2.5"
 tauri-plugin-autostart = "2.5"

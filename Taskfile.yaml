@@ -12,6 +12,7 @@ tasks:
 
   stripe: stripe listen --skip-verify --forward-to http://localhost:5000/webhook/stripe
   bacon: bacon {{.CLI_ARGS}}
+  stat: btop -f hyprnote -u 500 --preset 1
 
   clean-plugins:
     cmds:

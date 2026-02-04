@@ -386,8 +386,8 @@ importers:
         specifier: ^1.157.18
         version: 1.157.18(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
       '@tauri-apps/plugin-autostart':
         specifier: ^2.5.1
         version: 2.5.1
@@ -1592,8 +1592,8 @@ importers:
         specifier: workspace:^
         version: link:../../plugins/windows
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
       '@tauri-apps/plugin-http':
         specifier: ^2.5.6
         version: 2.5.6
@@ -1638,266 +1638,266 @@ importers:
   plugins/analytics:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/apple-calendar:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/apple-contact:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/audio-priority:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/auth:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/bedrock:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/db2:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/deeplink2:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/detect:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/extensions:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/flag:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/fs-db:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/fs-sync:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/fs2:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/git:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/hooks:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/icon:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/importer:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/js:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/listener:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/listener2:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/local-llm:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/local-stt:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/misc:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/network:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/notification:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/notify:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/opener2:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/overlay:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/path2:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/pdf:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/permissions:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/screen:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/settings:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/sfx:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/sidecar2:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/store2:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/tantivy:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/template:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/tracing:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/tray:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/updater2:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/webhook:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
   plugins/windows:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
+        specifier: ^2.10.1
+        version: 2.10.1
 
 packages:
 
@@ -7579,8 +7579,8 @@ packages:
   '@tauri-apps/api@2.0.2':
     resolution: {integrity: sha512-3wSwmG+1kr6WrgAFKK5ijkNFPp8TT3FLj3YHUb5EwMO+3FxX4uWlfSWkeeBy+Kc1RsKzugtYLuuya+98Flj+3w==}
 
-  '@tauri-apps/api@2.9.1':
-    resolution: {integrity: sha512-IGlhP6EivjXHepbBic618GOmiWe4URJiIeZFlB7x3czM0yDHHYviH1Xvoiv4FefdkQtn6v7TuwWCRfOGdnVUGw==}
+  '@tauri-apps/api@2.10.1':
+    resolution: {integrity: sha512-hKL/jWf293UDSUN09rR69hrToyIXBb8CjGaWC7gfinvnQrBVvnLr08FeFi38gxtugAVyVcTa5/FD/Xnkb1siBw==}
 
   '@tauri-apps/cli-darwin-arm64@2.9.6':
     resolution: {integrity: sha512-gf5no6N9FCk1qMrti4lfwP77JHP5haASZgVbBgpZG7BUepB3fhiLCXGUK8LvuOjP36HivXewjg72LTnPDScnQQ==}
@@ -16703,14 +16703,14 @@ snapshots:
   '@apm-js-collab/tracing-hooks@0.3.1':
     dependencies:
       '@apm-js-collab/code-transformer': 0.8.2
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       module-details-from-path: 1.0.4
     transitivePeerDependencies:
       - supports-color
 
   '@argos-ci/api-client@0.16.0':
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       openapi-fetch: 0.15.0
     transitivePeerDependencies:
       - supports-color
@@ -16722,7 +16722,7 @@ snapshots:
       '@argos-ci/api-client': 0.16.0
       '@argos-ci/util': 3.2.0
       convict: 6.2.4
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       fast-glob: 3.3.3
       mime-types: 3.0.2
       sharp: 0.34.5
@@ -16736,7 +16736,7 @@ snapshots:
       '@argos-ci/core': 5.1.0
       '@argos-ci/util': 3.2.0
       chalk: 5.6.2
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -16804,7 +16804,7 @@ snapshots:
       '@babel/types': 7.29.0
       '@jridgewell/remapping': 2.3.5
       convert-source-map: 2.0.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -16898,7 +16898,7 @@ snapshots:
       '@babel/parser': 7.29.0
       '@babel/template': 7.28.6
       '@babel/types': 7.29.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -17427,7 +17427,7 @@ snapshots:
   '@esbuild-plugins/node-resolve@0.2.2(esbuild@0.25.12)':
     dependencies:
       '@types/resolve': 1.20.6
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       esbuild: 0.25.12
       escape-string-regexp: 4.0.0
       resolve: 1.22.11
@@ -17747,7 +17747,7 @@ snapshots:
   '@eslint/config-array@0.21.1':
     dependencies:
       '@eslint/object-schema': 2.1.7
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -17763,7 +17763,7 @@ snapshots:
   '@eslint/eslintrc@3.3.3':
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       espree: 10.4.0
       globals: 14.0.0
       ignore: 5.3.2
@@ -18588,6 +18588,19 @@ snapshots:
 
   '@lukeed/ms@2.0.2': {}
 
+  '@mapbox/node-pre-gyp@2.0.3':
+    dependencies:
+      consola: 3.4.2
+      detect-libc: 2.1.2
+      https-proxy-agent: 7.0.6
+      node-fetch: 2.7.0
+      nopt: 8.1.0
+      semver: 7.7.2
+      tar: 7.5.7
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+
   '@mapbox/node-pre-gyp@2.0.3(supports-color@10.2.2)':
     dependencies:
       consola: 3.4.2
@@ -18799,6 +18812,14 @@ snapshots:
       '@netlify/dev-utils': 4.3.0
       '@netlify/runtime-utils': 2.2.0
 
+  '@netlify/blobs@10.5.0':
+    dependencies:
+      '@netlify/dev-utils': 4.3.3
+      '@netlify/otel': 5.1.1
+      '@netlify/runtime-utils': 2.2.1
+    transitivePeerDependencies:
+      - supports-color
+
   '@netlify/blobs@10.5.0(supports-color@10.2.2)':
     dependencies:
       '@netlify/dev-utils': 4.3.3
@@ -18982,7 +19003,7 @@ snapshots:
   '@netlify/dev@4.9.0(@netlify/api@14.0.13)(aws4fetch@1.0.20)(ioredis@5.9.2)(rollup@4.57.1)':
     dependencies:
       '@netlify/ai': 0.3.6(@netlify/api@14.0.13)
-      '@netlify/blobs': 10.5.0(supports-color@10.2.2)
+      '@netlify/blobs': 10.5.0
       '@netlify/config': 24.3.0
       '@netlify/dev-utils': 4.3.3
       '@netlify/edge-functions-dev': 1.0.9
@@ -19084,10 +19105,10 @@ snapshots:
 
   '@netlify/functions-dev@1.1.9(rollup@4.57.1)':
     dependencies:
-      '@netlify/blobs': 10.5.0(supports-color@10.2.2)
+      '@netlify/blobs': 10.5.0
       '@netlify/dev-utils': 4.3.3
       '@netlify/functions': 5.1.2
-      '@netlify/zip-it-and-ship-it': 14.3.1(rollup@4.57.1)(supports-color@10.2.2)
+      '@netlify/zip-it-and-ship-it': 14.3.1(rollup@4.57.1)
       cron-parser: 4.9.0
       decache: 4.6.2
       extract-zip: 2.0.1
@@ -19245,6 +19266,16 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.8.0
 
+  '@netlify/otel@5.1.1':
+    dependencies:
+      '@opentelemetry/api': 1.9.0
+      '@opentelemetry/core': 1.30.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/instrumentation': 0.203.0(@opentelemetry/api@1.9.0)
+      '@opentelemetry/resources': 1.30.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/sdk-trace-node': 1.30.1(@opentelemetry/api@1.9.0)
+    transitivePeerDependencies:
+      - supports-color
+
   '@netlify/otel@5.1.1(supports-color@10.2.2)':
     dependencies:
       '@opentelemetry/api': 1.9.0
@@ -19282,7 +19313,7 @@ snapshots:
 
   '@netlify/runtime@4.1.13':
     dependencies:
-      '@netlify/blobs': 10.5.0(supports-color@10.2.2)
+      '@netlify/blobs': 10.5.0
       '@netlify/cache': 3.3.4
       '@netlify/runtime-utils': 2.2.1
       '@netlify/types': 2.3.0
@@ -19362,6 +19393,47 @@ snapshots:
       - rollup
       - supports-color
       - uploadthing
+
+  '@netlify/zip-it-and-ship-it@14.3.1(rollup@4.57.1)':
+    dependencies:
+      '@babel/parser': 7.29.0
+      '@babel/types': 7.29.0
+      '@netlify/binary-info': 1.0.0
+      '@netlify/serverless-functions-api': 2.8.3
+      '@vercel/nft': 0.29.4(rollup@4.57.1)
+      archiver: 7.0.1
+      common-path-prefix: 3.0.0
+      copy-file: 11.1.0
+      es-module-lexer: 1.7.0
+      esbuild: 0.27.2
+      execa: 8.0.1
+      fast-glob: 3.3.3
+      filter-obj: 6.1.0
+      find-up: 7.0.0
+      is-path-inside: 4.0.0
+      junk: 4.0.1
+      locate-path: 7.2.0
+      merge-options: 3.0.4
+      minimatch: 9.0.5
+      normalize-path: 3.0.0
+      p-map: 7.0.3
+      path-exists: 5.0.0
+      precinct: 12.2.0
+      require-package-name: 2.0.1
+      resolve: 2.0.0-next.5
+      semver: 7.7.2
+      tmp-promise: 3.0.3
+      toml: 3.0.0
+      unixify: 1.0.0
+      urlpattern-polyfill: 8.0.2
+      yargs: 17.7.2
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - encoding
+      - react-native-b4a
+      - rollup
+      - supports-color
 
   '@netlify/zip-it-and-ship-it@14.3.1(rollup@4.57.1)(supports-color@10.2.2)':
     dependencies:
@@ -20136,6 +20208,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@opentelemetry/instrumentation@0.203.0(@opentelemetry/api@1.9.0)':
+    dependencies:
+      '@opentelemetry/api': 1.9.0
+      '@opentelemetry/api-logs': 0.203.0
+      import-in-the-middle: 1.15.0
+      require-in-the-middle: 7.5.2
+    transitivePeerDependencies:
+      - supports-color
+
   '@opentelemetry/instrumentation@0.203.0(@opentelemetry/api@1.9.0)(supports-color@10.2.2)':
     dependencies:
       '@opentelemetry/api': 1.9.0
@@ -20169,7 +20250,7 @@ snapshots:
       '@opentelemetry/api-logs': 0.53.0
       '@types/shimmer': 1.2.0
       import-in-the-middle: 1.15.0
-      require-in-the-middle: 7.5.2(supports-color@10.2.2)
+      require-in-the-middle: 7.5.2
       semver: 7.7.3
       shimmer: 1.2.1
     transitivePeerDependencies:
@@ -20181,7 +20262,7 @@ snapshots:
       '@opentelemetry/api-logs': 0.57.1
       '@types/shimmer': 1.2.0
       import-in-the-middle: 1.15.0
-      require-in-the-middle: 7.5.2(supports-color@10.2.2)
+      require-in-the-middle: 7.5.2
       semver: 7.7.3
       shimmer: 1.2.1
     transitivePeerDependencies:
@@ -20193,7 +20274,7 @@ snapshots:
       '@opentelemetry/api-logs': 0.57.2
       '@types/shimmer': 1.2.0
       import-in-the-middle: 1.15.0
-      require-in-the-middle: 7.5.2(supports-color@10.2.2)
+      require-in-the-middle: 7.5.2
       semver: 7.7.3
       shimmer: 1.2.1
     transitivePeerDependencies:
@@ -20550,7 +20631,7 @@ snapshots:
 
   '@pnpm/tabtab@0.5.4':
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       enquirer: 2.4.1
       minimist: 1.2.8
       untildify: 4.0.0
@@ -20683,7 +20764,7 @@ snapshots:
 
   '@puppeteer/browsers@2.11.2':
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       extract-zip: 2.0.1
       progress: 2.0.3
       proxy-agent: 6.5.0
@@ -20698,7 +20779,7 @@ snapshots:
 
   '@puppeteer/browsers@2.3.0':
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       extract-zip: 2.0.1
       progress: 2.0.3
       proxy-agent: 6.5.0
@@ -23075,7 +23156,7 @@ snapshots:
 
   '@tauri-apps/api@2.0.2': {}
 
-  '@tauri-apps/api@2.9.1': {}
+  '@tauri-apps/api@2.10.1': {}
 
   '@tauri-apps/cli-darwin-arm64@2.9.6':
     optional: true
@@ -23126,39 +23207,39 @@ snapshots:
 
   '@tauri-apps/plugin-autostart@2.5.1':
     dependencies:
-      '@tauri-apps/api': 2.9.1
+      '@tauri-apps/api': 2.10.1
 
   '@tauri-apps/plugin-deep-link@2.4.6':
     dependencies:
-      '@tauri-apps/api': 2.9.1
+      '@tauri-apps/api': 2.10.1
 
   '@tauri-apps/plugin-dialog@2.6.0':
     dependencies:
-      '@tauri-apps/api': 2.9.1
+      '@tauri-apps/api': 2.10.1
 
   '@tauri-apps/plugin-http@2.5.6':
     dependencies:
-      '@tauri-apps/api': 2.9.1
+      '@tauri-apps/api': 2.10.1
 
   '@tauri-apps/plugin-opener@2.5.3':
     dependencies:
-      '@tauri-apps/api': 2.9.1
+      '@tauri-apps/api': 2.10.1
 
   '@tauri-apps/plugin-os@2.3.2':
     dependencies:
-      '@tauri-apps/api': 2.9.1
+      '@tauri-apps/api': 2.10.1
 
   '@tauri-apps/plugin-process@2.3.1':
     dependencies:
-      '@tauri-apps/api': 2.9.1
+      '@tauri-apps/api': 2.10.1
 
   '@tauri-apps/plugin-shell@2.3.4':
     dependencies:
-      '@tauri-apps/api': 2.9.1
+      '@tauri-apps/api': 2.10.1
 
   '@tauri-apps/plugin-updater@2.9.0':
     dependencies:
-      '@tauri-apps/api': 2.9.1
+      '@tauri-apps/api': 2.10.1
 
   '@testing-library/dom@10.4.1':
     dependencies:
@@ -23884,9 +23965,9 @@ snapshots:
     dependencies:
       '@typescript-eslint/scope-manager': 8.54.0
       '@typescript-eslint/types': 8.54.0
-      '@typescript-eslint/typescript-estree': 8.54.0(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 8.54.0(typescript@5.9.3)
       '@typescript-eslint/visitor-keys': 8.54.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       eslint: 9.39.2(jiti@2.6.1)
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -23897,6 +23978,15 @@ snapshots:
       '@typescript-eslint/tsconfig-utils': 8.54.0(typescript@5.9.3)
       '@typescript-eslint/types': 8.54.0
       debug: 4.4.3(supports-color@10.2.2)
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - supports-color
+
+  '@typescript-eslint/project-service@8.54.0(typescript@5.9.3)':
+    dependencies:
+      '@typescript-eslint/tsconfig-utils': 8.54.0(typescript@5.9.3)
+      '@typescript-eslint/types': 8.54.0
+      debug: 4.4.3(supports-color@8.1.1)
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -23913,9 +24003,9 @@ snapshots:
   '@typescript-eslint/type-utils@8.54.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
       '@typescript-eslint/types': 8.54.0
-      '@typescript-eslint/typescript-estree': 8.54.0(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 8.54.0(typescript@5.9.3)
       '@typescript-eslint/utils': 8.54.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       eslint: 9.39.2(jiti@2.6.1)
       ts-api-utils: 2.4.0(typescript@5.9.3)
       typescript: 5.9.3
@@ -23939,12 +24029,27 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@typescript-eslint/typescript-estree@8.54.0(typescript@5.9.3)':
+    dependencies:
+      '@typescript-eslint/project-service': 8.54.0(typescript@5.9.3)
+      '@typescript-eslint/tsconfig-utils': 8.54.0(typescript@5.9.3)
+      '@typescript-eslint/types': 8.54.0
+      '@typescript-eslint/visitor-keys': 8.54.0
+      debug: 4.4.3(supports-color@8.1.1)
+      minimatch: 9.0.5
+      semver: 7.7.3
+      tinyglobby: 0.2.15
+      ts-api-utils: 2.4.0(typescript@5.9.3)
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - supports-color
+
   '@typescript-eslint/utils@8.54.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
       '@eslint-community/eslint-utils': 4.9.1(eslint@9.39.2(jiti@2.6.1))
       '@typescript-eslint/scope-manager': 8.54.0
       '@typescript-eslint/types': 8.54.0
-      '@typescript-eslint/typescript-estree': 8.54.0(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 8.54.0(typescript@5.9.3)
       eslint: 9.39.2(jiti@2.6.1)
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -23957,7 +24062,7 @@ snapshots:
 
   '@typescript/vfs@1.6.2(typescript@5.9.3)':
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -24017,6 +24122,25 @@ snapshots:
     dependencies:
       '@use-gesture/core': 10.3.1
       react: 19.2.4
+
+  '@vercel/nft@0.29.4(rollup@4.57.1)':
+    dependencies:
+      '@mapbox/node-pre-gyp': 2.0.3
+      '@rollup/pluginutils': 5.3.0(rollup@4.57.1)
+      acorn: 8.15.0
+      acorn-import-attributes: 1.9.5(acorn@8.15.0)
+      async-sema: 3.1.1
+      bindings: 1.5.0
+      estree-walker: 2.0.2
+      glob: 10.5.0
+      graceful-fs: 4.2.11
+      node-gyp-build: 4.8.4
+      picomatch: 4.0.3
+      resolve-from: 5.0.0
+    transitivePeerDependencies:
+      - encoding
+      - rollup
+      - supports-color
 
   '@vercel/nft@0.29.4(rollup@4.57.1)(supports-color@10.2.2)':
     dependencies:
@@ -24536,7 +24660,7 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -24964,7 +25088,7 @@ snapshots:
     dependencies:
       bytes: 3.1.2
       content-type: 1.0.5
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       http-errors: 2.0.1
       iconv-lite: 0.7.2
       on-finished: 2.4.1
@@ -25982,6 +26106,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  detective-typescript@14.0.0(typescript@5.9.3):
+    dependencies:
+      '@typescript-eslint/typescript-estree': 8.54.0(typescript@5.9.3)
+      ast-module-types: 6.0.1
+      node-source-walk: 7.0.1
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - supports-color
+
   detective-vue2@2.2.0(supports-color@10.2.2)(typescript@5.9.3):
     dependencies:
       '@dependents/detective-less': 5.0.1
@@ -25991,6 +26124,19 @@ snapshots:
       detective-scss: 5.0.1
       detective-stylus: 5.0.1
       detective-typescript: 14.0.0(supports-color@10.2.2)(typescript@5.9.3)
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - supports-color
+
+  detective-vue2@2.2.0(typescript@5.9.3):
+    dependencies:
+      '@dependents/detective-less': 5.0.1
+      '@vue/compiler-sfc': 3.5.27
+      detective-es6: 5.0.1
+      detective-sass: 6.0.1
+      detective-scss: 5.0.1
+      detective-stylus: 5.0.1
+      detective-typescript: 14.0.0(typescript@5.9.3)
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -26095,7 +26241,7 @@ snapshots:
       edge-paths: 3.0.5
       fast-xml-parser: 5.3.4
       http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6(supports-color@10.2.2)
+      https-proxy-agent: 7.0.6
       which: 6.0.0
     transitivePeerDependencies:
       - supports-color
@@ -26225,7 +26371,7 @@ snapshots:
 
   esbuild-register@3.6.0(esbuild@0.25.12):
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       esbuild: 0.25.12
     transitivePeerDependencies:
       - supports-color
@@ -26391,7 +26537,7 @@ snapshots:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       escape-string-regexp: 4.0.0
       eslint-scope: 8.4.0
       eslint-visitor-keys: 4.2.1
@@ -26644,7 +26790,7 @@ snapshots:
       content-type: 1.0.5
       cookie: 0.7.2
       cookie-signature: 1.2.2
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       depd: 2.0.0
       encodeurl: 2.0.0
       escape-html: 1.0.3
@@ -26693,7 +26839,7 @@ snapshots:
 
   extract-zip@2.0.1:
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       get-stream: 5.2.0
       yauzl: 2.10.0
     optionalDependencies:
@@ -26867,7 +27013,7 @@ snapshots:
 
   finalhandler@2.1.1:
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       encodeurl: 2.0.0
       escape-html: 1.0.3
       on-finished: 2.4.1
@@ -26923,7 +27069,7 @@ snapshots:
 
   follow-redirects@1.15.11(debug@4.4.3):
     optionalDependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
 
   for-each@0.3.5:
     dependencies:
@@ -26995,7 +27141,7 @@ snapshots:
   gaxios@7.1.3:
     dependencies:
       extend: 3.0.2
-      https-proxy-agent: 7.0.6(supports-color@10.2.2)
+      https-proxy-agent: 7.0.6
       node-fetch: 3.3.2
       rimraf: 5.0.10
     transitivePeerDependencies:
@@ -27015,7 +27161,7 @@ snapshots:
       '@zip.js/zip.js': 2.8.16
       decamelize: 6.0.1
       http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6(supports-color@10.2.2)
+      https-proxy-agent: 7.0.6
       modern-tar: 0.7.3
     transitivePeerDependencies:
       - supports-color
@@ -27084,7 +27230,7 @@ snapshots:
     dependencies:
       basic-ftp: 5.1.0
       data-uri-to-buffer: 6.0.2
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -27574,7 +27720,7 @@ snapshots:
   http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -27606,7 +27752,14 @@ snapshots:
   https-proxy-agent@5.0.1:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - supports-color
+
+  https-proxy-agent@7.0.6:
+    dependencies:
+      agent-base: 7.1.4
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -27763,7 +27916,7 @@ snapshots:
     dependencies:
       '@ioredis/commands': 1.5.0
       cluster-key-slot: 1.1.2
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       denque: 2.1.0
       lodash.defaults: 4.2.0
       lodash.isarguments: 3.1.0
@@ -28118,7 +28271,7 @@ snapshots:
       decimal.js: 10.6.0
       html-encoding-sniffer: 6.0.0(@noble/hashes@1.8.0)
       http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6(supports-color@10.2.2)
+      https-proxy-agent: 7.0.6
       is-potential-custom-element-name: 1.0.1
       parse5: 8.0.0
       saxes: 6.0.0
@@ -29568,7 +29721,7 @@ snapshots:
   micromark@3.2.0:
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       decode-named-character-reference: 1.3.0
       micromark-core-commonmark: 1.1.0
       micromark-factory-space: 1.1.0
@@ -29591,7 +29744,7 @@ snapshots:
   micromark@4.0.2:
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       decode-named-character-reference: 1.3.0
       devlop: 1.1.0
       micromark-core-commonmark: 2.0.3
@@ -29819,7 +29972,7 @@ snapshots:
       '@netlify/images': 1.3.3(@netlify/blobs@10.1.0)(aws4fetch@1.0.20)(ioredis@5.9.2)
       '@netlify/local-functions-proxy': 2.0.3
       '@netlify/redirect-parser': 15.0.3
-      '@netlify/zip-it-and-ship-it': 14.3.1(rollup@4.57.1)(supports-color@10.2.2)
+      '@netlify/zip-it-and-ship-it': 14.3.1(rollup@4.57.1)
       '@octokit/rest': 22.0.0
       '@opentelemetry/api': 1.8.0
       '@pnpm/tabtab': 0.5.4
@@ -29837,7 +29990,7 @@ snapshots:
       content-type: 1.0.5
       cookie: 1.0.2
       cron-parser: 4.9.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       decache: 4.6.2
       dot-prop: 9.0.0
       dotenv: 17.2.3
@@ -29859,7 +30012,7 @@ snapshots:
       gitconfiglocal: 2.1.0
       http-proxy: 1.18.1(debug@4.4.3)
       http-proxy-middleware: 2.0.9(debug@4.4.3)
-      https-proxy-agent: 7.0.6(supports-color@10.2.2)
+      https-proxy-agent: 7.0.6
       inquirer: 8.2.7(@types/node@22.19.7)
       inquirer-autocomplete-prompt: 1.4.0(inquirer@8.2.7(@types/node@22.19.7))
       is-docker: 3.0.0
@@ -30334,10 +30487,10 @@ snapshots:
     dependencies:
       '@tootallnate/quickjs-emscripten': 0.23.0
       agent-base: 7.1.4
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       get-uri: 6.0.5
       http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6(supports-color@10.2.2)
+      https-proxy-agent: 7.0.6
       pac-resolver: 7.0.1
       socks-proxy-agent: 8.0.5
     transitivePeerDependencies:
@@ -30761,6 +30914,26 @@ snapshots:
 
   preact@10.28.3: {}
 
+  precinct@12.2.0:
+    dependencies:
+      '@dependents/detective-less': 5.0.1
+      commander: 12.1.0
+      detective-amd: 6.0.1
+      detective-cjs: 6.0.1
+      detective-es6: 5.0.1
+      detective-postcss: 7.0.1(postcss@8.5.6)
+      detective-sass: 6.0.1
+      detective-scss: 5.0.1
+      detective-stylus: 5.0.1
+      detective-typescript: 14.0.0(typescript@5.9.3)
+      detective-vue2: 2.2.0(typescript@5.9.3)
+      module-definition: 6.0.1
+      node-source-walk: 7.0.1
+      postcss: 8.5.6
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - supports-color
+
   precinct@12.2.0(supports-color@10.2.2):
     dependencies:
       '@dependents/detective-less': 5.0.1
@@ -30999,9 +31172,9 @@ snapshots:
   proxy-agent@6.5.0:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6(supports-color@10.2.2)
+      https-proxy-agent: 7.0.6
       lru-cache: 7.18.3
       pac-proxy-agent: 7.2.0
       proxy-from-env: 1.1.0
@@ -31035,7 +31208,7 @@ snapshots:
     dependencies:
       '@puppeteer/browsers': 2.3.0
       chromium-bidi: 0.6.3(devtools-protocol@0.0.1312386)
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       devtools-protocol: 0.0.1312386
       ws: 8.19.0
     transitivePeerDependencies:
@@ -31724,6 +31897,14 @@ snapshots:
 
   require-from-string@2.0.2: {}
 
+  require-in-the-middle@7.5.2:
+    dependencies:
+      debug: 4.4.3(supports-color@8.1.1)
+      module-details-from-path: 1.0.4
+      resolve: 1.22.11
+    transitivePeerDependencies:
+      - supports-color
+
   require-in-the-middle@7.5.2(supports-color@10.2.2):
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
@@ -31734,7 +31915,7 @@ snapshots:
 
   require-in-the-middle@8.0.1:
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       module-details-from-path: 1.0.4
     transitivePeerDependencies:
       - supports-color
@@ -31885,7 +32066,7 @@ snapshots:
 
   router@2.2.0:
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       depd: 2.0.0
       is-promise: 4.0.0
       parseurl: 1.3.3
@@ -32001,7 +32182,7 @@ snapshots:
 
   send@1.2.1:
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1
@@ -32205,7 +32386,7 @@ snapshots:
   socks-proxy-agent@8.0.5:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       socks: 2.8.7
     transitivePeerDependencies:
       - supports-color
@@ -32824,7 +33005,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/eslint-plugin': 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       '@typescript-eslint/parser': 8.54.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
-      '@typescript-eslint/typescript-estree': 8.54.0(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 8.54.0(typescript@5.9.3)
       '@typescript-eslint/utils': 8.54.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       eslint: 9.39.2(jiti@2.6.1)
       typescript: 5.9.3
@@ -33048,7 +33229,7 @@ snapshots:
       ofetch: 1.5.1
       ufo: 1.6.3
     optionalDependencies:
-      '@netlify/blobs': 10.5.0(supports-color@10.2.2)
+      '@netlify/blobs': 10.5.0
       aws4fetch: 1.0.20
       ioredis: 5.9.2
 
@@ -33215,7 +33396,7 @@ snapshots:
   vite-node@2.1.9(@types/node@20.19.30)(lightningcss@1.30.2):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       es-module-lexer: 1.7.0
       pathe: 1.1.2
       vite: 5.4.21(@types/node@20.19.30)(lightningcss@1.30.2)
@@ -33233,7 +33414,7 @@ snapshots:
   vite-node@3.2.4(@types/node@22.19.7)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 7.3.1(@types/node@22.19.7)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
@@ -33254,7 +33435,7 @@ snapshots:
   vite-node@3.2.4(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 7.3.1(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
@@ -33275,7 +33456,7 @@ snapshots:
   vite-node@3.2.4(@types/node@25.2.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 7.3.1(@types/node@25.2.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
@@ -33295,7 +33476,7 @@ snapshots:
 
   vite-tsconfig-paths@5.1.4(typescript@5.9.3)(vite@7.3.1(@types/node@22.19.7)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)):
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       globrex: 0.1.2
       tsconfck: 3.1.6(typescript@5.9.3)
     optionalDependencies:
@@ -33392,7 +33573,7 @@ snapshots:
       '@vitest/spy': 2.1.9
       '@vitest/utils': 2.1.9
       chai: 5.3.3
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       expect-type: 1.3.0
       magic-string: 0.30.21
       pathe: 1.1.2
@@ -33429,7 +33610,7 @@ snapshots:
       '@vitest/spy': 3.2.4
       '@vitest/utils': 3.2.4
       chai: 5.3.3
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       expect-type: 1.3.0
       magic-string: 0.30.21
       pathe: 2.0.3
@@ -33472,7 +33653,7 @@ snapshots:
       '@vitest/spy': 3.2.4
       '@vitest/utils': 3.2.4
       chai: 5.3.3
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       expect-type: 1.3.0
       magic-string: 0.30.21
       pathe: 2.0.3
@@ -33515,7 +33696,7 @@ snapshots:
       '@vitest/spy': 3.2.4
       '@vitest/utils': 3.2.4
       chai: 5.3.3
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
       expect-type: 1.3.0
       magic-string: 0.30.21
       pathe: 2.0.3
@@ -33574,7 +33755,7 @@ snapshots:
     dependencies:
       chalk: 4.1.2
       commander: 9.5.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -33600,7 +33781,7 @@ snapshots:
       '@wdio/types': 9.23.3
       '@wdio/utils': 9.23.3
       deepmerge-ts: 7.1.5
-      https-proxy-agent: 7.0.6(supports-color@10.2.2)
+      https-proxy-agent: 7.0.6
       undici: 6.23.0
       ws: 8.19.0
     transitivePeerDependencies:

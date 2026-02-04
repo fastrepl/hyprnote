@@ -27,40 +27,28 @@ function getMaxWidthClass(pathname: string): string {
 }
 
 const featuresList = [
-  { to: "/product/ai-notetaking", label: "AI Notes and Summaries" },
-  { to: "/product/transcription", label: "Real-time Transcription" },
-  { to: "/gallery/templates", label: "Custom Templates" },
+  { to: "/product/ai-notetaking", label: "AI Notetaking" },
   { to: "/product/ai-assistant", label: "AI Chat" },
   { to: "/product/search", label: "Searchable Notes" },
-  { to: "/product/byoai", label: "Bring Your Own AI" },
+  { to: "/gallery/templates", label: "Custom Templates" },
+  { to: "/product/markdown", label: "Markdown Files" },
+  { to: "/product/flexible-ai", label: "Flexible AI" },
   { to: "/opensource", label: "Open Source" },
-  { to: "/security", label: "Data Control" },
 ];
 
 const solutionsList = [
-  {
-    to: "/solution/meeting",
-    label: "For Meetings",
-    description: "Offline capable, works with all platforms, language support",
-  },
-  {
-    to: "/enterprise",
-    label: "For Enterprise",
-    description: "Self-hosted, compliance, security",
-  },
-  {
-    to: "/product/api",
-    label: "For Developers",
-    description: "Open Source, API access, extensibility",
-  },
+  { to: "/solution/knowledge-workers", label: "For Knowledge Workers" },
+  { to: "/enterprise", label: "For Enterprises" },
+  { to: "/product/api", label: "For Developers" },
 ];
 
 const resourcesList = [
-  { to: "/docs/", label: "Docs" },
   { to: "/blog/", label: "Blog" },
   { to: "/gallery/templates", label: "Meeting Templates" },
-  { to: "https://discord.gg/hyprnote", label: "Community" },
-  { to: "/docs/tutorials", label: "Tutorials" },
+  { to: "/changelog/", label: "Changelog" },
+  { to: "/roadmap/", label: "Roadmap" },
+  { to: "/company-handbook/", label: "Company Handbook" },
+  { to: "https://discord.gg/hyprnote", label: "Community", external: true },
 ];
 
 export function Header() {
@@ -195,6 +183,12 @@ function LeftNav({
         setIsMenuOpen={setIsMenuOpen}
       />
       <Logo />
+      <Link
+        to="/why-hyprnote/"
+        className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+      >
+        Why Hyprnote
+      </Link>
       <ProductDropdown
         isProductOpen={isProductOpen}
         setIsProductOpen={setIsProductOpen}
@@ -347,12 +341,11 @@ function SolutionsList({ onClose }: { onClose: () => void }) {
           key={link.to}
           to={link.to}
           onClick={onClose}
-          className="py-2 text-sm text-neutral-700 flex flex-col group"
+          className="py-2 text-sm text-neutral-700 flex items-center group"
         >
-          <span className="group-hover:underline decoration-dotted font-medium">
+          <span className="group-hover:underline decoration-dotted">
             {link.label}
           </span>
-          <span className="text-xs text-neutral-500">{link.description}</span>
         </Link>
       ))}
     </div>
@@ -377,21 +370,36 @@ function ResourcesDropdown({
         {isResourcesOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       {isResourcesOpen && (
-        <div className="absolute top-full left-0 pt-2 w-40 z-50">
+        <div className="absolute top-full left-0 pt-2 w-48 z-50">
           <div className="bg-white border border-neutral-200 rounded-xs shadow-lg py-2">
             <div className="px-3 py-2">
-              {resourcesList.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  onClick={() => setIsResourcesOpen(false)}
-                  className="py-2 text-sm text-neutral-700 flex items-center group"
-                >
-                  <span className="group-hover:underline decoration-dotted">
-                    {link.label}
-                  </span>
-                </Link>
-              ))}
+              {resourcesList.map((link) =>
+                link.external ? (
+                  <a
+                    key={link.to}
+                    href={link.to}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsResourcesOpen(false)}
+                    className="py-2 text-sm text-neutral-700 flex items-center group"
+                  >
+                    <span className="group-hover:underline decoration-dotted">
+                      {link.label}
+                    </span>
+                  </a>
+                ) : (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setIsResourcesOpen(false)}
+                    className="py-2 text-sm text-neutral-700 flex items-center group"
+                  >
+                    <span className="group-hover:underline decoration-dotted">
+                      {link.label}
+                    </span>
+                  </Link>
+                ),
+              )}
             </div>
           </div>
         </div>
@@ -574,6 +582,13 @@ function MobileMenuLinks({
 }) {
   return (
     <div className="flex flex-col gap-4">
+      <Link
+        to="/why-hyprnote/"
+        onClick={() => setIsMenuOpen(false)}
+        className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
+      >
+        Why Hyprnote
+      </Link>
       <MobileProductSection
         isProductOpen={isProductOpen}
         setIsProductOpen={setIsProductOpen}
@@ -643,16 +658,29 @@ function MobileResourcesSection({
       </button>
       {isResourcesOpen && (
         <div className="mt-3 ml-4 flex flex-col gap-2 border-l-2 border-neutral-200 pl-4">
-          {resourcesList.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              onClick={() => setIsMenuOpen(false)}
-              className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {resourcesList.map((link) =>
+            link.external ? (
+              <a
+                key={link.to}
+                href={link.to}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setIsMenuOpen(false)}
+                className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
+              >
+                {link.label}
+              </Link>
+            ),
+          )}
         </div>
       )}
     </div>
@@ -698,10 +726,9 @@ function MobileSolutionsList({
           key={link.to}
           to={link.to}
           onClick={() => setIsMenuOpen(false)}
-          className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors flex flex-col py-1"
+          className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
         >
-          <span className="font-medium">{link.label}</span>
-          <span className="text-xs text-neutral-500">{link.description}</span>
+          {link.label}
         </Link>
       ))}
     </div>

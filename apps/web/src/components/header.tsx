@@ -49,7 +49,7 @@ const featuresList = [
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProductOpen, setIsProductOpen] = useState(false);
-  const [showMobileSearch, setShowMobileSearch] = useState(true);
+  const [showMobileHeader, setShowMobileHeader] = useState(true);
   const platform = usePlatform();
   const platformCTA = getPlatformCTA(platform);
   const router = useRouterState();
@@ -70,11 +70,11 @@ export function Header() {
       const currentScrollY = window.scrollY;
 
       if (currentScrollY < 10) {
-        setShowMobileSearch(true);
+        setShowMobileHeader(true);
       } else if (currentScrollY > lastScrollY.current) {
-        setShowMobileSearch(false);
+        setShowMobileHeader(false);
       } else if (lastScrollY.current - currentScrollY > 5) {
-        setShowMobileSearch(true);
+        setShowMobileHeader(true);
       }
 
       lastScrollY.current = currentScrollY;
@@ -86,7 +86,11 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-50 h-17.25">
+      <header
+        className={`sticky top-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-50 h-17.25 transition-transform duration-300 ${
+          showMobileHeader ? "translate-y-0" : "-translate-y-full"
+        } md:translate-y-0`}
+      >
         <div
           className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 h-full`}
         >
@@ -117,8 +121,10 @@ export function Header() {
 
       {(isDocsPage || isHandbookPage) && (
         <div
-          className={`sticky top-17.25 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-40 md:hidden transition-transform duration-300 ${
-            showMobileSearch ? "translate-y-0" : "-translate-y-full"
+          className={`sticky bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-40 md:hidden transition-all duration-300 ${
+            showMobileHeader
+              ? "top-17.25 translate-y-0"
+              : "top-0 -translate-y-full"
           }`}
         >
           <div

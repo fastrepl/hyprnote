@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { cn } from "@hypr/utils";
+
 import { SearchTrigger } from "@/components/search";
 import { useDocsDrawer } from "@/hooks/use-docs-drawer";
 import { useHandbookDrawer } from "@/hooks/use-handbook-drawer";
@@ -67,6 +69,10 @@ export function Header() {
     }
 
     const handleScroll = () => {
+      if (window.innerWidth >= 768) {
+        return;
+      }
+
       const currentScrollY = window.scrollY;
 
       if (currentScrollY < 10) {
@@ -87,9 +93,9 @@ export function Header() {
   return (
     <>
       <header
-        className={`md:sticky top-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-50 h-17.25 transition-transform duration-300 ${
-          showMobileHeader ? "translate-y-0" : "-translate-y-full"
-        } md:translate-y-0 fixed w-full`}
+        className={`fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-50 h-17.25 max-md:transition-transform max-md:duration-300 ${
+          showMobileHeader ? "max-md:translate-y-0" : "max-md:-translate-y-full"
+        }`}
       >
         <div
           className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 h-full`}
@@ -118,6 +124,9 @@ export function Header() {
           </div>
         </div>
       </header>
+
+      {/* Spacer to account for fixed header */}
+      <div className="h-17.25" />
 
       {(isDocsPage || isHandbookPage) && (
         <div

@@ -11,7 +11,7 @@ import { cn } from "@hypr/utils";
 
 import { SlashSeparator } from "@/components/slash-separator";
 
-export const Route = createFileRoute("/_view/for-developers")({
+export const Route = createFileRoute("/_view/solution/engineering")({
   component: Component,
   head: () => ({
     meta: [
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_view/for-developers")({
       { property: "og:type", content: "website" },
       {
         property: "og:url",
-        content: "https://hyprnote.com/for-developers",
+        content: "https://hyprnote.com/solution/engineering",
       },
       { name: "twitter:card", content: "summary_large_image" },
       {

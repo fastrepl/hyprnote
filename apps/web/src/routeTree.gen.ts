@@ -35,7 +35,6 @@ import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewOssFriendsRouteImport } from './routes/_view/oss-friends'
 import { Route as ViewOpensourceRouteImport } from './routes/_view/opensource'
 import { Route as ViewFreeRouteImport } from './routes/_view/free'
-import { Route as ViewForDevelopersRouteImport } from './routes/_view/for-developers'
 import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
 import { Route as ViewEnterpriseRouteImport } from './routes/_view/enterprise'
 import { Route as ViewBrandRouteImport } from './routes/_view/brand'
@@ -76,6 +75,7 @@ import { Route as ViewSolutionJournalismRouteImport } from './routes/_view/solut
 import { Route as ViewSolutionHealthcareRouteImport } from './routes/_view/solution/healthcare'
 import { Route as ViewSolutionGovernmentRouteImport } from './routes/_view/solution/government'
 import { Route as ViewSolutionFieldEngineeringRouteImport } from './routes/_view/solution/field-engineering'
+import { Route as ViewSolutionEngineeringRouteImport } from './routes/_view/solution/engineering'
 import { Route as ViewSolutionCustomerSuccessRouteImport } from './routes/_view/solution/customer-success'
 import { Route as ViewSolutionConsultingRouteImport } from './routes/_view/solution/consulting'
 import { Route as ViewSolutionCoachingRouteImport } from './routes/_view/solution/coaching'
@@ -261,11 +261,6 @@ const ViewOpensourceRoute = ViewOpensourceRouteImport.update({
 const ViewFreeRoute = ViewFreeRouteImport.update({
   id: '/free',
   path: '/free',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewForDevelopersRoute = ViewForDevelopersRouteImport.update({
-  id: '/for-developers',
-  path: '/for-developers',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewFileTranscriptionRoute = ViewFileTranscriptionRouteImport.update({
@@ -473,6 +468,11 @@ const ViewSolutionFieldEngineeringRoute =
     path: '/solution/field-engineering',
     getParentRoute: () => ViewRouteRoute,
   } as any)
+const ViewSolutionEngineeringRoute = ViewSolutionEngineeringRouteImport.update({
+  id: '/solution/engineering',
+  path: '/solution/engineering',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewSolutionCustomerSuccessRoute =
   ViewSolutionCustomerSuccessRouteImport.update({
     id: '/solution/customer-success',
@@ -793,7 +793,6 @@ export interface FileRoutesByFullPath {
   '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
-  '/for-developers': typeof ViewForDevelopersRoute
   '/free': typeof ViewFreeRoute
   '/opensource': typeof ViewOpensourceRoute
   '/oss-friends': typeof ViewOssFriendsRoute
@@ -841,6 +840,7 @@ export interface FileRoutesByFullPath {
   '/solution/coaching': typeof ViewSolutionCoachingRoute
   '/solution/consulting': typeof ViewSolutionConsultingRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
+  '/solution/engineering': typeof ViewSolutionEngineeringRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
   '/solution/healthcare': typeof ViewSolutionHealthcareRoute
@@ -913,7 +913,6 @@ export interface FileRoutesByTo {
   '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
-  '/for-developers': typeof ViewForDevelopersRoute
   '/free': typeof ViewFreeRoute
   '/opensource': typeof ViewOpensourceRoute
   '/oss-friends': typeof ViewOssFriendsRoute
@@ -962,6 +961,7 @@ export interface FileRoutesByTo {
   '/solution/coaching': typeof ViewSolutionCoachingRoute
   '/solution/consulting': typeof ViewSolutionConsultingRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
+  '/solution/engineering': typeof ViewSolutionEngineeringRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
   '/solution/healthcare': typeof ViewSolutionHealthcareRoute
@@ -1040,7 +1040,6 @@ export interface FileRoutesById {
   '/_view/brand': typeof ViewBrandRoute
   '/_view/enterprise': typeof ViewEnterpriseRoute
   '/_view/file-transcription': typeof ViewFileTranscriptionRoute
-  '/_view/for-developers': typeof ViewForDevelopersRoute
   '/_view/free': typeof ViewFreeRoute
   '/_view/opensource': typeof ViewOpensourceRoute
   '/_view/oss-friends': typeof ViewOssFriendsRoute
@@ -1089,6 +1088,7 @@ export interface FileRoutesById {
   '/_view/solution/coaching': typeof ViewSolutionCoachingRoute
   '/_view/solution/consulting': typeof ViewSolutionConsultingRoute
   '/_view/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
+  '/_view/solution/engineering': typeof ViewSolutionEngineeringRoute
   '/_view/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/_view/solution/government': typeof ViewSolutionGovernmentRoute
   '/_view/solution/healthcare': typeof ViewSolutionHealthcareRoute
@@ -1168,7 +1168,6 @@ export interface FileRouteTypes {
     | '/brand'
     | '/enterprise'
     | '/file-transcription'
-    | '/for-developers'
     | '/free'
     | '/opensource'
     | '/oss-friends'
@@ -1216,6 +1215,7 @@ export interface FileRouteTypes {
     | '/solution/coaching'
     | '/solution/consulting'
     | '/solution/customer-success'
+    | '/solution/engineering'
     | '/solution/field-engineering'
     | '/solution/government'
     | '/solution/healthcare'
@@ -1288,7 +1288,6 @@ export interface FileRouteTypes {
     | '/brand'
     | '/enterprise'
     | '/file-transcription'
-    | '/for-developers'
     | '/free'
     | '/opensource'
     | '/oss-friends'
@@ -1337,6 +1336,7 @@ export interface FileRouteTypes {
     | '/solution/coaching'
     | '/solution/consulting'
     | '/solution/customer-success'
+    | '/solution/engineering'
     | '/solution/field-engineering'
     | '/solution/government'
     | '/solution/healthcare'
@@ -1414,7 +1414,6 @@ export interface FileRouteTypes {
     | '/_view/brand'
     | '/_view/enterprise'
     | '/_view/file-transcription'
-    | '/_view/for-developers'
     | '/_view/free'
     | '/_view/opensource'
     | '/_view/oss-friends'
@@ -1463,6 +1462,7 @@ export interface FileRouteTypes {
     | '/_view/solution/coaching'
     | '/_view/solution/consulting'
     | '/_view/solution/customer-success'
+    | '/_view/solution/engineering'
     | '/_view/solution/field-engineering'
     | '/_view/solution/government'
     | '/_view/solution/healthcare'
@@ -1748,13 +1748,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewFreeRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/for-developers': {
-      id: '/_view/for-developers'
-      path: '/for-developers'
-      fullPath: '/for-developers'
-      preLoaderRoute: typeof ViewForDevelopersRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/file-transcription': {
       id: '/_view/file-transcription'
       path: '/file-transcription'
@@ -2033,6 +2026,13 @@ declare module '@tanstack/react-router' {
       path: '/solution/field-engineering'
       fullPath: '/solution/field-engineering'
       preLoaderRoute: typeof ViewSolutionFieldEngineeringRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/engineering': {
+      id: '/_view/solution/engineering'
+      path: '/solution/engineering'
+      fullPath: '/solution/engineering'
+      preLoaderRoute: typeof ViewSolutionEngineeringRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/solution/customer-success': {
@@ -2495,7 +2495,6 @@ interface ViewRouteRouteChildren {
   ViewBrandRoute: typeof ViewBrandRoute
   ViewEnterpriseRoute: typeof ViewEnterpriseRoute
   ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
-  ViewForDevelopersRoute: typeof ViewForDevelopersRoute
   ViewFreeRoute: typeof ViewFreeRoute
   ViewOpensourceRoute: typeof ViewOpensourceRoute
   ViewOssFriendsRoute: typeof ViewOssFriendsRoute
@@ -2532,6 +2531,7 @@ interface ViewRouteRouteChildren {
   ViewSolutionCoachingRoute: typeof ViewSolutionCoachingRoute
   ViewSolutionConsultingRoute: typeof ViewSolutionConsultingRoute
   ViewSolutionCustomerSuccessRoute: typeof ViewSolutionCustomerSuccessRoute
+  ViewSolutionEngineeringRoute: typeof ViewSolutionEngineeringRoute
   ViewSolutionFieldEngineeringRoute: typeof ViewSolutionFieldEngineeringRoute
   ViewSolutionGovernmentRoute: typeof ViewSolutionGovernmentRoute
   ViewSolutionHealthcareRoute: typeof ViewSolutionHealthcareRoute
@@ -2569,7 +2569,6 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewBrandRoute: ViewBrandRoute,
   ViewEnterpriseRoute: ViewEnterpriseRoute,
   ViewFileTranscriptionRoute: ViewFileTranscriptionRoute,
-  ViewForDevelopersRoute: ViewForDevelopersRoute,
   ViewFreeRoute: ViewFreeRoute,
   ViewOpensourceRoute: ViewOpensourceRoute,
   ViewOssFriendsRoute: ViewOssFriendsRoute,
@@ -2606,6 +2605,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewSolutionCoachingRoute: ViewSolutionCoachingRoute,
   ViewSolutionConsultingRoute: ViewSolutionConsultingRoute,
   ViewSolutionCustomerSuccessRoute: ViewSolutionCustomerSuccessRoute,
+  ViewSolutionEngineeringRoute: ViewSolutionEngineeringRoute,
   ViewSolutionFieldEngineeringRoute: ViewSolutionFieldEngineeringRoute,
   ViewSolutionGovernmentRoute: ViewSolutionGovernmentRoute,
   ViewSolutionHealthcareRoute: ViewSolutionHealthcareRoute,

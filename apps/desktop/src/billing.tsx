@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { jwtDecode } from "jwt-decode";
 import {
   createContext,
   type ReactNode,
@@ -10,20 +9,21 @@ import {
 
 import { getRpcCanStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
-import { type Claims } from "@hypr/plugin-auth";
+import { commands as authCommands, type Claims } from "@hypr/plugin-auth";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 
 import { useAuth } from "./auth";
 import { env } from "./env";
 import { getScheme } from "./utils";
 
-export function getEntitlementsFromToken(accessToken: string): string[] {
-  try {
-    const decoded = jwtDecode<Claims>(accessToken);
-    return decoded.entitlements ?? [];
-  } catch {
+async function getEntitlementsFromToken(
+  accessToken: string,
+): Promise<Claims["entitlements"]> {
+  const result = await authCommands.decodeClaims(accessToken);
+  if (result.status === "error") {
     return [];
   }
+  return result.data.entitlements ?? [];
 }
 
 type BillingContextValue = {
@@ -40,12 +40,13 @@ const BillingContext = createContext<BillingContextValue | null>(null);
 export function BillingProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
 
-  const entitlements = useMemo(() => {
-    if (!auth?.session?.access_token) {
-      return [];
-    }
-    return getEntitlementsFromToken(auth.session.access_token);
-  }, [auth?.session?.access_token]);
+  const entitlementsQuery = useQuery({
+    queryKey: ["entitlements", auth?.session?.access_token ?? ""],
+    queryFn: () => getEntitlementsFromToken(auth!.session!.access_token),
+    enabled: !!auth?.session?.access_token,
+  });
+
+  const entitlements = entitlementsQuery.data ?? [];
 
   const isPro = useMemo(
     () => entitlements.includes("hyprnote_pro"),

@@ -13,8 +13,6 @@ import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
 import { env } from "../../../env";
-import * as settings from "../../../store/tinybase/store/settings";
-import { useTrialBeginModal } from "../../devtool/trial-begin-modal";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
@@ -41,7 +39,6 @@ function getPlanDescription(
 export function AccountSettings() {
   const auth = useAuth();
   const { isPro, isTrialing, trialDaysRemaining } = useBillingAccess();
-  const store = settings.UI.useStore(settings.STORE_ID);
 
   const isAuthenticated = !!auth?.session;
   const [isPending, setIsPending] = useState(false);
@@ -77,23 +74,8 @@ export function AccountSettings() {
       },
     });
 
-    if (store) {
-      const currentSttProvider = store.getValue("current_stt_provider");
-      const currentSttModel = store.getValue("current_stt_model");
-      const currentLlmProvider = store.getValue("current_llm_provider");
-
-      if (currentSttProvider === "hyprnote" && currentSttModel === "cloud") {
-        store.setValue("current_stt_model", "");
-      }
-
-      if (currentLlmProvider === "hyprnote") {
-        store.setValue("current_llm_provider", "");
-        store.setValue("current_llm_model", "");
-      }
-    }
-
     await auth?.signOut();
-  }, [auth, store]);
+  }, [auth]);
 
   const handleRefreshPlan = useCallback(async () => {
     await auth?.refreshSession();
@@ -255,7 +237,6 @@ export function AccountSettings() {
 function BillingButton() {
   const auth = useAuth();
   const { isPro } = useBillingAccess();
-  const { open: openTrialBeginModal } = useTrialBeginModal();
 
   const canTrialQuery = useQuery({
     enabled: !!auth?.session && !isPro,
@@ -308,7 +289,6 @@ function BillingButton() {
         },
       });
       await auth?.refreshSession();
-      openTrialBeginModal();
     },
   });
 

@@ -9,11 +9,7 @@ import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
 import { useProModelAutoConfig } from "../hooks/useProModelAutoConfig";
 import { useProSettingsReset } from "../hooks/useProSettingsReset";
-import { useProSubscriptionModalTrigger } from "../hooks/useProSubscriptionModalTrigger";
-import { useTrialExpiredModalTrigger } from "../hooks/useTrialExpiredModalTrigger";
 import { useTabs } from "../store/zustand/tabs";
-import { TrialBeginModal } from "./devtool/trial-begin-modal";
-import { TrialExpiredModal } from "./devtool/trial-expired-modal";
 import { FeedbackModal, useFeedbackModal } from "./feedback/feedback-modal";
 import { useNewNote } from "./main/shared";
 import { UndoDeleteKeyboardHandler } from "./main/sidebar/toast/undo-delete-toast";
@@ -35,15 +31,11 @@ export default function MainAppLayout() {
 
 function MainAppContent() {
   useProSettingsReset();
-  useTrialExpiredModalTrigger();
-  useProSubscriptionModalTrigger();
   useProModelAutoConfig();
 
   return (
     <>
       <Outlet />
-      <TrialBeginModal />
-      <TrialExpiredModal />
       <FeedbackModal />
       <UndoDeleteKeyboardHandler />
     </>

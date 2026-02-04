@@ -98,6 +98,9 @@ class NotificationBackgroundView: NSView {
   }
 
   func startProgress(duration: Double) {
+    // Skip progress animation setup for persistent notifications (duration <= 0)
+    guard duration > 0 else { return }
+
     totalDuration = duration
     remainingDuration = duration
     progressStartTime = Date()

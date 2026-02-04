@@ -1,4 +1,20 @@
+use chrono::{DateTime, Utc};
+
 use crate::error::Error;
+
+// https://docs.stripe.com/api/subscriptions/object#subscription_object-status
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[serde(rename_all = "snake_case")]
+pub enum SubscriptionStatus {
+    Incomplete,
+    IncompleteExpired,
+    Trialing,
+    Active,
+    PastDue,
+    Canceled,
+    Unpaid,
+    Paused,
+}
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct Claims {
@@ -7,6 +23,11 @@ pub struct Claims {
     pub email: Option<String>,
     #[serde(default)]
     pub entitlements: Vec<String>,
+    #[serde(default)]
+    pub subscription_status: Option<SubscriptionStatus>,
+    #[serde(default, with = "chrono::serde::ts_seconds_option")]
+    #[specta(type = Option<i64>)]
+    pub trial_end: Option<DateTime<Utc>>,
 }
 
 impl Claims {
@@ -29,6 +50,7 @@ impl Claims {
 #[cfg(test)]
 mod tests {
     use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
+    use chrono::Datelike;
 
     use super::*;
 
@@ -43,7 +65,9 @@ mod tests {
         let payload = r#"{
             "sub": "user-123",
             "email": "test@example.com",
-            "entitlements": ["hyprnote_pro"]
+            "entitlements": ["hyprnote_pro"],
+            "subscription_status": "trialing",
+            "trial_end": 1771406553
         }"#;
         let token = make_test_token(payload);
 
@@ -51,6 +75,11 @@ mod tests {
         assert_eq!(claims.sub, "user-123");
         assert_eq!(claims.email, Some("test@example.com".to_string()));
         assert_eq!(claims.entitlements, vec!["hyprnote_pro"]);
+        assert!(matches!(
+            claims.subscription_status,
+            Some(SubscriptionStatus::Trialing)
+        ));
+        assert_eq!(claims.trial_end.unwrap().year(), 2026);
     }
 
     #[test]
@@ -62,6 +91,8 @@ mod tests {
         assert_eq!(claims.sub, "user-456");
         assert_eq!(claims.email, None);
         assert!(claims.entitlements.is_empty());
+        assert!(claims.subscription_status.is_none());
+        assert!(claims.trial_end.is_none());
     }
 
     #[test]

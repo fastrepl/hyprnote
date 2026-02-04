@@ -18,9 +18,29 @@ import { useTrialBeginModal } from "../../devtool/trial-begin-modal";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
+function getPlanDescription(
+  isPro: boolean,
+  isTrialing: boolean,
+  trialDaysRemaining: number | null,
+): string {
+  if (!isPro) {
+    return "FREE";
+  }
+  if (isTrialing && trialDaysRemaining !== null) {
+    if (trialDaysRemaining === 0) {
+      return "PRO (Trial ends today)";
+    }
+    if (trialDaysRemaining === 1) {
+      return "PRO (Trial ends tomorrow)";
+    }
+    return `PRO (${trialDaysRemaining} days left)`;
+  }
+  return "PRO";
+}
+
 export function AccountSettings() {
   const auth = useAuth();
-  const { isPro } = useBillingAccess();
+  const { isPro, isTrialing, trialDaysRemaining } = useBillingAccess();
   const store = settings.UI.useStore(settings.STORE_ID);
 
   const isAuthenticated = !!auth?.session;
@@ -205,7 +225,7 @@ export function AccountSettings() {
 
       <Container
         title="Plan & Billing"
-        description={`Your current plan is ${isPro ? "PRO" : "FREE"}. `}
+        description={`Your current plan is ${getPlanDescription(isPro, isTrialing, trialDaysRemaining)}. `}
         action={<BillingButton />}
       >
         <p className="text-sm text-neutral-600 flex items-center gap-1">

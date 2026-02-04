@@ -35,7 +35,9 @@ BEGIN
     FROM stripe.subscriptions s
     WHERE s.customer = v_customer_id
       AND s.status IN ('trialing', 'active')
-    ORDER BY s.created DESC
+    ORDER BY
+      CASE s.status WHEN 'active' THEN 1 WHEN 'trialing' THEN 2 END,
+      s.created DESC
     LIMIT 1;
   END IF;
 

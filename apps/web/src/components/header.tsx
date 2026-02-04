@@ -8,8 +8,6 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { cn } from "@hypr/utils";
-
 import { SearchTrigger } from "@/components/search";
 import { useDocsDrawer } from "@/hooks/use-docs-drawer";
 import { useHandbookDrawer } from "@/hooks/use-handbook-drawer";

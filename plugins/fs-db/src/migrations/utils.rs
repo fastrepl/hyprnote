@@ -14,7 +14,7 @@ pub enum FileOp {
     },
 }
 
-pub fn group_by_session_id<'a, T, F>(items: &'a [T], get_id: F) -> HashMap<&'a str, Vec<&'a T>>
+pub fn group_by_session_id<T, F>(items: &[T], get_id: F) -> HashMap<&str, Vec<&T>>
 where
     F: Fn(&T) -> &str,
 {

@@ -1020,48 +1020,30 @@ function SearchSection() {
       }}
     >
       <div className="py-20 px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-serif text-stone-50 mb-4">
-            Finds information across all meetings instantly
-          </h2>
-        </div>
-
-        <div className="max-w-5xl mx-auto grid sm:grid-cols-2 gap-6">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 flex flex-col gap-4">
+        <div className="text-center flex flex-col gap-12">
+          <div>
+            <h2 className="text-3xl font-serif text-stone-50 mb-4">
+              Find anything instantly
+            </h2>
             <p className="text-base text-neutral-100">
-              Search by keyword, filter by date, and find exact quotes with
-              context.
+              Search across all your notes by participant names, topics,
+              keywords, or time—and jump straight to what matters
             </p>
-            <div className="flex-1 flex items-center justify-center rounded-xl overflow-hidden bg-white/5 min-h-[200px]">
-              <div className="w-full px-4">
-                <div className="flex items-center gap-3 px-4 py-3 border border-stone-300 rounded-full bg-white shadow-[0_4px_6px_-1px_rgba(255,255,255,0.3),0_2px_4px_-2px_rgba(255,255,255,0.3)]">
-                  <SearchIcon className="text-stone-400 shrink-0 size-5" />
-                  <div className="flex-1 text-left min-w-0 overflow-hidden">
-                    <Typewriter
-                      text={searchQueries}
-                      speed={100}
-                      deleteSpeed={30}
-                      waitTime={2000}
-                      className="text-base text-stone-600 font-light truncate block"
-                      cursorClassName="ml-1"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 flex flex-col gap-4">
-            <p className="text-base text-neutral-100">
-              Use natural language to get answers pulled directly from your
-              conversations.
-            </p>
-            <div className="flex-1 flex items-center justify-center rounded-xl overflow-hidden bg-white/5 min-h-[200px]">
-              <img
-                src="/api/images/hyprnote/ai-chat.png"
-                alt="AI chat feature"
-                className="w-full h-full object-contain"
-              />
+          <div className="relative max-w-2xl mx-auto flex flex-col gap-3">
+            <div className="flex items-center gap-3 px-4 py-3 border border-stone-300 rounded-full bg-white shadow-[0_4px_6px_-1px_rgba(255,255,255,0.3),0_2px_4px_-2px_rgba(255,255,255,0.3)]">
+              <SearchIcon className="text-stone-400 shrink-0 size-5" />
+              <div className="flex-1 text-left min-w-0 overflow-hidden">
+                <Typewriter
+                  text={searchQueries}
+                  speed={100}
+                  deleteSpeed={30}
+                  waitTime={2000}
+                  className="text-base sm:text-lg text-stone-600 font-light truncate block"
+                  cursorClassName="ml-1"
+                />
+              </div>
             </div>
           </div>
         </div>

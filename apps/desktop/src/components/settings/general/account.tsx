@@ -228,7 +228,7 @@ export function AccountSettings() {
         description={`Your current plan is ${getPlanDescription(isPro, isTrialing, trialDaysRemaining)}. `}
         action={<BillingButton />}
       >
-        <p className="text-sm text-neutral-600 flex items-center gap-1">
+        <div className="text-sm text-neutral-600 flex items-center gap-1">
           {auth?.isRefreshingSession ? (
             <>
               <Spinner size={14} />
@@ -246,7 +246,7 @@ export function AccountSettings() {
               <span className="text-neutral-600"> to refresh plan status.</span>
             </>
           )}
-        </p>
+        </div>
       </Container>
     </div>
   );

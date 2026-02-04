@@ -15,7 +15,6 @@ import {
 const validateSearch = z.object({
   step: z.enum(STEP_IDS).default("welcome"),
   platform: z.string().default(platform()),
-  skipAutoForward: z.boolean().default(false),
 });
 
 export type Search = z.infer<typeof validateSearch>;

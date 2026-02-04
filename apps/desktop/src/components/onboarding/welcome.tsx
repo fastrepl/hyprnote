@@ -1,10 +1,9 @@
 import { platform } from "@tauri-apps/plugin-os";
-import { memo, useCallback, useEffect } from "react";
+import { memo, useCallback } from "react";
 
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 
-import { usePermissions } from "../../hooks/usePermissions";
 import { Route } from "../../routes/app/onboarding/_layout.index";
 import { commands } from "../../types/tauri.gen";
 import { getNext, type StepProps } from "./config";
@@ -24,24 +23,6 @@ async function finishOnboarding() {
 
 export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
   const search = Route.useSearch();
-
-  const {
-    micPermissionStatus,
-    systemAudioPermissionStatus,
-    accessibilityPermissionStatus,
-  } = usePermissions();
-
-  const allPermissionsGranted =
-    platform() === "macos" &&
-    micPermissionStatus.data === "authorized" &&
-    systemAudioPermissionStatus.data === "authorized" &&
-    accessibilityPermissionStatus.data === "authorized";
-
-  useEffect(() => {
-    if (allPermissionsGranted && !search.skipAutoForward) {
-      void finishOnboarding();
-    }
-  }, [allPermissionsGranted, search.skipAutoForward]);
 
   const handleClickGetStarted = useCallback(async () => {
     await commands.setOnboardingLocal(false);

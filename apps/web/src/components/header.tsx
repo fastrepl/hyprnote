@@ -91,12 +91,12 @@ export function Header() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-50 h-17.25 max-md:transition-transform max-md:duration-300 ${
+        className={`fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-50 max-md:transition-transform max-md:duration-300 ${
           showMobileHeader ? "max-md:translate-y-0" : "max-md:-translate-y-full"
         }`}
       >
         <div
-          className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 h-full`}
+          className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 h-17.25`}
         >
           <div className="flex items-center justify-between h-full">
             <LeftNav
@@ -121,26 +121,23 @@ export function Header() {
             />
           </div>
         </div>
-      </header>
-
-      {/* Spacer to account for fixed header */}
-      <div className="h-17.25" />
-
-      {(isDocsPage || isHandbookPage) && (
-        <div
-          className={`sticky bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-40 md:hidden transition-all duration-300 ${
-            showMobileHeader
-              ? "top-17.25 translate-y-0"
-              : "top-0 -translate-y-full"
-          }`}
-        >
+        {(isDocsPage || isHandbookPage) && (
           <div
-            className={`${maxWidthClass} mx-auto px-4 border-x border-neutral-100 py-2`}
+            className={`${maxWidthClass} mx-auto px-4 border-x border-neutral-100 py-2 md:hidden`}
           >
             <SearchTrigger variant="mobile" />
           </div>
-        </div>
-      )}
+        )}
+      </header>
+
+      {/* Spacer to account for fixed header */}
+      <div
+        className={
+          isDocsPage || isHandbookPage
+            ? "h-17.25 md:h-17.25 max-md:h-[calc(69px+52px)]"
+            : "h-17.25"
+        }
+      />
 
       <MobileMenu
         isMenuOpen={isMenuOpen}

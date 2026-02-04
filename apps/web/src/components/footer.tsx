@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ExternalLinkIcon, MailIcon } from "lucide-react";
+import { ExternalLinkIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Image } from "@/components/image";

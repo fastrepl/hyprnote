@@ -294,6 +294,16 @@ export const StoreComponent = () => {
         "enhanced_notes",
         "template_id",
         "position",
+      )
+      .setIndexDefinition(
+        INDEXES.mentionsBySource,
+        "mapping_mention",
+        "source_id",
+      )
+      .setIndexDefinition(
+        INDEXES.mentionsByTarget,
+        "mapping_mention",
+        "target_id",
       ),
   );
 
@@ -356,6 +366,8 @@ export const INDEXES = {
   sessionsByHuman: "sessionsByHuman",
   enhancedNotesBySession: "enhancedNotesBySession",
   enhancedNotesByTemplate: "enhancedNotesByTemplate",
+  mentionsBySource: "mentionsBySource",
+  mentionsByTarget: "mentionsByTarget",
 };
 
 export const RELATIONSHIPS = {

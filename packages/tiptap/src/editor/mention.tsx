@@ -109,6 +109,15 @@ const Component = forwardRef<
             key={item.id}
             onClick={() => selectItem(index)}
           >
+            <span className={`mention-type mention-type-${item.type}`}>
+              {item.type === "session"
+                ? "Note"
+                : item.type === "human"
+                  ? "Person"
+                  : item.type === "organization"
+                    ? "Company"
+                    : item.type}
+            </span>
             <span className="mention-label">{item.label}</span>
           </button>
         );

@@ -38,12 +38,50 @@
   font-size: 0.85rem;
 }
 
-.mention {
+.mention-type {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.mention-type-session {
   color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.mention-type-human {
+  color: #8b5cf6;
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.mention-type-organization {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.mention {
   font-weight: 500;
   text-decoration: none;
   border-radius: 0.25rem;
-  background-color: rgba(59, 130, 246, 0.08);
   padding: 0.1rem 0.25rem;
   font-size: 0.9rem;
+}
+
+.mention[data-type="session"] {
+  color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+.mention[data-type="human"] {
+  color: #8b5cf6;
+  background-color: rgba(139, 92, 246, 0.08);
+}
+
+.mention[data-type="organization"] {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.08);
 }

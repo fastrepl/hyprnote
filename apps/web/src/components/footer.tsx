@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ExternalLinkIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Image } from "@/components/image";
 import { cn } from "@hypr/utils";
@@ -181,6 +181,7 @@ function ResourcesLinks() {
   const [useCaseIndex, setUseCaseIndex] = useState(0);
   const [isUseCaseFading, setIsUseCaseFading] = useState(false);
   const [isVsFading, setIsVsFading] = useState(false);
+  const timeoutIds = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   useEffect(() => {
     setVsIndex(Math.floor(Math.random() * vsList.length));
@@ -188,22 +189,26 @@ function ResourcesLinks() {
 
     const useCaseInterval = setInterval(() => {
       setIsUseCaseFading(true);
-      setTimeout(() => {
+      const tid = setTimeout(() => {
         setUseCaseIndex((prev) =>
           getNextRandomIndex(useCasesList.length, prev),
         );
         setIsUseCaseFading(false);
+        timeoutIds.current.delete(tid);
       }, 500);
+      timeoutIds.current.add(tid);
     }, 2000);
 
     let vsInterval: ReturnType<typeof setInterval>;
     const vsDelay = setTimeout(() => {
       vsInterval = setInterval(() => {
         setIsVsFading(true);
-        setTimeout(() => {
+        const tid = setTimeout(() => {
           setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
           setIsVsFading(false);
+          timeoutIds.current.delete(tid);
         }, 500);
+        timeoutIds.current.add(tid);
       }, 2000);
     }, 1000);
 
@@ -211,6 +216,8 @@ function ResourcesLinks() {
       clearInterval(useCaseInterval);
       clearTimeout(vsDelay);
       if (vsInterval) clearInterval(vsInterval);
+      timeoutIds.current.forEach(clearTimeout);
+      timeoutIds.current.clear();
     };
   }, []);
 

@@ -113,8 +113,6 @@ impl Notification {
         NotificationBuilder::default()
     }
 
-    /// Returns true if this notification should persist (no auto-dismiss, no progress bar).
-    /// A notification is persistent when no timeout is specified.
     pub fn is_persistent(&self) -> bool {
         self.timeout.is_none()
     }

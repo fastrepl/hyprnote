@@ -12,7 +12,6 @@ class NotificationBackgroundView: NSView {
   private var progressRatio: CGFloat = 1.0
   var onProgressComplete: (() -> Void)?
 
-  /// When true, the progress bar is hidden (for persistent notifications)
   var isProgressHidden: Bool = false {
     didSet {
       progressLayer.isHidden = isProgressHidden
@@ -98,7 +97,6 @@ class NotificationBackgroundView: NSView {
   }
 
   func startProgress(duration: Double) {
-    // Skip progress animation setup for persistent notifications (duration <= 0)
     guard duration > 0 else { return }
 
     totalDuration = duration

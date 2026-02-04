@@ -176,7 +176,6 @@ impl NotificationManager {
         window.show_all();
 
         let mut notif = NotificationInstance::new(window, key.clone());
-        // Only start dismiss timer if timeout > 0 (persistent notifications have timeout <= 0)
         if timeout_seconds > 0.0 {
             notif.start_dismiss_timer(timeout_seconds);
         }
@@ -340,7 +339,6 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
         .unwrap_or_else(|| notification.title.clone());
     let title = notification.title.clone();
     let message = notification.message.clone();
-    // Use 0.0 as sentinel value for persistent notifications (no auto-dismiss)
     let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(0.0);
 
     glib::MainContext::default().invoke(move || {

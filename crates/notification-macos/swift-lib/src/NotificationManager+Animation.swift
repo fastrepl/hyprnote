@@ -30,7 +30,6 @@ extension NotificationManager {
     } completion: {
       self.refreshTrackingAreas(for: notification)
       self.updateHoverForAll(atScreenPoint: NSEvent.mouseLocation)
-      // Only start dismiss timer if timeout > 0 (persistent notifications have timeout <= 0)
       if timeoutSeconds > 0 {
         notification.startDismissTimer(timeoutSeconds: timeoutSeconds)
       }

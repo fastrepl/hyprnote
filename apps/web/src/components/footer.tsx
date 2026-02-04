@@ -68,7 +68,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
         />
       </Link>
       <p className="text-sm text-neutral-500 mb-4">Fastrepl © {currentYear}</p>
-      <p className="text-sm text-neutral-600 mb-3">
+      <p className="text-sm text-neutral-600 mb-3 text-balance">
         Are you in back-to-back meetings?{" "}
         <Link
           to="/auth/"

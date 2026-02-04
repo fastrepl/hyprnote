@@ -108,56 +108,11 @@ function HeroSection() {
       <div className="px-6 py-12 lg:py-20">
         <header className="mb-12 text-center max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
-            <span className="inline-block mx-auto min-[680px]:hidden">
-              AI notetaking for
-              <br />
-              <span
-                className="inline-block whitespace-nowrap"
-                style={{ width: "240px", maxWidth: "100%" }}
-              >
-                your{" "}
-                <span
-                  className="inline-block relative"
-                  style={{ minWidth: "12ch" }}
-                >
-                  <span className="invisible">meetings</span>
-                  <Typewriter
-                    text={["meetings", "lectures", "thoughts"]}
-                    speed={100}
-                    deleteSpeed={50}
-                    waitTime={2000}
-                    loop={true}
-                    className="absolute left-0 top-0"
-                  />
-                </span>
-              </span>
-            </span>
-
-            <span
-              className="hidden min-[680px]:inline-block mx-auto whitespace-nowrap"
-              style={{ width: "680px", maxWidth: "100%" }}
-            >
-              AI notetaking for your{" "}
-              <span
-                className="inline-block relative"
-                style={{ minWidth: "12ch" }}
-              >
-                <span className="invisible">meetings</span>
-                <Typewriter
-                  text={["meetings", "lectures", "thoughts"]}
-                  speed={100}
-                  deleteSpeed={50}
-                  waitTime={2000}
-                  loop={true}
-                  className="absolute left-0 top-0"
-                />
-              </span>
-            </span>
+            Never Miss a Detail From Your Meetings
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
-            Record meetings or upload audio files to get instant
-            <br className="hidden sm:inline" /> AI transcriptions and
-            customizable summaries
+            Hyprnote captures everything said, combines it with your notes,
+            <br className="hidden sm:inline" /> and creates a perfect summary.
           </p>
           <div className="mt-8">
             <Link
@@ -191,7 +146,7 @@ function EditorSection() {
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">
             <h2 className="text-3xl font-serif text-stone-600">
-              Simple notetaking
+              Simple, Familiar Notepad
             </h2>
             <p className="text-base text-neutral-600 leading-relaxed">
               Hyprnote comes with a easy-to-use text editor where you can jot
@@ -231,7 +186,7 @@ function EditorSection() {
       <div className="sm:hidden">
         <div className="p-6 border-b border-neutral-100">
           <h2 className="text-2xl font-serif text-stone-600 mb-3">
-            Simple notetaking
+            Simple, Familiar Notepad
           </h2>
           <p className="text-sm text-neutral-600 leading-relaxed mb-4">
             Hyprnote comes with a easy-to-use text editor where you can jot down
@@ -649,31 +604,26 @@ function TranscriptionSection() {
     <section id="transcription" className="border-y border-neutral-100">
       <div className="text-center py-12 px-4 lg:px-0">
         <h2 className="text-3xl font-serif text-stone-600 mb-4">
-          Transcription
+          Live meetings to recorded audio, Hyprnote transcribes it all
         </h2>
-        <p className="text-base text-neutral-600 max-w-2xl mx-auto">
-          From live meetings to recorded audio, Hyprnote can transcribe it all
-        </p>
       </div>
 
       <div className="border-t border-neutral-100">
         <div className="hidden sm:grid sm:grid-cols-2">
           <div className="border-r border-neutral-100 flex flex-col">
             <div className="p-8 flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <Icon icon="mdi:chip" className="text-3xl text-stone-600" />
-                  <h3 className="text-2xl font-serif text-stone-600">
-                    Fully on-device
-                  </h3>
-                </div>
-                <div className="px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs text-xs font-medium whitespace-nowrap">
-                  Apple Silicon only
-                </div>
+              <div className="flex items-center gap-3">
+                <Icon
+                  icon="mdi:microphone"
+                  className="text-3xl text-stone-600"
+                />
+                <h3 className="text-2xl font-serif text-stone-600">
+                  Real-time transcription
+                </h3>
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
-                For Apple Silicon Macs, transcription happens entirely on your
-                device. Fast, private, and no internet required.
+                Every word captured as it's spoken. See the transcript build in
+                real-time with speaker identification and timestamps.
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -706,26 +656,19 @@ function TranscriptionSection() {
         <div className="sm:hidden">
           <div className="border-b border-neutral-100">
             <div className="p-6">
-              <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs text-xs font-medium mb-3">
-                Apple Silicon only
-              </div>
               <div className="flex items-center gap-3 mb-3">
-                <Icon icon="mdi:chip" className="text-2xl text-stone-600" />
+                <Icon
+                  icon="mdi:microphone"
+                  className="text-2xl text-stone-600"
+                />
                 <h3 className="text-xl font-serif text-stone-600">
-                  Fully on-device
+                  Real-time transcription
                 </h3>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-                For Apple Silicon Macs, transcription happens entirely on your
-                device. Fast, private, and no internet required.
+                Every word captured as it's spoken. See the transcript build in
+                real-time with speaker identification and timestamps.
               </p>
-            </div>
-            <div className="overflow-hidden bg-neutral-100">
-              <img
-                src="/api/images/hyprnote/no-wifi.png"
-                alt="On-device transcription"
-                className="w-full h-auto object-contain"
-              />
             </div>
           </div>
           <div>
@@ -818,12 +761,8 @@ function SummariesSection() {
     <section id="summaries">
       <div className="text-center py-12 px-4 lg:px-0">
         <h2 className="text-3xl font-serif text-stone-600 mb-4">
-          AI summaries
+          Your Notes+AI = Perfect Summary
         </h2>
-        <p className="text-base text-neutral-600">
-          Hyprnote combines your notes with transcripts to create intelligent
-          summaries after your meeting ends
-        </p>
       </div>
       <div className="border-t border-neutral-100">
         <div className="hidden sm:grid sm:grid-cols-2">
@@ -1089,11 +1028,12 @@ function SearchSection() {
         <div className="text-center flex flex-col gap-12">
           <div>
             <h2 className="text-3xl font-serif text-stone-50 mb-4">
-              Find anything instantly
+              Finds information across all meetings instantly
             </h2>
             <p className="text-base text-neutral-100">
-              Search across all your notes by participant names, topics,
-              keywords, or time—and jump straight to what matters
+              Search by keyword, filter by date, and find exact quotes with
+              context. Use natural language to get answers pulled directly from
+              your conversations.
             </p>
           </div>
 

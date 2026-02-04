@@ -67,9 +67,9 @@ async function analyzeLogsWithAI(logs: string): Promise<string | null> {
 
 function getGitHubClient(): Octokit | null {
   if (
-    !env.GITHUB_APP_ID ||
-    !env.GITHUB_APP_PRIVATE_KEY ||
-    !env.GITHUB_APP_INSTALLATION_ID
+    !env.CHARLIE_APP_ID ||
+    !env.CHARLIE_APP_PRIVATE_KEY ||
+    !env.CHARLIE_APP_INSTALLATION_ID
   ) {
     return null;
   }
@@ -77,9 +77,9 @@ function getGitHubClient(): Octokit | null {
   return new Octokit({
     authStrategy: createAppAuth,
     auth: {
-      appId: env.GITHUB_APP_ID,
-      privateKey: env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
-      installationId: env.GITHUB_APP_INSTALLATION_ID,
+      appId: env.CHARLIE_APP_ID,
+      privateKey: env.CHARLIE_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      installationId: env.CHARLIE_APP_INSTALLATION_ID,
     },
   });
 }
@@ -139,17 +139,17 @@ async function addCommentToIssue(
 
 async function getInstallationToken(): Promise<string | null> {
   if (
-    !env.GITHUB_APP_ID ||
-    !env.GITHUB_APP_PRIVATE_KEY ||
-    !env.GITHUB_APP_INSTALLATION_ID
+    !env.CHARLIE_APP_ID ||
+    !env.CHARLIE_APP_PRIVATE_KEY ||
+    !env.CHARLIE_APP_INSTALLATION_ID
   ) {
     return null;
   }
 
   const auth = createAppAuth({
-    appId: env.GITHUB_APP_ID,
-    privateKey: env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    installationId: env.GITHUB_APP_INSTALLATION_ID,
+    appId: env.CHARLIE_APP_ID,
+    privateKey: env.CHARLIE_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    installationId: env.CHARLIE_APP_INSTALLATION_ID,
   });
 
   const { token } = await auth({ type: "installation" });
@@ -195,7 +195,7 @@ async function createGitHubDiscussion(
       }
     `,
       {
-        repositoryId: env.GITHUB_REPO_ID,
+        repositoryId: env.CHAR_REPO_ID,
         categoryId,
         title,
         body,
@@ -308,7 +308,7 @@ ${deviceInfoSection}
 *This feature request was submitted from the Hyprnote desktop app.*
 `;
 
-      if (!env.GITHUB_DISCUSSION_CATEGORY_ID) {
+      if (!env.CHAR_DISCUSSION_CATEGORY_ID) {
         return c.json(
           {
             success: false,
@@ -321,7 +321,7 @@ ${deviceInfoSection}
       const result = await createGitHubDiscussion(
         title,
         body,
-        env.GITHUB_DISCUSSION_CATEGORY_ID,
+        env.CHAR_DISCUSSION_CATEGORY_ID,
       );
 
       if ("error" in result) {

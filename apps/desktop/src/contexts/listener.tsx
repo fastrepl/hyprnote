@@ -62,7 +62,7 @@ const useHandleDetectEvents = (store: ListenerStore) => {
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     let cancelled = false;
-    let notificationTimerId: ReturnType<typeof setTimeout>;
+    let notificationTimerId: ReturnType<typeof setTimeout> | undefined;
 
     detectEvents.detectEvent
       .listen(({ payload }) => {
@@ -78,6 +78,9 @@ const useHandleDetectEvents = (store: ListenerStore) => {
                 return;
               }
 
+              if (notificationTimerId) {
+                clearTimeout(notificationTimerId);
+              }
               notificationTimerId = setTimeout(() => {
                 void notificationCommands.showNotification({
                   key: payload.key,

@@ -322,8 +322,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::get_onboarding_needed::<tauri::Wry>,
             commands::set_onboarding_needed::<tauri::Wry>,
-            commands::get_dismissed_toasts::<tauri::Wry>,
-            commands::set_dismissed_toasts::<tauri::Wry>,
             commands::get_onboarding_local::<tauri::Wry>,
             commands::set_onboarding_local::<tauri::Wry>,
             commands::get_env::<tauri::Wry>,
@@ -332,10 +330,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::resize_window_for_sidebar::<tauri::Wry>,
             commands::get_tinybase_values::<tauri::Wry>,
             commands::set_tinybase_values::<tauri::Wry>,
-            commands::get_pinned_tabs::<tauri::Wry>,
-            commands::set_pinned_tabs::<tauri::Wry>,
-            commands::get_recently_opened_sessions::<tauri::Wry>,
-            commands::set_recently_opened_sessions::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

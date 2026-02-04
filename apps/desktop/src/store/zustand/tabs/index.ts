@@ -15,15 +15,9 @@ import {
   type NavigationState,
 } from "./navigation";
 import {
-  pinnedPersistenceMiddleware,
-  restorePinnedTabsToStore,
-} from "./pinned-persistence";
-import {
   createRecentlyOpenedSlice,
   type RecentlyOpenedActions,
-  recentlyOpenedMiddleware,
   type RecentlyOpenedState,
-  restoreRecentlyOpenedToStore,
 } from "./recently-opened";
 import {
   createRestoreSlice,
@@ -35,7 +29,8 @@ import { createStateUpdaterSlice, type StateBasicActions } from "./state";
 
 export type { SettingsState, SettingsTab, Tab, TabInput } from "./schema";
 export { isSameTab, rowIdfromTab, uniqueIdfromTab } from "./schema";
-export { restorePinnedTabsToStore, restoreRecentlyOpenedToStore };
+export { usePinnedTabsSync } from "./usePinnedTabsSync";
+export { useRecentlyOpenedSync } from "./useRecentlyOpenedSync";
 
 type State = BasicState &
   NavigationState &
@@ -51,29 +46,19 @@ type Actions = BasicActions &
 type Store = State & Actions;
 
 export const useTabs = create<Store>()(
-  recentlyOpenedMiddleware(
-    pinnedPersistenceMiddleware(
-      restoreMiddleware(
-        lifecycleMiddleware(
-          navigationMiddleware((set, get) => ({
-            ...wrapSliceWithLogging("basic", createBasicSlice(set, get)),
-            ...wrapSliceWithLogging("state", createStateUpdaterSlice(set, get)),
-            ...wrapSliceWithLogging(
-              "navigation",
-              createNavigationSlice(set, get),
-            ),
-            ...wrapSliceWithLogging(
-              "lifecycle",
-              createLifecycleSlice(set, get),
-            ),
-            ...wrapSliceWithLogging("restore", createRestoreSlice(set, get)),
-            ...wrapSliceWithLogging(
-              "recentlyOpened",
-              createRecentlyOpenedSlice(set, get),
-            ),
-          })),
+  restoreMiddleware(
+    lifecycleMiddleware(
+      navigationMiddleware((set, get) => ({
+        ...wrapSliceWithLogging("basic", createBasicSlice(set, get)),
+        ...wrapSliceWithLogging("state", createStateUpdaterSlice(set, get)),
+        ...wrapSliceWithLogging("navigation", createNavigationSlice(set, get)),
+        ...wrapSliceWithLogging("lifecycle", createLifecycleSlice(set, get)),
+        ...wrapSliceWithLogging("restore", createRestoreSlice(set, get)),
+        ...wrapSliceWithLogging(
+          "recentlyOpened",
+          createRecentlyOpenedSlice(set, get),
         ),
-      ),
+      })),
     ),
   ),
 );

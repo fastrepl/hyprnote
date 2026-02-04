@@ -17,9 +17,10 @@ import { ShellProvider } from "../../../contexts/shell";
 import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
 import { useDeeplinkHandler } from "../../../hooks/useDeeplinkHandler";
+import * as main from "../../../store/tinybase/store/main";
 import {
-  restorePinnedTabsToStore,
-  restoreRecentlyOpenedToStore,
+  usePinnedTabsSync,
+  useRecentlyOpenedSync,
   useTabs,
 } from "../../../store/zustand/tabs";
 
@@ -37,34 +38,34 @@ function Component() {
   const liveStatus = useListener((state) => state.live.status);
   const prevLiveStatus = usePrevious(liveStatus);
 
+  const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
+  const pinnedTabsValue = main.UI.useValue("pinned_tabs", store);
+
   useDeeplinkHandler();
+  usePinnedTabsSync();
+  useRecentlyOpenedSync();
 
   const openDefaultEmptyTab = useCallback(() => {
     openNew({ type: "empty" });
   }, [openNew]);
 
   useEffect(() => {
-    const initializeTabs = async () => {
-      if (!hasOpenedInitialTab.current) {
-        hasOpenedInitialTab.current = true;
-        await restorePinnedTabsToStore(
-          openNew,
-          pin,
-          () => useTabs.getState().tabs,
-        );
-        await restoreRecentlyOpenedToStore((ids) => {
-          useTabs.setState({ recentlyOpenedSessionIds: ids });
-        });
-        const currentTabs = useTabs.getState().tabs;
-        if (currentTabs.length === 0) {
-          openDefaultEmptyTab();
-        }
+    if (!hasOpenedInitialTab.current) {
+      // Wait for TinyBase pinned_tabs value to be loaded before checking if we need to open
+      // an empty tab. The sync hooks (usePinnedTabsSync, useRecentlyOpenedSync) restore tabs
+      // asynchronously via useEffect. Without this check, we would open an empty tab before
+      // the pinned tabs are restored, causing a flash of empty content on startup.
+      if (pinnedTabsValue === undefined) {
+        return;
       }
-    };
-
-    initializeTabs();
+      hasOpenedInitialTab.current = true;
+      const currentTabs = useTabs.getState().tabs;
+      if (currentTabs.length === 0) {
+        openDefaultEmptyTab();
+      }
+    }
     registerOnEmpty(openDefaultEmptyTab);
-  }, [openNew, pin, openDefaultEmptyTab, registerOnEmpty]);
+  }, [pinnedTabsValue, openDefaultEmptyTab, registerOnEmpty]);
 
   useEffect(() => {
     const justStartedListening =

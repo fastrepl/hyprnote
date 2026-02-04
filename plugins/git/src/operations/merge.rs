@@ -166,7 +166,7 @@ pub(super) fn populate_index_from_tree(
         let entry_path = if parent_path.is_empty() {
             entry.inner.filename.to_vec()
         } else {
-            [&parent_path[..], b"/", &entry.inner.filename[..]].concat()
+            [&parent_path[..], b"/", entry.inner.filename].concat()
         };
 
         if entry.inner.mode.is_tree() {

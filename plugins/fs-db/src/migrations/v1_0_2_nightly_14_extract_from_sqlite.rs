@@ -135,14 +135,14 @@ fn collect_session_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>
         });
 
         // transcript.json (if exists)
-        if let Some(transcripts) = transcripts.get(sid) {
-            if !transcripts.is_empty() {
-                ops.push(FileOp::Write {
-                    path: dir.join(files::TRANSCRIPT),
-                    content: build_transcript_json_multi(transcripts),
-                    force: false,
-                });
-            }
+        if let Some(transcripts) = transcripts.get(sid)
+            && !transcripts.is_empty()
+        {
+            ops.push(FileOp::Write {
+                path: dir.join(files::TRANSCRIPT),
+                content: build_transcript_json_multi(transcripts),
+                force: false,
+            });
         }
 
         // _memo.md (if user has notes)

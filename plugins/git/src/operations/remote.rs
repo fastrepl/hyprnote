@@ -31,13 +31,13 @@ pub fn list_remotes(path: &Path) -> Result<Vec<RemoteInfo>, crate::Error> {
     let mut remotes = Vec::new();
 
     for remote_name in repo.remote_names() {
-        if let Ok(remote) = repo.find_remote(remote_name.as_ref()) {
-            if let Some(url) = remote.url(gix::remote::Direction::Fetch) {
-                remotes.push(RemoteInfo {
-                    name: remote_name.to_string(),
-                    url: url.to_bstring().to_string(),
-                });
-            }
+        if let Ok(remote) = repo.find_remote(remote_name.as_ref())
+            && let Some(url) = remote.url(gix::remote::Direction::Fetch)
+        {
+            remotes.push(RemoteInfo {
+                name: remote_name.to_string(),
+                url: url.to_bstring().to_string(),
+            });
         }
     }
 

@@ -8,7 +8,6 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, jwk::JwkSet};
-use serde::Deserialize;
 use tokio::sync::RwLock;
 
 mod error;
@@ -16,7 +15,7 @@ pub use error::Error;
 
 const JWKS_CACHE_DURATION: Duration = Duration::from_secs(600);
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct Claims {
     pub sub: String,
     #[serde(default)]

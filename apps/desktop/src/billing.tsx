@@ -10,6 +10,7 @@ import {
 
 import { getRpcCanStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
+import { type Claims } from "@hypr/plugin-auth";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 
 import { useAuth } from "./auth";
@@ -18,7 +19,7 @@ import { getScheme } from "./utils";
 
 export function getEntitlementsFromToken(accessToken: string): string[] {
   try {
-    const decoded = jwtDecode<{ entitlements?: string[] }>(accessToken);
+    const decoded = jwtDecode<Claims>(accessToken);
     return decoded.entitlements ?? [];
   } catch {
     return [];

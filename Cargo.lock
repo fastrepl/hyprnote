@@ -16346,6 +16346,7 @@ dependencies = [
  "jsonwebtoken",
  "reqwest 0.13.1",
  "serde",
+ "specta",
  "thiserror 2.0.18",
  "tokio",
 ]
@@ -17294,6 +17295,7 @@ dependencies = [
  "specta",
  "specta-typescript",
  "strum 0.27.2",
+ "supabase-auth",
  "tauri",
  "tauri-plugin",
  "tauri-plugin-store",

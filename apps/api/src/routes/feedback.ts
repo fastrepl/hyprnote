@@ -88,7 +88,6 @@ async function createGitHubIssue(
   title: string,
   body: string,
   labels: string[],
-  issueType: string,
 ): Promise<{ url: string; number: number } | { error: string }> {
   const octokit = getGitHubClient();
   if (!octokit) {
@@ -102,7 +101,6 @@ async function createGitHubIssue(
       title,
       body,
       labels,
-      type: issueType,
     });
 
     return {
@@ -272,7 +270,7 @@ ${deviceInfoSection}
 `;
 
       const labels = ["product/desktop"];
-      const result = await createGitHubIssue(title, body, labels, "Bug");
+      const result = await createGitHubIssue(title, body, labels);
 
       if ("error" in result) {
         return c.json({ success: false, error: result.error }, 500);

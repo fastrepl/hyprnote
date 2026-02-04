@@ -111,10 +111,7 @@ export function Permissions({ onNavigate }: StepProps) {
     <OnboardingContainer
       title="Permissions needed for best experience"
       onBack={
-        backStep
-          ? () =>
-              onNavigate({ ...search, step: backStep, skipAutoForward: true })
-          : undefined
+        backStep ? () => onNavigate({ ...search, step: backStep }) : undefined
       }
     >
       <div className="flex flex-col gap-4">

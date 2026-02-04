@@ -34,6 +34,7 @@ const corsMiddleware = cors({
   allowHeaders: [
     "authorization",
     "x-client-info",
+    "x-device-fingerprint",
     "apikey",
     "content-type",
     "user-agent",

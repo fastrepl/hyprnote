@@ -1,9 +1,14 @@
-import { useEffect, useState } from "react";
+import * as Sentry from "@sentry/react";
+import { useEffect, useRef, useState } from "react";
 
+import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
+import { createClient } from "@hypr/api-client/client";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import { useAuth } from "../../auth";
+import { env } from "../../env";
 import { Route } from "../../routes/app/onboarding/_layout.index";
 import { commands } from "../../types/tauri.gen";
 import { getBack, getNext, type StepProps } from "./config";
@@ -11,37 +16,12 @@ import { Divider, OnboardingContainer } from "./shared";
 
 export const STEP_ID_LOGIN = "login" as const;
 
-async function finishOnboarding() {
-  await sfxCommands.stop("BGM").catch(console.error);
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await commands.setOnboardingNeeded(false).catch(console.error);
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await windowsCommands.windowShow({ type: "main" });
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await windowsCommands.windowDestroy({ type: "onboarding" });
-}
-
 export function Login({ onNavigate }: StepProps) {
   const search = Route.useSearch();
-  const auth = useAuth();
+  const auth = useAutoSignIn();
   const [callbackUrl, setCallbackUrl] = useState("");
 
-  useEffect(() => {
-    if (auth?.session) {
-      const nextStep = getNext(search);
-      if (nextStep) {
-        onNavigate({ ...search, step: nextStep });
-      } else {
-        void finishOnboarding();
-      }
-    }
-  }, [auth?.session, search, onNavigate]);
-
-  useEffect(() => {
-    if (!auth?.session) {
-      void auth?.signIn();
-    }
-  }, [auth?.session, auth?.signIn]);
+  usePostAuthNavigation(onNavigate);
 
   const backStep = getBack(search);
 
@@ -80,4 +60,88 @@ export function Login({ onNavigate }: StepProps) {
       </div>
     </OnboardingContainer>
   );
+}
+
+async function finishOnboarding() {
+  await sfxCommands.stop("BGM").catch(console.error);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await commands.setOnboardingNeeded(false).catch(console.error);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await windowsCommands.windowShow({ type: "main" });
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await windowsCommands.windowDestroy({ type: "onboarding" });
+}
+
+async function tryStartTrial(headers: Record<string, string>) {
+  const client = createClient({ baseUrl: env.VITE_API_URL, headers });
+  const { data } = await getRpcCanStartTrial({ client });
+
+  if (!data?.canStartTrial) {
+    return false;
+  }
+
+  const { error } = await postBillingStartTrial({
+    client,
+    query: { interval: "monthly" },
+  });
+
+  if (error) {
+    return false;
+  }
+
+  void analyticsCommands.event({ event: "trial_started", plan: "pro" });
+  const trialEndDate = new Date();
+  trialEndDate.setDate(trialEndDate.getDate() + 14);
+  void analyticsCommands.setProperties({
+    set: { plan: "pro", trial_end_date: trialEndDate.toISOString() },
+  });
+
+  return true;
+}
+
+function useAutoSignIn() {
+  const auth = useAuth();
+
+  useEffect(() => {
+    if (!auth?.session) {
+      void auth?.signIn();
+    }
+  }, [auth?.session, auth?.signIn]);
+
+  return auth;
+}
+
+function usePostAuthNavigation(onNavigate: StepProps["onNavigate"]) {
+  const search = Route.useSearch();
+  const auth = useAuth();
+  const hasHandledRef = useRef(false);
+
+  useEffect(() => {
+    if (!auth?.session || hasHandledRef.current) {
+      return;
+    }
+    hasHandledRef.current = true;
+
+    const handle = async () => {
+      const headers = auth.getHeaders();
+      if (headers) {
+        try {
+          await tryStartTrial(headers);
+          await auth.refreshSession();
+        } catch (e) {
+          Sentry.captureException(e);
+          console.error(e);
+        }
+      }
+
+      const nextStep = getNext(search);
+      if (nextStep) {
+        onNavigate({ ...search, step: nextStep });
+      } else {
+        void finishOnboarding();
+      }
+    };
+
+    void handle();
+  }, [auth, search, onNavigate]);
 }

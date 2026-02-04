@@ -1,3 +1,6 @@
+import { createAppAuth } from "@octokit/auth-app";
+import { graphql } from "@octokit/graphql";
+import { Octokit } from "@octokit/rest";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
@@ -62,70 +65,149 @@ async function analyzeLogsWithAI(logs: string): Promise<string | null> {
   }
 }
 
+function getGitHubClient(): Octokit | null {
+  if (
+    !env.CHARLIE_APP_ID ||
+    !env.CHARLIE_APP_PRIVATE_KEY ||
+    !env.CHARLIE_APP_INSTALLATION_ID
+  ) {
+    return null;
+  }
+
+  return new Octokit({
+    authStrategy: createAppAuth,
+    auth: {
+      appId: env.CHARLIE_APP_ID,
+      privateKey: env.CHARLIE_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      installationId: env.CHARLIE_APP_INSTALLATION_ID,
+    },
+  });
+}
+
 async function createGitHubIssue(
   title: string,
   body: string,
   labels: string[],
   issueType: string,
 ): Promise<{ url: string; number: number } | { error: string }> {
-  if (!env.YUJONGLEE_GITHUB_TOKEN_REPO) {
-    return { error: "GitHub bot token not configured" };
+  const octokit = getGitHubClient();
+  if (!octokit) {
+    return { error: "GitHub App credentials not configured" };
   }
 
-  const response = await fetch(
-    "https://api.github.com/repos/fastrepl/hyprnote/issues",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.YUJONGLEE_GITHUB_TOKEN_REPO}`,
-        Accept: "application/vnd.github.v3+json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        body,
-        labels,
-        type: issueType,
-      }),
-    },
-  );
+  try {
+    const response = await octokit.issues.create({
+      owner: "fastrepl",
+      repo: "hyprnote",
+      title,
+      body,
+      labels,
+      type: issueType,
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    return { error: `GitHub API error: ${response.status} - ${errorText}` };
+    return {
+      url: response.data.html_url,
+      number: response.data.number,
+    };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return { error: `GitHub API error: ${errorMessage}` };
   }
-
-  const data = (await response.json()) as {
-    html_url?: string;
-    number?: number;
-  };
-  if (!data.html_url || !data.number) {
-    return { error: "GitHub API did not return issue URL" };
-  }
-
-  return { url: data.html_url, number: data.number };
 }
 
 async function addCommentToIssue(
   issueNumber: number,
   comment: string,
 ): Promise<void> {
-  if (!env.YUJONGLEE_GITHUB_TOKEN_REPO) {
+  const octokit = getGitHubClient();
+  if (!octokit) {
     return;
   }
 
-  await fetch(
-    `https://api.github.com/repos/fastrepl/hyprnote/issues/${issueNumber}/comments`,
-    {
-      method: "POST",
+  try {
+    await octokit.issues.createComment({
+      owner: "fastrepl",
+      repo: "hyprnote",
+      issue_number: issueNumber,
+      body: comment,
+    });
+  } catch {
+    // Silently fail for comment creation
+  }
+}
+
+async function getInstallationToken(): Promise<string | null> {
+  if (
+    !env.CHARLIE_APP_ID ||
+    !env.CHARLIE_APP_PRIVATE_KEY ||
+    !env.CHARLIE_APP_INSTALLATION_ID
+  ) {
+    return null;
+  }
+
+  const auth = createAppAuth({
+    appId: env.CHARLIE_APP_ID,
+    privateKey: env.CHARLIE_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    installationId: env.CHARLIE_APP_INSTALLATION_ID,
+  });
+
+  const { token } = await auth({ type: "installation" });
+  return token;
+}
+
+async function createGitHubDiscussion(
+  title: string,
+  body: string,
+  categoryId: string,
+): Promise<{ url: string } | { error: string }> {
+  const token = await getInstallationToken();
+  if (!token) {
+    return { error: "GitHub App credentials not configured" };
+  }
+
+  try {
+    const graphqlWithAuth = graphql.defaults({
       headers: {
-        Authorization: `Bearer ${env.YUJONGLEE_GITHUB_TOKEN_REPO}`,
-        Accept: "application/vnd.github.v3+json",
-        "Content-Type": "application/json",
+        authorization: `token ${token}`,
       },
-      body: JSON.stringify({ body: comment }),
-    },
-  );
+    });
+
+    const result = await graphqlWithAuth<{
+      createDiscussion: {
+        discussion: {
+          url: string;
+        };
+      };
+    }>(
+      `
+      mutation($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
+        createDiscussion(input: {
+          repositoryId: $repositoryId
+          categoryId: $categoryId
+          title: $title
+          body: $body
+        }) {
+          discussion {
+            url
+          }
+        }
+      }
+    `,
+      {
+        repositoryId: env.CHAR_REPO_ID,
+        categoryId,
+        title,
+        body,
+      },
+    );
+
+    return { url: result.createDiscussion.discussion.url };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return { error: `GitHub API error: ${errorMessage}` };
+  }
 }
 
 export const feedback = new Hono<AppBindings>();
@@ -178,9 +260,8 @@ feedback.post(
       `**Git Hash:** ${deviceInfo.gitHash}`,
     ].join("\n");
 
-    const body =
-      type === "bug"
-        ? `## Description
+    if (type === "bug") {
+      const body = `## Description
 ${trimmedDescription}
 
 ## Device Information
@@ -188,29 +269,18 @@ ${deviceInfoSection}
 
 ---
 *This issue was submitted from the Hyprnote desktop app.*
-`
-        : `## Feature Request
-${trimmedDescription}
-
-## Submitted From
-${deviceInfoSection}
-
----
-*This feature request was submitted from the Hyprnote desktop app.*
 `;
 
-    const labels = ["product/desktop"];
-    const issueType = type === "bug" ? "Bug" : "Feature";
+      const labels = ["product/desktop"];
+      const result = await createGitHubIssue(title, body, labels, "Bug");
 
-    const result = await createGitHubIssue(title, body, labels, issueType);
+      if ("error" in result) {
+        return c.json({ success: false, error: result.error }, 500);
+      }
 
-    if ("error" in result) {
-      return c.json({ success: false, error: result.error }, 500);
-    }
-
-    if (logs) {
-      const logSummary = await analyzeLogsWithAI(logs);
-      const logComment = `## Log Analysis
+      if (logs) {
+        const logSummary = await analyzeLogsWithAI(logs);
+        const logComment = `## Log Analysis
 
 ${logSummary?.trim() ? `### Summary\n\`\`\`\n${logSummary}\n\`\`\`` : "_No errors or warnings found._"}
 
@@ -223,9 +293,42 @@ ${logs.slice(-10000)}
 
 </details>`;
 
-      await addCommentToIssue(result.number, logComment);
-    }
+        await addCommentToIssue(result.number, logComment);
+      }
 
-    return c.json({ success: true, issueUrl: result.url }, 200);
+      return c.json({ success: true, issueUrl: result.url }, 200);
+    } else {
+      const body = `## Feature Request
+${trimmedDescription}
+
+## Submitted From
+${deviceInfoSection}
+
+---
+*This feature request was submitted from the Hyprnote desktop app.*
+`;
+
+      if (!env.CHAR_DISCUSSION_CATEGORY_ID) {
+        return c.json(
+          {
+            success: false,
+            error: "GitHub discussion category not configured",
+          },
+          500,
+        );
+      }
+
+      const result = await createGitHubDiscussion(
+        title,
+        body,
+        env.CHAR_DISCUSSION_CATEGORY_ID,
+      );
+
+      if ("error" in result) {
+        return c.json({ success: false, error: result.error }, 500);
+      }
+
+      return c.json({ success: true, issueUrl: result.url }, 200);
+    }
   },
 );

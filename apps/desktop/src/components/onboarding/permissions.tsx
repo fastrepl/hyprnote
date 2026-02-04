@@ -1,13 +1,10 @@
 import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 
-import { commands as sfxCommands } from "@hypr/plugin-sfx";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
 
 import { usePermissions } from "../../hooks/usePermissions";
 import { Route } from "../../routes/app/onboarding/_layout.index";
-import { commands } from "../../types/tauri.gen";
-import { getBack, type StepProps } from "./config";
+import { getBack, getNext, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 
 export const STEP_ID_PERMISSIONS = "permissions" as const;
@@ -76,16 +73,6 @@ function PermissionBlock({
   );
 }
 
-async function finishOnboarding() {
-  await sfxCommands.stop("BGM").catch(console.error);
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await commands.setOnboardingNeeded(false).catch(console.error);
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await windowsCommands.windowShow({ type: "main" });
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await windowsCommands.windowDestroy({ type: "onboarding" });
-}
-
 export function Permissions({ onNavigate }: StepProps) {
   const search = Route.useSearch();
   const {
@@ -150,7 +137,12 @@ export function Permissions({ onNavigate }: StepProps) {
       </div>
 
       <button
-        onClick={() => void finishOnboarding()}
+        onClick={() => {
+          const nextStep = getNext(search);
+          if (nextStep) {
+            onNavigate({ ...search, step: nextStep });
+          }
+        }}
         disabled={!allPermissionsGranted}
         className={cn([
           "w-full py-3 rounded-full text-sm font-medium duration-150",

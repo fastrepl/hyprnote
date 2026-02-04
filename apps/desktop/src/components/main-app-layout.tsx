@@ -7,7 +7,6 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
-import { useProModelAutoConfig } from "../hooks/useProModelAutoConfig";
 import { useProSettingsReset } from "../hooks/useProSettingsReset";
 import { useTabs } from "../store/zustand/tabs";
 import { FeedbackModal, useFeedbackModal } from "./feedback/feedback-modal";
@@ -31,7 +30,6 @@ export default function MainAppLayout() {
 
 function MainAppContent() {
   useProSettingsReset();
-  useProModelAutoConfig();
 
   return (
     <>

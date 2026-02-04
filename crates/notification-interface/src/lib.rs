@@ -112,6 +112,10 @@ impl Notification {
     pub fn builder() -> NotificationBuilder {
         NotificationBuilder::default()
     }
+
+    pub fn is_persistent(&self) -> bool {
+        self.timeout.is_none()
+    }
 }
 
 #[derive(Default)]

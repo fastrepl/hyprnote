@@ -12,6 +12,12 @@ class NotificationBackgroundView: NSView {
   private var progressRatio: CGFloat = 1.0
   var onProgressComplete: (() -> Void)?
 
+  var isProgressHidden: Bool = false {
+    didSet {
+      progressLayer.isHidden = isProgressHidden
+    }
+  }
+
   private var progressBarFullWidth: CGFloat {
     bounds.width - (Layout.progressBarInset * 2)
   }
@@ -91,6 +97,8 @@ class NotificationBackgroundView: NSView {
   }
 
   func startProgress(duration: Double) {
+    guard duration > 0 else { return }
+
     totalDuration = duration
     remainingDuration = duration
     progressStartTime = Date()

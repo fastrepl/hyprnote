@@ -4,6 +4,21 @@ use serde_json::Value;
 
 use crate::error::{Result, SubscriptionError};
 
+fn url_encode(s: &str) -> String {
+    let mut encoded = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            'A'..='Z' | 'a'..='z' | '0'..='9' | '-' | '_' | '.' | '~' => encoded.push(c),
+            _ => {
+                for byte in c.to_string().as_bytes() {
+                    encoded.push_str(&format!("%{:02X}", byte));
+                }
+            }
+        }
+    }
+    encoded
+}
+
 #[derive(Clone)]
 pub struct SupabaseClient {
     base_url: String,
@@ -64,9 +79,14 @@ impl SupabaseClient {
         select: &str,
         filters: &[(&str, &str)],
     ) -> Result<Vec<T>> {
-        let mut url = format!("{}/rest/v1/{}?select={}", self.base_url, table, select);
+        let mut url = format!(
+            "{}/rest/v1/{}?select={}",
+            self.base_url,
+            url_encode(table),
+            url_encode(select)
+        );
         for (key, value) in filters {
-            url.push_str(&format!("&{}={}", key, value));
+            url.push_str(&format!("&{}={}", url_encode(key), url_encode(value)));
         }
 
         let response = self
@@ -103,14 +123,14 @@ impl SupabaseClient {
         filters: &[(&str, &str)],
         data: &T,
     ) -> Result<()> {
-        let mut url = format!("{}/rest/v1/{}", self.base_url, table);
+        let mut url = format!("{}/rest/v1/{}", self.base_url, url_encode(table));
         if !filters.is_empty() {
             url.push('?');
             for (i, (key, value)) in filters.iter().enumerate() {
                 if i > 0 {
                     url.push('&');
                 }
-                url.push_str(&format!("{}={}", key, value));
+                url.push_str(&format!("{}={}", url_encode(key), url_encode(value)));
             }
         }
 

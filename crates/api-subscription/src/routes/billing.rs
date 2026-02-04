@@ -3,8 +3,10 @@ use axum::{
     extract::{Query, State},
     http::HeaderMap,
 };
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use stripe::StripeRequest;
 use stripe_billing::subscription::{
     CreateSubscription, CreateSubscriptionItems, CreateSubscriptionTrialSettings,
     CreateSubscriptionTrialSettingsEndBehavior,
@@ -73,6 +75,9 @@ pub async fn start_trial(
 
     let customer_id = get_or_create_customer(&state, auth_token, &user_id).await?;
 
+    let customer_id = customer_id
+        .ok_or_else(|| SubscriptionError::Internal("stripe_customer_id_missing".to_string()))?;
+
     let price_id = match query.interval {
         Interval::Monthly => &state.config.stripe_monthly_price_id,
         Interval::Yearly => &state.config.stripe_yearly_price_id,
@@ -87,7 +92,7 @@ async fn get_or_create_customer(
     state: &AppState,
     auth_token: &str,
     user_id: &str,
-) -> Result<String> {
+) -> Result<Option<String>> {
     let profiles: Vec<Profile> = state
         .supabase
         .select(
@@ -100,7 +105,7 @@ async fn get_or_create_customer(
 
     if let Some(profile) = profiles.first() {
         if let Some(customer_id) = &profile.stripe_customer_id {
-            return Ok(customer_id.clone());
+            return Ok(Some(customer_id.clone()));
         }
     }
 
@@ -114,10 +119,15 @@ async fn get_or_create_customer(
         create_customer = create_customer.email(email_str);
     }
 
+    let idempotency_key: stripe::IdempotencyKey = format!("create-customer-{}", user_id)
+        .try_into()
+        .map_err(|e: stripe::IdempotentKeyError| SubscriptionError::Internal(e.to_string()))?;
     let customer = create_customer
+        .customize()
+        .request_strategy(stripe::RequestStrategy::Idempotent(idempotency_key))
         .send(&state.stripe)
         .await
-        .map_err(|e| SubscriptionError::Stripe(e.to_string()))?;
+        .map_err(|e: stripe::StripeError| SubscriptionError::Stripe(e.to_string()))?;
 
     #[derive(Serialize)]
     struct UpdateData {
@@ -139,14 +149,26 @@ async fn get_or_create_customer(
         )
         .await?;
 
-    Ok(customer.id.to_string())
+    let updated_profiles: Vec<Profile> = state
+        .supabase
+        .select(
+            "profiles",
+            auth_token,
+            "stripe_customer_id",
+            &[("id", &format!("eq.{}", user_id))],
+        )
+        .await?;
+
+    Ok(updated_profiles
+        .first()
+        .and_then(|p| p.stripe_customer_id.clone()))
 }
 
 async fn create_trial_subscription(
     stripe: &stripe::Client,
     customer_id: &str,
     price_id: &str,
-    _user_id: &str,
+    user_id: &str,
 ) -> Result<()> {
     let mut item = CreateSubscriptionItems::new();
     item.price = Some(price_id.to_string());
@@ -161,10 +183,17 @@ async fn create_trial_subscription(
             ),
         ));
 
+    let date = Utc::now().format("%Y-%m-%d").to_string();
+    let idempotency_key: stripe::IdempotencyKey = format!("trial-{}-{}", user_id, date)
+        .try_into()
+        .map_err(|e: stripe::IdempotentKeyError| SubscriptionError::Internal(e.to_string()))?;
+
     create_sub
+        .customize()
+        .request_strategy(stripe::RequestStrategy::Idempotent(idempotency_key))
         .send(stripe)
         .await
-        .map_err(|e| SubscriptionError::Stripe(e.to_string()))?;
+        .map_err(|e: stripe::StripeError| SubscriptionError::Stripe(e.to_string()))?;
 
     Ok(())
 }

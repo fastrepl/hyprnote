@@ -16,11 +16,15 @@ pub async fn can_start_trial(
 ) -> Result<Json<CanStartTrialResponse>> {
     let auth_token = extract_token(&headers)?;
 
-    if let Some(auth) = &state.config.auth {
-        auth.verify_token(auth_token)
-            .await
-            .map_err(|e| SubscriptionError::Auth(e.to_string()))?;
-    }
+    let auth = state
+        .config
+        .auth
+        .as_ref()
+        .ok_or_else(|| SubscriptionError::Auth("Auth not configured".to_string()))?;
+
+    auth.verify_token(auth_token)
+        .await
+        .map_err(|e| SubscriptionError::Auth(e.to_string()))?;
 
     let can_start: bool = state
         .supabase

@@ -19,6 +19,9 @@ pub enum SubscriptionError {
 
     #[error("Invalid request: {0}")]
     BadRequest(String),
+
+    #[error("Internal error: {0}")]
+    Internal(String),
 }
 
 impl From<hypr_supabase_auth::Error> for SubscriptionError {
@@ -51,6 +54,10 @@ impl IntoResponse for SubscriptionError {
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Payment processing error".to_string(),
                 )
+            }
+            Self::Internal(msg) => {
+                tracing::error!(error = %msg, "internal_error");
+                (StatusCode::INTERNAL_SERVER_ERROR, msg.clone())
             }
         };
         (status, message).into_response()

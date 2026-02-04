@@ -46,7 +46,7 @@ export function ChatMessageInput({
     main.STORE_ID,
   );
   const sessions = main.UI.useResultTable(
-    main.QUERIES.sessionsWithMaybeEvent,
+    main.QUERIES.timelineSessions,
     main.STORE_ID,
   );
 

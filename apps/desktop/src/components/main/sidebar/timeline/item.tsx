@@ -128,50 +128,9 @@ const EventItem = memo(
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
     const invalidateResource = useTabs((state) => state.invalidateResource);
-    const { setDeletedSession, setTimeoutId } = useUndoDelete();
 
     const eventId = item.id;
-
-    const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
-    const attachedSessionId = useMemo(() => {
-      if (!store) {
-        return undefined;
-      }
-      let sessionId: string | undefined;
-      store.forEachRow("sessions", (rowId, _forEachCell) => {
-        const session = store.getRow("sessions", rowId);
-        if (session?.event_id === eventId) {
-          sessionId = rowId;
-        }
-      });
-      return sessionId;
-    }, [store, eventId, sessionIds]);
-
-    const attachedNoteIds = main.UI.useSliceRowIds(
-      main.INDEXES.enhancedNotesBySession,
-      attachedSessionId ?? "",
-      main.STORE_ID,
-    );
-    const rawMd = main.UI.useCell(
-      "sessions",
-      attachedSessionId ?? "",
-      "raw_md",
-      main.STORE_ID,
-    );
-    const hasRawContent = typeof rawMd === "string" && rawMd.trim().length > 0;
-    const hasNote =
-      attachedSessionId && (attachedNoteIds.length > 0 || hasRawContent);
-
-    const sessionTitle = main.UI.useCell(
-      "sessions",
-      attachedSessionId ?? "",
-      "title",
-      main.STORE_ID,
-    ) as string | undefined;
-    const title = attachedSessionId
-      ? sessionTitle || "Untitled"
-      : item.data.title || "Untitled";
-
+    const title = item.data.title || "Untitled";
     const calendarId = item.data.calendar_id ?? null;
     const recurrenceSeriesId = item.data.recurrence_series_id;
     const displayTime = useMemo(
@@ -200,18 +159,7 @@ const EventItem = memo(
         return;
       }
       store.setPartialRow("events", eventId, { ignored: true });
-      if (attachedSessionId && !hasNote) {
-        invalidateResource("sessions", attachedSessionId);
-        void deleteSessionCascade(store, indexes, attachedSessionId);
-      }
-    }, [
-      store,
-      eventId,
-      attachedSessionId,
-      hasNote,
-      invalidateResource,
-      indexes,
-    ]);
+    }, [store, eventId, invalidateResource, indexes]);
 
     const handleIgnoreSeries = useCallback(() => {
       if (!store || !recurrenceSeriesId) {
@@ -239,90 +187,21 @@ const EventItem = memo(
       });
     }, [store, recurrenceSeriesId]);
 
-    const handleDelete = useCallback(() => {
-      if (!store || !attachedSessionId) {
-        return;
-      }
-
-      const capturedData = captureSessionData(
-        store,
-        indexes,
-        attachedSessionId,
-      );
-
-      if (capturedData) {
-        const performDelete = () => {
-          store.setPartialRow("events", eventId, { ignored: true });
-          invalidateResource("sessions", attachedSessionId);
-          void deleteSessionCascade(store, indexes, attachedSessionId);
-        };
-
-        setDeletedSession(capturedData, performDelete);
-        const timeoutId = setTimeout(() => {
-          useUndoDelete.getState().confirmDelete();
-        }, 5000);
-        setTimeoutId(timeoutId);
-      }
-    }, [
-      store,
-      indexes,
-      attachedSessionId,
-      invalidateResource,
-      eventId,
-      setDeletedSession,
-      setTimeoutId,
-    ]);
-
-    const handleRevealInFinder = useCallback(async () => {
-      if (!attachedSessionId) {
-        return;
-      }
-      await save();
-      const result = await fsSyncCommands.sessionDir(attachedSessionId);
-      if (result.status === "ok") {
-        await openerCommands.revealItemInDir(result.data);
-      }
-    }, [attachedSessionId]);
-
     const contextMenu = useMemo(() => {
-      if (hasNote) {
-        return [
-          {
-            id: "open-new-tab",
-            text: "Open in new tab",
-            action: handleCmdClick,
-          },
-          {
-            id: "reveal",
-            text: "Reveal in Finder",
-            action: handleRevealInFinder,
-          },
-          { id: "delete", text: "Delete completely", action: handleDelete },
-        ];
-      }
-
       const menu = [
-        { id: "ignore", text: "Ignore this event", action: handleIgnore },
+        { id: "ignore", text: "Ignore Event", action: handleIgnore },
       ];
       if (recurrenceSeriesId) {
         menu.push({
           id: "ignore-series",
-          text: "Ignore all recurring events",
+          text: "Ignore All Recurring Events",
           action: handleIgnoreSeries,
         });
       }
       return menu;
-    }, [
-      hasNote,
-      handleCmdClick,
-      handleRevealInFinder,
-      handleDelete,
-      handleIgnore,
-      handleIgnoreSeries,
-      recurrenceSeriesId,
-    ]);
+    }, [handleCmdClick, handleIgnore, handleIgnoreSeries, recurrenceSeriesId]);
 
-    const content = (
+    return (
       <ItemBase
         title={title}
         displayTime={displayTime}
@@ -333,16 +212,6 @@ const EventItem = memo(
         contextMenu={contextMenu}
       />
     );
-
-    if (attachedSessionId) {
-      return (
-        <DissolvingContainer sessionId={attachedSessionId} variant="sidebar">
-          {content}
-        </DissolvingContainer>
-      );
-    }
-
-    return content;
   },
 );
 
@@ -389,6 +258,7 @@ const SessionItem = memo(
       "started_at",
       store,
     );
+    const hasEvent = !!item.data.event_id;
 
     const displayTime = useMemo(
       () =>
@@ -448,7 +318,7 @@ const SessionItem = memo(
       () => [
         {
           id: "open-new-tab",
-          text: "Open in new tab",
+          text: "Open in New Tab",
           action: handleCmdClick,
         },
         {
@@ -456,9 +326,13 @@ const SessionItem = memo(
           text: "Reveal in Finder",
           action: handleRevealInFinder,
         },
-        { id: "delete", text: "Delete completely", action: handleDelete },
+        {
+          id: "delete",
+          text: hasEvent ? "Delete Attached Note" : "Delete Note",
+          action: handleDelete,
+        },
       ],
-      [handleCmdClick, handleRevealInFinder, handleDelete],
+      [handleCmdClick, handleRevealInFinder, handleDelete, hasEvent],
     );
 
     return (

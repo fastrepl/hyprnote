@@ -35,6 +35,7 @@ import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewOssFriendsRouteImport } from './routes/_view/oss-friends'
 import { Route as ViewOpensourceRouteImport } from './routes/_view/opensource'
 import { Route as ViewFreeRouteImport } from './routes/_view/free'
+import { Route as ViewForDevelopersRouteImport } from './routes/_view/for-developers'
 import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
 import { Route as ViewEnterpriseRouteImport } from './routes/_view/enterprise'
 import { Route as ViewBrandRouteImport } from './routes/_view/brand'
@@ -260,6 +261,11 @@ const ViewOpensourceRoute = ViewOpensourceRouteImport.update({
 const ViewFreeRoute = ViewFreeRouteImport.update({
   id: '/free',
   path: '/free',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewForDevelopersRoute = ViewForDevelopersRouteImport.update({
+  id: '/for-developers',
+  path: '/for-developers',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewFileTranscriptionRoute = ViewFileTranscriptionRouteImport.update({
@@ -787,6 +793,7 @@ export interface FileRoutesByFullPath {
   '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
+  '/for-developers': typeof ViewForDevelopersRoute
   '/free': typeof ViewFreeRoute
   '/opensource': typeof ViewOpensourceRoute
   '/oss-friends': typeof ViewOssFriendsRoute
@@ -906,6 +913,7 @@ export interface FileRoutesByTo {
   '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
+  '/for-developers': typeof ViewForDevelopersRoute
   '/free': typeof ViewFreeRoute
   '/opensource': typeof ViewOpensourceRoute
   '/oss-friends': typeof ViewOssFriendsRoute
@@ -1032,6 +1040,7 @@ export interface FileRoutesById {
   '/_view/brand': typeof ViewBrandRoute
   '/_view/enterprise': typeof ViewEnterpriseRoute
   '/_view/file-transcription': typeof ViewFileTranscriptionRoute
+  '/_view/for-developers': typeof ViewForDevelopersRoute
   '/_view/free': typeof ViewFreeRoute
   '/_view/opensource': typeof ViewOpensourceRoute
   '/_view/oss-friends': typeof ViewOssFriendsRoute
@@ -1159,6 +1168,7 @@ export interface FileRouteTypes {
     | '/brand'
     | '/enterprise'
     | '/file-transcription'
+    | '/for-developers'
     | '/free'
     | '/opensource'
     | '/oss-friends'
@@ -1278,6 +1288,7 @@ export interface FileRouteTypes {
     | '/brand'
     | '/enterprise'
     | '/file-transcription'
+    | '/for-developers'
     | '/free'
     | '/opensource'
     | '/oss-friends'
@@ -1403,6 +1414,7 @@ export interface FileRouteTypes {
     | '/_view/brand'
     | '/_view/enterprise'
     | '/_view/file-transcription'
+    | '/_view/for-developers'
     | '/_view/free'
     | '/_view/opensource'
     | '/_view/oss-friends'
@@ -1734,6 +1746,13 @@ declare module '@tanstack/react-router' {
       path: '/free'
       fullPath: '/free'
       preLoaderRoute: typeof ViewFreeRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/for-developers': {
+      id: '/_view/for-developers'
+      path: '/for-developers'
+      fullPath: '/for-developers'
+      preLoaderRoute: typeof ViewForDevelopersRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/file-transcription': {
@@ -2476,6 +2495,7 @@ interface ViewRouteRouteChildren {
   ViewBrandRoute: typeof ViewBrandRoute
   ViewEnterpriseRoute: typeof ViewEnterpriseRoute
   ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
+  ViewForDevelopersRoute: typeof ViewForDevelopersRoute
   ViewFreeRoute: typeof ViewFreeRoute
   ViewOpensourceRoute: typeof ViewOpensourceRoute
   ViewOssFriendsRoute: typeof ViewOssFriendsRoute
@@ -2549,6 +2569,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewBrandRoute: ViewBrandRoute,
   ViewEnterpriseRoute: ViewEnterpriseRoute,
   ViewFileTranscriptionRoute: ViewFileTranscriptionRoute,
+  ViewForDevelopersRoute: ViewForDevelopersRoute,
   ViewFreeRoute: ViewFreeRoute,
   ViewOpensourceRoute: ViewOpensourceRoute,
   ViewOssFriendsRoute: ViewOssFriendsRoute,

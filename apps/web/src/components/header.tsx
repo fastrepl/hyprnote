@@ -194,7 +194,7 @@ function LeftNav({
       />
       <Logo />
       <Link
-        to="/why-hyprnote/"
+        to="/about/"
         className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
       >
         Why Hyprnote
@@ -593,7 +593,7 @@ function MobileMenuLinks({
   return (
     <div className="flex flex-col gap-4">
       <Link
-        to="/why-hyprnote/"
+        to="/about/"
         onClick={() => setIsMenuOpen(false)}
         className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
       >

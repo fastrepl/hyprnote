@@ -74,7 +74,8 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
         .key
         .as_deref()
         .unwrap_or(notification.title.as_str());
-    let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
+    // Use 0.0 as sentinel value for persistent notifications (no auto-dismiss)
+    let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(0.0);
 
     let payload = NotificationPayload {
         key,

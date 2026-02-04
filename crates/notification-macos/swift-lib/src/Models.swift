@@ -21,6 +21,11 @@ struct NotificationPayload: Codable {
   let participants: [Participant]?
   let eventDetails: EventDetails?
   let actionLabel: String?
+
+  /// Returns true if this notification should persist (no auto-dismiss, no progress bar)
+  var isPersistent: Bool {
+    return timeoutSeconds <= 0
+  }
 }
 
 enum ParticipantStatusDisplay {

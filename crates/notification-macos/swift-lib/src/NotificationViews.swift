@@ -12,6 +12,13 @@ class NotificationBackgroundView: NSView {
   private var progressRatio: CGFloat = 1.0
   var onProgressComplete: (() -> Void)?
 
+  /// When true, the progress bar is hidden (for persistent notifications)
+  var isProgressHidden: Bool = false {
+    didSet {
+      progressLayer.isHidden = isProgressHidden
+    }
+  }
+
   private var progressBarFullWidth: CGFloat {
     bounds.width - (Layout.progressBarInset * 2)
   }

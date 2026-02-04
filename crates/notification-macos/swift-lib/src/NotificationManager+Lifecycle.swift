@@ -17,6 +17,11 @@ extension NotificationManager {
     clickableView.notification = notification
     notification.progressBar = backgroundView
 
+    // Hide progress bar for persistent notifications (timeout <= 0)
+    if payload.isPersistent {
+      backgroundView.isProgressHidden = true
+    }
+
     clickableView.addSubview(container)
     panel.contentView = clickableView
 

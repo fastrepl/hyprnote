@@ -11,7 +11,6 @@ import { useProModelAutoConfig } from "../hooks/useProModelAutoConfig";
 import { useProSettingsReset } from "../hooks/useProSettingsReset";
 import { useProSubscriptionModalTrigger } from "../hooks/useProSubscriptionModalTrigger";
 import { useTrialExpiredModalTrigger } from "../hooks/useTrialExpiredModalTrigger";
-import { useTrialStartOnFirstLaunch } from "../hooks/useTrialStartOnFirstLaunch";
 import { useTabs } from "../store/zustand/tabs";
 import { TrialBeginModal } from "./devtool/trial-begin-modal";
 import { TrialExpiredModal } from "./devtool/trial-expired-modal";
@@ -39,7 +38,6 @@ function MainAppContent() {
   useTrialExpiredModalTrigger();
   useProSubscriptionModalTrigger();
   useProModelAutoConfig();
-  useTrialStartOnFirstLaunch();
 
   return (
     <>

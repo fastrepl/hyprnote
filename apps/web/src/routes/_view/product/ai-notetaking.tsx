@@ -1,11 +1,6 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ArrowRightIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  SearchIcon,
-} from "lucide-react";
+import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 

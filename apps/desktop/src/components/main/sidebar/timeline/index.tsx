@@ -280,18 +280,8 @@ function useTimelineData(): TimelineBucket[] {
     main.QUERIES.timelineSessions,
     main.STORE_ID,
   );
-  const filteredTimelineEventsTable = useMemo(() => {
-    const sessionEventIds = new Set(
-      Object.values(timelineSessionsTable || {}).map((session) => session.event_id),
-    );
-    return Object.fromEntries(
-      Object.entries(timelineEventsTable || {}).filter(
-        ([key]) => !sessionEventIds.has(key),
-      ),
-    );
-  }, [timelineEventsTable, timelineSessionsTable]);
   const currentTimeMs = useSmartCurrentTime(
-    filteredTimelineEventsTable,
+    timelineEventsTable,
     timelineSessionsTable,
   );
   const timezone = useConfigValue("timezone");
@@ -299,15 +289,10 @@ function useTimelineData(): TimelineBucket[] {
   return useMemo(
     () =>
       buildTimelineBuckets({
-        timelineEventsTable: filteredTimelineEventsTable,
-        timelineSessionsTable: timelineSessionsTable,
+        timelineEventsTable,
+        timelineSessionsTable,
         timezone: timezone || undefined,
       }),
-    [
-      filteredTimelineEventsTable,
-      timelineSessionsTable,
-      currentTimeMs,
-      timezone,
-    ],
+    [timelineEventsTable, timelineSessionsTable, currentTimeMs, timezone],
   );
 }

@@ -252,37 +252,10 @@ export function buildTimelineBuckets({
   timezone?: string;
 }): TimelineBucket[] {
   const items: TimelineItem[] = [];
-  const seenEvents = new Set<string>();
-
-  if (timelineEventsTable) {
-    Object.entries(timelineEventsTable).forEach(([eventId, row]) => {
-      const eventStartTime = safeParseDate(row.started_at);
-
-      if (!eventStartTime) {
-        return;
-      }
-
-      const eventEndTime = safeParseDate(row.ended_at);
-      const timeToCheck = eventEndTime || eventStartTime;
-
-      if (!isPast(timeToCheck)) {
-        items.push({
-          type: "event",
-          id: eventId,
-          data: row,
-        });
-        seenEvents.add(eventId);
-      }
-    });
-  }
+  const seenEventIds = new Set<string>();
 
   if (timelineSessionsTable) {
     Object.entries(timelineSessionsTable).forEach(([sessionId, row]) => {
-      const eventId = row.event_id ? String(row.event_id) : undefined;
-      if (eventId && seenEvents.has(eventId)) {
-        return;
-      }
-
       const startTime = safeParseDate(row.event_started_at ?? row.created_at);
 
       if (!startTime) {
@@ -294,6 +267,32 @@ export function buildTimelineBuckets({
         id: sessionId,
         data: row,
       });
+      if (row.event_id) {
+        seenEventIds.add(row.event_id);
+      }
+    });
+  }
+
+  if (timelineEventsTable) {
+    Object.entries(timelineEventsTable).forEach(([eventId, row]) => {
+      // only return events without sessions for timeline
+      if (seenEventIds.has(eventId)) {
+        return;
+      }
+      const eventStartTime = safeParseDate(row.started_at);
+      const eventEndTime = safeParseDate(row.ended_at);
+      const timeToCheck = eventEndTime || eventStartTime;
+      if (!timeToCheck) {
+        return;
+      }
+
+      if (!isPast(timeToCheck)) {
+        items.push({
+          type: "event",
+          id: eventId,
+          data: row,
+        });
+      }
     });
   }
 

@@ -46,7 +46,7 @@ describe("timeline utils", () => {
     expect(todayBucket).toBeUndefined();
   });
 
-  test("buildTimelineBuckets prioritizes upcoming events and avoids duplicate sessions", () => {
+  test("buildTimelineBuckets prioritizes sessions to events and avoid duplicate timeline items", () => {
     const timelineEventsTable: TimelineEventsTable = {
       "event-1": {
         title: "Future Event",
@@ -78,8 +78,8 @@ describe("timeline utils", () => {
     expect(futureBucket.label).toBe("in 3 days");
     expect(futureBucket.items).toHaveLength(1);
     expect(futureBucket.items[0]).toMatchObject({
-      type: "event",
-      id: "event-1",
+      type: "session",
+      id: "session-1",
     });
 
     const sessionBucket = buckets.find((bucket) =>
@@ -87,10 +87,10 @@ describe("timeline utils", () => {
     );
     expect(sessionBucket).toBeDefined();
     expect(sessionBucket?.items).toHaveLength(1);
-    const containsLinkedSession = buckets.some((bucket) =>
-      bucket.items.some((item) => item.id === "session-1"),
+    const containsLinkedEvent = buckets.some((bucket) =>
+      bucket.items.some((item) => item.id === "event-1"),
     );
-    expect(containsLinkedSession).toBe(false);
+    expect(containsLinkedEvent).toBe(false);
   });
 
   test("buildTimelineBuckets excludes past events but keeps related sessions", () => {

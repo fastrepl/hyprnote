@@ -1,6 +1,6 @@
 import {
   createClient,
-  navigatorLock,
+  processLock,
   type SupabaseClient,
   type SupportedStorage,
 } from "@supabase/supabase-js";
@@ -37,7 +37,7 @@ export const supabase: SupabaseClient | null =
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: false,
-          lock: navigatorLock,
+          lock: processLock,
         },
       })
     : null;

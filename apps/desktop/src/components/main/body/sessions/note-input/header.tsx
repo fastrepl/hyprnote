@@ -95,9 +95,12 @@ function HeaderTabTranscript({
   sessionId: string;
 }) {
   const { audioExists } = useAudioPlayer();
-  const isBatchProcessing = useListener(
-    (state) => state.getSessionMode(sessionId) === "running_batch",
-  );
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const isBatchProcessing = sessionMode === "running_batch";
+  const isSessionInactive =
+    sessionMode !== "active" &&
+    sessionMode !== "finalizing" &&
+    sessionMode !== "running_batch";
   const store = main.UI.useStore(main.STORE_ID);
   const runBatch = useRunBatch(sessionId);
   const [isRedoing, setIsRedoing] = useState(false);
@@ -158,7 +161,7 @@ function HeaderTabTranscript({
     [audioExists, isBatchProcessing, runBatch, sessionId, store],
   );
 
-  const showRefreshButton = audioExists && isActive;
+  const showRefreshButton = audioExists && isActive && isSessionInactive;
 
   return (
     <button

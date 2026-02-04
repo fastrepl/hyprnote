@@ -182,42 +182,75 @@ function ResourcesLinks() {
   const [isUseCaseFading, setIsUseCaseFading] = useState(false);
   const [isVsFading, setIsVsFading] = useState(false);
   const timeoutIds = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  const intervalIds = useRef<Set<ReturnType<typeof setInterval>>>(new Set());
 
   useEffect(() => {
     setVsIndex(Math.floor(Math.random() * vsList.length));
     setUseCaseIndex(Math.floor(Math.random() * useCasesList.length));
 
-    const useCaseInterval = setInterval(() => {
-      setIsUseCaseFading(true);
-      const tid = setTimeout(() => {
-        setUseCaseIndex((prev) =>
-          getNextRandomIndex(useCasesList.length, prev),
-        );
-        setIsUseCaseFading(false);
-        timeoutIds.current.delete(tid);
-      }, 500);
-      timeoutIds.current.add(tid);
-    }, 2000);
+    const FADE_DURATION = 800;
+    const VISIBLE_DURATION = 3000;
+    const CYCLE_DURATION = FADE_DURATION + VISIBLE_DURATION;
+    const STAGGER_DELAY = CYCLE_DURATION / 2;
+    const INITIAL_DELAY = 200;
 
-    let vsInterval: ReturnType<typeof setInterval>;
-    const vsDelay = setTimeout(() => {
-      vsInterval = setInterval(() => {
-        setIsVsFading(true);
+    const createFadeInterval = (
+      setFading: (value: boolean) => void,
+      setIndex: React.Dispatch<React.SetStateAction<number>>,
+      listLength: number,
+    ) => {
+      return setInterval(() => {
+        setFading(true);
         const tid = setTimeout(() => {
-          setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
-          setIsVsFading(false);
+          setIndex((prev) => getNextRandomIndex(listLength, prev));
+          setFading(false);
           timeoutIds.current.delete(tid);
-        }, 500);
+        }, FADE_DURATION);
         timeoutIds.current.add(tid);
-      }, 2000);
-    }, 1000);
+      }, CYCLE_DURATION);
+    };
+
+    const triggerFirstFade = (
+      setFading: (value: boolean) => void,
+      setIndex: React.Dispatch<React.SetStateAction<number>>,
+      listLength: number,
+    ) => {
+      setFading(true);
+      const tid = setTimeout(() => {
+        setIndex((prev) => getNextRandomIndex(listLength, prev));
+        setFading(false);
+        timeoutIds.current.delete(tid);
+      }, FADE_DURATION);
+      timeoutIds.current.add(tid);
+    };
+
+    const initialUseCaseTrigger = setTimeout(() => {
+      triggerFirstFade(setIsUseCaseFading, setUseCaseIndex, useCasesList.length);
+      const useCaseInterval = createFadeInterval(
+        setIsUseCaseFading,
+        setUseCaseIndex,
+        useCasesList.length,
+      );
+      intervalIds.current.add(useCaseInterval);
+    }, INITIAL_DELAY);
+
+    const vsDelayTimeout = setTimeout(() => {
+      triggerFirstFade(setIsVsFading, setVsIndex, vsList.length);
+      const vsInterval = createFadeInterval(
+        setIsVsFading,
+        setVsIndex,
+        vsList.length,
+      );
+      intervalIds.current.add(vsInterval);
+    }, INITIAL_DELAY + STAGGER_DELAY);
 
     return () => {
-      clearInterval(useCaseInterval);
-      clearTimeout(vsDelay);
-      if (vsInterval) clearInterval(vsInterval);
+      clearTimeout(initialUseCaseTrigger);
+      clearTimeout(vsDelayTimeout);
       timeoutIds.current.forEach(clearTimeout);
       timeoutIds.current.clear();
+      intervalIds.current.forEach(clearInterval);
+      intervalIds.current.clear();
     };
   }, []);
 
@@ -298,7 +331,7 @@ function ResourcesLinks() {
 
             <span
               className={cn([
-                "inline-block transition-opacity duration-500 ease-in-out",
+                "inline-block transition-opacity duration-800 ease-in-out",
                 isUseCaseFading ? "opacity-0" : "opacity-100",
               ])}
             >
@@ -323,7 +356,7 @@ function ResourcesLinks() {
 
             <span
               className={cn([
-                "inline-block transition-opacity duration-500 ease-in-out",
+                "inline-block transition-opacity duration-800 ease-in-out",
                 isVsFading ? "opacity-0" : "opacity-100",
               ])}
             >

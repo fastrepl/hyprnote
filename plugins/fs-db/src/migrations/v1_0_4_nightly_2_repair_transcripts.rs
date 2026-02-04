@@ -12,6 +12,8 @@ use super::version_from_name;
 use crate::Result;
 
 mod files {
+    // just to be safe
+    pub const TRANSCRIPT_LEGACY: &str = "_transcript.json";
     pub const TRANSCRIPT: &str = "transcript.json";
 }
 
@@ -64,7 +66,17 @@ fn collect_repair_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>>
 
     for session in &data.sessions {
         let sid = session.id.as_str();
-        let transcript_path = sessions_dir.join(sid).join(files::TRANSCRIPT);
+        let session_dir = sessions_dir.join(sid);
+        let transcript_path = session_dir.join(files::TRANSCRIPT);
+        let transcript_path_legacy = session_dir.join(files::TRANSCRIPT_LEGACY);
+
+        let transcript_path = if transcript_path.exists() {
+            transcript_path
+        } else if transcript_path_legacy.exists() {
+            transcript_path_legacy
+        } else {
+            continue;
+        };
 
         let sqlite_transcripts = transcripts_by_session
             .get(sid)
@@ -72,10 +84,6 @@ fn collect_repair_ops(base_dir: &Path, data: &Collection) -> Result<Vec<FileOp>>
             .unwrap_or(&[]);
 
         if sqlite_transcripts.is_empty() {
-            continue;
-        }
-
-        if !transcript_path.exists() {
             continue;
         }
 

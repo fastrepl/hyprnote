@@ -153,32 +153,28 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       let maxEndMs = 0;
       const wordsList: Array<{
         id: string;
-        user_id: string;
-        transcript_id: string;
         text: string;
         start_ms: number;
         end_ms: number;
         channel: number;
-        created_at: string;
       }> = [];
 
       session.transcript.segments.forEach((segment) => {
-        segment.words.forEach((word) => {
-          if (word.end_ms > maxEndMs) {
-            maxEndMs = word.end_ms;
-          }
+        segment.words.forEach(
+          (word: { text: string; start_ms: number; end_ms: number }) => {
+            if (word.end_ms > maxEndMs) {
+              maxEndMs = word.end_ms;
+            }
 
-          wordsList.push({
-            id: id(),
-            user_id: DEFAULT_USER_ID,
-            transcript_id: transcriptId,
-            text: word.text,
-            start_ms: word.start_ms,
-            end_ms: word.end_ms,
-            channel: segment.channel,
-            created_at: new Date().toISOString(),
-          });
-        });
+            wordsList.push({
+              id: id(),
+              text: word.text,
+              start_ms: word.start_ms,
+              end_ms: word.end_ms,
+              channel: segment.channel,
+            });
+          },
+        );
       });
 
       transcripts[transcriptId] = {

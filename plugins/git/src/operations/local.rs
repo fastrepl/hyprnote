@@ -95,22 +95,20 @@ pub fn status(path: &Path) -> Result<StatusInfo, crate::Error> {
 
             let index_mtime = entry.stat.mtime.secs as i64;
 
-            if mtime != index_mtime {
-                if let Ok(current_data) = std::fs::read(&full_path) {
-                    if let Ok(current_hash) = gix::objs::compute_hash(
-                        repo.object_hash(),
-                        gix::objs::Kind::Blob,
-                        &current_data,
-                    ) {
-                        if current_hash != entry.id {
-                            status_info.unstaged.push(FileStatus {
-                                path: entry_path,
-                                status: FileChangeType::Modified,
-                            });
-                            status_info.has_changes = true;
-                        }
-                    }
-                }
+            if mtime != index_mtime
+                && let Ok(current_data) = std::fs::read(&full_path)
+                && let Ok(current_hash) = gix::objs::compute_hash(
+                    repo.object_hash(),
+                    gix::objs::Kind::Blob,
+                    &current_data,
+                )
+                && current_hash != entry.id
+            {
+                status_info.unstaged.push(FileStatus {
+                    path: entry_path,
+                    status: FileChangeType::Modified,
+                });
+                status_info.has_changes = true;
             }
         }
     }
@@ -198,7 +196,7 @@ pub fn add(path: &Path, patterns: Vec<String>) -> Result<(), crate::Error> {
                 entry.id,
                 entry.flags,
                 entry.mode,
-                entry.path(&index).into(),
+                entry.path(&index),
             );
         }
     }
@@ -252,7 +250,7 @@ pub fn reset(path: &Path, files: Vec<String>) -> Result<(), crate::Error> {
                 entry.id,
                 entry.flags,
                 entry.mode,
-                entry.path(&index).into(),
+                entry.path(&index),
             );
         }
     }
@@ -414,7 +412,7 @@ pub fn log(path: &Path, limit: u32) -> Result<Vec<CommitInfo>, crate::Error> {
                 .unwrap_or(0),
         });
 
-        current = commit_ref.parents().next().map(|id| id.into());
+        current = commit_ref.parents().next().map(|id| id);
         count += 1;
     }
 

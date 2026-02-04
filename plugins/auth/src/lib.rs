@@ -17,6 +17,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::remove_item::<tauri::Wry>,
             commands::clear::<tauri::Wry>,
         ])
+        .typ::<hypr_supabase_auth::Claims>()
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 

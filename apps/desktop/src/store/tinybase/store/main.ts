@@ -98,35 +98,20 @@ export const StoreComponent = () => {
     (store) =>
       createQueries(store)
         .setQueryDefinition(
-          QUERIES.eventsWithoutSession,
+          QUERIES.timelineEvents,
           "events",
-          ({ select, join, where }) => {
+          ({ select, where }) => {
             select("title");
             select("started_at");
             select("ended_at");
             select("calendar_id");
+            select("recurrence_series_id");
             select("ignored");
-
-            join("sessions", (_getCell, rowId) => {
-              let id: string | undefined;
-              store.forEachRow("sessions", (sessionRowId, _forEachCell) => {
-                if (
-                  store.getCell("sessions", sessionRowId, "event_id") === rowId
-                ) {
-                  id = sessionRowId;
-                }
-              });
-              return id;
-            }).as("session");
-            where(
-              (getTableCell) =>
-                !getTableCell("session", "user_id") &&
-                !getTableCell("events", "ignored"),
-            );
+            where((getTableCell) => !getTableCell("events", "ignored"));
           },
         )
         .setQueryDefinition(
-          QUERIES.sessionsWithMaybeEvent,
+          QUERIES.timelineSessions,
           "sessions",
           ({ select, join }) => {
             select("title");
@@ -346,8 +331,8 @@ export const StoreComponent = () => {
 export const rowIdOfChange = (table: string, row: string) => `${table}:${row}`;
 
 export const QUERIES = {
-  eventsWithoutSession: "eventsWithoutSession",
-  sessionsWithMaybeEvent: "sessionsWithMaybeEvent",
+  timelineEvents: "timelineEvents",
+  timelineSessions: "timelineSessions",
   visibleOrganizations: "visibleOrganizations",
   visibleHumans: "visibleHumans",
   visibleTemplates: "visibleTemplates",

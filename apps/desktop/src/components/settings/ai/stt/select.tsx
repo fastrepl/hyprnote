@@ -450,7 +450,9 @@ function ModelSelectItem({
     }
   };
 
-  const cloudButtonLabel = billing.canStartTrial ? "Free Trial" : "Upgrade";
+  const cloudButtonLabel = billing.canStartTrial.data
+    ? "Free Trial"
+    : "Upgrade";
 
   return (
     <div

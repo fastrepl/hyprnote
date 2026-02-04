@@ -66,6 +66,8 @@ mod tests {
             super::super::v1_0_2_nightly_6_rename_transcript::Migrate.introduced_in();
         let v1_sqlite =
             super::super::v1_0_2_nightly_14_extract_from_sqlite::Migrate.introduced_in();
+        let repair_transcripts =
+            super::super::v1_0_4_nightly_2_repair_transcripts::Migrate.introduced_in();
 
         struct Case {
             from: DetectedVersion,
@@ -103,6 +105,26 @@ mod tests {
                 from: DetectedVersion::Fresh,
                 to: "1.0.2-nightly.15",
                 expected: vec![],
+            },
+            Case {
+                from: DetectedVersion::FromFile(v("1.0.4-nightly.1")),
+                to: "1.0.4-nightly.2",
+                expected: vec![repair_transcripts],
+            },
+            Case {
+                from: DetectedVersion::FromFile(v("1.0.3")),
+                to: "1.0.4",
+                expected: vec![repair_transcripts],
+            },
+            Case {
+                from: DetectedVersion::FromFile(v("1.0.2")),
+                to: "1.0.4",
+                expected: vec![repair_transcripts],
+            },
+            Case {
+                from: DetectedVersion::FromFile(v("1.0.2-nightly.15")),
+                to: "1.0.4-nightly.2",
+                expected: vec![repair_transcripts],
             },
         ];
 

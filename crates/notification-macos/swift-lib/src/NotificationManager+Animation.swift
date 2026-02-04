@@ -30,7 +30,9 @@ extension NotificationManager {
     } completion: {
       self.refreshTrackingAreas(for: notification)
       self.updateHoverForAll(atScreenPoint: NSEvent.mouseLocation)
-      notification.startDismissTimer(timeoutSeconds: timeoutSeconds)
+      if timeoutSeconds > 0 {
+        notification.startDismissTimer(timeoutSeconds: timeoutSeconds)
+      }
     }
   }
 

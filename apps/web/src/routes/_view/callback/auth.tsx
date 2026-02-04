@@ -89,7 +89,6 @@ function Component() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const { identify, isInitialized } = useOutlit();
-  const [attempted, setAttempted] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -124,11 +123,15 @@ function Component() {
     return null;
   };
 
+  // Browsers require a user gesture (click) to open custom URL schemes.
+  // Auto-triggering via setTimeout fails for email magic links because
+  // the page is opened from an external context (email client) without
+  // "transient user activation". OAuth redirects work because they maintain
+  // activation through the redirect chain.
   const handleDeeplink = () => {
     const deeplink = getDeeplink();
     if (search.flow === "desktop" && deeplink) {
       window.location.href = deeplink;
-      setAttempted(true);
     }
   };
 
@@ -144,75 +147,61 @@ function Component() {
   useEffect(() => {
     if (search.flow === "web") {
       navigate({ to: search.redirect || "/app/account/" });
-      return;
-    }
-
-    if (
-      search.flow === "desktop" &&
-      search.access_token &&
-      search.refresh_token
-    ) {
-      setTimeout(() => {
-        handleDeeplink();
-      }, 200);
     }
   }, [search, navigate]);
 
   if (search.flow === "desktop") {
+    const hasTokens = search.access_token && search.refresh_token;
+
     return (
       <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center flex flex-col gap-8">
           <div className="flex flex-col gap-3">
             <h1 className="text-3xl font-serif tracking-tight text-stone-600">
-              Redirecting to Hyprnote
+              {hasTokens ? "Sign-in successful" : "Signing in..."}
             </h1>
             <p className="text-neutral-600">
-              Please allow the popup to open the app
+              {hasTokens
+                ? "Click the button below to return to the app"
+                : "Please wait while we complete the sign-in"}
             </p>
           </div>
 
-          {attempted && (
+          {hasTokens && (
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-3">
-                <div className="p-6 bg-stone-50 rounded-lg border border-stone-100">
-                  <p className="text-sm text-stone-700 mb-3">
-                    App didn't open?
-                  </p>
-                  <button
-                    onClick={handleDeeplink}
-                    className={cn([
-                      "w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
-                      "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
-                    ])}
-                  >
-                    Try Again
-                  </button>
-                </div>
+              <button
+                onClick={handleDeeplink}
+                className={cn([
+                  "w-full h-12 flex items-center justify-center text-base font-medium transition-all cursor-pointer",
+                  "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                ])}
+              >
+                Open Hyprnote
+              </button>
 
-                <div className="p-6 bg-stone-50 rounded-lg border border-stone-100">
-                  <p className="text-sm text-stone-700 mb-3">
-                    Or copy the URL manually
-                  </p>
-                  <button
-                    onClick={handleCopy}
-                    className={cn([
-                      "w-full h-10 flex items-center justify-center gap-2 text-sm font-medium transition-all cursor-pointer",
-                      "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
-                    ])}
-                  >
-                    {copied ? (
-                      <>
-                        <CheckIcon className="size-4" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <CopyIcon className="size-4" />
-                        Copy URL
-                      </>
-                    )}
-                  </button>
-                </div>
+              <div className="p-4 bg-stone-50 rounded-lg border border-stone-100">
+                <p className="text-sm text-stone-500 mb-3">
+                  Button not working? Copy the link instead
+                </p>
+                <button
+                  onClick={handleCopy}
+                  className={cn([
+                    "w-full h-10 flex items-center justify-center gap-2 text-sm font-medium transition-all cursor-pointer",
+                    "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+                  ])}
+                >
+                  {copied ? (
+                    <>
+                      <CheckIcon className="size-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <CopyIcon className="size-4" />
+                      Copy URL
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           )}

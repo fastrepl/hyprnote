@@ -17,7 +17,7 @@ pub(crate) fn session_span(session_id: &str) -> tracing::Span {
 pub enum RootMsg {
     StartSession(SessionParams, RpcReplyPort<bool>),
     StopSession(RpcReplyPort<()>),
-    GetState(RpcReplyPort<crate::fsm::State>),
+    GetState(RpcReplyPort<crate::State>),
 }
 
 pub struct RootArgs {
@@ -75,11 +75,11 @@ impl Actor for RootActor {
             }
             RootMsg::GetState(reply) => {
                 let fsm_state = if state.finalizing {
-                    crate::fsm::State::Finalizing
+                    crate::State::Finalizing
                 } else if state.supervisor.is_some() {
-                    crate::fsm::State::Active
+                    crate::State::Active
                 } else {
-                    crate::fsm::State::Inactive
+                    crate::State::Inactive
                 };
                 let _ = reply.send(fsm_state);
             }

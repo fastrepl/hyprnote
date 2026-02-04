@@ -8,6 +8,17 @@ import { env } from "./env";
 import { PostHogProvider } from "./providers/posthog";
 import { routeTree } from "./routeTree.gen";
 
+function MaybeOutlitProvider({ children }: { children: React.ReactNode }) {
+  if (env.VITE_OUTLIT_PUBLIC_KEY) {
+    return (
+      <OutlitProvider publicKey={env.VITE_OUTLIT_PUBLIC_KEY} trackPageviews>
+        {children}
+      </OutlitProvider>
+    );
+  }
+  return <>{children}</>;
+}
+
 export function getRouter() {
   const queryClient = new QueryClient();
 
@@ -20,11 +31,11 @@ export function getRouter() {
     Wrap: (props: { children: React.ReactNode }) => {
       return (
         <PostHogProvider>
-          <OutlitProvider publicKey={env.VITE_OUTLIT_PUBLIC_KEY} trackPageviews>
+          <MaybeOutlitProvider>
             <QueryClientProvider client={queryClient}>
               {props.children}
             </QueryClientProvider>
-          </OutlitProvider>
+          </MaybeOutlitProvider>
         </PostHogProvider>
       );
     },

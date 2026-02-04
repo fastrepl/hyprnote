@@ -25,9 +25,13 @@ export function useProSubscriptionModalTrigger() {
       return;
     }
 
+    if (!isPro && canStartTrial.isPending) {
+      return;
+    }
+
     const wasNotPro = prevIsProRef.current === false;
     const isNowPro = isPro === true;
-    const isSubscription = !canStartTrial;
+    const isSubscription = !canStartTrial.data;
 
     if (wasNotPro && isNowPro && isSubscription) {
       const lastShownAt = store.getValue("pro_subscription_modal_shown_at");

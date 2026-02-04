@@ -17,6 +17,7 @@ import { TrialBeginModal } from "./devtool/trial-begin-modal";
 import { TrialExpiredModal } from "./devtool/trial-expired-modal";
 import { FeedbackModal, useFeedbackModal } from "./feedback/feedback-modal";
 import { useNewNote } from "./main/shared";
+import { UndoDeleteKeyboardHandler } from "./main/sidebar/toast/undo-delete-toast";
 
 export default function MainAppLayout() {
   useNavigationEvents();
@@ -46,6 +47,7 @@ function MainAppContent() {
       <TrialBeginModal />
       <TrialExpiredModal />
       <FeedbackModal />
+      <UndoDeleteKeyboardHandler />
     </>
   );
 }

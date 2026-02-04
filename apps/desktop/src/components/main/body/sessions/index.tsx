@@ -5,30 +5,19 @@ import { AnimatePresence, motion } from "motion/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
-import { md2json } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/utils";
 
-import { useAITask } from "../../../../contexts/ai-task";
+import { DissolvingContainer } from "../../../../components/ui/dissolving-container";
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
 import { useShell } from "../../../../contexts/shell";
 import { useAutoEnhance } from "../../../../hooks/useAutoEnhance";
-import {
-  useCreateEnhancedNote,
-  useIsSessionEnhancing,
-} from "../../../../hooks/useEnhancedNotes";
-import {
-  useLanguageModel,
-  useLLMConnection,
-} from "../../../../hooks/useLLMConnection";
+import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useStartListening } from "../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import { useTitleGeneration } from "../../../../hooks/useTitleGeneration";
 import * as main from "../../../../store/tinybase/store/main";
-import { createTaskId } from "../../../../store/zustand/ai-task/task-configs";
-import { listenerStore } from "../../../../store/zustand/listener/instance";
 import {
   rowIdfromTab,
   type Tab,
@@ -76,90 +65,6 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   const isFinalizing = sessionMode === "finalizing";
   const showSpinner = !tab.active && (isFinalizing || isEnhancing);
 
-  const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
-  const indexes = main.UI.useIndexes(main.STORE_ID);
-  const model = useLanguageModel();
-  const { conn: llmConn } = useLLMConnection();
-  const createEnhancedNote = useCreateEnhancedNote();
-  const generate = useAITask((state) => state.generate);
-
-  const triggerEnhancementOnClose = useCallback(() => {
-    if (!store || !indexes || !model) {
-      return;
-    }
-
-    const sessionId = tab.id;
-
-    const transcriptIds = indexes.getSliceRowIds(
-      main.INDEXES.transcriptBySession,
-      sessionId,
-    );
-    if (!transcriptIds || transcriptIds.length === 0) {
-      return;
-    }
-
-    const firstTranscriptId = transcriptIds[0];
-    const wordsJson = store.getCell("transcripts", firstTranscriptId, "words");
-    const words = wordsJson
-      ? (JSON.parse(wordsJson as string) as unknown[])
-      : [];
-    if (words.length < 5) {
-      return;
-    }
-
-    const enhancedNoteId = createEnhancedNote(sessionId);
-    if (!enhancedNoteId) {
-      return;
-    }
-
-    void analyticsCommands.event({
-      event: "note_enhanced",
-      is_auto: true,
-      llm_provider: llmConn?.providerId,
-      llm_model: llmConn?.modelId,
-    });
-
-    const taskId = createTaskId(enhancedNoteId, "enhance");
-    void generate(taskId, {
-      model,
-      taskType: "enhance",
-      args: { sessionId, enhancedNoteId },
-      onComplete: (text) => {
-        if (!text || !store) return;
-        try {
-          const jsonContent = md2json(text);
-          store.setPartialRow("enhanced_notes", enhancedNoteId, {
-            content: JSON.stringify(jsonContent),
-          });
-
-          const currentTitle = store.getCell("sessions", sessionId, "title");
-          const trimmedTitle =
-            typeof currentTitle === "string" ? currentTitle.trim() : "";
-          if (!trimmedTitle) {
-            const titleTaskId = createTaskId(sessionId, "title");
-            void generate(titleTaskId, {
-              model,
-              taskType: "title",
-              args: { sessionId },
-              onComplete: (titleText) => {
-                if (titleText && store) {
-                  const trimmed = titleText.trim();
-                  if (trimmed && trimmed !== "<EMPTY>") {
-                    store.setPartialRow("sessions", sessionId, {
-                      title: trimmed,
-                    });
-                  }
-                }
-              },
-            });
-          }
-        } catch (error) {
-          console.error("Failed to convert markdown to JSON:", error);
-        }
-      },
-    });
-  }, [tab.id, store, indexes, model, llmConn, createEnhancedNote, generate]);
-
   const showCloseConfirmation =
     pendingCloseConfirmationTab?.type === "sessions" &&
     pendingCloseConfirmationTab?.id === tab.id;
@@ -172,18 +77,10 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
 
   const handleCloseWithStop = useCallback(() => {
     if (isActive) {
-      handleCloseThis(tab);
       stop();
-      const unsubscribe = listenerStore.subscribe((state) => {
-        if (state.live.status === "inactive") {
-          unsubscribe();
-          triggerEnhancementOnClose();
-        }
-      });
-    } else {
-      handleCloseThis(tab);
     }
-  }, [isActive, triggerEnhancementOnClose, stop, tab, handleCloseThis]);
+    handleCloseThis(tab);
+  }, [isActive, stop, tab, handleCloseThis]);
 
   return (
     <TabItemBase
@@ -326,36 +223,38 @@ function TabContentNoteInner({
 
   return (
     <>
-      <StandardTabWrapper
-        afterBorder={showTimeline && <AudioPlayer.Timeline />}
-        floatingButton={<FloatingActionButton tab={tab} />}
-        showTimeline={showTimeline}
-      >
-        <div className="flex flex-col h-full">
-          <div className="pl-2 pr-1">
-            {showSearchBar ? (
-              <SearchBar />
-            ) : (
-              <OuterHeader sessionId={tab.id} currentView={currentView} />
-            )}
+      <DissolvingContainer sessionId={sessionId} variant="content">
+        <StandardTabWrapper
+          afterBorder={showTimeline && <AudioPlayer.Timeline />}
+          floatingButton={<FloatingActionButton tab={tab} />}
+          showTimeline={showTimeline}
+        >
+          <div className="flex flex-col h-full">
+            <div className="pl-2 pr-1">
+              {showSearchBar ? (
+                <SearchBar />
+              ) : (
+                <OuterHeader sessionId={tab.id} currentView={currentView} />
+              )}
+            </div>
+            <div className="mt-2 px-3 shrink-0">
+              <TitleInput
+                ref={titleInputRef}
+                tab={tab}
+                onNavigateToEditor={focusEditor}
+                onGenerateTitle={hasTranscript ? generateTitle : undefined}
+              />
+            </div>
+            <div className="mt-2 px-2 flex-1 min-h-0">
+              <NoteInput
+                ref={noteInputRef}
+                tab={tab}
+                onNavigateToTitle={focusTitle}
+              />
+            </div>
           </div>
-          <div className="mt-2 px-3 shrink-0">
-            <TitleInput
-              ref={titleInputRef}
-              tab={tab}
-              onNavigateToEditor={focusEditor}
-              onGenerateTitle={hasTranscript ? generateTitle : undefined}
-            />
-          </div>
-          <div className="mt-2 px-2 flex-1 min-h-0">
-            <NoteInput
-              ref={noteInputRef}
-              tab={tab}
-              onNavigateToTitle={focusTitle}
-            />
-          </div>
-        </div>
-      </StandardTabWrapper>
+        </StandardTabWrapper>
+      </DissolvingContainer>
       <StatusBanner
         skipReason={skipReason}
         showConsentBanner={showConsentBanner}
@@ -383,25 +282,28 @@ function StatusBanner({
     }
 
     const updateChatWidth = () => {
-      const chatPanel = document.querySelector("[data-panel-id]");
-      if (chatPanel) {
-        const panels = document.querySelectorAll("[data-panel-id]");
-        const lastPanel = panels[panels.length - 1];
-        if (lastPanel) {
-          setChatPanelWidth(lastPanel.getBoundingClientRect().width);
-        }
+      const panels = document.querySelectorAll("[data-panel-id]");
+      const lastPanel = panels[panels.length - 1];
+      if (lastPanel) {
+        setChatPanelWidth(lastPanel.getBoundingClientRect().width);
       }
     };
 
     updateChatWidth();
     window.addEventListener("resize", updateChatWidth);
 
-    const observer = new MutationObserver(updateChatWidth);
-    observer.observe(document.body, { subtree: true, attributes: true });
+    // Use ResizeObserver on the specific panel instead of MutationObserver on document.body
+    // MutationObserver on document.body with subtree:true causes high CPU usage
+    const resizeObserver = new ResizeObserver(updateChatWidth);
+    const panels = document.querySelectorAll("[data-panel-id]");
+    const lastPanel = panels[panels.length - 1];
+    if (lastPanel) {
+      resizeObserver.observe(lastPanel);
+    }
 
     return () => {
       window.removeEventListener("resize", updateChatWidth);
-      observer.disconnect();
+      resizeObserver.disconnect();
     };
   }, [isChatPanelOpen]);
 

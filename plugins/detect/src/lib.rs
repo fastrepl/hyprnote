@@ -19,19 +19,11 @@ const PLUGIN_NAME: &str = "detect";
 
 pub type SharedState = Mutex<State>;
 
+#[derive(Default)]
 pub struct State {
     #[allow(dead_code)]
     pub(crate) detector: hypr_detect::Detector,
     pub(crate) policy: policy::MicNotificationPolicy,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        Self {
-            detector: hypr_detect::Detector::default(),
-            policy: policy::MicNotificationPolicy::default(),
-        }
-    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

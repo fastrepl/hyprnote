@@ -1,4 +1,5 @@
 import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import { cn } from "@hypr/utils";
 
@@ -94,9 +95,24 @@ export function TranscriptContainer({
   const { isAtBottom, autoScrollEnabled, scrollToBottom } =
     useScrollDetection(containerRef);
 
-  const { time, state: playerState } = useAudioPlayer();
+  const { time, state: playerState, pause, resume, start } = useAudioPlayer();
   const currentMs = time.current * 1000;
   const isPlaying = playerState === "playing";
+
+  useHotkeys(
+    "space",
+    (e) => {
+      e.preventDefault();
+      if (playerState === "playing") {
+        pause();
+      } else if (playerState === "paused") {
+        resume();
+      } else if (playerState === "stopped") {
+        start();
+      }
+    },
+    { enableOnFormTags: false },
+  );
 
   usePlaybackAutoScroll(containerRef, currentMs, isPlaying);
   const shouldAutoScroll = currentActive && autoScrollEnabled;

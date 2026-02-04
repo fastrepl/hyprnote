@@ -93,7 +93,7 @@
     "@tanstack/react-form": "^1.28.0",
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-router": "^1.157.18",
-    "@tauri-apps/api": "^2.9.1",
+    "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-autostart": "^2.5.1",
     "@tauri-apps/plugin-deep-link": "^2.4.6",
     "@tauri-apps/plugin-dialog": "^2.6.0",

@@ -376,6 +376,9 @@ export const createGeneralSlice = <
                 draft.live.intervalId = undefined;
               }
 
+              if (draft.live.eventUnlisteners) {
+                draft.live.eventUnlisteners.forEach((fn) => fn());
+              }
               draft.live.eventUnlisteners = undefined;
               draft.live.loading = false;
               draft.live.loadingPhase = "idle";

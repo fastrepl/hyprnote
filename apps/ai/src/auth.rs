@@ -22,6 +22,10 @@ impl AuthState {
             inner: SupabaseAuth::new(supabase_url),
         }
     }
+
+    pub fn inner(&self) -> &SupabaseAuth {
+        &self.inner
+    }
 }
 
 pub struct AuthError(SupabaseAuthError);

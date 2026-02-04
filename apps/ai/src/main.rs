@@ -1,5 +1,6 @@
 mod auth;
 mod env;
+mod rpc;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -33,6 +34,8 @@ fn app() -> Router {
         hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys()).with_analytics(analytics);
     let auth_state = AuthState::new(&env().supabase_url);
 
+    let rpc_state = rpc::RpcState::new(&env().supabase_url, &env().supabase_anon_key);
+
     let protected_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
         .merge(hypr_llm_proxy::chat_completions_router(llm_config.clone()))
@@ -45,6 +48,7 @@ fn app() -> Router {
 
     Router::new()
         .route("/health", axum::routing::get(|| async { "ok" }))
+        .nest("/rpc", rpc::router(rpc_state))
         .merge(protected_routes)
         .layer(
             ServiceBuilder::new()
@@ -74,6 +78,7 @@ fn app() -> Router {
                                 p if p.starts_with("/stt") || p.starts_with("/listen") => {
                                     ("stt", "http.server.stt")
                                 }
+                                p if p.starts_with("/rpc") => ("rpc", "http.server.rpc"),
                                 _ => ("unknown", "http.server"),
                             };
 

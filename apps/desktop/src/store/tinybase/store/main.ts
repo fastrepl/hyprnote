@@ -105,6 +105,7 @@ export const StoreComponent = () => {
             select("started_at");
             select("ended_at");
             select("calendar_id");
+            select("ignored");
 
             join("sessions", (_getCell, rowId) => {
               let id: string | undefined;

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { jwtDecode } from "jwt-decode";
 import {
   createContext,
   type ReactNode,
@@ -10,25 +9,40 @@ import {
 
 import { getRpcCanStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
-import { type Claims } from "@hypr/plugin-auth";
+import { commands as authCommands, type Claims } from "@hypr/plugin-auth";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 
 import { useAuth } from "./auth";
 import { env } from "./env";
 import { getScheme } from "./utils";
 
-export function getEntitlementsFromToken(accessToken: string): string[] {
-  try {
-    const decoded = jwtDecode<Claims>(accessToken);
-    return decoded.entitlements ?? [];
-  } catch {
-    return [];
+type TokenInfo = Omit<Claims, "sub"> & {
+  trialEnd: Date | null;
+};
+
+const DEFAULT_TOKEN_INFO: TokenInfo = {
+  entitlements: [],
+  subscription_status: null,
+  trialEnd: null,
+};
+
+async function getInfoFromToken(accessToken: string): Promise<TokenInfo> {
+  const result = await authCommands.decodeClaims(accessToken);
+  if (result.status === "error") {
+    return DEFAULT_TOKEN_INFO;
   }
+  const { sub, trial_end, ...rest } = result.data;
+  return {
+    ...rest,
+    trialEnd: trial_end ? new Date(trial_end * 1000) : null,
+  };
 }
 
 type BillingContextValue = {
   entitlements: string[];
   isPro: boolean;
+  isTrialing: boolean;
+  trialDaysRemaining: number | null;
   canStartTrial: { data: boolean; isPending: boolean };
   upgradeToPro: () => void;
 };
@@ -40,17 +54,27 @@ const BillingContext = createContext<BillingContextValue | null>(null);
 export function BillingProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
 
-  const entitlements = useMemo(() => {
-    if (!auth?.session?.access_token) {
-      return [];
-    }
-    return getEntitlementsFromToken(auth.session.access_token);
-  }, [auth?.session?.access_token]);
+  const tokenInfoQuery = useQuery({
+    queryKey: ["tokenInfo", auth?.session?.access_token ?? ""],
+    queryFn: () => getInfoFromToken(auth!.session!.access_token),
+    enabled: !!auth?.session?.access_token,
+  });
 
-  const isPro = useMemo(
-    () => entitlements.includes("hyprnote_pro"),
-    [entitlements],
-  );
+  const tokenInfo = tokenInfoQuery.data ?? DEFAULT_TOKEN_INFO;
+  const entitlements = tokenInfo.entitlements ?? [];
+  const isPro = entitlements.includes("hyprnote_pro");
+  const isTrialing = tokenInfo.subscription_status === "trialing";
+
+  const trialDaysRemaining = useMemo(() => {
+    if (!tokenInfo.trialEnd) {
+      return null;
+    }
+    const secondsRemaining = (tokenInfo.trialEnd.getTime() - Date.now()) / 1000;
+    if (secondsRemaining <= 0) {
+      return 0;
+    }
+    return Math.ceil(secondsRemaining / (24 * 60 * 60));
+  }, [tokenInfo.trialEnd]);
 
   const canTrialQuery = useQuery({
     enabled: !!auth?.session && !isPro,
@@ -89,10 +113,19 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     () => ({
       entitlements,
       isPro,
+      isTrialing,
+      trialDaysRemaining,
       canStartTrial,
       upgradeToPro,
     }),
-    [entitlements, isPro, canStartTrial, upgradeToPro],
+    [
+      entitlements,
+      isPro,
+      isTrialing,
+      trialDaysRemaining,
+      canStartTrial,
+      upgradeToPro,
+    ],
   );
 
   return (

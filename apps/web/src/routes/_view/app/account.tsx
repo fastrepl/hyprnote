@@ -8,8 +8,8 @@ import {
   canStartTrial,
   createPortalSession,
   createTrialCheckoutSession,
-  syncAfterSuccess,
 } from "@/functions/billing";
+import type { BillingAccess } from "@/functions/billing-access";
 
 const VALID_SCHEMES = [
   "hyprnote",
@@ -29,7 +29,10 @@ const validateSearch = z
 export const Route = createFileRoute("/_view/app/account")({
   validateSearch,
   component: Component,
-  loader: async ({ context }) => ({ user: context.user }),
+  loader: async ({ context }) => ({
+    user: context.user,
+    billingAccess: context.billingAccess,
+  }),
 });
 
 function Component() {
@@ -171,15 +174,29 @@ function ProfileInfoSection({ email }: { email?: string }) {
   );
 }
 
+function getPlanDescription(billingAccess: BillingAccess): string {
+  if (!billingAccess.isPro) {
+    return "Free";
+  }
+  if (billingAccess.isTrialing && billingAccess.trialDaysRemaining !== null) {
+    if (billingAccess.trialDaysRemaining === 0) {
+      return "Trial (ends today)";
+    }
+    if (billingAccess.trialDaysRemaining === 1) {
+      return "Trial (ends tomorrow)";
+    }
+    return `Trial (${billingAccess.trialDaysRemaining} days left)`;
+  }
+  return "Pro";
+}
+
 function AccountSettingsCard() {
-  const billingQuery = useQuery({
-    queryKey: ["billing"],
-    queryFn: () => syncAfterSuccess(),
-  });
+  const { billingAccess } = Route.useLoaderData();
 
   const canTrialQuery = useQuery({
     queryKey: ["canStartTrial"],
     queryFn: () => canStartTrial(),
+    enabled: !billingAccess.isPro,
   });
 
   const manageBillingMutation = useMutation({
@@ -200,18 +217,8 @@ function AccountSettingsCard() {
     },
   });
 
-  const currentPlan = (() => {
-    if (!billingQuery.data || billingQuery.data.status === "none") {
-      return "free";
-    }
-    const status = billingQuery.data.status;
-    if (status === "trialing") return "trial";
-    if (status === "active") return "pro";
-    return "free";
-  })();
-
   const renderPlanButton = () => {
-    if (billingQuery.isLoading || canTrialQuery.isLoading) {
+    if (!billingAccess.isPro && canTrialQuery.isLoading) {
       return (
         <div className="px-4 h-8 flex items-center text-sm text-neutral-400">
           Loading...
@@ -219,7 +226,7 @@ function AccountSettingsCard() {
       );
     }
 
-    if (currentPlan === "free") {
+    if (!billingAccess.isPro) {
       if (canTrialQuery.data) {
         return (
           <button
@@ -254,13 +261,6 @@ function AccountSettingsCard() {
     );
   };
 
-  const getPlanDisplay = () => {
-    if (billingQuery.isLoading) return "...";
-    if (currentPlan === "trial") return "Trial";
-    if (currentPlan === "pro") return "Pro";
-    return "Free";
-  };
-
   return (
     <div className="border border-neutral-100 rounded-xs">
       <div className="p-4">
@@ -274,7 +274,10 @@ function AccountSettingsCard() {
 
       <div className="flex items-center justify-between border-t border-neutral-100 p-4">
         <div className="text-sm">
-          Current plan: <span className="font-medium">{getPlanDisplay()}</span>
+          Current plan:{" "}
+          <span className="font-medium">
+            {getPlanDescription(billingAccess)}
+          </span>
         </div>
         {renderPlanButton()}
       </div>

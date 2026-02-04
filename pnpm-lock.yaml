@@ -460,9 +460,6 @@ importers:
       json5:
         specifier: ^2.2.3
         version: 2.2.3
-      jwt-decode:
-        specifier: ^4.0.0
-        version: 4.0.0
       lucide-react:
         specifier: ^0.544.0
         version: 0.544.0(react@19.2.4)
@@ -884,6 +881,9 @@ importers:
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
+      jwt-decode:
+        specifier: ^4.0.0
+        version: 4.0.0
       lucide-react:
         specifier: ^0.544.0
         version: 0.544.0(react@19.2.4)
@@ -963,6 +963,9 @@ importers:
       '@dotenvx/dotenvx':
         specifier: ^1.52.0
         version: 1.52.0
+      '@hypr/plugin-auth':
+        specifier: workspace:*
+        version: link:../../plugins/auth
       '@playwright/test':
         specifier: ^1.58.1
         version: 1.58.1

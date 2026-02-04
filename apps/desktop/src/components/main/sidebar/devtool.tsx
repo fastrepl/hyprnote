@@ -13,9 +13,9 @@ import {
   STORE_ID as STORE_ID_PERSISTED,
 } from "../../../store/tinybase/store/main";
 import { useTabs } from "../../../store/zustand/tabs";
+import { useTrialExpiredModal } from "../../billing/trial-expired-modal";
+import { useWelcomeProModal } from "../../billing/welcome-pro-modal";
 import { type SeedDefinition, seeds } from "../../devtool/seed/index";
-import { useTrialBeginModal } from "../../devtool/trial-begin-modal";
-import { useTrialExpiredModal } from "../../devtool/trial-expired-modal";
 import { getLatestVersion } from "../body/changelog";
 
 declare global {
@@ -333,7 +333,7 @@ function NavigationCard() {
 }
 
 function ModalsCard() {
-  const { open: openTrialBeginModal } = useTrialBeginModal();
+  const { open: openWelcomeProModal } = useWelcomeProModal();
   const { open: openTrialExpiredModal } = useTrialExpiredModal();
 
   return (
@@ -341,7 +341,7 @@ function ModalsCard() {
       <div className="flex flex-col gap-1.5">
         <button
           type="button"
-          onClick={openTrialBeginModal}
+          onClick={openWelcomeProModal}
           className={cn([
             "w-full px-2.5 py-1.5 rounded-md",
             "text-xs font-medium text-left",
@@ -350,7 +350,7 @@ function ModalsCard() {
             "hover:bg-neutral-50 hover:border-neutral-300",
           ])}
         >
-          Trial Begin
+          Welcome Pro
         </button>
         <button
           type="button"

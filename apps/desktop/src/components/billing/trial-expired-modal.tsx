@@ -5,36 +5,45 @@ import { create } from "zustand";
 
 import { cn } from "@hypr/utils";
 
-type TrialBeginModalStore = {
+import { useBillingAccess } from "../../billing";
+
+type TrialExpiredModalStore = {
   isOpen: boolean;
   open: () => void;
   close: () => void;
 };
 
-export const useTrialBeginModal = create<TrialBeginModalStore>((set) => ({
+export const useTrialExpiredModal = create<TrialExpiredModalStore>((set) => ({
   isOpen: false,
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
 }));
 
-export function TrialBeginModal() {
-  const { isOpen, close } = useTrialBeginModal();
+export function TrialExpiredModal() {
+  const { isOpen, close } = useTrialExpiredModal();
+  const { upgradeToPro } = useBillingAccess();
+
+  const handleUpgrade = () => {
+    upgradeToPro();
+    close();
+  };
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
-        close();
+        e.preventDefault();
+        e.stopPropagation();
       }
     };
 
     if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
+      document.addEventListener("keydown", handleEscape, true);
     }
 
     return () => {
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("keydown", handleEscape, true);
     };
-  }, [isOpen, close]);
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;
@@ -42,10 +51,7 @@ export function TrialBeginModal() {
 
   return createPortal(
     <>
-      <div
-        className="fixed inset-0 z-9999 bg-black/50 backdrop-blur-xs"
-        onClick={close}
-      >
+      <div className="fixed inset-0 z-9999 bg-black/50 backdrop-blur-xs">
         <div
           data-tauri-drag-region
           className="w-full min-h-11"
@@ -70,12 +76,12 @@ export function TrialBeginModal() {
           </button>
 
           <div className="flex flex-col items-center gap-10 p-10 text-center">
-            <div className="flex flex-col gap-3 max-w-sm">
+            <div className="flex flex-col gap-3">
               <h2 className="font-serif text-3xl font-semibold">
-                Welcome to Pro!
+                Your free trial is over
               </h2>
               <p className="text-muted-foreground">
-                You just gained access to these features
+                Here's what you just lost access to
               </p>
             </div>
 
@@ -104,10 +110,10 @@ export function TrialBeginModal() {
             </div>
 
             <button
-              onClick={close}
+              onClick={handleUpgrade}
               className="px-6 h-[42px] rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-mono transition-opacity duration-150 hover:opacity-90"
             >
-              Let's go!
+              I'd like to keep using <span className="font-serif">Pro</span>
             </button>
           </div>
         </div>

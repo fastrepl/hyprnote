@@ -172,52 +172,6 @@ export const createPortalSession = createServerFn({ method: "POST" }).handler(
   },
 );
 
-export const syncAfterSuccess = createServerFn({ method: "POST" }).handler(
-  async () => {
-    const supabase = getSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user?.id) {
-      throw new Error("Unauthorized");
-    }
-
-    const stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
-      id: user.id,
-      user_metadata: user.user_metadata,
-    });
-
-    if (!stripeCustomerId) {
-      return { status: "none" };
-    }
-
-    const stripe = getStripeClient();
-
-    const subscriptions = await stripe.subscriptions.list({
-      customer: stripeCustomerId,
-      status: "all",
-    });
-
-    // Prioritize active subscriptions over trialing ones
-    // This ensures paid users see "active" status even if they had a previous trial
-    const subscription =
-      subscriptions.data.find((sub) => sub.status === "active") ||
-      subscriptions.data.find((sub) => sub.status === "trialing");
-
-    if (!subscription) {
-      return { status: "none" };
-    }
-
-    return {
-      subscriptionId: subscription.id,
-      status: subscription.status,
-      priceId: subscription.items.data[0].price.id,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
-    };
-  },
-);
-
 export const canStartTrial = createServerFn({ method: "POST" }).handler(
   async () => {
     const supabase = getSupabaseServerClient();

@@ -2,6 +2,12 @@ use crate::AuthPluginExt;
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) fn decode_claims(token: String) -> Result<hypr_supabase_auth::Claims, String> {
+    hypr_supabase_auth::Claims::decode_insecure(&token).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn get_item<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     key: String,

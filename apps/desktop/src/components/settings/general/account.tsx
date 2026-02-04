@@ -11,16 +11,32 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
 import { useAuth } from "../../../auth";
-import { useBillingAccess } from "../../../billing";
+import { type BillingAccess, useBillingAccess } from "../../../billing";
 import { env } from "../../../env";
 import * as settings from "../../../store/tinybase/store/settings";
-import { useTrialBeginModal } from "../../devtool/trial-begin-modal";
+import { useWelcomeProModal } from "../../billing/welcome-pro-modal";
+
+function getPlanDescription(billing: BillingAccess): string {
+  if (!billing.isPro) {
+    return "Free";
+  }
+  if (billing.isTrialing && billing.trialDaysRemaining !== null) {
+    if (billing.trialDaysRemaining === 0) {
+      return "Pro Trial (ends today)";
+    }
+    if (billing.trialDaysRemaining === 1) {
+      return "Pro Trial (ends tomorrow)";
+    }
+    return `Pro Trial (${billing.trialDaysRemaining} days left)`;
+  }
+  return "Pro";
+}
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
 export function AccountSettings() {
   const auth = useAuth();
-  const { isPro } = useBillingAccess();
+  const billing = useBillingAccess();
   const store = settings.UI.useStore(settings.STORE_ID);
 
   const isAuthenticated = !!auth?.session;
@@ -205,7 +221,7 @@ export function AccountSettings() {
 
       <Container
         title="Plan & Billing"
-        description={`Your current plan is ${isPro ? "PRO" : "FREE"}. `}
+        description={`Your current plan is ${getPlanDescription(billing)}.`}
         action={<BillingButton />}
       >
         <p className="text-sm text-neutral-600 flex items-center gap-1">
@@ -235,7 +251,7 @@ export function AccountSettings() {
 function BillingButton() {
   const auth = useAuth();
   const { isPro } = useBillingAccess();
-  const { open: openTrialBeginModal } = useTrialBeginModal();
+  const { open: openWelcomeProModal } = useWelcomeProModal();
 
   const canTrialQuery = useQuery({
     enabled: !!auth?.session && !isPro,
@@ -288,7 +304,7 @@ function BillingButton() {
         },
       });
       await auth?.refreshSession();
-      openTrialBeginModal();
+      openWelcomeProModal();
     },
   });
 

@@ -75,6 +75,7 @@ import { Route as ViewSolutionJournalismRouteImport } from './routes/_view/solut
 import { Route as ViewSolutionHealthcareRouteImport } from './routes/_view/solution/healthcare'
 import { Route as ViewSolutionGovernmentRouteImport } from './routes/_view/solution/government'
 import { Route as ViewSolutionFieldEngineeringRouteImport } from './routes/_view/solution/field-engineering'
+import { Route as ViewSolutionEngineeringRouteImport } from './routes/_view/solution/engineering'
 import { Route as ViewSolutionCustomerSuccessRouteImport } from './routes/_view/solution/customer-success'
 import { Route as ViewSolutionConsultingRouteImport } from './routes/_view/solution/consulting'
 import { Route as ViewSolutionCoachingRouteImport } from './routes/_view/solution/coaching'
@@ -467,6 +468,11 @@ const ViewSolutionFieldEngineeringRoute =
     path: '/solution/field-engineering',
     getParentRoute: () => ViewRouteRoute,
   } as any)
+const ViewSolutionEngineeringRoute = ViewSolutionEngineeringRouteImport.update({
+  id: '/solution/engineering',
+  path: '/solution/engineering',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewSolutionCustomerSuccessRoute =
   ViewSolutionCustomerSuccessRouteImport.update({
     id: '/solution/customer-success',
@@ -834,6 +840,7 @@ export interface FileRoutesByFullPath {
   '/solution/coaching': typeof ViewSolutionCoachingRoute
   '/solution/consulting': typeof ViewSolutionConsultingRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
+  '/solution/engineering': typeof ViewSolutionEngineeringRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
   '/solution/healthcare': typeof ViewSolutionHealthcareRoute
@@ -954,6 +961,7 @@ export interface FileRoutesByTo {
   '/solution/coaching': typeof ViewSolutionCoachingRoute
   '/solution/consulting': typeof ViewSolutionConsultingRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
+  '/solution/engineering': typeof ViewSolutionEngineeringRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
   '/solution/healthcare': typeof ViewSolutionHealthcareRoute
@@ -1080,6 +1088,7 @@ export interface FileRoutesById {
   '/_view/solution/coaching': typeof ViewSolutionCoachingRoute
   '/_view/solution/consulting': typeof ViewSolutionConsultingRoute
   '/_view/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
+  '/_view/solution/engineering': typeof ViewSolutionEngineeringRoute
   '/_view/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/_view/solution/government': typeof ViewSolutionGovernmentRoute
   '/_view/solution/healthcare': typeof ViewSolutionHealthcareRoute
@@ -1206,6 +1215,7 @@ export interface FileRouteTypes {
     | '/solution/coaching'
     | '/solution/consulting'
     | '/solution/customer-success'
+    | '/solution/engineering'
     | '/solution/field-engineering'
     | '/solution/government'
     | '/solution/healthcare'
@@ -1326,6 +1336,7 @@ export interface FileRouteTypes {
     | '/solution/coaching'
     | '/solution/consulting'
     | '/solution/customer-success'
+    | '/solution/engineering'
     | '/solution/field-engineering'
     | '/solution/government'
     | '/solution/healthcare'
@@ -1451,6 +1462,7 @@ export interface FileRouteTypes {
     | '/_view/solution/coaching'
     | '/_view/solution/consulting'
     | '/_view/solution/customer-success'
+    | '/_view/solution/engineering'
     | '/_view/solution/field-engineering'
     | '/_view/solution/government'
     | '/_view/solution/healthcare'
@@ -2016,6 +2028,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewSolutionFieldEngineeringRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/solution/engineering': {
+      id: '/_view/solution/engineering'
+      path: '/solution/engineering'
+      fullPath: '/solution/engineering'
+      preLoaderRoute: typeof ViewSolutionEngineeringRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/solution/customer-success': {
       id: '/_view/solution/customer-success'
       path: '/solution/customer-success'
@@ -2512,6 +2531,7 @@ interface ViewRouteRouteChildren {
   ViewSolutionCoachingRoute: typeof ViewSolutionCoachingRoute
   ViewSolutionConsultingRoute: typeof ViewSolutionConsultingRoute
   ViewSolutionCustomerSuccessRoute: typeof ViewSolutionCustomerSuccessRoute
+  ViewSolutionEngineeringRoute: typeof ViewSolutionEngineeringRoute
   ViewSolutionFieldEngineeringRoute: typeof ViewSolutionFieldEngineeringRoute
   ViewSolutionGovernmentRoute: typeof ViewSolutionGovernmentRoute
   ViewSolutionHealthcareRoute: typeof ViewSolutionHealthcareRoute
@@ -2585,6 +2605,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewSolutionCoachingRoute: ViewSolutionCoachingRoute,
   ViewSolutionConsultingRoute: ViewSolutionConsultingRoute,
   ViewSolutionCustomerSuccessRoute: ViewSolutionCustomerSuccessRoute,
+  ViewSolutionEngineeringRoute: ViewSolutionEngineeringRoute,
   ViewSolutionFieldEngineeringRoute: ViewSolutionFieldEngineeringRoute,
   ViewSolutionGovernmentRoute: ViewSolutionGovernmentRoute,
   ViewSolutionHealthcareRoute: ViewSolutionHealthcareRoute,

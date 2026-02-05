@@ -1,10 +1,11 @@
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn, startOfDay } from "@hypr/utils";
 
 import { useConfigValue } from "../../../../config/use-config";
+import { useNativeContextMenu } from "../../../../hooks/useNativeContextMenu";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import {
@@ -24,8 +25,24 @@ import {
 } from "./realtime";
 
 export function TimelineView() {
-  const buckets = useTimelineData();
+  const allBuckets = useTimelineData();
   const timezone = useConfigValue("timezone") || undefined;
+  const [showIgnored, setShowIgnored] = useState(false);
+
+  const buckets = useMemo(() => {
+    if (showIgnored) {
+      return allBuckets;
+    }
+    return allBuckets
+      .map((bucket) => ({
+        ...bucket,
+        items: bucket.items.filter(
+          (item) => item.type !== "event" || !item.data.ignored,
+        ),
+      }))
+      .filter((bucket) => bucket.items.length > 0);
+  }, [allBuckets, showIgnored]);
+
   const hasToday = useMemo(
     () => buckets.some((bucket) => bucket.label === "Today"),
     [buckets],
@@ -85,10 +102,28 @@ export function TimelineView() {
     );
   }, [buckets, hasToday, todayTimestamp]);
 
+  const toggleShowIgnored = useCallback(() => {
+    setShowIgnored((prev) => !prev);
+  }, []);
+
+  const contextMenuItems = useMemo(
+    () => [
+      {
+        id: "toggle-ignored",
+        text: showIgnored ? "Hide Ignored Events" : "Show Ignored Events",
+        action: toggleShowIgnored,
+      },
+    ],
+    [showIgnored, toggleShowIgnored],
+  );
+
+  const showContextMenu = useNativeContextMenu(contextMenuItems);
+
   return (
     <div className="relative h-full">
       <div
         ref={containerRef}
+        onContextMenu={showContextMenu}
         className={cn([
           "flex flex-col h-full overflow-y-auto scrollbar-hide",
           "bg-neutral-50 rounded-xl",

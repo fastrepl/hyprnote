@@ -69,6 +69,7 @@ function ItemBase({
   calendarId,
   showSpinner,
   selected,
+  ignored,
   onClick,
   onCmdClick,
   contextMenu,
@@ -78,6 +79,7 @@ function ItemBase({
   calendarId: string | null;
   showSpinner?: boolean;
   selected: boolean;
+  ignored?: boolean;
   onClick: () => void;
   onCmdClick: () => void;
   contextMenu: Array<{ id: string; text: string; action: () => void }>;
@@ -91,6 +93,7 @@ function ItemBase({
         "cursor-pointer w-full text-left px-3 py-2 rounded-lg",
         selected && "bg-neutral-200",
         !selected && "hover:bg-neutral-100",
+        ignored && "opacity-40",
       ])}
     >
       <div className="flex items-center gap-2">
@@ -100,7 +103,14 @@ function ItemBase({
           </div>
         )}
         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-          <div className="text-sm font-normal truncate">{title}</div>
+          <div
+            className={cn(
+              "text-sm font-normal truncate",
+              ignored && "line-through",
+            )}
+          >
+            {title}
+          </div>
           {displayTime && (
             <div className="text-xs text-neutral-500">{displayTime}</div>
           )}
@@ -133,6 +143,7 @@ const EventItem = memo(
     const title = item.data.title || "Untitled";
     const calendarId = item.data.calendar_id ?? null;
     const recurrenceSeriesId = item.data.recurrence_series_id;
+    const ignored = !!item.data.ignored;
     const displayTime = useMemo(
       () => formatDisplayTime(item.data.started_at, precision, timezone),
       [item.data.started_at, precision, timezone],
@@ -161,6 +172,34 @@ const EventItem = memo(
       store.setPartialRow("events", eventId, { ignored: true });
     }, [store, eventId, invalidateResource, indexes]);
 
+    const handleUnignore = useCallback(() => {
+      if (!store) {
+        return;
+      }
+      store.setPartialRow("events", eventId, { ignored: false });
+    }, [store, eventId]);
+
+    const handleUnignoreSeries = useCallback(() => {
+      if (!store || !recurrenceSeriesId) {
+        return;
+      }
+      store.transaction(() => {
+        store.forEachRow("events", (rowId, _forEachCell) => {
+          const event = store.getRow("events", rowId);
+          if (event?.recurrence_series_id === recurrenceSeriesId) {
+            store.setPartialRow("events", rowId, { ignored: false });
+          }
+        });
+
+        const currentIgnored = store.getValue("ignored_recurring_series");
+        const ignoredList: string[] = currentIgnored
+          ? JSON.parse(String(currentIgnored))
+          : [];
+        const filtered = ignoredList.filter((id) => id !== recurrenceSeriesId);
+        store.setValue("ignored_recurring_series", JSON.stringify(filtered));
+      });
+    }, [store, recurrenceSeriesId]);
+
     const handleIgnoreSeries = useCallback(() => {
       if (!store || !recurrenceSeriesId) {
         return;
@@ -188,6 +227,25 @@ const EventItem = memo(
     }, [store, recurrenceSeriesId]);
 
     const contextMenu = useMemo(() => {
+      if (ignored) {
+        if (recurrenceSeriesId) {
+          return [
+            {
+              id: "unignore",
+              text: "Unignore Only This Event",
+              action: handleUnignore,
+            },
+            {
+              id: "unignore-series",
+              text: "Unignore All Recurring Events",
+              action: handleUnignoreSeries,
+            },
+          ];
+        }
+        return [
+          { id: "unignore", text: "Unignore Event", action: handleUnignore },
+        ];
+      }
       const menu = [
         { id: "ignore", text: "Ignore Event", action: handleIgnore },
       ];
@@ -199,7 +257,14 @@ const EventItem = memo(
         });
       }
       return menu;
-    }, [handleCmdClick, handleIgnore, handleIgnoreSeries, recurrenceSeriesId]);
+    }, [
+      ignored,
+      handleIgnore,
+      handleUnignore,
+      handleUnignoreSeries,
+      handleIgnoreSeries,
+      recurrenceSeriesId,
+    ]);
 
     return (
       <ItemBase
@@ -207,6 +272,7 @@ const EventItem = memo(
         displayTime={displayTime}
         calendarId={calendarId}
         selected={selected}
+        ignored={ignored}
         onClick={handleClick}
         onCmdClick={handleCmdClick}
         contextMenu={contextMenu}

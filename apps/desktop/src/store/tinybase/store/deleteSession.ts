@@ -1,5 +1,3 @@
-import { useCallback } from "react";
-
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import type { DeletedSessionData } from "../../zustand/undo-delete";
@@ -234,17 +232,4 @@ export function deleteSessionCascade(
   }
 
   void fsSyncCommands.audioDelete(sessionId);
-}
-
-export function useDeleteSession() {
-  const store = main.UI.useStore(main.STORE_ID);
-  const indexes = main.UI.useIndexes(main.STORE_ID);
-
-  return useCallback(
-    (sessionId: string) => {
-      if (!store) return;
-      void deleteSessionCascade(store, indexes, sessionId);
-    },
-    [store, indexes],
-  );
 }

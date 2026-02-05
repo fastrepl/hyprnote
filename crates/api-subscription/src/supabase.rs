@@ -1,23 +1,11 @@
-use percent_encoding::{AsciiSet, CONTROLS, utf8_percent_encode};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::error::{Result, SubscriptionError};
 
-const QUERY_ENCODE_SET: &AsciiSet = &CONTROLS
-    .add(b' ')
-    .add(b'"')
-    .add(b'#')
-    .add(b'<')
-    .add(b'>')
-    .add(b'`')
-    .add(b'?')
-    .add(b'{')
-    .add(b'}');
-
 fn url_encode(s: &str) -> String {
-    utf8_percent_encode(s, QUERY_ENCODE_SET).to_string()
+    urlencoding::encode(s).into_owned()
 }
 
 #[derive(Clone)]

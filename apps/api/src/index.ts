@@ -17,6 +17,7 @@ import {
   sentryMiddleware,
   supabaseAuthMiddleware,
   verifySlackWebhook,
+  verifyStripeWebhook,
 } from "./middleware";
 import { openAPIDocumentation } from "./openapi";
 import { routes } from "./routes";
@@ -50,6 +51,7 @@ app.use("*", (c, next) => {
   return corsMiddleware(c, next);
 });
 
+app.use("/webhook/stripe", verifyStripeWebhook);
 app.use("/webhook/slack/events", verifySlackWebhook);
 
 app.route("/", routes);

@@ -5,14 +5,10 @@ edition = "2024"
 
 [dependencies]
 hypr-analytics = { workspace = true }
-hypr-api-subscription = { workspace = true }
 hypr-llm-proxy = { workspace = true }
 hypr-supabase-auth = { workspace = true }
 hypr-transcribe-proxy = { workspace = true }
 owhisper-client = { workspace = true }
-
-utoipa = { version = "5", features = ["axum_extras"] }
-utoipa-swagger-ui = { version = "9", features = ["axum"] }
 
 axum = { workspace = true, features = ["ws"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "signal"] }

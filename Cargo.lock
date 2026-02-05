@@ -250,6 +250,7 @@ dependencies = [
  "analytics",
  "axum 0.8.8",
  "dotenvy",
+ "envy",
  "jsonwebtoken",
  "llm-proxy",
  "owhisper-client",
@@ -265,6 +266,7 @@ dependencies = [
  "tracing-subscriber",
  "transcribe-proxy",
  "url",
+ "utoipa",
 ]
 
 [[package]]
@@ -5097,6 +5099,15 @@ checksum = "a19187fea3ac7e84da7dacf48de0c45d63c6a76f9490dae389aead16c243fce3"
 dependencies = [
  "log",
  "regex",
+]
+
+[[package]]
+name = "envy"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f47e0157f2cb54f5ae1bd371b30a2ae4311e1c028f575cd4e81de7353215965"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

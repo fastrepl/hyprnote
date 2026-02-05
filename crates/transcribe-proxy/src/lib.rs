@@ -1,5 +1,6 @@
 mod analytics;
 mod config;
+mod env;
 mod error;
 mod hyprnote_routing;
 mod openapi;
@@ -11,6 +12,7 @@ mod upstream_url;
 
 pub use analytics::{SttAnalyticsReporter, SttEvent};
 pub use config::*;
+pub use env::{ApiKeys, Env};
 pub use error::*;
 pub use hypr_analytics::{AuthenticatedUserId, DeviceFingerprint};
 pub use hyprnote_routing::{

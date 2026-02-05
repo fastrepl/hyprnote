@@ -321,9 +321,9 @@ function ResourcesLinks() {
             <img
               src="/api/images/hyprnote/icon.png"
               alt="Hyprnote"
-              width={16}
-              height={16}
-              className="size-4 rounded border border-neutral-100 inline"
+              width={20}
+              height={20}
+              className="size-5 rounded border border-neutral-100 inline"
             />
 
             <span
@@ -346,9 +346,9 @@ function ResourcesLinks() {
             <img
               src="/api/images/hyprnote/icon.png"
               alt="Hyprnote"
-              width={16}
-              height={16}
-              className="size-4 rounded border border-neutral-100 inline"
+              width={20}
+              height={20}
+              className="size-5 rounded border border-neutral-100 inline"
             />
 
             <span

@@ -248,37 +248,18 @@ function ResourcesLinks() {
         <li>
           <Link
             to={currentUseCase.to}
-            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
             aria-label={`Hyprnote for ${currentUseCase.label}`}
-            onMouseEnter={() => {
-              setUseCaseIndex((prev) =>
-                getNextRandomIndex(useCasesList.length, prev),
-              );
-            }}
-            onFocus={() => {
-              setUseCaseIndex((prev) =>
-                getNextRandomIndex(useCasesList.length, prev),
-              );
-            }}
           >
-            👍 for{" "}
-            <span className="blur-xs group-hover:blur-none group-focus:blur-none transition-all duration-150">
-              {currentUseCase.label}
-            </span>
+            👍 for {currentUseCase.label}
           </Link>
         </li>
         <li>
           <Link
             to="/vs/$slug/"
             params={{ slug: currentVs.slug }}
-            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
             aria-label={`Versus ${currentVs.name}`}
-            onMouseEnter={() => {
-              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
-            }}
-            onFocus={() => {
-              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
-            }}
           >
             <img
               src="/api/images/hyprnote/icon.png"
@@ -287,10 +268,7 @@ function ResourcesLinks() {
               height={12}
               className="size-4 rounded border border-neutral-100 inline"
             />{" "}
-            vs{" "}
-            <span className="blur-xs group-hover:blur-none group-focus:blur-none transition-all duration-150">
-              {currentVs.name}
-            </span>
+            vs {currentVs.name}
           </Link>
         </li>
       </ul>

@@ -323,7 +323,7 @@ pub fn commit(path: &Path, message: &str) -> Result<String, crate::Error> {
         let mut written_trees: std::collections::HashMap<Vec<u8>, gix::ObjectId> =
             std::collections::HashMap::new();
         let mut sorted_paths: Vec<Vec<u8>> = trees.keys().cloned().collect();
-        sorted_paths.sort_by(|a, b| b.len().cmp(&a.len()));
+        sorted_paths.sort_by_key(|b| std::cmp::Reverse(b.len()));
 
         for tree_path in sorted_paths {
             let mut tree = trees.remove(&tree_path).unwrap();
@@ -412,7 +412,7 @@ pub fn log(path: &Path, limit: u32) -> Result<Vec<CommitInfo>, crate::Error> {
                 .unwrap_or(0),
         });
 
-        current = commit_ref.parents().next().map(|id| id);
+        current = commit_ref.parents().next();
         count += 1;
     }
 

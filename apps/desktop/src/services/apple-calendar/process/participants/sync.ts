@@ -1,3 +1,8 @@
+import type {
+  HumanStorage,
+  MappingSessionParticipantStorage,
+} from "@hypr/store";
+
 import type { Store } from "../../../../store/tinybase/store/main";
 import { id } from "../../../../utils";
 import type { Ctx } from "../../ctx";
@@ -9,6 +14,54 @@ import type {
   ParticipantsSyncInput,
   ParticipantsSyncOutput,
 } from "./types";
+
+export function syncParticipantsForSession(
+  store: Store,
+  sessionId: string,
+  eventParticipants: EventParticipant[],
+): void {
+  const userId = store.getValue("user_id");
+  if (!userId) {
+    return;
+  }
+
+  const humansByEmail = buildHumansByEmailIndex(store);
+  const humansToCreateMap = new Map<string, HumanToCreate>();
+
+  const { toAdd } = computeSessionParticipantChanges(
+    store,
+    sessionId,
+    eventParticipants,
+    humansByEmail,
+    humansToCreateMap,
+  );
+
+  const humansToCreate = Array.from(humansToCreateMap.values());
+
+  store.transaction(() => {
+    for (const human of humansToCreate) {
+      store.setRow("humans", human.id, {
+        user_id: String(userId),
+        name: human.name,
+        email: human.email,
+        org_id: "",
+        job_title: "",
+        linkedin_username: "",
+        memo: "",
+        pinned: false,
+      } satisfies HumanStorage);
+    }
+
+    for (const mapping of toAdd) {
+      store.setRow("mapping_session_participant", id(), {
+        user_id: String(userId),
+        session_id: mapping.sessionId,
+        human_id: mapping.humanId,
+        source: "auto",
+      } satisfies MappingSessionParticipantStorage);
+    }
+  });
+}
 
 export function syncParticipants(
   ctx: Ctx,

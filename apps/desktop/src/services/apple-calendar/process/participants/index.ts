@@ -1,5 +1,5 @@
 export { executeForParticipantsSync } from "./execute";
-export { syncParticipants } from "./sync";
+export { syncParticipants, syncParticipantsForSession } from "./sync";
 export type {
   HumanToCreate,
   ParticipantMappingId,

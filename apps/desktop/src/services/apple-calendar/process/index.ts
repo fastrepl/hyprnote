@@ -3,4 +3,8 @@ export {
   executeForEventsSync,
   syncEvents,
 } from "./events";
-export { executeForParticipantsSync, syncParticipants } from "./participants";
+export {
+  executeForParticipantsSync,
+  syncParticipants,
+  syncParticipantsForSession,
+} from "./participants";

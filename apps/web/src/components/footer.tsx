@@ -1,26 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ExternalLinkIcon, MailIcon } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import { Image } from "@/components/image";
-
-const vsList = [
-  { slug: "otter", name: "Otter.ai" },
-  { slug: "granola", name: "Granola" },
-  { slug: "fireflies", name: "Fireflies" },
-  { slug: "fathom", name: "Fathom" },
-  { slug: "notion", name: "Notion" },
-  { slug: "obsidian", name: "Obsidian" },
-];
-
-const useCasesList = [
-  { to: "/solution/sales", label: "Sales" },
-  { to: "/solution/recruiting", label: "Recruiting" },
-  { to: "/solution/consulting", label: "Consulting" },
-  { to: "/solution/coaching", label: "Coaching" },
-  { to: "/solution/research", label: "Research" },
-  { to: "/solution/journalism", label: "Journalism" },
-];
 
 function getMaxWidthClass(pathname: string): string {
   const isBlogOrDocs =
@@ -167,17 +148,6 @@ function ProductLinks() {
 }
 
 function ResourcesLinks() {
-  const [vsIndex, setVsIndex] = useState(0);
-  const [useCaseIndex, setUseCaseIndex] = useState(0);
-
-  useEffect(() => {
-    setVsIndex(Math.floor(Math.random() * vsList.length));
-    setUseCaseIndex(Math.floor(Math.random() * useCasesList.length));
-  }, []);
-
-  const currentVs = vsList[vsIndex];
-  const currentUseCase = useCasesList[useCaseIndex];
-
   return (
     <div>
       <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
@@ -238,28 +208,10 @@ function ResourcesLinks() {
         </li>
         <li>
           <Link
-            to={currentUseCase.to}
+            to="/solution/knowledge-workers/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
-            aria-label={`Hyprnote for ${currentUseCase.label}`}
           >
-            👍 for {currentUseCase.label}
-          </Link>
-        </li>
-        <li>
-          <Link
-            to="/vs/$slug/"
-            params={{ slug: currentVs.slug }}
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
-            aria-label={`Versus ${currentVs.name}`}
-          >
-            <img
-              src="/api/images/hyprnote/icon.png"
-              alt="Hyprnote"
-              width={12}
-              height={12}
-              className="size-4 rounded border border-neutral-100 inline"
-            />{" "}
-            vs {currentVs.name}
+            Use Cases
           </Link>
         </li>
       </ul>

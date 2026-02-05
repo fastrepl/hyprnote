@@ -536,12 +536,14 @@ dependencies = [
  "axum 0.8.8",
  "chrono",
  "reqwest 0.13.1",
+ "sentry",
  "serde",
  "serde_json",
  "supabase-auth",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
+ "urlencoding",
 ]
 
 [[package]]

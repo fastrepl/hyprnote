@@ -179,6 +179,12 @@ function ResourcesLinks() {
     setVsIndex(Math.floor(Math.random() * vsList.length));
     setUseCaseIndex(Math.floor(Math.random() * useCasesList.length));
 
+    // Clear any existing timers from HMR reloads
+    timeoutIds.current.forEach(clearTimeout);
+    timeoutIds.current.clear();
+    intervalIds.current.forEach(clearInterval);
+    intervalIds.current.clear();
+
     const FADE_DURATION = 800;
     const VISIBLE_DURATION = 3000;
     const CYCLE_DURATION = FADE_DURATION + VISIBLE_DURATION;

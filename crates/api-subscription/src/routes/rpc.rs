@@ -29,7 +29,8 @@ pub async fn can_start_trial(
     let can_start: bool = state
         .supabase
         .rpc("can_start_trial", auth_token, None)
-        .await?;
+        .await
+        .unwrap_or(false);
 
     Ok(Json(CanStartTrialResponse {
         can_start_trial: can_start,

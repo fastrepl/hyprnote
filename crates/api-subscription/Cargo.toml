@@ -10,11 +10,13 @@ axum = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
 tokio = { workspace = true }
 tracing = { workspace = true }
+sentry = { workspace = true }
 
 chrono = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+percent-encoding = "2.3"
 
 async-stripe = { version = "1.0.0-rc.0" }
 async-stripe-billing = { version = "1.0.0-rc.0", default-features = false, features = ["subscription"] }

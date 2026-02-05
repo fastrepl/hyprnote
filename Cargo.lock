@@ -250,6 +250,7 @@ dependencies = [
  "analytics",
  "axum 0.8.8",
  "dotenvy",
+ "envy",
  "jsonwebtoken",
  "llm-proxy",
  "owhisper-client",
@@ -265,6 +266,7 @@ dependencies = [
  "tracing-subscriber",
  "transcribe-proxy",
  "url",
+ "utoipa",
 ]
 
 [[package]]
@@ -536,12 +538,15 @@ dependencies = [
  "axum 0.8.8",
  "chrono",
  "reqwest 0.13.1",
+ "sentry",
  "serde",
  "serde_json",
  "supabase-auth",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
+ "urlencoding",
+ "utoipa",
 ]
 
 [[package]]
@@ -5094,6 +5099,15 @@ checksum = "a19187fea3ac7e84da7dacf48de0c45d63c6a76f9490dae389aead16c243fce3"
 dependencies = [
  "log",
  "regex",
+]
+
+[[package]]
+name = "envy"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f47e0157f2cb54f5ae1bd371b30a2ae4311e1c028f575cd4e81de7353215965"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -10554,6 +10568,7 @@ dependencies = [
  "tower 0.5.3",
  "tracing",
  "tracing-subscriber",
+ "utoipa",
  "wiremock",
 ]
 
@@ -19853,6 +19868,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "url",
+ "utoipa",
  "uuid",
 ]
 
@@ -20850,6 +20866,7 @@ checksum = "6d79d08d92ab8af4c5e8a6da20c47ae3f61a0f1dabc1997cdf2d082b757ca08b"
 dependencies = [
  "proc-macro2",
  "quote",
+ "regex",
  "syn 2.0.114",
 ]
 

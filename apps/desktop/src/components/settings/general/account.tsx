@@ -22,8 +22,6 @@ import { cn } from "@hypr/utils";
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
 import { env } from "../../../env";
-import * as settings from "../../../store/tinybase/store/settings";
-import { configureProSettings } from "../../../utils";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
@@ -316,7 +314,6 @@ export function AccountSettings() {
 function BillingButton() {
   const auth = useAuth();
   const { isPro } = useBillingAccess();
-  const store = settings.UI.useStore(settings.STORE_ID);
 
   const canTrialQuery = useQuery({
     enabled: !!auth?.session && !isPro,
@@ -354,9 +351,6 @@ function BillingButton() {
       await new Promise((resolve) => setTimeout(resolve, 3000));
     },
     onSuccess: async () => {
-      if (store) {
-        configureProSettings(store);
-      }
       void analyticsCommands.event({
         event: "trial_started",
         plan: "pro",

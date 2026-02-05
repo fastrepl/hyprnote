@@ -1,10 +1,17 @@
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use serde::Serialize;
 use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, SubscriptionError>;
+
+#[derive(Debug, Serialize)]
+pub struct ErrorResponse {
+    pub error: String,
+}
 
 #[derive(Debug, Error)]
 pub enum SubscriptionError {
@@ -38,28 +45,33 @@ impl From<stripe::StripeError> for SubscriptionError {
 
 impl IntoResponse for SubscriptionError {
     fn into_response(self) -> Response {
-        let (status, message) = match &self {
-            Self::Auth(msg) => (StatusCode::UNAUTHORIZED, msg.clone()),
-            Self::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg.clone()),
+        let (status, error_code) = match &self {
+            Self::Auth(_) => (StatusCode::UNAUTHORIZED, "unauthorized"),
+            Self::BadRequest(_) => (StatusCode::BAD_REQUEST, "bad_request"),
             Self::SupabaseRequest(msg) => {
                 tracing::error!(error = %msg, "supabase_error");
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Internal server error".to_string(),
-                )
+                sentry::capture_message(msg, sentry::Level::Error);
+                (StatusCode::INTERNAL_SERVER_ERROR, "internal_server_error")
             }
             Self::Stripe(msg) => {
                 tracing::error!(error = %msg, "stripe_error");
+                sentry::capture_message(msg, sentry::Level::Error);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    "Payment processing error".to_string(),
+                    "failed_to_create_subscription",
                 )
             }
             Self::Internal(msg) => {
                 tracing::error!(error = %msg, "internal_error");
-                (StatusCode::INTERNAL_SERVER_ERROR, msg.clone())
+                sentry::capture_message(msg, sentry::Level::Error);
+                (StatusCode::INTERNAL_SERVER_ERROR, "internal_server_error")
             }
         };
-        (status, message).into_response()
+
+        let body = Json(ErrorResponse {
+            error: error_code.to_string(),
+        });
+
+        (status, body).into_response()
     }
 }

@@ -9,6 +9,9 @@ import { API_TAGS } from "./constants";
 
 const CanStartTrialResponseSchema = z.object({
   canStartTrial: z.boolean(),
+  reason: z
+    .enum(["eligible", "has_active_subscription", "had_recent_trial", "error"])
+    .optional(),
 });
 
 export const rpc = new Hono<AppBindings>();
@@ -40,9 +43,11 @@ rpc.get(
     const { data, error } = await supabase.rpc("can_start_trial");
 
     if (error) {
-      return c.json({ canStartTrial: false });
+      console.error("can_start_trial RPC failed:", error);
+      return c.json({ canStartTrial: false, reason: "error" });
     }
 
-    return c.json({ canStartTrial: data as boolean });
+    const reason = data ? "eligible" : "has_active_subscription";
+    return c.json({ canStartTrial: data as boolean, reason });
   },
 );

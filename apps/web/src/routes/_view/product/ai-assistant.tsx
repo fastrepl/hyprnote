@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_view/product/ai-assistant")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "AI Assistant - Hyprnote" },
+      { title: "AI Chat - Hyprnote" },
       {
         name: "description",
         content:
@@ -46,10 +46,10 @@ function HeroSection() {
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 px-6 py-12 lg:py-20">
       <header className="text-center max-w-4xl mx-auto">
         <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6 flex items-center justify-center flex-wrap">
-          <span>AI assistant</span>
+          <span>AI Chat</span>
           <img
             src="/api/images/hyprnote/ai-assistant.gif"
-            alt="AI assistant"
+            alt="AI Chat"
             className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-full inline-block ml-1 mr-2 sm:mr-0"
           />
           <span>for your meetings</span>

@@ -5,18 +5,7 @@ use serde_json::Value;
 use crate::error::{Result, SubscriptionError};
 
 fn url_encode(s: &str) -> String {
-    let mut encoded = String::with_capacity(s.len());
-    for c in s.chars() {
-        match c {
-            'A'..='Z' | 'a'..='z' | '0'..='9' | '-' | '_' | '.' | '~' => encoded.push(c),
-            _ => {
-                for byte in c.to_string().as_bytes() {
-                    encoded.push_str(&format!("%{:02X}", byte));
-                }
-            }
-        }
-    }
-    encoded
+    urlencoding::encode(s).into_owned()
 }
 
 #[derive(Clone)]

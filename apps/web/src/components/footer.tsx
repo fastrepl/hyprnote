@@ -5,15 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { Image } from "@/components/image";
 import { cn } from "@hypr/utils";
 
-function getNextRandomIndex(length: number, prevIndex: number): number {
-  if (length <= 1) return 0;
-  let next = prevIndex;
-  while (next === prevIndex) {
-    next = Math.floor(Math.random() * length);
-  }
-  return next;
-}
-
 const vsList = [
   { slug: "otter", name: "Otter.ai" },
   { slug: "granola", name: "Granola" },

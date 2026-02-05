@@ -7,7 +7,7 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
-import { useProSettingsReset } from "../hooks/useProSettingsReset";
+import { useProSettingsSync } from "../hooks/useProSettingsSync";
 import { useTabs } from "../store/zustand/tabs";
 import { FeedbackModal, useFeedbackModal } from "./feedback/feedback-modal";
 import { useNewNote } from "./main/shared";
@@ -29,7 +29,7 @@ export default function MainAppLayout() {
 }
 
 function MainAppContent() {
-  useProSettingsReset();
+  useProSettingsSync();
 
   return (
     <>

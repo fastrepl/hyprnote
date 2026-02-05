@@ -16,6 +16,7 @@ const StartTrialQuerySchema = z.object({
 
 const StartTrialResponseSchema = z.object({
   started: z.boolean(),
+  reason: z.enum(["started", "not_eligible", "error"]).optional(),
 });
 
 export const billing = new Hono<AppBindings>();
@@ -52,7 +53,11 @@ billing.post(
       await supabase.rpc("can_start_trial");
 
     if (trialError || !canTrial) {
-      return c.json({ started: false });
+      if (trialError) {
+        console.error("can_start_trial RPC failed in start-trial:", trialError);
+      }
+      const reason = trialError ? "error" : "not_eligible";
+      return c.json({ started: false, reason });
     }
 
     const { data: profile } = await supabase
@@ -133,6 +138,6 @@ billing.post(
       return c.json({ error: "failed_to_create_subscription" }, 500);
     }
 
-    return c.json({ started: true });
+    return c.json({ started: true, reason: "started" });
   },
 );

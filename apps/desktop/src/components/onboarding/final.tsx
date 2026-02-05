@@ -111,15 +111,27 @@ async function tryStartTrial(
   const { data } = await getRpcCanStartTrial({ client });
 
   if (!data?.canStartTrial) {
+    console.warn("Trial not started:", data?.reason ?? "unknown");
+    if (data?.reason === "error") {
+      Sentry.captureMessage("Trial eligibility check failed", {
+        level: "warning",
+        extra: { reason: data.reason },
+      });
+    }
     return false;
   }
 
-  const { error } = await postBillingStartTrial({
+  const { data: startData, error } = await postBillingStartTrial({
     client,
     query: { interval: "monthly" },
   });
 
-  if (error) {
+  if (error || !startData?.started) {
+    console.warn("Trial start failed:", startData?.reason ?? error);
+    Sentry.captureMessage("Trial start failed", {
+      level: "warning",
+      extra: { reason: startData?.reason, error },
+    });
     return false;
   }
 

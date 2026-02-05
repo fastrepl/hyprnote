@@ -6,8 +6,11 @@ edition = "2024"
 [dependencies]
 hypr-supabase-auth = { workspace = true }
 
+utoipa = { workspace = true }
+
 axum = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
+sentry = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 
@@ -15,6 +18,7 @@ chrono = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+urlencoding = "2.1"
 
 async-stripe = { version = "1.0.0-rc.0" }
 async-stripe-billing = { version = "1.0.0-rc.0", default-features = false, features = ["subscription"] }

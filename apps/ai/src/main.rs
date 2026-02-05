@@ -1,5 +1,6 @@
 mod auth;
 mod env;
+mod openapi;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -8,7 +9,11 @@ use std::time::Duration;
 use axum::{Router, body::Body, extract::MatchedPath, http::Request, middleware};
 use sentry::integrations::tower::{NewSentryLayer, SentryHttpLayer};
 use tower::ServiceBuilder;
-use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
+use tower_http::{
+    classify::ServerErrorsFailureClass,
+    cors::{self, CorsLayer},
+    trace::TraceLayer,
+};
 use tracing_subscriber::prelude::*;
 
 use hypr_analytics::AnalyticsClientBuilder;
@@ -19,19 +24,20 @@ use env::env;
 pub use auth::DEVICE_FINGERPRINT_HEADER;
 
 fn app() -> Router {
+    let env = env();
+
     let analytics = {
         let mut builder = AnalyticsClientBuilder::default();
-        if let Some(key) = &env().posthog_api_key {
+        if let Some(key) = &env.posthog_api_key {
             builder = builder.with_posthog(key);
         }
         Arc::new(builder.build())
     };
 
-    let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key)
-        .with_analytics(analytics.clone());
-    let stt_config =
-        hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys()).with_analytics(analytics);
-    let auth_state = AuthState::new(&env().supabase_url);
+    let llm_config =
+        hypr_llm_proxy::LlmProxyConfig::new(&env.llm).with_analytics(analytics.clone());
+    let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(&env.stt).with_analytics(analytics);
+    let auth_state = AuthState::new(&env.supabase_url);
 
     let protected_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
@@ -45,7 +51,14 @@ fn app() -> Router {
 
     Router::new()
         .route("/health", axum::routing::get(|| async { "ok" }))
+        .route("/openapi.json", axum::routing::get(openapi_json))
         .merge(protected_routes)
+        .layer(
+            CorsLayer::new()
+                .allow_origin(cors::Any)
+                .allow_methods(cors::Any)
+                .allow_headers(cors::Any),
+        )
         .layer(
             ServiceBuilder::new()
                 .layer(NewSentryLayer::<Request<Body>>::new_from_top())
@@ -168,7 +181,7 @@ fn main() -> std::io::Result<()> {
         .with(sentry::integrations::tracing::layer())
         .init();
 
-    env.log_configured_providers();
+    hypr_transcribe_proxy::ApiKeys::from(&env.stt).log_configured_providers();
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -196,4 +209,8 @@ async fn shutdown_signal() {
         .await
         .expect("failed to install CTRL+C signal handler");
     tracing::info!("shutdown_signal_received");
+}
+
+async fn openapi_json() -> axum::Json<utoipa::openapi::OpenApi> {
+    axum::Json(openapi::openapi())
 }

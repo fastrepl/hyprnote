@@ -37,9 +37,23 @@ fn app() -> Router {
     let llm_config =
         hypr_llm_proxy::LlmProxyConfig::new(&env.llm).with_analytics(analytics.clone());
     let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(&env.stt).with_analytics(analytics);
-    let auth_state = AuthState::new(&env.supabase_url);
+    let auth_state = AuthState::new(&env.supabase.supabase_url);
 
-    let protected_routes = Router::new()
+    let subscription_config =
+        hypr_api_subscription::SubscriptionConfig::new(&env.supabase, &env.stripe);
+    let subscription_state = hypr_api_subscription::AppState::new(subscription_config);
+
+    let auth_routes = Router::new()
+        .nest(
+            "/subscription",
+            hypr_api_subscription::router(subscription_state),
+        )
+        .route_layer(middleware::from_fn_with_state(
+            auth_state.clone(),
+            auth::require_auth,
+        ));
+
+    let pro_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
         .merge(hypr_llm_proxy::chat_completions_router(llm_config.clone()))
         .nest("/stt", hypr_transcribe_proxy::router(stt_config))
@@ -52,7 +66,8 @@ fn app() -> Router {
     Router::new()
         .route("/health", axum::routing::get(|| async { "ok" }))
         .route("/openapi.json", axum::routing::get(openapi_json))
-        .merge(protected_routes)
+        .merge(auth_routes)
+        .merge(pro_routes)
         .layer(
             CorsLayer::new()
                 .allow_origin(cors::Any)
@@ -145,6 +160,8 @@ fn app() -> Router {
 }
 
 fn main() -> std::io::Result<()> {
+    openapi::write_json();
+
     let env = env();
 
     let _guard = sentry::init(sentry::ClientOptions {

@@ -248,6 +248,8 @@ name = "ai"
 version = "0.1.0"
 dependencies = [
  "analytics",
+ "api-env",
+ "api-subscription",
  "axum 0.8.8",
  "dotenvy",
  "envy",
@@ -529,9 +531,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "api-env"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "api-subscription"
 version = "0.1.0"
 dependencies = [
+ "api-env",
  "async-stripe",
  "async-stripe-billing",
  "async-stripe-core",

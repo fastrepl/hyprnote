@@ -6,7 +6,7 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use hypr_supabase_auth::{Error as SupabaseAuthError, SupabaseAuth};
+use hypr_supabase_auth::{Claims, Error as SupabaseAuthError, SupabaseAuth};
 
 const PRO_ENTITLEMENT: &str = "hyprnote_pro";
 pub const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
@@ -53,30 +53,29 @@ impl IntoResponse for AuthError {
     }
 }
 
-pub async fn require_pro(
-    State(state): State<AuthState>,
-    mut request: Request,
-    next: Next,
-) -> Result<Response, AuthError> {
-    let auth_header = request
-        .headers()
-        .get("Authorization")
-        .and_then(|h| h.to_str().ok())
-        .ok_or(SupabaseAuthError::MissingAuthHeader)?;
+struct AuthResult {
+    token: String,
+    claims: Claims,
+}
 
+async fn setup_auth(state: &AuthState, request: &mut Request) -> Result<AuthResult, AuthError> {
     let device_fingerprint = request
         .headers()
         .get(DEVICE_FINGERPRINT_HEADER)
         .and_then(|h| h.to_str().ok())
         .map(String::from);
 
+    let auth_header = request
+        .headers()
+        .get("Authorization")
+        .and_then(|h| h.to_str().ok())
+        .ok_or(SupabaseAuthError::MissingAuthHeader)?;
+
     let token =
         SupabaseAuth::extract_token(auth_header).ok_or(SupabaseAuthError::InvalidAuthHeader)?;
+    let token = token.to_string();
 
-    let claims = state
-        .inner
-        .require_entitlement(token, PRO_ENTITLEMENT)
-        .await?;
+    let claims = state.inner.verify_token(&token).await?;
 
     sentry::configure_scope(|scope| {
         scope.set_user(Some(sentry::User {
@@ -107,10 +106,44 @@ pub async fn require_pro(
             .insert(hypr_analytics::DeviceFingerprint(fingerprint));
     }
 
-    let user_id = claims.sub.clone();
     request
         .extensions_mut()
-        .insert(hypr_analytics::AuthenticatedUserId(user_id));
+        .insert(hypr_analytics::AuthenticatedUserId(claims.sub.clone()));
+
+    Ok(AuthResult { token, claims })
+}
+
+pub async fn require_pro(
+    State(state): State<AuthState>,
+    mut request: Request,
+    next: Next,
+) -> Result<Response, AuthError> {
+    let auth = setup_auth(&state, &mut request).await?;
+
+    if !auth
+        .claims
+        .entitlements
+        .contains(&PRO_ENTITLEMENT.to_string())
+    {
+        return Err(SupabaseAuthError::MissingEntitlement(PRO_ENTITLEMENT.to_string()).into());
+    }
+
+    Ok(next.run(request).await)
+}
+
+pub async fn require_auth(
+    State(state): State<AuthState>,
+    mut request: Request,
+    next: Next,
+) -> Result<Response, AuthError> {
+    let auth = setup_auth(&state, &mut request).await?;
+
+    request
+        .extensions_mut()
+        .insert(hypr_api_subscription::AuthContext {
+            token: auth.token,
+            claims: auth.claims,
+        });
 
     Ok(next.run(request).await)
 }

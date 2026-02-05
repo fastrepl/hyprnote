@@ -535,7 +535,6 @@ dependencies = [
  "async-stripe-core",
  "axum 0.8.8",
  "chrono",
- "percent-encoding",
  "reqwest 0.13.1",
  "sentry",
  "serde",
@@ -544,6 +543,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tracing",
+ "urlencoding",
 ]
 
 [[package]]

@@ -71,11 +71,8 @@ function HeroSection() {
             Most AI note-takers lock your data in their database, force you to
             use their AI stack, and make you lose everything if you leave.
           </p>
-          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed mb-6 font-medium">
+          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed font-medium">
             We thought that was bullshit.
-          </p>
-          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed">
-            So we built Hyprnote to give you back control.
           </p>
         </div>
       </div>
@@ -118,6 +115,10 @@ function WhyWereDifferentSection() {
   return (
     <section className="px-6 py-16 lg:py-24 bg-stone-50/30">
       <div className="max-w-4xl mx-auto">
+        <h2 className="text-3xl sm:text-4xl font-serif text-stone-600 mb-12 text-center">
+          So we built Hyprnote to give you back control.
+        </h2>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {differentiators.slice(0, 3).map((item) => (
             <div
@@ -252,7 +253,7 @@ function WhatWereBuildingTowardSection() {
 
           <p>
             AI providers will come and go. SaaS platforms will rise and fall.
-            But Markdown files from 2005 still open perfectly in 2025.
+            But Markdown files from 2006 still open perfectly in 2026.
           </p>
 
           <p>That's the foundation. Everything else is just software on top.</p>

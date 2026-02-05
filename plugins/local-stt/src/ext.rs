@@ -363,7 +363,12 @@ impl<'a, R: Runtime, M: Manager<R>> LocalStt<'a, R, M> {
 
                     if checksum != m.checksum() {
                         tracing::error!("model_download_error: checksum mismatch");
-                        std::fs::remove_file(&model_path).unwrap();
+                        if let Err(e) = std::fs::remove_file(&model_path) {
+                            tracing::warn!(
+                                "failed to remove corrupted model file after checksum mismatch: {}",
+                                e
+                            );
+                        }
                         let _ = DownloadProgressPayload {
                             model: model_for_task.clone(),
                             progress: -1,

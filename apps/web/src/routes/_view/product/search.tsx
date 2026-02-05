@@ -77,11 +77,11 @@ function HeroSection() {
 
 function HowItWorksSection() {
   return (
-    <section>
-      <div className="text-center border-b border-neutral-100">
-        <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
+    <section className="bg-stone-50/30">
+      <div className="p-8">
+        <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
           How it works
-        </p>
+        </h2>
       </div>
       <div className="grid md:grid-cols-2">
         <div className="p-8 border-r border-neutral-100">
@@ -115,12 +115,10 @@ function HowItWorksSection() {
 function UseCasesSection() {
   return (
     <section>
-      <div className="text-center border-b border-neutral-100">
-        <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
+      <div className="p-8">
+        <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
           Your meeting history becomes useful
-        </p>
-      </div>
-      <div className="p-8 border-b border-neutral-100">
+        </h2>
         <p className="text-lg text-neutral-600 text-center max-w-2xl mx-auto">
           With search, your meeting history becomes a knowledge base you
           actually use
@@ -182,20 +180,19 @@ function UseCasesSection() {
 
 function FlexibilitySection() {
   return (
-    <section>
-      <div className="text-center border-b border-neutral-100">
-        <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
-          You're not restricted to Hyprnote's built-in search
-        </p>
-      </div>
+    <section className="bg-stone-50/30">
       <div className="p-8">
+        <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+          You're not restricted to Hyprnote's built-in search
+        </h2>
         <p className="text-lg text-neutral-600 text-center max-w-3xl mx-auto">
-          Since every note is .md file on your device, search them however you
+          Since every note is a .md file on your device, search them however you
           want. Use Spotlight. Or{" "}
           <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-sm font-mono">
             grep
           </code>{" "}
-          from terminal. Or your IDE's search. Or Obsidian's graph view.
+          from terminal. Or your IDE's search. Or Obsidian's graph view. Your
+          choice.
         </p>
       </div>
     </section>

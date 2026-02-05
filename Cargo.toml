@@ -233,6 +233,7 @@ axum = "0.8"
 axum-extra = "0.12"
 tower = "0.5"
 tower-http = "0.6"
+utoipa = { version = "5", features = ["axum_extras"] }
 
 chrono = "0.4"
 chrono-tz = "0.10"

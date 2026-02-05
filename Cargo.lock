@@ -248,7 +248,6 @@ name = "ai"
 version = "0.1.0"
 dependencies = [
  "analytics",
- "api-subscription",
  "axum 0.8.8",
  "dotenvy",
  "jsonwebtoken",
@@ -266,8 +265,6 @@ dependencies = [
  "tracing-subscriber",
  "transcribe-proxy",
  "url",
- "utoipa",
- "utoipa-swagger-ui",
 ]
 
 [[package]]
@@ -10560,6 +10557,7 @@ dependencies = [
  "tower 0.5.3",
  "tracing",
  "tracing-subscriber",
+ "utoipa",
  "wiremock",
 ]
 
@@ -14687,40 +14685,6 @@ dependencies = [
  "num-integer",
  "num-traits",
  "realfft",
-]
-
-[[package]]
-name = "rust-embed"
-version = "8.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04113cb9355a377d83f06ef1f0a45b8ab8cd7d8b1288160717d66df5c7988d27"
-dependencies = [
- "rust-embed-impl",
- "rust-embed-utils",
- "walkdir",
-]
-
-[[package]]
-name = "rust-embed-impl"
-version = "8.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da0902e4c7c8e997159ab384e6d0fc91c221375f6894346ae107f47dd0f3ccaa"
-dependencies = [
- "proc-macro2",
- "quote",
- "rust-embed-utils",
- "syn 2.0.114",
- "walkdir",
-]
-
-[[package]]
-name = "rust-embed-utils"
-version = "8.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bcdef0be6fe7f6fa333b1073c949729274b05f123a0ad7efcb8efd878e5c3b1"
-dependencies = [
- "sha2",
- "walkdir",
 ]
 
 [[package]]
@@ -19893,6 +19857,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "url",
+ "utoipa",
  "uuid",
 ]
 
@@ -20892,24 +20857,6 @@ dependencies = [
  "quote",
  "regex",
  "syn 2.0.114",
-]
-
-[[package]]
-name = "utoipa-swagger-ui"
-version = "9.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d047458f1b5b65237c2f6dc6db136945667f40a7668627b3490b9513a3d43a55"
-dependencies = [
- "axum 0.8.8",
- "base64 0.22.1",
- "mime_guess",
- "regex",
- "rust-embed",
- "serde",
- "serde_json",
- "url",
- "utoipa",
- "zip 3.0.0",
 ]
 
 [[package]]
@@ -22901,20 +22848,6 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12598812502ed0105f607f941c386f43d441e00148fce9dec3ca5ffb0bde9308"
-dependencies = [
- "arbitrary",
- "crc32fast",
- "flate2",
- "indexmap 2.13.0",
- "memchr",
- "zopfli",
-]
-
-[[package]]
-name = "zip"
 version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "caa8cd6af31c3b31c6631b8f483848b91589021b28fffe50adada48d4f4d2ed1"
@@ -22948,18 +22881,6 @@ name = "zmij"
 version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3ff05f8caa9038894637571ae6b9e29466c1f4f829d26c9b28f869a29cbe3445"
-
-[[package]]
-name = "zopfli"
-version = "0.8.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f05cd8797d63865425ff89b5c4a48804f35ba0ce8d125800027ad6017d2b5249"
-dependencies = [
- "bumpalo",
- "crc32fast",
- "log",
- "simd-adler32",
-]
 
 [[package]]
 name = "zstd"

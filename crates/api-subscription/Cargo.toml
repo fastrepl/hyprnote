@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 hypr-supabase-auth = { workspace = true }
 
-utoipa = { version = "5", features = ["axum_extras"] }
+utoipa = { workspace = true }
 
 axum = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }

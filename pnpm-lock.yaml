@@ -1265,19 +1265,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/obsidian:
-    dependencies:
-      '@hey-api/client-fetch':
-        specifier: ^0.13.1
-        version: 0.13.1(@hey-api/openapi-ts@0.91.1(magicast@0.5.1)(typescript@5.9.3))
-      '@tanstack/react-query':
-        specifier: ^5.90.20
-        version: 5.90.20(react@19.2.4)
-    devDependencies:
-      '@hey-api/openapi-ts':
-        specifier: ^0.91.1
-        version: 0.91.1(magicast@0.5.1)(typescript@5.9.3)
-
   packages/store:
     dependencies:
       tinybase:

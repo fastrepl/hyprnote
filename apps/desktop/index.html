@@ -14,23 +14,53 @@
         background-color: transparent !important;
       }
     </style>
-    <!-- Polyfill __TAURI_INTERNALS__ in iframe context (extension host). See docs/developers/extensions. -->
+    <!-- Polyfill __TAURI_INTERNALS__ for browser context (hypr-core server) and iframe context (extension host). -->
     <script>
       (function() {
         var isIframeContext = window.self !== window.top;
-        if (!isIframeContext) return;
+        var isTauriContext = window.__TAURI_INTERNALS__ !== undefined;
+
+        if (isTauriContext) return;
+
+        var HYPR_CORE_URL = 'http://127.0.0.1:9527';
+        var eventListeners = {};
+        var callbackId = 0;
 
         window.__TAURI_INTERNALS__ = {
           _metadata: {
-            currentWindow: { label: "iframe", kind: "WebviewWindow" },
-            currentWebview: { label: "iframe", windowLabel: "iframe" },
+            currentWindow: { label: isIframeContext ? "iframe" : "main", kind: "WebviewWindow" },
+            currentWebview: { label: isIframeContext ? "iframe" : "main", windowLabel: isIframeContext ? "iframe" : "main" },
             windows: [],
             webviews: []
           },
-          invoke: function() { return Promise.reject(new Error("Tauri not available in iframe")); },
-          transformCallback: function() { return 0; },
+          invoke: function(cmd, args) {
+            if (isIframeContext) {
+              return Promise.reject(new Error("Tauri not available in iframe"));
+            }
+            return fetch(HYPR_CORE_URL + '/invoke', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ cmd: cmd, args: args || {} })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(response) {
+              if (response.error) {
+                throw new Error(response.error);
+              }
+              return response.data;
+            });
+          },
+          transformCallback: function(callback, once) {
+            var id = callbackId++;
+            eventListeners[id] = { callback: callback, once: once };
+            return id;
+          },
           convertFileSrc: function(path) { return path; }
         };
+
+        if (!isIframeContext) {
+          console.log('[hypr-core] Polyfill active - using HTTP backend at ' + HYPR_CORE_URL);
+        }
       })();
     </script>
   </head>

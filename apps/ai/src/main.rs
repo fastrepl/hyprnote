@@ -19,6 +19,16 @@ use env::env;
 
 pub use auth::DEVICE_FINGERPRINT_HEADER;
 
+fn subscription_config() -> hypr_api_subscription::SubscriptionConfig {
+    hypr_api_subscription::SubscriptionConfig::new(
+        &env().supabase_url,
+        &env().supabase_anon_key,
+        &env().stripe_api_key,
+    )
+    .with_stripe_monthly_price(&env().stripe_monthly_price_id)
+    .with_stripe_yearly_price(&env().stripe_yearly_price_id)
+}
+
 fn app() -> Router {
     let analytics = {
         let mut builder = AnalyticsClientBuilder::default();
@@ -34,11 +44,17 @@ fn app() -> Router {
         hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys()).with_analytics(analytics);
     let auth_state = AuthState::new(&env().supabase_url);
 
+    let subscription_state = hypr_api_subscription::AppState::new(subscription_config());
+
     let protected_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
         .merge(hypr_llm_proxy::chat_completions_router(llm_config.clone()))
         .nest("/stt", hypr_transcribe_proxy::router(stt_config))
         .nest("/llm", hypr_llm_proxy::router(llm_config))
+        .nest(
+            "/subscription",
+            hypr_api_subscription::router(subscription_state),
+        )
         .route_layer(middleware::from_fn_with_state(
             auth_state,
             auth::require_pro,

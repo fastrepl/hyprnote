@@ -9,7 +9,11 @@ pub struct Env {
     pub sentry_dsn: Option<String>,
     pub posthog_api_key: Option<String>,
     pub supabase_url: String,
+    pub supabase_anon_key: String,
     pub openrouter_api_key: String,
+    pub stripe_api_key: String,
+    pub stripe_monthly_price_id: String,
+    pub stripe_yearly_price_id: String,
     api_keys: HashMap<Provider, String>,
 }
 
@@ -42,7 +46,11 @@ impl Env {
             sentry_dsn: optional("SENTRY_DSN"),
             posthog_api_key: optional("POSTHOG_API_KEY"),
             supabase_url: required("SUPABASE_URL"),
+            supabase_anon_key: required("SUPABASE_ANON_KEY"),
             openrouter_api_key: required("OPENROUTER_API_KEY"),
+            stripe_api_key: required("STRIPE_API_KEY"),
+            stripe_monthly_price_id: required("STRIPE_MONTHLY_PRICE_ID"),
+            stripe_yearly_price_id: required("STRIPE_YEARLY_PRICE_ID"),
             api_keys,
         }
     }

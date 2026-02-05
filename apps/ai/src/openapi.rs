@@ -19,9 +19,11 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
 
     let stt_doc = hypr_transcribe_proxy::openapi();
     let llm_doc = hypr_llm_proxy::openapi();
+    let subscription_doc = hypr_api_subscription::openapi();
 
     doc.merge(stt_doc);
     doc.merge(llm_doc);
+    doc.merge(subscription_doc);
 
     doc
 }

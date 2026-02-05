@@ -103,10 +103,10 @@ async fn get_or_create_customer(
         )
         .await?;
 
-    if let Some(profile) = profiles.first() {
-        if let Some(customer_id) = &profile.stripe_customer_id {
-            return Ok(Some(customer_id.clone()));
-        }
+    if let Some(profile) = profiles.first()
+        && let Some(customer_id) = &profile.stripe_customer_id
+    {
+        return Ok(Some(customer_id.clone()));
     }
 
     let email = state.supabase.get_user_email(auth_token).await?;

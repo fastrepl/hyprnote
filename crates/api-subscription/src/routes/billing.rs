@@ -13,31 +13,34 @@ use stripe_billing::subscription::{
     CreateSubscriptionTrialSettingsEndBehaviorMissingPaymentMethod,
 };
 use stripe_core::customer::CreateCustomer;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::error::{Result, SubscriptionError};
 use crate::routes::rpc::extract_token;
 use crate::state::AppState;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
 pub struct StartTrialQuery {
     #[serde(default = "default_interval")]
-    interval: Interval,
+    #[param(example = "monthly")]
+    pub interval: Interval,
 }
 
 fn default_interval() -> Interval {
     Interval::Monthly
 }
 
-#[derive(Debug, Deserialize, Clone, Copy)]
+#[derive(Debug, Deserialize, Clone, Copy, ToSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum Interval {
     Monthly,
     Yearly,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct StartTrialResponse {
-    started: bool,
+    #[schema(example = true)]
+    pub started: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -45,6 +48,20 @@ struct Profile {
     stripe_customer_id: Option<String>,
 }
 
+#[utoipa::path(
+    post,
+    path = "/start-trial",
+    params(StartTrialQuery),
+    responses(
+        (status = 200, description = "Trial started successfully", body = StartTrialResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 500, description = "Internal server error"),
+    ),
+    tag = "subscription",
+    security(
+        ("bearer_auth" = [])
+    )
+)]
 pub async fn start_trial(
     State(state): State<AppState>,
     Query(query): Query<StartTrialQuery>,

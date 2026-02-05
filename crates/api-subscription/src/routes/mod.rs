@@ -5,8 +5,35 @@ use axum::{
     Router,
     routing::{get, post},
 };
+use utoipa::OpenApi;
 
 use crate::state::AppState;
+
+pub use billing::{Interval, StartTrialResponse};
+pub use rpc::CanStartTrialResponse;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        rpc::can_start_trial,
+        billing::start_trial,
+    ),
+    components(
+        schemas(
+            CanStartTrialResponse,
+            StartTrialResponse,
+            Interval,
+        )
+    ),
+    tags(
+        (name = "subscription", description = "Subscription and trial management")
+    )
+)]
+pub struct ApiDoc;
+
+pub fn openapi() -> utoipa::openapi::OpenApi {
+    ApiDoc::openapi()
+}
 
 pub fn router(state: AppState) -> Router {
     Router::new()

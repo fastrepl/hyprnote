@@ -20,19 +20,20 @@ use env::env;
 pub use auth::DEVICE_FINGERPRINT_HEADER;
 
 fn app() -> Router {
+    let env = env();
+
     let analytics = {
         let mut builder = AnalyticsClientBuilder::default();
-        if let Some(key) = &env().posthog_api_key {
+        if let Some(key) = &env.posthog_api_key {
             builder = builder.with_posthog(key);
         }
         Arc::new(builder.build())
     };
 
-    let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key)
-        .with_analytics(analytics.clone());
-    let stt_config =
-        hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys()).with_analytics(analytics);
-    let auth_state = AuthState::new(&env().supabase_url);
+    let llm_config =
+        hypr_llm_proxy::LlmProxyConfig::new(&env.llm).with_analytics(analytics.clone());
+    let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(&env.stt).with_analytics(analytics);
+    let auth_state = AuthState::new(&env.supabase_url);
 
     let protected_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
@@ -170,7 +171,7 @@ fn main() -> std::io::Result<()> {
         .with(sentry::integrations::tracing::layer())
         .init();
 
-    env.log_configured_providers();
+    hypr_transcribe_proxy::ApiKeys::from(&env.stt).log_configured_providers();
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()

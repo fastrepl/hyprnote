@@ -10,6 +10,8 @@ use sentry::integrations::tower::{NewSentryLayer, SentryHttpLayer};
 use tower::ServiceBuilder;
 use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
 use tracing_subscriber::prelude::*;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 use hypr_analytics::AnalyticsClientBuilder;
 
@@ -17,6 +19,40 @@ use auth::AuthState;
 use env::env;
 
 pub use auth::DEVICE_FINGERPRINT_HEADER;
+
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Hyprnote AI API",
+        version = "1.0.0",
+        description = "Unified API for LLM, STT, and subscription services"
+    ),
+    servers(
+        (url = "/", description = "Current server")
+    ),
+    components(
+        schemas(),
+    ),
+    modifiers(&SecurityAddon)
+)]
+struct MainApiDoc;
+
+struct SecurityAddon;
+
+impl utoipa::Modify for SecurityAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        if let Some(components) = openapi.components.as_mut() {
+            components.add_security_scheme(
+                "bearer_auth",
+                utoipa::openapi::security::SecurityScheme::Http(
+                    utoipa::openapi::security::Http::new(
+                        utoipa::openapi::security::HttpAuthScheme::Bearer,
+                    ),
+                ),
+            );
+        }
+    }
+}
 
 fn app() -> Router {
     let analytics = {
@@ -33,6 +69,11 @@ fn app() -> Router {
         hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys()).with_analytics(analytics);
     let auth_state = AuthState::new(&env().supabase_url);
 
+    // Compose OpenAPI specs from child services
+    let mut openapi = MainApiDoc::openapi();
+    let subscription_openapi = hypr_api_subscription::openapi();
+    openapi.merge(subscription_openapi);
+
     let protected_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
         .merge(hypr_llm_proxy::chat_completions_router(llm_config.clone()))
@@ -43,7 +84,12 @@ fn app() -> Router {
             auth::require_pro,
         ));
 
+    let swagger_ui: Router = SwaggerUi::new("/swagger-ui")
+        .url("/api-docs/openapi.json", openapi)
+        .into();
+
     Router::new()
+        .merge(swagger_ui)
         .route("/health", axum::routing::get(|| async { "ok" }))
         .merge(protected_routes)
         .layer(

@@ -56,7 +56,10 @@ impl IntoResponse for SubscriptionError {
             Self::Stripe(msg) => {
                 tracing::error!(error = %msg, "stripe_error");
                 sentry::capture_message(msg, sentry::Level::Error);
-                (StatusCode::INTERNAL_SERVER_ERROR, "failed_to_create_subscription")
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "failed_to_create_subscription",
+                )
             }
             Self::Internal(msg) => {
                 tracing::error!(error = %msg, "internal_error");

@@ -6,11 +6,13 @@ edition = "2024"
 [dependencies]
 hypr-supabase-auth = { workspace = true }
 
+utoipa = { version = "5", features = ["axum_extras"] }
+
 axum = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
+sentry = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
-sentry = { workspace = true }
 
 chrono = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

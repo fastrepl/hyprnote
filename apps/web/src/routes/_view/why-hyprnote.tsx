@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { SlashSeparator } from "@/components/slash-separator";
 import { CTASection } from "@/routes/_view/index";
 
-export const Route = createFileRoute("/_view/why")({
+export const Route = createFileRoute("/_view/why-hyprnote")({
   component: Component,
   head: () => ({
     meta: [
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_view/why")({
           "Most AI note-takers lock your data in their database. We thought that was bullshit. So we built Hyprnote differently.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://hyprnote.com/why" },
+      { property: "og:url", content: "https://hyprnote.com/why-hyprnote" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Why Hyprnote" },
       {
@@ -69,23 +69,13 @@ function HeroSection() {
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed mb-6">
             Most AI note-takers lock your data in their database, force you to
-            use their AI stack, and disappear your notes if you leave them.
+            use their AI stack, and make you lose everything if you leave.
           </p>
-          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed mb-6">
+          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed mb-6 font-medium">
             We thought that was bullshit.
           </p>
-          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed mb-6">
-            So we built Hyprnote on a simple idea: your meeting notes should be
-            files on your computer, not rows in someone else's database.
-          </p>
-          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed mb-6">
-            Plain Markdown files you actually own. AI providers you can switch
-            between. A desktop app that works offline and doesn't send bots to
-            your meetings.
-          </p>
-          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed italic">
-            If Hyprnote disappeared tomorrow, you'd still have everything.
-            That's the point.
+          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed">
+            So we built Hyprnote to give you back control.
           </p>
         </div>
       </div>
@@ -96,30 +86,31 @@ function HeroSection() {
 const differentiators = [
   {
     title: "Plain Markdown files",
-    description: "instead of proprietary databases",
+    description:
+      "Not proprietary databases—files you own that work in any app",
     icon: "mdi:file-document-outline",
   },
   {
     title: "No meeting bots",
     description:
-      "system audio capture works everywhere (Zoom, Teams, phone calls, in-person)",
+      "System audio capture works everywhere: Zoom, Teams, phone calls, in-person",
     icon: "mdi:microphone-off",
   },
   {
     title: "Choose your AI",
     description:
-      "use our managed service, bring your own key (OpenAI, Anthropic, Deepgram), or run fully local models",
+      "Managed service, bring your own key, or run fully local models",
     icon: "mdi:brain",
   },
   {
     title: "Open source",
-    description: "the code is public, security teams can audit it",
+    description: "Public code that security teams can audit and verify",
     icon: "mdi:github",
   },
   {
     title: "Zero lock-in",
     description:
-      "export anytime, switch providers anytime, or just stop using us",
+      "Export anytime, switch providers anytime, or just stop using us",
     icon: "mdi:lock-open-outline",
   },
 ];
@@ -128,15 +119,6 @@ function WhyWereDifferentSection() {
   return (
     <section className="px-6 py-16 lg:py-24 bg-stone-50/30">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl sm:text-4xl font-serif text-stone-600 mb-4 text-center">
-          Why we're different
-        </h2>
-        <p className="text-lg text-neutral-600 text-center mb-12">
-          Most competitors optimize for SaaS convenience.{" "}
-          <span className="font-medium text-stone-700">
-            We optimize for long-term ownership.
-          </span>
-        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {differentiators.slice(0, 3).map((item) => (
@@ -186,7 +168,7 @@ function WhyWereDifferentSection() {
 
 const audiences = [
   {
-    title: "Your company banned Otter/Fireflies/Granola",
+    title: "Your company banned Otter/ChatGPT/Granola",
     description:
       "Your IT team can audit the open-source code. Files stay on your device. You can use whichever AI provider your company already approved or run everything locally.",
     icon: "mdi:shield-check-outline",
@@ -221,8 +203,8 @@ function WhoThisIsForSection() {
   return (
     <section className="px-6 py-16 lg:py-24">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl sm:text-4xl font-serif text-stone-600 mb-12 text-center">
-          Who's Hyprnote for
+        <h2 className="text-3xl sm:text-4xl font-serif text-stone-600 mb-4 text-center">
+          Hyprnote's for you, if
         </h2>
 
         <div className="flex flex-col gap-8">

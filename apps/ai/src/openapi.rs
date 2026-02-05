@@ -1,4 +1,5 @@
-use utoipa::OpenApi;
+use utoipa::openapi::security::{ApiKey, ApiKeyValue, Http, HttpAuthScheme, SecurityScheme};
+use utoipa::{Modify, OpenApi};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -10,7 +11,8 @@ use utoipa::OpenApi;
     tags(
         (name = "stt", description = "Speech-to-text transcription endpoints"),
         (name = "llm", description = "LLM chat completions endpoints")
-    )
+    ),
+    modifiers(&SecurityAddon)
 )]
 pub struct ApiDoc;
 
@@ -24,4 +26,30 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
     doc.merge(llm_doc);
 
     doc
+}
+
+struct SecurityAddon;
+
+impl Modify for SecurityAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        if let Some(components) = openapi.components.as_mut() {
+            components.add_security_scheme(
+                "bearer_auth",
+                SecurityScheme::Http(
+                    Http::builder()
+                        .scheme(HttpAuthScheme::Bearer)
+                        .bearer_format("JWT")
+                        .description(Some("Supabase JWT token"))
+                        .build(),
+                ),
+            );
+            components.add_security_scheme(
+                "device_fingerprint",
+                SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::with_description(
+                    "x-device-fingerprint",
+                    "Optional device fingerprint for analytics",
+                ))),
+            );
+        }
+    }
 }

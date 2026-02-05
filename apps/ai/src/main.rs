@@ -9,7 +9,11 @@ use std::time::Duration;
 use axum::{Router, body::Body, extract::MatchedPath, http::Request, middleware};
 use sentry::integrations::tower::{NewSentryLayer, SentryHttpLayer};
 use tower::ServiceBuilder;
-use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
+use tower_http::{
+    classify::ServerErrorsFailureClass,
+    cors::{self, CorsLayer},
+    trace::TraceLayer,
+};
 use tracing_subscriber::prelude::*;
 
 use hypr_analytics::AnalyticsClientBuilder;
@@ -49,6 +53,12 @@ fn app() -> Router {
         .route("/health", axum::routing::get(|| async { "ok" }))
         .route("/openapi.json", axum::routing::get(openapi_json))
         .merge(protected_routes)
+        .layer(
+            CorsLayer::new()
+                .allow_origin(cors::Any)
+                .allow_methods(cors::Any)
+                .allow_headers(cors::Any),
+        )
         .layer(
             ServiceBuilder::new()
                 .layer(NewSentryLayer::<Request<Body>>::new_from_top())

@@ -814,6 +814,38 @@ mod tests {
     }
 
     #[test]
+    fn test_listitem_always_starts_with_paragraph() {
+        let json = md_to_tiptap_json("1. Item").unwrap();
+        let list_item = &json["content"][0]["content"][0];
+        assert_eq!(list_item["type"], "listItem");
+        assert_eq!(list_item["content"][0]["type"], "paragraph");
+
+        let json = md_to_tiptap_json("- Item").unwrap();
+        let list_item = &json["content"][0]["content"][0];
+        assert_eq!(list_item["type"], "listItem");
+        assert_eq!(list_item["content"][0]["type"], "paragraph");
+
+        let json = md_to_tiptap_json("- [ ] Task").unwrap();
+        let task_item = &json["content"][0]["content"][0];
+        assert_eq!(task_item["type"], "taskItem");
+        assert_eq!(task_item["content"][0]["type"], "paragraph");
+    }
+
+    #[test]
+    fn test_empty_listitem_has_paragraph() {
+        let json = md_to_tiptap_json("1. ").unwrap();
+        let list_item = &json["content"][0]["content"][0];
+        assert_eq!(list_item["type"], "listItem");
+        assert!(
+            list_item["content"]
+                .as_array()
+                .map(|a| !a.is_empty())
+                .unwrap_or(false)
+        );
+        assert_eq!(list_item["content"][0]["type"], "paragraph");
+    }
+
+    #[test]
     fn test_multibyte_chars_no_panic() {
         let json = serde_json::json!({
             "type": "doc",

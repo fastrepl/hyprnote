@@ -29,6 +29,7 @@ import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
 import { Route as ApiMediaUploadRouteImport } from './routes/api/media-upload'
 import { Route as ApiK6ReportsRouteImport } from './routes/api/k6-reports'
+import { Route as ViewWhyHyprnoteRouteImport } from './routes/_view/why-hyprnote'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewPrivacyRouteImport } from './routes/_view/privacy'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
@@ -236,6 +237,11 @@ const ApiK6ReportsRoute = ApiK6ReportsRouteImport.update({
   id: '/api/k6-reports',
   path: '/api/k6-reports',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ViewWhyHyprnoteRoute = ViewWhyHyprnoteRouteImport.update({
+  id: '/why-hyprnote',
+  path: '/why-hyprnote',
+  getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewSecurityRoute = ViewSecurityRouteImport.update({
   id: '/security',
@@ -824,6 +830,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof ViewPricingRoute
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
+  '/why-hyprnote': typeof ViewWhyHyprnoteRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
   '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
@@ -948,6 +955,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof ViewPricingRoute
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
+  '/why-hyprnote': typeof ViewWhyHyprnoteRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
   '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
@@ -1079,6 +1087,7 @@ export interface FileRoutesById {
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/privacy': typeof ViewPrivacyRoute
   '/_view/security': typeof ViewSecurityRoute
+  '/_view/why-hyprnote': typeof ViewWhyHyprnoteRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
   '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
@@ -1211,6 +1220,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/security'
+    | '/why-hyprnote'
     | '/api/k6-reports'
     | '/api/media-upload'
     | '/api/shortcuts'
@@ -1335,6 +1345,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/security'
+    | '/why-hyprnote'
     | '/api/k6-reports'
     | '/api/media-upload'
     | '/api/shortcuts'
@@ -1465,6 +1476,7 @@ export interface FileRouteTypes {
     | '/_view/pricing'
     | '/_view/privacy'
     | '/_view/security'
+    | '/_view/why-hyprnote'
     | '/api/k6-reports'
     | '/api/media-upload'
     | '/api/shortcuts'
@@ -1754,6 +1766,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/k6-reports'
       preLoaderRoute: typeof ApiK6ReportsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_view/why-hyprnote': {
+      id: '/_view/why-hyprnote'
+      path: '/why-hyprnote'
+      fullPath: '/why-hyprnote'
+      preLoaderRoute: typeof ViewWhyHyprnoteRouteImport
+      parentRoute: typeof ViewRouteRoute
     }
     '/_view/security': {
       id: '/_view/security'
@@ -2578,6 +2597,7 @@ interface ViewRouteRouteChildren {
   ViewPricingRoute: typeof ViewPricingRoute
   ViewPrivacyRoute: typeof ViewPrivacyRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
+  ViewWhyHyprnoteRoute: typeof ViewWhyHyprnoteRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
@@ -2656,6 +2676,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewPricingRoute: ViewPricingRoute,
   ViewPrivacyRoute: ViewPrivacyRoute,
   ViewSecurityRoute: ViewSecurityRoute,
+  ViewWhyHyprnoteRoute: ViewWhyHyprnoteRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,

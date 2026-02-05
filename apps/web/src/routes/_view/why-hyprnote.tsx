@@ -86,8 +86,7 @@ function HeroSection() {
 const differentiators = [
   {
     title: "Plain Markdown files",
-    description:
-      "Not proprietary databases—files you own that work in any app",
+    description: "Not proprietary databases—files you own that work in any app",
     icon: "mdi:file-document-outline",
   },
   {
@@ -119,7 +118,6 @@ function WhyWereDifferentSection() {
   return (
     <section className="px-6 py-16 lg:py-24 bg-stone-50/30">
       <div className="max-w-4xl mx-auto">
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {differentiators.slice(0, 3).map((item) => (
             <div

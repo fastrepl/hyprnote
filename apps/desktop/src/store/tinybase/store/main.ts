@@ -106,6 +106,7 @@ export const StoreComponent = () => {
             select("ended_at");
             select("calendar_id");
             select("recurrence_series_id");
+            select("ignored");
             where((getTableCell) => !getTableCell("events", "ignored"));
           },
         )

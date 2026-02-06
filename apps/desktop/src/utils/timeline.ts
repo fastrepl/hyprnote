@@ -59,6 +59,7 @@ export type TimelineEventRow = {
   ended_at?: string | null;
   calendar_id?: string | null;
   recurrence_series_id?: string | null;
+  ignored?: boolean | null;
 };
 
 // comes from QUERIES.timelineSessions

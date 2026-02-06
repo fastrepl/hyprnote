@@ -58,21 +58,19 @@ function JobsSection() {
 
   return (
     <section className="pb-16 lg:pb-24">
-      {jobs.length > 0
-        ? (
-          <div className="grid grid-cols-1 md:grid-cols-2">
-            {jobs.map((job, index) => (
-              <JobCard key={job.slug} job={job} hasBorder={index === 0} />
-            ))}
-          </div>
-        )
-        : (
-          <div className="px-6 py-16 text-center">
-            <p className="text-lg text-neutral-500">
-              There are no open positions at the moment.
-            </p>
-          </div>
-        )}
+      {jobs.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          {jobs.map((job, index) => (
+            <JobCard key={job.slug} job={job} hasBorder={index === 0} />
+          ))}
+        </div>
+      ) : (
+        <div className="px-6 py-16 text-center">
+          <p className="text-lg text-neutral-500">
+            There are no open positions at the moment.
+          </p>
+        </div>
+      )}
       <SlashSeparator />
       <CTASection />
     </section>

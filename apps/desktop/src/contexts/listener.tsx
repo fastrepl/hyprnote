@@ -116,6 +116,10 @@ const useHandleDetectEvents = (store: ListenerStore) => {
             return;
           }
 
+          if (store.getState().live.status === "active") {
+            return;
+          }
+
           const minutes = Math.round(payload.duration_secs / 60);
           const appName = payload.app.name;
 

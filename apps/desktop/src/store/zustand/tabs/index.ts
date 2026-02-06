@@ -34,7 +34,7 @@ import {
 import { createStateUpdaterSlice, type StateBasicActions } from "./state";
 
 export type { SettingsState, SettingsTab, Tab, TabInput } from "./schema";
-export { isSameTab, rowIdfromTab, uniqueIdfromTab } from "./schema";
+export { isSameTab, uniqueIdfromTab } from "./schema";
 export { restorePinnedTabsToStore, restoreRecentlyOpenedToStore };
 
 type State = BasicState &

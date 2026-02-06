@@ -18,11 +18,7 @@ import { useStartListening } from "../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import { useTitleGeneration } from "../../../../hooks/useTitleGeneration";
 import * as main from "../../../../store/tinybase/store/main";
-import {
-  rowIdfromTab,
-  type Tab,
-  useTabs,
-} from "../../../../store/zustand/tabs";
+import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 import { CaretPositionProvider } from "./caret-position-context";
@@ -52,12 +48,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   pendingCloseConfirmationTab,
   setPendingCloseConfirmationTab,
 }) => {
-  const title = main.UI.useCell(
-    "sessions",
-    rowIdfromTab(tab),
-    "title",
-    main.STORE_ID,
-  );
+  const title = main.UI.useCell("sessions", tab.id, "title", main.STORE_ID);
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
   const stop = useListener((state) => state.stop);
   const isEnhancing = useIsSessionEnhancing(tab.id);

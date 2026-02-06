@@ -152,9 +152,6 @@ function TableView({ items }: { items: RoadmapItem[] }) {
             <th className="text-left py-2 px-3 text-sm font-medium text-stone-500 border-y border-neutral-100 whitespace-nowrap">
               Name
             </th>
-            <th className="text-left py-2 px-3 text-sm font-medium text-stone-500 border-y border-l border-neutral-100">
-              Description
-            </th>
             <th className="text-left py-2 px-3 text-sm font-medium text-stone-500 border-y border-l border-neutral-100 whitespace-nowrap">
               Status
             </th>
@@ -184,9 +181,6 @@ function TableView({ items }: { items: RoadmapItem[] }) {
                   >
                     {item.title}
                   </Link>
-                </td>
-                <td className="py-2 px-3 border-y border-l border-neutral-100 text-sm text-stone-600">
-                  {item.description}
                 </td>
                 <td className="py-2 px-3 border-y border-l border-neutral-100">
                   <span

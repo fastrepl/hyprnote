@@ -60,14 +60,6 @@ fn spawn_timer<R: Runtime>(
     tokio::spawn(async move {
         tokio::time::sleep(threshold).await;
 
-        let is_listening = {
-            let listener_state = app_handle.listener().get_state().await;
-            matches!(
-                listener_state,
-                tauri_plugin_listener::State::Active | tauri_plugin_listener::State::Finalizing
-            )
-        };
-
         let state = app_handle.state::<SharedState>();
         let mut state_guard = state.lock().await;
 
@@ -76,6 +68,14 @@ fn spawn_timer<R: Runtime>(
         }
 
         state_guard.mic_usage_tracker.remove_completed(&app_id);
+
+        let is_listening = {
+            let listener_state = app_handle.listener().get_state().await;
+            matches!(
+                listener_state,
+                tauri_plugin_listener::State::Active | tauri_plugin_listener::State::Finalizing
+            )
+        };
 
         if is_listening {
             tracing::info!(

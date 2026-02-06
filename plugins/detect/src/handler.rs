@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use tauri::{AppHandle, EventTarget, Manager, Runtime};
 use tauri_plugin_listener::ListenerPluginExt;
 use tauri_plugin_windows::WindowImpl;
@@ -9,8 +7,6 @@ use crate::{
     DetectEvent, SharedState, dnd,
     policy::{MicEventType, PolicyContext},
 };
-
-const MIC_ACTIVE_THRESHOLD: Duration = Duration::from_secs(3 * 60);
 
 pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.app_handle().clone();
@@ -74,16 +70,7 @@ async fn handle_mic_started<R: Runtime>(
     match state_guard.policy.evaluate(&ctx) {
         Ok(result) => {
             for app in &result.filtered_apps {
-                if !state_guard.mic_usage_timers.contains_key(&app.id) {
-                    let timer_handle = spawn_mic_active_timer(
-                        app_handle.clone(),
-                        app.clone(),
-                        MIC_ACTIVE_THRESHOLD,
-                    );
-                    state_guard
-                        .mic_usage_timers
-                        .insert(app.id.clone(), timer_handle);
-                }
+                state_guard.mic_usage_tracker.track_app(app_handle, app);
             }
 
             let dedup_key = result.dedup_key;
@@ -120,10 +107,7 @@ async fn handle_mic_stopped<R: Runtime>(
     let mut state_guard = state.lock().await;
 
     for app in &apps {
-        if let Some(handle) = state_guard.mic_usage_timers.remove(&app.id) {
-            handle.abort();
-            tracing::info!(app_id = %app.id, "cancelled_mic_active_timer");
-        }
+        state_guard.mic_usage_tracker.cancel_app(&app.id);
     }
 
     let is_dnd = dnd::is_do_not_disturb();
@@ -151,53 +135,7 @@ async fn handle_mic_stopped<R: Runtime>(
     }
 }
 
-fn spawn_mic_active_timer<R: Runtime>(
-    app_handle: AppHandle<R>,
-    app: hypr_detect::InstalledApp,
-    threshold: Duration,
-) -> tokio::task::JoinHandle<()> {
-    let duration_secs = threshold.as_secs();
-    let app_id = app.id.clone();
-    tokio::spawn(async move {
-        tokio::time::sleep(threshold).await;
-
-        let is_listening = {
-            let listener_state = app_handle.listener().get_state().await;
-            matches!(
-                listener_state,
-                tauri_plugin_listener::State::Active | tauri_plugin_listener::State::Finalizing
-            )
-        };
-
-        if is_listening {
-            tracing::info!(
-                app_id = %app_id,
-                "skip_mic_active_without_hyprnote: hyprnote_is_listening"
-            );
-        } else {
-            tracing::info!(
-                app_id = %app_id,
-                duration_secs,
-                "mic_active_without_hyprnote"
-            );
-            let key = uuid::Uuid::new_v4().to_string();
-            emit_to_main(
-                &app_handle,
-                DetectEvent::MicActiveWithoutHyprnote {
-                    key,
-                    app,
-                    duration_secs,
-                },
-            );
-        }
-
-        let state = app_handle.state::<SharedState>();
-        let mut state_guard = state.lock().await;
-        state_guard.mic_usage_timers.remove(&app_id);
-    })
-}
-
-fn emit_to_main<R: Runtime>(app_handle: &AppHandle<R>, event: DetectEvent) {
+pub(crate) fn emit_to_main<R: Runtime>(app_handle: &AppHandle<R>, event: DetectEvent) {
     let _ = event.emit_to(
         app_handle,
         EventTarget::AnyLabel {

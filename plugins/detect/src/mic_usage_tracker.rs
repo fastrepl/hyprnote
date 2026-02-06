@@ -1,104 +1,215 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use tauri::{AppHandle, Manager, Runtime};
-use tauri_plugin_listener::ListenerPluginExt;
+use tokio_util::sync::CancellationToken;
 
-use crate::{DetectEvent, SharedState};
+use crate::{DetectEvent, ProcessorState, env::Env};
 
-const MIC_ACTIVE_THRESHOLD: Duration = Duration::from_secs(3 * 60);
+pub(crate) const MIC_ACTIVE_THRESHOLD: Duration = Duration::from_secs(3 * 60);
+pub(crate) const COOLDOWN_DURATION: Duration = Duration::from_secs(60 * 60);
+
+struct TimerEntry {
+    generation: u64,
+    token: CancellationToken,
+}
 
 pub struct MicUsageTracker {
-    timers: HashMap<String, tokio::task::JoinHandle<()>>,
+    timers: HashMap<String, TimerEntry>,
+    cooldowns: HashMap<String, tokio::time::Instant>,
+    next_gen: u64,
 }
 
 impl Default for MicUsageTracker {
     fn default() -> Self {
         Self {
             timers: HashMap::new(),
+            cooldowns: HashMap::new(),
+            next_gen: 0,
+        }
+    }
+}
+
+impl Drop for MicUsageTracker {
+    fn drop(&mut self) {
+        for (_, entry) in self.timers.drain() {
+            entry.token.cancel();
         }
     }
 }
 
 impl MicUsageTracker {
-    pub fn track_app<R: Runtime>(
-        &mut self,
-        app_handle: &AppHandle<R>,
-        app: &hypr_detect::InstalledApp,
-    ) {
-        if self.timers.contains_key(&app.id) {
-            return;
-        }
+    pub fn is_tracking(&self, app_id: &str) -> bool {
+        self.timers.contains_key(app_id)
+    }
 
-        let handle = spawn_timer(app_handle.clone(), app.clone(), MIC_ACTIVE_THRESHOLD);
-        self.timers.insert(app.id.clone(), handle);
+    pub fn is_in_cooldown(&self, app_id: &str) -> bool {
+        match self.cooldowns.get(app_id) {
+            Some(&fired_at) => {
+                tokio::time::Instant::now().duration_since(fired_at) < COOLDOWN_DURATION
+            }
+            None => false,
+        }
+    }
+
+    pub fn start_tracking(&mut self, app_id: String, token: CancellationToken) -> u64 {
+        let generation = self.next_gen;
+        self.next_gen += 1;
+        if let Some(old) = self.timers.insert(app_id, TimerEntry { generation, token }) {
+            old.token.cancel();
+        }
+        generation
     }
 
     pub fn cancel_app(&mut self, app_id: &str) {
-        if let Some(handle) = self.timers.remove(app_id) {
-            handle.abort();
+        if let Some(entry) = self.timers.remove(app_id) {
+            entry.token.cancel();
             tracing::info!(app_id = %app_id, "cancelled_mic_active_timer");
         }
     }
 
-    pub fn is_tracked(&self, app_id: &str) -> bool {
-        self.timers.contains_key(app_id)
-    }
-
-    pub fn remove_completed(&mut self, app_id: &str) {
-        self.timers.remove(app_id);
+    /// Removes the timer entry only if the generation matches,
+    /// preventing a stale timer from claiming an entry replaced by a newer one.
+    /// On success, sets a cooldown so the same app won't be re-tracked for a while.
+    pub fn claim(&mut self, app_id: &str, generation: u64) -> bool {
+        match self.timers.get(app_id) {
+            Some(entry) if entry.generation == generation => {
+                self.timers.remove(app_id);
+                self.cooldowns
+                    .insert(app_id.to_string(), tokio::time::Instant::now());
+                true
+            }
+            _ => false,
+        }
     }
 }
 
-fn spawn_timer<R: Runtime>(
-    app_handle: AppHandle<R>,
+pub(crate) fn on_timer_fired<E: Env>(env: &E, app: &hypr_detect::InstalledApp, duration_secs: u64) {
+    tracing::info!(
+        app_id = %app.id,
+        duration_secs,
+        "mic_prolonged_usage"
+    );
+
+    let key = uuid::Uuid::new_v4().to_string();
+    env.emit(DetectEvent::MicProlongedUsage {
+        key,
+        app: app.clone(),
+        duration_secs,
+    });
+}
+
+pub(crate) fn spawn_timer<E: Env>(
+    env: E,
+    state: ProcessorState,
     app: hypr_detect::InstalledApp,
-    threshold: Duration,
-) -> tokio::task::JoinHandle<()> {
-    let duration_secs = threshold.as_secs();
+    generation: u64,
+    token: CancellationToken,
+) {
+    let duration_secs = MIC_ACTIVE_THRESHOLD.as_secs();
     let app_id = app.id.clone();
+
     tokio::spawn(async move {
-        tokio::time::sleep(threshold).await;
-
-        let state = app_handle.state::<SharedState>();
-        let mut state_guard = state.lock().await;
-
-        if !state_guard.mic_usage_tracker.is_tracked(&app_id) {
-            return;
+        tokio::select! {
+            _ = tokio::time::sleep(MIC_ACTIVE_THRESHOLD) => {}
+            _ = token.cancelled() => { return; }
         }
 
-        state_guard.mic_usage_tracker.remove_completed(&app_id);
-
-        let is_listening = {
-            let listener_state = app_handle.listener().get_state().await;
-            matches!(
-                listener_state,
-                tauri_plugin_listener::State::Active | tauri_plugin_listener::State::Finalizing
-            )
+        let claimed = {
+            let mut guard = state.lock().unwrap_or_else(|e| e.into_inner());
+            guard.mic_usage_tracker.claim(&app_id, generation)
         };
 
-        if is_listening {
-            tracing::info!(
-                app_id = %app_id,
-                "skip_mic_active_without_hyprnote: hyprnote_is_listening"
-            );
-            return;
+        if claimed {
+            on_timer_fired(&env, &app, duration_secs);
         }
+    });
+}
 
-        tracing::info!(
-            app_id = %app_id,
-            duration_secs,
-            "mic_active_without_hyprnote"
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_claim_matching_generation() {
+        let _rt = tokio::runtime::Runtime::new().unwrap();
+        let _guard = _rt.enter();
+
+        let mut tracker = MicUsageTracker::default();
+        let token = CancellationToken::new();
+        let generation = tracker.start_tracking("app.x".to_string(), token);
+
+        assert!(tracker.claim("app.x", generation));
+        assert!(!tracker.is_tracking("app.x"));
+    }
+
+    #[test]
+    fn test_claim_stale_generation_rejected() {
+        let _rt = tokio::runtime::Runtime::new().unwrap();
+        let _guard = _rt.enter();
+
+        let mut tracker = MicUsageTracker::default();
+
+        let generation_0 = tracker.start_tracking("app.x".to_string(), CancellationToken::new());
+        let generation_1 = tracker.start_tracking("app.x".to_string(), CancellationToken::new());
+
+        assert!(!tracker.claim("app.x", generation_0));
+        assert!(tracker.is_tracking("app.x"));
+
+        assert!(tracker.claim("app.x", generation_1));
+        assert!(!tracker.is_tracking("app.x"));
+    }
+
+    #[test]
+    fn test_claim_after_cancel_returns_false() {
+        let _rt = tokio::runtime::Runtime::new().unwrap();
+        let _guard = _rt.enter();
+
+        let mut tracker = MicUsageTracker::default();
+        let generation = tracker.start_tracking("app.x".to_string(), CancellationToken::new());
+
+        tracker.cancel_app("app.x");
+        assert!(!tracker.claim("app.x", generation));
+    }
+
+    #[test]
+    fn test_start_tracking_cancels_old_token() {
+        let mut tracker = MicUsageTracker::default();
+        let token1 = CancellationToken::new();
+        let token1_clone = token1.clone();
+
+        tracker.start_tracking("app.x".to_string(), token1);
+        assert!(!token1_clone.is_cancelled());
+
+        tracker.start_tracking("app.x".to_string(), CancellationToken::new());
+        assert!(token1_clone.is_cancelled());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_cooldown_blocks_retracking() {
+        let mut tracker = MicUsageTracker::default();
+
+        let generation = tracker.start_tracking("app.x".to_string(), CancellationToken::new());
+        assert!(tracker.claim("app.x", generation));
+        assert!(tracker.is_in_cooldown("app.x"));
+
+        tokio::time::advance(Duration::from_secs(30 * 60)).await;
+        assert!(
+            tracker.is_in_cooldown("app.x"),
+            "still in cooldown at 30 min"
         );
-        let key = uuid::Uuid::new_v4().to_string();
-        drop(state_guard);
-        super::handler::emit_to_main(
-            &app_handle,
-            DetectEvent::MicActiveWithoutHyprnote {
-                key,
-                app,
-                duration_secs,
-            },
+
+        tokio::time::advance(Duration::from_secs(30 * 60)).await;
+        assert!(
+            !tracker.is_in_cooldown("app.x"),
+            "cooldown expired at 60 min"
         );
-    })
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_no_cooldown_without_claim() {
+        let mut tracker = MicUsageTracker::default();
+        tracker.start_tracking("app.x".to_string(), CancellationToken::new());
+        tracker.cancel_app("app.x");
+        assert!(!tracker.is_in_cooldown("app.x"));
+    }
 }

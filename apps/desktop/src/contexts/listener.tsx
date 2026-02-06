@@ -53,11 +53,19 @@ const useHandleDetectEvents = (store: ListenerStore) => {
   const stop = useStore(store, (state) => state.stop);
   const setMuted = useStore(store, (state) => state.setMuted);
   const notificationDetectEnabled = useConfigValue("notification_detect");
+  const inMeetingReminderEnabled = useConfigValue(
+    "notification_in_meeting_reminder",
+  );
 
   const notificationDetectEnabledRef = useRef(notificationDetectEnabled);
   useEffect(() => {
     notificationDetectEnabledRef.current = notificationDetectEnabled;
   }, [notificationDetectEnabled]);
+
+  const inMeetingReminderEnabledRef = useRef(inMeetingReminderEnabled);
+  useEffect(() => {
+    inMeetingReminderEnabledRef.current = inMeetingReminderEnabled;
+  }, [inMeetingReminderEnabled]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -103,8 +111,8 @@ const useHandleDetectEvents = (store: ListenerStore) => {
           }
         } else if (payload.type === "micMuted") {
           setMuted(payload.value);
-        } else if (payload.type === "micActiveWithoutHyprnote") {
-          if (!notificationDetectEnabledRef.current) {
+        } else if (payload.type === "micProlongedUsage") {
+          if (!inMeetingReminderEnabledRef.current) {
             return;
           }
 

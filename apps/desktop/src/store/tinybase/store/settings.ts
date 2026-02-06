@@ -65,6 +65,10 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["general", "timezone"],
     },
+    notification_in_meeting_reminder: {
+      type: "boolean",
+      path: ["notification", "in_meeting_reminder"],
+    },
   },
   tables: {
     ai_providers: {

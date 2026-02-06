@@ -44,9 +44,18 @@ impl AppWindow {
     ) -> tauri::WebviewWindowBuilder<'a, tauri::Wry, tauri::AppHandle<tauri::Wry>> {
         use tauri::{WebviewUrl, WebviewWindow};
 
+        let title = match self {
+            Self::Main => app
+                .config()
+                .product_name
+                .clone()
+                .unwrap_or_else(|| self.title()),
+            _ => self.title(),
+        };
+
         #[allow(unused_mut)]
         let mut builder = WebviewWindow::builder(app, self.label(), WebviewUrl::App(url.into()))
-            .title(self.title())
+            .title(title)
             .disable_drag_drop_handler();
 
         #[cfg(target_os = "macos")]
@@ -97,7 +106,7 @@ impl WindowImpl for AppWindow {
     fn title(&self) -> String {
         match self {
             Self::Onboarding => "Onboarding".into(),
-            Self::Main => "Main".into(),
+            Self::Main => "Hyprnote".into(),
             Self::Control => "Control".into(),
         }
     }

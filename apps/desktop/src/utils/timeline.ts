@@ -1,55 +1,15 @@
-import { isPast, safeParseDate } from "@hypr/utils";
+import {
+  differenceInCalendarDays,
+  differenceInCalendarMonths,
+  isPast,
+  safeParseDate,
+  startOfDay,
+  startOfMonth,
+  TZDate,
+} from "@hypr/utils";
 
-interface DateParts {
-  year: number;
-  month: number;
-  day: number;
-}
-
-function getDatePartsInTimezone(date: Date, timezone?: string): DateParts {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const formatted = formatter.format(date);
-  const [year, month, day] = formatted.split("-").map(Number);
-  return { year, month, day };
-}
-
-function datePartsToUtcMidnight(parts: DateParts): number {
-  return Date.UTC(parts.year, parts.month - 1, parts.day);
-}
-
-function differenceInCalendarDaysInTimezone(
-  dateLeft: Date,
-  dateRight: Date,
-  timezone?: string,
-): number {
-  const leftParts = getDatePartsInTimezone(dateLeft, timezone);
-  const rightParts = getDatePartsInTimezone(dateRight, timezone);
-  const leftUtc = datePartsToUtcMidnight(leftParts);
-  const rightUtc = datePartsToUtcMidnight(rightParts);
-  return Math.round((leftUtc - rightUtc) / (1000 * 60 * 60 * 24));
-}
-
-function differenceInCalendarMonthsInTimezone(
-  dateLeft: Date,
-  dateRight: Date,
-  timezone?: string,
-): number {
-  const leftParts = getDatePartsInTimezone(dateLeft, timezone);
-  const rightParts = getDatePartsInTimezone(dateRight, timezone);
-  return (
-    (leftParts.year - rightParts.year) * 12 +
-    (leftParts.month - rightParts.month)
-  );
-}
-
-function getSortKeyForDateInTimezone(date: Date, timezone?: string): number {
-  const parts = getDatePartsInTimezone(date, timezone);
-  return datePartsToUtcMidnight(parts);
+function toTZ(date: Date, timezone?: string): Date {
+  return timezone ? new TZDate(date, timezone) : date;
 }
 
 // comes from QUERIES.timelineEvents
@@ -109,8 +69,10 @@ export function getBucketInfo(
   precision: TimelinePrecision;
 } {
   const now = new Date();
-  const daysDiff = differenceInCalendarDaysInTimezone(date, now, timezone);
-  const sortKey = getSortKeyForDateInTimezone(date, timezone);
+  const tzDate = toTZ(date, timezone);
+  const tzNow = toTZ(now, timezone);
+  const daysDiff = differenceInCalendarDays(tzDate, tzNow);
+  const sortKey = startOfDay(tzDate).getTime();
   const absDays = Math.abs(daysDiff);
 
   if (daysDiff === 0) {
@@ -136,7 +98,7 @@ export function getBucketInfo(
       const weekRangeEnd = new Date(
         now.getTime() - weekRangeEndDay * 24 * 60 * 60 * 1000,
       );
-      const weekSortKey = getSortKeyForDateInTimezone(weekRangeEnd, timezone);
+      const weekSortKey = startOfDay(toTZ(weekRangeEnd, timezone)).getTime();
 
       return {
         label: weeks === 1 ? "a week ago" : `${weeks} weeks ago`,
@@ -145,25 +107,17 @@ export function getBucketInfo(
       };
     }
 
-    let months = Math.abs(
-      differenceInCalendarMonthsInTimezone(date, now, timezone),
-    );
+    let months = Math.abs(differenceInCalendarMonths(tzDate, tzNow));
     if (months === 0) {
       months = 1;
     }
-    const targetParts = getDatePartsInTimezone(date, timezone);
-    const monthStartKey = datePartsToUtcMidnight({
-      year: targetParts.year,
-      month: targetParts.month,
-      day: 1,
-    });
+    const monthStartKey = startOfMonth(tzDate).getTime();
     const lastDayInMonthBucket = new Date(
       now.getTime() - 28 * 24 * 60 * 60 * 1000,
     );
-    const lastDayKey = getSortKeyForDateInTimezone(
-      lastDayInMonthBucket,
-      timezone,
-    );
+    const lastDayKey = startOfDay(
+      toTZ(lastDayInMonthBucket, timezone),
+    ).getTime();
     const monthSortKey = Math.min(monthStartKey, lastDayKey);
     return {
       label: months === 1 ? "a month ago" : `${months} months ago`,
@@ -182,7 +136,7 @@ export function getBucketInfo(
     const weekRangeStart = new Date(
       now.getTime() + weekRangeStartDay * 24 * 60 * 60 * 1000,
     );
-    const weekSortKey = getSortKeyForDateInTimezone(weekRangeStart, timezone);
+    const weekSortKey = startOfDay(toTZ(weekRangeStart, timezone)).getTime();
 
     return {
       label: weeks === 1 ? "next week" : `in ${weeks} weeks`,
@@ -191,23 +145,17 @@ export function getBucketInfo(
     };
   }
 
-  let months = differenceInCalendarMonthsInTimezone(date, now, timezone);
+  let months = differenceInCalendarMonths(tzDate, tzNow);
   if (months === 0) {
     months = 1;
   }
-  const targetParts = getDatePartsInTimezone(date, timezone);
-  const monthStartKey = datePartsToUtcMidnight({
-    year: targetParts.year,
-    month: targetParts.month,
-    day: 1,
-  });
+  const monthStartKey = startOfMonth(tzDate).getTime();
   const firstDayInMonthBucket = new Date(
     now.getTime() + 28 * 24 * 60 * 60 * 1000,
   );
-  const firstDayKey = getSortKeyForDateInTimezone(
-    firstDayInMonthBucket,
-    timezone,
-  );
+  const firstDayKey = startOfDay(
+    toTZ(firstDayInMonthBucket, timezone),
+  ).getTime();
   const monthSortKey = Math.max(monthStartKey, firstDayKey);
   return {
     label: months === 1 ? "next month" : `in ${months} months`,

@@ -4,18 +4,85 @@ section: "How We Work"
 summary: "Resources and workflows for everyone joining Hyprnote."
 ---
 
-## Onboarding
+## First Steps
 
-### Github
+1. Get added to the [GitHub organization](https://github.com/fastrepl) and the [hyprnote repo](https://github.com/fastrepl/hyprnote)
+2. Read through this handbook — start with [What Hyprnote Is](/handbook/about/what-hyprnote-is), [Design Philosophy](/handbook/beliefs/design-philosophy), and [Product Philosophy](/handbook/about/product-philosophy)
+3. Download a [staging build](#downloading-staging-builds) and use the app yourself
+4. Set up your local development environment (see below)
 
+## Development Environment
 
-### Cursor
+### Editor
 
-If you don't have a specific preference, we recommend using [Cursor](https://cursor.com).
+If you don't have a specific preference, we recommend using [Cursor](https://cursor.com). It has good AI-assisted editing and works well with our codebase.
 
+- [Visual Editor intro](https://www.youtube.com/watch?v=XOtHjA8THCw) — useful for learning Cursor basics
 
-[Visual Editor](https://www.youtube.com/watch?v=XOtHjA8THCw)
+### Repository Setup
 
+Follow the [developer setup guide](/docs/developers/setup) for full instructions. The short version:
+
+**Mac:**
+
+```bash
+brew install cmake pkg-config
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+git clone https://github.com/fastrepl/hyprnote.git
+cd hyprnote
+pnpm install
+pnpm -F ui build
+```
+
+**Linux:**
+
+```bash
+bash scripts/setup-linux.sh
+git clone https://github.com/fastrepl/hyprnote.git
+cd hyprnote
+pnpm install
+```
+
+See [Environment Variables](/docs/developers/env) for configuration, and [Run](/docs/developers/run) for starting the dev server.
+
+### Troubleshooting
+
+If Cursor cannot connect to the network when indexing the repo, try:
+
+- Ensure you have a stable internet connection
+- Restart Cursor and re-open the project
+- If the issue persists, you can still work by browsing the code directly — the project structure is documented in the [developer docs](/docs/developers/setup)
+
+## For Designers
+
+Design work at Hyprnote lives close to the code. You don't need to be a full-stack engineer, but understanding the project structure helps you contribute effectively.
+
+### What to Explore First
+
+- **Use the app** — Download a staging build and use Hyprnote for your own meetings. The best design intuition comes from being a real user
+- **Read the codebase** — Browse `apps/desktop/src/components/` to see how the UI is structured. The frontend is React + TypeScript + Tailwind CSS
+- **Look at the UI library** — `packages/ui/` contains shared components built on [Radix](https://www.radix-ui.com/) and styled with Tailwind
+
+### Design-to-Code Workflow
+
+We use [Figma](https://figma.com) for design exploration and prototyping. The workflow:
+
+1. **Explore in Figma** — Use Figma (or Figma Make) to prototype ideas and iterate on static layouts
+2. **Share designs** — Post screenshots or Figma links in Slack for feedback
+3. **Implement in code** — Translate approved designs into React components. Use the existing component patterns in `packages/ui/` and `apps/desktop/src/components/`
+4. **Open a PR** — All changes go through pull requests on GitHub for review
+
+### Key Directories for UI Work
+
+- `apps/desktop/src/components/` — Desktop app UI components
+- `apps/web/src/` — Marketing website and docs
+- `packages/ui/` — Shared component library (buttons, cards, dialogs, etc.)
+- `extensions/` — Extension panels with their own React UIs
+- `apps/web/content/` — MDX content for docs, handbook, blog, etc.
+
+### Content and Docs
+
+All written content (handbook, docs, blog posts) lives as MDX files in `apps/web/content/`. See the [CMS page](/handbook/how-we-work/cms) for how this works. You can contribute to docs and content by editing these files directly and opening a PR.
 
 ## Downloading Staging Builds
 

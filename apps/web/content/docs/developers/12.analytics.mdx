@@ -6,7 +6,7 @@ description: "Learn about analytics in Hyprnote"
 
 ## What are we tracking?
 
-We use PostHog for analytics in both the web and desktop applications. The web application also uses Outlit for pageview tracking. You can opt-out from the settings menu in the desktop app.
+We use PostHog for analytics in both the web and desktop applications. The web application also uses [Outlit](https://outlit.dev) for pageview tracking (configured via the `VITE_OUTLIT_PUBLIC_KEY` environment variable). You can opt-out from the settings menu in the desktop app.
 
 ## User Journey Events
 
@@ -136,6 +136,41 @@ To track the user journey from website visit to active usage, use PostHog's funn
 5. `note_enhanced` (desktop) - User uses AI enhancement
 
 PostHog's `$identify` event links anonymous device IDs to authenticated user IDs, enabling accurate conversion analysis across the entire user journey.
+
+## Feature Flags
+
+Hyprnote uses PostHog feature flags to control feature rollouts. The system is split into two layers:
+
+- **`crates/flag`** - A standalone Rust client for evaluating PostHog feature flags via the `/flags` API. It returns typed `FlagValue` results with support for boolean flags, multivariate variants, and JSON payloads.
+- **`plugins/flag`** - A Tauri plugin that wraps the flag client with caching and provides a `FlagPluginExt` trait. Each feature is defined in the `Feature` enum with a `FlagStrategy`:
+  - `Debug` - enabled only in debug builds
+  - `Posthog(key)` - evaluated via PostHog API with response caching
+  - `Hardcoded(bool)` - always returns the given value
+
+To check a flag from Rust:
+
+```rust
+use hypr_plugin_flag::FlagPluginExt;
+
+let enabled = app.flag().is_enabled(Feature::Chat).await;
+```
+
+## Crate Architecture
+
+The analytics stack is split across several crates:
+
+- **`crates/posthog`** - Low-level PostHog HTTP client for sending events, setting properties, and identifying users.
+- **`crates/analytics`** - Higher-level client that composes PostHog and Outlit clients via `AnalyticsClientBuilder`. Used by both the desktop app and the AI server.
+- **`crates/flag`** - PostHog feature flag evaluation client (see above).
+
+## Server-Side Analytics
+
+The `apps/ai` server also reports analytics for proxy requests:
+
+- **LLM proxy** (`crates/llm-proxy`) - Reports `$ai_generation` events with model, token counts, latency, and cost.
+- **STT proxy** (`crates/transcribe-proxy`) - Reports `$stt_request` events with provider and duration.
+
+Both proxies attribute events to users via device fingerprint and optional `user_id`.
 
 ## How to make changes?
 

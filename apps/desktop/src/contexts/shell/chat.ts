@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { createActor, fromTransition } from "xstate";
+import { type ActorRefFrom, createActor, fromTransition } from "xstate";
 
 export type ChatMode = "RightPanelOpen" | "FloatingClosed" | "FloatingOpen";
 export type ChatEvent =
@@ -45,23 +45,24 @@ export function useChatMode() {
   const [groupId, setGroupId] = useState<string | undefined>(undefined);
   const [draftMessage, setDraftMessage] = useState<any>(undefined);
 
-  const actorRef = useMemo(() => createActor(chatModeLogic), []);
+  const actorRef = useRef<ActorRefFrom<typeof chatModeLogic> | null>(null);
 
   useEffect(() => {
-    const subscription = actorRef.subscribe((snapshot) =>
+    const actor = createActor(chatModeLogic);
+    actorRef.current = actor;
+    const subscription = actor.subscribe((snapshot) =>
       setMode(snapshot.context),
     );
-    actorRef.start();
+    actor.start();
     return () => {
       subscription.unsubscribe();
-      actorRef.stop();
+      actor.stop();
     };
-  }, [actorRef]);
+  }, []);
 
-  const sendEvent = useCallback(
-    (event: ChatEvent) => actorRef.send(event),
-    [actorRef],
-  );
+  const sendEvent = useCallback((event: ChatEvent) => {
+    actorRef.current?.send(event);
+  }, []);
 
   useHotkeys(
     "mod+j",

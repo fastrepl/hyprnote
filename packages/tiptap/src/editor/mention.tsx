@@ -119,15 +119,13 @@ const Component = forwardRef<
             key={item.id}
             onClick={() => selectItem(index)}
           >
-            <span className={`mention-type mention-type-${item.type}`}>
-              {item.type === "session" ? (
-                <StickyNoteIcon className="mention-type-icon" />
-              ) : item.type === "human" ? (
-                <UserIcon className="mention-type-icon" />
-              ) : item.type === "organization" ? (
-                <Building2Icon className="mention-type-icon" />
-              ) : null}
-            </span>
+            {item.type === "session" ? (
+              <StickyNoteIcon className="mention-type-icon mention-type-session" />
+            ) : item.type === "human" ? (
+              <UserIcon className="mention-type-icon mention-type-human" />
+            ) : item.type === "organization" ? (
+              <Building2Icon className="mention-type-icon mention-type-organization" />
+            ) : null}
             <span className="mention-label">{item.label}</span>
           </button>
         );
@@ -240,7 +238,7 @@ const suggestion = (
       const update = () => {
         void computePosition(referenceEl, floatingEl, {
           placement: "bottom-start",
-          middleware: [offset(0), flip(), shift({ limiter: limitShift() })],
+          middleware: [offset(4), flip(), shift({ limiter: limitShift() })],
         }).then(({ x, y }) => {
           Object.assign(floatingEl.style, {
             left: `${x}px`,

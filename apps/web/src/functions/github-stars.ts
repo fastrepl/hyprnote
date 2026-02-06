@@ -1,13 +1,11 @@
-import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import { env, requireEnv } from "@/env";
 
-function getDb() {
-  const client = postgres(requireEnv(env.DATABASE_URL, "DATABASE_URL"), {
+function getSql() {
+  return postgres(requireEnv(env.DATABASE_URL, "DATABASE_URL"), {
     prepare: false,
   });
-  return drizzle({ client });
 }
 
 export interface StarLead {
@@ -34,25 +32,20 @@ export async function listStarLeads(options?: {
   offset?: number;
   researchedOnly?: boolean;
 }): Promise<{ leads: StarLead[]; total: number }> {
-  const db = getDb();
+  const sql = getSql();
   const limit = options?.limit ?? 50;
   const offset = options?.offset ?? 0;
 
-  let whereClause = "";
-  if (options?.researchedOnly) {
-    whereClause = "WHERE researched_at IS NOT NULL";
-  }
+  const countResult = options?.researchedOnly
+    ? await sql`SELECT COUNT(*) as count FROM public.github_star_leads WHERE researched_at IS NOT NULL`
+    : await sql`SELECT COUNT(*) as count FROM public.github_star_leads`;
+  const total = parseInt(String(countResult[0].count), 10);
 
-  const countResult = await db.execute<{ count: string }>(
-    `SELECT COUNT(*) as count FROM public.github_star_leads ${whereClause}`,
-  );
-  const total = parseInt(countResult.rows[0].count, 10);
+  const rows = options?.researchedOnly
+    ? await sql`SELECT * FROM public.github_star_leads WHERE researched_at IS NOT NULL ORDER BY COALESCE(score, -1) DESC, created_at DESC LIMIT ${limit} OFFSET ${offset}`
+    : await sql`SELECT * FROM public.github_star_leads ORDER BY COALESCE(score, -1) DESC, created_at DESC LIMIT ${limit} OFFSET ${offset}`;
 
-  const rows = await db.execute<StarLead>(
-    `SELECT * FROM public.github_star_leads ${whereClause} ORDER BY COALESCE(score, -1) DESC, created_at DESC LIMIT ${limit} OFFSET ${offset}`,
-  );
-
-  return { leads: rows.rows, total };
+  return { leads: rows as unknown as StarLead[], total };
 }
 
 interface GitHubUser {
@@ -81,7 +74,7 @@ export async function fetchGitHubStargazers(): Promise<{
   added: number;
   total: number;
 }> {
-  const db = getDb();
+  const sql = getSql();
   let added = 0;
   let page = 1;
   const perPage = 100;
@@ -106,16 +99,15 @@ export async function fetchGitHubStargazers(): Promise<{
     for (const s of stargazers) {
       if (s.user.type === "Bot") continue;
 
-      const result = await db.execute(
-        `INSERT INTO public.github_star_leads (github_username, github_id, avatar_url, profile_url, event_type, repo_name, event_at)
-         VALUES ('${s.user.login.replace(/'/g, "''")}', ${s.user.id}, '${s.user.avatar_url}', '${s.user.html_url}', 'star', 'fastrepl/hyprnote', '${s.starred_at}')
-         ON CONFLICT (github_username) DO UPDATE SET
-           avatar_url = EXCLUDED.avatar_url,
-           github_id = EXCLUDED.github_id
-         RETURNING id`,
-      );
+      const result = await sql`
+        INSERT INTO public.github_star_leads (github_username, github_id, avatar_url, profile_url, event_type, repo_name, event_at)
+        VALUES (${s.user.login}, ${s.user.id}, ${s.user.avatar_url}, ${s.user.html_url}, 'star', 'fastrepl/hyprnote', ${s.starred_at})
+        ON CONFLICT (github_username) DO UPDATE SET
+          avatar_url = EXCLUDED.avatar_url,
+          github_id = EXCLUDED.github_id
+        RETURNING id`;
 
-      if (result.rows.length > 0) {
+      if (result.length > 0) {
         added++;
       }
     }
@@ -124,18 +116,17 @@ export async function fetchGitHubStargazers(): Promise<{
     page++;
   }
 
-  const countResult = await db.execute<{ count: string }>(
-    "SELECT COUNT(*) as count FROM public.github_star_leads",
-  );
+  const countResult =
+    await sql`SELECT COUNT(*) as count FROM public.github_star_leads`;
 
-  return { added, total: parseInt(countResult.rows[0].count, 10) };
+  return { added, total: parseInt(String(countResult[0].count), 10) };
 }
 
 export async function fetchGitHubActivity(): Promise<{
   added: number;
   total: number;
 }> {
-  const db = getDb();
+  const sql = getSql();
   let added = 0;
 
   const response = await fetch(
@@ -178,29 +169,29 @@ export async function fetchGitHubActivity(): Promise<{
       },
     );
 
-    let bio = null;
+    let bio: string | null = null;
     if (userResponse.ok) {
       const userData = await userResponse.json();
       bio = userData.bio;
     }
 
-    await db.execute(
-      `INSERT INTO public.github_star_leads (github_username, github_id, avatar_url, profile_url, bio, event_type, repo_name, event_at)
-       VALUES ('${event.actor.login.replace(/'/g, "''")}', ${event.actor.id}, '${event.actor.avatar_url}', 'https://github.com/${event.actor.login}', ${bio ? `'${bio.replace(/'/g, "''")}'` : "NULL"}, '${eventType}', '${event.repo.name}', '${event.created_at}')
-       ON CONFLICT (github_username) DO UPDATE SET
-         avatar_url = EXCLUDED.avatar_url,
-         bio = COALESCE(EXCLUDED.bio, github_star_leads.bio),
-         event_type = EXCLUDED.event_type,
-         event_at = GREATEST(EXCLUDED.event_at, github_star_leads.event_at)`,
-    );
+    const profileUrl = `https://github.com/${event.actor.login}`;
+
+    await sql`
+      INSERT INTO public.github_star_leads (github_username, github_id, avatar_url, profile_url, bio, event_type, repo_name, event_at)
+      VALUES (${event.actor.login}, ${event.actor.id}, ${event.actor.avatar_url}, ${profileUrl}, ${bio}, ${eventType}, ${event.repo.name}, ${event.created_at})
+      ON CONFLICT (github_username) DO UPDATE SET
+        avatar_url = EXCLUDED.avatar_url,
+        bio = COALESCE(EXCLUDED.bio, github_star_leads.bio),
+        event_type = EXCLUDED.event_type,
+        event_at = GREATEST(EXCLUDED.event_at, github_star_leads.event_at)`;
     added++;
   }
 
-  const countResult = await db.execute<{ count: string }>(
-    "SELECT COUNT(*) as count FROM public.github_star_leads",
-  );
+  const countResult =
+    await sql`SELECT COUNT(*) as count FROM public.github_star_leads`;
 
-  return { added, total: parseInt(countResult.rows[0].count, 10) };
+  return { added, total: parseInt(String(countResult[0].count), 10) };
 }
 
 const RESEARCH_PROMPT = `You are an assistant to the founders of Hyprnote.
@@ -248,17 +239,16 @@ export async function researchLead(
   lead?: StarLead;
   error?: string;
 }> {
-  const db = getDb();
+  const sql = getSql();
 
-  const existing = await db.execute<StarLead>(
-    `SELECT * FROM public.github_star_leads WHERE github_username = '${username.replace(/'/g, "''")}'`,
-  );
+  const existing =
+    await sql`SELECT * FROM public.github_star_leads WHERE github_username = ${username}`;
 
-  if (existing.rows.length === 0) {
+  if (existing.length === 0) {
     return { success: false, error: "User not found in leads table" };
   }
 
-  const lead = existing.rows[0];
+  const lead = existing[0] as unknown as StarLead;
 
   const profileResponse = await fetch(
     `https://api.github.com/users/${username}`,
@@ -368,21 +358,24 @@ ${topRepos
     };
   }
 
-  await db.execute(
-    `UPDATE public.github_star_leads SET
-       name = '${(parsed.name || "").replace(/'/g, "''")}',
-       company = '${(parsed.company || "").replace(/'/g, "''")}',
-       is_match = ${parsed.match},
-       score = ${parsed.score},
-       reasoning = '${(parsed.reasoning || "").replace(/'/g, "''")}',
-       bio = COALESCE(bio, ${profileData.bio ? `'${String(profileData.bio).replace(/'/g, "''")}'` : "NULL"}),
-       researched_at = NOW()
-     WHERE github_username = '${username.replace(/'/g, "''")}'`,
-  );
+  const parsedName = parsed.name || "";
+  const parsedCompany = parsed.company || "";
+  const parsedReasoning = parsed.reasoning || "";
+  const parsedBio = profileData.bio ? String(profileData.bio) : null;
 
-  const updated = await db.execute<StarLead>(
-    `SELECT * FROM public.github_star_leads WHERE github_username = '${username.replace(/'/g, "''")}'`,
-  );
+  await sql`
+    UPDATE public.github_star_leads SET
+      name = ${parsedName},
+      company = ${parsedCompany},
+      is_match = ${parsed.match},
+      score = ${parsed.score},
+      reasoning = ${parsedReasoning},
+      bio = COALESCE(bio, ${parsedBio}),
+      researched_at = NOW()
+    WHERE github_username = ${username}`;
 
-  return { success: true, lead: updated.rows[0] };
+  const updated =
+    await sql`SELECT * FROM public.github_star_leads WHERE github_username = ${username}`;
+
+  return { success: true, lead: updated[0] as unknown as StarLead };
 }

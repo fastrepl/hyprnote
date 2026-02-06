@@ -43,6 +43,7 @@ import { Route as ViewAboutRouteImport } from './routes/_view/about'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
+import { Route as AdminStarsIndexRouteImport } from './routes/admin/stars/index'
 import { Route as AdminMediaIndexRouteImport } from './routes/admin/media/index'
 import { Route as AdminCollectionsIndexRouteImport } from './routes/admin/collections/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
@@ -116,6 +117,9 @@ import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integ
 import { Route as ViewAppFileTranscriptionRouteImport } from './routes/_view/app/file-transcription'
 import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
+import { Route as ApiAdminStarsResearchRouteImport } from './routes/api/admin/stars/research'
+import { Route as ApiAdminStarsLeadsRouteImport } from './routes/api/admin/stars/leads'
+import { Route as ApiAdminStarsFetchRouteImport } from './routes/api/admin/stars/fetch'
 import { Route as ApiAdminMediaUploadRouteImport } from './routes/api/admin/media/upload'
 import { Route as ApiAdminMediaMoveRouteImport } from './routes/api/admin/media/move'
 import { Route as ApiAdminMediaListRouteImport } from './routes/api/admin/media/list'
@@ -308,6 +312,11 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => ViewRouteRoute,
+} as any)
+const AdminStarsIndexRoute = AdminStarsIndexRouteImport.update({
+  id: '/stars/',
+  path: '/stars/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminMediaIndexRoute = AdminMediaIndexRouteImport.update({
   id: '/media/',
@@ -684,6 +693,21 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
+const ApiAdminStarsResearchRoute = ApiAdminStarsResearchRouteImport.update({
+  id: '/api/admin/stars/research',
+  path: '/api/admin/stars/research',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminStarsLeadsRoute = ApiAdminStarsLeadsRouteImport.update({
+  id: '/api/admin/stars/leads',
+  path: '/api/admin/stars/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminStarsFetchRoute = ApiAdminStarsFetchRouteImport.update({
+  id: '/api/admin/stars/fetch',
+  path: '/api/admin/stars/fetch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminMediaUploadRoute = ApiAdminMediaUploadRouteImport.update({
   id: '/api/admin/media/upload',
   path: '/api/admin/media/upload',
@@ -910,6 +934,7 @@ export interface FileRoutesByFullPath {
   '/templates/': typeof ViewTemplatesIndexRoute
   '/admin/collections/': typeof AdminCollectionsIndexRoute
   '/admin/media/': typeof AdminMediaIndexRoute
+  '/admin/stars/': typeof AdminStarsIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
   '/api/admin/blog/upload-image': typeof ApiAdminBlogUploadImageRoute
@@ -932,6 +957,9 @@ export interface FileRoutesByFullPath {
   '/api/admin/media/list': typeof ApiAdminMediaListRoute
   '/api/admin/media/move': typeof ApiAdminMediaMoveRoute
   '/api/admin/media/upload': typeof ApiAdminMediaUploadRoute
+  '/api/admin/stars/fetch': typeof ApiAdminStarsFetchRoute
+  '/api/admin/stars/leads': typeof ApiAdminStarsLeadsRoute
+  '/api/admin/stars/research': typeof ApiAdminStarsResearchRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -1036,6 +1064,7 @@ export interface FileRoutesByTo {
   '/templates': typeof ViewTemplatesIndexRoute
   '/admin/collections': typeof AdminCollectionsIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
+  '/admin/stars': typeof AdminStarsIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
   '/api/admin/blog/upload-image': typeof ApiAdminBlogUploadImageRoute
@@ -1058,6 +1087,9 @@ export interface FileRoutesByTo {
   '/api/admin/media/list': typeof ApiAdminMediaListRoute
   '/api/admin/media/move': typeof ApiAdminMediaMoveRoute
   '/api/admin/media/upload': typeof ApiAdminMediaUploadRoute
+  '/api/admin/stars/fetch': typeof ApiAdminStarsFetchRoute
+  '/api/admin/stars/leads': typeof ApiAdminStarsLeadsRoute
+  '/api/admin/stars/research': typeof ApiAdminStarsResearchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1168,6 +1200,7 @@ export interface FileRoutesById {
   '/_view/templates/': typeof ViewTemplatesIndexRoute
   '/admin/collections/': typeof AdminCollectionsIndexRoute
   '/admin/media/': typeof AdminMediaIndexRoute
+  '/admin/stars/': typeof AdminStarsIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
   '/api/admin/blog/upload-image': typeof ApiAdminBlogUploadImageRoute
@@ -1190,6 +1223,9 @@ export interface FileRoutesById {
   '/api/admin/media/list': typeof ApiAdminMediaListRoute
   '/api/admin/media/move': typeof ApiAdminMediaMoveRoute
   '/api/admin/media/upload': typeof ApiAdminMediaUploadRoute
+  '/api/admin/stars/fetch': typeof ApiAdminStarsFetchRoute
+  '/api/admin/stars/leads': typeof ApiAdminStarsLeadsRoute
+  '/api/admin/stars/research': typeof ApiAdminStarsResearchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1300,6 +1336,7 @@ export interface FileRouteTypes {
     | '/templates/'
     | '/admin/collections/'
     | '/admin/media/'
+    | '/admin/stars/'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
     | '/api/admin/blog/upload-image'
@@ -1322,6 +1359,9 @@ export interface FileRouteTypes {
     | '/api/admin/media/list'
     | '/api/admin/media/move'
     | '/api/admin/media/upload'
+    | '/api/admin/stars/fetch'
+    | '/api/admin/stars/leads'
+    | '/api/admin/stars/research'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -1426,6 +1466,7 @@ export interface FileRouteTypes {
     | '/templates'
     | '/admin/collections'
     | '/admin/media'
+    | '/admin/stars'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
     | '/api/admin/blog/upload-image'
@@ -1448,6 +1489,9 @@ export interface FileRouteTypes {
     | '/api/admin/media/list'
     | '/api/admin/media/move'
     | '/api/admin/media/upload'
+    | '/api/admin/stars/fetch'
+    | '/api/admin/stars/leads'
+    | '/api/admin/stars/research'
   id:
     | '__root__'
     | '/_view'
@@ -1557,6 +1601,7 @@ export interface FileRouteTypes {
     | '/_view/templates/'
     | '/admin/collections/'
     | '/admin/media/'
+    | '/admin/stars/'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
     | '/api/admin/blog/upload-image'
@@ -1579,6 +1624,9 @@ export interface FileRouteTypes {
     | '/api/admin/media/list'
     | '/api/admin/media/move'
     | '/api/admin/media/upload'
+    | '/api/admin/stars/fetch'
+    | '/api/admin/stars/leads'
+    | '/api/admin/stars/research'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1623,6 +1671,9 @@ export interface RootRouteChildren {
   ApiAdminMediaListRoute: typeof ApiAdminMediaListRoute
   ApiAdminMediaMoveRoute: typeof ApiAdminMediaMoveRoute
   ApiAdminMediaUploadRoute: typeof ApiAdminMediaUploadRoute
+  ApiAdminStarsFetchRoute: typeof ApiAdminStarsFetchRoute
+  ApiAdminStarsLeadsRoute: typeof ApiAdminStarsLeadsRoute
+  ApiAdminStarsResearchRoute: typeof ApiAdminStarsResearchRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1864,6 +1915,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app'
       preLoaderRoute: typeof ViewAppRouteRouteImport
       parentRoute: typeof ViewRouteRoute
+    }
+    '/admin/stars/': {
+      id: '/admin/stars/'
+      path: '/stars'
+      fullPath: '/admin/stars/'
+      preLoaderRoute: typeof AdminStarsIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/media/': {
       id: '/admin/media/'
@@ -2376,6 +2434,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppAccountRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
+    '/api/admin/stars/research': {
+      id: '/api/admin/stars/research'
+      path: '/api/admin/stars/research'
+      fullPath: '/api/admin/stars/research'
+      preLoaderRoute: typeof ApiAdminStarsResearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/stars/leads': {
+      id: '/api/admin/stars/leads'
+      path: '/api/admin/stars/leads'
+      fullPath: '/api/admin/stars/leads'
+      preLoaderRoute: typeof ApiAdminStarsLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/stars/fetch': {
+      id: '/api/admin/stars/fetch'
+      path: '/api/admin/stars/fetch'
+      fullPath: '/api/admin/stars/fetch'
+      preLoaderRoute: typeof ApiAdminStarsFetchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/media/upload': {
       id: '/api/admin/media/upload'
       path: '/api/admin/media/upload'
@@ -2749,12 +2828,14 @@ interface AdminRouteRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminCollectionsIndexRoute: typeof AdminCollectionsIndexRoute
   AdminMediaIndexRoute: typeof AdminMediaIndexRoute
+  AdminStarsIndexRoute: typeof AdminStarsIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminCollectionsIndexRoute: AdminCollectionsIndexRoute,
   AdminMediaIndexRoute: AdminMediaIndexRoute,
+  AdminStarsIndexRoute: AdminStarsIndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
@@ -2803,6 +2884,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminMediaListRoute: ApiAdminMediaListRoute,
   ApiAdminMediaMoveRoute: ApiAdminMediaMoveRoute,
   ApiAdminMediaUploadRoute: ApiAdminMediaUploadRoute,
+  ApiAdminStarsFetchRoute: ApiAdminStarsFetchRoute,
+  ApiAdminStarsLeadsRoute: ApiAdminStarsLeadsRoute,
+  ApiAdminStarsResearchRoute: ApiAdminStarsResearchRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

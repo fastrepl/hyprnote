@@ -157,6 +157,7 @@ fn spawn_mic_active_timer<R: Runtime>(
     threshold: Duration,
 ) -> tokio::task::JoinHandle<()> {
     let duration_secs = threshold.as_secs();
+    let app_id = app.id.clone();
     tokio::spawn(async move {
         tokio::time::sleep(threshold).await;
 
@@ -170,12 +171,12 @@ fn spawn_mic_active_timer<R: Runtime>(
 
         if is_listening {
             tracing::info!(
-                app_id = %app.id,
+                app_id = %app_id,
                 "skip_mic_active_without_hyprnote: hyprnote_is_listening"
             );
         } else {
             tracing::info!(
-                app_id = %app.id,
+                app_id = %app_id,
                 duration_secs,
                 "mic_active_without_hyprnote"
             );
@@ -192,7 +193,7 @@ fn spawn_mic_active_timer<R: Runtime>(
 
         let state = app_handle.state::<SharedState>();
         let mut state_guard = state.lock().await;
-        state_guard.mic_usage_timers.remove(&app.id);
+        state_guard.mic_usage_timers.remove(&app_id);
     })
 }
 

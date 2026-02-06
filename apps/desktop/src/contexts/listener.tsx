@@ -103,6 +103,25 @@ const useHandleDetectEvents = (store: ListenerStore) => {
           }
         } else if (payload.type === "micMuted") {
           setMuted(payload.value);
+        } else if (payload.type === "micActiveWithoutHyprnote") {
+          if (!notificationDetectEnabledRef.current) {
+            return;
+          }
+
+          const minutes = Math.round(payload.duration_secs / 60);
+          const appName = payload.app.name;
+
+          void notificationCommands.showNotification({
+            key: payload.key,
+            title: "Meeting in progress?",
+            message: `${appName} has been using the mic for ${minutes} min. Start listening?`,
+            timeout: { secs: 15, nanos: 0 },
+            event_id: null,
+            start_time: null,
+            participants: null,
+            event_details: null,
+            action_label: null,
+          });
         }
       })
       .then((fn) => {

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -24,6 +26,7 @@ pub struct State {
     #[allow(dead_code)]
     pub(crate) detector: hypr_detect::Detector,
     pub(crate) policy: policy::MicNotificationPolicy,
+    pub(crate) mic_usage_timers: HashMap<String, tokio::task::JoinHandle<()>>,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

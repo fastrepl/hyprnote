@@ -22,6 +22,12 @@ common_event_derives! {
         MicMuteStateChanged { value: bool },
         #[serde(rename = "sleepStateChanged")]
         SleepStateChanged { value: bool },
+        #[serde(rename = "micActiveWithoutHyprnote")]
+        MicActiveWithoutHyprnote {
+            key: String,
+            app: hypr_detect::InstalledApp,
+            duration_secs: u64,
+        },
     }
 }
 

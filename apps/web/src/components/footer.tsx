@@ -384,28 +384,6 @@ function SocialLinks() {
         </li>
         <li>
           <a
-            href="/bluesky"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
-          >
-            Bluesky
-            <ExternalLinkIcon className="size-3" />
-          </a>
-        </li>
-        <li>
-          <a
-            href="/reddit"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
-          >
-            Reddit
-            <ExternalLinkIcon className="size-3" />
-          </a>
-        </li>
-        <li>
-          <a
             href="/discord"
             target="_blank"
             rel="noopener noreferrer"

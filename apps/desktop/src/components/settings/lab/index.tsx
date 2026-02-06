@@ -40,7 +40,7 @@ function MeetingReminderToggle() {
   const value = useConfigValue("notification_in_meeting_reminder");
   const setValue = settings.UI.useSetValueCallback(
     "notification_in_meeting_reminder",
-    (_event: unknown, value: boolean) => value,
+    (value: boolean) => value,
     [],
     settings.STORE_ID,
   );
@@ -57,7 +57,7 @@ function MeetingReminderToggle() {
       </div>
       <Switch
         checked={value}
-        onCheckedChange={(checked) => setValue(undefined, checked)}
+        onCheckedChange={(checked) => setValue(checked)}
       />
     </div>
   );

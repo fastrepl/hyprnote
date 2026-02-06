@@ -39,13 +39,17 @@
 }
 
 .mention-type {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.15rem 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
   border-radius: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
   flex-shrink: 0;
+}
+
+.mention-type-icon {
+  width: 0.9rem;
+  height: 0.9rem;
 }
 
 .mention-type-session {

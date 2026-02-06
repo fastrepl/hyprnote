@@ -106,18 +106,27 @@ export function SearchEngineProvider({
       query: string,
       filters: SearchFilters | null = null,
     ): Promise<SearchHit[]> => {
-      const normalizedQuery = normalizeQuery(query);
-
-      if (normalizedQuery.length < 1) {
-        return [];
-      }
-
       if (!oramaInstance.current) {
         return [];
       }
 
+      const normalizedQuery = normalizeQuery(query);
+
       try {
         const whereClause = buildOramaFilters(filters);
+
+        if (normalizedQuery.length < 1) {
+          const searchResults = await oramaSearch(oramaInstance.current, {
+            term: "",
+            sortBy: {
+              property: "created_at",
+              order: "DESC",
+            },
+            limit: 10,
+            ...(whereClause && { where: whereClause }),
+          });
+          return searchResults.hits as SearchHit[];
+        }
 
         const searchResults = await oramaSearch(oramaInstance.current, {
           term: normalizedQuery,

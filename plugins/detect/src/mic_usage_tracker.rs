@@ -42,10 +42,15 @@ impl MicUsageTracker {
         self.timers.contains_key(app_id)
     }
 
-    pub fn is_in_cooldown(&self, app_id: &str) -> bool {
+    pub fn is_in_cooldown(&mut self, app_id: &str) -> bool {
         match self.cooldowns.get(app_id) {
             Some(&fired_at) => {
-                tokio::time::Instant::now().duration_since(fired_at) < COOLDOWN_DURATION
+                if tokio::time::Instant::now().duration_since(fired_at) < COOLDOWN_DURATION {
+                    true
+                } else {
+                    self.cooldowns.remove(app_id);
+                    false
+                }
             }
             None => false,
         }

@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
-import { cn, safeParseDate } from "@hypr/utils";
+import { cn, format, getYear, safeParseDate, TZDate } from "@hypr/utils";
 
 import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
@@ -423,47 +423,23 @@ function formatDisplayTime(
   precision: TimelinePrecision,
   timezone?: string,
 ): string {
-  const date = safeParseDate(timestamp);
-  if (!date) {
+  const parsed = safeParseDate(timestamp);
+  if (!parsed) {
     return "";
   }
 
-  const timeOptions: Intl.DateTimeFormatOptions = {
-    hour: "numeric",
-    minute: "numeric",
-    timeZone: timezone,
-  };
-
-  const time = date.toLocaleTimeString([], timeOptions);
+  const date = timezone ? new TZDate(parsed, timezone) : parsed;
+  const time = format(date, "h:mm a");
 
   if (precision === "time") {
     return time;
   }
 
-  const now = new Date();
-  const yearInTz = timezone
-    ? parseInt(
-        new Intl.DateTimeFormat("en-US", {
-          year: "numeric",
-          timeZone: timezone,
-        }).format(date),
-      )
-    : date.getFullYear();
-  const currentYearInTz = timezone
-    ? parseInt(
-        new Intl.DateTimeFormat("en-US", {
-          year: "numeric",
-          timeZone: timezone,
-        }).format(now),
-      )
-    : now.getFullYear();
-  const sameYear = yearInTz === currentYearInTz;
-
-  const dateOptions: Intl.DateTimeFormatOptions = sameYear
-    ? { month: "short", day: "numeric", timeZone: timezone }
-    : { month: "short", day: "numeric", year: "numeric", timeZone: timezone };
-
-  const dateStr = date.toLocaleDateString([], dateOptions);
+  const now = timezone ? new TZDate(new Date(), timezone) : new Date();
+  const sameYear = getYear(date) === getYear(now);
+  const dateStr = sameYear
+    ? format(date, "MMM d")
+    : format(date, "MMM d, yyyy");
 
   return `${dateStr}, ${time}`;
 }

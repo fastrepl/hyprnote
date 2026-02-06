@@ -7,9 +7,11 @@ summary: "Resources and workflows for everyone joining Hyprnote."
 ## First Steps
 
 1. Get added to the [GitHub organization](https://github.com/fastrepl) and the [hyprnote repo](https://github.com/fastrepl/hyprnote)
-2. Read through this handbook — start with [What Hyprnote Is](/handbook/about/what-hyprnote-is), [Design Philosophy](/handbook/beliefs/design-philosophy), and [Product Philosophy](/handbook/about/product-philosophy)
-3. Download a [staging build](#downloading-staging-builds) and use the app yourself
-4. Set up your local development environment (see below)
+2. Get invited to [Infisical](https://infisical.com) — ask a team member if you haven't received an invite
+3. Read through this handbook — start with [What Hyprnote Is](/handbook/about/what-hyprnote-is), [Design Philosophy](/handbook/beliefs/design-philosophy), and [Product Philosophy](/handbook/about/product-philosophy)
+4. Read the [developer documentation](/docs/developers/setup) — it covers setup, environment variables, running the app, login, and more
+5. Download a [staging build](#downloading-staging-builds) and use the app yourself
+6. Set up your local development environment (see below)
 
 ## Development Environment
 
@@ -45,6 +47,18 @@ pnpm install
 
 See [Environment Variables](/docs/developers/env) for configuration, and [Run](/docs/developers/run) for starting the dev server.
 
+### Local Supabase and Auth
+
+We use a **local Supabase instance** (powered by Docker) during development — you do not need production Supabase keys. Running `task supabase-start` will spin up the local instance and generate `.env.supabase` with all the necessary keys automatically.
+
+To enable the **GitHub login flow** locally, use [Infisical](https://infisical.com/docs/cli/commands/login) to inject the dev-only OAuth credentials:
+
+```bash
+infisical run --env=dev --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1 --path="/supabase" -- task supabase-start
+```
+
+This sets `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` for a dev-only GitHub OAuth app so that GitHub login works against your local Supabase. See the [Login docs](/docs/developers/login) and the [Taskfile](https://github.com/fastrepl/hyprnote/blob/main/Taskfile.yaml) for more details.
+
 ### Troubleshooting
 
 If Cursor cannot connect to the network when indexing the repo, try:
@@ -52,6 +66,8 @@ If Cursor cannot connect to the network when indexing the repo, try:
 - Ensure you have a stable internet connection
 - Restart Cursor and re-open the project
 - If the issue persists, you can still work by browsing the code directly — the project structure is documented in the [developer docs](/docs/developers/setup)
+
+> **Tip:** If something isn't covered here, check the [developer documentation](/docs/developers/setup) — it has dedicated pages for [environment variables](/docs/developers/env), [running the app](/docs/developers/run), [login/auth](/docs/developers/login), and more.
 
 ## For Designers
 

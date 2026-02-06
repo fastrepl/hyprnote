@@ -5,8 +5,11 @@ import {
   Menu,
   PanelLeft,
   PanelLeftClose,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 import { SearchTrigger } from "@/components/search";
 import { useDocsDrawer } from "@/hooks/use-docs-drawer";
@@ -465,7 +468,13 @@ function MobileNav({
   return (
     <div className="sm:hidden flex items-center gap-3">
       {!hideCTA && (
-        <CTAButton platformCTA={platformCTA} platform={platform} mobile />
+        <div
+          className={cn("transition-opacity duration-200 ease-out", [
+            isMenuOpen ? "opacity-0" : "opacity-100",
+          ])}
+        >
+          <CTAButton platformCTA={platformCTA} platform={platform} mobile />
+        </div>
       )}
       <button
         onClick={() => {
@@ -483,7 +492,11 @@ function MobileNav({
         aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         aria-expanded={isMenuOpen}
       >
-        <Menu className="text-neutral-600" size={16} />
+        {isMenuOpen ? (
+          <X className="text-neutral-600" size={16} />
+        ) : (
+          <Menu className="text-neutral-600" size={16} />
+        )}
       </button>
     </div>
   );
@@ -706,16 +719,18 @@ function MobileFeaturesList({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
         Features
       </div>
-      {featuresList.map((link) => (
-        <Link
-          key={link.to}
-          to={link.to}
-          onClick={() => setIsMenuOpen(false)}
-          className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
-        >
-          {link.label}
-        </Link>
-      ))}
+      <div className="flex flex-col gap-2 pb-4">
+        {featuresList.map((link) => (
+          <Link
+            key={link.to}
+            to={link.to}
+            onClick={() => setIsMenuOpen(false)}
+            className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
@@ -730,16 +745,18 @@ function MobileSolutionsList({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
         Solutions
       </div>
-      {solutionsList.map((link) => (
-        <Link
-          key={link.to}
-          to={link.to}
-          onClick={() => setIsMenuOpen(false)}
-          className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
-        >
-          {link.label}
-        </Link>
-      ))}
+      <div className="flex flex-col gap-2">
+        {solutionsList.map((link) => (
+          <Link
+            key={link.to}
+            to={link.to}
+            onClick={() => setIsMenuOpen(false)}
+            className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
@@ -754,11 +771,11 @@ function MobileMenuCTAs({
   setIsMenuOpen: (open: boolean) => void;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-row sticky bottom-4 gap-3">
       <Link
         to="/auth/"
         onClick={() => setIsMenuOpen(false)}
-        className="block w-full px-4 py-3 text-center text-sm text-neutral-700 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
+        className="block w-full px-4 py-3 text-center text-sm text-neutral-700 border border-neutral-200 bg-white rounded-lg hover:bg-neutral-50 transition-colors"
       >
         Get started
       </Link>

@@ -179,15 +179,20 @@ function Component() {
                 Open Hyprnote
               </button>
 
-              <div className="p-4 bg-stone-50 rounded-lg border border-stone-100">
-                <p className="text-sm text-stone-500 mb-3">
+              <button
+                onClick={handleCopy}
+                className={cn([
+                  "w-full p-4 flex flex-col items-center gap-3 text-left cursor-pointer transition-all",
+                  "bg-stone-50 rounded-lg border border-stone-100 hover:bg-stone-100 active:scale-[99%]",
+                ])}
+              >
+                <p className="text-sm text-stone-500">
                   Button not working? Copy the link instead
                 </p>
-                <button
-                  onClick={handleCopy}
+                <span
                   className={cn([
-                    "w-full h-10 flex items-center justify-center gap-2 text-sm font-medium transition-all cursor-pointer",
-                    "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+                    "w-full h-10 flex items-center justify-center gap-2 text-sm font-medium",
+                    "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs",
                   ])}
                 >
                   {copied ? (
@@ -201,8 +206,8 @@ function Component() {
                       Copy URL
                     </>
                   )}
-                </button>
-              </div>
+                </span>
+              </button>
             </div>
           )}
         </div>

@@ -14,6 +14,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -83,11 +84,6 @@ async function initSession(
 ): Promise<void> {
   const onClear = () => clearInvalidSession(client, setSession);
 
-  const onSuccess = (session: Session) => {
-    setSession(session);
-    void client.auth.startAutoRefresh();
-  };
-
   try {
     const { data, error } = await client.auth.getSession();
 
@@ -99,7 +95,7 @@ async function initSession(
     }
 
     if (data.session) {
-      onSuccess(data.session);
+      setSession(data.session);
     }
   } catch (e) {
     if (isFatalSessionError(e)) {
@@ -136,6 +132,8 @@ async function trackAuthEvent(
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [fingerprint, setFingerprint] = useState<string | null>(null);
+  // Prevents double initSession in React StrictMode, which can cause refresh token races
+  const initStartedRef = useRef(false);
 
   useEffect(() => {
     miscCommands.getFingerprint().then((result) => {
@@ -161,7 +159,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error(res.error);
       } else {
         setSession(res.data.session);
-        void supabase.auth.startAutoRefresh();
       }
     },
     [],
@@ -188,22 +185,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    void initSession(supabase, setSession);
+    if (!initStartedRef.current) {
+      initStartedRef.current = true;
+      void initSession(supabase, setSession);
+    }
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "TOKEN_REFRESHED" && !session) {
-        if (env.VITE_SUPABASE_URL?.includes("localhost")) {
-          void clearAuthStorage();
-        }
-      }
       void trackAuthEvent(event, session);
       setSession(session);
     });
 
     return () => {
       subscription.unsubscribe();
+      void supabase?.auth.stopAutoRefresh();
     };
   }, []);
 

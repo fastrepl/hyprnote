@@ -97,18 +97,14 @@ export const StoreComponent = () => {
     store,
     (store) =>
       createQueries(store)
-        .setQueryDefinition(
-          QUERIES.timelineEvents,
-          "events",
-          ({ select, where }) => {
-            select("title");
-            select("started_at");
-            select("ended_at");
-            select("calendar_id");
-            select("recurrence_series_id");
-            where((getTableCell) => !getTableCell("events", "ignored"));
-          },
-        )
+        .setQueryDefinition(QUERIES.timelineEvents, "events", ({ select }) => {
+          select("title");
+          select("started_at");
+          select("ended_at");
+          select("calendar_id");
+          select("recurrence_series_id");
+          select("ignored");
+        })
         .setQueryDefinition(
           QUERIES.timelineSessions,
           "sessions",

@@ -29,6 +29,7 @@ import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
 import { Route as ApiMediaUploadRouteImport } from './routes/api/media-upload'
 import { Route as ApiK6ReportsRouteImport } from './routes/api/k6-reports'
+import { Route as ViewWhyHyprnoteRouteImport } from './routes/_view/why-hyprnote'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewPrivacyRouteImport } from './routes/_view/privacy'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
@@ -71,6 +72,7 @@ import { Route as ViewSolutionProjectManagementRouteImport } from './routes/_vie
 import { Route as ViewSolutionMeetingRouteImport } from './routes/_view/solution/meeting'
 import { Route as ViewSolutionMediaRouteImport } from './routes/_view/solution/media'
 import { Route as ViewSolutionLegalRouteImport } from './routes/_view/solution/legal'
+import { Route as ViewSolutionKnowledgeWorkersRouteImport } from './routes/_view/solution/knowledge-workers'
 import { Route as ViewSolutionJournalismRouteImport } from './routes/_view/solution/journalism'
 import { Route as ViewSolutionHealthcareRouteImport } from './routes/_view/solution/healthcare'
 import { Route as ViewSolutionGovernmentRouteImport } from './routes/_view/solution/government'
@@ -82,11 +84,14 @@ import { Route as ViewSolutionCoachingRouteImport } from './routes/_view/solutio
 import { Route as ViewShortcutsSlugRouteImport } from './routes/_view/shortcuts/$slug'
 import { Route as ViewRoadmapSlugRouteImport } from './routes/_view/roadmap/$slug'
 import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
+import { Route as ViewProductSearchRouteImport } from './routes/_view/product/search'
 import { Route as ViewProductNotepadRouteImport } from './routes/_view/product/notepad'
 import { Route as ViewProductMiniAppsRouteImport } from './routes/_view/product/mini-apps'
 import { Route as ViewProductMemoryRouteImport } from './routes/_view/product/memory'
+import { Route as ViewProductMarkdownRouteImport } from './routes/_view/product/markdown'
 import { Route as ViewProductLocalAiRouteImport } from './routes/_view/product/local-ai'
 import { Route as ViewProductIntegrationsRouteImport } from './routes/_view/product/integrations'
+import { Route as ViewProductFlexibleAiRouteImport } from './routes/_view/product/flexible-ai'
 import { Route as ViewProductExtensionsRouteImport } from './routes/_view/product/extensions'
 import { Route as ViewProductBotRouteImport } from './routes/_view/product/bot'
 import { Route as ViewProductApiRouteImport } from './routes/_view/product/api'
@@ -232,6 +237,11 @@ const ApiK6ReportsRoute = ApiK6ReportsRouteImport.update({
   id: '/api/k6-reports',
   path: '/api/k6-reports',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ViewWhyHyprnoteRoute = ViewWhyHyprnoteRouteImport.update({
+  id: '/why-hyprnote',
+  path: '/why-hyprnote',
+  getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewSecurityRoute = ViewSecurityRouteImport.update({
   id: '/security',
@@ -447,6 +457,12 @@ const ViewSolutionLegalRoute = ViewSolutionLegalRouteImport.update({
   path: '/solution/legal',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewSolutionKnowledgeWorkersRoute =
+  ViewSolutionKnowledgeWorkersRouteImport.update({
+    id: '/solution/knowledge-workers',
+    path: '/solution/knowledge-workers',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
 const ViewSolutionJournalismRoute = ViewSolutionJournalismRouteImport.update({
   id: '/solution/journalism',
   path: '/solution/journalism',
@@ -504,6 +520,11 @@ const ViewProductSelfHostingRoute = ViewProductSelfHostingRouteImport.update({
   path: '/product/self-hosting',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewProductSearchRoute = ViewProductSearchRouteImport.update({
+  id: '/product/search',
+  path: '/product/search',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewProductNotepadRoute = ViewProductNotepadRouteImport.update({
   id: '/product/notepad',
   path: '/product/notepad',
@@ -519,6 +540,11 @@ const ViewProductMemoryRoute = ViewProductMemoryRouteImport.update({
   path: '/product/memory',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewProductMarkdownRoute = ViewProductMarkdownRouteImport.update({
+  id: '/product/markdown',
+  path: '/product/markdown',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewProductLocalAiRoute = ViewProductLocalAiRouteImport.update({
   id: '/product/local-ai',
   path: '/product/local-ai',
@@ -527,6 +553,11 @@ const ViewProductLocalAiRoute = ViewProductLocalAiRouteImport.update({
 const ViewProductIntegrationsRoute = ViewProductIntegrationsRouteImport.update({
   id: '/product/integrations',
   path: '/product/integrations',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductFlexibleAiRoute = ViewProductFlexibleAiRouteImport.update({
+  id: '/product/flexible-ai',
+  path: '/product/flexible-ai',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewProductExtensionsRoute = ViewProductExtensionsRouteImport.update({
@@ -799,6 +830,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof ViewPricingRoute
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
+  '/why-hyprnote': typeof ViewWhyHyprnoteRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
   '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
@@ -829,11 +861,14 @@ export interface FileRoutesByFullPath {
   '/product/api': typeof ViewProductApiRoute
   '/product/bot': typeof ViewProductBotRoute
   '/product/extensions': typeof ViewProductExtensionsRoute
+  '/product/flexible-ai': typeof ViewProductFlexibleAiRoute
   '/product/integrations': typeof ViewProductIntegrationsRoute
   '/product/local-ai': typeof ViewProductLocalAiRoute
+  '/product/markdown': typeof ViewProductMarkdownRoute
   '/product/memory': typeof ViewProductMemoryRoute
   '/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/product/notepad': typeof ViewProductNotepadRoute
+  '/product/search': typeof ViewProductSearchRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
@@ -845,6 +880,7 @@ export interface FileRoutesByFullPath {
   '/solution/government': typeof ViewSolutionGovernmentRoute
   '/solution/healthcare': typeof ViewSolutionHealthcareRoute
   '/solution/journalism': typeof ViewSolutionJournalismRoute
+  '/solution/knowledge-workers': typeof ViewSolutionKnowledgeWorkersRoute
   '/solution/legal': typeof ViewSolutionLegalRoute
   '/solution/media': typeof ViewSolutionMediaRoute
   '/solution/meeting': typeof ViewSolutionMeetingRoute
@@ -919,6 +955,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof ViewPricingRoute
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
+  '/why-hyprnote': typeof ViewWhyHyprnoteRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
   '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
@@ -950,11 +987,14 @@ export interface FileRoutesByTo {
   '/product/api': typeof ViewProductApiRoute
   '/product/bot': typeof ViewProductBotRoute
   '/product/extensions': typeof ViewProductExtensionsRoute
+  '/product/flexible-ai': typeof ViewProductFlexibleAiRoute
   '/product/integrations': typeof ViewProductIntegrationsRoute
   '/product/local-ai': typeof ViewProductLocalAiRoute
+  '/product/markdown': typeof ViewProductMarkdownRoute
   '/product/memory': typeof ViewProductMemoryRoute
   '/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/product/notepad': typeof ViewProductNotepadRoute
+  '/product/search': typeof ViewProductSearchRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
@@ -966,6 +1006,7 @@ export interface FileRoutesByTo {
   '/solution/government': typeof ViewSolutionGovernmentRoute
   '/solution/healthcare': typeof ViewSolutionHealthcareRoute
   '/solution/journalism': typeof ViewSolutionJournalismRoute
+  '/solution/knowledge-workers': typeof ViewSolutionKnowledgeWorkersRoute
   '/solution/legal': typeof ViewSolutionLegalRoute
   '/solution/media': typeof ViewSolutionMediaRoute
   '/solution/meeting': typeof ViewSolutionMeetingRoute
@@ -1046,6 +1087,7 @@ export interface FileRoutesById {
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/privacy': typeof ViewPrivacyRoute
   '/_view/security': typeof ViewSecurityRoute
+  '/_view/why-hyprnote': typeof ViewWhyHyprnoteRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
   '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
@@ -1077,11 +1119,14 @@ export interface FileRoutesById {
   '/_view/product/api': typeof ViewProductApiRoute
   '/_view/product/bot': typeof ViewProductBotRoute
   '/_view/product/extensions': typeof ViewProductExtensionsRoute
+  '/_view/product/flexible-ai': typeof ViewProductFlexibleAiRoute
   '/_view/product/integrations': typeof ViewProductIntegrationsRoute
   '/_view/product/local-ai': typeof ViewProductLocalAiRoute
+  '/_view/product/markdown': typeof ViewProductMarkdownRoute
   '/_view/product/memory': typeof ViewProductMemoryRoute
   '/_view/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/_view/product/notepad': typeof ViewProductNotepadRoute
+  '/_view/product/search': typeof ViewProductSearchRoute
   '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/_view/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/_view/shortcuts/$slug': typeof ViewShortcutsSlugRoute
@@ -1093,6 +1138,7 @@ export interface FileRoutesById {
   '/_view/solution/government': typeof ViewSolutionGovernmentRoute
   '/_view/solution/healthcare': typeof ViewSolutionHealthcareRoute
   '/_view/solution/journalism': typeof ViewSolutionJournalismRoute
+  '/_view/solution/knowledge-workers': typeof ViewSolutionKnowledgeWorkersRoute
   '/_view/solution/legal': typeof ViewSolutionLegalRoute
   '/_view/solution/media': typeof ViewSolutionMediaRoute
   '/_view/solution/meeting': typeof ViewSolutionMeetingRoute
@@ -1174,6 +1220,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/security'
+    | '/why-hyprnote'
     | '/api/k6-reports'
     | '/api/media-upload'
     | '/api/shortcuts'
@@ -1204,11 +1251,14 @@ export interface FileRouteTypes {
     | '/product/api'
     | '/product/bot'
     | '/product/extensions'
+    | '/product/flexible-ai'
     | '/product/integrations'
     | '/product/local-ai'
+    | '/product/markdown'
     | '/product/memory'
     | '/product/mini-apps'
     | '/product/notepad'
+    | '/product/search'
     | '/product/self-hosting'
     | '/roadmap/$slug'
     | '/shortcuts/$slug'
@@ -1220,6 +1270,7 @@ export interface FileRouteTypes {
     | '/solution/government'
     | '/solution/healthcare'
     | '/solution/journalism'
+    | '/solution/knowledge-workers'
     | '/solution/legal'
     | '/solution/media'
     | '/solution/meeting'
@@ -1294,6 +1345,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/security'
+    | '/why-hyprnote'
     | '/api/k6-reports'
     | '/api/media-upload'
     | '/api/shortcuts'
@@ -1325,11 +1377,14 @@ export interface FileRouteTypes {
     | '/product/api'
     | '/product/bot'
     | '/product/extensions'
+    | '/product/flexible-ai'
     | '/product/integrations'
     | '/product/local-ai'
+    | '/product/markdown'
     | '/product/memory'
     | '/product/mini-apps'
     | '/product/notepad'
+    | '/product/search'
     | '/product/self-hosting'
     | '/roadmap/$slug'
     | '/shortcuts/$slug'
@@ -1341,6 +1396,7 @@ export interface FileRouteTypes {
     | '/solution/government'
     | '/solution/healthcare'
     | '/solution/journalism'
+    | '/solution/knowledge-workers'
     | '/solution/legal'
     | '/solution/media'
     | '/solution/meeting'
@@ -1420,6 +1476,7 @@ export interface FileRouteTypes {
     | '/_view/pricing'
     | '/_view/privacy'
     | '/_view/security'
+    | '/_view/why-hyprnote'
     | '/api/k6-reports'
     | '/api/media-upload'
     | '/api/shortcuts'
@@ -1451,11 +1508,14 @@ export interface FileRouteTypes {
     | '/_view/product/api'
     | '/_view/product/bot'
     | '/_view/product/extensions'
+    | '/_view/product/flexible-ai'
     | '/_view/product/integrations'
     | '/_view/product/local-ai'
+    | '/_view/product/markdown'
     | '/_view/product/memory'
     | '/_view/product/mini-apps'
     | '/_view/product/notepad'
+    | '/_view/product/search'
     | '/_view/product/self-hosting'
     | '/_view/roadmap/$slug'
     | '/_view/shortcuts/$slug'
@@ -1467,6 +1527,7 @@ export interface FileRouteTypes {
     | '/_view/solution/government'
     | '/_view/solution/healthcare'
     | '/_view/solution/journalism'
+    | '/_view/solution/knowledge-workers'
     | '/_view/solution/legal'
     | '/_view/solution/media'
     | '/_view/solution/meeting'
@@ -1705,6 +1766,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/k6-reports'
       preLoaderRoute: typeof ApiK6ReportsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_view/why-hyprnote': {
+      id: '/_view/why-hyprnote'
+      path: '/why-hyprnote'
+      fullPath: '/why-hyprnote'
+      preLoaderRoute: typeof ViewWhyHyprnoteRouteImport
+      parentRoute: typeof ViewRouteRoute
     }
     '/_view/security': {
       id: '/_view/security'
@@ -2000,6 +2068,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewSolutionLegalRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/solution/knowledge-workers': {
+      id: '/_view/solution/knowledge-workers'
+      path: '/solution/knowledge-workers'
+      fullPath: '/solution/knowledge-workers'
+      preLoaderRoute: typeof ViewSolutionKnowledgeWorkersRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/solution/journalism': {
       id: '/_view/solution/journalism'
       path: '/solution/journalism'
@@ -2077,6 +2152,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewProductSelfHostingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/product/search': {
+      id: '/_view/product/search'
+      path: '/product/search'
+      fullPath: '/product/search'
+      preLoaderRoute: typeof ViewProductSearchRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/product/notepad': {
       id: '/_view/product/notepad'
       path: '/product/notepad'
@@ -2098,6 +2180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewProductMemoryRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/product/markdown': {
+      id: '/_view/product/markdown'
+      path: '/product/markdown'
+      fullPath: '/product/markdown'
+      preLoaderRoute: typeof ViewProductMarkdownRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/product/local-ai': {
       id: '/_view/product/local-ai'
       path: '/product/local-ai'
@@ -2110,6 +2199,13 @@ declare module '@tanstack/react-router' {
       path: '/product/integrations'
       fullPath: '/product/integrations'
       preLoaderRoute: typeof ViewProductIntegrationsRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/flexible-ai': {
+      id: '/_view/product/flexible-ai'
+      path: '/product/flexible-ai'
+      fullPath: '/product/flexible-ai'
+      preLoaderRoute: typeof ViewProductFlexibleAiRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/product/extensions': {
@@ -2501,6 +2597,7 @@ interface ViewRouteRouteChildren {
   ViewPricingRoute: typeof ViewPricingRoute
   ViewPrivacyRoute: typeof ViewPrivacyRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
+  ViewWhyHyprnoteRoute: typeof ViewWhyHyprnoteRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
@@ -2520,11 +2617,14 @@ interface ViewRouteRouteChildren {
   ViewProductApiRoute: typeof ViewProductApiRoute
   ViewProductBotRoute: typeof ViewProductBotRoute
   ViewProductExtensionsRoute: typeof ViewProductExtensionsRoute
+  ViewProductFlexibleAiRoute: typeof ViewProductFlexibleAiRoute
   ViewProductIntegrationsRoute: typeof ViewProductIntegrationsRoute
   ViewProductLocalAiRoute: typeof ViewProductLocalAiRoute
+  ViewProductMarkdownRoute: typeof ViewProductMarkdownRoute
   ViewProductMemoryRoute: typeof ViewProductMemoryRoute
   ViewProductMiniAppsRoute: typeof ViewProductMiniAppsRoute
   ViewProductNotepadRoute: typeof ViewProductNotepadRoute
+  ViewProductSearchRoute: typeof ViewProductSearchRoute
   ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute
   ViewRoadmapSlugRoute: typeof ViewRoadmapSlugRoute
   ViewShortcutsSlugRoute: typeof ViewShortcutsSlugRoute
@@ -2536,6 +2636,7 @@ interface ViewRouteRouteChildren {
   ViewSolutionGovernmentRoute: typeof ViewSolutionGovernmentRoute
   ViewSolutionHealthcareRoute: typeof ViewSolutionHealthcareRoute
   ViewSolutionJournalismRoute: typeof ViewSolutionJournalismRoute
+  ViewSolutionKnowledgeWorkersRoute: typeof ViewSolutionKnowledgeWorkersRoute
   ViewSolutionLegalRoute: typeof ViewSolutionLegalRoute
   ViewSolutionMediaRoute: typeof ViewSolutionMediaRoute
   ViewSolutionMeetingRoute: typeof ViewSolutionMeetingRoute
@@ -2575,6 +2676,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewPricingRoute: ViewPricingRoute,
   ViewPrivacyRoute: ViewPrivacyRoute,
   ViewSecurityRoute: ViewSecurityRoute,
+  ViewWhyHyprnoteRoute: ViewWhyHyprnoteRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
@@ -2594,11 +2696,14 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewProductApiRoute: ViewProductApiRoute,
   ViewProductBotRoute: ViewProductBotRoute,
   ViewProductExtensionsRoute: ViewProductExtensionsRoute,
+  ViewProductFlexibleAiRoute: ViewProductFlexibleAiRoute,
   ViewProductIntegrationsRoute: ViewProductIntegrationsRoute,
   ViewProductLocalAiRoute: ViewProductLocalAiRoute,
+  ViewProductMarkdownRoute: ViewProductMarkdownRoute,
   ViewProductMemoryRoute: ViewProductMemoryRoute,
   ViewProductMiniAppsRoute: ViewProductMiniAppsRoute,
   ViewProductNotepadRoute: ViewProductNotepadRoute,
+  ViewProductSearchRoute: ViewProductSearchRoute,
   ViewProductSelfHostingRoute: ViewProductSelfHostingRoute,
   ViewRoadmapSlugRoute: ViewRoadmapSlugRoute,
   ViewShortcutsSlugRoute: ViewShortcutsSlugRoute,
@@ -2610,6 +2715,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewSolutionGovernmentRoute: ViewSolutionGovernmentRoute,
   ViewSolutionHealthcareRoute: ViewSolutionHealthcareRoute,
   ViewSolutionJournalismRoute: ViewSolutionJournalismRoute,
+  ViewSolutionKnowledgeWorkersRoute: ViewSolutionKnowledgeWorkersRoute,
   ViewSolutionLegalRoute: ViewSolutionLegalRoute,
   ViewSolutionMediaRoute: ViewSolutionMediaRoute,
   ViewSolutionMeetingRoute: ViewSolutionMeetingRoute,

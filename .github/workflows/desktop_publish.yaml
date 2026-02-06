@@ -138,3 +138,4 @@ jobs:
           name: desktop_v${{ needs.parse.outputs.version }}
           body: "https://hyprnote.com/changelog/${{ needs.parse.outputs.version }}"
           artifacts: ${{ steps.artifacts.outputs.list }}
+          makeLatest: true

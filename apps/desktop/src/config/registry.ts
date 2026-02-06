@@ -20,7 +20,8 @@ export type ConfigKey =
   | "telemetry_consent"
   | "current_llm_provider"
   | "current_llm_model"
-  | "timezone";
+  | "timezone"
+  | "notification_in_meeting_reminder";
 
 type ConfigValueType<K extends ConfigKey> =
   (typeof CONFIG_REGISTRY)[K]["default"];
@@ -144,5 +145,10 @@ export const CONFIG_REGISTRY = {
   timezone: {
     key: "timezone",
     default: undefined as string | undefined,
+  },
+
+  notification_in_meeting_reminder: {
+    key: "notification_in_meeting_reminder",
+    default: true,
   },
 } satisfies Record<ConfigKey, ConfigDefinition>;

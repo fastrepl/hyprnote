@@ -17,6 +17,9 @@ import { ShellProvider } from "../../../contexts/shell";
 import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
 import { useDeeplinkHandler } from "../../../hooks/useDeeplinkHandler";
+import { deleteSessionCascade } from "../../../store/tinybase/store/deleteSession";
+import * as main from "../../../store/tinybase/store/main";
+import { isSessionEmpty } from "../../../store/tinybase/store/sessions";
 import {
   restorePinnedTabsToStore,
   restoreRecentlyOpenedToStore,
@@ -31,11 +34,20 @@ function Component() {
   const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({
     from: "__root__",
   });
-  const { registerOnEmpty, registerCanClose, openNew, pin } = useTabs();
+  const {
+    registerOnEmpty,
+    registerCanClose,
+    registerOnClose,
+    openNew,
+    pin,
+    invalidateResource,
+  } = useTabs();
   const hasOpenedInitialTab = useRef(false);
   const liveSessionId = useListener((state) => state.live.sessionId);
   const liveStatus = useListener((state) => state.live.status);
   const prevLiveStatus = usePrevious(liveStatus);
+  const store = main.UI.useStore(main.STORE_ID);
+  const indexes = main.UI.useIndexes(main.STORE_ID);
 
   useDeeplinkHandler();
 
@@ -83,6 +95,21 @@ function Component() {
   useEffect(() => {
     registerCanClose(() => true);
   }, [registerCanClose]);
+
+  useEffect(() => {
+    if (!store) {
+      return;
+    }
+    registerOnClose((tab) => {
+      if (tab.type === "sessions") {
+        const sessionId = tab.id;
+        if (isSessionEmpty(store, sessionId)) {
+          invalidateResource("sessions", sessionId);
+          void deleteSessionCascade(store, indexes, sessionId);
+        }
+      }
+    });
+  }, [registerOnClose, invalidateResource, store, indexes]);
 
   if (!aiTaskStore) {
     return null;

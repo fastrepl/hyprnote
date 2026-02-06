@@ -1,16 +1,7 @@
-import * as Sentry from "@sentry/react";
 import { useEffect, useRef, useState } from "react";
 
-import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
-import { createClient } from "@hypr/api-client/client";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { commands as sfxCommands } from "@hypr/plugin-sfx";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
-
 import { useAuth } from "../../auth";
-import { env } from "../../env";
 import { Route } from "../../routes/app/onboarding/_layout.index";
-import { commands } from "../../types/tauri.gen";
 import { getBack, getNext, type StepProps } from "./config";
 import { Divider, OnboardingContainer } from "./shared";
 
@@ -62,43 +53,6 @@ export function Login({ onNavigate }: StepProps) {
   );
 }
 
-async function finishOnboarding() {
-  await sfxCommands.stop("BGM").catch(console.error);
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await commands.setOnboardingNeeded(false).catch(console.error);
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await windowsCommands.windowShow({ type: "main" });
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await windowsCommands.windowDestroy({ type: "onboarding" });
-}
-
-async function tryStartTrial(headers: Record<string, string>) {
-  const client = createClient({ baseUrl: env.VITE_API_URL, headers });
-  const { data } = await getRpcCanStartTrial({ client });
-
-  if (!data?.canStartTrial) {
-    return false;
-  }
-
-  const { error } = await postBillingStartTrial({
-    client,
-    query: { interval: "monthly" },
-  });
-
-  if (error) {
-    return false;
-  }
-
-  void analyticsCommands.event({ event: "trial_started", plan: "pro" });
-  const trialEndDate = new Date();
-  trialEndDate.setDate(trialEndDate.getDate() + 14);
-  void analyticsCommands.setProperties({
-    set: { plan: "pro", trial_end_date: trialEndDate.toISOString() },
-  });
-
-  return true;
-}
-
 function useAutoSignIn() {
   const auth = useAuth();
 
@@ -122,26 +76,9 @@ function usePostAuthNavigation(onNavigate: StepProps["onNavigate"]) {
     }
     hasHandledRef.current = true;
 
-    const handle = async () => {
-      const headers = auth.getHeaders();
-      if (headers) {
-        try {
-          await tryStartTrial(headers);
-          await auth.refreshSession();
-        } catch (e) {
-          Sentry.captureException(e);
-          console.error(e);
-        }
-      }
-
-      const nextStep = getNext(search);
-      if (nextStep) {
-        onNavigate({ ...search, step: nextStep });
-      } else {
-        void finishOnboarding();
-      }
-    };
-
-    void handle();
+    const nextStep = getNext(search);
+    if (nextStep) {
+      onNavigate({ ...search, step: nextStep });
+    }
   }, [auth, search, onNavigate]);
 }

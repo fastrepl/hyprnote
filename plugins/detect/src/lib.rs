@@ -1,12 +1,15 @@
+use std::sync::{Arc, Mutex};
+
 use tauri::Manager;
-use tokio::sync::Mutex;
 
 mod commands;
 mod dnd;
+mod env;
 mod error;
 mod events;
 mod ext;
 mod handler;
+mod mic_usage_tracker;
 mod policy;
 
 pub use dnd::*;
@@ -17,13 +20,13 @@ pub use policy::*;
 
 const PLUGIN_NAME: &str = "detect";
 
-pub type SharedState = Mutex<State>;
+pub(crate) type DetectorState = Mutex<hypr_detect::Detector>;
+pub(crate) type ProcessorState = Arc<Mutex<Processor>>;
 
 #[derive(Default)]
-pub struct State {
-    #[allow(dead_code)]
-    pub(crate) detector: hypr_detect::Detector,
+pub(crate) struct Processor {
     pub(crate) policy: policy::MicNotificationPolicy,
+    pub(crate) mic_usage_tracker: mic_usage_tracker::MicUsageTracker,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -50,12 +53,12 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            let state = SharedState::default();
-            app.manage(state);
+            app.manage(DetectorState::default());
+            app.manage(ProcessorState::default());
 
             let app_handle = app.app_handle().clone();
             tauri::async_runtime::spawn(async move {
-                handler::setup(&app_handle).await.unwrap();
+                handler::setup(&app_handle).unwrap();
             });
 
             Ok(())

@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::analytics::AnalyticsReporter;
+use crate::env::ApiKey;
 use crate::provider::{OpenRouterProvider, Provider};
 
 const DEFAULT_TIMEOUT_MS: u64 = 120_000;
@@ -35,9 +36,9 @@ pub struct LlmProxyConfig {
 }
 
 impl LlmProxyConfig {
-    pub fn new(api_key: impl Into<String>) -> Self {
+    pub fn new(api_key: impl Into<ApiKey>) -> Self {
         Self {
-            api_key: api_key.into(),
+            api_key: api_key.into().0,
             timeout: Duration::from_millis(DEFAULT_TIMEOUT_MS),
             models_tool_calling: vec![
                 "moonshotai/kimi-k2-0905:exacto".into(),

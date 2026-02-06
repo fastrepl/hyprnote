@@ -4,15 +4,6 @@ import { useEffect, useState } from "react";
 
 import { Image } from "@/components/image";
 
-function getNextRandomIndex(length: number, prevIndex: number): number {
-  if (length <= 1) return 0;
-  let next = prevIndex;
-  while (next === prevIndex) {
-    next = Math.floor(Math.random() * length);
-  }
-  return next;
-}
-
 const vsList = [
   { slug: "otter", name: "Otter.ai" },
   { slug: "granola", name: "Granola" },
@@ -248,37 +239,18 @@ function ResourcesLinks() {
         <li>
           <Link
             to={currentUseCase.to}
-            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
             aria-label={`Hyprnote for ${currentUseCase.label}`}
-            onMouseEnter={() => {
-              setUseCaseIndex((prev) =>
-                getNextRandomIndex(useCasesList.length, prev),
-              );
-            }}
-            onFocus={() => {
-              setUseCaseIndex((prev) =>
-                getNextRandomIndex(useCasesList.length, prev),
-              );
-            }}
           >
-            👍 for{" "}
-            <span className="blur-xs group-hover:blur-none group-focus:blur-none transition-all duration-150">
-              {currentUseCase.label}
-            </span>
+            👍 for {currentUseCase.label}
           </Link>
         </li>
         <li>
           <Link
             to="/vs/$slug/"
             params={{ slug: currentVs.slug }}
-            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
             aria-label={`Versus ${currentVs.name}`}
-            onMouseEnter={() => {
-              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
-            }}
-            onFocus={() => {
-              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
-            }}
           >
             <img
               src="/api/images/hyprnote/icon.png"
@@ -287,10 +259,7 @@ function ResourcesLinks() {
               height={12}
               className="size-4 rounded border border-neutral-100 inline"
             />{" "}
-            vs{" "}
-            <span className="blur-xs group-hover:blur-none group-focus:blur-none transition-all duration-150">
-              {currentVs.name}
-            </span>
+            vs {currentVs.name}
           </Link>
         </li>
       </ul>
@@ -410,28 +379,6 @@ function SocialLinks() {
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
           >
             Twitter
-            <ExternalLinkIcon className="size-3" />
-          </a>
-        </li>
-        <li>
-          <a
-            href="/bluesky"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
-          >
-            Bluesky
-            <ExternalLinkIcon className="size-3" />
-          </a>
-        </li>
-        <li>
-          <a
-            href="/reddit"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
-          >
-            Reddit
             <ExternalLinkIcon className="size-3" />
           </a>
         </li>

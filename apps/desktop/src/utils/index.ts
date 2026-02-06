@@ -1,5 +1,6 @@
 import { getIdentifier } from "@tauri-apps/api/app";
 
+export * from "./configure-pro-settings";
 export * from "./timeline";
 export * from "./segment";
 

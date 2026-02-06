@@ -6,6 +6,14 @@
 
 
 export const commands = {
+async decodeClaims(token: string) : Promise<Result<Claims, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:auth|decode_claims", { token }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async getItem(key: string) : Promise<Result<string | null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:auth|get_item", { key }) };
@@ -50,7 +58,8 @@ async clear() : Promise<Result<null, string>> {
 
 /** user-defined types **/
 
-export type Claims = { sub: string; email?: string | null; entitlements?: string[] }
+export type Claims = { sub: string; email?: string | null; entitlements?: string[]; subscription_status?: SubscriptionStatus | null; trial_end?: number | null }
+export type SubscriptionStatus = "incomplete" | "incomplete_expired" | "trialing" | "active" | "past_due" | "canceled" | "unpaid" | "paused"
 
 /** tauri-specta globals **/
 

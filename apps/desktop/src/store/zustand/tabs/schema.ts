@@ -195,34 +195,6 @@ export const getDefaultState = (tab: TabInput): Tab => {
   }
 };
 
-export const rowIdfromTab = (tab: Tab): string => {
-  switch (tab.type) {
-    case "sessions":
-      return tab.id;
-    case "humans":
-      return tab.id;
-    case "organizations":
-      return tab.id;
-    case "contacts":
-    case "templates":
-    case "prompts":
-    case "chat_shortcuts":
-    case "extensions":
-    case "empty":
-    case "extension":
-    case "calendar":
-    case "changelog":
-    case "settings":
-    case "ai":
-      throw new Error("invalid_resource");
-    case "folders":
-      if (!tab.id) {
-        throw new Error("invalid_resource");
-      }
-      return tab.id;
-  }
-};
-
 export const uniqueIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
     case "sessions":

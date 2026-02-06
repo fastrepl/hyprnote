@@ -55,9 +55,9 @@ export const createBasicSlice = <
         listenerStore.getState().live.status === "finalizing");
 
     if (currentActiveTab?.pinned || isCurrentTabListening) {
-      set(openTab(tabs, tab, history, false));
-    } else {
       set(openTab(tabs, tab, history, true));
+    } else {
+      set(openTab(tabs, tab, history, false));
     }
 
     if (tab.type === "sessions") {
@@ -71,7 +71,7 @@ export const createBasicSlice = <
   },
   openNew: (tab) => {
     const { tabs, history, addRecentlyOpened } = get();
-    set(openTab(tabs, tab, history, false));
+    set(openTab(tabs, tab, history, true));
 
     if (tab.type === "sessions") {
       addRecentlyOpened(tab.id);
@@ -229,10 +229,6 @@ export const createBasicSlice = <
   },
 });
 
-const removeDuplicates = (tabs: Tab[], newTab: Tab): Tab[] => {
-  return tabs.filter((t) => !isSameTab(t, newTab));
-};
-
 const setActiveFlags = (tabs: Tab[], activeTab: Tab): Tab[] => {
   return tabs.map((t) => ({ ...t, active: isSameTab(t, activeTab) }));
 };
@@ -258,7 +254,7 @@ const openTab = <T extends BasicState & NavigationState>(
   tabs: Tab[],
   newTab: TabInput,
   history: Map<string, TabHistory>,
-  replaceActive: boolean,
+  forceNewTab: boolean,
 ): Partial<T> => {
   const tabWithDefaults: Tab = {
     ...getDefaultState(newTab),
@@ -272,7 +268,13 @@ const openTab = <T extends BasicState & NavigationState>(
   const existingTab = tabs.find((t) => isSameTab(t, tabWithDefaults));
   const isNewTab = !existingTab;
 
-  if (replaceActive) {
+  if (!isNewTab) {
+    nextTabs = setActiveFlags(tabs, existingTab!);
+    const currentTab = { ...existingTab!, active: true };
+    return { tabs: nextTabs, currentTab, history } as Partial<T>;
+  }
+
+  if (!forceNewTab) {
     const existingActiveIdx = tabs.findIndex((t) => t.active);
     const currentActiveTab = tabs[existingActiveIdx];
 
@@ -283,32 +285,20 @@ const openTab = <T extends BasicState & NavigationState>(
         slotId: currentActiveTab.slotId,
       };
 
-      nextTabs = tabs
-        .map((t, idx) => {
-          if (idx === existingActiveIdx) {
-            return activeTab;
-          }
-          if (isSameTab(t, tabWithDefaults)) {
-            return null;
-          }
-          return { ...t, active: false };
-        })
-        .filter((t): t is Tab => t !== null);
+      nextTabs = tabs.map((t, idx) => {
+        if (idx === existingActiveIdx) {
+          return activeTab;
+        }
+        return { ...t, active: false };
+      });
     } else {
       activeTab = { ...tabWithDefaults, active: true, slotId: id() };
-      const withoutDuplicates = removeDuplicates(tabs, tabWithDefaults);
-      const deactivated = deactivateAll(withoutDuplicates);
+      const deactivated = deactivateAll(tabs);
       nextTabs = [...deactivated, activeTab];
     }
 
     return updateWithHistory(nextTabs, activeTab, history);
   } else {
-    if (!isNewTab) {
-      nextTabs = setActiveFlags(tabs, existingTab!);
-      const currentTab = { ...existingTab!, active: true };
-      return { tabs: nextTabs, currentTab, history } as Partial<T>;
-    }
-
     activeTab = { ...tabWithDefaults, active: true, slotId: id() };
     const deactivated = deactivateAll(tabs);
     nextTabs = [...deactivated, activeTab];

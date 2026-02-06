@@ -10,28 +10,13 @@ debug = false
 [workspace]
 resolver = "2"
 members = [
-  "apps/*",
+  "apps/ai",
   "apps/desktop/src-tauri",
+  "apps/eval-cli",
+  "apps/granola",
+  "apps/tools",
   "crates/*",
   "plugins/*",
-]
-exclude = [
-  "apps/control",
-  "apps/desktop",
-  "apps/desktop-e2e",
-  "apps/k6",
-  "apps/pro",
-  "apps/restate",
-  "apps/slack-external",
-  "apps/slack-internal",
-  "apps/storybook",
-  "apps/howto",
-  "apps/api",
-  "apps/bot",
-  "apps/web",
-  "plugins/cli2",
-  "plugins/db",
-  "plugins/export",
 ]
 
 [workspace.dependencies]
@@ -40,6 +25,7 @@ hypr-agc = { path = "crates/agc", package = "agc" }
 hypr-am = { path = "crates/am", package = "am" }
 hypr-am2 = { path = "crates/am2", package = "am2" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
+hypr-api-subscription = { path = "crates/api-subscription", package = "api-subscription" }
 hypr-apple-note = { path = "crates/apple-note", package = "apple-note" }
 hypr-askama-utils = { path = "crates/askama-utils", package = "askama-utils" }
 hypr-audio = { path = "crates/audio", package = "audio" }
@@ -211,6 +197,7 @@ clap_mangen = "0.2"
 codes-iso-639 = "0.1.5"
 dirs = "6.0.0"
 dotenvy = "0.15.7"
+envy = "0.4"
 include_url_macro = "0.1.0"
 indoc = "2"
 isolang = "2.4"
@@ -247,6 +234,7 @@ axum = "0.8"
 axum-extra = "0.12"
 tower = "0.5"
 tower-http = "0.6"
+utoipa = { version = "5", features = ["axum_extras"] }
 
 chrono = "0.4"
 chrono-tz = "0.10"

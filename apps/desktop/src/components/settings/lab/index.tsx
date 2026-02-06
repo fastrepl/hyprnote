@@ -4,6 +4,10 @@ import { arch, platform } from "@tauri-apps/plugin-os";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Switch } from "@hypr/ui/components/ui/switch";
+
+import { useConfigValue } from "../../../config/use-config";
+import * as settings from "../../../store/tinybase/store/settings";
 
 export function SettingsLab() {
   const handleOpenControlWindow = async () => {
@@ -11,7 +15,7 @@ export function SettingsLab() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pt-3">
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           <h3 className="text-sm font-medium mb-1">Control Overlay</h3>
@@ -25,7 +29,36 @@ export function SettingsLab() {
         </Button>
       </div>
 
+      <MeetingReminderToggle />
+
       <DownloadNightlyButton />
+    </div>
+  );
+}
+
+function MeetingReminderToggle() {
+  const value = useConfigValue("notification_in_meeting_reminder");
+  const setValue = settings.UI.useSetValueCallback(
+    "notification_in_meeting_reminder",
+    (value: boolean) => value,
+    [],
+    settings.STORE_ID,
+  );
+
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex-1">
+        <h3 className="text-sm font-medium mb-1">In-Meeting Reminder</h3>
+        <p className="text-xs text-neutral-600">
+          Get a nudge when an app like Zoom or Google Meet has been using your
+          mic for a few minutes without Hyprnote recording. Helps you never miss
+          capturing a meeting.
+        </p>
+      </div>
+      <Switch
+        checked={value}
+        onCheckedChange={(checked) => setValue(checked)}
+      />
     </div>
   );
 }

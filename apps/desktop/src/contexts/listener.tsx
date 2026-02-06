@@ -53,11 +53,19 @@ const useHandleDetectEvents = (store: ListenerStore) => {
   const stop = useStore(store, (state) => state.stop);
   const setMuted = useStore(store, (state) => state.setMuted);
   const notificationDetectEnabled = useConfigValue("notification_detect");
+  const inMeetingReminderEnabled = useConfigValue(
+    "notification_in_meeting_reminder",
+  );
 
   const notificationDetectEnabledRef = useRef(notificationDetectEnabled);
   useEffect(() => {
     notificationDetectEnabledRef.current = notificationDetectEnabled;
   }, [notificationDetectEnabled]);
+
+  const inMeetingReminderEnabledRef = useRef(inMeetingReminderEnabled);
+  useEffect(() => {
+    inMeetingReminderEnabledRef.current = inMeetingReminderEnabled;
+  }, [inMeetingReminderEnabled]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -103,6 +111,29 @@ const useHandleDetectEvents = (store: ListenerStore) => {
           }
         } else if (payload.type === "micMuted") {
           setMuted(payload.value);
+        } else if (payload.type === "micProlongedUsage") {
+          if (!inMeetingReminderEnabledRef.current) {
+            return;
+          }
+
+          if (store.getState().live.status === "active") {
+            return;
+          }
+
+          const minutes = Math.round(payload.duration_secs / 60);
+          const appName = payload.app.name;
+
+          void notificationCommands.showNotification({
+            key: payload.key,
+            title: "Meeting in progress?",
+            message: `${appName} has been using the mic for ${minutes} min. Start listening?`,
+            timeout: { secs: 15, nanos: 0 },
+            event_id: null,
+            start_time: null,
+            participants: null,
+            event_details: null,
+            action_label: null,
+          });
         }
       })
       .then((fn) => {

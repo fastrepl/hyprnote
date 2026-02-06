@@ -41,6 +41,10 @@ impl MicUsageTracker {
         }
     }
 
+    pub fn is_tracked(&self, app_id: &str) -> bool {
+        self.timers.contains_key(app_id)
+    }
+
     pub fn remove_completed(&mut self, app_id: &str) {
         self.timers.remove(app_id);
     }
@@ -64,6 +68,13 @@ fn spawn_timer<R: Runtime>(
             )
         };
 
+        let state = app_handle.state::<SharedState>();
+        let mut state_guard = state.lock().await;
+
+        if !state_guard.mic_usage_tracker.is_tracked(&app_id) {
+            return;
+        }
+
         if is_listening {
             tracing::info!(
                 app_id = %app_id,
@@ -76,6 +87,7 @@ fn spawn_timer<R: Runtime>(
                 "mic_active_without_hyprnote"
             );
             let key = uuid::Uuid::new_v4().to_string();
+            drop(state_guard);
             super::handler::emit_to_main(
                 &app_handle,
                 DetectEvent::MicActiveWithoutHyprnote {
@@ -84,10 +96,11 @@ fn spawn_timer<R: Runtime>(
                     duration_secs,
                 },
             );
+            let mut state_guard = state.lock().await;
+            state_guard.mic_usage_tracker.remove_completed(&app_id);
+            return;
         }
 
-        let state = app_handle.state::<SharedState>();
-        let mut state_guard = state.lock().await;
         state_guard.mic_usage_tracker.remove_completed(&app_id);
     })
 }

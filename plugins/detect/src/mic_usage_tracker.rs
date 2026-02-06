@@ -75,32 +75,30 @@ fn spawn_timer<R: Runtime>(
             return;
         }
 
+        state_guard.mic_usage_tracker.remove_completed(&app_id);
+
         if is_listening {
             tracing::info!(
                 app_id = %app_id,
                 "skip_mic_active_without_hyprnote: hyprnote_is_listening"
             );
-        } else {
-            tracing::info!(
-                app_id = %app_id,
-                duration_secs,
-                "mic_active_without_hyprnote"
-            );
-            let key = uuid::Uuid::new_v4().to_string();
-            drop(state_guard);
-            super::handler::emit_to_main(
-                &app_handle,
-                DetectEvent::MicActiveWithoutHyprnote {
-                    key,
-                    app,
-                    duration_secs,
-                },
-            );
-            let mut state_guard = state.lock().await;
-            state_guard.mic_usage_tracker.remove_completed(&app_id);
             return;
         }
 
-        state_guard.mic_usage_tracker.remove_completed(&app_id);
+        tracing::info!(
+            app_id = %app_id,
+            duration_secs,
+            "mic_active_without_hyprnote"
+        );
+        let key = uuid::Uuid::new_v4().to_string();
+        drop(state_guard);
+        super::handler::emit_to_main(
+            &app_handle,
+            DetectEvent::MicActiveWithoutHyprnote {
+                key,
+                app,
+                duration_secs,
+            },
+        );
     })
 }

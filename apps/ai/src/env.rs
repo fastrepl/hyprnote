@@ -23,8 +23,11 @@ pub struct Env {
     pub sentry_dsn: Option<String>,
     #[serde(default, deserialize_with = "filter_empty")]
     pub posthog_api_key: Option<String>,
-    pub supabase_url: String,
 
+    #[serde(flatten)]
+    pub supabase: hypr_api_env::SupabaseEnv,
+    #[serde(flatten)]
+    pub stripe: hypr_api_subscription::StripeEnv,
     #[serde(flatten)]
     pub llm: hypr_llm_proxy::Env,
     #[serde(flatten)]

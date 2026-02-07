@@ -10,7 +10,7 @@ use utoipa::OpenApi;
 use crate::state::AppState;
 
 pub use billing::{Interval, StartTrialResponse};
-pub use rpc::CanStartTrialResponse;
+pub use rpc::{AuthContext, CanStartTrialResponse};
 
 #[derive(OpenApi)]
 #[openapi(

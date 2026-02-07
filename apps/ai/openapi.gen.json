@@ -1,0 +1,157 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hyprnote AI API",
+    "description": "AI services API for speech-to-text transcription, LLM chat completions, and subscription management",
+    "license": {
+      "name": ""
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/subscription/can-start-trial": {
+      "get": {
+        "tags": [
+          "subscription"
+        ],
+        "operationId": "can_start_trial",
+        "responses": {
+          "200": {
+            "description": "Check successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CanStartTrialResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/subscription/start-trial": {
+      "post": {
+        "tags": [
+          "subscription"
+        ],
+        "operationId": "start_trial",
+        "parameters": [
+          {
+            "name": "interval",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "example": "monthly"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trial started successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartTrialResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CanStartTrialResponse": {
+        "type": "object",
+        "required": [
+          "canStartTrial"
+        ],
+        "properties": {
+          "canStartTrial": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Interval": {
+        "type": "string",
+        "enum": [
+          "monthly",
+          "yearly"
+        ]
+      },
+      "StartTrialResponse": {
+        "type": "object",
+        "required": [
+          "started"
+        ],
+        "properties": {
+          "started": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearer_auth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Supabase JWT token"
+      },
+      "device_fingerprint": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-device-fingerprint",
+        "description": "Optional device fingerprint for analytics"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "stt",
+      "description": "Speech-to-text transcription endpoints"
+    },
+    {
+      "name": "llm",
+      "description": "LLM chat completions endpoints"
+    },
+    {
+      "name": "subscription",
+      "description": "Subscription and trial management"
+    },
+    {
+      "name": "transcribe",
+      "description": "Speech-to-text transcription proxy"
+    },
+    {
+      "name": "llm",
+      "description": "LLM chat completions proxy"
+    }
+  ]
+}

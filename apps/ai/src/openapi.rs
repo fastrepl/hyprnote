@@ -6,11 +6,12 @@ use utoipa::{Modify, OpenApi};
     info(
         title = "Hyprnote AI API",
         version = "1.0.0",
-        description = "AI services API for speech-to-text transcription and LLM chat completions"
+        description = "AI services API for speech-to-text transcription, LLM chat completions, and subscription management"
     ),
     tags(
         (name = "stt", description = "Speech-to-text transcription endpoints"),
-        (name = "llm", description = "LLM chat completions endpoints")
+        (name = "llm", description = "LLM chat completions endpoints"),
+        (name = "subscription", description = "Subscription and trial management")
     ),
     modifiers(&SecurityAddon)
 )]
@@ -21,11 +22,20 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
 
     let stt_doc = hypr_transcribe_proxy::openapi();
     let llm_doc = hypr_llm_proxy::openapi();
+    let subscription_doc = hypr_api_subscription::openapi();
 
     doc.merge(stt_doc);
     doc.merge(llm_doc);
+    doc.merge(subscription_doc);
 
     doc
+}
+
+pub fn write_json() {
+    let doc = openapi();
+    let json = serde_json::to_string_pretty(&doc).expect("Failed to serialize OpenAPI spec");
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("openapi.gen.json");
+    std::fs::write(&path, json).expect("Failed to write openapi.gen.json");
 }
 
 struct SecurityAddon;

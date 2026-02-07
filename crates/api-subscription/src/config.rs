@@ -1,4 +1,5 @@
-use std::sync::Arc;
+use crate::StripeEnv;
+use hypr_api_env::SupabaseEnv;
 
 #[derive(Clone)]
 pub struct SubscriptionConfig {
@@ -7,37 +8,16 @@ pub struct SubscriptionConfig {
     pub stripe_api_key: String,
     pub stripe_monthly_price_id: String,
     pub stripe_yearly_price_id: String,
-    pub auth: Option<Arc<hypr_supabase_auth::SupabaseAuth>>,
 }
 
 impl SubscriptionConfig {
-    pub fn new(
-        supabase_url: impl Into<String>,
-        supabase_anon_key: impl Into<String>,
-        stripe_api_key: impl Into<String>,
-    ) -> Self {
+    pub fn new(supabase: &SupabaseEnv, stripe: &StripeEnv) -> Self {
         Self {
-            supabase_url: supabase_url.into(),
-            supabase_anon_key: supabase_anon_key.into(),
-            stripe_api_key: stripe_api_key.into(),
-            stripe_monthly_price_id: String::new(),
-            stripe_yearly_price_id: String::new(),
-            auth: None,
+            supabase_url: supabase.supabase_url.clone(),
+            supabase_anon_key: supabase.supabase_anon_key.clone(),
+            stripe_api_key: stripe.stripe_api_key.clone(),
+            stripe_monthly_price_id: stripe.stripe_monthly_price_id.clone(),
+            stripe_yearly_price_id: stripe.stripe_yearly_price_id.clone(),
         }
-    }
-
-    pub fn with_stripe_monthly_price(mut self, price_id: impl Into<String>) -> Self {
-        self.stripe_monthly_price_id = price_id.into();
-        self
-    }
-
-    pub fn with_stripe_yearly_price(mut self, price_id: impl Into<String>) -> Self {
-        self.stripe_yearly_price_id = price_id.into();
-        self
-    }
-
-    pub fn with_auth(mut self, auth: Arc<hypr_supabase_auth::SupabaseAuth>) -> Self {
-        self.auth = Some(auth);
-        self
     }
 }

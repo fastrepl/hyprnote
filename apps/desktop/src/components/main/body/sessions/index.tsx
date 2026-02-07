@@ -12,6 +12,7 @@ import { DissolvingContainer } from "../../../../components/ui/dissolving-contai
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
 import { useShell } from "../../../../contexts/shell";
+import { useSessionContentLoader } from "../../../../hooks/tinybase";
 import { useAutoEnhance } from "../../../../hooks/useAutoEnhance";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useStartListening } from "../../../../hooks/useStartListening";
@@ -99,11 +100,20 @@ export function TabContentNote({
 }: {
   tab: Extract<Tab, { type: "sessions" }>;
 }) {
+  const { isLoading: contentLoading } = useSessionContentLoader(tab.id);
   const listenerStatus = useListener((state) => state.live.status);
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const { conn } = useSTTConnection();
   const startListening = useStartListening(tab.id);
   const hasAttemptedAutoStart = useRef(false);
+
+  if (contentLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-sm text-muted-foreground">Loading session...</div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (!tab.state.autoStart) {

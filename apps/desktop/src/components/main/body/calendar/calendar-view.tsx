@@ -14,6 +14,7 @@ import { ChevronLeftIcon, ChevronRightIcon, SettingsIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
+import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import {
   Popover,
   PopoverContent,
@@ -57,20 +58,6 @@ export function CalendarView() {
         ])}
       >
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-neutral-900">
-            {format(currentMonth, "MMMM yyyy")}
-          </h2>
-          <Button variant="ghost" size="sm" onClick={goToToday}>
-            Today
-          </Button>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={goToPrevMonth}>
-            <ChevronLeftIcon className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={goToNextMonth}>
-            <ChevronRightIcon className="h-4 w-4" />
-          </Button>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -78,13 +65,42 @@ export function CalendarView() {
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              align="end"
+              align="start"
               className="w-80 max-h-[400px] overflow-y-auto"
             >
               <SettingsCalendar />
             </PopoverContent>
           </Popover>
+          <h2 className="text-lg font-semibold text-neutral-900">
+            {format(currentMonth, "MMMM yyyy")}
+          </h2>
         </div>
+        <ButtonGroup>
+          <Button
+            variant="outline"
+            size="icon"
+            className="shadow-none"
+            onClick={goToPrevMonth}
+          >
+            <ChevronLeftIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shadow-none px-3"
+            onClick={goToToday}
+          >
+            Today
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="shadow-none"
+            onClick={goToNextMonth}
+          >
+            <ChevronRightIcon className="h-4 w-4" />
+          </Button>
+        </ButtonGroup>
       </div>
 
       <div className="grid grid-cols-7 border-b border-neutral-200">

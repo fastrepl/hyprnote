@@ -42,27 +42,24 @@ pub async fn create_connect_session(
         .map_err(|e| IntegrationError::Auth(e.to_string()))?;
     let user_id = claims.sub;
 
-    let req = hypr_nango::NangoConnectSessionRequest {
-        end_user: hypr_nango::NangoConnectSessionRequestUser {
+    let req = hypr_nango::CreateConnectSessionRequest {
+        end_user: hypr_nango::EndUser {
             id: user_id,
             display_name: None,
             email: None,
+            tags: None,
         },
         organization: None,
-        allowed_integrations: vec![],
+        allowed_integrations: None,
         integrations_config_defaults: None,
     };
 
-    let res = state.nango.create_connect_session(req).await?;
+    let session = state.nango.create_connect_session(req).await?;
 
-    match res {
-        hypr_nango::NangoConnectSessionResponse::Ok { token, expires_at } => {
-            Ok(Json(ConnectSessionResponse { token, expires_at }))
-        }
-        hypr_nango::NangoConnectSessionResponse::Error { code } => {
-            Err(IntegrationError::Nango(code))
-        }
-    }
+    Ok(Json(ConnectSessionResponse {
+        token: session.token,
+        expires_at: session.expires_at,
+    }))
 }
 
 fn extract_token(headers: &HeaderMap) -> Result<&str> {

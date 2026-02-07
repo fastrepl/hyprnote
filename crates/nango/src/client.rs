@@ -1,5 +1,11 @@
+use serde::de::DeserializeOwned;
+
 use crate::proxy::NangoProxyBuilder;
-use crate::types::*;
+use crate::types::NangoIntegration;
+
+pub(crate) fn append_query(url: &mut url::Url, key: &str, value: &str) {
+    url.query_pairs_mut().append_pair(key, value);
+}
 
 #[derive(Clone, Default)]
 pub struct NangoClientBuilder {
@@ -48,41 +54,27 @@ impl NangoClientBuilder {
     }
 }
 
+pub(crate) async fn check_response(
+    response: reqwest::Response,
+) -> Result<reqwest::Response, crate::Error> {
+    let status = response.status();
+    if status.is_success() {
+        Ok(response)
+    } else {
+        let status_code = status.as_u16();
+        let body = response.text().await.unwrap_or_default();
+        Err(crate::Error::Api(status_code, body))
+    }
+}
+
+pub(crate) async fn parse_response<T: DeserializeOwned>(
+    response: reqwest::Response,
+) -> Result<T, crate::Error> {
+    let response = check_response(response).await?;
+    Ok(response.json().await?)
+}
+
 impl NangoClient {
-    pub async fn get_connection(
-        &self,
-        connection_id: impl std::fmt::Display,
-    ) -> Result<NangoGetConnectionResponseData, crate::Error> {
-        let mut url = self.api_base.clone();
-        url.set_path(&format!("/connection/{}", connection_id));
-
-        let res: NangoGetConnectionResponse = self.client.get(url).send().await?.json().await?;
-        match res {
-            NangoGetConnectionResponse::Ok(data) => Ok(*data),
-            NangoGetConnectionResponse::Error { message } => Err(crate::Error::NangoError(message)),
-        }
-    }
-
-    pub async fn create_connect_session(
-        &self,
-        req: NangoConnectSessionRequest,
-    ) -> Result<NangoConnectSessionResponse, crate::Error> {
-        let mut url = self.api_base.clone();
-        url.set_path("/connect/sessions");
-
-        let res = self
-            .client
-            .post(url)
-            .header("Content-Type", "application/json")
-            .json(&req)
-            .send()
-            .await?
-            .json()
-            .await?;
-
-        Ok(res)
-    }
-
     pub fn for_connection(
         &self,
         integration: NangoIntegration,

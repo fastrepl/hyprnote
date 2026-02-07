@@ -1,11 +1,17 @@
 mod client;
+mod connect_session;
+mod connection;
 mod error;
+mod integration;
 pub mod proxy;
 mod types;
 pub mod webhook;
 
 pub use client::*;
+pub use connect_session::*;
+pub use connection::*;
 pub use error::*;
+pub use integration::*;
 pub use proxy::NangoProxyBuilder;
 pub use types::*;
 pub use webhook::*;
@@ -34,7 +40,7 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
-    async fn test_non_proxy() {
+    async fn test_create_connect_session() {
         let nango_client = NangoClientBuilder::default()
             .api_base("https://api.nango.dev")
             .api_key("de9c36c9-33dc-4ebf-b006-153d458583ea")
@@ -42,14 +48,15 @@ mod tests {
             .unwrap();
 
         let _ = nango_client
-            .create_connect_session(NangoConnectSessionRequest {
-                end_user: NangoConnectSessionRequestUser {
+            .create_connect_session(CreateConnectSessionRequest {
+                end_user: EndUser {
                     id: "id".to_string(),
                     display_name: None,
                     email: None,
+                    tags: None,
                 },
                 organization: None,
-                allowed_integrations: vec![],
+                allowed_integrations: None,
                 integrations_config_defaults: None,
             })
             .await

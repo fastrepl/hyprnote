@@ -2,10 +2,10 @@ use serde::{Serialize, ser::Serializer};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("nango error: {0}")]
-    NangoError(String),
+    #[error("API error (status {0}): {1}")]
+    Api(u16, String),
     #[error(transparent)]
-    ReqwestError(#[from] reqwest::Error),
+    Request(#[from] reqwest::Error),
     #[error("unknown integration")]
     UnknownIntegration,
     #[error("missing api key")]

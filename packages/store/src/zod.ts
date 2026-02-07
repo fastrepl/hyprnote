@@ -38,6 +38,7 @@ export const eventSchema = z.object({
     (val) => val ?? undefined,
     z.boolean().optional(),
   ),
+  is_all_day: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
 });
 
 export const calendarProviderSchema = z.enum(["apple", "google", "outlook"]);

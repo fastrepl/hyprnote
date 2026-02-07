@@ -5,8 +5,8 @@ edition = "2024"
 
 [dependencies]
 hypr-analytics = { workspace = true }
+hypr-api-auth = { workspace = true }
 hypr-llm-proxy = { workspace = true }
-hypr-supabase-auth = { workspace = true }
 hypr-transcribe-proxy = { workspace = true }
 owhisper-client = { workspace = true }
 

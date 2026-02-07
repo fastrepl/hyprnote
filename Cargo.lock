@@ -248,6 +248,7 @@ name = "ai"
 version = "0.1.0"
 dependencies = [
  "analytics",
+ "api-auth",
  "axum 0.8.8",
  "dotenvy",
  "envy",
@@ -258,7 +259,6 @@ dependencies = [
  "sentry",
  "serde",
  "serde_json",
- "supabase-auth",
  "tokio",
  "tower 0.5.3",
  "tower-http 0.6.8",
@@ -526,6 +526,15 @@ dependencies = [
  "cron",
  "futures",
  "tower 0.5.3",
+]
+
+[[package]]
+name = "api-auth"
+version = "0.1.0"
+dependencies = [
+ "axum 0.8.8",
+ "supabase-auth",
+ "tokio",
 ]
 
 [[package]]
@@ -17538,6 +17547,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-cli2"
+version = "0.1.0"
+
+[[package]]
 name = "tauri-plugin-clipboard-manager"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -17551,6 +17564,10 @@ dependencies = [
  "tauri-plugin",
  "thiserror 2.0.18",
 ]
+
+[[package]]
+name = "tauri-plugin-db"
+version = "0.1.0"
 
 [[package]]
 name = "tauri-plugin-db2"
@@ -17653,6 +17670,10 @@ dependencies = [
  "thiserror 2.0.18",
  "url",
 ]
+
+[[package]]
+name = "tauri-plugin-export"
+version = "0.1.0"
 
 [[package]]
 name = "tauri-plugin-extensions"

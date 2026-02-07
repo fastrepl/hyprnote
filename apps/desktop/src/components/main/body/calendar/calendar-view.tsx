@@ -1,3 +1,4 @@
+import { platform } from "@tauri-apps/plugin-os";
 import {
   addMonths,
   eachDayOfInterval,
@@ -17,6 +18,12 @@ import {
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
 import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import {
@@ -27,10 +34,14 @@ import {
 import { cn } from "@hypr/utils";
 
 import { useEvent } from "../../../../hooks/tinybase";
+import { usePermission } from "../../../../hooks/usePermissions";
 import * as main from "../../../../store/tinybase/store/main";
 import { getOrCreateSessionForEventId } from "../../../../store/tinybase/store/sessions";
 import { useTabs } from "../../../../store/zustand/tabs";
-import { ConfigureProviders } from "../../../settings/calendar/configure";
+import { AppleCalendarSelection } from "../../../settings/calendar/configure/apple/calendar-selection";
+import { SyncProvider } from "../../../settings/calendar/configure/apple/context";
+import { AccessPermissionRow } from "../../../settings/calendar/configure/apple/permission";
+import { PROVIDERS } from "../../../settings/calendar/shared";
 import { EventDisplay } from "../sessions/outer-header/metadata";
 
 const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -80,8 +91,8 @@ export function CalendarView() {
                 Calendars
               </span>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <ConfigureProviders />
+            <div className="flex-1 overflow-y-auto p-3">
+              <CalendarSidebarContent />
             </div>
           </>
         )}
@@ -411,5 +422,92 @@ function SessionPopoverContent({ sessionId }: { sessionId: string }) {
         Open note
       </Button>
     </div>
+  );
+}
+
+function CalendarSidebarContent() {
+  const isMacos = platform() === "macos";
+  const calendar = usePermission("calendar");
+  const contacts = usePermission("contacts");
+
+  const visibleProviders = PROVIDERS.filter(
+    (p) => p.platform === "all" || (p.platform === "macos" && isMacos),
+  );
+
+  return (
+    <Accordion type="single" collapsible defaultValue="apple">
+      {visibleProviders.map((provider) =>
+        provider.disabled ? (
+          <div
+            key={provider.id}
+            className="flex items-center gap-2 py-2 opacity-50"
+          >
+            {provider.icon}
+            <span className="text-sm font-medium">{provider.displayName}</span>
+            {provider.badge && (
+              <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
+                {provider.badge}
+              </span>
+            )}
+          </div>
+        ) : (
+          <AccordionItem
+            key={provider.id}
+            value={provider.id}
+            className="border-none"
+          >
+            <AccordionTrigger className="py-2 hover:no-underline">
+              <div className="flex items-center gap-2">
+                {provider.icon}
+                <span className="text-sm font-medium">
+                  {provider.displayName}
+                </span>
+                {provider.badge && (
+                  <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
+                    {provider.badge}
+                  </span>
+                )}
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pb-2">
+              {provider.id === "apple" && (
+                <div className="flex flex-col gap-3">
+                  {(calendar.status !== "authorized" ||
+                    contacts.status !== "authorized") && (
+                    <div className="flex flex-col gap-1">
+                      {calendar.status !== "authorized" && (
+                        <AccessPermissionRow
+                          title="Calendar"
+                          status={calendar.status}
+                          isPending={calendar.isPending}
+                          onOpen={calendar.open}
+                          onRequest={calendar.request}
+                          onReset={calendar.reset}
+                        />
+                      )}
+                      {contacts.status !== "authorized" && (
+                        <AccessPermissionRow
+                          title="Contacts"
+                          status={contacts.status}
+                          isPending={contacts.isPending}
+                          onOpen={contacts.open}
+                          onRequest={contacts.request}
+                          onReset={contacts.reset}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {calendar.status === "authorized" && (
+                    <SyncProvider>
+                      <AppleCalendarSelection />
+                    </SyncProvider>
+                  )}
+                </div>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        ),
+      )}
+    </Accordion>
   );
 }

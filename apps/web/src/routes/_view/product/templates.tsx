@@ -1,4 +1,3 @@
-import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allTemplates } from "content-collections";
 
@@ -48,8 +47,6 @@ function Component() {
         <SlashSeparator />
         <PreBuiltOrCustomSection />
         <SlashSeparator />
-        <ContributeSection />
-        <SlashSeparator />
         <CTASection />
       </div>
     </div>
@@ -94,8 +91,8 @@ function HowItWorksSection() {
           How it works
         </h2>
         <p className="text-lg text-neutral-600 text-center mb-12">
-          Pick a template before or after your meeting and get notes formatted
-          that way.
+          You can pick a template before your meeting or try different formats
+          later.
         </p>
 
         <div className="grid sm:grid-cols-2 gap-8">
@@ -184,45 +181,15 @@ function PreBuiltOrCustomSection() {
   );
 }
 
-function ContributeSection() {
-  return (
-    <section className="px-6 py-12 lg:py-20">
-      <div className="max-w-2xl mx-auto text-center">
-        <h2 className="text-3xl sm:text-4xl font-serif text-stone-600 mb-4">
-          Got a template that works for you?
-        </h2>
-        <p className="text-lg text-neutral-600 mb-8">
-          Submit a PR on GitHub and help the community.
-        </p>
-        <a
-          href="https://github.com/fastrepl/hyprnote/issues/new?title=Suggest%20New%20Template&body=Title:%20Sprint%20Planning%0ACategory:%20Engineering%0ADescription:%20A%20template%20for%20capturing%20sprint%20planning%20discussions%0A%0AStructure%20(list%20of%20sections%2C%20each%20with%20a%20title%20and%20what%20to%20include):%0A-%20Sprint%20Goals:%20Key%20objectives%20for%20the%20sprint%0A-%20User%20Stories:%20Stories%20discussed%20and%20committed%0A-%20Action%20Items:%20Tasks%20assigned%20to%20team%20members"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn([
-            "group px-6 h-12 inline-flex items-center justify-center gap-2 w-fit",
-            "bg-linear-to-t from-neutral-800 to-neutral-700 text-white rounded-full",
-            "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
-            "transition-all cursor-pointer text-base",
-          ])}
-        >
-          <Icon icon="mdi:github" className="text-lg" />
-          Submit your idea
-        </a>
-      </div>
-    </section>
-  );
-}
-
 function CTASection() {
   return (
     <section className="py-16 px-6 text-center">
       <div className="max-w-2xl mx-auto flex flex-col gap-6">
         <h2 className="text-3xl sm:text-4xl font-serif text-stone-600">
-          Ready to transform your meetings?
+          Stop reformatting notes manually
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Hyprnote and start using templates to capture perfect meeting
-          notes with AI.
+          Download Hyprnote and set up your first template in 30 seconds.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
           <DownloadButton />

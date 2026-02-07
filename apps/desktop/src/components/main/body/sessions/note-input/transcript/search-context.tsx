@@ -35,12 +35,21 @@ function getMatchingElements(
     return [];
   }
 
+  const queryTerms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((term) => term.length > 0);
+
+  if (queryTerms.length === 0) {
+    return [];
+  }
+
   const allSpans = Array.from(
     container.querySelectorAll<HTMLElement>("[data-word-id]"),
   );
   return allSpans.filter((span) => {
-    const text = span.textContent || "";
-    return text.toLowerCase().includes(query.toLowerCase());
+    const text = (span.textContent || "").toLowerCase();
+    return queryTerms.some((term) => text.includes(term));
   });
 }
 

@@ -199,7 +199,7 @@ export const getDefaultState = (tab: TabInput): Tab => {
       return {
         ...base,
         type: "search",
-        state: tab.state ?? { selectedTypes: null },
+        state: tab.state ?? { selectedTypes: null, initialQuery: null },
       };
     default:
       const _exhaustive: never = tab;

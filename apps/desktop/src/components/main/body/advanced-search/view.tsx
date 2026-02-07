@@ -18,22 +18,68 @@ const FILTER_OPTIONS: { type: SearchEntityType; label: string }[] = [
   { type: "organization", label: "Organization" },
 ];
 
+type DatePreset = "today" | "week" | "month";
+
+const DATE_PRESETS: { key: DatePreset; label: string }[] = [
+  { key: "today", label: "Today" },
+  { key: "week", label: "This week" },
+  { key: "month", label: "This month" },
+];
+
+function getDateRange(preset: DatePreset): { gte: number; lte: number } {
+  const now = new Date();
+  const endOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
+  const lte = endOfDay.getTime();
+
+  switch (preset) {
+    case "today": {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return { gte: start.getTime(), lte };
+    }
+    case "week": {
+      const start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - now.getDay(),
+      );
+      return { gte: start.getTime(), lte };
+    }
+    case "month": {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { gte: start.getTime(), lte };
+    }
+  }
+}
+
 interface AdvancedSearchViewProps {
+  initialQuery?: string;
   selectedTypes: string[] | null;
   setSelectedTypes: (types: string[] | null) => void;
   onResultClick: (type: string, id: string) => void;
 }
 
 export function AdvancedSearchView({
+  initialQuery,
   selectedTypes,
   setSelectedTypes,
   onResultClick,
 }: AdvancedSearchViewProps) {
   const { search, isIndexing } = useSearchEngine();
-  const [localQuery, setLocalQuery] = useState("");
-  const [query, setQuery] = useState("");
+  const [localQuery, setLocalQuery] = useState(initialQuery ?? "");
+  const [query, setQuery] = useState(initialQuery ?? "");
   const [results, setResults] = useState<GroupedSearchResults | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [activeDatePreset, setActiveDatePreset] = useState<DatePreset | null>(
+    null,
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -42,6 +88,12 @@ export function AdvancedSearchView({
     }, 50);
     return () => clearTimeout(timer);
   }, [localQuery]);
+
+  const dateFilter = useMemo(
+    () =>
+      activeDatePreset ? { created_at: getDateRange(activeDatePreset) } : null,
+    [activeDatePreset],
+  );
 
   useEffect(() => {
     if (query.trim().length < 1) {
@@ -53,7 +105,7 @@ export function AdvancedSearchView({
     let cancelled = false;
     setIsSearching(true);
 
-    search(query).then((hits) => {
+    search(query, dateFilter).then((hits) => {
       if (!cancelled) {
         setResults(groupSearchResults(hits, query.trim()));
         setIsSearching(false);
@@ -63,7 +115,7 @@ export function AdvancedSearchView({
     return () => {
       cancelled = true;
     };
-  }, [query, search]);
+  }, [query, search, dateFilter]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -82,6 +134,10 @@ export function AdvancedSearchView({
     },
     [selectedTypes, setSelectedTypes],
   );
+
+  const toggleDatePreset = useCallback((key: DatePreset) => {
+    setActiveDatePreset((prev) => (prev === key ? null : key));
+  }, []);
 
   const filteredResults = useMemo(() => {
     if (!results || !selectedTypes || selectedTypes.length === 0) {
@@ -138,7 +194,7 @@ export function AdvancedSearchView({
       </div>
 
       <div className="pl-[14px] pr-3 py-2 border-b border-neutral-200">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {FILTER_OPTIONS.map((option) => {
             const isActive = selectedTypes?.includes(option.type);
             return (
@@ -154,6 +210,24 @@ export function AdvancedSearchView({
                 onClick={() => toggleFilter(option.type)}
               >
                 {option.label}
+              </Badge>
+            );
+          })}
+          {DATE_PRESETS.map((preset) => {
+            const isActive = activeDatePreset === preset.key;
+            return (
+              <Badge
+                key={preset.key}
+                variant="outline"
+                className={cn([
+                  "cursor-pointer transition-all",
+                  isActive
+                    ? "bg-linear-to-t from-stone-600 to-stone-500 text-white border-stone-600 hover:from-stone-700 hover:to-stone-600"
+                    : "bg-linear-to-b from-white to-stone-50 text-neutral-600 border-neutral-200 hover:from-neutral-50 hover:to-stone-100",
+                ])}
+                onClick={() => toggleDatePreset(preset.key)}
+              >
+                {preset.label}
               </Badge>
             );
           })}

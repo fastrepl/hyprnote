@@ -54,6 +54,8 @@ interface SearchUIContextValue {
   inputRef: React.RefObject<HTMLInputElement | null>;
   focus: () => void;
   setFocusImpl: (impl: () => void) => void;
+  selectedIndex: number;
+  setSelectedIndex: (index: number) => void;
 }
 
 const SCORE_PERCENTILE_THRESHOLD = 0.1;
@@ -171,6 +173,7 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchHits, setSearchHits] = useState<SearchHit[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const focusImplRef = useRef<(() => void) | null>(null);
 
@@ -238,6 +241,10 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
     return groupSearchResults(searchHits, searchQuery);
   }, [searchHits, searchQuery]);
 
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [results]);
+
   const value = useMemo(
     () => ({
       query,
@@ -250,8 +257,19 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
       inputRef,
       focus,
       setFocusImpl,
+      selectedIndex,
+      setSelectedIndex,
     }),
-    [query, filters, results, isSearching, isIndexing, focus, setFocusImpl],
+    [
+      query,
+      filters,
+      results,
+      isSearching,
+      isIndexing,
+      focus,
+      setFocusImpl,
+      selectedIndex,
+    ],
   );
 
   return (

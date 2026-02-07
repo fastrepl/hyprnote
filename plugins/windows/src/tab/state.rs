@@ -84,5 +84,6 @@ crate::common_derives! {
     #[derive(Default)]
     pub struct SearchState {
         pub selected_types: Option<Vec<String>>,
+        pub initial_query: Option<String>,
     }
 }

@@ -87,6 +87,7 @@ function SearchView({ tab }: { tab: Extract<Tab, { type: "search" }> }) {
 
   return (
     <AdvancedSearchView
+      initialQuery={tab.state.initialQuery ?? undefined}
       selectedTypes={selectedTypes}
       setSelectedTypes={setSelectedTypes}
       onResultClick={handleResultClick}

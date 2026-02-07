@@ -3,6 +3,7 @@ mod connect_session;
 mod connection;
 mod error;
 pub mod proxy;
+mod trigger;
 mod types;
 
 pub use client::*;
@@ -10,6 +11,7 @@ pub use connect_session::*;
 pub use connection::*;
 pub use error::*;
 pub use proxy::NangoProxyBuilder;
+pub use trigger::*;
 pub use types::*;
 
 macro_rules! common_derives {

@@ -21,7 +21,7 @@ use hypr_analytics::AnalyticsClientBuilder;
 use auth::AuthState;
 use env::env;
 
-pub use auth::DEVICE_FINGERPRINT_HEADER;
+pub const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 
 fn app() -> Router {
     let env = env();
@@ -37,16 +37,17 @@ fn app() -> Router {
     let llm_config =
         hypr_llm_proxy::LlmProxyConfig::new(&env.llm).with_analytics(analytics.clone());
     let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(&env.stt).with_analytics(analytics);
-    let auth_state = AuthState::new(&env.supabase_url);
+    let auth_state = AuthState::new(&env.supabase_url, "hyprnote_pro");
 
     let protected_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
         .merge(hypr_llm_proxy::chat_completions_router(llm_config.clone()))
         .nest("/stt", hypr_transcribe_proxy::router(stt_config))
         .nest("/llm", hypr_llm_proxy::router(llm_config))
+        .route_layer(middleware::from_fn(auth::sentry_and_analytics))
         .route_layer(middleware::from_fn_with_state(
             auth_state,
-            auth::require_pro,
+            auth::require_auth,
         ));
 
     Router::new()

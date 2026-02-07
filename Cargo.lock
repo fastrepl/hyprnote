@@ -248,6 +248,7 @@ name = "ai"
 version = "0.1.0"
 dependencies = [
  "analytics",
+ "api-auth",
  "axum 0.8.8",
  "dotenvy",
  "envy",
@@ -258,7 +259,6 @@ dependencies = [
  "sentry",
  "serde",
  "serde_json",
- "supabase-auth",
  "tokio",
  "tower 0.5.3",
  "tower-http 0.6.8",
@@ -526,6 +526,15 @@ dependencies = [
  "cron",
  "futures",
  "tower 0.5.3",
+]
+
+[[package]]
+name = "api-auth"
+version = "0.1.0"
+dependencies = [
+ "axum 0.8.8",
+ "supabase-auth",
+ "tokio",
 ]
 
 [[package]]

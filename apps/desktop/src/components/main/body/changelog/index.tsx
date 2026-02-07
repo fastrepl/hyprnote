@@ -248,7 +248,7 @@ function useChangelogContent(version: string) {
           setDate(parsedDate);
           setLoading(false);
           return;
-        } catch { }
+        } catch {}
       }
 
       const raw = await fetchChangelogFromGitHub(version);

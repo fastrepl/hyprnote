@@ -23,7 +23,7 @@ import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
-import { SettingsCalendar } from "../../../settings/calendar";
+import { ConfigureProviders } from "../../../settings/calendar/configure";
 
 const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -53,11 +53,30 @@ export function CalendarView() {
     <div className="flex h-full overflow-hidden">
       <div
         className={cn([
-          "border-r border-neutral-200 overflow-y-auto transition-all duration-200",
-          showSettings ? "w-72 p-4" : "w-0 p-0 border-r-0",
+          "border-r border-neutral-200 flex flex-col transition-all duration-200",
+          showSettings ? "w-72" : "w-0 border-r-0",
         ])}
       >
-        {showSettings && <SettingsCalendar />}
+        {showSettings && (
+          <>
+            <div className="px-2 pt-1 pb-1 border-b border-neutral-200 shrink-0 flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-neutral-200"
+                onClick={() => setShowSettings(false)}
+              >
+                <CalendarCogIcon className="h-4 w-4" />
+              </Button>
+              <span className="text-sm font-semibold text-neutral-900">
+                Calendars
+              </span>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <ConfigureProviders />
+            </div>
+          </>
+        )}
       </div>
       <div className="flex flex-col flex-1 min-w-0">
         <div
@@ -67,13 +86,15 @@ export function CalendarView() {
           ])}
         >
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowSettings((v) => !v)}
-            >
-              <CalendarCogIcon className="h-4 w-4" />
-            </Button>
+            {!showSettings && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSettings(true)}
+              >
+                <CalendarCogIcon className="h-4 w-4" />
+              </Button>
+            )}
             <h2 className="text-lg font-semibold text-neutral-900">
               {format(currentMonth, "MMMM yyyy")}
             </h2>
@@ -129,15 +150,6 @@ export function CalendarView() {
             />
           ))}
         </div>
-      </div>
-
-      <div
-        className={cn([
-          "border-l border-neutral-200 overflow-y-auto transition-all duration-200",
-          showSettings ? "w-72 p-4" : "w-0 p-0 border-l-0",
-        ])}
-      >
-        {showSettings && <SettingsCalendar />}
       </div>
     </div>
   );
@@ -237,7 +249,7 @@ function EventChip({ eventId }: { eventId: string }) {
     <button
       onClick={sessionId ? handleClick : undefined}
       className={cn([
-        "text-[10px] leading-tight truncate rounded px-1 py-0.5 text-left w-full",
+        "text-xs leading-tight truncate rounded px-1.5 py-0.5 text-left w-full",
         sessionId
           ? "bg-neutral-200 text-neutral-700 hover:bg-neutral-300 cursor-pointer"
           : "bg-neutral-100 text-neutral-500",

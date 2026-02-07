@@ -1,6 +1,5 @@
 import { SearchIcon } from "lucide-react";
 import { useCallback } from "react";
-import { useShallow } from "zustand/shallow";
 
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -48,11 +47,7 @@ export function TabContentSearch({
 
 function SearchView({ tab }: { tab: Extract<Tab, { type: "search" }> }) {
   const updateSearchTabState = useTabs((state) => state.updateSearchTabState);
-  const { openCurrent } = useTabs(
-    useShallow((state) => ({
-      openCurrent: state.openCurrent,
-    })),
-  );
+  const openNew = useTabs((state) => state.openNew);
 
   const { selectedTypes } = tab.state;
 
@@ -69,20 +64,20 @@ function SearchView({ tab }: { tab: Extract<Tab, { type: "search" }> }) {
   const handleResultClick = useCallback(
     (type: string, id: string) => {
       if (type === "session") {
-        openCurrent({ type: "sessions", id });
+        openNew({ type: "sessions", id });
       } else if (type === "human") {
-        openCurrent({
+        openNew({
           type: "contacts",
           state: { selectedPerson: id, selectedOrganization: null },
         });
       } else if (type === "organization") {
-        openCurrent({
+        openNew({
           type: "contacts",
           state: { selectedOrganization: id, selectedPerson: null },
         });
       }
     },
-    [openCurrent],
+    [openNew],
   );
 
   return (

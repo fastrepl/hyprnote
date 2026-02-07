@@ -154,6 +154,34 @@ export function AdvancedSearchView({
     };
   }, [results, selectedTypes]);
 
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  const flatResults = useMemo(() => {
+    if (!filteredResults) return [];
+    return filteredResults.groups.flatMap((g) => g.results);
+  }, [filteredResults]);
+
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [filteredResults]);
+
+  const selectedId =
+    selectedIndex >= 0 && selectedIndex < flatResults.length
+      ? flatResults[selectedIndex].id
+      : null;
+
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!selectedId || !resultsRef.current) return;
+    const el = resultsRef.current.querySelector(
+      `[data-result-id="${selectedId}"]`,
+    );
+    if (el) {
+      el.scrollIntoView({ block: "nearest" });
+    }
+  }, [selectedId]);
+
   const showLoading = isSearching || isIndexing;
   const hasQuery = query.trim().length > 0;
   const hasResults = filteredResults && filteredResults.totalResults > 0;
@@ -173,6 +201,34 @@ export function AdvancedSearchView({
             placeholder="Try 'budget', '@john', or '#design'"
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                if (localQuery.trim()) {
+                  setLocalQuery("");
+                } else {
+                  e.currentTarget.blur();
+                }
+              }
+              if (e.key === "ArrowDown" && flatResults.length > 0) {
+                e.preventDefault();
+                setSelectedIndex(
+                  Math.min(selectedIndex + 1, flatResults.length - 1),
+                );
+              }
+              if (e.key === "ArrowUp" && flatResults.length > 0) {
+                e.preventDefault();
+                setSelectedIndex(Math.max(selectedIndex - 1, -1));
+              }
+              if (
+                e.key === "Enter" &&
+                selectedIndex >= 0 &&
+                selectedIndex < flatResults.length
+              ) {
+                e.preventDefault();
+                const item = flatResults[selectedIndex];
+                onResultClick(item.type, item.id);
+              }
+            }}
             className={cn([
               "w-full pl-[38px] pr-8 py-2",
               "text-base placeholder:text-neutral-400",
@@ -234,16 +290,18 @@ export function AdvancedSearchView({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div ref={resultsRef} className="flex-1 overflow-y-auto">
         {!hasQuery ? (
           <SuggestionsView
             results={filteredResults}
             onResultClick={onResultClick}
+            selectedId={selectedId}
           />
         ) : hasResults ? (
           <SearchResultsView
             results={filteredResults!}
             onResultClick={onResultClick}
+            selectedId={selectedId}
           />
         ) : (
           <NoResultsView query={query} />
@@ -256,9 +314,11 @@ export function AdvancedSearchView({
 function SuggestionsView({
   results,
   onResultClick,
+  selectedId,
 }: {
   results: GroupedSearchResults | null;
   onResultClick: (type: string, id: string) => void;
+  selectedId: string | null;
 }) {
   return (
     <div className="pl-[14px] pr-3 pt-3">
@@ -274,6 +334,7 @@ function SuggestionsView({
                     key={result.id}
                     result={result}
                     onClick={() => onResultClick(result.type, result.id)}
+                    isSelected={result.id === selectedId}
                   />
                 )),
             )}
@@ -291,9 +352,11 @@ function SuggestionsView({
 function SearchResultsView({
   results,
   onResultClick,
+  selectedId,
 }: {
   results: GroupedSearchResults;
   onResultClick: (type: string, id: string) => void;
+  selectedId: string | null;
 }) {
   return (
     <div className="pl-[14px] pr-3 pt-3">
@@ -308,6 +371,7 @@ function SearchResultsView({
                 key={result.id}
                 result={result}
                 onClick={() => onResultClick(result.type, result.id)}
+                isSelected={result.id === selectedId}
               />
             ))}
           </div>

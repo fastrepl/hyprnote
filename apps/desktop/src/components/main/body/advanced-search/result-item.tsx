@@ -13,18 +13,21 @@ const TYPE_ICONS = {
 interface ResultItemProps {
   result: SearchResult;
   onClick: () => void;
+  isSelected?: boolean;
 }
 
-export function ResultItem({ result, onClick }: ResultItemProps) {
+export function ResultItem({ result, onClick, isSelected }: ResultItemProps) {
   const Icon = TYPE_ICONS[result.type] || FileTextIcon;
 
   return (
     <button
+      data-result-id={result.id}
       onClick={onClick}
       className={cn([
         "w-full flex items-start gap-3 p-3",
         "rounded-lg text-left",
         "hover:bg-neutral-100 transition-colors",
+        isSelected && "bg-neutral-100",
       ])}
     >
       <div className="mt-0.5 shrink-0">

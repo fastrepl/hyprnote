@@ -154,7 +154,12 @@ function ExpandedSearch({
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
-              e.currentTarget.blur();
+              if (query.trim()) {
+                setQuery("");
+                setSelectedIndex(-1);
+              } else {
+                e.currentTarget.blur();
+              }
             }
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && query.trim()) {
               e.preventDefault();
@@ -206,7 +211,6 @@ function ExpandedSearch({
                   },
                 });
               }
-              setQuery("");
               e.currentTarget.blur();
             }
           }}

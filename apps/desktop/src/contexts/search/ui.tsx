@@ -195,6 +195,20 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
     enableOnContentEditable: true,
   });
 
+  useHotkeys(
+    "Escape",
+    () => {
+      if (query.trim()) {
+        setQuery("");
+        setSelectedIndex(-1);
+      }
+    },
+    {
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+  );
+
   const resetSearchState = useCallback(() => {
     setSearchHits([]);
     setSearchQuery("");

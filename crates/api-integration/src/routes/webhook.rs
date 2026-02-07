@@ -30,7 +30,14 @@ pub async fn nango_webhook(
         .and_then(|h| h.to_str().ok())
         .ok_or_else(|| IntegrationError::Auth("Missing X-Nango-Hmac-Sha256 header".to_string()))?;
 
-    hypr_nango::verify_webhook_signature(&state.config.nango_webhook_secret, &body, signature)?;
+    let valid = hypr_nango::verify_webhook_signature(
+        &state.config.nango_webhook_secret,
+        body.as_bytes(),
+        signature,
+    );
+    if !valid {
+        return Err(IntegrationError::Auth("Invalid webhook signature".to_string()));
+    }
 
     let payload: hypr_nango::ConnectWebhook =
         serde_json::from_str(&body).map_err(|e| IntegrationError::BadRequest(e.to_string()))?;

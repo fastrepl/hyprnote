@@ -2,6 +2,7 @@ mod client;
 mod connect_session;
 mod connection;
 mod error;
+mod integration;
 pub mod proxy;
 mod types;
 
@@ -9,6 +10,7 @@ pub use client::*;
 pub use connect_session::*;
 pub use connection::*;
 pub use error::*;
+pub use integration::*;
 pub use proxy::NangoProxyBuilder;
 pub use types::*;
 

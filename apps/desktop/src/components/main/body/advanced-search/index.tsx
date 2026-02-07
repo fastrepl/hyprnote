@@ -71,9 +71,15 @@ function SearchView({ tab }: { tab: Extract<Tab, { type: "search" }> }) {
       if (type === "session") {
         openCurrent({ type: "sessions", id });
       } else if (type === "human") {
-        openCurrent({ type: "humans", id });
+        openCurrent({
+          type: "contacts",
+          state: { selectedPerson: id, selectedOrganization: null },
+        });
       } else if (type === "organization") {
-        openCurrent({ type: "organizations", id });
+        openCurrent({
+          type: "contacts",
+          state: { selectedOrganization: id, selectedPerson: null },
+        });
       }
     },
     [openCurrent],

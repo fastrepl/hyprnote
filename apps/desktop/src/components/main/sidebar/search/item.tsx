@@ -247,10 +247,16 @@ function getTab(result: SearchResult): TabInput | null {
     return { type: "sessions", id: result.id };
   }
   if (result.type === "human") {
-    return { type: "humans", id: result.id };
+    return {
+      type: "contacts",
+      state: { selectedPerson: result.id, selectedOrganization: null },
+    };
   }
   if (result.type === "organization") {
-    return { type: "organizations", id: result.id };
+    return {
+      type: "contacts",
+      state: { selectedOrganization: result.id, selectedPerson: null },
+    };
   }
 
   return null;

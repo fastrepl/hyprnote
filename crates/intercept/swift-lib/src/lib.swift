@@ -199,8 +199,12 @@ private final class QuitInterceptor {
     let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
     let isQ = event.charactersIgnoringModifiers?.lowercased() == "q"
 
-    guard flags.contains(.command), isQ, !event.isARepeat else {
+    guard flags.contains(.command), isQ else {
       return event
+    }
+
+    if event.isARepeat {
+      return nil
     }
 
     if recentQuitAttempt {

@@ -24,24 +24,27 @@ impl NangoClientBuilder {
         self
     }
 
-    pub fn build(self) -> NangoClient {
+    pub fn build(self) -> Result<NangoClient, crate::Error> {
+        let api_key = self.api_key.ok_or(crate::Error::MissingApiKey)?;
+        let api_base = self.api_base.ok_or(crate::Error::MissingApiBase)?;
+
         let mut headers = reqwest::header::HeaderMap::new();
 
-        let auth_str = format!("Bearer {}", self.api_key.unwrap());
-        let mut auth_value = reqwest::header::HeaderValue::from_str(&auth_str).unwrap();
+        let auth_str = format!("Bearer {}", api_key);
+        let mut auth_value = reqwest::header::HeaderValue::from_str(&auth_str)
+            .map_err(|_| crate::Error::InvalidApiKey)?;
         auth_value.set_sensitive(true);
 
         headers.insert(reqwest::header::AUTHORIZATION, auth_value);
 
         let client = reqwest::Client::builder()
             .default_headers(headers)
-            .build()
-            .unwrap();
+            .build()?;
 
-        NangoClient {
+        Ok(NangoClient {
             client,
-            api_base: self.api_base.unwrap().parse().unwrap(),
-        }
+            api_base: api_base.parse().map_err(|_| crate::Error::InvalidApiBase)?,
+        })
     }
 }
 

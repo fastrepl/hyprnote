@@ -36,7 +36,8 @@ mod tests {
         let nango_client = NangoClientBuilder::default()
             .api_base("https://api.nango.dev")
             .api_key("de9c36c9-33dc-4ebf-b006-153d458583ea")
-            .build();
+            .build()
+            .unwrap();
 
         let _ = nango_client
             .create_connect_session(NangoConnectSessionRequest {
@@ -58,10 +59,28 @@ mod tests {
         let nango_client = NangoClientBuilder::default()
             .api_base("https://api.nango.dev")
             .api_key("api_key")
-            .build();
+            .build()
+            .unwrap();
 
         let _ = nango_client
             .for_connection(NangoIntegration::GoogleCalendar, "connection")
-            .get("/users");
+            .get("/users")
+            .unwrap();
+    }
+
+    #[test]
+    fn test_build_missing_api_key() {
+        let result = NangoClientBuilder::default()
+            .api_base("https://api.nango.dev")
+            .build();
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_build_missing_api_base() {
+        let result = NangoClientBuilder::default().api_key("key").build();
+
+        assert!(result.is_err());
     }
 }

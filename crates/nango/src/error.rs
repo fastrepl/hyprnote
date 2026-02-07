@@ -8,6 +8,16 @@ pub enum Error {
     ReqwestError(#[from] reqwest::Error),
     #[error("unknown integration")]
     UnknownIntegration,
+    #[error("missing api key")]
+    MissingApiKey,
+    #[error("missing api base")]
+    MissingApiBase,
+    #[error("invalid api key")]
+    InvalidApiKey,
+    #[error("invalid api base url")]
+    InvalidApiBase,
+    #[error("invalid url: cannot modify path segments")]
+    InvalidUrl,
 }
 
 impl Serialize for Error {

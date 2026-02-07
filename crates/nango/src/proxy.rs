@@ -73,63 +73,69 @@ impl<'a> NangoProxyBuilder<'a> {
         builder
     }
 
-    pub fn get(&self, path: impl std::fmt::Display) -> reqwest::RequestBuilder {
-        let url = make_proxy_url(&self.nango.api_base, path);
-        self.apply_headers(self.nango.client.get(url))
+    pub fn get(
+        &self,
+        path: impl std::fmt::Display,
+    ) -> Result<reqwest::RequestBuilder, crate::Error> {
+        let url = make_proxy_url(&self.nango.api_base, path)?;
+        Ok(self.apply_headers(self.nango.client.get(url)))
     }
 
     pub fn post<T: serde::Serialize + ?Sized>(
         &self,
         path: impl std::fmt::Display,
         data: &T,
-    ) -> reqwest::RequestBuilder {
-        let url = make_proxy_url(&self.nango.api_base, path);
-        self.apply_headers(
+    ) -> Result<reqwest::RequestBuilder, crate::Error> {
+        let url = make_proxy_url(&self.nango.api_base, path)?;
+        Ok(self.apply_headers(
             self.nango
                 .client
                 .post(url)
                 .header("Content-Type", "application/json")
                 .json(data),
-        )
+        ))
     }
 
     pub fn put<T: serde::Serialize + ?Sized>(
         &self,
         path: impl std::fmt::Display,
         data: &T,
-    ) -> reqwest::RequestBuilder {
-        let url = make_proxy_url(&self.nango.api_base, path);
-        self.apply_headers(
+    ) -> Result<reqwest::RequestBuilder, crate::Error> {
+        let url = make_proxy_url(&self.nango.api_base, path)?;
+        Ok(self.apply_headers(
             self.nango
                 .client
                 .put(url)
                 .header("Content-Type", "application/json")
                 .json(data),
-        )
+        ))
     }
 
     pub fn patch<T: serde::Serialize + ?Sized>(
         &self,
         path: impl std::fmt::Display,
         data: &T,
-    ) -> reqwest::RequestBuilder {
-        let url = make_proxy_url(&self.nango.api_base, path);
-        self.apply_headers(
+    ) -> Result<reqwest::RequestBuilder, crate::Error> {
+        let url = make_proxy_url(&self.nango.api_base, path)?;
+        Ok(self.apply_headers(
             self.nango
                 .client
                 .patch(url)
                 .header("Content-Type", "application/json")
                 .json(data),
-        )
+        ))
     }
 
-    pub fn delete(&self, path: impl std::fmt::Display) -> reqwest::RequestBuilder {
-        let url = make_proxy_url(&self.nango.api_base, path);
-        self.apply_headers(self.nango.client.delete(url))
+    pub fn delete(
+        &self,
+        path: impl std::fmt::Display,
+    ) -> Result<reqwest::RequestBuilder, crate::Error> {
+        let url = make_proxy_url(&self.nango.api_base, path)?;
+        Ok(self.apply_headers(self.nango.client.delete(url)))
     }
 }
 
-fn make_proxy_url(base: &url::Url, path: impl std::fmt::Display) -> url::Url {
+fn make_proxy_url(base: &url::Url, path: impl std::fmt::Display) -> Result<url::Url, crate::Error> {
     let mut url = base.clone();
     let path_str = path.to_string();
 
@@ -139,7 +145,7 @@ fn make_proxy_url(base: &url::Url, path: impl std::fmt::Display) -> url::Url {
     };
 
     url.path_segments_mut()
-        .unwrap()
+        .map_err(|_| crate::Error::InvalidUrl)?
         .push("proxy")
         .extend(path_part.split('/').filter(|s| !s.is_empty()));
 
@@ -147,7 +153,7 @@ fn make_proxy_url(base: &url::Url, path: impl std::fmt::Display) -> url::Url {
         url.set_query(Some(query));
     }
 
-    url
+    Ok(url)
 }
 
 #[cfg(test)]
@@ -159,19 +165,23 @@ mod tests {
         let base = "https://api.nango.dev".parse().unwrap();
 
         assert_eq!(
-            make_proxy_url(&base, "/users").to_string(),
+            make_proxy_url(&base, "/users").unwrap().to_string(),
             "https://api.nango.dev/proxy/users"
         );
         assert_eq!(
-            make_proxy_url(&base, "users/123").to_string(),
+            make_proxy_url(&base, "users/123").unwrap().to_string(),
             "https://api.nango.dev/proxy/users/123"
         );
         assert_eq!(
-            make_proxy_url(&base, "users/123?foo=bar").to_string(),
+            make_proxy_url(&base, "users/123?foo=bar")
+                .unwrap()
+                .to_string(),
             "https://api.nango.dev/proxy/users/123?foo=bar"
         );
         assert_eq!(
-            make_proxy_url(&base, "users?page=1&limit=10").to_string(),
+            make_proxy_url(&base, "users?page=1&limit=10")
+                .unwrap()
+                .to_string(),
             "https://api.nango.dev/proxy/users?page=1&limit=10"
         );
     }

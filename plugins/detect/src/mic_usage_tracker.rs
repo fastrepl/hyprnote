@@ -20,7 +20,6 @@ pub struct MicUsageTracker {
     next_gen: u64,
 }
 
-
 impl Drop for MicUsageTracker {
     fn drop(&mut self) {
         for (_, entry) in self.timers.drain() {

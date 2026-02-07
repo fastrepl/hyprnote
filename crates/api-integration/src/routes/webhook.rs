@@ -39,7 +39,7 @@ pub async fn nango_webhook(
         return Err(IntegrationError::Auth("Invalid webhook signature".to_string()));
     }
 
-    let payload: hypr_nango::ConnectWebhook =
+    let payload: hypr_nango::NangoAuthWebhook =
         serde_json::from_str(&body).map_err(|e| IntegrationError::BadRequest(e.to_string()))?;
 
     tracing::info!(

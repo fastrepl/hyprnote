@@ -12,7 +12,7 @@ import "../../styles.css";
 import * as shared from "../shared";
 import type { FileHandlerConfig } from "../shared/extensions";
 import type { PlaceholderFunction } from "../shared/extensions/placeholder";
-import { mention, type MentionConfig } from "./mention";
+import { isMentionActive, mention, type MentionConfig } from "./mention";
 
 const safeRequestIdleCallback =
   typeof requestIdleCallback !== "undefined"
@@ -106,7 +106,12 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             }
           }
 
-          if (event.key === "ArrowUp" && isInFirstBlock && onNavigateToTitle) {
+          if (
+            event.key === "ArrowUp" &&
+            isInFirstBlock &&
+            onNavigateToTitle &&
+            !isMentionActive(state)
+          ) {
             event.preventDefault();
 
             const firstBlock = state.doc.firstChild;

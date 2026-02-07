@@ -216,6 +216,12 @@ function DayCell({
   );
 }
 
+function useCalendarColor(calendarId: string | null): string | null {
+  const calendar = main.UI.useRow("calendars", calendarId ?? "", main.STORE_ID);
+  if (!calendarId) return null;
+  return calendar?.color ? String(calendar.color) : null;
+}
+
 function EventChip({ eventId }: { eventId: string }) {
   const event = main.UI.useResultRow(
     main.QUERIES.timelineEvents,
@@ -223,6 +229,9 @@ function EventChip({ eventId }: { eventId: string }) {
     main.STORE_ID,
   );
   const openNew = useTabs((state) => state.openNew);
+  const calendarColor = useCalendarColor(
+    (event?.calendar_id as string) ?? null,
+  );
 
   const sessionIds = main.UI.useLocalRowIds(
     main.RELATIONSHIPS.sessionToEvent,
@@ -241,22 +250,46 @@ function EventChip({ eventId }: { eventId: string }) {
     return null;
   }
 
+  const isAllDay = !!event.is_all_day;
+  const color = calendarColor ?? "#888";
+
+  if (isAllDay) {
+    return (
+      <button
+        onClick={sessionId ? handleClick : undefined}
+        className={cn([
+          "text-xs leading-tight truncate rounded px-1.5 py-0.5 text-left w-full text-white",
+          sessionId ? "hover:opacity-80 cursor-pointer" : "",
+        ])}
+        style={{ backgroundColor: color }}
+      >
+        {event.title as string}
+      </button>
+    );
+  }
+
   const startedAt = event.started_at
-    ? format(new Date(event.started_at as string), "HH:mm")
+    ? format(new Date(event.started_at as string), "h:mm a")
     : null;
 
   return (
     <button
       onClick={sessionId ? handleClick : undefined}
       className={cn([
-        "text-xs leading-tight truncate rounded px-1.5 py-0.5 text-left w-full",
-        sessionId
-          ? "bg-neutral-200 text-neutral-700 hover:bg-neutral-300 cursor-pointer"
-          : "bg-neutral-100 text-neutral-500",
+        "flex items-center gap-1 text-xs leading-tight truncate rounded text-left w-full",
+        sessionId ? "hover:opacity-80 cursor-pointer" : "",
       ])}
     >
-      {startedAt && <span className="font-medium">{startedAt} </span>}
-      {event.title as string}
+      <div
+        className="w-0.5 self-stretch rounded-full shrink-0"
+        style={{ backgroundColor: color }}
+      />
+      <div className="truncate py-0.5">
+        <span className="truncate">{event.title as string}</span>
+        {startedAt && (
+          <span className="text-neutral-400 ml-1">{startedAt}</span>
+        )}
+      </div>
     </button>
   );
 }

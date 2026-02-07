@@ -29,9 +29,7 @@ pub async fn nango_webhook(
     headers: HeaderMap,
     body: String,
 ) -> Result<Json<WebhookResponse>> {
-    if let Some(secret) = &state.config.nango_webhook_secret {
-        verify_signature(secret, &body, &headers)?;
-    }
+    verify_signature(&state.config.nango_webhook_secret, &body, &headers)?;
 
     let payload: hypr_nango::ConnectWebhook =
         serde_json::from_str(&body).map_err(|e| IntegrationError::BadRequest(e.to_string()))?;
@@ -53,9 +51,7 @@ fn verify_signature(secret: &str, body: &str, headers: &HeaderMap) -> Result<()>
     let signature = headers
         .get("x-nango-hmac-sha256")
         .and_then(|h| h.to_str().ok())
-        .ok_or_else(|| {
-            IntegrationError::Auth("Missing X-Nango-Hmac-Sha256 header".to_string())
-        })?;
+        .ok_or_else(|| IntegrationError::Auth("Missing X-Nango-Hmac-Sha256 header".to_string()))?;
 
     let mut mac = HmacSha256::new_from_slice(secret.as_bytes())
         .map_err(|e| IntegrationError::Internal(format!("HMAC init error: {}", e)))?;

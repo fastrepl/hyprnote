@@ -542,11 +542,13 @@ name = "api-integration"
 version = "0.1.0"
 dependencies = [
  "axum 0.8.8",
+ "hmac",
  "nango",
  "reqwest 0.13.1",
  "sentry",
  "serde",
  "serde_json",
+ "sha2",
  "supabase-auth",
  "thiserror 2.0.18",
  "tokio",

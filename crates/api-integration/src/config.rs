@@ -4,7 +4,7 @@ use std::sync::Arc;
 pub struct IntegrationConfig {
     pub nango_api_base: String,
     pub nango_api_key: String,
-    pub nango_webhook_secret: Option<String>,
+    pub nango_webhook_secret: String,
     pub auth: Option<Arc<hypr_supabase_auth::SupabaseAuth>>,
 }
 
@@ -13,13 +13,13 @@ impl IntegrationConfig {
         Self {
             nango_api_base: nango_api_base.into(),
             nango_api_key: nango_api_key.into(),
-            nango_webhook_secret: None,
+            nango_webhook_secret: String::new(),
             auth: None,
         }
     }
 
     pub fn with_webhook_secret(mut self, secret: impl Into<String>) -> Self {
-        self.nango_webhook_secret = Some(secret.into());
+        self.nango_webhook_secret = secret.into();
         self
     }
 

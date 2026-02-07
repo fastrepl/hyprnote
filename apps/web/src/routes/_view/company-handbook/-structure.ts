@@ -5,7 +5,6 @@ export const handbookStructure = {
     "who-we-want",
     "go-to-market",
     "communication",
-    "beliefs",
   ],
   sectionTitles: {
     about: "About",
@@ -13,14 +12,12 @@ export const handbookStructure = {
     "who-we-want": "Who We Want",
     "go-to-market": "Go To Market",
     communication: "Communication",
-    beliefs: "Beliefs",
   } as Record<string, string>,
   defaultPages: {
     about: "about/what-hyprnote-is",
     "how-we-work": "how-we-work/work-styles",
     "who-we-want": "who-we-want/core-traits",
     "go-to-market": "go-to-market/customers",
-    communication: "communication/why-this-matters",
-    beliefs: "beliefs/what-we-believe",
+    communication: "communication/how-we-communicate",
   } as Record<string, string>,
 };

@@ -103,11 +103,11 @@ function HeroSection() {
       <div className="px-6 py-12 lg:py-20">
         <header className="mb-12 text-center max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
-            Never Miss a Detail From Your Meetings
+            AI Notepad for Smarter Meeting Notes
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
-            Hyprnote captures everything said, combines it with your notes,
-            <br className="hidden sm:inline" /> and creates a perfect summary.
+            You focus on the conversation. AI transcribes, summarizes,
+            <br className="hidden sm:inline" /> and fills in what you missed.
           </p>
           <div className="mt-8">
             <Link

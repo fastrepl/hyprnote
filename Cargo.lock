@@ -576,6 +576,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "api-sync"
+version = "0.1.0"
+dependencies = [
+ "axum 0.8.8",
+ "reqwest 0.13.1",
+ "sentry",
+ "serde",
+ "serde_json",
+ "supabase-auth",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "utoipa",
+]
+
+[[package]]
 name = "apple-note"
 version = "0.1.0"
 dependencies = [

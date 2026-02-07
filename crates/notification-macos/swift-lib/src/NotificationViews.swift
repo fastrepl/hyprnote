@@ -36,8 +36,8 @@ class NotificationBackgroundView: NSView {
     layer?.cornerRadius = Layout.cornerRadius
     bgLayer.cornerRadius = Layout.cornerRadius
     borderLayer.cornerRadius = Layout.cornerRadius
-    borderLayer.borderWidth = 0
-    borderLayer.borderColor = NSColor.white.withAlphaComponent(0.2).cgColor
+    borderLayer.borderWidth = 1.5
+    borderLayer.borderColor = NSColor(calibratedWhite: 0.75, alpha: 0.5).cgColor
     if #available(macOS 11.0, *) {
       layer?.cornerCurve = .continuous
       bgLayer.cornerCurve = .continuous

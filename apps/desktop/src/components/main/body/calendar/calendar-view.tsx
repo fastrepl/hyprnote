@@ -19,11 +19,19 @@ import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
 
+import { useEvent } from "../../../../hooks/tinybase";
 import * as main from "../../../../store/tinybase/store/main";
+import { getOrCreateSessionForEventId } from "../../../../store/tinybase/store/sessions";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { ConfigureProviders } from "../../../settings/calendar/configure";
+import { EventDisplay } from "../sessions/outer-header/metadata";
 
 const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -228,23 +236,9 @@ function EventChip({ eventId }: { eventId: string }) {
     eventId,
     main.STORE_ID,
   );
-  const openNew = useTabs((state) => state.openNew);
   const calendarColor = useCalendarColor(
     (event?.calendar_id as string) ?? null,
   );
-
-  const sessionIds = main.UI.useLocalRowIds(
-    main.RELATIONSHIPS.sessionToEvent,
-    eventId,
-    main.STORE_ID,
-  );
-  const sessionId = sessionIds[0] ?? null;
-
-  const handleClick = useCallback(() => {
-    if (sessionId) {
-      openNew({ type: "sessions", id: sessionId });
-    }
-  }, [openNew, sessionId]);
 
   if (!event || !event.title || event.ignored) {
     return null;
@@ -253,44 +247,88 @@ function EventChip({ eventId }: { eventId: string }) {
   const isAllDay = !!event.is_all_day;
   const color = calendarColor ?? "#888";
 
-  if (isAllDay) {
-    return (
-      <button
-        onClick={sessionId ? handleClick : undefined}
-        className={cn([
-          "text-xs leading-tight truncate rounded px-1.5 py-0.5 text-left w-full text-white",
-          sessionId ? "hover:opacity-80 cursor-pointer" : "",
-        ])}
-        style={{ backgroundColor: color }}
-      >
-        {event.title as string}
-      </button>
-    );
-  }
-
-  const startedAt = event.started_at
-    ? format(new Date(event.started_at as string), "h:mm a")
-    : null;
+  const startedAt =
+    !isAllDay && event.started_at
+      ? format(new Date(event.started_at as string), "h:mm a")
+      : null;
 
   return (
-    <button
-      onClick={sessionId ? handleClick : undefined}
-      className={cn([
-        "flex items-center gap-1 text-xs leading-tight truncate rounded text-left w-full",
-        sessionId ? "hover:opacity-80 cursor-pointer" : "",
-      ])}
-    >
-      <div
-        className="w-0.5 self-stretch rounded-full shrink-0"
-        style={{ backgroundColor: color }}
-      />
-      <div className="truncate py-0.5">
-        <span className="truncate">{event.title as string}</span>
-        {startedAt && (
-          <span className="text-neutral-400 ml-1">{startedAt}</span>
+    <Popover>
+      <PopoverTrigger asChild>
+        {isAllDay ? (
+          <button
+            className={cn([
+              "text-xs leading-tight truncate rounded px-1.5 py-0.5 text-left w-full text-white",
+              "hover:opacity-80 cursor-pointer",
+            ])}
+            style={{ backgroundColor: color }}
+          >
+            {event.title as string}
+          </button>
+        ) : (
+          <button
+            className={cn([
+              "flex items-center gap-1 pl-0.5 text-xs leading-tight truncate rounded text-left w-full",
+              "hover:opacity-80 cursor-pointer",
+            ])}
+          >
+            <div
+              className="w-[2.5px] self-stretch rounded-full shrink-0"
+              style={{ backgroundColor: color }}
+            />
+            <div className="truncate">
+              <span className="truncate">{event.title as string}</span>
+              {startedAt && (
+                <span className="text-neutral-400 ml-1">{startedAt}</span>
+              )}
+            </div>
+          </button>
         )}
-      </div>
-    </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-[280px] shadow-lg p-0 rounded-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <EventPopoverContent eventId={eventId} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function EventPopoverContent({ eventId }: { eventId: string }) {
+  const event = useEvent(eventId);
+  const store = main.UI.useStore(main.STORE_ID);
+  const openNew = useTabs((state) => state.openNew);
+
+  const eventRow = main.UI.useResultRow(
+    main.QUERIES.timelineEvents,
+    eventId,
+    main.STORE_ID,
+  );
+
+  const handleOpen = useCallback(() => {
+    if (!store) return;
+    const title = (eventRow?.title as string) || "Untitled";
+    const sessionId = getOrCreateSessionForEventId(store, eventId, title);
+    openNew({ type: "sessions", id: sessionId });
+  }, [store, eventId, eventRow?.title, openNew]);
+
+  if (!event) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-3 p-4">
+      <EventDisplay event={event} />
+      <Button
+        size="sm"
+        className="w-full min-h-8 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white"
+        onClick={handleOpen}
+      >
+        Open note
+      </Button>
+    </div>
   );
 }
 
@@ -300,25 +338,78 @@ function SessionChip({ sessionId }: { sessionId: string }) {
     sessionId,
     main.STORE_ID,
   );
-  const openNew = useTabs((state) => state.openNew);
-
-  const handleClick = useCallback(() => {
-    openNew({ type: "sessions", id: sessionId });
-  }, [openNew, sessionId]);
 
   if (!session || !session.title) {
     return null;
   }
 
+  const createdAt = session.created_at
+    ? format(new Date(session.created_at as string), "h:mm a")
+    : null;
+
   return (
-    <button
-      onClick={handleClick}
-      className={cn([
-        "text-xs leading-tight truncate rounded px-1.5 py-0.5 text-left w-full",
-        "bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer",
-      ])}
-    >
-      {session.title as string}
-    </button>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          className={cn([
+            "flex items-center gap-1 pl-0.5 text-xs leading-tight truncate rounded text-left w-full",
+            "hover:opacity-80 cursor-pointer",
+          ])}
+        >
+          <div className="w-[2.5px] self-stretch rounded-full shrink-0 bg-blue-500" />
+          <div className="truncate">
+            <span className="truncate">{session.title as string}</span>
+            {createdAt && (
+              <span className="text-neutral-400 ml-1">{createdAt}</span>
+            )}
+          </div>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-[280px] shadow-lg p-0 rounded-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <SessionPopoverContent sessionId={sessionId} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function SessionPopoverContent({ sessionId }: { sessionId: string }) {
+  const session = main.UI.useResultRow(
+    main.QUERIES.timelineSessions,
+    sessionId,
+    main.STORE_ID,
+  );
+  const openNew = useTabs((state) => state.openNew);
+
+  const handleOpen = useCallback(() => {
+    openNew({ type: "sessions", id: sessionId });
+  }, [openNew, sessionId]);
+
+  if (!session) {
+    return null;
+  }
+
+  const createdAt = session.created_at
+    ? format(new Date(session.created_at as string), "MMM d, yyyy h:mm a")
+    : null;
+
+  return (
+    <div className="flex flex-col gap-3 p-4">
+      <div className="text-base font-medium text-neutral-900">
+        {session.title as string}
+      </div>
+      <div className="h-px bg-neutral-200" />
+      {createdAt && <div className="text-sm text-neutral-700">{createdAt}</div>}
+      <Button
+        size="sm"
+        className="w-full min-h-8 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white"
+        onClick={handleOpen}
+      >
+        Open note
+      </Button>
+    </div>
   );
 }

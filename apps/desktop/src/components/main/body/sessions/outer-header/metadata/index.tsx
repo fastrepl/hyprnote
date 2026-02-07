@@ -93,7 +93,7 @@ function ContentInner({ sessionId }: { sessionId: string }) {
   );
 }
 
-function EventDisplay({
+export function EventDisplay({
   event,
 }: {
   event: {
@@ -168,6 +168,8 @@ function EventDisplay({
         {event.title || "Untitled Event"}
       </div>
 
+      <div className="h-px bg-neutral-200" />
+
       {shouldShowLocation && (
         <>
           <div className="h-px bg-neutral-200" />
@@ -180,7 +182,6 @@ function EventDisplay({
 
       {event.meetingLink && (
         <>
-          <div className="h-px bg-neutral-200" />
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-sm text-neutral-700 min-w-0">
               <VideoIcon size={16} className="shrink-0 text-neutral-500" />

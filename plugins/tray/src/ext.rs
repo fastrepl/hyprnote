@@ -6,7 +6,7 @@ use tauri::{
 };
 
 use crate::menu_items::{
-    AppHide, AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, HyprMenuItem, MenuItemHandler,
+    AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, HyprMenuItem, MenuItemHandler,
     TrayCheckUpdate, TrayOpen, TrayQuit, TraySettings, TrayStart,
 };
 
@@ -53,7 +53,6 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                         &PredefinedMenuItem::hide_others(app, None)?,
                         &PredefinedMenuItem::show_all(app, None)?,
                         &PredefinedMenuItem::separator(app)?,
-                        &AppHide::build(app)?, // `cmd+q` will do nothing if removed
                         &TrayQuit::build(app)?,
                     ],
                 )?;

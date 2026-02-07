@@ -1,0 +1,83 @@
+---
+title: "Onboarding Guide"
+section: "How We Work"
+summary: "Everything you need to get set up and shipping in your first week."
+---
+
+## Day 1: Get Set Up
+
+### Accounts and Access
+
+When you join, you'll get access to:
+
+- **GitHub** — Added to the [fastrepl](https://github.com/fastrepl) org. This is where all code, issues, projects, and content live.
+- **Slack** — Our lightweight coordination tool. Introduce yourself, ask questions, don't be shy.
+- **Hyprnote admin** — Sign in at `https://hyprnote.com/admin` with your authorized email for content management.
+
+### Dev Environment
+
+We recommend [Cursor](https://cursor.com) if you don't have a specific IDE preference. Other tools we use: Zed, GitButler, Claude Code.
+
+[Cursor Visual Editor walkthrough](https://www.youtube.com/watch?v=XOtHjA8THCw)
+
+## Day 1 Checklist
+
+- [ ] GitHub org access confirmed
+- [ ] Slack joined, introduced yourself
+- [ ] Dev environment set up (IDE installed, repo cloned, builds locally)
+- [ ] Read this handbook — seriously, all of it
+- [ ] Downloaded a staging build and opened Hyprnote
+
+## Days 2-3: Get Familiar
+
+- [ ] Use Hyprnote in your own meetings
+- [ ] Browse [GitHub Projects](https://github.com/orgs/fastrepl/projects/6) to understand current priorities
+- [ ] Read through recent PRs to understand what's being worked on
+- [ ] Make a test PR (fix a typo, improve a doc, anything)
+
+## Week 1: Ship Something
+
+This is the most important part. **Ship something real in your first week.** A bug fix, a small feature, a piece of content, a design improvement — it doesn't matter what, as long as it's real and merged.
+
+- [ ] Pick a task from GitHub Projects or find something that bugs you
+- [ ] Ship it via PR
+- [ ] Get it reviewed and merged
+
+Shipping fast builds momentum and helps you understand the codebase, the review process, and the team. Don't wait until you feel "ready" — you learn by doing.
+
+## Week 2: Own Something
+
+- [ ] Take ownership of a task from the current sprint
+- [ ] Attend (or listen to recording of) the next planning sync
+- [ ] Start forming opinions about what should be better
+
+## Staging Builds
+
+Staging builds are created when testing new features before they go to nightly or stable releases.
+
+**Easiest method:**
+
+1. Go to the [Download Latest Staging Build workflow](https://github.com/fastrepl/hyprnote/actions/workflows/download_staging.yaml)
+2. Click "Run workflow"
+3. Select the platform (currently `macos-aarch64` for Apple Silicon Macs)
+4. Click "Run workflow"
+5. Once complete, download the artifact from the workflow run
+
+Staging builds are stored in R2 with filenames like `hyprnote-staging-{timestamp}-{commit}-macos-aarch64.dmg`.
+
+**Alternative:** Download directly from [desktop_cd workflow](https://github.com/fastrepl/hyprnote/actions/workflows/desktop_cd.yaml) artifacts — look for `hyprnote-staging-macos-silicon`.
+
+## Triggering Staging Builds
+
+**From a PR:** Comment `/staging` on the PR. The bot will trigger a staging build and reply with a link to the workflow run.
+
+**Manually:**
+
+1. Go to [desktop_cd.yaml workflow](https://github.com/fastrepl/hyprnote/actions/workflows/desktop_cd.yaml)
+2. Click "Run workflow"
+3. Select the branch and choose "staging" as the channel
+4. Click "Run workflow"
+
+## Questions?
+
+Ask in Slack. There are no dumb questions, especially in your first two weeks. If the answer isn't documented, that's a bug — fix it by adding it to the handbook via PR.

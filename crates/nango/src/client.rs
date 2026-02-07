@@ -89,5 +89,7 @@ impl NangoClient {
         connection_id: impl Into<String>,
     ) -> NangoProxyBuilder<'_> {
         NangoProxyBuilder::new(self, integration.into(), connection_id.into())
+            .retries(3)
+            .retry_on(vec![429, 500, 502, 503, 504])
     }
 }

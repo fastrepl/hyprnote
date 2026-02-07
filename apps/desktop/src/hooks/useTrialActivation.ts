@@ -54,7 +54,7 @@ export function useTrialActivation(options: UseTrialActivationOptions = {}) {
       });
     },
     onSuccess: (result) => {
-      if (result.status === "activated") {
+      if (result.status === "activated" || result.status === "timeout") {
         void analyticsCommands.event({ event: "trial_started", plan: "pro" });
         const trialEndDate = new Date();
         trialEndDate.setDate(trialEndDate.getDate() + 14);
@@ -66,9 +66,11 @@ export function useTrialActivation(options: UseTrialActivationOptions = {}) {
             trial_end_date: trialEndDate.toISOString(),
           },
         });
-        options.onActivated?.();
-      } else if (result.status === "timeout") {
-        options.onTimeout?.();
+        if (result.status === "activated") {
+          options.onActivated?.();
+        } else {
+          options.onTimeout?.();
+        }
       }
     },
     onError: (error) => {

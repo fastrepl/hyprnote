@@ -4,6 +4,7 @@ mod connection;
 mod error;
 mod integration;
 pub mod proxy;
+mod trigger;
 mod types;
 pub mod webhook;
 
@@ -13,6 +14,7 @@ pub use connection::*;
 pub use error::*;
 pub use integration::*;
 pub use proxy::NangoProxyBuilder;
+pub use trigger::*;
 pub use types::*;
 pub use webhook::*;
 

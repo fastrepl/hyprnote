@@ -211,7 +211,7 @@ private final class QuitInterceptor {
 
   private func handleKeyUp(_ event: NSEvent) {
     let isQ = event.charactersIgnoringModifiers?.lowercased() == "q"
-    if isQ {
+    if isQ && quitTimer != nil {
       cancelQuitTimer()
     }
   }

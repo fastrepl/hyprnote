@@ -93,8 +93,8 @@ private final class QuitInterceptor {
   }
 
   private func centeredFrame(size: NSSize) -> NSRect {
-    guard let screen = NSScreen.main else {
-      fatalError("No main screen")
+    guard let screen = NSScreen.main ?? NSScreen.screens.first else {
+      return NSRect(origin: .zero, size: size)
     }
     let origin = NSPoint(
       x: screen.frame.midX - size.width / 2,
@@ -127,6 +127,10 @@ private final class QuitInterceptor {
   }
 
   // MARK: - Show / Hide
+
+  func showOverlay() {
+    showPanel()
+  }
 
   private func showPanel() {
     hideTimer?.cancel()
@@ -229,4 +233,11 @@ private final class QuitInterceptor {
 @_cdecl("_setup_force_quit_handler")
 public func _setupForceQuitHandler() {
   QuitInterceptor.shared.setup()
+}
+
+@_cdecl("_show_quit_overlay")
+public func _showQuitOverlay() {
+  DispatchQueue.main.async {
+    QuitInterceptor.shared.showOverlay()
+  }
 }

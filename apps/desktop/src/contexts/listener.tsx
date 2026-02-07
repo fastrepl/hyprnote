@@ -121,12 +121,11 @@ const useHandleDetectEvents = (store: ListenerStore) => {
           }
 
           const minutes = Math.round(payload.duration_secs / 60);
-          const appName = payload.app.name;
 
           void notificationCommands.showNotification({
             key: payload.key,
             title: "Meeting in progress?",
-            message: `${appName} has been using the mic for ${minutes} min. Start listening?`,
+            message: `Mic used for ${minutes} minutes. Start listening?`,
             timeout: { secs: 15, nanos: 0 },
             event_id: null,
             start_time: null,

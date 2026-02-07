@@ -53,6 +53,8 @@ common_derives! {
         pub display_name: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub email: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub tags: Option<HashMap<String, String>>,
     }
 }
 
@@ -125,25 +127,5 @@ common_derives! {
 common_derives! {
     pub struct NangoCredentialsOAuth2 {
         pub access_token: String,
-    }
-}
-
-common_derives! {
-    pub struct NangoConnectWebhook {
-        pub r#type: String,
-        pub operation: String,
-        #[serde(rename = "connectionId")]
-        pub connection_id: String,
-        #[serde(rename = "endUser")]
-        pub end_user: NangoConnectWebhookEndUser,
-    }
-}
-
-common_derives! {
-    pub struct NangoConnectWebhookEndUser {
-        #[serde(rename = "endUserId")]
-        pub end_user_id: String,
-        #[serde(rename = "organizationId")]
-        pub organization_id: Option<String>,
     }
 }

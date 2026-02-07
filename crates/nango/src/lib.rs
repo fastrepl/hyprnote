@@ -2,11 +2,13 @@ mod client;
 mod error;
 pub mod proxy;
 mod types;
+pub mod webhook;
 
 pub use client::*;
 pub use error::*;
 pub use proxy::NangoProxyBuilder;
 pub use types::*;
+pub use webhook::*;
 
 macro_rules! common_derives {
     ($item:item) => {

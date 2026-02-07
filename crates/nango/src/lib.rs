@@ -4,8 +4,10 @@ mod connection;
 mod error;
 mod integration;
 pub mod proxy;
+mod sync;
+mod trigger;
 mod types;
-mod webhook;
+pub mod webhook;
 
 pub use client::*;
 pub use connect_session::*;
@@ -13,8 +15,10 @@ pub use connection::*;
 pub use error::*;
 pub use integration::*;
 pub use proxy::NangoProxyBuilder;
+pub use sync::*;
+pub use trigger::*;
 pub use types::*;
-pub use webhook::verify_webhook_signature;
+pub use webhook::*;
 
 macro_rules! common_derives {
     ($item:item) => {

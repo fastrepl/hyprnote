@@ -35,7 +35,7 @@ export function AdvancedSearchView({
   useEffect(() => {
     const timer = setTimeout(() => {
       setQuery(localQuery);
-    }, 200);
+    }, 50);
     return () => clearTimeout(timer);
   }, [localQuery, setQuery]);
 

@@ -1,13 +1,9 @@
 use axum::{Json, extract::State, http::HeaderMap};
-use hmac::{Hmac, Mac};
 use serde::Serialize;
-use sha2::Sha256;
 use utoipa::ToSchema;
 
 use crate::error::{IntegrationError, Result};
 use crate::state::AppState;
-
-type HmacSha256 = Hmac<Sha256>;
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct WebhookResponse {
@@ -29,7 +25,18 @@ pub async fn nango_webhook(
     headers: HeaderMap,
     body: String,
 ) -> Result<Json<WebhookResponse>> {
-    verify_signature(&state.config.nango_webhook_secret, &body, &headers)?;
+    let signature = headers
+        .get("x-nango-hmac-sha256")
+        .and_then(|h| h.to_str().ok())
+        .ok_or_else(|| {
+            IntegrationError::Auth("Missing X-Nango-Hmac-Sha256 header".to_string())
+        })?;
+
+    hypr_nango::verify_webhook_signature(
+        &state.config.nango_webhook_secret,
+        &body,
+        signature,
+    )?;
 
     let payload: hypr_nango::ConnectWebhook =
         serde_json::from_str(&body).map_err(|e| IntegrationError::BadRequest(e.to_string()))?;
@@ -45,24 +52,4 @@ pub async fn nango_webhook(
     Ok(Json(WebhookResponse {
         status: "ok".to_string(),
     }))
-}
-
-fn verify_signature(secret: &str, body: &str, headers: &HeaderMap) -> Result<()> {
-    let signature = headers
-        .get("x-nango-hmac-sha256")
-        .and_then(|h| h.to_str().ok())
-        .ok_or_else(|| IntegrationError::Auth("Missing X-Nango-Hmac-Sha256 header".to_string()))?;
-
-    let mut mac = HmacSha256::new_from_slice(secret.as_bytes())
-        .map_err(|e| IntegrationError::Internal(format!("HMAC init error: {}", e)))?;
-    mac.update(body.as_bytes());
-    let expected = format!("{:x}", mac.finalize().into_bytes());
-
-    if expected != signature {
-        return Err(IntegrationError::Auth(
-            "Invalid webhook signature".to_string(),
-        ));
-    }
-
-    Ok(())
 }

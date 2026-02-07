@@ -5,6 +5,7 @@ mod error;
 mod integration;
 pub mod proxy;
 mod types;
+mod webhook;
 
 pub use client::*;
 pub use connect_session::*;
@@ -13,6 +14,7 @@ pub use error::*;
 pub use integration::*;
 pub use proxy::NangoProxyBuilder;
 pub use types::*;
+pub use webhook::verify_webhook_signature;
 
 macro_rules! common_derives {
     ($item:item) => {

@@ -14,6 +14,7 @@ import { Route } from "../../routes/app/onboarding/_layout.index";
 import * as settings from "../../store/tinybase/store/settings";
 import { commands } from "../../types/tauri.gen";
 import { configureProSettings } from "../../utils";
+import { pollForTrialActivation } from "../../utils/poll-trial-activation";
 import { getBack, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 
@@ -51,9 +52,14 @@ export function Final({ onNavigate }: StepProps) {
         const started = await tryStartTrial(headers, store);
         setTrialStarted(started);
         if (started) {
-          await new Promise((resolve) => setTimeout(resolve, 3000));
+          const result = await pollForTrialActivation({
+            refreshSession: () => auth.refreshSession(),
+            signal: abortController.signal,
+          });
+          if (result.status === "aborted") return;
+        } else {
+          await auth.refreshSession();
         }
-        await auth.refreshSession();
       } catch (e) {
         Sentry.captureException(e);
         console.error(e);
@@ -62,7 +68,12 @@ export function Final({ onNavigate }: StepProps) {
       setIsLoading(false);
     };
 
+    const abortController = new AbortController();
     void handle();
+
+    return () => {
+      abortController.abort();
+    };
   }, [auth, store]);
 
   if (isLoading) {

@@ -21,7 +21,7 @@ use hypr_analytics::AnalyticsClientBuilder;
 use auth::AuthState;
 use env::env;
 
-pub use hypr_api_auth::DEVICE_FINGERPRINT_HEADER;
+pub const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 
 fn app() -> Router {
     let env = env();

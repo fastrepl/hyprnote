@@ -8,14 +8,6 @@ use hypr_supabase_auth::{Error as SupabaseAuthError, SupabaseAuth};
 
 pub use hypr_supabase_auth::Claims;
 
-pub const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
-
-#[derive(Clone, Debug)]
-pub struct DeviceFingerprint(pub String);
-
-#[derive(Clone, Debug)]
-pub struct UserId(pub String);
-
 #[derive(Clone)]
 pub struct AuthState {
     inner: SupabaseAuth,
@@ -71,12 +63,6 @@ pub async fn require_auth(
         .and_then(|h| h.to_str().ok())
         .ok_or(SupabaseAuthError::MissingAuthHeader)?;
 
-    let device_fingerprint = request
-        .headers()
-        .get(DEVICE_FINGERPRINT_HEADER)
-        .and_then(|h| h.to_str().ok())
-        .map(String::from);
-
     let token =
         SupabaseAuth::extract_token(auth_header).ok_or(SupabaseAuthError::InvalidAuthHeader)?;
 
@@ -85,16 +71,7 @@ pub async fn require_auth(
         .require_entitlement(token, &state.required_entitlement)
         .await?;
 
-    let user_id = claims.sub.clone();
     request.extensions_mut().insert(claims);
-
-    if let Some(fingerprint) = device_fingerprint {
-        request
-            .extensions_mut()
-            .insert(DeviceFingerprint(fingerprint));
-    }
-
-    request.extensions_mut().insert(UserId(user_id));
 
     Ok(next.run(request).await)
 }

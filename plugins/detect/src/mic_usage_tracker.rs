@@ -13,21 +13,13 @@ struct TimerEntry {
     token: CancellationToken,
 }
 
+#[derive(Default)]
 pub struct MicUsageTracker {
     timers: HashMap<String, TimerEntry>,
     cooldowns: HashMap<String, tokio::time::Instant>,
     next_gen: u64,
 }
 
-impl Default for MicUsageTracker {
-    fn default() -> Self {
-        Self {
-            timers: HashMap::new(),
-            cooldowns: HashMap::new(),
-            next_gen: 0,
-        }
-    }
-}
 
 impl Drop for MicUsageTracker {
     fn drop(&mut self) {

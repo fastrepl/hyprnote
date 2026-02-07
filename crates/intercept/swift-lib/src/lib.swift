@@ -3,18 +3,20 @@ import Cocoa
 // MARK: - Configuration
 
 private enum QuitOverlay {
-  static let size = NSSize(width: 340, height: 52)
+  static let size = NSSize(width: 340, height: 96)
   static let cornerRadius: CGFloat = 12
   static let verticalOffsetRatio: CGFloat = 0.15
   static let backgroundColor = NSColor(white: 0.12, alpha: 0.88)
 
-  static let text = "Hold ⌘Q to Quit"
+  static let pressText = "Press ⌘Q to Close"
+  static let holdText = "Hold ⌘Q to Quit"
   static let font = NSFont.systemFont(ofSize: 22, weight: .medium)
-  static let textColor = NSColor.white
+  static let primaryTextColor = NSColor.white
+  static let secondaryTextColor = NSColor(white: 1.0, alpha: 0.5)
 
   static let animationDuration: TimeInterval = 0.15
-  static let holdDuration: TimeInterval = 1.5
-  static let lingerDuration: TimeInterval = 0.75
+  static let holdDuration: TimeInterval = 1.0
+  static let overlayDuration: TimeInterval = 1.5
 }
 
 // MARK: - FFI
@@ -22,16 +24,32 @@ private enum QuitOverlay {
 @_silgen_name("rust_set_force_quit")
 func rustSetForceQuit()
 
+@_silgen_name("rust_perform_close")
+func rustPerformClose()
+
 // MARK: - QuitInterceptor
 
 private final class QuitInterceptor {
   static let shared = QuitInterceptor()
 
+  private enum State {
+    case idle
+    case awaiting
+    case holding
+  }
+
+  private enum Event {
+    case cmdQPressed
+    case keyReleased
+    case dismissTimerFired
+    case quitTimerFired
+  }
+
   private var keyMonitor: Any?
   private var panel: NSPanel?
+  private var state: State = .idle
+  private var dismissTimer: DispatchWorkItem?
   private var quitTimer: DispatchWorkItem?
-  private var hideTimer: DispatchWorkItem?
-  private var recentQuitAttempt = false
 
   // MARK: - Setup
 
@@ -54,16 +72,19 @@ private final class QuitInterceptor {
     }
   }
 
-  // MARK: - Quit
+  // MARK: - Actions
 
   private func performQuit() {
-    quitTimer?.cancel()
-    hideTimer?.cancel()
     rustSetForceQuit()
     hidePanel()
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
       NSApplication.shared.terminate(nil)
     }
+  }
+
+  private func performClose() {
+    hidePanel()
+    rustPerformClose()
   }
 
   // MARK: - Panel Construction
@@ -110,19 +131,48 @@ private final class QuitInterceptor {
     container.layer?.cornerRadius = QuitOverlay.cornerRadius
     container.layer?.masksToBounds = true
 
-    let label = NSTextField(labelWithString: QuitOverlay.text)
-    label.font = QuitOverlay.font
-    label.textColor = QuitOverlay.textColor
-    label.alignment = .center
-    label.sizeToFit()
-    label.frame = NSRect(
-      x: (size.width - label.frame.width) / 2,
-      y: (size.height - label.frame.height) / 2,
-      width: label.frame.width,
-      height: label.frame.height
+    let font = QuitOverlay.font
+
+    let pressLabel = NSTextField(labelWithString: QuitOverlay.pressText)
+    pressLabel.font = font
+    pressLabel.textColor = QuitOverlay.primaryTextColor
+    pressLabel.alignment = .left
+    pressLabel.sizeToFit()
+
+    let holdLabel = NSTextField(labelWithString: QuitOverlay.holdText)
+    holdLabel.font = font
+    holdLabel.textColor = QuitOverlay.secondaryTextColor
+    holdLabel.alignment = .left
+    holdLabel.sizeToFit()
+
+    let pressPrefixWidth = NSAttributedString(
+      string: "Press ", attributes: [.font: font]
+    ).size().width
+    let holdPrefixWidth = NSAttributedString(
+      string: "Hold ", attributes: [.font: font]
+    ).size().width
+    let prefixDelta = pressPrefixWidth - holdPrefixWidth
+
+    let spacing: CGFloat = 10
+    let totalHeight = pressLabel.frame.height + spacing + holdLabel.frame.height
+    let topY = (size.height + totalHeight) / 2 - pressLabel.frame.height
+    let pressX = (size.width - pressLabel.frame.width) / 2
+
+    pressLabel.frame = NSRect(
+      x: pressX,
+      y: topY,
+      width: pressLabel.frame.width,
+      height: pressLabel.frame.height
+    )
+    holdLabel.frame = NSRect(
+      x: pressX + prefixDelta,
+      y: topY - spacing - holdLabel.frame.height,
+      width: holdLabel.frame.width,
+      height: holdLabel.frame.height
     )
 
-    container.addSubview(label)
+    container.addSubview(pressLabel)
+    container.addSubview(holdLabel)
     return container
   }
 
@@ -133,9 +183,6 @@ private final class QuitInterceptor {
   }
 
   private func showPanel() {
-    hideTimer?.cancel()
-    hideTimer = nil
-
     if panel == nil {
       panel = makePanel()
     }
@@ -163,13 +210,60 @@ private final class QuitInterceptor {
     }
   }
 
+  // MARK: - State Machine
+
+  private func transition(_ event: Event) {
+    switch (state, event) {
+    case (.idle, .cmdQPressed):
+      state = .awaiting
+      showPanel()
+      startDismissTimer()
+
+    case (.awaiting, .cmdQPressed):
+      state = .holding
+      cancelDismissTimer()
+      startQuitTimer()
+
+    case (.awaiting, .keyReleased):
+      break
+
+    case (.awaiting, .dismissTimerFired):
+      state = .idle
+      hidePanel()
+
+    case (.holding, .keyReleased):
+      state = .idle
+      cancelQuitTimer()
+      performClose()
+
+    case (.holding, .quitTimerFired):
+      performQuit()
+
+    default:
+      break
+    }
+  }
+
   // MARK: - Timers
+
+  private func startDismissTimer() {
+    dismissTimer?.cancel()
+    let timer = DispatchWorkItem { [weak self] in
+      self?.transition(.dismissTimerFired)
+    }
+    dismissTimer = timer
+    DispatchQueue.main.asyncAfter(deadline: .now() + QuitOverlay.overlayDuration, execute: timer)
+  }
+
+  private func cancelDismissTimer() {
+    dismissTimer?.cancel()
+    dismissTimer = nil
+  }
 
   private func startQuitTimer() {
     quitTimer?.cancel()
-
     let timer = DispatchWorkItem { [weak self] in
-      self?.performQuit()
+      self?.transition(.quitTimerFired)
     }
     quitTimer = timer
     DispatchQueue.main.asyncAfter(deadline: .now() + QuitOverlay.holdDuration, execute: timer)
@@ -178,19 +272,6 @@ private final class QuitInterceptor {
   private func cancelQuitTimer() {
     quitTimer?.cancel()
     quitTimer = nil
-    recentQuitAttempt = true
-    scheduleHide()
-  }
-
-  private func scheduleHide() {
-    hideTimer?.cancel()
-
-    let timer = DispatchWorkItem { [weak self] in
-      self?.recentQuitAttempt = false
-      self?.hidePanel()
-    }
-    hideTimer = timer
-    DispatchQueue.main.asyncAfter(deadline: .now() + QuitOverlay.lingerDuration, execute: timer)
   }
 
   // MARK: - Event Handlers
@@ -198,37 +279,20 @@ private final class QuitInterceptor {
   private func handleKeyDown(_ event: NSEvent) -> NSEvent? {
     let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
     let isQ = event.charactersIgnoringModifiers?.lowercased() == "q"
-
-    guard flags.contains(.command), isQ else {
-      return event
-    }
-
-    if event.isARepeat {
-      return nil
-    }
-
-    if recentQuitAttempt {
-      performQuit()
-      return nil
-    }
-
-    showPanel()
-    startQuitTimer()
+    guard flags.contains(.command), isQ else { return event }
+    if event.isARepeat { return nil }
+    transition(.cmdQPressed)
     return nil
   }
 
   private func handleKeyUp(_ event: NSEvent) {
     let isQ = event.charactersIgnoringModifiers?.lowercased() == "q"
-    if isQ && quitTimer != nil {
-      cancelQuitTimer()
-    }
+    if isQ { transition(.keyReleased) }
   }
 
   private func handleFlagsChanged(_ event: NSEvent) {
     let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-    if !flags.contains(.command) && quitTimer != nil {
-      cancelQuitTimer()
-    }
+    if !flags.contains(.command) { transition(.keyReleased) }
   }
 }
 

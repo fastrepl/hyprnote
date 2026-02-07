@@ -27,6 +27,10 @@ export function Final({ onNavigate }: StepProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [trialStarted, setTrialStarted] = useState(false);
   const hasHandledRef = useRef(false);
+  const authRef = useRef(auth);
+  authRef.current = auth;
+  const storeRef = useRef(store);
+  storeRef.current = store;
 
   const backStep = getBack(search);
 
@@ -36,29 +40,32 @@ export function Final({ onNavigate }: StepProps) {
     }
     hasHandledRef.current = true;
 
+    const abortController = new AbortController();
+
     const handle = async () => {
-      if (!auth?.session) {
+      const currentAuth = authRef.current;
+      if (!currentAuth?.session) {
         setIsLoading(false);
         return;
       }
 
-      const headers = auth.getHeaders();
+      const headers = currentAuth.getHeaders();
       if (!headers) {
         setIsLoading(false);
         return;
       }
 
       try {
-        const started = await tryStartTrial(headers, store);
+        const started = await tryStartTrial(headers, storeRef.current);
         setTrialStarted(started);
         if (started) {
           const result = await pollForTrialActivation({
-            refreshSession: () => auth.refreshSession(),
+            refreshSession: () => authRef.current.refreshSession(),
             signal: abortController.signal,
           });
           if (result.status === "aborted") return;
         } else {
-          await auth.refreshSession();
+          await authRef.current.refreshSession();
         }
       } catch (e) {
         Sentry.captureException(e);
@@ -68,13 +75,13 @@ export function Final({ onNavigate }: StepProps) {
       setIsLoading(false);
     };
 
-    const abortController = new AbortController();
     void handle();
 
     return () => {
       abortController.abort();
     };
-  }, [auth, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (isLoading) {
     return (

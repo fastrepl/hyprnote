@@ -32,23 +32,3 @@ impl From<NangoIntegration> for String {
         }
     }
 }
-
-common_derives! {
-    pub struct ConnectWebhook {
-        pub r#type: String,
-        pub operation: String,
-        #[serde(rename = "connectionId")]
-        pub connection_id: String,
-        #[serde(rename = "endUser")]
-        pub end_user: ConnectWebhookEndUser,
-    }
-}
-
-common_derives! {
-    pub struct ConnectWebhookEndUser {
-        #[serde(rename = "endUserId")]
-        pub end_user_id: String,
-        #[serde(rename = "organizationId")]
-        pub organization_id: Option<String>,
-    }
-}

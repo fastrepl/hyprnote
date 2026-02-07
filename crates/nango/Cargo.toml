@@ -4,10 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+hex = "0.4"
+hmac = "0.12"
 reqwest = { workspace = true, features = ["json"] }
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+sha2 = "0.10"
 specta = { workspace = true, features = ["derive", "serde_json"] }
 strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }

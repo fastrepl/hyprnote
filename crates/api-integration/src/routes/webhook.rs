@@ -36,7 +36,9 @@ pub async fn nango_webhook(
         signature,
     );
     if !valid {
-        return Err(IntegrationError::Auth("Invalid webhook signature".to_string()));
+        return Err(IntegrationError::Auth(
+            "Invalid webhook signature".to_string(),
+        ));
     }
 
     let payload: hypr_nango::NangoAuthWebhook =

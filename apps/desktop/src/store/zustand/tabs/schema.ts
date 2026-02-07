@@ -7,6 +7,7 @@ import type {
   EditorView,
   ExtensionsState,
   PromptsState,
+  SearchState,
   SessionsState,
   TabInput,
   TemplatesState,
@@ -21,6 +22,7 @@ export type {
   EditorView,
   ExtensionsState,
   PromptsState,
+  SearchState,
   SessionsState,
   TabInput,
   TemplatesState,
@@ -99,6 +101,10 @@ export type Tab =
   | (BaseTab & {
       type: "ai";
       state: AiState;
+    })
+  | (BaseTab & {
+      type: "search";
+      state: SearchState;
     });
 
 export const getDefaultState = (tab: TabInput): Tab => {
@@ -189,6 +195,12 @@ export const getDefaultState = (tab: TabInput): Tab => {
         type: "ai",
         state: tab.state ?? { tab: null },
       };
+    case "search":
+      return {
+        ...base,
+        type: "search",
+        state: tab.state ?? { selectedTypes: null, initialQuery: null },
+      };
     default:
       const _exhaustive: never = tab;
       return _exhaustive;
@@ -227,6 +239,8 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `settings`;
     case "ai":
       return `ai`;
+    case "search":
+      return `search`;
   }
 };
 

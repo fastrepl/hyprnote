@@ -142,10 +142,9 @@ function PreBuiltOrCustomSection() {
             </p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {allTemplates.slice(0, 6).map((template) => (
-                <Link
+                <a
                   key={template.slug}
-                  to="/templates/$slug"
-                  params={{ slug: template.slug }}
+                  href={`/templates/${template.slug}`}
                   className="group p-4 border border-neutral-200 rounded-xs bg-white hover:shadow-md hover:border-neutral-300 transition-all"
                 >
                   <p className="text-xs text-neutral-500 mb-1">
@@ -154,17 +153,16 @@ function PreBuiltOrCustomSection() {
                   <h4 className="font-serif text-base text-stone-600 group-hover:text-stone-800 transition-colors">
                     {template.title}
                   </h4>
-                </Link>
+                </a>
               ))}
             </div>
             <div className="mt-4 text-center">
-              <Link
-                to="/gallery/"
-                search={{ type: "template" }}
+              <a
+                href="/gallery/?type=template"
                 className="text-sm text-stone-600 hover:text-stone-800 underline decoration-dotted underline-offset-2 transition-colors"
               >
                 Browse all {allTemplates.length} templates
-              </Link>
+              </a>
             </div>
           </div>
 

@@ -5,8 +5,6 @@ use crate::state::AppState;
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(),
-    components(schemas()),
     tags(
         (name = "sync", description = "Sync management")
     )

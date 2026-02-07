@@ -37,7 +37,7 @@ impl WatcherState {
 fn find_zoom_pid() -> Option<i32> {
     let bundle_id = ns::String::with_str(ZOOM_BUNDLE_ID);
     let apps = ns::RunningApp::with_bundle_id(&bundle_id);
-    let app = apps.get(0)?;
+    let app = apps.get(0).ok()?;
     Some(app.pid())
 }
 
@@ -68,7 +68,7 @@ fn check_zoom_mute_state() -> Option<bool> {
     })?;
 
     let menu_children = meeting_item.children().ok()?;
-    let meeting_menu = menu_children.get(0)?;
+    let meeting_menu = menu_children.iter().next()?;
 
     let menu_items = meeting_menu.children().ok()?;
     for item in menu_items.iter() {

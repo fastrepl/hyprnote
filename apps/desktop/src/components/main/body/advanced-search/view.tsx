@@ -1,4 +1,4 @@
-import { Loader2Icon, SearchIcon, SparklesIcon, XIcon } from "lucide-react";
+import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Badge } from "@hypr/ui/components/ui/badge";
@@ -7,8 +7,8 @@ import { cn } from "@hypr/utils";
 import { useSearchEngine } from "../../../../contexts/search/engine";
 import {
   type GroupedSearchResults,
-  type SearchEntityType,
   groupSearchResults,
+  type SearchEntityType,
 } from "../../../../contexts/search/ui";
 import { ResultItem } from "./result-item";
 
@@ -144,12 +144,12 @@ export function AdvancedSearchView({
             return (
               <Badge
                 key={option.type}
-                variant={isActive ? "default" : "outline"}
+                variant="outline"
                 className={cn([
                   "cursor-pointer transition-all",
                   isActive
-                    ? "bg-neutral-900 text-white hover:bg-neutral-800"
-                    : "bg-white text-neutral-600 hover:bg-neutral-100 border-neutral-200",
+                    ? "bg-linear-to-t from-stone-600 to-stone-500 text-white border-stone-600 hover:from-stone-700 hover:to-stone-600"
+                    : "bg-linear-to-b from-white to-stone-50 text-neutral-600 border-neutral-200 hover:from-neutral-50 hover:to-stone-100",
                 ])}
                 onClick={() => toggleFilter(option.type)}
               >
@@ -188,10 +188,6 @@ function SuggestionsView({
 }) {
   return (
     <div className="pl-[14px] pr-3 pt-3">
-      <div className="flex items-center gap-2 text-sm text-neutral-500 mb-4">
-        <SparklesIcon className="h-4 w-4" />
-        <span>Suggestions</span>
-      </div>
       {results && results.totalResults > 0 ? (
         <div className="space-y-1">
           {results.groups

@@ -73,7 +73,7 @@ const TriggerInner = forwardRef<
       {hasEvent && event?.meetingLink ? (
         <VideoIcon size={14} className="shrink-0" />
       ) : (
-        <CalendarIcon size={14} className="shrink-0 -mt-0.5" />
+        <CalendarIcon size={14} className="shrink-0" />
       )}
       <span className={cn([hasEvent && "truncate"])}>{displayText}</span>
     </Button>

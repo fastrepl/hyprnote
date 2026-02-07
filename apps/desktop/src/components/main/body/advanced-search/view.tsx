@@ -78,12 +78,12 @@ export function AdvancedSearchView({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 pt-6 pb-4 border-b border-neutral-100">
+      <div className="pr-1 py-1 border-b border-neutral-200">
         <div className="relative">
           {showLoading ? (
-            <Loader2Icon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400 animate-spin" />
+            <Loader2Icon className="absolute left-[14px] top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 animate-spin" />
           ) : (
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+            <SearchIcon className="absolute left-[14px] top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
           )}
           <input
             ref={inputRef}
@@ -92,25 +92,27 @@ export function AdvancedSearchView({
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
             className={cn([
-              "w-full pl-12 pr-10 py-3",
+              "w-full pl-[38px] pr-8 py-2",
               "text-base placeholder:text-neutral-400",
-              "rounded-xl bg-neutral-100",
-              "border border-transparent",
-              "focus:outline-none focus:border-neutral-300 focus:bg-white",
+              "bg-transparent",
+              "border-none",
+              "focus:outline-none",
               "transition-all",
             ])}
           />
           {localQuery && (
             <button
               onClick={() => setLocalQuery("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
             >
               <XIcon className="h-5 w-5" />
             </button>
           )}
         </div>
+      </div>
 
-        <div className="flex gap-2 mt-4">
+      <div className="pl-[14px] pr-3 py-2 border-b border-neutral-200">
+        <div className="flex gap-2">
           {FILTER_OPTIONS.map((option) => {
             const isActive = selectedTypes?.includes(option.type);
             return (
@@ -159,7 +161,7 @@ function SuggestionsView({
   onResultClick: (type: string, id: string) => void;
 }) {
   return (
-    <div className="p-6">
+    <div className="pl-[14px] pr-3 pt-3">
       <div className="flex items-center gap-2 text-sm text-neutral-500 mb-4">
         <SparklesIcon className="h-4 w-4" />
         <span>Suggestions</span>
@@ -198,7 +200,7 @@ function SearchResultsView({
   onResultClick: (type: string, id: string) => void;
 }) {
   return (
-    <div className="p-6">
+    <div className="pl-[14px] pr-3 pt-3">
       {results.groups.map((group) => (
         <div key={group.key} className="mb-6">
           <h3 className="text-sm font-semibold text-neutral-900 mb-3">

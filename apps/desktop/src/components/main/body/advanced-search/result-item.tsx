@@ -28,7 +28,7 @@ export function ResultItem({ result, onClick }: ResultItemProps) {
       ])}
     >
       <div className="mt-0.5 shrink-0">
-        <Icon className="h-5 w-5 text-neutral-400" />
+        <Icon className="h-4 w-4 text-neutral-400" />
       </div>
       <div className="flex-1 min-w-0">
         <div

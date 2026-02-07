@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { cn } from "@hypr/utils";
 
+import { useSearchEngine } from "../../../../contexts/search/engine";
 import {
   type GroupedSearchResults,
   type SearchEntityType,
-  useSearch,
+  groupSearchResults,
 } from "../../../../contexts/search/ui";
 import { ResultItem } from "./result-item";
 
@@ -28,8 +29,11 @@ export function AdvancedSearchView({
   setSelectedTypes,
   onResultClick,
 }: AdvancedSearchViewProps) {
-  const { query, setQuery, results, isSearching, isIndexing } = useSearch();
-  const [localQuery, setLocalQuery] = useState(query);
+  const { search, isIndexing } = useSearchEngine();
+  const [localQuery, setLocalQuery] = useState("");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<GroupedSearchResults | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -37,7 +41,29 @@ export function AdvancedSearchView({
       setQuery(localQuery);
     }, 50);
     return () => clearTimeout(timer);
-  }, [localQuery, setQuery]);
+  }, [localQuery]);
+
+  useEffect(() => {
+    if (query.trim().length < 1) {
+      setResults(null);
+      setIsSearching(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsSearching(true);
+
+    search(query).then((hits) => {
+      if (!cancelled) {
+        setResults(groupSearchResults(hits, query.trim()));
+        setIsSearching(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [query, search]);
 
   useEffect(() => {
     inputRef.current?.focus();

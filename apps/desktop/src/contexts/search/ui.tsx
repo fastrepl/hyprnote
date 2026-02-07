@@ -114,7 +114,7 @@ function toGroup(type: SearchEntityType, results: SearchResult[]): SearchGroup {
   };
 }
 
-function groupSearchResults(
+export function groupSearchResults(
   hits: SearchHit[],
   query: string,
 ): GroupedSearchResults {

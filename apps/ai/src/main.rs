@@ -165,6 +165,8 @@ fn app() -> Router {
 }
 
 fn main() -> std::io::Result<()> {
+    let _ = openapi::write_openapi_json();
+
     let env = env();
 
     let _guard = sentry::init(sentry::ClientOptions {

@@ -11,7 +11,7 @@ use utoipa::{Modify, OpenApi};
     info(
         title = "Hyprnote AI API",
         version = "1.0.0",
-        description = "AI services API for speech-to-text transcription and LLM chat completions"
+        description = "AI services API for speech-to-text transcription, LLM chat completions, and subscription management"
     ),
     tags(
         (name = "stt", description = "Speech-to-text transcription endpoints"),
@@ -42,6 +42,17 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
     apply_bearer_auth_to_protected_paths(&mut doc);
 
     doc
+}
+
+pub fn write_openapi_json() -> std::io::Result<std::path::PathBuf> {
+    let doc = openapi();
+    let json = serde_json::to_string_pretty(&doc).map_err(|e| {
+        std::io::Error::new(std::io::ErrorKind::Other, format!("serialize openapi: {e}"))
+    })?;
+
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("openapi.gen.json");
+    std::fs::write(&path, json)?;
+    Ok(path)
 }
 
 struct SecurityAddon;

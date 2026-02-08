@@ -1268,6 +1268,12 @@ importers:
 
   packages/api-client: {}
 
+  packages/api-client2:
+    devDependencies:
+      '@hey-api/openapi-ts':
+        specifier: ^0.91.1
+        version: 0.91.1(magicast@0.5.1)(typescript@5.9.3)
+
   packages/codemirror:
     dependencies:
       '@codemirror/lang-jinja':

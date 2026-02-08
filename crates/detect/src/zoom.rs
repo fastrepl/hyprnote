@@ -148,18 +148,19 @@ impl crate::Observer for ZoomMuteWatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{Observer, new_callback};
+    use std::time::Duration;
 
-    #[test]
+    // cargo test --package detect --lib --features mic,list,zoom -- zoom::tests::test_watcher --exact --nocapture --ignored
+    #[tokio::test]
     #[ignore]
-    fn test_check_zoom_mute_state() {
-        let state = check_zoom_mute_state();
-        println!("Zoom mute state: {:?}", state);
-    }
+    async fn test_watcher() {
+        let mut watcher = ZoomMuteWatcher::default();
+        watcher.start(new_callback(|v| {
+            println!("{:?}", v);
+        }));
 
-    #[test]
-    #[ignore]
-    fn test_is_zoom_using_mic() {
-        let result = is_zoom_using_mic();
-        println!("Is Zoom using mic: {}", result);
+        tokio::time::sleep(Duration::from_secs(60)).await;
+        watcher.stop();
     }
 }

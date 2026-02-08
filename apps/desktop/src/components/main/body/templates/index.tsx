@@ -199,6 +199,7 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
     (id: string | null) => {
       updateTabState(tab, {
         ...tab.state,
+        isWebMode: false,
         showHomepage: false,
         selectedMineId: id,
         selectedWebIndex: null,
@@ -211,6 +212,7 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
     (index: number | null) => {
       updateTabState(tab, {
         ...tab.state,
+        isWebMode: true,
         showHomepage: false,
         selectedMineId: null,
         selectedWebIndex: index,
@@ -284,7 +286,6 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
         sections: template.sections.map((section) => ({ ...section })),
       });
 
-      setIsWebMode(false);
       setSelectedMineId(newId);
     },
     [user_id, setRow, setIsWebMode, setSelectedMineId],
@@ -305,7 +306,6 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
       sections: [],
     });
 
-    setIsWebMode(false);
     setSelectedMineId(newId);
   }, [user_id, setRow, setIsWebMode, setSelectedMineId]);
 

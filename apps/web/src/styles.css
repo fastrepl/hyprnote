@@ -137,6 +137,15 @@
   .prose a.anchor:hover {
     text-decoration: underline dotted !important;
   }
+
+  .prose li:has(> input[type="checkbox"]) {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .prose ul:has(> li > input[type="checkbox"]) {
+    padding-left: 0.5rem;
+  }
 }
 
 @layer utilities {

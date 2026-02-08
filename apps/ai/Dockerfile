@@ -15,11 +15,13 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM rust:${RUST_VERSION}-bookworm AS build
 ARG APP_VERSION
+ARG GIT_SHA
 RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN cargo install cargo-chef sccache --locked
 ENV RUSTC_WRAPPER=sccache \
     SCCACHE_DIR=/sccache \
-    APP_VERSION=${APP_VERSION}
+    APP_VERSION=${APP_VERSION} \
+    VERGEN_GIT_SHA=${GIT_SHA}
 WORKDIR /app
 COPY --from=planner /app/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \

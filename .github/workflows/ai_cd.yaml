@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config apps/ai/fly.toml --dockerfile apps/ai/Dockerfile --remote-only --build-arg APP_VERSION=${{ needs.compute-version.outputs.version }}
+      - run: flyctl deploy --config apps/ai/fly.toml --dockerfile apps/ai/Dockerfile --remote-only --build-arg APP_VERSION=${{ needs.compute-version.outputs.version }} --build-arg GIT_SHA=${{ github.sha }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 

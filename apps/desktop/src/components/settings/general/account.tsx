@@ -111,7 +111,6 @@ export function AccountSettings() {
 
   const isAuthenticated = !!auth?.session;
   const [isPending, setIsPending] = useState(false);
-  const [showCallbackInput, setShowCallbackInput] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("");
 
   useEffect(() => {
@@ -166,31 +165,27 @@ export function AccountSettings() {
             <Button onClick={handleSignIn} variant="outline" className="w-full">
               Reopen sign-in page
             </Button>
-            <button
-              onClick={() => setShowCallbackInput((v) => !v)}
-              className="w-full text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
-            >
-              Having trouble? Paste callback URL manually
-            </button>
-            {showCallbackInput && (
-              <div className="flex flex-col gap-2 w-full">
-                <Input
-                  type="text"
-                  className="text-xs font-mono"
-                  placeholder="hyprnote://deeplink/auth?access_token=...&refresh_token=..."
-                  value={callbackUrl}
-                  onChange={(e) => setCallbackUrl(e.target.value)}
-                  autoFocus
-                />
-                <Button
-                  onClick={() => auth?.handleAuthCallback(callbackUrl)}
-                  disabled={!callbackUrl}
-                  className="w-full"
-                >
-                  Submit
-                </Button>
-              </div>
-            )}
+            <div className="flex items-center gap-2 w-full">
+              <div className="flex-1 border-t border-neutral-200" />
+              <span className="text-xs text-neutral-400 shrink-0">Having trouble?</span>
+              <div className="flex-1 border-t border-neutral-200" />
+            </div>
+            <div className="flex gap-2 w-full">
+              <Input
+                type="text"
+                className="flex-1 text-xs font-mono"
+                placeholder="hyprnote://deeplink/auth?access_token=..."
+                value={callbackUrl}
+                onChange={(e) => setCallbackUrl(e.target.value)}
+              />
+              <Button
+                onClick={() => auth?.handleAuthCallback(callbackUrl)}
+                disabled={!callbackUrl}
+                size="sm"
+              >
+                Submit
+              </Button>
+            </div>
           </div>
         </div>
       );

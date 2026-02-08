@@ -448,7 +448,7 @@ function CreateOtherFormatButton({
                 className="italic text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50"
                 onClick={() => {
                   setOpen(false);
-                  openNew({ type: "templates" });
+                  openNew({ type: "ai", state: { tab: "templates" } });
                 }}
               >
                 Manage templates
@@ -462,7 +462,7 @@ function CreateOtherFormatButton({
               <button
                 onClick={() => {
                   setOpen(false);
-                  openNew({ type: "templates" });
+                  openNew({ type: "ai", state: { tab: "templates" } });
                 }}
                 className="px-6 py-2 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
               >

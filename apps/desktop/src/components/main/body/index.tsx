@@ -33,7 +33,7 @@ import {
 import { ChatFloatingButton } from "../../chat";
 import { NotificationBadge } from "../../ui/notification-badge";
 import { TrafficLights } from "../../window/traffic-lights";
-import { useNewNote } from "../shared";
+import { useNewNote, useNewNoteAndListen } from "../shared";
 import { TabContentSearch, TabItemSearch } from "./advanced-search";
 import { TabContentAI, TabItemAI } from "./ai";
 import { TabContentCalendar, TabItemCalendar } from "./calendar";
@@ -806,6 +806,7 @@ function useTabsShortcuts() {
 
   const newNote = useNewNote({ behavior: "new" });
   const newNoteCurrent = useNewNote({ behavior: "current" });
+  const newNoteAndListen = useNewNoteAndListen();
   const newEmptyTab = useNewEmptyTab();
 
   useHotkeys(
@@ -977,6 +978,17 @@ function useTabsShortcuts() {
       enableOnContentEditable: true,
     },
     [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+n",
+    () => newNoteAndListen(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [newNoteAndListen],
   );
 
   return {};

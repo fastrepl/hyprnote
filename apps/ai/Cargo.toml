@@ -8,6 +8,7 @@ hypr-analytics = { workspace = true }
 hypr-api-auth = { workspace = true }
 hypr-api-calendar = { workspace = true }
 hypr-api-env = { workspace = true }
+hypr-api-feedback = { workspace = true }
 hypr-api-nango = { workspace = true }
 hypr-api-subscription = { workspace = true }
 hypr-llm-proxy = { workspace = true }

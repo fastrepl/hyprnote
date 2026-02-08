@@ -37,33 +37,47 @@ fn app() -> Router {
     let llm_config =
         hypr_llm_proxy::LlmProxyConfig::new(&env.llm).with_analytics(analytics.clone());
     let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(&env.stt).with_analytics(analytics);
-    let auth_state =
+    let auth_state_pro =
         AuthState::new(&env.supabase.supabase_url).with_required_entitlement("hyprnote_pro");
+    let auth_state_basic = AuthState::new(&env.supabase.supabase_url);
 
     let calendar_config = hypr_api_calendar::CalendarConfig::new(&env.nango);
     let nango_config = hypr_api_nango::NangoConfig::new(&env.nango);
     let subscription_config =
         hypr_api_subscription::SubscriptionConfig::new(&env.supabase, &env.stripe);
+    let feedback_config = hypr_api_feedback::FeedbackConfig {
+        github_app_id: env.charlie_app_id.clone(),
+        github_app_private_key: env.charlie_app_private_key.clone(),
+        github_app_installation_id: env.charlie_app_installation_id.clone(),
+        openrouter_api_key: env.openrouter_api_key.clone(),
+    };
 
     let webhook_routes = Router::new().nest(
         "/nango",
         hypr_api_nango::webhook_router(nango_config.clone()),
     );
 
-    let protected_routes = Router::new()
+    let pro_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
         .merge(hypr_llm_proxy::chat_completions_router(llm_config.clone()))
         .nest("/stt", hypr_transcribe_proxy::router(stt_config))
         .nest("/llm", hypr_llm_proxy::router(llm_config))
         .nest("/calendar", hypr_api_calendar::router(calendar_config))
-        .nest(
-            "/subscription",
-            hypr_api_subscription::router(subscription_config),
-        )
         .nest("/nango", hypr_api_nango::router(nango_config.clone()))
         .route_layer(middleware::from_fn(auth::sentry_and_analytics))
         .route_layer(middleware::from_fn_with_state(
-            auth_state,
+            auth_state_pro,
+            auth::require_auth,
+        ));
+
+    let subscription_router = hypr_api_subscription::router(subscription_config);
+    let auth_routes = Router::new()
+        .nest("/subscription", subscription_router.clone())
+        .nest("/rpc", subscription_router.clone())
+        .nest("/billing", subscription_router)
+        .route_layer(middleware::from_fn(auth::sentry_and_analytics))
+        .route_layer(middleware::from_fn_with_state(
+            auth_state_basic,
             auth::require_auth,
         ));
 
@@ -71,8 +85,10 @@ fn app() -> Router {
         .route("/health", axum::routing::get(|| async { "ok" }))
         .route("/v", axum::routing::get(version))
         .route("/openapi.json", axum::routing::get(openapi_json))
+        .nest("/feedback", hypr_api_feedback::router(feedback_config))
         .merge(webhook_routes)
-        .merge(protected_routes)
+        .merge(pro_routes)
+        .merge(auth_routes)
         .layer(
             CorsLayer::new()
                 .allow_origin(cors::Any)

@@ -35,6 +35,15 @@ pub struct Env {
     pub llm: hypr_llm_proxy::Env,
     #[serde(flatten)]
     pub stt: hypr_transcribe_proxy::Env,
+
+    #[serde(default, deserialize_with = "filter_empty")]
+    pub charlie_app_id: Option<String>,
+    #[serde(default, deserialize_with = "filter_empty")]
+    pub charlie_app_private_key: Option<String>,
+    #[serde(default, deserialize_with = "filter_empty")]
+    pub charlie_app_installation_id: Option<String>,
+    #[serde(default, deserialize_with = "filter_empty")]
+    pub openrouter_api_key: Option<String>,
 }
 
 static ENV: OnceLock<Env> = OnceLock::new();

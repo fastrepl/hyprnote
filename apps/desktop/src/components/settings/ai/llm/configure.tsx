@@ -1,3 +1,5 @@
+import { HelpCircle } from "lucide-react";
+
 import {
   Accordion,
   AccordionContent,
@@ -16,7 +18,20 @@ export function ConfigureProviders() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold font-serif">Configure Providers</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-md font-semibold font-serif">
+          Configure Providers
+        </h3>
+        <a
+          href="https://hyprnote.com/docs/faq/local-llm-setup"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-neutral-400 hover:underline flex items-center gap-1"
+        >
+          <span>Local setup guide</span>
+          <HelpCircle className="size-3" />
+        </a>
+      </div>
       <Accordion
         type="single"
         collapsible

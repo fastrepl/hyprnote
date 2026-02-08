@@ -17,7 +17,7 @@ impl AppState {
             config.supabase.supabase_anon_key.clone(),
         );
 
-        let stripe = StripeClient::new(&config.stripe.stripe_api_key);
+        let stripe = StripeClient::new(&config.stripe.stripe_secret_key);
 
         Self {
             config,

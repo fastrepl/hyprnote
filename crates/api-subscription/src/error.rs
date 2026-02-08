@@ -21,17 +21,11 @@ pub struct ErrorResponse {
 
 #[derive(Debug, Error)]
 pub enum SubscriptionError {
-    #[error("Authentication error: {0}")]
-    Auth(String),
-
     #[error("Supabase request failed: {0}")]
     SupabaseRequest(String),
 
     #[error("Stripe error: {0}")]
     Stripe(String),
-
-    #[error("Invalid request: {0}")]
-    BadRequest(String),
 
     #[error("Internal error: {0}")]
     Internal(String),
@@ -48,8 +42,6 @@ impl IntoResponse for SubscriptionError {
         let internal_message = "Internal server error".to_string();
 
         let (status, code, message) = match self {
-            Self::Auth(message) => (StatusCode::UNAUTHORIZED, "unauthorized", message),
-            Self::BadRequest(message) => (StatusCode::BAD_REQUEST, "bad_request", message),
             Self::SupabaseRequest(message) => {
                 tracing::error!(error = %message, "supabase_error");
                 sentry::capture_message(&message, sentry::Level::Error);

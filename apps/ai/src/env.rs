@@ -41,7 +41,14 @@ static ENV: OnceLock<Env> = OnceLock::new();
 
 pub fn env() -> &'static Env {
     ENV.get_or_init(|| {
-        let _ = dotenvy::from_path(Path::new(env!("CARGO_MANIFEST_DIR")).join(".env"));
+        let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let repo_root = manifest_dir
+            .parent()
+            .and_then(|p| p.parent())
+            .unwrap_or(manifest_dir);
+
+        let _ = dotenvy::from_path(repo_root.join(".env.supabase"));
+        let _ = dotenvy::from_path(manifest_dir.join(".env"));
         envy::from_env().expect("Failed to load environment")
     })
 }

@@ -24,8 +24,6 @@ export const env = createEnv({
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 
     STRIPE_SECRET_KEY: requiredInProd(z.string().min(1)),
-    STRIPE_MONTHLY_PRICE_ID: requiredInProd(z.string().min(1)),
-    STRIPE_YEARLY_PRICE_ID: requiredInProd(z.string().min(1)),
 
     LOOPS_KEY: requiredInProd(z.string().min(1)),
 

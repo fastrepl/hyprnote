@@ -54,6 +54,7 @@
     "motion": "^11.18.2",
     "postgres": "^3.4.8",
     "posthog-js": "^1.336.4",
+    "posthog-node": "^5.24.11",
     "react": "^19.2.4",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.4",
@@ -71,12 +72,12 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@hypr/plugin-auth": "workspace:*",
     "@argos-ci/playwright": "^6.4.1",
     "@content-collections/core": "^0.11.1",
     "@content-collections/mdx": "^0.2.2",
     "@content-collections/vite": "^0.2.8",
     "@dotenvx/dotenvx": "^1.52.0",
+    "@hypr/plugin-auth": "workspace:*",
     "@playwright/test": "^1.58.1",
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/dom": "^10.4.1",

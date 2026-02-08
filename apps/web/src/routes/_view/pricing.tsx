@@ -1,10 +1,13 @@
+import { useFeatureFlagPayload } from "@posthog/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, MinusCircle, XCircle } from "lucide-react";
+import { useMemo } from "react";
 
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
+import type { PricingConfig } from "@/functions/pricing-config";
 
 export const Route = createFileRoute("/_view/pricing")({
   component: Component,
@@ -14,6 +17,7 @@ interface PricingPlan {
   name: string;
   price: { monthly: number; yearly: number } | null;
   originalPrice?: { monthly: number; yearly: number };
+  savePercentage?: string | null;
   description: string;
   popular?: boolean;
   features: Array<{
@@ -24,73 +28,99 @@ interface PricingPlan {
   }>;
 }
 
-const pricingPlans: PricingPlan[] = [
+const FREE_PLAN_FEATURES: PricingPlan["features"] = [
+  { label: "Local Transcription", included: true },
   {
-    name: "Free",
-    price: null,
-    description:
-      "Fully functional with your own API keys. Perfect for individuals who want complete control.",
-    features: [
-      { label: "Local Transcription", included: true },
-      {
-        label: "Speaker Identification",
-        included: true,
-        comingSoon: true,
-      },
-      { label: "Bring Your Own Key (STT & LLM)", included: true },
-      { label: "Basic Sharing (Copy, PDF)", included: true },
-      { label: "All Data Local", included: true },
-      { label: "Templates & Chat", included: true },
-      { label: "Integrations", included: false, comingSoon: true },
-      { label: "Cloud Services (STT & LLM)", included: false },
-      { label: "Cloud Sync", included: false },
-      { label: "Shareable Links", included: false },
-    ],
+    label: "Speaker Identification",
+    included: true,
+    comingSoon: true,
+  },
+  { label: "Bring Your Own Key (STT & LLM)", included: true },
+  { label: "Basic Sharing (Copy, PDF)", included: true },
+  { label: "All Data Local", included: true },
+  { label: "Templates & Chat", included: true },
+  { label: "Integrations", included: false, comingSoon: true },
+  { label: "Cloud Services (STT & LLM)", included: false },
+  { label: "Cloud Sync", included: false },
+  { label: "Shareable Links", included: false },
+];
+
+const PRO_PLAN_FEATURES: PricingPlan["features"] = [
+  { label: "Everything in Free", included: true },
+  { label: "Integrations", included: true, comingSoon: true },
+  { label: "Cloud Services (STT & LLM)", included: true },
+  {
+    label: "Cloud Sync",
+    included: true,
+    tooltip: "Select which notes to sync",
+    comingSoon: true,
   },
   {
-    name: "Pro",
-    price: {
-      monthly: 8,
-      yearly: 59,
-    },
-    originalPrice: {
-      monthly: 25,
-      yearly: 250,
-    },
-    description:
-      "No API keys needed. Get cloud services, advanced sharing, and team features out of the box.",
-    popular: true,
-    features: [
-      { label: "Everything in Free", included: true },
-      { label: "Integrations", included: true, comingSoon: true },
-      { label: "Cloud Services (STT & LLM)", included: true },
-      {
-        label: "Cloud Sync",
-        included: true,
-        tooltip: "Select which notes to sync",
-        comingSoon: true,
-      },
-      {
-        label: "Shareable Links",
-        included: true,
-        tooltip: "DocSend-like: view tracking, expiration, revocation",
-        comingSoon: true,
-      },
-    ],
+    label: "Shareable Links",
+    included: true,
+    tooltip: "DocSend-like: view tracking, expiration, revocation",
+    comingSoon: true,
   },
 ];
 
+function buildPricingPlans(config: PricingConfig | null): PricingPlan[] {
+  return [
+    {
+      name: "Free",
+      price: null,
+      description:
+        "Fully functional with your own API keys. Perfect for individuals who want complete control.",
+      features: FREE_PLAN_FEATURES,
+    },
+    {
+      name: "Pro",
+      price: {
+        monthly: config?.monthly_display_price ?? 8,
+        yearly: config?.yearly_display_price ?? 59,
+      },
+      originalPrice:
+        config?.monthly_original_price && config?.yearly_original_price
+          ? {
+              monthly: config.monthly_original_price,
+              yearly: config.yearly_original_price,
+            }
+          : undefined,
+      savePercentage: config?.save_percentage ?? null,
+      description:
+        "No API keys needed. Get cloud services, advanced sharing, and team features out of the box.",
+      popular: true,
+      features: PRO_PLAN_FEATURES,
+    },
+  ];
+}
+
+function usePricingConfig(): PricingConfig | null {
+  const payload = useFeatureFlagPayload("pricing-config");
+  if (payload && typeof payload === "object") {
+    return payload as PricingConfig;
+  }
+  return null;
+}
+
 function Component() {
+  const pricingConfig = usePricingConfig();
+  const pricingPlans = useMemo(
+    () => buildPricingPlans(pricingConfig),
+    [pricingConfig],
+  );
+
   return (
     <main
       className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        <TeamPricingBanner />
+        {pricingConfig?.promo_active && pricingConfig.promo_text && (
+          <PromoBanner text={pricingConfig.promo_text} />
+        )}
         <HeroSection />
         <SlashSeparator />
-        <PricingCardsSection />
+        <PricingCardsSection plans={pricingPlans} />
         <SlashSeparator />
         <FAQSection />
         <SlashSeparator />
@@ -100,7 +130,7 @@ function Component() {
   );
 }
 
-function TeamPricingBanner() {
+function PromoBanner({ text }: { text: string }) {
   return (
     <div
       className={cn([
@@ -110,11 +140,7 @@ function TeamPricingBanner() {
         "font-serif text-sm text-stone-700",
       ])}
     >
-      <span>
-        <strong>Early Bird Discount:</strong> Get 68% off as we launch our new
-        version and help with migration —{" "}
-        <strong>offer ends February 28th</strong>
-      </span>
+      <span dangerouslySetInnerHTML={{ __html: text }} />
     </div>
   );
 }
@@ -135,11 +161,11 @@ function HeroSection() {
   );
 }
 
-function PricingCardsSection() {
+function PricingCardsSection({ plans }: { plans: PricingPlan[] }) {
   return (
     <section className="py-16 px-4 laptop:px-0">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-        {pricingPlans.map((plan) => (
+        {plans.map((plan) => (
           <PricingCard key={plan.name} plan={plan} />
         ))}
       </div>
@@ -190,7 +216,11 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                     ${plan.originalPrice.yearly}
                   </span>
                 )}{" "}
-                <span className="text-green-700 font-medium">(save 76%)</span>
+                {plan.savePercentage && (
+                  <span className="text-green-700 font-medium">
+                    (save {plan.savePercentage})
+                  </span>
+                )}
               </div>
             </div>
           ) : (

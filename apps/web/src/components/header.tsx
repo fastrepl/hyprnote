@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   BookOpen,
+  Building2,
   ChevronDown,
   ChevronUp,
   FileText,
@@ -11,7 +12,6 @@ import {
   MessageCircle,
   PanelLeft,
   PanelLeftClose,
-  Building2,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -60,11 +60,20 @@ const resourcesList: {
 }[] = [
   { to: "/blog/", label: "Blog", icon: FileText },
   { to: "/docs/", label: "Documentation", icon: BookOpen },
-  { to: "/gallery/templates", label: "Meeting Templates", icon: LayoutTemplate },
+  {
+    to: "/gallery/templates",
+    label: "Meeting Templates",
+    icon: LayoutTemplate,
+  },
   { to: "/changelog/", label: "Changelog", icon: History },
   { to: "/roadmap/", label: "Roadmap", icon: Map },
   { to: "/company-handbook/", label: "Company Handbook", icon: Building2 },
-  { to: "https://discord.gg/hyprnote", label: "Community", icon: MessageCircle, external: true },
+  {
+    to: "https://discord.gg/hyprnote",
+    label: "Community",
+    icon: MessageCircle,
+    external: true,
+  },
 ];
 
 export function Header() {

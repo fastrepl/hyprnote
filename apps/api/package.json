@@ -20,7 +20,6 @@
     "@restatedev/restate-sdk-clients": "^1.10.2",
     "@scalar/hono-api-reference": "^0.5.184",
     "@sentry/bun": "^10.38.0",
-    "@supabase/stripe-sync-engine": "^0.45.0",
     "@supabase/supabase-js": "^2.93.3",
     "@t3-oss/env-core": "^0.13.10",
     "@types/pg": "^8.16.0",

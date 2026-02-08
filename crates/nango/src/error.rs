@@ -6,8 +6,6 @@ pub enum Error {
     Api(u16, String),
     #[error(transparent)]
     Request(#[from] reqwest::Error),
-    #[error("unknown integration")]
-    UnknownIntegration,
     #[error("missing api key")]
     MissingApiKey,
     #[error("missing api base")]

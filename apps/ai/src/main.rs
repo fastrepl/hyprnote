@@ -37,7 +37,7 @@ fn app() -> Router {
     let llm_config =
         hypr_llm_proxy::LlmProxyConfig::new(&env.llm).with_analytics(analytics.clone());
     let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(&env.stt).with_analytics(analytics);
-    let auth_state = AuthState::new(&env.supabase_url, "hyprnote_pro");
+    let auth_state = AuthState::new(&env.supabase_url).with_required_entitlement("hyprnote_pro");
 
     let protected_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))

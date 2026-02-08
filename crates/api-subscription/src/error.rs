@@ -31,12 +31,6 @@ pub enum SubscriptionError {
     Internal(String),
 }
 
-impl From<hypr_supabase_auth::Error> for SubscriptionError {
-    fn from(err: hypr_supabase_auth::Error) -> Self {
-        Self::Auth(err.to_string())
-    }
-}
-
 impl From<stripe::StripeError> for SubscriptionError {
     fn from(err: stripe::StripeError) -> Self {
         Self::Stripe(err.to_string())

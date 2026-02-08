@@ -1,7 +1,6 @@
 use axum::{
-    Json,
+    Extension, Json,
     extract::{Query, State},
-    http::HeaderMap,
 };
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -15,8 +14,9 @@ use stripe_billing::subscription::{
 use stripe_core::customer::CreateCustomer;
 use utoipa::{IntoParams, ToSchema};
 
+use hypr_api_auth::AuthContext;
+
 use crate::error::{Result, SubscriptionError};
-use crate::routes::rpc::extract_token;
 use crate::state::AppState;
 
 #[derive(Debug, Deserialize, IntoParams)]
@@ -50,7 +50,7 @@ struct Profile {
 
 #[utoipa::path(
     post,
-    path = "/start-trial",
+    path = "/subscription/start-trial",
     params(StartTrialQuery),
     responses(
         (status = 200, description = "Trial started successfully", body = StartTrialResponse),
@@ -65,32 +65,20 @@ struct Profile {
 pub async fn start_trial(
     State(state): State<AppState>,
     Query(query): Query<StartTrialQuery>,
-    headers: HeaderMap,
+    Extension(auth): Extension<AuthContext>,
 ) -> Result<Json<StartTrialResponse>> {
-    let auth_token = extract_token(&headers)?;
-
-    let auth = state
-        .config
-        .auth
-        .as_ref()
-        .ok_or_else(|| SubscriptionError::Auth("Auth not configured".to_string()))?;
-
-    let claims = auth
-        .verify_token(auth_token)
-        .await
-        .map_err(|e| SubscriptionError::Auth(e.to_string()))?;
-    let user_id = claims.sub;
+    let user_id = &auth.claims.sub;
 
     let can_start: bool = state
         .supabase
-        .rpc("can_start_trial", auth_token, None)
+        .rpc("can_start_trial", &auth.token, None)
         .await?;
 
     if !can_start {
         return Ok(Json(StartTrialResponse { started: false }));
     }
 
-    let customer_id = get_or_create_customer(&state, auth_token, &user_id).await?;
+    let customer_id = get_or_create_customer(&state, &auth.token, user_id).await?;
 
     let customer_id = customer_id
         .ok_or_else(|| SubscriptionError::Internal("stripe_customer_id_missing".to_string()))?;
@@ -100,7 +88,7 @@ pub async fn start_trial(
         Interval::Yearly => &state.config.stripe_yearly_price_id,
     };
 
-    create_trial_subscription(&state.stripe, &customer_id, price_id, &user_id).await?;
+    create_trial_subscription(&state.stripe, &customer_id, price_id, user_id).await?;
 
     Ok(Json(StartTrialResponse { started: true }))
 }

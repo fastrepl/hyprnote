@@ -2,6 +2,59 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GoogleCalendar {
+    pub id: String,
+    #[serde(default)]
+    pub summary: Option<String>,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub time_zone: Option<String>,
+    #[serde(default)]
+    pub color_id: Option<String>,
+    #[serde(default)]
+    pub background_color: Option<String>,
+    #[serde(default)]
+    pub foreground_color: Option<String>,
+    #[serde(default)]
+    pub selected: Option<bool>,
+    #[serde(default)]
+    pub primary: Option<bool>,
+    #[serde(default)]
+    pub access_role: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListCalendarsResponse {
+    pub kind: String,
+    pub etag: String,
+    #[serde(default)]
+    pub items: Vec<GoogleCalendar>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateEventRequest {
+    pub calendar_id: String,
+    pub event: CreateEventBody,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateEventBody {
+    pub summary: String,
+    pub start: GoogleEventDateTime,
+    pub end: GoogleEventDateTime,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub location: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attendees: Option<Vec<GoogleEventAttendee>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListEventsRequest {
     pub calendar_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -1,7 +1,7 @@
 use crate::client::NangoClient;
 
 #[derive(Clone)]
-pub struct NangoProxyBuilder<'a> {
+pub struct NangoProxy<'a> {
     nango: &'a NangoClient,
     integration_id: String,
     connection_id: String,
@@ -11,7 +11,7 @@ pub struct NangoProxyBuilder<'a> {
     decompress: Option<bool>,
 }
 
-impl<'a> NangoProxyBuilder<'a> {
+impl<'a> NangoProxy<'a> {
     pub(crate) fn new(
         nango: &'a NangoClient,
         integration_id: String,

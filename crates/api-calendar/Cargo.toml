@@ -4,7 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-hypr-supabase-auth = { workspace = true }
+hypr-api-auth = { workspace = true }
+hypr-api-env = { workspace = true }
+hypr-google-calendar = { workspace = true }
+hypr-http = { workspace = true }
+hypr-nango = { workspace = true }
+
+chrono = { workspace = true, features = ["serde"] }
 
 utoipa = { workspace = true }
 

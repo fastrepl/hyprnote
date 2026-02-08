@@ -1,29 +1,19 @@
-use std::sync::Arc;
+use crate::NangoWebhookEnv;
+use hypr_api_env::NangoEnv;
 
 #[derive(Clone)]
 pub struct IntegrationConfig {
     pub nango_api_base: String,
     pub nango_api_key: String,
     pub nango_webhook_secret: String,
-    pub auth: Option<Arc<hypr_supabase_auth::SupabaseAuth>>,
 }
 
 impl IntegrationConfig {
-    pub fn new(
-        nango_api_base: impl Into<String>,
-        nango_api_key: impl Into<String>,
-        nango_webhook_secret: impl Into<String>,
-    ) -> Self {
+    pub fn new(nango: &NangoEnv, webhook: &NangoWebhookEnv) -> Self {
         Self {
-            nango_api_base: nango_api_base.into(),
-            nango_api_key: nango_api_key.into(),
-            nango_webhook_secret: nango_webhook_secret.into(),
-            auth: None,
+            nango_api_base: nango.nango_api_base.clone(),
+            nango_api_key: nango.nango_api_key.clone(),
+            nango_webhook_secret: webhook.nango_webhook_secret.clone(),
         }
-    }
-
-    pub fn with_auth(mut self, auth: Arc<hypr_supabase_auth::SupabaseAuth>) -> Self {
-        self.auth = Some(auth);
-        self
     }
 }

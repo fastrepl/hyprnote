@@ -6,18 +6,17 @@ mod integration;
 pub mod proxy;
 mod sync;
 mod trigger;
-mod types;
 pub mod webhook;
 
+pub use client::NangoIntegration;
 pub use client::*;
 pub use connect_session::*;
 pub use connection::*;
 pub use error::*;
 pub use integration::*;
-pub use proxy::NangoProxyBuilder;
+pub use proxy::NangoProxy;
 pub use sync::*;
 pub use trigger::*;
-pub use types::*;
 pub use webhook::*;
 
 macro_rules! common_derives {
@@ -76,7 +75,8 @@ mod tests {
             .unwrap();
 
         let _ = nango_client
-            .for_connection(NangoIntegration::GoogleCalendar, "connection")
+            .integration("google-calendar")
+            .connection("connection")
             .get("/users")
             .unwrap();
     }

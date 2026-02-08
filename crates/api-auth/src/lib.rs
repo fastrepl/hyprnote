@@ -9,17 +9,28 @@ use hypr_supabase_auth::{Error as SupabaseAuthError, SupabaseAuth};
 pub use hypr_supabase_auth::Claims;
 
 #[derive(Clone)]
+pub struct AuthContext {
+    pub token: String,
+    pub claims: Claims,
+}
+
+#[derive(Clone)]
 pub struct AuthState {
     inner: SupabaseAuth,
-    required_entitlement: String,
+    required_entitlement: Option<String>,
 }
 
 impl AuthState {
-    pub fn new(supabase_url: &str, required_entitlement: impl Into<String>) -> Self {
+    pub fn new(supabase_url: &str) -> Self {
         Self {
             inner: SupabaseAuth::new(supabase_url),
-            required_entitlement: required_entitlement.into(),
+            required_entitlement: None,
         }
+    }
+
+    pub fn with_required_entitlement(mut self, entitlement: impl Into<String>) -> Self {
+        self.required_entitlement = Some(entitlement.into());
+        self
     }
 }
 
@@ -63,15 +74,18 @@ pub async fn require_auth(
         .and_then(|h| h.to_str().ok())
         .ok_or(SupabaseAuthError::MissingAuthHeader)?;
 
-    let token =
-        SupabaseAuth::extract_token(auth_header).ok_or(SupabaseAuthError::InvalidAuthHeader)?;
+    let token = SupabaseAuth::extract_token(auth_header)
+        .ok_or(SupabaseAuthError::InvalidAuthHeader)?
+        .to_owned();
 
-    let claims = state
-        .inner
-        .require_entitlement(token, &state.required_entitlement)
-        .await?;
+    let claims = match &state.required_entitlement {
+        Some(entitlement) => state.inner.require_entitlement(&token, entitlement).await?,
+        None => state.inner.verify_token(&token).await?,
+    };
 
-    request.extensions_mut().insert(claims);
+    request
+        .extensions_mut()
+        .insert(AuthContext { token, claims });
 
     Ok(next.run(request).await)
 }
@@ -117,7 +131,14 @@ mod tests {
 
     #[test]
     fn test_auth_state_new() {
-        let state = AuthState::new("https://example.supabase.co", "hyprnote_pro");
-        assert_eq!(state.required_entitlement, "hyprnote_pro");
+        let state = AuthState::new("https://example.supabase.co");
+        assert_eq!(state.required_entitlement, None);
+    }
+
+    #[test]
+    fn test_auth_state_with_required_entitlement() {
+        let state =
+            AuthState::new("https://example.supabase.co").with_required_entitlement("hyprnote_pro");
+        assert_eq!(state.required_entitlement, Some("hyprnote_pro".to_string()));
     }
 }

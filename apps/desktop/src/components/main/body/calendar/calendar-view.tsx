@@ -88,7 +88,16 @@ function toTz(date: Date | string, tz?: string): Date {
 
 function useNow() {
   const tz = useTimezone();
-  return useMemo(() => toTz(new Date(), tz), [tz]);
+  const [now, setNow] = useState(() => toTz(new Date(), tz));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(toTz(new Date(), tz));
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [tz]);
+
+  return now;
 }
 
 function getSystemWeekStart(): 0 | 1 {

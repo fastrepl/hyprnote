@@ -212,6 +212,7 @@ function TemplatesContent() {
   const userTemplates = useUserTemplates();
   const { data: webTemplates = [], isLoading: isWebLoading } =
     useWebResources<WebTemplate>("templates");
+  const openCurrent = useTabs((state) => state.openCurrent);
 
   const filteredUser = useMemo(() => {
     if (!search.trim()) return userTemplates;
@@ -278,6 +279,36 @@ function TemplatesContent() {
     });
   }, [user_id, setRow]);
 
+  const handleOpenUserTemplate = useCallback(
+    (id: string) => {
+      openCurrent({
+        type: "templates",
+        state: {
+          selectedMineId: id,
+          selectedWebIndex: null,
+          isWebMode: false,
+          showHomepage: false,
+        },
+      });
+    },
+    [openCurrent],
+  );
+
+  const handleOpenWebTemplate = useCallback(
+    (index: number) => {
+      openCurrent({
+        type: "templates",
+        state: {
+          selectedMineId: null,
+          selectedWebIndex: index,
+          isWebMode: true,
+          showHomepage: false,
+        },
+      });
+    },
+    [openCurrent],
+  );
+
   return (
     <div className="flex flex-col gap-4 pt-2">
       <div className="flex items-center gap-2">
@@ -336,6 +367,7 @@ function TemplatesContent() {
                 key={template.id}
                 title={template.title || "Untitled"}
                 description={template.description}
+                onClick={() => handleOpenUserTemplate(template.id)}
               />
             ))}
           </div>
@@ -376,6 +408,14 @@ function TemplatesContent() {
                 title={template.title || "Untitled"}
                 description={template.description}
                 targets={template.targets}
+                onClick={() => {
+                  const originalIndex = webTemplates.findIndex(
+                    (t) => t.slug === template.slug,
+                  );
+                  handleOpenWebTemplate(
+                    originalIndex !== -1 ? originalIndex : index,
+                  );
+                }}
               />
             ))}
           </div>
@@ -389,13 +429,16 @@ function TemplateCardItem({
   title,
   description,
   targets,
+  onClick,
 }: {
   title: string;
   description?: string;
   targets?: string[];
+  onClick?: () => void;
 }) {
   return (
-    <div
+    <button
+      onClick={onClick}
       className={cn([
         "w-full text-left rounded-xs border border-stone-100 overflow-hidden",
         "hover:border-stone-300 hover:shadow-xs transition-all",
@@ -418,7 +461,7 @@ function TemplateCardItem({
           </div>
         )}
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -427,6 +470,7 @@ function ShortcutsContent() {
   const userShortcuts = useChatShortcuts();
   const { data: webShortcuts = [], isLoading: isWebLoading } =
     useWebResources<WebShortcut>("shortcuts");
+  const openCurrent = useTabs((state) => state.openCurrent);
 
   const filteredUser = useMemo(() => {
     if (!search.trim()) return userShortcuts;
@@ -490,6 +534,34 @@ function ShortcutsContent() {
     return content.length > 50 ? content.slice(0, 50) + "..." : content;
   };
 
+  const handleOpenUserShortcut = useCallback(
+    (id: string) => {
+      openCurrent({
+        type: "chat_shortcuts",
+        state: {
+          selectedMineId: id,
+          selectedWebIndex: null,
+          isWebMode: false,
+        },
+      });
+    },
+    [openCurrent],
+  );
+
+  const handleOpenWebShortcut = useCallback(
+    (index: number) => {
+      openCurrent({
+        type: "chat_shortcuts",
+        state: {
+          selectedMineId: null,
+          selectedWebIndex: index,
+          isWebMode: true,
+        },
+      });
+    },
+    [openCurrent],
+  );
+
   return (
     <div className="flex flex-col gap-4 pt-2">
       <div className="flex items-center gap-2">
@@ -544,7 +616,11 @@ function ShortcutsContent() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredUser.map((shortcut) => (
-              <ShortcutCardItem key={shortcut.id} title={getTitle(shortcut)} />
+              <ShortcutCardItem
+                key={shortcut.id}
+                title={getTitle(shortcut)}
+                onClick={() => handleOpenUserShortcut(shortcut.id)}
+              />
             ))}
           </div>
         </div>
@@ -586,6 +662,14 @@ function ShortcutsContent() {
                 key={shortcut.slug || index}
                 title={shortcut.title || "Untitled"}
                 description={shortcut.description}
+                onClick={() => {
+                  const originalIndex = webShortcuts.findIndex(
+                    (s) => s.slug === shortcut.slug,
+                  );
+                  handleOpenWebShortcut(
+                    originalIndex !== -1 ? originalIndex : index,
+                  );
+                }}
               />
             ))}
           </div>
@@ -598,12 +682,15 @@ function ShortcutsContent() {
 function ShortcutCardItem({
   title,
   description,
+  onClick,
 }: {
   title: string;
   description?: string;
+  onClick?: () => void;
 }) {
   return (
-    <div
+    <button
+      onClick={onClick}
       className={cn([
         "w-full text-left rounded-xs border border-stone-100 overflow-hidden",
         "hover:border-stone-300 hover:shadow-xs transition-all",
@@ -621,7 +708,7 @@ function ShortcutCardItem({
           <div className="text-sm text-stone-600 truncate">{description}</div>
         )}
       </div>
-    </div>
+    </button>
   );
 }
 

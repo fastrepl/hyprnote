@@ -84,8 +84,8 @@ pub async fn start_trial(
         .ok_or_else(|| SubscriptionError::Internal("stripe_customer_id_missing".to_string()))?;
 
     let price_id = match query.interval {
-        Interval::Monthly => &state.config.stripe_monthly_price_id,
-        Interval::Yearly => &state.config.stripe_yearly_price_id,
+        Interval::Monthly => &state.config.stripe.stripe_monthly_price_id,
+        Interval::Yearly => &state.config.stripe.stripe_yearly_price_id,
     };
 
     create_trial_subscription(&state.stripe, &customer_id, price_id, user_id).await?;

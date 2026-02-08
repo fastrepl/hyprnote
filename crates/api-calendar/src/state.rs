@@ -1,7 +1,6 @@
 use hypr_nango::NangoClient;
 
 use crate::config::CalendarConfig;
-use crate::error::CalendarError;
 
 #[derive(Clone)]
 pub(crate) struct AppState {
@@ -9,13 +8,13 @@ pub(crate) struct AppState {
 }
 
 impl AppState {
-    pub(crate) fn new(config: CalendarConfig) -> Result<Self, CalendarError> {
+    pub(crate) fn new(config: CalendarConfig) -> Self {
         let nango = hypr_nango::NangoClient::builder()
             .api_base(&config.nango.nango_api_base)
             .api_key(&config.nango.nango_api_key)
             .build()
-            .map_err(|e| CalendarError::Internal(e.to_string()))?;
+            .expect("failed to build NangoClient");
 
-        Ok(Self { nango })
+        Self { nango }
     }
 }

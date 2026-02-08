@@ -1,9 +1,10 @@
 mod config;
 mod error;
 mod nango_http;
+mod openapi;
 mod routes;
 mod state;
 
 pub use config::CalendarConfig;
-pub use error::{CalendarError, Result};
-pub use routes::{openapi, router};
+pub use openapi::openapi;
+pub use routes::router;

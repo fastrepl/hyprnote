@@ -13,11 +13,11 @@ pub(crate) struct AppState {
 impl AppState {
     pub(crate) fn new(config: SubscriptionConfig) -> Self {
         let supabase = SupabaseClient::new(
-            config.supabase_url.clone(),
-            config.supabase_anon_key.clone(),
+            config.supabase.supabase_url.clone(),
+            config.supabase.supabase_anon_key.clone(),
         );
 
-        let stripe = StripeClient::new(&config.stripe_api_key);
+        let stripe = StripeClient::new(&config.stripe.stripe_api_key);
 
         Self {
             config,

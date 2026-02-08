@@ -1,0 +1,14 @@
+[package]
+name = "hypr-core"
+version = "0.1.0"
+edition = "2021"
+description = "HTTP server for running Hyprnote frontend in browser"
+
+[dependencies]
+axum = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+tower-http = { workspace = true, features = ["cors"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }

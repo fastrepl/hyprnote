@@ -542,6 +542,8 @@ name = "api-integration"
 version = "0.1.0"
 dependencies = [
  "axum 0.8.8",
+ "chrono",
+ "google-calendar",
  "nango",
  "reqwest 0.13.1",
  "sentry",
@@ -8105,6 +8107,19 @@ dependencies = [
  "log",
  "plain",
  "scroll",
+]
+
+[[package]]
+name = "google-calendar"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "nango",
+ "reqwest 0.13.1",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
 ]
 
 [[package]]

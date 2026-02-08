@@ -52,6 +52,7 @@ hypr-flag = { path = "crates/flag", package = "flag" }
 hypr-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
+hypr-google-calendar = { path = "crates/google-calendar", package = "google-calendar" }
 hypr-granola = { path = "crates/granola", package = "granola" }
 hypr-host = { path = "crates/host", package = "host" }
 hypr-importer-core = { path = "crates/importer-core", package = "importer-core" }

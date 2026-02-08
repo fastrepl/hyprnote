@@ -212,7 +212,7 @@ function TemplatesContent() {
   const userTemplates = useUserTemplates();
   const { data: webTemplates = [], isLoading: isWebLoading } =
     useWebResources<WebTemplate>("templates");
-  const openCurrent = useTabs((state) => state.openCurrent);
+  const openNew = useTabs((state) => state.openNew);
 
   const filteredUser = useMemo(() => {
     if (!search.trim()) return userTemplates;
@@ -281,7 +281,7 @@ function TemplatesContent() {
 
   const handleOpenUserTemplate = useCallback(
     (id: string) => {
-      openCurrent({
+      openNew({
         type: "templates",
         state: {
           selectedMineId: id,
@@ -291,12 +291,12 @@ function TemplatesContent() {
         },
       });
     },
-    [openCurrent],
+    [openNew],
   );
 
   const handleOpenWebTemplate = useCallback(
     (index: number) => {
-      openCurrent({
+      openNew({
         type: "templates",
         state: {
           selectedMineId: null,
@@ -306,7 +306,7 @@ function TemplatesContent() {
         },
       });
     },
-    [openCurrent],
+    [openNew],
   );
 
   return (
@@ -470,7 +470,7 @@ function ShortcutsContent() {
   const userShortcuts = useChatShortcuts();
   const { data: webShortcuts = [], isLoading: isWebLoading } =
     useWebResources<WebShortcut>("shortcuts");
-  const openCurrent = useTabs((state) => state.openCurrent);
+  const openNew = useTabs((state) => state.openNew);
 
   const filteredUser = useMemo(() => {
     if (!search.trim()) return userShortcuts;
@@ -536,7 +536,7 @@ function ShortcutsContent() {
 
   const handleOpenUserShortcut = useCallback(
     (id: string) => {
-      openCurrent({
+      openNew({
         type: "chat_shortcuts",
         state: {
           selectedMineId: id,
@@ -545,12 +545,12 @@ function ShortcutsContent() {
         },
       });
     },
-    [openCurrent],
+    [openNew],
   );
 
   const handleOpenWebShortcut = useCallback(
     (index: number) => {
-      openCurrent({
+      openNew({
         type: "chat_shortcuts",
         state: {
           selectedMineId: null,
@@ -559,7 +559,7 @@ function ShortcutsContent() {
         },
       });
     },
-    [openCurrent],
+    [openNew],
   );
 
   return (

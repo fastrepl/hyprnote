@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Brain,
   Cloud,
@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
-import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
+import { getRpcCanStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { type SubscriptionStatus } from "@hypr/plugin-auth";
@@ -22,6 +22,7 @@ import { cn } from "@hypr/utils";
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
 import { env } from "../../../env";
+import { useTrialActivation } from "../../../hooks/useTrialActivation";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
@@ -333,41 +334,7 @@ function BillingButton() {
     },
   });
 
-  const startTrialMutation = useMutation({
-    mutationFn: async () => {
-      const headers = auth?.getHeaders();
-      if (!headers) {
-        throw new Error("Not authenticated");
-      }
-      const client = createClient({ baseUrl: env.VITE_API_URL, headers });
-      const { error } = await postBillingStartTrial({
-        client,
-        query: { interval: "monthly" },
-      });
-      if (error) {
-        throw error;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-    },
-    onSuccess: async () => {
-      void analyticsCommands.event({
-        event: "trial_started",
-        plan: "pro",
-      });
-      const trialEndDate = new Date();
-      trialEndDate.setDate(trialEndDate.getDate() + 14);
-      void analyticsCommands.setProperties({
-        email: auth?.session?.user.email,
-        user_id: auth?.session?.user.id,
-        set: {
-          plan: "pro",
-          trial_end_date: trialEndDate.toISOString(),
-        },
-      });
-      await auth?.refreshSession();
-    },
-  });
+  const { startTrial, isPending: isTrialPending } = useTrialActivation();
 
   const handleProUpgrade = useCallback(() => {
     void analyticsCommands.event({
@@ -401,8 +368,8 @@ function BillingButton() {
     return (
       <Button
         variant="outline"
-        onClick={() => startTrialMutation.mutate()}
-        disabled={startTrialMutation.isPending}
+        onClick={() => startTrial()}
+        disabled={isTrialPending}
       >
         <span> Start Pro Trial</span>
       </Button>

@@ -36,7 +36,7 @@ export function ChatBody({
       className={cn([
         "flex-1 overflow-y-auto flex flex-col",
         chat.mode === "RightPanelOpen" &&
-          "border border-neutral-200 rounded-xl rounded-b-none",
+          "border border-border rounded-xl rounded-b-none",
       ])}
     >
       <div className="flex-1" />

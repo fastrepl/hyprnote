@@ -247,12 +247,12 @@ function PersonItem({
     <button
       onClick={() => setSelectedPerson(humanId)}
       className={cn([
-        "group w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors flex items-center gap-2 bg-white",
-        active ? "border-neutral-500 bg-neutral-100" : "border-transparent",
+        "group w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-muted transition-colors flex items-center gap-2 bg-background",
+        active ? "border-border bg-accent" : "border-transparent",
       ])}
     >
-      <div className="shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
-        <span className="text-xs font-medium text-neutral-600">
+      <div className="shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+        <span className="text-xs font-medium text-muted-foreground">
           {getInitials(personName || personEmail)}
         </span>
       </div>
@@ -261,7 +261,9 @@ function PersonItem({
           {personName || personEmail || "Unnamed"}
         </div>
         {personEmail && personName && (
-          <div className="text-xs text-neutral-500 truncate">{personEmail}</div>
+          <div className="text-xs text-muted-foreground truncate">
+            {personEmail}
+          </div>
         )}
       </div>
       <button
@@ -270,7 +272,7 @@ function PersonItem({
           "shrink-0 p-1 rounded-xs transition-colors",
           isPinned
             ? "text-blue-600 hover:text-blue-700"
-            : "text-neutral-300 opacity-0 group-hover:opacity-100 hover:text-neutral-500",
+            : "text-muted-foreground/50 opacity-0 group-hover:opacity-100 hover:text-muted-foreground",
         ])}
         aria-label={isPinned ? "Unpin contact" : "Pin contact"}
       >
@@ -339,20 +341,20 @@ function NewPersonForm({
   return (
     <div className="p-2">
       <form onSubmit={handleSubmit}>
-        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-xs bg-neutral-50 border border-neutral-200">
+        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-xs bg-muted border border-border">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Add person"
-            className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
+            className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-muted-foreground"
             autoFocus
           />
           {name.trim() && (
             <button
               type="submit"
-              className="text-neutral-500 hover:text-neutral-700 transition-colors shrink-0"
+              className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
               aria-label="Add person"
             >
               <CornerDownLeft className="size-4" />

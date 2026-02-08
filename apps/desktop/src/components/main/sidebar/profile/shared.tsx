@@ -19,13 +19,13 @@ export function MenuItem({
         className={cn([
           "cursor-pointer group flex w-full items-center justify-between gap-2 rounded-lg",
           "px-3 py-1.5",
-          "text-sm text-black whitespace-nowrap",
-          "transition-colors hover:bg-neutral-100",
+          "text-sm text-foreground whitespace-nowrap",
+          "transition-colors hover:bg-muted",
         ])}
         onClick={onClick}
       >
         <div className="flex items-center justify-start gap-2.5">
-          <Icon className="h-4 w-4 shrink-0 text-black" />
+          <Icon className="h-4 w-4 shrink-0 text-foreground" />
           {label}
         </div>
         {badge &&
@@ -44,7 +44,9 @@ export function MenuItem({
             badge
           ))}
         {SuffixIcon && (
-          <SuffixIcon className={cn("h-4 w-4 shrink-0", "text-neutral-400")} />
+          <SuffixIcon
+            className={cn("h-4 w-4 shrink-0", "text-muted-foreground")}
+          />
         )}
       </button>
     </div>

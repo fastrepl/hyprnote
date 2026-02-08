@@ -76,7 +76,7 @@ function CollapsedSearch({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       size="icon"
       variant="ghost"
-      className="text-neutral-400"
+      className="text-muted-foreground"
     >
       {showLoading ? (
         <Loader2Icon className="size-4 animate-spin" />
@@ -138,12 +138,12 @@ function ExpandedSearch({
         {showLoading ? (
           <Loader2Icon
             className={cn([
-              "h-4 w-4 absolute left-3 text-neutral-400 animate-spin",
+              "h-4 w-4 absolute left-3 text-muted-foreground animate-spin",
             ])}
           />
         ) : (
           <SearchIcon
-            className={cn(["h-4 w-4 absolute left-3 text-neutral-400"])}
+            className={cn(["h-4 w-4 absolute left-3 text-muted-foreground"])}
           />
         )}
         <input
@@ -223,7 +223,7 @@ function ExpandedSearch({
             onBlur?.();
           }}
           className={cn([
-            "text-sm placeholder:text-sm placeholder:text-neutral-400",
+            "text-sm placeholder:text-sm placeholder:text-muted-foreground",
             "w-full pl-9 h-full",
             query
               ? hasResults
@@ -232,8 +232,8 @@ function ExpandedSearch({
               : showShortcut
                 ? "pr-14"
                 : "pr-4",
-            "rounded-xl bg-neutral-100",
-            "focus:outline-hidden focus:bg-neutral-200",
+            "rounded-xl bg-muted",
+            "focus:outline-hidden focus:bg-muted",
           ])}
         />
         {hasResults && query && (
@@ -255,7 +255,7 @@ function ExpandedSearch({
             className={cn([
               "absolute right-3",
               "h-4 w-4",
-              "text-neutral-400 hover:text-neutral-600",
+              "text-muted-foreground hover:text-foreground",
               "transition-colors",
             ])}
             aria-label="Clear search"

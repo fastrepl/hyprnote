@@ -202,7 +202,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="absolute bottom-full left-0 right-0 mb-1"
           >
-            <div className="bg-neutral-50 rounded-xl overflow-hidden shadow-xs border">
+            <div className="bg-card rounded-xl overflow-hidden shadow-xs border">
               <div className="py-1">
                 <AnimatePresence mode="wait">
                   {currentView === "main" ? (
@@ -225,7 +225,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                         <div key={item.label}>
                           <MenuItem {...item} />
                           {(index === 3 || index === 5) && (
-                            <div className="my-1 border-t border-neutral-100" />
+                            <div className="my-1 border-t border-border" />
                           )}
                         </div>
                       ))}
@@ -259,7 +259,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
         )}
       </AnimatePresence>
 
-      <div className="bg-neutral-50 rounded-xl overflow-hidden">
+      <div className="bg-card rounded-xl overflow-hidden">
         <ProfileButton
           isExpanded={isExpanded}
           onClick={() => setIsExpanded(!isExpanded)}
@@ -294,8 +294,8 @@ function ProfileButton({
         "px-4 py-2",
         "text-left",
         "transition-all duration-300",
-        "hover:bg-neutral-100",
-        isExpanded && "bg-neutral-50 border-t border-neutral-100",
+        "hover:bg-muted/60",
+        isExpanded && "bg-muted/60 border-t border-border",
       ])}
       onClick={onClick}
     >
@@ -303,7 +303,7 @@ function ProfileButton({
         className={cn([
           "flex size-8 shrink-0 items-center justify-center",
           "overflow-hidden rounded-full",
-          "border border-t border-neutral-400",
+          "border border-t border-border",
           "bg-linear-to-br from-indigo-400 to-purple-500",
           "shadow-xs",
           "transition-transform duration-300",
@@ -317,12 +317,16 @@ function ProfileButton({
           />
         )}
       </div>
-      <div className="min-w-0 flex-1 text-sm text-black truncate">{name}</div>
+      <div className="min-w-0 flex-1 text-sm text-foreground truncate">
+        {name}
+      </div>
       <ChevronUpIcon
         className={cn([
           "h-4 w-4",
           "transition-transform duration-300",
-          isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
+          isExpanded
+            ? "rotate-180 text-muted-foreground"
+            : "text-muted-foreground",
         ])}
       />
     </button>

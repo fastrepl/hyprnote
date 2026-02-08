@@ -19,7 +19,7 @@ export function SettingsLab() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           <h3 className="text-sm font-medium mb-1">Control Overlay</h3>
-          <p className="text-xs text-neutral-600">
+          <p className="text-xs text-muted-foreground">
             Open a floating control window for quick access to recording
             controls. This window stays on top and can be used during meetings.
           </p>
@@ -49,7 +49,7 @@ function MeetingReminderToggle() {
     <div className="flex items-center justify-between gap-4">
       <div className="flex-1">
         <h3 className="text-sm font-medium mb-1">In-Meeting Reminder</h3>
-        <p className="text-xs text-neutral-600">
+        <p className="text-xs text-muted-foreground">
           Get a nudge when an app like Zoom or Google Meet has been using your
           mic for a few minutes without Hyprnote recording. Helps you never miss
           capturing a meeting.
@@ -101,7 +101,7 @@ function DownloadNightlyButton() {
     <div className="flex items-center justify-between gap-4">
       <div className="flex-1">
         <h3 className="text-sm font-medium mb-1">Nightly Build</h3>
-        <p className="text-xs text-neutral-600">
+        <p className="text-xs text-muted-foreground">
           Download the latest nightly build to try new features before they are
           released. Nightly builds may be less stable.
         </p>

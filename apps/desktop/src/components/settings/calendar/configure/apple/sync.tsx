@@ -25,7 +25,7 @@ export function SyncIndicator() {
             "size-2.5 rounded-full",
             status === "syncing" && "bg-blue-500 animate-pulse",
             status === "scheduled" && "bg-amber-500",
-            status === "idle" && "bg-neutral-300",
+            status === "idle" && "bg-muted-foreground/40",
           ])}
         />
       </TooltipTrigger>

@@ -29,6 +29,7 @@ function useSettingsForm() {
     "ai_language",
     "spoken_languages",
     "current_stt_provider",
+    "theme",
   ] as const);
 
   const setPartialValues = settings.UI.useSetPartialValuesCallback(
@@ -57,6 +58,7 @@ function useSettingsForm() {
       telemetry_consent: value.telemetry_consent,
       ai_language: value.ai_language,
       spoken_languages: value.spoken_languages,
+      theme: value.theme,
     },
     listeners: {
       onChange: ({ formApi }) => {
@@ -124,48 +126,59 @@ export function SettingsApp() {
 
   return (
     <div className="flex flex-col gap-8 pt-3">
-      <form.Field name="autostart">
-        {(autostartField) => (
-          <form.Field name="notification_detect">
-            {(notificationDetectField) => (
-              <form.Field name="save_recordings">
-                {(saveRecordingsField) => (
-                  <form.Field name="telemetry_consent">
-                    {(telemetryConsentField) => (
-                      <AppSettingsView
-                        autostart={{
-                          title: "Start Hyprnote automatically at login",
-                          description:
-                            "Hyprnote will always be ready for action without you having to turn it on",
-                          value: autostartField.state.value,
-                          onChange: (val) => autostartField.handleChange(val),
-                        }}
-                        notificationDetect={{
-                          title:
-                            "Start/Stop listening to meetings automatically",
-                          description:
-                            "You don't have to press button every time — we'll start/stop listening for you",
-                          value: notificationDetectField.state.value,
-                          onChange: (val) =>
-                            notificationDetectField.handleChange(val),
-                        }}
-                        saveRecordings={{
-                          title: "Save recordings",
-                          description:
-                            "Audio files of meetings will be saved locally and won't be leaving your device",
-                          value: saveRecordingsField.state.value,
-                          onChange: (val) =>
-                            saveRecordingsField.handleChange(val),
-                        }}
-                        telemetryConsent={{
-                          title: "Share usage data",
-                          description:
-                            "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
-                          value: telemetryConsentField.state.value,
-                          onChange: (val) =>
-                            telemetryConsentField.handleChange(val),
-                        }}
-                      />
+      <form.Field name="theme">
+        {(themeField) => (
+          <form.Field name="autostart">
+            {(autostartField) => (
+              <form.Field name="notification_detect">
+                {(notificationDetectField) => (
+                  <form.Field name="save_recordings">
+                    {(saveRecordingsField) => (
+                      <form.Field name="telemetry_consent">
+                        {(telemetryConsentField) => (
+                          <AppSettingsView
+                            theme={{
+                              title: "Appearance",
+                              description: "Choose your preferred color theme",
+                              value: themeField.state.value,
+                              onChange: (val) => themeField.handleChange(val),
+                            }}
+                            autostart={{
+                              title: "Start Hyprnote automatically at login",
+                              description:
+                                "Hyprnote will always be ready for action without you having to turn it on",
+                              value: autostartField.state.value,
+                              onChange: (val) =>
+                                autostartField.handleChange(val),
+                            }}
+                            notificationDetect={{
+                              title:
+                                "Start/Stop listening to meetings automatically",
+                              description:
+                                "You don't have to press button every time — we'll start/stop listening for you",
+                              value: notificationDetectField.state.value,
+                              onChange: (val) =>
+                                notificationDetectField.handleChange(val),
+                            }}
+                            saveRecordings={{
+                              title: "Save recordings",
+                              description:
+                                "Audio files of meetings will be saved locally and won't be leaving your device",
+                              value: saveRecordingsField.state.value,
+                              onChange: (val) =>
+                                saveRecordingsField.handleChange(val),
+                            }}
+                            telemetryConsent={{
+                              title: "Share usage data",
+                              description:
+                                "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
+                              value: telemetryConsentField.state.value,
+                              onChange: (val) =>
+                                telemetryConsentField.handleChange(val),
+                            }}
+                          />
+                        )}
+                      </form.Field>
                     )}
                   </form.Field>
                 )}

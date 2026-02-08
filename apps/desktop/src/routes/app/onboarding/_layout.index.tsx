@@ -76,13 +76,13 @@ function Component() {
       />
       <button
         onClick={toggleMute}
-        className="fixed top-2 right-2 p-1.5 rounded-full hover:bg-neutral-100 transition-colors z-10"
+        className="fixed top-2 right-2 p-1.5 rounded-full hover:bg-muted transition-colors z-10"
         aria-label={isMuted ? "Unmute" : "Mute"}
       >
         {isMuted ? (
-          <VolumeXIcon size={16} className="text-neutral-600" />
+          <VolumeXIcon size={16} className="text-muted-foreground" />
         ) : (
-          <Volume2Icon size={16} className="text-neutral-600" />
+          <Volume2Icon size={16} className="text-muted-foreground" />
         )}
       </button>
       <currentConfig.component onNavigate={onNavigate} />

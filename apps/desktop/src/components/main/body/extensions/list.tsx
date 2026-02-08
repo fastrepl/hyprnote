@@ -66,14 +66,17 @@ export function ExtensionsListColumn({
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
           {filteredExtensions.length === 0 ? (
-            <div className="text-center py-8 text-neutral-500">
-              <Blocks size={32} className="mx-auto mb-2 text-neutral-300" />
+            <div className="text-center py-8 text-muted-foreground">
+              <Blocks
+                size={32}
+                className="mx-auto mb-2 text-muted-foreground/50"
+              />
               <p className="text-sm">
                 {searchValue
                   ? "No extensions found"
                   : "No extensions installed"}
               </p>
-              <p className="text-xs text-neutral-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Add extensions to the extensions folder
               </p>
             </div>
@@ -122,7 +125,7 @@ function ExtensionColumnHeader({
   };
 
   return (
-    <div className="@container border-b border-neutral-200">
+    <div className="@container border-b border-border">
       <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12 min-w-0">
         <h3 className="text-sm font-medium">Extensions</h3>
         <div className="flex items-center shrink-0">
@@ -153,23 +156,23 @@ function ExtensionColumnHeader({
         </div>
       </div>
       {showSearch && (
-        <div className="flex items-center gap-2 px-3 border-t bg-white border-neutral-200 h-12">
-          <Search className="h-4 w-4 text-neutral-400 shrink-0" />
+        <div className="flex items-center gap-2 px-3 border-t bg-background border-border h-12">
+          <Search className="h-4 w-4 text-muted-foreground shrink-0" />
           <input
             type="text"
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
             onKeyDown={handleSearchKeyDown}
             placeholder="Search extensions..."
-            className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
+            className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-muted-foreground"
             autoFocus
           />
           {searchValue && (
             <button
               onClick={() => onSearchChange("")}
-              className="p-1 rounded-xs hover:bg-neutral-100 transition-colors shrink-0"
+              className="p-1 rounded-xs hover:bg-muted transition-colors shrink-0"
             >
-              <X className="h-4 w-4 text-neutral-400" />
+              <X className="h-4 w-4 text-muted-foreground" />
             </button>
           )}
         </div>
@@ -191,12 +194,12 @@ function ExtensionItem({
     <button
       onClick={onClick}
       className={cn([
-        "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors",
-        isSelected ? "border-neutral-500 bg-neutral-100" : "border-transparent",
+        "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-muted transition-colors",
+        isSelected ? "border-border bg-muted" : "border-transparent",
       ])}
     >
       <div className="flex items-center gap-2">
-        <Blocks className="h-4 w-4 text-neutral-500 shrink-0" />
+        <Blocks className="h-4 w-4 text-muted-foreground shrink-0" />
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate flex items-center gap-1">
             {extension.name}
@@ -205,7 +208,7 @@ function ExtensionItem({
             </span>
           </div>
           {extension.description && (
-            <div className="text-xs text-neutral-500 truncate">
+            <div className="text-xs text-muted-foreground truncate">
               {extension.description}
             </div>
           )}

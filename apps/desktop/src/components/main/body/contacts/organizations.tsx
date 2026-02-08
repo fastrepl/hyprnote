@@ -49,8 +49,8 @@ export function OrganizationsColumn({
           <button
             onClick={() => setSelectedOrganization(null)}
             className={cn([
-              "w-full text-left px-3 py-2 rounded-md text-sm truncate flex items-center gap-2 hover:bg-neutral-100 transition-colors",
-              !selectedOrganization && "bg-neutral-100",
+              "w-full text-left px-3 py-2 rounded-md text-sm truncate flex items-center gap-2 hover:bg-accent transition-colors",
+              !selectedOrganization && "bg-accent",
             ])}
           >
             <User className="h-4 w-4 text-neutral-500 shrink-0" />
@@ -151,13 +151,15 @@ function OrganizationItem({
     <div
       className={cn([
         "group relative rounded-md transition-colors border",
-        isSelected && "bg-neutral-100",
-        isSelected && isViewingDetails ? "border-black" : "border-transparent",
+        isSelected && "bg-accent",
+        isSelected && isViewingDetails
+          ? "border-foreground"
+          : "border-transparent",
       ])}
     >
       <button
         onClick={() => setSelectedOrganization(organizationId)}
-        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-neutral-100 transition-colors rounded-md"
+        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-accent transition-colors rounded-md"
       >
         <Building2 className="h-4 w-4 text-neutral-500 shrink-0" />
         <p className="truncate">{organization.name}</p>

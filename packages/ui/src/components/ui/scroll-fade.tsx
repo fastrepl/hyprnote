@@ -86,13 +86,14 @@ export const ScrollFadeOverlay = memo(function ScrollFadeOverlay({
       className={cn([
         "absolute z-20 pointer-events-none",
         isHorizontal ? ["top-0 h-full w-8"] : ["left-0 w-full h-6"],
-        position === "top" && "top-0 bg-linear-to-b from-white to-transparent",
+        position === "top" &&
+          "top-0 bg-linear-to-b from-[hsl(var(--background))] to-transparent",
         position === "bottom" &&
-          "bottom-0 bg-linear-to-t from-white to-transparent",
+          "bottom-0 bg-linear-to-t from-[hsl(var(--background))] to-transparent",
         position === "left" &&
-          "left-0 bg-linear-to-r from-white to-transparent",
+          "left-0 bg-linear-to-r from-[hsl(var(--background))] to-transparent",
         position === "right" &&
-          "right-0 bg-linear-to-l from-white to-transparent",
+          "right-0 bg-linear-to-l from-[hsl(var(--background))] to-transparent",
       ])}
     />
   );

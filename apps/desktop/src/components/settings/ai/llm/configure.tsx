@@ -63,15 +63,15 @@ function HyprProviderCard({
       ref={hyprAccordionRef}
       value={providerId}
       className={cn([
-        "rounded-xl border-2 bg-neutral-50",
-        "border-solid border-neutral-300",
+        "rounded-xl border-2 bg-muted/40",
+        "border-solid border-border",
       ])}
     >
       <AccordionTrigger className="capitalize gap-2 px-4 hover:no-underline">
         <div className="flex items-center gap-2">
           {icon}
           <span>{providerName}</span>
-          <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
+          <span className="text-xs text-muted-foreground font-light border border-border rounded-full px-2">
             Recommended
           </span>
         </div>

@@ -51,6 +51,14 @@ export function AudioPlayerProvider({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
+  const resolveHslVar = useCallback((name: string, fallback: string) => {
+    if (typeof window === "undefined") return fallback;
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(name)
+      .trim();
+    return value ? `hsl(${value})` : fallback;
+  }, []);
+
   const audioExists = useQuery({
     queryKey: ["audio", sessionId, "exist"],
     queryFn: () => fsSyncCommands.audioExist(sessionId),
@@ -73,12 +81,26 @@ export function AudioPlayerProvider({
 
     const audio = new Audio(url);
 
+    const waveColor = resolveHslVar("--muted", "#e5e5e5");
+    const progressColor = resolveHslVar("--muted-foreground", "#a8a8a8");
+    const cursorColor = resolveHslVar("--foreground", "#737373");
+    const splitChannelA = {
+      waveColor: resolveHslVar("--chart-4", "#e8d5d5"),
+      progressColor: resolveHslVar("--chart-1", "#c9a3a3"),
+      overlay: true,
+    };
+    const splitChannelB = {
+      waveColor: resolveHslVar("--chart-2", "#d5dde8"),
+      progressColor: resolveHslVar("--chart-3", "#a3b3c9"),
+      overlay: true,
+    };
+
     const ws = WaveSurfer.create({
       container,
       height: 30,
-      waveColor: "#e5e5e5",
-      progressColor: "#a8a8a8",
-      cursorColor: "#737373",
+      waveColor,
+      progressColor,
+      cursorColor,
       cursorWidth: 2,
       barWidth: 3,
       barGap: 2,
@@ -87,10 +109,7 @@ export function AudioPlayerProvider({
       media: audio,
       dragToSeek: true,
       normalize: true,
-      splitChannels: [
-        { waveColor: "#e8d5d5", progressColor: "#c9a3a3", overlay: true },
-        { waveColor: "#d5dde8", progressColor: "#a3b3c9", overlay: true },
-      ],
+      splitChannels: [splitChannelA, splitChannelB],
     });
 
     let audioContext: AudioContext | null = null;
@@ -151,7 +170,7 @@ export function AudioPlayerProvider({
         audioContext.close();
       }
     };
-  }, [container, url]);
+  }, [container, resolveHslVar, url]);
 
   const start = useCallback(() => {
     if (wavesurfer) {

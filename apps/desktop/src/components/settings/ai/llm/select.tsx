@@ -87,8 +87,8 @@ export function SelectProviderAndModel() {
       <div
         className={cn([
           "flex flex-col gap-4",
-          "p-4 rounded-xl border border-neutral-200",
-          !isConfigured || hasError ? "bg-red-50" : "bg-neutral-50",
+          "p-4 rounded-xl border border-border",
+          !isConfigured || hasError ? "bg-destructive/10" : "bg-muted/40",
         ])}
       >
         <div className="flex flex-row items-center gap-4">
@@ -110,7 +110,7 @@ export function SelectProviderAndModel() {
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
                 >
-                  <SelectTrigger className="bg-white shadow-none focus:ring-0">
+                  <SelectTrigger className="bg-background shadow-none focus:ring-0">
                     <SelectValue placeholder="Select a provider" />
                   </SelectTrigger>
                   <SelectContent>
@@ -138,7 +138,7 @@ export function SelectProviderAndModel() {
             )}
           </form.Field>
 
-          <span className="text-neutral-500">/</span>
+          <span className="text-muted-foreground">/</span>
 
           <form.Field name="model">
             {(field) => {
@@ -165,8 +165,8 @@ export function SelectProviderAndModel() {
         </div>
 
         {!isConfigured && (
-          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
-            <span className="text-sm text-red-600">
+          <div className="flex items-center gap-2 pt-2 border-t border-destructive/40">
+            <span className="text-sm text-destructive">
               <strong className="font-medium">Language model</strong> is needed
               to make Hyprnote summarize and chat about your conversations.
             </span>
@@ -174,8 +174,8 @@ export function SelectProviderAndModel() {
         )}
 
         {hasError && health.message && (
-          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
-            <span className="text-sm text-red-600">{health.message}</span>
+          <div className="flex items-center gap-2 pt-2 border-t border-destructive/40">
+            <span className="text-sm text-destructive">{health.message}</span>
           </div>
         )}
       </div>

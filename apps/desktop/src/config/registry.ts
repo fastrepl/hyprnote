@@ -12,6 +12,7 @@ export type ConfigKey =
   | "notification_event"
   | "respect_dnd"
   | "ignored_platforms"
+  | "theme"
   | "current_stt_provider"
   | "current_stt_model"
   | "ai_language"
@@ -65,6 +66,11 @@ export const CONFIG_REGISTRY = {
     sideEffect: async (value: boolean, _) => {
       await detectCommands.setRespectDoNotDisturb(value);
     },
+  },
+
+  theme: {
+    key: "theme",
+    default: "system" as "light" | "dark" | "system",
   },
 
   ignored_platforms: {

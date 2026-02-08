@@ -101,14 +101,14 @@ export function TemplateForm({
   if (!value) {
     return (
       <div className="h-full flex items-center justify-center">
-        <p className="text-sm text-neutral-500">Template not found</p>
+        <p className="text-sm text-muted-foreground">Template not found</p>
       </div>
     );
   }
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      <div className="px-6 py-4 border-b border-neutral-200">
+      <div className="px-6 py-4 border-b border-border">
         <form.Field name="title">
           {(field) => (
             <Input
@@ -125,7 +125,7 @@ export function TemplateForm({
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
               placeholder="Describe the template purpose..."
-              className="border-0 shadow-none px-0 text-sm text-neutral-600 resize-none focus-visible:ring-0 min-h-[40px]"
+              className="border-0 shadow-none px-0 text-sm text-muted-foreground resize-none focus-visible:ring-0 min-h-[40px]"
               rows={2}
             />
           )}
@@ -135,7 +135,7 @@ export function TemplateForm({
             {value.targets.map((target, index) => (
               <span
                 key={index}
-                className="text-xs text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-xs"
+                className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-xs"
               >
                 {target}
               </span>
@@ -145,8 +145,8 @@ export function TemplateForm({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="p-6 border-b border-neutral-200">
-          <h3 className="text-sm font-medium text-neutral-600 mb-3">
+        <div className="p-6 border-b border-border">
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">
             Sections
           </h3>
           <form.Field name="sections">
@@ -160,8 +160,8 @@ export function TemplateForm({
           </form.Field>
         </div>
 
-        <div className="p-6 border-b border-neutral-200">
-          <h3 className="text-sm font-medium text-neutral-600 mb-4">
+        <div className="p-6 border-b border-border">
+          <h3 className="text-sm font-medium text-muted-foreground mb-4">
             Related Notes
           </h3>
           <RelatedSessions templateId={id} />

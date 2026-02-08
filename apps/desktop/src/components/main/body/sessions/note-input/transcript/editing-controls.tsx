@@ -101,7 +101,7 @@ export function EditingControls({
         onClick={handleEdit}
         className={cn([
           "px-3 py-0.5 pr-8 rounded-xs text-xs",
-          "bg-neutral-100 hover:bg-neutral-200 text-neutral-900",
+          "bg-muted hover:bg-muted/80 text-foreground",
           "transition-colors",
         ])}
       >
@@ -114,9 +114,9 @@ export function EditingControls({
             size="icon"
             className={cn([
               "absolute right-0.5 top-1/2 -translate-y-1/2 z-10",
-              "h-6 w-6 rounded-xs hover:bg-neutral-300/50 transition-colors",
-              "text-neutral-600 hover:text-neutral-900",
-              open ? "bg-neutral-300/50 text-neutral-900" : null,
+              "h-6 w-6 rounded-xs hover:bg-muted transition-colors",
+              "text-muted-foreground hover:text-foreground",
+              open ? "bg-muted text-foreground" : null,
             ])}
           >
             <ChevronDownIcon
@@ -137,8 +137,8 @@ export function EditingControls({
                 "flex items-center gap-2 h-9 px-3 whitespace-nowrap rounded-xs text-sm",
                 "text-left",
                 isBatchProcessing || isRedoing
-                  ? "text-neutral-400 cursor-not-allowed"
-                  : "hover:bg-neutral-100 transition-colors",
+                  ? "text-muted-foreground/60 cursor-not-allowed"
+                  : "hover:bg-muted transition-colors",
               ])}
             >
               <RefreshCcwIcon
@@ -158,7 +158,7 @@ export function EditingControls({
       onClick={handleEdit}
       className={cn([
         "px-3 py-0.5 rounded-xs text-xs",
-        "bg-neutral-100 hover:bg-neutral-200 text-neutral-900",
+        "bg-muted hover:bg-muted/80 text-foreground",
         "transition-colors",
       ])}
     >
@@ -175,8 +175,8 @@ export function EditingControls({
           "px-3 py-0.5 rounded-xs text-xs",
           "transition-colors",
           canUndo
-            ? "bg-neutral-100 hover:bg-neutral-200 text-neutral-900"
-            : "bg-neutral-50 text-neutral-400 cursor-not-allowed",
+            ? "bg-muted hover:bg-muted/80 text-foreground"
+            : "bg-muted/40 text-muted-foreground/60 cursor-not-allowed",
         ])}
       >
         &lt;
@@ -188,8 +188,8 @@ export function EditingControls({
           "px-3 py-0.5 rounded-xs text-xs",
           "transition-colors",
           canRedo
-            ? "bg-neutral-100 hover:bg-neutral-200 text-neutral-900"
-            : "bg-neutral-50 text-neutral-400 cursor-not-allowed",
+            ? "bg-muted hover:bg-muted/80 text-foreground"
+            : "bg-muted/40 text-muted-foreground/60 cursor-not-allowed",
         ])}
       >
         &gt;
@@ -198,7 +198,7 @@ export function EditingControls({
         onClick={handleCancel}
         className={cn([
           "px-3 py-0.5 rounded-xs text-xs",
-          "bg-neutral-100 hover:bg-neutral-200 text-neutral-900",
+          "bg-muted hover:bg-muted/80 text-foreground",
           "transition-colors",
         ])}
       >
@@ -208,7 +208,7 @@ export function EditingControls({
         onClick={handleSave}
         className={cn([
           "px-3 py-0.5 rounded-xs text-xs",
-          "bg-neutral-900 hover:bg-neutral-800 text-white",
+          "bg-primary text-primary-foreground hover:bg-primary/90",
           "transition-colors",
         ])}
       >

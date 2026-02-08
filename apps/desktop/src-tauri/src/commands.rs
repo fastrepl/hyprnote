@@ -1,5 +1,55 @@
 use crate::AppExt;
 
+#[cfg(target_os = "macos")]
+pub fn setup_theme_observer<R: tauri::Runtime + 'static>(app_handle: tauri::AppHandle<R>) {
+    use std::time::Duration;
+    use tauri::Emitter;
+
+    std::thread::spawn(move || {
+        let mut last_theme = get_system_theme();
+
+        loop {
+            std::thread::sleep(Duration::from_millis(500));
+
+            let current_theme = get_system_theme();
+            if current_theme != last_theme {
+                last_theme = current_theme.clone();
+                let _ = app_handle.emit("system-theme-changed", current_theme);
+            }
+        }
+    });
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_system_theme() -> String {
+    #[cfg(target_os = "macos")]
+    {
+        use std::process::Command;
+
+        let output = Command::new("defaults")
+            .args(["read", "-g", "AppleInterfaceStyle"])
+            .output();
+
+        match output {
+            Ok(output) => {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                if stdout.trim().eq_ignore_ascii_case("dark") {
+                    "dark".to_string()
+                } else {
+                    "light".to_string()
+                }
+            }
+            Err(_) => "light".to_string(),
+        }
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        "light".to_string()
+    }
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn get_onboarding_needed<R: tauri::Runtime>(

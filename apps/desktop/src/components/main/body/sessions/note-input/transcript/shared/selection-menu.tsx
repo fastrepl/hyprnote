@@ -21,17 +21,17 @@ import { useAutoCloser } from "../../../../../../../hooks/useAutoCloser";
 const MENU_CONTAINER_CLASSES = [
   "pointer-events-auto",
   "flex gap-1",
-  "bg-white shadow-lg rounded-md border border-neutral-200 p-1",
+  "bg-popover text-popover-foreground shadow-lg rounded-md border border-border p-1",
 ];
 
 const MENU_BUTTON_CLASSES = [
   "px-2 py-1 text-xs rounded-xs",
-  "hover:bg-neutral-100 transition-colors",
+  "hover:bg-muted transition-colors",
 ];
 
 const INPUT_CLASSES = [
   "px-2 py-1 text-xs rounded-xs",
-  "border border-neutral-300 focus:outline-hidden focus:border-neutral-400",
+  "border border-border bg-background focus:outline-hidden focus:border-ring",
   "min-w-[120px]",
 ];
 
@@ -240,7 +240,7 @@ function SelectionHighlight({
             top: rect.top,
             width: rect.width,
             height: rect.height,
-            backgroundColor: "rgba(59, 130, 246, 0.3)",
+            backgroundColor: "hsl(var(--primary) / 0.25)",
             pointerEvents: "none",
             zIndex: 40,
           }}

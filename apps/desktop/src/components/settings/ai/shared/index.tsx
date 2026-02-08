@@ -134,8 +134,8 @@ export function NonHyprProviderCard({
       disabled={config.disabled || locked}
       value={config.id}
       className={cn([
-        "rounded-xl border-2 bg-neutral-50",
-        isConfigured ? "border-solid border-neutral-300" : "border-dashed",
+        "rounded-xl border-2 bg-muted/40",
+        isConfigured ? "border-solid border-border" : "border-dashed",
       ])}
     >
       <AccordionTrigger
@@ -148,7 +148,7 @@ export function NonHyprProviderCard({
           {config.icon}
           <span>{config.displayName}</span>
           {config.badge && (
-            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
+            <span className="text-xs text-muted-foreground font-light border border-border rounded-full px-2">
               {config.badge}
             </span>
           )}
@@ -188,7 +188,7 @@ export function NonHyprProviderCard({
           )}
           {!showBaseUrl && config.baseUrl && (
             <details className="flex flex-col gap-4 pt-2">
-              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
+              <summary className="text-xs cursor-pointer text-muted-foreground hover:text-foreground hover:underline">
                 Advanced
               </summary>
               <div className="mt-4">
@@ -285,7 +285,7 @@ function FormField({
   return (
     <div className="flex flex-col gap-2">
       <label className="block text-xs font-medium">{label}</label>
-      <InputGroup className="bg-white">
+      <InputGroup className="bg-background">
         <InputGroupInput
           name={field.name}
           type={type}

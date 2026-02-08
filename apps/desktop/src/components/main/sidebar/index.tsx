@@ -39,7 +39,7 @@ export function LeftSidebar() {
   const showSearchResults = query.trim() !== "";
 
   return (
-    <div className="h-full w-70 flex flex-col overflow-hidden shrink-0 gap-1">
+    <div className="h-full w-70 flex flex-col overflow-hidden shrink-0 gap-1 bg-background border-r border-border">
       <header
         data-tauri-drag-region
         className={cn([
@@ -47,7 +47,7 @@ export function LeftSidebar() {
           "w-full h-9 py-1",
           isLinux ? "pl-3 justify-between" : "pl-18 justify-end",
           "shrink-0",
-          "rounded-xl bg-neutral-50",
+          "rounded-xl bg-background border-b border-border",
         ])}
       >
         {isLinux && <TrafficLights />}
@@ -73,7 +73,7 @@ export function LeftSidebar() {
             </TooltipTrigger>
             <TooltipContent
               side="bottom"
-              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm text-neutral-700 border border-neutral-200/50 shadow-lg"
+              className="flex items-center gap-2 bg-popover/80 backdrop-blur-sm text-popover-foreground border border-border/50 shadow-lg"
             >
               <span>Toggle sidebar</span>
               <Kbd className="animate-kbd-press">⌘ \</Kbd>

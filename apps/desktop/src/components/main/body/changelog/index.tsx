@@ -113,7 +113,7 @@ export function TabContentChangelog({
         </div>
 
         <div className="mt-2 px-3 shrink-0">
-          <h1 className="text-xl font-semibold text-neutral-900">
+          <h1 className="text-xl font-semibold text-foreground">
             What's new in {current}?
           </h1>
         </div>
@@ -123,11 +123,11 @@ export function TabContentChangelog({
           {!atEnd && <ScrollFadeOverlay position="bottom" />}
           <div ref={scrollRef} className="h-full overflow-y-auto px-3">
             {loading ? (
-              <p className="text-neutral-500">Loading...</p>
+              <p className="text-muted-foreground">Loading...</p>
             ) : content ? (
               <NoteEditor initialContent={content} editable={false} />
             ) : (
-              <p className="text-neutral-500">
+              <p className="text-muted-foreground">
                 No changelog available for this version.
               </p>
             )}
@@ -152,9 +152,9 @@ function ChangelogHeader({
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
           <Breadcrumb className="ml-1.5 min-w-0">
-            <BreadcrumbList className="text-neutral-700 text-xs flex-nowrap overflow-hidden gap-0.5">
+            <BreadcrumbList className="text-foreground text-xs flex-nowrap overflow-hidden gap-0.5">
               <BreadcrumbItem className="shrink-0">
-                <span className="text-neutral-500">Changelog</span>
+                <span className="text-muted-foreground">Changelog</span>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="shrink-0" />
               <BreadcrumbItem className="overflow-hidden">
@@ -169,7 +169,7 @@ function ChangelogHeader({
             <Button
               size="sm"
               variant="ghost"
-              className="pointer-events-none text-neutral-600"
+              className="pointer-events-none text-muted-foreground"
             >
               <CalendarIcon size={14} className="shrink-0" />
               <span>{formattedDate}</span>
@@ -178,7 +178,7 @@ function ChangelogHeader({
           <Button
             size="sm"
             variant="ghost"
-            className="gap-1.5 text-neutral-600 hover:text-black"
+            className="gap-1.5 text-muted-foreground hover:text-black"
             onClick={() =>
               openerCommands.openUrl(
                 `https://hyprnote.com/changelog/${version}`,

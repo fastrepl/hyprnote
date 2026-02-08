@@ -406,7 +406,7 @@ function TemplatesHomepage({
                 onClick={onExpandSidebar}
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8 text-neutral-600 hover:text-black"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
               >
                 <Star size={16} className="text-amber-500" />
               </Button>
@@ -433,39 +433,39 @@ function TemplatesHomepage({
       </div>
 
       <div className="relative flex-1 overflow-y-auto">
-        <div className="absolute top-0 left-0 right-0 h-8 z-10 pointer-events-none bg-linear-to-b from-white to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-8 z-10 pointer-events-none bg-linear-to-t from-white to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-8 z-10 pointer-events-none bg-linear-to-b from-background to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-8 z-10 pointer-events-none bg-linear-to-t from-background to-transparent" />
 
         <div className="py-12 px-4 flex flex-col justify-center items-center gap-8">
           <div className="flex flex-col justify-start items-center gap-4 max-w-md">
             <h1 className="text-2xl font-semibold font-serif">Templates</h1>
-            <p className="text-center text-base text-neutral-600">
+            <p className="text-center text-base text-muted-foreground">
               Templates act as AI instructions for each meeting type, giving you
               structured notes instantly
             </p>
           </div>
           <div
             className={cn([
-              "w-80 h-10 px-4 bg-white rounded-lg",
-              "border border-neutral-200",
+              "w-80 h-10 px-4 bg-background rounded-lg",
+              "border border-border",
               "flex items-center gap-2",
-              "focus-within:border-neutral-400 transition-colors",
+              "focus-within:border-ring transition-colors",
             ])}
           >
-            <Search className="w-4 h-4 text-neutral-400" />
+            <Search className="w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search for a template..."
-              className="flex-1 bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
+              className="flex-1 bg-transparent text-sm focus:outline-hidden placeholder:text-muted-foreground"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="p-0.5 rounded-xs hover:bg-neutral-100"
+                className="p-0.5 rounded-xs hover:bg-muted"
               >
-                <X className="h-3 w-3 text-neutral-400" />
+                <X className="h-3 w-3 text-muted-foreground" />
               </button>
             )}
           </div>
@@ -492,8 +492,11 @@ function TemplatesHomepage({
               ))}
             </div>
           ) : filteredTemplates.length === 0 ? (
-            <div className="text-center py-12 text-neutral-500">
-              <BookText size={48} className="mx-auto mb-3 text-neutral-300" />
+            <div className="text-center py-12 text-muted-foreground">
+              <BookText
+                size={48}
+                className="mx-auto mb-3 text-muted-foreground/60"
+              />
               <p className="text-sm">
                 {search ? "No templates found" : "No templates available"}
               </p>
@@ -533,23 +536,23 @@ function TemplateCard({
     <button
       onClick={onClick}
       className={cn([
-        "w-full text-left rounded-xs border border-stone-100 overflow-hidden",
-        "hover:border-stone-300 hover:shadow-xs transition-all",
+        "w-full text-left rounded-xs border border-border overflow-hidden",
+        "hover:border-border hover:shadow-xs transition-all",
         "flex flex-col",
       ])}
     >
-      <div className="h-20 bg-linear-to-br from-stone-100 to-stone-200 flex items-center justify-center">
-        <BookText className="w-8 h-8 text-stone-400" />
+      <div className="h-20 bg-muted flex items-center justify-center">
+        <BookText className="w-8 h-8 text-muted-foreground" />
       </div>
       <div className="p-3 flex flex-col gap-3 flex-1">
         <div className="text-base font-medium font-serif line-clamp-1">
           {template.title || "Untitled"}
         </div>
-        <div className="text-sm text-stone-600 truncate">
+        <div className="text-sm text-muted-foreground truncate">
           {template.description || "No description"}
         </div>
         {template.targets && template.targets.length > 0 && (
-          <div className="text-xs text-stone-400 truncate">
+          <div className="text-xs text-muted-foreground truncate">
             {template.targets.join(", ")}
           </div>
         )}
@@ -627,7 +630,7 @@ function TemplateListColumn({
   if (showHomepage) {
     return (
       <div className="w-full h-full flex flex-col">
-        <div className="border-b border-neutral-200">
+        <div className="border-b border-border">
           <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12">
             <div className="flex items-center gap-2">
               <Star size={16} className="text-amber-500" />
@@ -638,7 +641,7 @@ function TemplateListColumn({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="text-neutral-600 hover:text-black"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <ArrowDownUp size={16} />
                 </Button>
@@ -655,8 +658,8 @@ function TemplateListColumn({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <div className="flex items-center gap-2 px-3 border-t bg-white border-neutral-200 h-10">
-            <Search className="h-4 w-4 text-neutral-400" />
+          <div className="flex items-center gap-2 px-3 border-t bg-background border-border h-10">
+            <Search className="h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               value={search}
@@ -667,14 +670,14 @@ function TemplateListColumn({
                 }
               }}
               placeholder="Search..."
-              className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
+              className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-muted-foreground"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="p-1 rounded-xs hover:bg-neutral-100"
+                className="p-1 rounded-xs hover:bg-muted"
               >
-                <X className="h-4 w-4 text-neutral-400" />
+                <X className="h-4 w-4 text-muted-foreground" />
               </button>
             )}
           </div>
@@ -682,15 +685,18 @@ function TemplateListColumn({
 
         <div className="flex-1 overflow-y-auto p-2">
           {filteredMine.length === 0 ? (
-            <div className="text-center py-8 text-neutral-500">
-              <Star size={32} className="mx-auto mb-2 text-neutral-300" />
+            <div className="text-center py-8 text-muted-foreground">
+              <Star
+                size={32}
+                className="mx-auto mb-2 text-muted-foreground/60"
+              />
               <p className="text-sm">
                 {search ? "No templates found" : "No favorites yet"}
               </p>
               {!search && (
                 <button
                   onClick={onCreateTemplate}
-                  className="mt-3 text-sm text-neutral-600 hover:text-neutral-800 underline"
+                  className="mt-3 text-sm text-muted-foreground hover:text-foreground underline"
                 >
                   Create your first template
                 </button>
@@ -702,18 +708,18 @@ function TemplateListColumn({
                 key={item.id}
                 onClick={() => setSelectedMineId(item.id)}
                 className={cn([
-                  "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100",
+                  "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-muted",
                   "border-transparent",
                 ])}
               >
                 <div className="flex items-center gap-2">
-                  <BookText className="h-4 w-4 text-neutral-500 shrink-0" />
+                  <BookText className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">
                       {item.title?.trim() || "Untitled"}
                     </div>
                     {item.description && (
-                      <div className="text-xs text-neutral-500 truncate">
+                      <div className="text-xs text-muted-foreground truncate">
                         {item.description}
                       </div>
                     )}
@@ -731,18 +737,18 @@ function TemplateListColumn({
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div className="border-b border-neutral-200">
+      <div className="border-b border-border">
         <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12">
           <button
             onClick={() => setShowHomepage(true)}
-            className="text-sm font-medium hover:text-neutral-600"
+            className="text-sm font-medium hover:text-muted-foreground"
           >
             Templates
           </button>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1.5 px-2">
-                <Globe size={14} className="text-neutral-400" />
+                <Globe size={14} className="text-muted-foreground" />
                 <Switch
                   size="sm"
                   checked={isWebMode}
@@ -757,8 +763,8 @@ function TemplateListColumn({
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex items-center gap-2 px-3 border-t bg-white border-neutral-200 h-10">
-          <Search className="h-4 w-4 text-neutral-400" />
+        <div className="flex items-center gap-2 px-3 border-t bg-background border-border h-10">
+          <Search className="h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             value={search}
@@ -769,14 +775,14 @@ function TemplateListColumn({
               }
             }}
             placeholder="Search..."
-            className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
+            className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-muted-foreground"
           />
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="p-1 rounded-xs hover:bg-neutral-100"
+              className="p-1 rounded-xs hover:bg-muted"
             >
-              <X className="h-4 w-4 text-neutral-400" />
+              <X className="h-4 w-4 text-muted-foreground" />
             </button>
           )}
         </div>
@@ -787,14 +793,17 @@ function TemplateListColumn({
           <div className="flex flex-col gap-2">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="px-3 py-2 rounded-md animate-pulse">
-                <div className="h-4 w-3/4 rounded-xs bg-neutral-200" />
-                <div className="h-3 w-1/2 rounded-xs bg-neutral-100 mt-1.5" />
+                <div className="h-4 w-3/4 rounded-xs bg-muted" />
+                <div className="h-3 w-1/2 rounded-xs bg-muted/70 mt-1.5" />
               </div>
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center py-8 text-neutral-500">
-            <BookText size={32} className="mx-auto mb-2 text-neutral-300" />
+          <div className="text-center py-8 text-muted-foreground">
+            <BookText
+              size={32}
+              className="mx-auto mb-2 text-muted-foreground/60"
+            />
             <p className="text-sm">
               {search
                 ? "No templates found"
@@ -809,25 +818,25 @@ function TemplateListColumn({
               key={`web-${index}`}
               onClick={() => setSelectedWebIndex(index)}
               className={cn([
-                "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100",
+                "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-muted",
                 selectedWebIndex === index
-                  ? "border-neutral-500 bg-neutral-100"
+                  ? "border-border bg-muted"
                   : "border-transparent",
               ])}
             >
               <div className="flex items-center gap-2">
-                <BookText className="h-4 w-4 text-neutral-500 shrink-0" />
+                <BookText className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">
                     {item.title || "Untitled"}
                     {item.category && (
-                      <span className="text-xs text-stone-400 font-mono ml-1">
+                      <span className="text-xs text-muted-foreground font-mono ml-1">
                         ({item.category})
                       </span>
                     )}
                   </div>
                   {item.description && (
-                    <div className="text-xs text-neutral-500 truncate">
+                    <div className="text-xs text-muted-foreground truncate">
                       {item.description}
                     </div>
                   )}
@@ -841,20 +850,20 @@ function TemplateListColumn({
               key={item.id}
               onClick={() => setSelectedMineId(item.id)}
               className={cn([
-                "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100",
+                "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-muted",
                 selectedMineId === item.id
-                  ? "border-neutral-500 bg-neutral-100"
+                  ? "border-border bg-muted"
                   : "border-transparent",
               ])}
             >
               <div className="flex items-center gap-2">
-                <BookText className="h-4 w-4 text-neutral-500 shrink-0" />
+                <BookText className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">
                     {item.title?.trim() || "Untitled"}
                   </div>
                   {item.description && (
-                    <div className="text-xs text-neutral-500 truncate">
+                    <div className="text-xs text-muted-foreground truncate">
                       {item.description}
                     </div>
                   )}

@@ -22,9 +22,9 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2 border-t border-neutral-200 pt-4">
+    <div className="flex flex-col gap-2 border-t border-border pt-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wide">
+        <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {title}
         </h4>
         {action}
@@ -43,14 +43,14 @@ export function AppleCalendarProviderCard() {
   return (
     <AccordionItem
       value={config.id}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
+      className="rounded-xl border-2 border-dashed bg-muted/40"
     >
       <AccordionTrigger className="capitalize gap-2 px-4">
         <div className="flex items-center gap-2">
           {config.icon}
           <span>{config.displayName}</span>
           {config.badge && (
-            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
+            <span className="text-xs text-muted-foreground font-light border border-border rounded-full px-2">
               {config.badge}
             </span>
           )}
@@ -64,7 +64,7 @@ export function AppleCalendarProviderCard() {
           </StyledStreamdown>
           <button
             onClick={() => openerCommands.openUrl(config.docsPath, null)}
-            className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             Docs ↗
           </button>

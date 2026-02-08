@@ -126,7 +126,7 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
       <div className="absolute left-1/2 top-[15%] -translate-x-1/2 w-full max-w-lg px-4">
         <div
           className={cn([
-            "bg-[#faf8f5] rounded-xl border border-neutral-200/80",
+            "bg-background rounded-xl border border-border/80",
             "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]",
             "overflow-hidden",
           ])}
@@ -141,8 +141,8 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
               }
             }}
           >
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-200/60">
-              <SearchIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/60">
+              <SearchIcon className="w-4 h-4 text-muted-foreground shrink-0" />
               <CommandPrimitive.Input
                 ref={inputRef}
                 value={query}
@@ -150,7 +150,7 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                 placeholder="Find a note..."
                 className={cn([
                   "flex-1 text-sm bg-transparent",
-                  "outline-hidden placeholder:text-neutral-400",
+                  "outline-hidden placeholder:text-muted-foreground",
                 ])}
               />
               <button
@@ -158,8 +158,8 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                 className={cn([
                   "w-5 h-5 rounded-full",
                   "flex items-center justify-center",
-                  "bg-neutral-200/80 hover:bg-neutral-300/80",
-                  "text-neutral-500 text-xs",
+                  "bg-muted/80 hover:bg-muted/80",
+                  "text-muted-foreground text-xs",
                   "transition-colors",
                 ])}
               >
@@ -169,7 +169,7 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
 
             <CommandPrimitive.List className="max-h-80 overflow-y-auto p-2">
               {!hasAnyResults ? (
-                <CommandPrimitive.Empty className="py-6 text-center text-sm text-neutral-500">
+                <CommandPrimitive.Empty className="py-6 text-center text-sm text-muted-foreground">
                   No notes found.
                 </CommandPrimitive.Empty>
               ) : (
@@ -180,7 +180,7 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                         filteredOtherSessions.length > 0 ? "pb-1.5" : ""
                       }
                       heading={
-                        <div className="px-2 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Recent
                         </div>
                       }
@@ -192,12 +192,12 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                           onSelect={() => handleSelect(session.id)}
                           className={cn([
                             "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer",
-                            "text-sm text-neutral-700",
-                            "data-[selected=true]:bg-neutral-200/60",
+                            "text-sm text-foreground",
+                            "data-[selected=true]:bg-muted/60",
                             "transition-colors",
                           ])}
                         >
-                          <FileTextIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+                          <FileTextIcon className="w-4 h-4 text-muted-foreground shrink-0" />
                           <span className="truncate">{session.title}</span>
                         </CommandPrimitive.Item>
                       ))}
@@ -209,9 +209,9 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                       heading={
                         <div className="flex flex-col gap-3">
                           {filteredRecentSessions.length > 0 && (
-                            <div className="h-px bg-neutral-200 mx-2" />
+                            <div className="h-px bg-muted mx-2" />
                           )}
-                          <div className="px-2 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                          <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             All Notes
                           </div>
                         </div>
@@ -224,12 +224,12 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                           onSelect={() => handleSelect(session.id)}
                           className={cn([
                             "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer",
-                            "text-sm text-neutral-700",
-                            "data-[selected=true]:bg-neutral-200/60",
+                            "text-sm text-foreground",
+                            "data-[selected=true]:bg-muted/60",
                             "transition-colors",
                           ])}
                         >
-                          <FileTextIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+                          <FileTextIcon className="w-4 h-4 text-muted-foreground shrink-0" />
                           <span className="truncate">{session.title}</span>
                         </CommandPrimitive.Item>
                       ))}
@@ -242,8 +242,8 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
             <div
               className={cn([
                 "flex items-center justify-center gap-4 px-4 py-2.5",
-                "border-t border-neutral-200/60",
-                "text-xs text-neutral-400",
+                "border-t border-border/60",
+                "text-xs text-muted-foreground",
               ])}
             >
               <span className="flex items-center gap-1.5">

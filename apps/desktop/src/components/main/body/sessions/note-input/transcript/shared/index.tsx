@@ -182,7 +182,7 @@ export function TranscriptContainer({
         className={cn([
           "absolute bottom-3 left-1/2 -translate-x-1/2 z-30",
           "px-4 py-2 rounded-full",
-          "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+          "bg-muted text-foreground",
           "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
           "text-xs font-light",
           "transition-opacity duration-150",
@@ -200,12 +200,12 @@ function TranscriptSeparator() {
     <div
       className={cn([
         "flex items-center gap-3",
-        "text-neutral-400 text-xs font-light",
+        "text-muted-foreground text-xs font-light",
       ])}
     >
-      <div className="flex-1 border-t border-neutral-200/40" />
+      <div className="flex-1 border-t border-border/40" />
       <span>~ ~ ~ ~ ~ ~ ~ ~ ~</span>
-      <div className="flex-1 border-t border-neutral-200/40" />
+      <div className="flex-1 border-t border-border/40" />
     </div>
   );
 }

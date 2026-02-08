@@ -76,11 +76,11 @@ function WebShortcutPreview({
       />
 
       <div className="flex-1 p-6">
-        <h3 className="text-sm font-medium text-neutral-600 mb-3">
+        <h3 className="text-sm font-medium text-muted-foreground mb-3">
           Prompt Content
         </h3>
-        <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-          <p className="text-sm text-neutral-700 whitespace-pre-wrap">
+        <div className="p-4 bg-muted/40 rounded-lg border border-border">
+          <p className="text-sm text-foreground whitespace-pre-wrap">
             {shortcut.prompt}
           </p>
         </div>
@@ -139,11 +139,11 @@ function ChatShortcutForm({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 py-4 border-b border-neutral-200">
+      <div className="px-6 py-4 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold">Edit Shortcut</h2>
-            <p className="text-sm text-neutral-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Create a quick shortcut for chat inputs
             </p>
           </div>
@@ -157,7 +157,7 @@ function ChatShortcutForm({
 
       <div className="flex-1 p-6 flex flex-col gap-4">
         <div>
-          <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
+          <label className="text-sm font-medium text-foreground mb-1.5 block">
             Title
           </label>
           <Input
@@ -167,7 +167,7 @@ function ChatShortcutForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
+          <label className="text-sm font-medium text-foreground mb-1.5 block">
             Content
           </label>
           <Textarea
@@ -179,7 +179,7 @@ function ChatShortcutForm({
         </div>
       </div>
 
-      <div className="p-6 border-t border-neutral-200">
+      <div className="p-6 border-t border-border">
         <DangerZone
           title="Delete this shortcut"
           description="This action cannot be undone"

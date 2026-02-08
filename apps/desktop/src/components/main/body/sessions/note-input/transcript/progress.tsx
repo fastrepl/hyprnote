@@ -26,11 +26,11 @@ export function TranscriptionProgress({ sessionId }: { sessionId: string }) {
   if (hasError) {
     return (
       <div className="mb-3">
-        <div className="flex w-fit items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700 shadow-xs">
-          <AlertCircleIcon size={14} className="text-red-500 shrink-0" />
+        <div className="flex w-fit items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/40 px-3 py-2 text-xs text-destructive shadow-xs">
+          <AlertCircleIcon size={14} className="text-destructive shrink-0" />
           <div className="flex flex-col gap-0.5">
             <span className="font-medium">Transcription failed</span>
-            <span className="text-red-600">{progressRaw.error}</span>
+            <span className="text-destructive/80">{progressRaw.error}</span>
           </div>
         </div>
       </div>
@@ -43,8 +43,8 @@ export function TranscriptionProgress({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="mb-3">
-      <div className="flex w-fit items-center gap-2 rounded-full bg-neutral-900 px-3 py-1 text-xs text-white shadow-xs">
-        <Spinner size={12} className="text-white/80" />
+      <div className="flex w-fit items-center gap-2 rounded-full bg-primary px-3 py-1 text-xs text-primary-foreground shadow-xs">
+        <Spinner size={12} className="text-primary-foreground/80" />
         <span>Processing · {statusLabel}</span>
       </div>
     </div>

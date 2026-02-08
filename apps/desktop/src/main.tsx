@@ -16,6 +16,7 @@ import "@hypr/ui/globals.css";
 import { ErrorComponent, NotFoundComponent } from "./components/control";
 import { EventListeners } from "./components/event-listeners";
 import { TaskManager } from "./components/task-manager";
+import { ThemeSync } from "./components/theme-sync";
 import { createToolRegistry } from "./contexts/tool-registry/core";
 import { env } from "./env";
 import { initExtensionGlobals } from "./extension-globals";
@@ -68,16 +69,19 @@ function App() {
   }
 
   return (
-    <RouterProvider
-      router={router}
-      context={{
-        persistedStore: store,
-        internalStore: store,
-        listenerStore,
-        aiTaskStore,
-        toolRegistry,
-      }}
-    />
+    <>
+      <ThemeSync />
+      <RouterProvider
+        router={router}
+        context={{
+          persistedStore: store,
+          internalStore: store,
+          listenerStore,
+          aiTaskStore,
+          toolRegistry,
+        }}
+      />
+    </>
   );
 }
 

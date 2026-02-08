@@ -19,7 +19,7 @@ export function OnboardingContainer({
       {onBack && (
         <button
           onClick={onBack}
-          className="fixed top-10 left-1 flex items-center gap-1 px-2 py-1 text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
+          className="fixed top-10 left-1 flex items-center gap-1 px-2 py-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeftIcon size={16} />
           Back
@@ -27,11 +27,11 @@ export function OnboardingContainer({
       )}
 
       <div className="flex flex-col gap-3 text-center mb-8">
-        <h1 className="text-xl font-semibold text-neutral-900 font-serif">
+        <h1 className="text-xl font-semibold text-foreground font-serif">
           {title}
         </h1>
         {description && (
-          <p className="text-base text-neutral-500">{description}</p>
+          <p className="text-base text-muted-foreground">{description}</p>
         )}
       </div>
 
@@ -59,7 +59,7 @@ export function IntegrationRow({
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <span className="text-lg">{icon}</span>
-        <span className="text-base font-medium text-neutral-900">{name}</span>
+        <span className="text-base font-medium text-foreground">{name}</span>
       </div>
 
       <Button
@@ -82,9 +82,9 @@ export function IntegrationRow({
 export function Divider({ text }: { text: string }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="h-px flex-1 bg-neutral-200" />
-      <span className="text-sm text-neutral-500">{text}</span>
-      <div className="h-px flex-1 bg-neutral-200" />
+      <div className="h-px flex-1 bg-border" />
+      <span className="text-sm text-muted-foreground">{text}</span>
+      <div className="h-px flex-1 bg-border" />
     </div>
   );
 }

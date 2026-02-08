@@ -284,14 +284,14 @@ function ShortcutListColumn({
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div className="border-b border-neutral-200">
+      <div className="border-b border-border">
         <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12">
           <h3 className="text-sm font-medium">Shortcuts</h3>
           <div className="flex items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1.5 px-2">
-                  <Globe size={14} className="text-neutral-400" />
+                  <Globe size={14} className="text-muted-foreground" />
                   <Switch
                     size="sm"
                     checked={isWebMode}
@@ -312,7 +312,7 @@ function ShortcutListColumn({
               }}
               size="icon"
               variant="ghost"
-              className="text-neutral-600 hover:text-black"
+              className="text-muted-foreground hover:text-foreground"
             >
               <Search size={16} />
             </Button>
@@ -320,15 +320,15 @@ function ShortcutListColumn({
               onClick={onAddNew}
               size="icon"
               variant="ghost"
-              className="text-neutral-600 hover:text-black"
+              className="text-muted-foreground hover:text-foreground"
             >
               <Plus size={16} />
             </Button>
           </div>
         </div>
         {showSearch && (
-          <div className="flex items-center gap-2 px-3 border-t bg-white border-neutral-200 h-12">
-            <Search className="h-4 w-4 text-neutral-400" />
+          <div className="flex items-center gap-2 px-3 border-t bg-background border-border h-12">
+            <Search className="h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               value={search}
@@ -340,15 +340,15 @@ function ShortcutListColumn({
                 }
               }}
               placeholder="Search shortcuts..."
-              className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
+              className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-muted-foreground"
               autoFocus
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="p-1 rounded-xs hover:bg-neutral-100"
+                className="p-1 rounded-xs hover:bg-muted"
               >
-                <X className="h-4 w-4 text-neutral-400" />
+                <X className="h-4 w-4 text-muted-foreground" />
               </button>
             )}
           </div>
@@ -360,16 +360,16 @@ function ShortcutListColumn({
           <div className="flex flex-col gap-2">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="px-3 py-2 rounded-md animate-pulse">
-                <div className="h-4 w-3/4 rounded-xs bg-neutral-200" />
-                <div className="h-3 w-1/2 rounded-xs bg-neutral-100 mt-1.5" />
+                <div className="h-4 w-3/4 rounded-xs bg-muted" />
+                <div className="h-3 w-1/2 rounded-xs bg-muted/70 mt-1.5" />
               </div>
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center py-8 text-neutral-500">
+          <div className="text-center py-8 text-muted-foreground">
             <MessageSquare
               size={32}
-              className="mx-auto mb-2 text-neutral-300"
+              className="mx-auto mb-2 text-muted-foreground/60"
             />
             <p className="text-sm">
               {search
@@ -385,25 +385,25 @@ function ShortcutListColumn({
               key={`web-${index}`}
               onClick={() => setSelectedWebIndex(index)}
               className={cn([
-                "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100",
+                "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-muted",
                 selectedWebIndex === index
-                  ? "border-neutral-500 bg-neutral-100"
+                  ? "border-border bg-muted"
                   : "border-transparent",
               ])}
             >
               <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-neutral-500 shrink-0" />
+                <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">
                     {item.title || "Untitled"}
                     {item.category && (
-                      <span className="text-xs text-stone-400 font-mono ml-1">
+                      <span className="text-xs text-muted-foreground font-mono ml-1">
                         ({item.category})
                       </span>
                     )}
                   </div>
                   {item.description && (
-                    <div className="text-xs text-neutral-500 truncate">
+                    <div className="text-xs text-muted-foreground truncate">
                       {item.description}
                     </div>
                   )}
@@ -417,14 +417,14 @@ function ShortcutListColumn({
               key={item.id}
               onClick={() => setSelectedMineId(item.id)}
               className={cn([
-                "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100",
+                "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-muted",
                 selectedMineId === item.id
-                  ? "border-neutral-500 bg-neutral-100"
+                  ? "border-border bg-muted"
                   : "border-transparent",
               ])}
             >
               <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-neutral-500 shrink-0" />
+                <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">
                     {getMineTitle(item)}

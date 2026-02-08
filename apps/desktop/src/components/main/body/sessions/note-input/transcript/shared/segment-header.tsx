@@ -68,7 +68,7 @@ export function SegmentHeader({
   const headerClassName = cn([
     "sticky top-0 z-20 bg-background",
     "-mx-3 px-3 py-1",
-    "border-b border-neutral-200",
+    "border-b border-border",
     "text-xs font-light",
     "flex items-center justify-between",
   ]);
@@ -89,7 +89,7 @@ export function SegmentHeader({
           <DropdownMenuTrigger asChild>
             <span
               style={{ color }}
-              className="cursor-pointer rounded-xs hover:bg-neutral-100"
+              className="cursor-pointer rounded-xs hover:bg-muted"
             >
               {label}
             </span>
@@ -115,7 +115,7 @@ export function SegmentHeader({
             </DropdownMenuSub>
           </DropdownMenuContent>
         </DropdownMenu>
-        <span className="font-mono text-neutral-500">{timestamp}</span>
+        <span className="font-mono text-muted-foreground">{timestamp}</span>
       </p>
     );
   }
@@ -123,7 +123,7 @@ export function SegmentHeader({
   return (
     <p className={headerClassName}>
       <span style={{ color }}>{label}</span>
-      <span className="font-mono text-neutral-500">{timestamp}</span>
+      <span className="font-mono text-muted-foreground">{timestamp}</span>
     </p>
   );
 }

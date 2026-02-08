@@ -76,7 +76,7 @@ export function SearchableSelect({
           role="combobox"
           aria-expanded={open}
           className={cn([
-            "justify-between font-normal bg-white shadow-none focus-visible:ring-0",
+            "justify-between font-normal bg-background shadow-none focus-visible:ring-0",
             "rounded-lg px-3",
             className,
           ])}
@@ -112,7 +112,7 @@ export function SearchableSelect({
                   onSelect={() => handleSelect(option.value)}
                   className={cn([
                     "cursor-pointer",
-                    "focus:bg-neutral-200! hover:bg-neutral-200! aria-selected:bg-transparent",
+                    "focus:bg-muted! hover:bg-muted! aria-selected:bg-transparent",
                   ])}
                 >
                   <span className="truncate flex-1">{option.label}</span>

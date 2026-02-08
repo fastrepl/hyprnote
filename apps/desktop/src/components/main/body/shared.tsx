@@ -188,11 +188,11 @@ export function TabItemBase({
           active &&
             !selected && ["bg-red-50", "text-red-500", "border-transparent"],
           !active &&
-            selected && ["bg-neutral-50", "text-black", "border-stone-400"],
+            selected && ["bg-card", "text-foreground", "border-border"],
           !active &&
             !selected && [
-              "bg-neutral-50",
-              "text-neutral-500",
+              "bg-card/80",
+              "text-muted-foreground",
               "border-transparent",
             ],
         ])}
@@ -220,8 +220,8 @@ export function TabItemBase({
                   }}
                   className={cn([
                     "flex items-center justify-center transition-colors",
-                    selected && "text-neutral-700 hover:text-neutral-900",
-                    !selected && "text-neutral-500 hover:text-neutral-700",
+                    selected && "text-foreground hover:text-foreground",
+                    !selected && "text-muted-foreground hover:text-foreground",
                   ])}
                 >
                   <Pin size={14} />
@@ -246,10 +246,10 @@ export function TabItemBase({
                   active && "text-red-600 hover:text-red-700",
                   !active &&
                     selected &&
-                    "text-neutral-700 hover:text-neutral-900",
+                    "text-foreground hover:text-foreground",
                   !active &&
                     !selected &&
-                    "text-neutral-500 hover:text-neutral-700",
+                    "text-muted-foreground hover:text-foreground",
                 ])}
               >
                 <X size={16} />
@@ -279,7 +279,7 @@ export function TabItemBase({
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-neutral-700">
+            <p className="text-sm text-foreground">
               Are you sure you want to close this tab? This will stop Hyprnote
               from listening.
             </p>

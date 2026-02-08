@@ -35,10 +35,10 @@ export function OrganizationDetailsColumn({
     <div className="flex-1 flex flex-col">
       {selectedOrgData && selectedOrganizationId ? (
         <>
-          <div className="px-6 py-4 border-b border-neutral-200">
+          <div className="px-6 py-4 border-b border-border">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
-                <Building2 className="h-6 w-6 text-neutral-600" />
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                <Building2 className="h-6 w-6 text-muted-foreground" />
               </div>
               <div className="flex-1">
                 <div className="flex items-start justify-between">
@@ -46,7 +46,7 @@ export function OrganizationDetailsColumn({
                     <EditableOrganizationNameField
                       organizationId={selectedOrganizationId}
                     />
-                    <p className="text-sm text-neutral-500 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       {peopleInOrg?.length ?? 0}{" "}
                       {(peopleInOrg?.length ?? 0) === 1 ? "person" : "people"}
                     </p>
@@ -58,7 +58,7 @@ export function OrganizationDetailsColumn({
 
           <div className="flex-1 overflow-y-auto">
             <div className="p-6">
-              <h3 className="text-sm font-medium text-neutral-600 mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground mb-4">
                 People
               </h3>
               <div className="overflow-y-auto" style={{ maxHeight: "55vh" }}>
@@ -73,12 +73,12 @@ export function OrganizationDetailsColumn({
                       return (
                         <div
                           key={humanId}
-                          className="p-4 rounded-lg border border-neutral-200 hover:shadow-xs transition-all bg-white cursor-pointer"
+                          className="p-4 rounded-lg border border-border hover:shadow-xs transition-all bg-background cursor-pointer"
                           onClick={() => onPersonClick?.(humanId)}
                         >
                           <div className="flex flex-col items-center text-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center shrink-0">
-                              <span className="text-sm font-medium text-neutral-600">
+                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+                              <span className="text-sm font-medium text-muted-foreground">
                                 {getInitials(
                                   (human.name as string) ||
                                     (human.email as string),
@@ -90,7 +90,7 @@ export function OrganizationDetailsColumn({
                                 {human.name || human.email || "Unnamed"}
                               </div>
                               {human.job_title && (
-                                <div className="text-xs text-neutral-500 truncate mt-1">
+                                <div className="text-xs text-muted-foreground truncate mt-1">
                                   {human.job_title as string}
                                 </div>
                               )}
@@ -138,7 +138,7 @@ export function OrganizationDetailsColumn({
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-neutral-500">
+                  <p className="text-sm text-muted-foreground">
                     No people in this organization
                   </p>
                 )}
@@ -152,13 +152,13 @@ export function OrganizationDetailsColumn({
                     Danger Zone
                   </h3>
                 </div>
-                <div className="bg-white p-4">
+                <div className="bg-background p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-neutral-900">
+                      <p className="text-sm font-medium text-foreground">
                         Delete this organization
                       </p>
-                      <p className="text-xs text-neutral-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         This action cannot be undone
                       </p>
                     </div>
@@ -183,7 +183,7 @@ export function OrganizationDetailsColumn({
         </>
       ) : (
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-muted-foreground">
             Select an organization to view details
           </p>
         </div>

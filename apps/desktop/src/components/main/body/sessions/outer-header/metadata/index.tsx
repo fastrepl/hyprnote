@@ -172,7 +172,6 @@ export function EventDisplay({
 
       {shouldShowLocation && (
         <>
-          <div className="h-px bg-neutral-200" />
           <div className="flex items-center gap-2 text-sm text-neutral-700">
             <MapPinIcon size={16} className="shrink-0 text-neutral-500" />
             <span>{event.location}</span>

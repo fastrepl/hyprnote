@@ -14,8 +14,10 @@ import {
   safeFormat,
   safeParseDate,
   startOfDay,
+  TZDate,
 } from "@hypr/utils";
 
+import { useConfigValue } from "../../../../../../config/use-config";
 import { useEvent, useSession } from "../../../../../../hooks/tinybase";
 import * as main from "../../../../../../store/tinybase/store/main";
 import { DateDisplay } from "./date";
@@ -106,23 +108,30 @@ export function EventDisplay({
     calendarId: string | undefined;
   };
 }) {
+  const tz = useConfigValue("timezone") || undefined;
+
   const handleJoinMeeting = () => {
     if (event.meetingLink) {
       void openerCommands.openUrl(event.meetingLink, null);
     }
   };
 
+  const toTz = (date: Date): Date => (tz ? new TZDate(date, tz) : date);
+
   const formatEventDateTime = () => {
     if (!event.startedAt) {
       return "";
     }
 
-    const startDate = safeParseDate(event.startedAt);
-    const endDate = event.endedAt ? safeParseDate(event.endedAt) : null;
+    const rawStart = safeParseDate(event.startedAt);
+    const rawEnd = event.endedAt ? safeParseDate(event.endedAt) : null;
 
-    if (!startDate) {
+    if (!rawStart) {
       return "";
     }
+
+    const startDate = toTz(rawStart);
+    const endDate = rawEnd ? toTz(rawEnd) : null;
 
     const startStr = safeFormat(startDate, "MMM d, yyyy h:mm a");
     if (!endDate) {

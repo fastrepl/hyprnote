@@ -201,7 +201,7 @@ export const exchangeOtpToken = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       token_hash: z.string(),
-      type: z.literal("email"),
+      type: z.enum(["email", "recovery"]),
     }),
   )
   .handler(async ({ data }) => {
@@ -220,6 +220,46 @@ export const exchangeOtpToken = createServerFn({ method: "POST" })
       access_token: authData.session.access_token,
       refresh_token: authData.session.refresh_token,
     };
+  });
+
+export const doPasswordResetRequest = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      email: z.string().email(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+
+    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+      redirectTo: `${env.VITE_APP_URL}/callback/auth?flow=web&type=recovery`,
+    });
+
+    if (error) {
+      return { error: true, message: error.message };
+    }
+
+    return { success: true };
+  });
+
+export const doUpdatePassword = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      password: z.string().min(6),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+
+    const { error } = await supabase.auth.updateUser({
+      password: data.password,
+    });
+
+    if (error) {
+      return { error: true, message: error.message };
+    }
+
+    return { success: true };
   });
 
 export const updateUserEmail = createServerFn({ method: "POST" })

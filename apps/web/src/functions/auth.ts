@@ -130,6 +130,73 @@ export const exchangeOAuthCode = createServerFn({ method: "POST" })
     };
   });
 
+export const doPasswordSignUp = createServerFn({ method: "POST" })
+  .inputValidator(
+    shared.extend({
+      email: z.string().email(),
+      password: z.string().min(6),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+
+    const params = new URLSearchParams({ flow: data.flow });
+    if (data.scheme) params.set("scheme", data.scheme);
+    if (data.redirect) params.set("redirect", data.redirect);
+
+    const { data: authData, error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        emailRedirectTo: `${env.VITE_APP_URL}/callback/auth?${params.toString()}`,
+      },
+    });
+
+    if (error) {
+      return { error: true, message: error.message };
+    }
+
+    if (authData.session) {
+      return {
+        success: true,
+        access_token: authData.session.access_token,
+        refresh_token: authData.session.refresh_token,
+      };
+    }
+
+    return { success: true, needsConfirmation: true };
+  });
+
+export const doPasswordSignIn = createServerFn({ method: "POST" })
+  .inputValidator(
+    shared.extend({
+      email: z.string().email(),
+      password: z.string().min(1),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (error) {
+      return { error: true, message: error.message };
+    }
+
+    if (!authData.session) {
+      return { error: true, message: "No session returned" };
+    }
+
+    return {
+      success: true,
+      access_token: authData.session.access_token,
+      refresh_token: authData.session.refresh_token,
+    };
+  });
+
 export const exchangeOtpToken = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({

@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-use cidre::{ax, cf, ns};
+use cidre::{ax, ns};
 
 use crate::{BackgroundTask, DetectCallback, DetectEvent};
 
@@ -43,7 +43,7 @@ fn find_zoom_pid() -> Option<i32> {
 
 fn ax_element_title(elem: &ax::UiElement) -> Option<String> {
     let value = elem.attr_value(ax::attr::title()).ok()?;
-    let s: &cf::String = unsafe { std::mem::transmute(&*value) };
+    let s = value.try_as_string()?;
     Some(s.to_string())
 }
 

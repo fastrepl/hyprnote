@@ -1,8 +1,18 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ExternalLinkIcon, MailIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ExternalLinkIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { Image } from "@/components/image";
+import { cn } from "@hypr/utils";
+
+function getNextRandomIndex(length: number, prevIndex: number): number {
+  if (length <= 1) return 0;
+  let next = prevIndex;
+  while (next === prevIndex) {
+    next = Math.floor(Math.random() * length);
+  }
+  return next;
+}
 
 const vsList = [
   { slug: "otter", name: "Otter.ai" },
@@ -58,7 +68,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
         />
       </Link>
       <p className="text-sm text-neutral-500 mb-4">Fastrepl © {currentYear}</p>
-      <p className="text-sm text-neutral-600 mb-3">
+      <p className="text-sm text-neutral-600 mb-3 text-balance">
         Are you in back-to-back meetings?{" "}
         <Link
           to="/auth/"
@@ -169,10 +179,85 @@ function ProductLinks() {
 function ResourcesLinks() {
   const [vsIndex, setVsIndex] = useState(0);
   const [useCaseIndex, setUseCaseIndex] = useState(0);
+  const [isUseCaseFading, setIsUseCaseFading] = useState(false);
+  const [isVsFading, setIsVsFading] = useState(false);
+  const timeoutIds = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  const intervalIds = useRef<Set<ReturnType<typeof setInterval>>>(new Set());
 
   useEffect(() => {
     setVsIndex(Math.floor(Math.random() * vsList.length));
     setUseCaseIndex(Math.floor(Math.random() * useCasesList.length));
+
+    // Clear any existing timers from HMR reloads
+    timeoutIds.current.forEach(clearTimeout);
+    timeoutIds.current.clear();
+    intervalIds.current.forEach(clearInterval);
+    intervalIds.current.clear();
+
+    const FADE_DURATION = 800;
+    const VISIBLE_DURATION = 3000;
+    const CYCLE_DURATION = FADE_DURATION + VISIBLE_DURATION;
+    const STAGGER_DELAY = CYCLE_DURATION / 2;
+    const INITIAL_DELAY = 200;
+
+    const createFadeInterval = (
+      setFading: (value: boolean) => void,
+      setIndex: React.Dispatch<React.SetStateAction<number>>,
+      listLength: number,
+    ) => {
+      return setInterval(() => {
+        setFading(true);
+        const tid = setTimeout(() => {
+          setIndex((prev) => getNextRandomIndex(listLength, prev));
+          setFading(false);
+          timeoutIds.current.delete(tid);
+        }, FADE_DURATION);
+        timeoutIds.current.add(tid);
+      }, CYCLE_DURATION);
+    };
+
+    const triggerFirstFade = (
+      setFading: (value: boolean) => void,
+      setIndex: React.Dispatch<React.SetStateAction<number>>,
+      listLength: number,
+    ) => {
+      setFading(true);
+      const tid = setTimeout(() => {
+        setIndex((prev) => getNextRandomIndex(listLength, prev));
+        setFading(false);
+        timeoutIds.current.delete(tid);
+      }, FADE_DURATION);
+      timeoutIds.current.add(tid);
+    };
+
+    const initialUseCaseTrigger = setTimeout(() => {
+      triggerFirstFade(setIsUseCaseFading, setUseCaseIndex, useCasesList.length);
+      const useCaseInterval = createFadeInterval(
+        setIsUseCaseFading,
+        setUseCaseIndex,
+        useCasesList.length,
+      );
+      intervalIds.current.add(useCaseInterval);
+    }, INITIAL_DELAY);
+
+    const vsDelayTimeout = setTimeout(() => {
+      triggerFirstFade(setIsVsFading, setVsIndex, vsList.length);
+      const vsInterval = createFadeInterval(
+        setIsVsFading,
+        setVsIndex,
+        vsList.length,
+      );
+      intervalIds.current.add(vsInterval);
+    }, INITIAL_DELAY + STAGGER_DELAY);
+
+    return () => {
+      clearTimeout(initialUseCaseTrigger);
+      clearTimeout(vsDelayTimeout);
+      timeoutIds.current.forEach(clearTimeout);
+      timeoutIds.current.clear();
+      intervalIds.current.forEach(clearInterval);
+      intervalIds.current.clear();
+    };
   }, []);
 
   const currentVs = vsList[vsIndex];
@@ -233,33 +318,56 @@ function ResourcesLinks() {
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
           >
             Support
-            <MailIcon className="size-3" />
+            <ExternalLinkIcon className="size-3" />
           </a>
         </li>
-        <li>
+        <li className="flex items-center h-6">
           <Link
             to={currentUseCase.to}
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted inline-flex items-center gap-2 overflow-hidden"
             aria-label={`Hyprnote for ${currentUseCase.label}`}
           >
-            👍 for {currentUseCase.label}
+            <img
+              src="/api/images/hyprnote/icon.png"
+              alt="Hyprnote"
+              width={20}
+              height={20}
+              className="size-5 rounded border border-neutral-100 inline"
+            />
+
+            <span
+              className={cn([
+                "inline-block transition-opacity duration-800 ease-in-out",
+                isUseCaseFading ? "opacity-0" : "opacity-100",
+              ])}
+            >
+              for {currentUseCase.label}
+            </span>
           </Link>
         </li>
-        <li>
+        <li className="flex items-center h-6">
           <Link
             to="/vs/$slug/"
             params={{ slug: currentVs.slug }}
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted inline-flex items-center gap-2 overflow-hidden"
             aria-label={`Versus ${currentVs.name}`}
           >
             <img
               src="/api/images/hyprnote/icon.png"
               alt="Hyprnote"
-              width={12}
-              height={12}
-              className="size-4 rounded border border-neutral-100 inline"
-            />{" "}
-            vs {currentVs.name}
+              width={20}
+              height={20}
+              className="size-5 rounded border border-neutral-100 inline"
+            />
+
+            <span
+              className={cn([
+                "inline-block transition-opacity duration-800 ease-in-out",
+                isVsFading ? "opacity-0" : "opacity-100",
+              ])}
+            >
+              vs. {currentVs.name}
+            </span>
           </Link>
         </li>
       </ul>

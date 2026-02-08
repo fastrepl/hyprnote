@@ -76,21 +76,33 @@ function useVisibleCols(ref: React.RefObject<HTMLDivElement | null>) {
 
 export function CalendarView() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [showSettings, setShowSettings] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const cols = useVisibleCols(containerRef);
 
-  const goToPrevMonth = useCallback(
-    () => setCurrentMonth((m) => subMonths(m, 1)),
-    [],
-  );
-  const goToNextMonth = useCallback(
-    () => setCurrentMonth((m) => addMonths(m, 1)),
-    [],
-  );
-  const goToToday = useCallback(() => setCurrentMonth(new Date()), []);
-
   const isMonthView = cols === 7;
+
+  const goToPrev = useCallback(() => {
+    if (isMonthView) {
+      setCurrentMonth((m) => subMonths(m, 1));
+    } else {
+      setWeekStart((d) => new Date(d.getTime() - cols * 86400000));
+    }
+  }, [isMonthView, cols]);
+
+  const goToNext = useCallback(() => {
+    if (isMonthView) {
+      setCurrentMonth((m) => addMonths(m, 1));
+    } else {
+      setWeekStart((d) => new Date(d.getTime() + cols * 86400000));
+    }
+  }, [isMonthView, cols]);
+
+  const goToToday = useCallback(() => {
+    setCurrentMonth(new Date());
+    setWeekStart(startOfWeek(new Date()));
+  }, []);
 
   const days = useMemo(() => {
     if (isMonthView) {
@@ -101,16 +113,15 @@ export function CalendarView() {
       return eachDayOfInterval({ start: calStart, end: calEnd });
     }
 
-    const weekStart = startOfWeek(new Date());
     return eachDayOfInterval({
       start: weekStart,
       end: new Date(weekStart.getTime() + (cols - 1) * 86400000),
     });
-  }, [currentMonth, isMonthView, cols]);
+  }, [currentMonth, isMonthView, cols, weekStart]);
 
   const visibleHeaders = useMemo(() => {
     if (isMonthView) return WEEKDAY_HEADERS;
-    return days.slice(0, cols).map((d) => format(d, "EEE d"));
+    return days.slice(0, cols).map((d) => format(d, "EEE"));
   }, [isMonthView, days, cols]);
 
   return (
@@ -172,7 +183,7 @@ export function CalendarView() {
               variant="outline"
               size="icon"
               className="shadow-none"
-              onClick={goToPrevMonth}
+              onClick={goToPrev}
             >
               <ChevronLeftIcon className="h-4 w-4" />
             </Button>
@@ -188,7 +199,7 @@ export function CalendarView() {
               variant="outline"
               size="icon"
               className="shadow-none"
-              onClick={goToNextMonth}
+              onClick={goToNext}
             >
               <ChevronRightIcon className="h-4 w-4" />
             </Button>

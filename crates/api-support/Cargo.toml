@@ -1,0 +1,25 @@
+[package]
+name = "api-support"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hypr-api-auth = { workspace = true }
+
+utoipa = { workspace = true }
+
+axum = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
+sentry = { workspace = true }
+tracing = { workspace = true }
+
+jsonwebtoken = { workspace = true }
+octocrab = "0.49"
+secrecy = "0.10"
+
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

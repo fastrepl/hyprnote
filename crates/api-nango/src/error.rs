@@ -28,12 +28,6 @@ pub enum IntegrationError {
     Internal(String),
 }
 
-impl From<hypr_supabase_auth::Error> for IntegrationError {
-    fn from(err: hypr_supabase_auth::Error) -> Self {
-        Self::Auth(err.to_string())
-    }
-}
-
 impl From<hypr_nango::Error> for IntegrationError {
     fn from(err: hypr_nango::Error) -> Self {
         Self::Nango(err.to_string())

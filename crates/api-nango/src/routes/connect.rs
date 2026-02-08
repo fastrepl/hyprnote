@@ -1,8 +1,9 @@
-use axum::{Json, extract::State, http::HeaderMap};
+use axum::{Extension, Json, extract::State};
+use hypr_api_auth::AuthContext;
 use serde::Serialize;
 use utoipa::ToSchema;
 
-use crate::error::{IntegrationError, Result};
+use crate::error::Result;
 use crate::state::AppState;
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -26,21 +27,9 @@ pub struct ConnectSessionResponse {
 )]
 pub async fn create_connect_session(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(auth): Extension<AuthContext>,
 ) -> Result<Json<ConnectSessionResponse>> {
-    let auth_token = extract_token(&headers)?;
-
-    let auth = state
-        .config
-        .auth
-        .as_ref()
-        .ok_or_else(|| IntegrationError::Auth("Auth not configured".to_string()))?;
-
-    let claims = auth
-        .verify_token(auth_token)
-        .await
-        .map_err(|e| IntegrationError::Auth(e.to_string()))?;
-    let user_id = claims.sub;
+    let user_id = auth.claims.sub;
 
     let req = hypr_nango::CreateConnectSessionRequest {
         end_user: hypr_nango::EndUser {
@@ -60,14 +49,4 @@ pub async fn create_connect_session(
         token: session.token,
         expires_at: session.expires_at,
     }))
-}
-
-fn extract_token(headers: &HeaderMap) -> Result<&str> {
-    let auth_header = headers
-        .get("Authorization")
-        .and_then(|h| h.to_str().ok())
-        .ok_or_else(|| IntegrationError::Auth("Missing Authorization header".to_string()))?;
-
-    hypr_supabase_auth::SupabaseAuth::extract_token(auth_header)
-        .ok_or_else(|| IntegrationError::Auth("Invalid Authorization header".to_string()))
 }

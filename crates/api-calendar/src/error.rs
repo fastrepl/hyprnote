@@ -25,12 +25,6 @@ pub enum CalendarError {
     Internal(String),
 }
 
-impl From<hypr_supabase_auth::Error> for CalendarError {
-    fn from(err: hypr_supabase_auth::Error) -> Self {
-        Self::Auth(err.to_string())
-    }
-}
-
 impl IntoResponse for CalendarError {
     fn into_response(self) -> Response {
         let (status, error_code) = match &self {

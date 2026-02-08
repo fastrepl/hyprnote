@@ -1,9 +1,11 @@
-use axum::{Json, extract::State, http::HeaderMap};
+use axum::{Extension, Json, extract::State};
 use serde::Serialize;
 use utoipa::ToSchema;
 
-use crate::error::{Result, SubscriptionError};
+use crate::error::Result;
 use crate::state::AppState;
+
+pub use hypr_api_auth::AuthContext;
 
 #[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -14,7 +16,7 @@ pub struct CanStartTrialResponse {
 
 #[utoipa::path(
     get,
-    path = "/can-start-trial",
+    path = "/subscription/can-start-trial",
     responses(
         (status = 200, description = "Check successful", body = CanStartTrialResponse),
         (status = 401, description = "Unauthorized"),
@@ -27,37 +29,15 @@ pub struct CanStartTrialResponse {
 )]
 pub async fn can_start_trial(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(auth): Extension<AuthContext>,
 ) -> Result<Json<CanStartTrialResponse>> {
-    let auth_token = extract_token(&headers)?;
-
-    let auth = state
-        .config
-        .auth
-        .as_ref()
-        .ok_or_else(|| SubscriptionError::Auth("Auth not configured".to_string()))?;
-
-    auth.verify_token(auth_token)
-        .await
-        .map_err(|e| SubscriptionError::Auth(e.to_string()))?;
-
     let can_start: bool = state
         .supabase
-        .rpc("can_start_trial", auth_token, None)
+        .rpc("can_start_trial", &auth.token, None)
         .await
         .unwrap_or(false);
 
     Ok(Json(CanStartTrialResponse {
         can_start_trial: can_start,
     }))
-}
-
-pub fn extract_token(headers: &HeaderMap) -> Result<&str> {
-    let auth_header = headers
-        .get("Authorization")
-        .and_then(|h| h.to_str().ok())
-        .ok_or_else(|| SubscriptionError::Auth("Missing Authorization header".to_string()))?;
-
-    hypr_supabase_auth::SupabaseAuth::extract_token(auth_header)
-        .ok_or_else(|| SubscriptionError::Auth("Invalid Authorization header".to_string()))
 }

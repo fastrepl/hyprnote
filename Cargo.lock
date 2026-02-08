@@ -538,19 +538,45 @@ dependencies = [
 ]
 
 [[package]]
-name = "api-integration"
+name = "api-calendar"
 version = "0.1.0"
 dependencies = [
+ "api-auth",
+ "api-env",
  "axum 0.8.8",
  "chrono",
  "google-calendar",
- "hypr-http",
+ "hypr-http-utils",
  "nango",
  "reqwest 0.13.1",
  "sentry",
  "serde",
  "serde_json",
- "supabase-auth",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "utoipa",
+]
+
+[[package]]
+name = "api-env"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "api-nango"
+version = "0.1.0"
+dependencies = [
+ "api-auth",
+ "api-env",
+ "axum 0.8.8",
+ "nango",
+ "reqwest 0.13.1",
+ "sentry",
+ "serde",
+ "serde_json",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -561,6 +587,8 @@ dependencies = [
 name = "api-subscription"
 version = "0.1.0"
 dependencies = [
+ "api-auth",
+ "api-env",
  "async-stripe",
  "async-stripe-billing",
  "async-stripe-core",
@@ -570,7 +598,6 @@ dependencies = [
  "sentry",
  "serde",
  "serde_json",
- "supabase-auth",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -8115,11 +8142,12 @@ name = "google-calendar"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "hypr-http",
+ "hypr-http-utils",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
  "tokio",
+ "urlencoding",
 ]
 
 [[package]]
@@ -9074,7 +9102,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74e25026c579b170c59f8d3ddfc523d7dab0abe079f09eb8edaebd2417044f60"
 
 [[package]]
-name = "hypr-http"
+name = "hypr-http-utils"
 version = "0.1.0"
 
 [[package]]

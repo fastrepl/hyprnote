@@ -1,17 +1,16 @@
-use std::sync::Arc;
+use hypr_api_env::{NangoEnv, SupabaseEnv};
 
 #[derive(Clone)]
 pub struct CalendarConfig {
-    pub auth: Option<Arc<hypr_supabase_auth::SupabaseAuth>>,
+    pub nango: NangoEnv,
+    pub supabase: SupabaseEnv,
 }
 
 impl CalendarConfig {
-    pub fn new() -> Self {
-        Self { auth: None }
-    }
-
-    pub fn with_auth(mut self, auth: Arc<hypr_supabase_auth::SupabaseAuth>) -> Self {
-        self.auth = Some(auth);
-        self
+    pub fn new(nango: &NangoEnv, supabase: &SupabaseEnv) -> Self {
+        Self {
+            nango: nango.clone(),
+            supabase: supabase.clone(),
+        }
     }
 }

@@ -1,7 +1,6 @@
 use serde::de::DeserializeOwned;
 
-use crate::proxy::NangoProxyBuilder;
-use crate::types::NangoIntegration;
+use crate::proxy::NangoProxy;
 
 pub(crate) fn append_query(url: &mut url::Url, key: &str, value: &str) {
     url.query_pairs_mut().append_pair(key, value);
@@ -17,6 +16,12 @@ pub struct NangoClientBuilder {
 pub struct NangoClient {
     pub(crate) client: reqwest::Client,
     pub(crate) api_base: url::Url,
+}
+
+impl NangoClient {
+    pub fn builder() -> NangoClientBuilder {
+        NangoClientBuilder::default()
+    }
 }
 
 impl NangoClientBuilder {
@@ -74,14 +79,28 @@ pub(crate) async fn parse_response<T: DeserializeOwned>(
     Ok(response.json().await?)
 }
 
+pub struct NangoIntegration<'a> {
+    client: &'a NangoClient,
+    integration_id: String,
+}
+
 impl NangoClient {
-    pub fn for_connection(
-        &self,
-        integration: NangoIntegration,
-        connection_id: impl Into<String>,
-    ) -> NangoProxyBuilder<'_> {
-        NangoProxyBuilder::new(self, integration.into(), connection_id.into())
-            .retries(3)
-            .retry_on(vec![429, 500, 502, 503, 504])
+    pub fn integration(&self, integration_id: impl Into<String>) -> NangoIntegration<'_> {
+        NangoIntegration {
+            client: self,
+            integration_id: integration_id.into(),
+        }
+    }
+}
+
+impl<'a> NangoIntegration<'a> {
+    pub fn connection(&self, connection_id: impl Into<String>) -> NangoProxy<'a> {
+        NangoProxy::new(
+            self.client,
+            self.integration_id.clone(),
+            connection_id.into(),
+        )
+        .retries(3)
+        .retry_on(vec![429, 500, 502, 503, 504])
     }
 }

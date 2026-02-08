@@ -308,12 +308,6 @@ export function CalendarView() {
   );
 }
 
-const CHIP_HEIGHT = 18;
-const CHIP_GAP = 2;
-const MORE_LABEL_HEIGHT = 18;
-const HEADER_HEIGHT = 32;
-const CELL_PADDING = 12;
-
 function useVisibleItemCount(
   ref: React.RefObject<HTMLDivElement | null>,
   totalItems: number,
@@ -322,27 +316,39 @@ function useVisibleItemCount(
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || totalItems === 0) return;
 
     const compute = () => {
-      const cellHeight = el.clientHeight;
-      const available = cellHeight - HEADER_HEIGHT - CELL_PADDING;
-      const needsMore = (n: number) => n < totalItems;
+      const available = el.clientHeight;
+      const children = Array.from(el.children) as HTMLElement[];
+      if (children.length === 0 || available <= 0) return;
 
+      const chipH = children[0].offsetHeight;
+      if (chipH === 0) return;
+
+      const gap = parseFloat(getComputedStyle(el).rowGap) || 0;
+
+      const allH = totalItems * chipH + Math.max(0, totalItems - 1) * gap;
+      if (allH <= available) {
+        setMaxVisible((prev) => (prev === totalItems ? prev : totalItems));
+        return;
+      }
+
+      const overflowH = chipH;
       let count = 0;
       let used = 0;
 
       while (count < totalItems) {
-        const next = used + CHIP_HEIGHT + (count > 0 ? CHIP_GAP : 0);
-        const moreSpace = needsMore(count + 1)
-          ? MORE_LABEL_HEIGHT + CHIP_GAP
-          : 0;
-        if (next + moreSpace > available) break;
-        used = next;
+        const next = chipH + (count > 0 ? gap : 0);
+        const remaining = totalItems - count - 1;
+        const moreSpace = remaining > 0 ? overflowH + gap : 0;
+        if (used + next + moreSpace > available) break;
+        used += next;
         count++;
       }
 
-      setMaxVisible((prev) => (prev === count ? prev : Math.max(1, count)));
+      const result = Math.max(1, count);
+      setMaxVisible((prev) => (prev === result ? prev : result));
     };
 
     compute();
@@ -368,9 +374,9 @@ function DayCell({
   const sessionIds = calendarData.sessionIdsByDate[dateKey] ?? [];
 
   const now = useNow();
-  const cellRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<HTMLDivElement>(null);
   const totalItems = eventIds.length + sessionIds.length;
-  const maxVisible = useVisibleItemCount(cellRef, totalItems);
+  const maxVisible = useVisibleItemCount(itemsRef, totalItems);
   const today = format(day, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
 
   const visibleEvents = eventIds.slice(0, maxVisible);
@@ -381,14 +387,13 @@ function DayCell({
 
   return (
     <div
-      ref={cellRef}
       className={cn([
         "border-b border-r border-neutral-100",
-        "p-1.5 min-w-0 overflow-hidden",
+        "p-1.5 min-w-0 flex flex-col",
         (day.getDay() === 0 || day.getDay() === 6) && "bg-neutral-50",
       ])}
     >
-      <div className="flex justify-end">
+      <div className="flex justify-end shrink-0">
         <div
           className={cn([
             "text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full",
@@ -400,7 +405,7 @@ function DayCell({
           {format(day, "d")}
         </div>
       </div>
-      <div className="flex flex-col gap-0.5">
+      <div ref={itemsRef} className="flex flex-col gap-0.5 flex-1 min-h-0">
         {visibleEvents.map((eventId) => (
           <EventChip key={eventId} eventId={eventId} />
         ))}
@@ -410,7 +415,7 @@ function DayCell({
         {overflow > 0 && (
           <Popover>
             <PopoverTrigger asChild>
-              <button className="text-xs text-neutral-400 pl-1 text-left hover:text-neutral-600 cursor-pointer">
+              <button className="text-xs text-neutral-400 pl-1 text-left hover:text-neutral-600 cursor-pointer shrink-0">
                 +{overflow} more
               </button>
             </PopoverTrigger>

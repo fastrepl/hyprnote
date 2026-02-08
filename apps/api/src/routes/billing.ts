@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { env } from "../env";
 import type { AppBindings } from "../hono-bindings";
+import { getPricingConfig } from "../integration/pricing-config";
 import { stripe } from "../integration/stripe";
 import { supabaseAuthMiddleware } from "../middleware/supabase";
 import { API_TAGS } from "./constants";
@@ -98,10 +99,11 @@ billing.post(
       return c.json({ error: "stripe_customer_id_missing" }, 500);
     }
 
+    const pricingConfig = await getPricingConfig();
     const priceId =
       interval === "yearly"
-        ? env.STRIPE_YEARLY_PRICE_ID
-        : env.STRIPE_MONTHLY_PRICE_ID;
+        ? pricingConfig.yearly_price_id
+        : pricingConfig.monthly_price_id;
 
     try {
       await stripe.subscriptions.create(

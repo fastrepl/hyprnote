@@ -4,7 +4,8 @@ import { z } from "zod";
 import { getRpcCanStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 
-import { env, requireEnv } from "@/env";
+import { env } from "@/env";
+import { getPricingConfig } from "@/functions/pricing-config";
 import { getStripeClient } from "@/functions/stripe";
 import { getSupabaseServerClient } from "@/functions/supabase";
 
@@ -115,10 +116,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       stripeCustomerId = newCustomer.id;
     }
 
+    const pricingConfig = await getPricingConfig();
     const priceId =
       data.period === "yearly"
-        ? requireEnv(env.STRIPE_YEARLY_PRICE_ID, "STRIPE_YEARLY_PRICE_ID")
-        : requireEnv(env.STRIPE_MONTHLY_PRICE_ID, "STRIPE_MONTHLY_PRICE_ID");
+        ? pricingConfig.yearly_price_id
+        : pricingConfig.monthly_price_id;
 
     const successParams = new URLSearchParams({ success: "true" });
     if (data.scheme) {
@@ -304,10 +306,7 @@ export const createTrialCheckoutSession = createServerFn({
       payment_method_collection: "if_required",
       line_items: [
         {
-          price: requireEnv(
-            env.STRIPE_MONTHLY_PRICE_ID,
-            "STRIPE_MONTHLY_PRICE_ID",
-          ),
+          price: (await getPricingConfig()).monthly_price_id,
           quantity: 1,
         },
       ],

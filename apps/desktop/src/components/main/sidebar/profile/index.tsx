@@ -224,7 +224,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                       {menuItems.map((item, index) => (
                         <div key={item.label}>
                           <MenuItem {...item} />
-                          {(index === 3 || index === 4 || index === 5) && (
+                          {(index === 3 || index === 5) && (
                             <div className="my-1 border-t border-neutral-100" />
                           )}
                         </div>

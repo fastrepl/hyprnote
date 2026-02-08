@@ -19,22 +19,28 @@ impl<C: HttpClient> GoogleCalendarClient<C> {
         let mut query_parts: Vec<String> = Vec::new();
 
         if let Some(ref time_min) = req.time_min {
-            query_parts.push(format!("timeMin={}", time_min.to_rfc3339()));
+            query_parts.push(format!(
+                "timeMin={}",
+                urlencoding::encode(&time_min.to_rfc3339())
+            ));
         }
         if let Some(ref time_max) = req.time_max {
-            query_parts.push(format!("timeMax={}", time_max.to_rfc3339()));
+            query_parts.push(format!(
+                "timeMax={}",
+                urlencoding::encode(&time_max.to_rfc3339())
+            ));
         }
         if let Some(max_results) = req.max_results {
             query_parts.push(format!("maxResults={max_results}"));
         }
         if let Some(ref page_token) = req.page_token {
-            query_parts.push(format!("pageToken={page_token}"));
+            query_parts.push(format!("pageToken={}", urlencoding::encode(page_token)));
         }
         if let Some(single_events) = req.single_events {
             query_parts.push(format!("singleEvents={single_events}"));
         }
         if let Some(ref order_by) = req.order_by {
-            query_parts.push(format!("orderBy={order_by}"));
+            query_parts.push(format!("orderBy={}", urlencoding::encode(order_by)));
         }
 
         let full_path = if query_parts.is_empty() {

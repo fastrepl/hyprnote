@@ -225,6 +225,7 @@ strum = "0.27"
 tempfile = "3"
 thiserror = "2"
 url = "2"
+urlencoding = "2.1"
 uuid = "1"
 
 criterion = "0.8"

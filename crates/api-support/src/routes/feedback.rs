@@ -9,6 +9,7 @@ const GITHUB_OWNER: &str = "fastrepl";
 const GITHUB_REPO: &str = "hyprnote";
 
 #[derive(Debug, Deserialize, utoipa::ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct DeviceInfo {
     pub platform: String,
     pub arch: String,
@@ -24,6 +25,7 @@ pub enum FeedbackType {
 }
 
 #[derive(Debug, Deserialize, utoipa::ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct FeedbackRequest {
     pub r#type: FeedbackType,
     pub description: String,
@@ -32,6 +34,7 @@ pub struct FeedbackRequest {
 }
 
 #[derive(Debug, Serialize, utoipa::ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct FeedbackResponse {
     pub success: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -40,9 +43,19 @@ pub struct FeedbackResponse {
     pub error: Option<String>,
 }
 
+fn safe_tail(s: &str, max_bytes: usize) -> &str {
+    let start = s.len().saturating_sub(max_bytes);
+    let start = s
+        .char_indices()
+        .map(|(i, _)| i)
+        .find(|&i| i >= start)
+        .unwrap_or(s.len());
+    &s[start..]
+}
+
 async fn analyze_logs(api_key: &str, logs: &str) -> Option<String> {
     let client = reqwest::Client::new();
-    let tail = &logs[logs.len().saturating_sub(10000)..];
+    let tail = safe_tail(logs, 10000);
 
     let body = serde_json::json!({
         "model": "google/gemini-2.0-flash-001",
@@ -70,7 +83,7 @@ async fn analyze_logs(api_key: &str, logs: &str) -> Option<String> {
 
     let data: serde_json::Value = resp.json().await.ok()?;
     let content = data["choices"][0]["message"]["content"].as_str()?;
-    Some(content[..content.len().min(800)].to_string())
+    Some(content.chars().take(800).collect::<String>())
 }
 
 async fn create_github_issue(
@@ -220,7 +233,7 @@ pub async fn submit(
                     _ => "_No errors or warnings found._".to_string(),
                 };
 
-                let tail = &logs[logs.len().saturating_sub(10000)..];
+                let tail = safe_tail(logs, 10000);
                 let log_comment = format!(
                     "## Log Analysis\n\n{summary_section}\n\n<details>\n<summary>Raw Logs (last 10KB)</summary>\n\n```\n{tail}\n```\n\n</details>"
                 );

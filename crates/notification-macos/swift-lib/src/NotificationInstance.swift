@@ -112,6 +112,7 @@ class NotificationInstance {
 
   func dismissWithUserAction() {
     RustBridge.onDismiss(key: key)
+    SystemNotificationCenter.shared.removeFromNotificationCenter(key: key)
     dismiss()
   }
 

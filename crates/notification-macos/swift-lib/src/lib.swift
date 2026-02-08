@@ -12,6 +12,7 @@ public func _showNotification(jsonPayload: SRString) -> Bool {
   }
 
   NotificationManager.shared.show(payload: payload)
+  SystemNotificationCenter.shared.postToNotificationCenter(payload: payload)
 
   Thread.sleep(forTimeInterval: 0.1)
   return true
@@ -20,5 +21,6 @@ public func _showNotification(jsonPayload: SRString) -> Bool {
 @_cdecl("_dismiss_all_notifications")
 public func _dismissAllNotifications() -> Bool {
   NotificationManager.shared.dismissAll()
+  SystemNotificationCenter.shared.removeAllFromNotificationCenter()
   return true
 }

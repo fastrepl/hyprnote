@@ -9,8 +9,14 @@ use thiserror::Error;
 pub type Result<T> = std::result::Result<T, NangoError>;
 
 #[derive(Debug, Serialize)]
+pub struct ErrorDetails {
+    pub code: String,
+    pub message: String,
+}
+
+#[derive(Debug, Serialize)]
 pub struct ErrorResponse {
-    pub error: String,
+    pub error: ErrorDetails,
 }
 
 #[derive(Debug, Error)]
@@ -36,23 +42,32 @@ impl From<hypr_nango::Error> for NangoError {
 
 impl IntoResponse for NangoError {
     fn into_response(self) -> Response {
-        let (status, error_code) = match &self {
-            Self::Auth(_) => (StatusCode::UNAUTHORIZED, "unauthorized"),
-            Self::BadRequest(_) => (StatusCode::BAD_REQUEST, "bad_request"),
-            Self::Nango(msg) => {
-                tracing::error!(error = %msg, "nango_error");
-                sentry::capture_message(msg, sentry::Level::Error);
-                (StatusCode::INTERNAL_SERVER_ERROR, "nango_error")
+        let internal_message = "Internal server error".to_string();
+
+        let (status, code, message) = match self {
+            Self::Auth(message) => (StatusCode::UNAUTHORIZED, "unauthorized", message),
+            Self::BadRequest(message) => (StatusCode::BAD_REQUEST, "bad_request", message),
+            Self::Nango(message) => {
+                tracing::error!(error = %message, "nango_error");
+                sentry::capture_message(&message, sentry::Level::Error);
+                (StatusCode::INTERNAL_SERVER_ERROR, "nango_error", internal_message)
             }
-            Self::Internal(msg) => {
-                tracing::error!(error = %msg, "internal_error");
-                sentry::capture_message(msg, sentry::Level::Error);
-                (StatusCode::INTERNAL_SERVER_ERROR, "internal_server_error")
+            Self::Internal(message) => {
+                tracing::error!(error = %message, "internal_error");
+                sentry::capture_message(&message, sentry::Level::Error);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "internal_server_error",
+                    internal_message,
+                )
             }
         };
 
         let body = Json(ErrorResponse {
-            error: error_code.to_string(),
+            error: ErrorDetails {
+                code: code.to_string(),
+                message,
+            },
         });
 
         (status, body).into_response()

@@ -104,6 +104,7 @@ export const StoreComponent = () => {
           select("calendar_id");
           select("recurrence_series_id");
           select("ignored");
+          select("is_all_day");
         })
         .setQueryDefinition(
           QUERIES.timelineSessions,

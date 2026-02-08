@@ -193,6 +193,7 @@ export const createEvent = (calendar_id: string) => {
       description,
       note,
       ignored: undefined,
+      is_all_day: undefined,
     } satisfies EventStorage,
   };
 };

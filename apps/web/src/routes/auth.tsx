@@ -264,6 +264,7 @@ function PasswordForm({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [infoMessage, setInfoMessage] = useState("");
 
   const signInMutation = useMutation({
     mutationFn: () =>
@@ -308,7 +309,7 @@ function PasswordForm({
       }
       if (result && "success" in result && result.success) {
         if ("needsConfirmation" in result && result.needsConfirmation) {
-          setErrorMessage(
+          setInfoMessage(
             "Check your email to confirm your account before signing in.",
           );
           return;
@@ -331,6 +332,7 @@ function PasswordForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
+    setInfoMessage("");
 
     if (isSignUp) {
       if (password !== confirmPassword) {
@@ -393,9 +395,14 @@ function PasswordForm({
       {errorMessage && (
         <p className="text-sm text-red-500 text-center">{errorMessage}</p>
       )}
+      {infoMessage && (
+        <p className="text-sm text-blue-600 text-center">{infoMessage}</p>
+      )}
       <button
         type="submit"
-        disabled={isPending || !email || !password}
+        disabled={
+          isPending || !email || !password || (isSignUp && !confirmPassword)
+        }
         className={cn([
           "w-full px-4 py-2 cursor-pointer",
           "border border-neutral-300",
@@ -414,6 +421,7 @@ function PasswordForm({
         onClick={() => {
           setIsSignUp(!isSignUp);
           setErrorMessage("");
+          setInfoMessage("");
           setConfirmPassword("");
         }}
         className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"

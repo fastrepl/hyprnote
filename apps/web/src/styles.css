@@ -139,15 +139,17 @@
   }
 
   .prose ul:has(> li > input[type="checkbox"]) {
-    list-style: none;
-    padding-left: 0;
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
   }
 
   .prose li:has(> input[type="checkbox"]) {
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
-    padding-left: 0;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
   }
 
   .prose li > input[type="checkbox"] {

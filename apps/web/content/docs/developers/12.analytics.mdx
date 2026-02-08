@@ -29,6 +29,7 @@ Events tracked when users first launch the desktop app:
 | Event | Description | Properties |
 |-------|-------------|------------|
 | `show_main_window` | Main window is shown (fires on every app launch) | - |
+| `onboarding_step_viewed` | User views an onboarding step | `step`, `platform`, `skip_login` |
 | `account_skipped` | User proceeds without account (local mode) | - |
 | `user_signed_in` | User signs in (triggers `$identify` to link anonymous ID) | - |
 | `ai_provider_configured` | User configures an AI provider | `provider` |

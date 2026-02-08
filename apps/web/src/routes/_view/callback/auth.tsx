@@ -30,6 +30,9 @@ export const Route = createFileRoute("/_view/callback/auth")({
       const result = await exchangeOAuthCode({ data: { code: search.code } });
 
       if (result.success) {
+        if (search.type === "recovery") {
+          throw redirect({ to: "/update-password/" });
+        }
         throw redirect({ to: search.redirect || "/app/account/" });
       } else {
         console.error(result.error);

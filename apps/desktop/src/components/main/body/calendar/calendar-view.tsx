@@ -385,8 +385,7 @@ function DayCell({
       className={cn([
         "border-b border-r border-neutral-100",
         "p-1.5 min-w-0 overflow-hidden",
-        (!isCurrentMonth || day.getDay() === 0 || day.getDay() === 6) &&
-          "bg-neutral-50",
+        (day.getDay() === 0 || day.getDay() === 6) && "bg-neutral-50",
       ])}
     >
       <div className="flex justify-end">

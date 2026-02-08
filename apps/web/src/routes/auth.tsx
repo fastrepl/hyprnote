@@ -1,6 +1,6 @@
 import { Icon } from "@iconify-icon/react";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { ArrowLeftIcon, MailIcon } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
@@ -416,20 +416,30 @@ function PasswordForm({
       >
         {isPending ? "Loading..." : isSignUp ? "Create account" : "Sign in"}
       </button>
-      <button
-        type="button"
-        onClick={() => {
-          setIsSignUp(!isSignUp);
-          setErrorMessage("");
-          setInfoMessage("");
-          setConfirmPassword("");
-        }}
-        className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
-      >
-        {isSignUp
-          ? "Already have an account? Sign in"
-          : "Don't have an account? Sign up"}
-      </button>
+      <div className="flex flex-col items-center gap-1">
+        <button
+          type="button"
+          onClick={() => {
+            setIsSignUp(!isSignUp);
+            setErrorMessage("");
+            setInfoMessage("");
+            setConfirmPassword("");
+          }}
+          className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
+        >
+          {isSignUp
+            ? "Already have an account? Sign in"
+            : "Don't have an account? Sign up"}
+        </button>
+        {!isSignUp && (
+          <Link
+            to="/reset-password/"
+            className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
+          >
+            Forgot password?
+          </Link>
+        )}
+      </div>
     </form>
   );
 }

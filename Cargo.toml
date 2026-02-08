@@ -53,8 +53,10 @@ hypr-flag = { path = "crates/flag", package = "flag" }
 hypr-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
+hypr-google-calendar = { path = "crates/google-calendar", package = "google-calendar" }
 hypr-granola = { path = "crates/granola", package = "granola" }
 hypr-host = { path = "crates/host", package = "host" }
+hypr-http = { path = "crates/http", package = "hypr-http-utils" }
 hypr-importer-core = { path = "crates/importer-core", package = "importer-core" }
 hypr-intercept = { path = "crates/intercept", package = "intercept" }
 hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
@@ -224,6 +226,7 @@ strum = "0.27"
 tempfile = "3"
 thiserror = "2"
 url = "2"
+urlencoding = "2.1"
 uuid = "1"
 
 criterion = "0.8"

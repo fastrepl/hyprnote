@@ -542,6 +542,9 @@ name = "api-integration"
 version = "0.1.0"
 dependencies = [
  "axum 0.8.8",
+ "chrono",
+ "google-calendar",
+ "hypr-http",
  "nango",
  "reqwest 0.13.1",
  "sentry",
@@ -8108,6 +8111,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "google-calendar"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "hypr-http",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+]
+
+[[package]]
 name = "google-cloud-auth"
 version = "0.22.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9057,6 +9072,10 @@ name = "hypher"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74e25026c579b170c59f8d3ddfc523d7dab0abe079f09eb8edaebd2417044f60"
+
+[[package]]
+name = "hypr-http"
+version = "0.1.0"
 
 [[package]]
 name = "iana-time-zone"

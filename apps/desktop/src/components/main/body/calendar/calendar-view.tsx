@@ -1,12 +1,12 @@
 import { platform } from "@tauri-apps/plugin-os";
 import {
+  addDays,
   addMonths,
   eachDayOfInterval,
   endOfMonth,
   endOfWeek,
   format,
   isSameMonth,
-  isToday,
   startOfMonth,
   startOfWeek,
   subMonths,
@@ -31,8 +31,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@hypr/ui/components/ui/popover";
-import { cn } from "@hypr/utils";
+import { cn, TZDate } from "@hypr/utils";
 
+import { useConfigValue } from "../../../../config/use-config";
 import { useEvent } from "../../../../hooks/tinybase";
 import { usePermission } from "../../../../hooks/usePermissions";
 import * as main from "../../../../store/tinybase/store/main";
@@ -74,9 +75,24 @@ function useVisibleCols(ref: React.RefObject<HTMLDivElement | null>) {
   return cols;
 }
 
+function useTimezone() {
+  return useConfigValue("timezone") || undefined;
+}
+
+function toTz(date: Date | string, tz?: string): Date {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return tz ? new TZDate(d, tz) : d;
+}
+
+function useNow() {
+  const tz = useTimezone();
+  return useMemo(() => toTz(new Date(), tz), [tz]);
+}
+
 export function CalendarView() {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const now = useNow();
+  const [currentMonth, setCurrentMonth] = useState(now);
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(now));
   const [showSettings, setShowSettings] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const cols = useVisibleCols(containerRef);
@@ -87,7 +103,7 @@ export function CalendarView() {
     if (isMonthView) {
       setCurrentMonth((m) => subMonths(m, 1));
     } else {
-      setWeekStart((d) => new Date(d.getTime() - cols * 86400000));
+      setWeekStart((d) => addDays(d, -cols));
     }
   }, [isMonthView, cols]);
 
@@ -95,14 +111,14 @@ export function CalendarView() {
     if (isMonthView) {
       setCurrentMonth((m) => addMonths(m, 1));
     } else {
-      setWeekStart((d) => new Date(d.getTime() + cols * 86400000));
+      setWeekStart((d) => addDays(d, cols));
     }
   }, [isMonthView, cols]);
 
   const goToToday = useCallback(() => {
-    setCurrentMonth(new Date());
-    setWeekStart(startOfWeek(new Date()));
-  }, []);
+    setCurrentMonth(now);
+    setWeekStart(startOfWeek(now));
+  }, [now]);
 
   const days = useMemo(() => {
     if (isMonthView) {
@@ -115,7 +131,7 @@ export function CalendarView() {
 
     return eachDayOfInterval({
       start: weekStart,
-      end: new Date(weekStart.getTime() + (cols - 1) * 86400000),
+      end: addDays(weekStart, cols - 1),
     });
   }, [currentMonth, isMonthView, cols, weekStart]);
 
@@ -264,8 +280,9 @@ function DayCell({
     main.STORE_ID,
   );
 
+  const now = useNow();
   const totalItems = eventIds.length + sessionIds.length;
-  const today = isToday(day);
+  const today = format(day, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
 
   return (
     <div
@@ -313,6 +330,7 @@ function useCalendarColor(calendarId: string | null): string | null {
 }
 
 function EventChip({ eventId }: { eventId: string }) {
+  const tz = useTimezone();
   const event = main.UI.useResultRow(
     main.QUERIES.timelineEvents,
     eventId,
@@ -331,7 +349,7 @@ function EventChip({ eventId }: { eventId: string }) {
 
   const startedAt =
     !isAllDay && event.started_at
-      ? format(new Date(event.started_at as string), "h:mm a")
+      ? format(toTz(event.started_at as string, tz), "h:mm a")
       : null;
 
   return (
@@ -415,6 +433,7 @@ function EventPopoverContent({ eventId }: { eventId: string }) {
 }
 
 function SessionChip({ sessionId }: { sessionId: string }) {
+  const tz = useTimezone();
   const session = main.UI.useResultRow(
     main.QUERIES.timelineSessions,
     sessionId,
@@ -426,7 +445,7 @@ function SessionChip({ sessionId }: { sessionId: string }) {
   }
 
   const createdAt = session.created_at
-    ? format(new Date(session.created_at as string), "h:mm a")
+    ? format(toTz(session.created_at as string, tz), "h:mm a")
     : null;
 
   return (
@@ -465,6 +484,7 @@ function SessionPopoverContent({ sessionId }: { sessionId: string }) {
     main.STORE_ID,
   );
   const openNew = useTabs((state) => state.openNew);
+  const tz = useTimezone();
 
   const handleOpen = useCallback(() => {
     openNew({ type: "sessions", id: sessionId });
@@ -475,7 +495,7 @@ function SessionPopoverContent({ sessionId }: { sessionId: string }) {
   }
 
   const createdAt = session.created_at
-    ? format(new Date(session.created_at as string), "MMM d, yyyy h:mm a")
+    ? format(toTz(session.created_at as string, tz), "MMM d, yyyy h:mm a")
     : null;
 
   return (

@@ -82,28 +82,49 @@ export function isSessionEmpty(store: Store, sessionId: string): boolean {
     }
   }
 
-  let hasEnhancedNotes = false;
-  store.forEachRow("enhanced_notes", (rowId, _forEachCell) => {
-    const note = store.getRow("enhanced_notes", rowId);
-    if (note?.session_id === sessionId) {
-      const content = note.content;
-      if (typeof content === "string" && content.trim()) {
-        hasEnhancedNotes = true;
-      }
-    }
-  });
-
-  if (hasEnhancedNotes) {
-    return false;
-  }
-
   let hasTranscript = false;
   store.forEachRow("transcripts", (rowId, _forEachCell) => {
-    const transcript = store.getRow("transcripts", rowId);
-    if (transcript?.session_id === sessionId) {
+    const row = store.getRow("transcripts", rowId);
+    if (row?.session_id === sessionId) {
       hasTranscript = true;
     }
   });
+  if (hasTranscript) {
+    return false;
+  }
 
-  return !hasTranscript;
+  let hasEnhancedNote = false;
+  store.forEachRow("enhanced_notes", (rowId, _forEachCell) => {
+    const row = store.getRow("enhanced_notes", rowId);
+    if (row?.session_id === sessionId) {
+      hasEnhancedNote = true;
+    }
+  });
+  if (hasEnhancedNote) {
+    return false;
+  }
+
+  let hasParticipant = false;
+  store.forEachRow("mapping_session_participant", (rowId, _forEachCell) => {
+    const row = store.getRow("mapping_session_participant", rowId);
+    if (row?.session_id === sessionId) {
+      hasParticipant = true;
+    }
+  });
+  if (hasParticipant) {
+    return false;
+  }
+
+  let hasTag = false;
+  store.forEachRow("mapping_tag_session", (rowId, _forEachCell) => {
+    const row = store.getRow("mapping_tag_session", rowId);
+    if (row?.session_id === sessionId) {
+      hasTag = true;
+    }
+  });
+  if (hasTag) {
+    return false;
+  }
+
+  return true;
 }

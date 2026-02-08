@@ -497,7 +497,7 @@ function EventChip({ eventId }: { eventId: string }) {
             />
             <span className="truncate">{event.title as string}</span>
             {startedAt && (
-              <span className="text-neutral-400 ml-1 shrink-0">
+              <span className="text-neutral-400 ml-auto shrink-0 font-mono">
                 {startedAt}
               </span>
             )}
@@ -579,7 +579,9 @@ function SessionChip({ sessionId }: { sessionId: string }) {
           <div className="w-[2.5px] self-stretch rounded-full shrink-0 bg-blue-500" />
           <span className="truncate">{session.title as string}</span>
           {createdAt && (
-            <span className="text-neutral-400 ml-1 shrink-0">{createdAt}</span>
+            <span className="text-neutral-400 ml-auto shrink-0 font-mono">
+              {createdAt}
+            </span>
           )}
         </button>
       </PopoverTrigger>

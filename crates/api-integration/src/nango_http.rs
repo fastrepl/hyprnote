@@ -15,10 +15,7 @@ impl<'a> NangoHttpClient<'a> {
 }
 
 impl<'a> hypr_http::HttpClient for NangoHttpClient<'a> {
-    async fn get(
-        &self,
-        path: &str,
-    ) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>> {
+    async fn get(&self, path: &str) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>> {
         let response = self
             .nango
             .for_connection(NangoIntegration::GoogleCalendar, &self.connection_id)

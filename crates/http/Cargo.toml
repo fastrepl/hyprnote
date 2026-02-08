@@ -1,5 +1,5 @@
 [package]
-name = "http-utils"
+name = "hypr-http-utils"
 version = "0.1.0"
 edition = "2024"
 

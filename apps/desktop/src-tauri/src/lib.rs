@@ -242,6 +242,7 @@ pub async fn main() {
 
     #[cfg(target_os = "macos")]
     {
+        use tauri::Manager;
         let handle = app.handle().clone();
         hypr_intercept::set_close_handler(move || {
             for (_, window) in handle.webview_windows() {

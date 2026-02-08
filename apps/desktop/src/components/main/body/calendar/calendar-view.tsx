@@ -16,7 +16,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Accordion,
@@ -45,10 +45,37 @@ import { PROVIDERS } from "../../../settings/calendar/shared";
 import { EventDisplay } from "../sessions/outer-header/metadata";
 
 const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MIN_CELL_WIDTH = 120;
+const MIN_CELL_HEIGHT = 80;
+
+function useGridSize(ref: React.RefObject<HTMLDivElement | null>) {
+  const [size, setSize] = useState({ cols: 7, rows: 6 });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+      const cols = Math.max(1, Math.min(7, Math.floor(width / MIN_CELL_WIDTH)));
+      const rows = Math.max(1, Math.floor(height / MIN_CELL_HEIGHT));
+      setSize((prev) =>
+        prev.cols === cols && prev.rows === rows ? prev : { cols, rows },
+      );
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref]);
+
+  return size;
+}
 
 export function CalendarView() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showSettings, setShowSettings] = useState(false);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const { cols, rows } = useGridSize(gridRef);
 
   const goToPrevMonth = useCallback(
     () => setCurrentMonth((m) => subMonths(m, 1)),
@@ -60,13 +87,32 @@ export function CalendarView() {
   );
   const goToToday = useCallback(() => setCurrentMonth(new Date()), []);
 
+  const isMonthView = cols === 7;
+
   const days = useMemo(() => {
-    const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(currentMonth);
-    const calStart = startOfWeek(monthStart);
-    const calEnd = endOfWeek(monthEnd);
-    return eachDayOfInterval({ start: calStart, end: calEnd });
-  }, [currentMonth]);
+    if (isMonthView) {
+      const monthStart = startOfMonth(currentMonth);
+      const monthEnd = endOfMonth(currentMonth);
+      const calStart = startOfWeek(monthStart);
+      const calEnd = endOfWeek(monthEnd);
+      return eachDayOfInterval({ start: calStart, end: calEnd });
+    }
+
+    const totalDays = cols * rows;
+    const today = new Date();
+    const offset = Math.floor(totalDays / 2);
+    const start = new Date(today);
+    start.setDate(start.getDate() - offset);
+    return eachDayOfInterval({
+      start,
+      end: new Date(start.getTime() + (totalDays - 1) * 86400000),
+    });
+  }, [currentMonth, isMonthView, cols, rows]);
+
+  const visibleHeaders = useMemo(() => {
+    if (isMonthView) return WEEKDAY_HEADERS;
+    return days.slice(0, cols).map((d) => format(d, "EEE"));
+  }, [isMonthView, days, cols]);
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -115,7 +161,11 @@ export function CalendarView() {
               </Button>
             )}
             <h2 className="text-lg font-semibold text-neutral-900">
-              {format(currentMonth, "MMMM yyyy")}
+              {isMonthView
+                ? format(currentMonth, "MMMM yyyy")
+                : days.length > 0
+                  ? `${format(days[0], "MMM d")} – ${format(days[days.length - 1], "MMM d, yyyy")}`
+                  : ""}
             </h2>
           </div>
           <ButtonGroup>
@@ -146,10 +196,13 @@ export function CalendarView() {
           </ButtonGroup>
         </div>
 
-        <div className="grid grid-cols-7 border-b border-neutral-200">
-          {WEEKDAY_HEADERS.map((day) => (
+        <div
+          className="grid border-b border-neutral-200"
+          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+        >
+          {visibleHeaders.map((day, i) => (
             <div
-              key={day}
+              key={`${day}-${i}`}
               className={cn([
                 "text-center text-xs font-medium text-neutral-500",
                 "py-2",
@@ -160,12 +213,18 @@ export function CalendarView() {
           ))}
         </div>
 
-        <div className="grid grid-cols-7 flex-1 auto-rows-fr">
+        <div
+          ref={gridRef}
+          className="flex-1 grid auto-rows-fr overflow-hidden"
+          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+        >
           {days.map((day) => (
             <DayCell
               key={day.toISOString()}
               day={day}
-              isCurrentMonth={isSameMonth(day, currentMonth)}
+              isCurrentMonth={
+                isMonthView ? isSameMonth(day, currentMonth) : true
+              }
             />
           ))}
         </div>
@@ -200,7 +259,7 @@ function DayCell({
     <div
       className={cn([
         "border-b border-r border-neutral-100",
-        "p-1.5 min-h-[80px]",
+        "p-1.5 min-w-0 overflow-hidden",
         !isCurrentMonth && "bg-neutral-50",
       ])}
     >

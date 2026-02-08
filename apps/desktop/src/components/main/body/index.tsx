@@ -38,7 +38,6 @@ import { TabContentSearch, TabItemSearch } from "./advanced-search";
 import { TabContentAI, TabItemAI } from "./ai";
 import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
-import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
 import {
@@ -50,12 +49,10 @@ import {
 import { loadExtensionPanels } from "./extensions/registry";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
-import { TabContentPrompt, TabItemPrompt } from "./prompts";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
 import { useCaretPosition } from "./sessions/caret-position-context";
 import { TabContentSettings, TabItemSettings } from "./settings";
-import { TabContentTemplate, TabItemTemplate } from "./templates";
 import { Update } from "./update";
 
 export function Body() {
@@ -404,48 +401,7 @@ function TabItem({
       />
     );
   }
-  if (tab.type === "templates") {
-    return (
-      <TabItemTemplate
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
-  if (tab.type === "prompts") {
-    return (
-      <TabItemPrompt
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
-  if (tab.type === "chat_shortcuts") {
-    return (
-      <TabItemChatShortcut
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
+
   if (tab.type === "empty") {
     return (
       <TabItemEmpty
@@ -574,15 +530,7 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "contacts") {
     return <TabContentContact tab={tab} />;
   }
-  if (tab.type === "templates") {
-    return <TabContentTemplate tab={tab} />;
-  }
-  if (tab.type === "prompts") {
-    return <TabContentPrompt tab={tab} />;
-  }
-  if (tab.type === "chat_shortcuts") {
-    return <TabContentChatShortcut tab={tab} />;
-  }
+
   if (tab.type === "empty") {
     return <TabContentEmpty tab={tab} />;
   }

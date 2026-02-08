@@ -130,37 +130,17 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   }, [openNew, closeMenu]);
 
   const handleClickTemplates = useCallback(() => {
-    openNew({
-      type: "templates",
-      state: {
-        showHomepage: true,
-        isWebMode: false,
-        selectedMineId: null,
-        selectedWebIndex: null,
-      },
-    });
+    openNew({ type: "ai", state: { tab: "templates" } });
     closeMenu();
   }, [openNew, closeMenu]);
 
   const handleClickShortcuts = useCallback(() => {
-    openNew({
-      type: "chat_shortcuts",
-      state: {
-        isWebMode: false,
-        selectedMineId: null,
-        selectedWebIndex: null,
-      },
-    });
+    openNew({ type: "ai", state: { tab: "shortcuts" } });
     closeMenu();
   }, [openNew, closeMenu]);
 
   const handleClickPrompts = useCallback(() => {
-    openNew({
-      type: "prompts",
-      state: {
-        selectedTask: null,
-      },
-    });
+    openNew({ type: "ai", state: { tab: "prompts" } });
     closeMenu();
   }, [openNew, closeMenu]);
 

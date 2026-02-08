@@ -70,6 +70,12 @@ crate::common_derives! {
         Transcription,
         #[serde(rename = "intelligence")]
         Intelligence,
+        #[serde(rename = "templates")]
+        Templates,
+        #[serde(rename = "shortcuts")]
+        Shortcuts,
+        #[serde(rename = "prompts")]
+        Prompts,
     }
 }
 

@@ -167,7 +167,9 @@ export function AccountSettings() {
             </Button>
             <div className="flex items-center gap-2 w-full">
               <div className="flex-1 border-t border-neutral-200" />
-              <span className="text-xs text-neutral-400 shrink-0">Having trouble?</span>
+              <span className="text-xs text-neutral-400 shrink-0">
+                Having trouble?
+              </span>
               <div className="flex-1 border-t border-neutral-200" />
             </div>
             <div className="flex gap-2 w-full">

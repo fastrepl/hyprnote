@@ -33,8 +33,6 @@ export const env = createEnv({
     CHARLIE_APP_ID: z.string().optional(),
     CHARLIE_APP_PRIVATE_KEY: z.string().optional(),
     CHARLIE_APP_INSTALLATION_ID: z.string().optional(),
-    CHAR_REPO_ID: z.string().optional(),
-    CHAR_DISCUSSION_CATEGORY_ID: z.string().optional(),
   },
   runtimeEnv: Bun.env,
   emptyStringAsUndefined: true,

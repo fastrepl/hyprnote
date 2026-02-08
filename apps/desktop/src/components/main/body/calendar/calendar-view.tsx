@@ -31,6 +31,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@hypr/ui/components/ui/popover";
+import { safeParseDate } from "@hypr/utils";
 import { cn, TZDate } from "@hypr/utils";
 
 import { useConfigValue } from "../../../../config/use-config";
@@ -89,6 +90,50 @@ function useNow() {
   return useMemo(() => toTz(new Date(), tz), [tz]);
 }
 
+type CalendarData = {
+  eventIdsByDate: Record<string, string[]>;
+  sessionIdsByDate: Record<string, string[]>;
+};
+
+function useCalendarData(): CalendarData {
+  const tz = useTimezone();
+
+  const eventsTable = main.UI.useResultTable(
+    main.QUERIES.timelineEvents,
+    main.STORE_ID,
+  );
+  const sessionsTable = main.UI.useResultTable(
+    main.QUERIES.timelineSessions,
+    main.STORE_ID,
+  );
+
+  return useMemo(() => {
+    const eventIdsByDate: Record<string, string[]> = {};
+    const sessionIdsByDate: Record<string, string[]> = {};
+
+    if (eventsTable) {
+      for (const [eventId, row] of Object.entries(eventsTable)) {
+        const raw = safeParseDate(row.started_at);
+        if (!raw) continue;
+        const key = format(toTz(raw, tz), "yyyy-MM-dd");
+        (eventIdsByDate[key] ??= []).push(eventId);
+      }
+    }
+
+    if (sessionsTable) {
+      for (const [sessionId, row] of Object.entries(sessionsTable)) {
+        if (row.event_id) continue;
+        const raw = safeParseDate(row.created_at);
+        if (!raw) continue;
+        const key = format(toTz(raw, tz), "yyyy-MM-dd");
+        (sessionIdsByDate[key] ??= []).push(sessionId);
+      }
+    }
+
+    return { eventIdsByDate, sessionIdsByDate };
+  }, [eventsTable, sessionsTable, tz]);
+}
+
 export function CalendarView() {
   const now = useNow();
   const [currentMonth, setCurrentMonth] = useState(now);
@@ -96,6 +141,7 @@ export function CalendarView() {
   const [showSettings, setShowSettings] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const cols = useVisibleCols(containerRef);
+  const calendarData = useCalendarData();
 
   const isMonthView = cols === 7;
 
@@ -253,6 +299,7 @@ export function CalendarView() {
               isCurrentMonth={
                 isMonthView ? isSameMonth(day, currentMonth) : true
               }
+              calendarData={calendarData}
             />
           ))}
         </div>
@@ -261,35 +308,85 @@ export function CalendarView() {
   );
 }
 
+const CHIP_HEIGHT = 18;
+const CHIP_GAP = 2;
+const MORE_LABEL_HEIGHT = 18;
+const HEADER_HEIGHT = 32;
+const CELL_PADDING = 12;
+
+function useVisibleItemCount(
+  ref: React.RefObject<HTMLDivElement | null>,
+  totalItems: number,
+) {
+  const [maxVisible, setMaxVisible] = useState(totalItems);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const compute = () => {
+      const cellHeight = el.clientHeight;
+      const available = cellHeight - HEADER_HEIGHT - CELL_PADDING;
+      const needsMore = (n: number) => n < totalItems;
+
+      let count = 0;
+      let used = 0;
+
+      while (count < totalItems) {
+        const next = used + CHIP_HEIGHT + (count > 0 ? CHIP_GAP : 0);
+        const moreSpace = needsMore(count + 1)
+          ? MORE_LABEL_HEIGHT + CHIP_GAP
+          : 0;
+        if (next + moreSpace > available) break;
+        used = next;
+        count++;
+      }
+
+      setMaxVisible((prev) => (prev === count ? prev : Math.max(1, count)));
+    };
+
+    compute();
+    const observer = new ResizeObserver(compute);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref, totalItems]);
+
+  return maxVisible;
+}
+
 function DayCell({
   day,
   isCurrentMonth,
+  calendarData,
 }: {
   day: Date;
   isCurrentMonth: boolean;
+  calendarData: CalendarData;
 }) {
   const dateKey = format(day, "yyyy-MM-dd");
-  const eventIds = main.UI.useSliceRowIds(
-    main.INDEXES.eventsByDate,
-    dateKey,
-    main.STORE_ID,
-  );
-  const sessionIds = main.UI.useSliceRowIds(
-    main.INDEXES.sessionByDateWithoutEvent,
-    dateKey,
-    main.STORE_ID,
-  );
+  const eventIds = calendarData.eventIdsByDate[dateKey] ?? [];
+  const sessionIds = calendarData.sessionIdsByDate[dateKey] ?? [];
 
   const now = useNow();
+  const cellRef = useRef<HTMLDivElement>(null);
   const totalItems = eventIds.length + sessionIds.length;
+  const maxVisible = useVisibleItemCount(cellRef, totalItems);
   const today = format(day, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
+
+  const visibleEvents = eventIds.slice(0, maxVisible);
+  const remainingSlots = Math.max(0, maxVisible - visibleEvents.length);
+  const visibleSessions = sessionIds.slice(0, remainingSlots);
+  const shownCount = visibleEvents.length + visibleSessions.length;
+  const overflow = totalItems - shownCount;
 
   return (
     <div
+      ref={cellRef}
       className={cn([
         "border-b border-r border-neutral-100",
         "p-1.5 min-w-0 overflow-hidden",
-        !isCurrentMonth && "bg-neutral-50",
+        (!isCurrentMonth || day.getDay() === 0 || day.getDay() === 6) &&
+          "bg-neutral-50",
       ])}
     >
       <div className="flex justify-end">
@@ -305,17 +402,15 @@ function DayCell({
         </div>
       </div>
       <div className="flex flex-col gap-0.5">
-        {eventIds.slice(0, 5).map((eventId) => (
+        {visibleEvents.map((eventId) => (
           <EventChip key={eventId} eventId={eventId} />
         ))}
-        {sessionIds
-          .slice(0, Math.max(0, 5 - eventIds.length))
-          .map((sessionId) => (
-            <SessionChip key={sessionId} sessionId={sessionId} />
-          ))}
-        {totalItems > 5 && (
+        {visibleSessions.map((sessionId) => (
+          <SessionChip key={sessionId} sessionId={sessionId} />
+        ))}
+        {overflow > 0 && (
           <span className="text-xs text-neutral-400 pl-1">
-            +{totalItems - 5} more
+            +{overflow} more
           </span>
         )}
       </div>

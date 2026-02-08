@@ -9,11 +9,11 @@ pub(crate) struct AppState {
 
 impl AppState {
     pub(crate) fn new(config: CalendarConfig) -> Self {
-        let nango = hypr_nango::NangoClient::builder()
-            .api_base(&config.nango.nango_api_base)
-            .api_key(&config.nango.nango_api_key)
-            .build()
-            .expect("failed to build NangoClient");
+        let mut builder = hypr_nango::NangoClient::builder().api_key(&config.nango.nango_api_key);
+        if let Some(api_base) = &config.nango.nango_api_base {
+            builder = builder.api_base(api_base);
+        }
+        let nango = builder.build().expect("failed to build NangoClient");
 
         Self { nango }
     }

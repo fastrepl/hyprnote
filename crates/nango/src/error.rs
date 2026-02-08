@@ -8,8 +8,6 @@ pub enum Error {
     Request(#[from] reqwest::Error),
     #[error("missing api key")]
     MissingApiKey,
-    #[error("missing api base")]
-    MissingApiBase,
     #[error("invalid api key")]
     InvalidApiKey,
     #[error("invalid api base url")]

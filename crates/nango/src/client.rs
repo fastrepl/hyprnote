@@ -37,7 +37,9 @@ impl NangoClientBuilder {
 
     pub fn build(self) -> Result<NangoClient, crate::Error> {
         let api_key = self.api_key.ok_or(crate::Error::MissingApiKey)?;
-        let api_base = self.api_base.ok_or(crate::Error::MissingApiBase)?;
+        let api_base = self
+            .api_base
+            .unwrap_or_else(|| "https://api.nango.dev".to_string());
 
         let mut headers = reqwest::header::HeaderMap::new();
 

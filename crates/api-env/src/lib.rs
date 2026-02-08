@@ -8,6 +8,7 @@ pub struct SupabaseEnv {
 
 #[derive(Clone, Deserialize)]
 pub struct NangoEnv {
-    pub nango_api_base: String,
+    #[serde(default)]
+    pub nango_api_base: Option<String>,
     pub nango_api_key: String,
 }

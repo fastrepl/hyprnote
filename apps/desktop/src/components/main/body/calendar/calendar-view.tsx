@@ -139,6 +139,14 @@ function useCalendarData(): CalendarData {
         const key = format(toTz(raw, tz), "yyyy-MM-dd");
         (eventIdsByDate[key] ??= []).push(eventId);
       }
+
+      for (const ids of Object.values(eventIdsByDate)) {
+        ids.sort((a, b) => {
+          const aAllDay = eventsTable[a]?.is_all_day ? 0 : 1;
+          const bAllDay = eventsTable[b]?.is_all_day ? 0 : 1;
+          return aAllDay - bAllDay;
+        });
+      }
     }
 
     if (sessionsTable) {

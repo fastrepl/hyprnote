@@ -120,7 +120,7 @@ function Component() {
         )}
 
         <Link
-          to="/auth"
+          to="/auth/"
           className="flex items-center justify-center gap-1 text-sm text-neutral-500 hover:text-neutral-700 transition-colors mt-4"
         >
           <ArrowLeftIcon className="size-3.5" />

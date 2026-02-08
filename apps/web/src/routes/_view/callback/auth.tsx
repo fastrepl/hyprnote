@@ -64,7 +64,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
         });
 
         if (result.success) {
-          throw redirect({ to: "/update-password" });
+          throw redirect({ to: "/update-password/" });
         } else {
           console.error(result.error);
         }

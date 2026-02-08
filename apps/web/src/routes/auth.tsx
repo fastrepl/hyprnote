@@ -433,7 +433,7 @@ function PasswordForm({
         </button>
         {!isSignUp && (
           <Link
-            to="/reset-password"
+            to="/reset-password/"
             className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
           >
             Forgot password?

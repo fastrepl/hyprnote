@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as YoutubeRouteImport } from './routes/youtube'
 import { Route as XRouteImport } from './routes/x'
+import { Route as UpdatePasswordRouteImport } from './routes/update-password'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RedditRouteImport } from './routes/reddit'
 import { Route as LinkedinRouteImport } from './routes/linkedin'
 import { Route as GithubRouteImport } from './routes/github'
@@ -151,6 +153,16 @@ const YoutubeRoute = YoutubeRouteImport.update({
 const XRoute = XRouteImport.update({
   id: '/x',
   path: '/x',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpdatePasswordRoute = UpdatePasswordRouteImport.update({
+  id: '/update-password',
+  path: '/update-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RedditRoute = RedditRouteImport.update({
@@ -839,6 +851,8 @@ export interface FileRoutesByFullPath {
   '/github': typeof GithubRoute
   '/linkedin': typeof LinkedinRoute
   '/reddit': typeof RedditRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/update-password': typeof UpdatePasswordRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
   '/app': typeof ViewAppRouteRouteWithChildren
@@ -971,6 +985,8 @@ export interface FileRoutesByTo {
   '/github': typeof GithubRoute
   '/linkedin': typeof LinkedinRoute
   '/reddit': typeof RedditRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/update-password': typeof UpdatePasswordRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
   '/about': typeof ViewAboutRoute
@@ -1104,6 +1120,8 @@ export interface FileRoutesById {
   '/github': typeof GithubRoute
   '/linkedin': typeof LinkedinRoute
   '/reddit': typeof RedditRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/update-password': typeof UpdatePasswordRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
@@ -1241,6 +1259,8 @@ export interface FileRouteTypes {
     | '/github'
     | '/linkedin'
     | '/reddit'
+    | '/reset-password'
+    | '/update-password'
     | '/x'
     | '/youtube'
     | '/app'
@@ -1373,6 +1393,8 @@ export interface FileRouteTypes {
     | '/github'
     | '/linkedin'
     | '/reddit'
+    | '/reset-password'
+    | '/update-password'
     | '/x'
     | '/youtube'
     | '/about'
@@ -1505,6 +1527,8 @@ export interface FileRouteTypes {
     | '/github'
     | '/linkedin'
     | '/reddit'
+    | '/reset-password'
+    | '/update-password'
     | '/x'
     | '/youtube'
     | '/_view/app'
@@ -1641,6 +1665,8 @@ export interface RootRouteChildren {
   GithubRoute: typeof GithubRoute
   LinkedinRoute: typeof LinkedinRoute
   RedditRoute: typeof RedditRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  UpdatePasswordRoute: typeof UpdatePasswordRoute
   XRoute: typeof XRoute
   YoutubeRoute: typeof YoutubeRoute
   ApiK6ReportsRoute: typeof ApiK6ReportsRoute
@@ -1690,6 +1716,20 @@ declare module '@tanstack/react-router' {
       path: '/x'
       fullPath: '/x'
       preLoaderRoute: typeof XRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/update-password': {
+      id: '/update-password'
+      path: '/update-password'
+      fullPath: '/update-password'
+      preLoaderRoute: typeof UpdatePasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reddit': {
@@ -2854,6 +2894,8 @@ const rootRouteChildren: RootRouteChildren = {
   GithubRoute: GithubRoute,
   LinkedinRoute: LinkedinRoute,
   RedditRoute: RedditRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  UpdatePasswordRoute: UpdatePasswordRoute,
   XRoute: XRoute,
   YoutubeRoute: YoutubeRoute,
   ApiK6ReportsRoute: ApiK6ReportsRoute,

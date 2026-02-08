@@ -30,7 +30,7 @@ function Component() {
         return;
       }
       if (result && "success" in result && result.success) {
-        navigate({ to: "/auth" });
+        navigate({ to: "/auth/" });
       }
     },
   });
@@ -136,7 +136,7 @@ function Component() {
         </form>
 
         <Link
-          to="/auth"
+          to="/auth/"
           className="flex items-center justify-center gap-1 text-sm text-neutral-500 hover:text-neutral-700 transition-colors mt-4"
         >
           Back to sign in

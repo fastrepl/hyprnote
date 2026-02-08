@@ -80,7 +80,7 @@ function EmptyView() {
   useHotkeys(
     "mod+o",
     () => setOpenNoteDialogOpen(true),
-    { preventDefault: true },
+    { preventDefault: true, enableOnFormTags: true },
     [setOpenNoteDialogOpen],
   );
 

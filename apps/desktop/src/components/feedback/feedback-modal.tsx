@@ -1,6 +1,6 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
-import { Bug, Lightbulb, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { create } from "zustand";
@@ -12,25 +12,20 @@ import { cn } from "@hypr/utils";
 
 import { env } from "../../env";
 
-type FeedbackType = "bug" | "feature";
-
 type FeedbackModalStore = {
   isOpen: boolean;
-  initialType: FeedbackType;
-  open: (initialType?: FeedbackType) => void;
+  open: () => void;
   close: () => void;
 };
 
 export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
   isOpen: false,
-  initialType: "bug",
-  open: (initialType = "bug") => set({ isOpen: true, initialType }),
+  open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
 }));
 
 export function FeedbackModal() {
-  const { isOpen, initialType, close } = useFeedbackModal();
-  const [type, setType] = useState<FeedbackType>(initialType);
+  const { isOpen, close } = useFeedbackModal();
   const [description, setDescription] = useState("");
   const [attachLogs, setAttachLogs] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,15 +49,13 @@ export function FeedbackModal() {
   }, [isOpen, close]);
 
   useEffect(() => {
-    if (isOpen) {
-      setType(initialType);
-    } else {
+    if (!isOpen) {
       setDescription("");
       setAttachLogs(true);
       setSubmitStatus("");
       setErrorMessage("");
     }
-  }, [isOpen, initialType]);
+  }, [isOpen]);
 
   const handleSubmit = useCallback(async () => {
     const trimmed = description.trim();
@@ -81,7 +74,7 @@ export function FeedbackModal() {
 
     try {
       let logs: string | undefined;
-      if (type === "bug" && attachLogs) {
+      if (attachLogs) {
         setSubmitStatus("Collecting logs...");
         const logsResult = await tracingCommands.logContent();
         if (logsResult.status === "ok" && logsResult.data) {
@@ -95,7 +88,6 @@ export function FeedbackModal() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type,
           description: trimmed,
           logs,
           deviceInfo: {
@@ -129,13 +121,11 @@ export function FeedbackModal() {
       setIsSubmitting(false);
       setSubmitStatus("");
     }
-  }, [description, type, attachLogs, close]);
+  }, [description, attachLogs, close]);
 
   if (!isOpen) {
     return null;
   }
-
-  const isBug = type === "bug";
 
   return createPortal(
     <>
@@ -169,33 +159,6 @@ export function FeedbackModal() {
           <div className="p-4">
             <h2 className="text-base font-semibold mb-3">Send Feedback</h2>
 
-            <div className="flex gap-1 p-1 bg-neutral-100 rounded-md mb-3">
-              <button
-                onClick={() => setType("bug")}
-                className={cn([
-                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xs text-sm font-medium transition-colors",
-                  isBug
-                    ? ["bg-white shadow-xs text-black"]
-                    : ["text-neutral-600 hover:text-black"],
-                ])}
-              >
-                <Bug className="h-3.5 w-3.5" />
-                Bug Report
-              </button>
-              <button
-                onClick={() => setType("feature")}
-                className={cn([
-                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xs text-sm font-medium transition-colors",
-                  !isBug
-                    ? ["bg-white shadow-xs text-black"]
-                    : ["text-neutral-600 hover:text-black"],
-                ])}
-              >
-                <Lightbulb className="h-3.5 w-3.5" />
-                Feature Request
-              </button>
-            </div>
-
             <div className="flex flex-col gap-3">
               <div>
                 <label
@@ -211,11 +174,7 @@ export function FeedbackModal() {
                     setDescription(e.target.value);
                     if (errorMessage) setErrorMessage("");
                   }}
-                  placeholder={
-                    isBug
-                      ? "What happened? What did you expect to happen? Steps to reproduce..."
-                      : "Describe the feature you'd like to see. How would it help you?"
-                  }
+                  placeholder="Describe the bug or feature request..."
                   rows={6}
                   className={cn([
                     "w-full px-2.5 py-1.5 rounded-md",
@@ -231,19 +190,17 @@ export function FeedbackModal() {
                 )}
               </div>
 
-              {isBug && (
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={attachLogs}
-                    onChange={(e) => setAttachLogs(e.target.checked)}
-                    className="rounded border-neutral-300"
-                  />
-                  <span className="text-sm text-neutral-600">
-                    Attach app logs to help diagnose the issue
-                  </span>
-                </label>
-              )}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={attachLogs}
+                  onChange={(e) => setAttachLogs(e.target.checked)}
+                  className="rounded border-neutral-300"
+                />
+                <span className="text-sm text-neutral-600">
+                  Attach app logs to help diagnose the issue
+                </span>
+              </label>
             </div>
 
             <div className="flex justify-start mt-4">
@@ -252,11 +209,7 @@ export function FeedbackModal() {
                 disabled={isSubmitting || !description.trim()}
                 className="h-8 text-sm"
               >
-                {isSubmitting
-                  ? submitStatus || "Opening..."
-                  : isBug
-                    ? "Report Bug"
-                    : "Suggest Feature"}
+                {isSubmitting ? submitStatus || "Submitting..." : "Submit"}
               </Button>
             </div>
           </div>

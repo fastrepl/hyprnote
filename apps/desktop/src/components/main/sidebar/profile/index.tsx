@@ -127,7 +127,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   }, [openNew, closeMenu]);
 
   const handleClickHelp = useCallback(() => {
-    openFeedback("bug");
+    openFeedback();
     closeMenu();
   }, [openFeedback, closeMenu]);
 

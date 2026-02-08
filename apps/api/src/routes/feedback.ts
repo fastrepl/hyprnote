@@ -12,7 +12,6 @@ import { API_TAGS } from "./constants";
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 const FeedbackRequestSchema = z.object({
-  type: z.enum(["bug", "feature"]),
   description: z.string().min(10),
   logs: z.string().optional(),
   deviceInfo: z.object({
@@ -168,12 +167,11 @@ feedback.post(
   }),
   validator("json", FeedbackRequestSchema),
   async (c) => {
-    const { type, description, logs, deviceInfo } = c.req.valid("json");
+    const { description, logs, deviceInfo } = c.req.valid("json");
 
     const trimmedDescription = description.trim();
     const firstLine = trimmedDescription.split("\n")[0].slice(0, 100).trim();
-    const title =
-      firstLine || (type === "bug" ? "Bug Report" : "Feature Request");
+    const title = firstLine || "Feedback";
 
     const deviceInfoSection = [
       `**Platform:** ${deviceInfo.platform}`,
@@ -182,8 +180,7 @@ feedback.post(
       `**App Version:** ${deviceInfo.appVersion}`,
     ].join("\n");
 
-    if (type === "bug") {
-      const body = `## Description
+    const body = `## Description
 ${trimmedDescription}
 
 ## Device Information
@@ -193,16 +190,16 @@ ${deviceInfoSection}
 *This issue was submitted from the Hyprnote desktop app.*
 `;
 
-      const labels = ["product/desktop"];
-      const result = await createGitHubIssue(title, body, labels);
+    const labels = ["product/desktop"];
+    const result = await createGitHubIssue(title, body, labels);
 
-      if ("error" in result) {
-        return c.json({ success: false, error: result.error }, 500);
-      }
+    if ("error" in result) {
+      return c.json({ success: false, error: result.error }, 500);
+    }
 
-      if (logs) {
-        const logSummary = await analyzeLogsWithAI(logs);
-        const logComment = `## Log Analysis
+    if (logs) {
+      const logSummary = await analyzeLogsWithAI(logs);
+      const logComment = `## Log Analysis
 
 ${logSummary?.trim() ? `### Summary\n\`\`\`\n${logSummary}\n\`\`\`` : "_No errors or warnings found._"}
 
@@ -215,29 +212,9 @@ ${logs.slice(-10000)}
 
 </details>`;
 
-        await addCommentToIssue(result.number, logComment);
-      }
-
-      return c.json({ success: true, issueUrl: result.url }, 200);
-    } else {
-      const body = `## Feature Request
-${trimmedDescription}
-
-## Submitted From
-${deviceInfoSection}
-
----
-*This feature request was submitted from the Hyprnote desktop app.*
-`;
-
-      const labels = ["product/desktop"];
-      const result = await createGitHubIssue(title, body, labels);
-
-      if ("error" in result) {
-        return c.json({ success: false, error: result.error }, 500);
-      }
-
-      return c.json({ success: true, issueUrl: result.url }, 200);
+      await addCommentToIssue(result.number, logComment);
     }
+
+    return c.json({ success: true, issueUrl: result.url }, 200);
   },
 );

@@ -115,9 +115,8 @@ const useFeedbackEvents = () => {
 
     void windowsEvents
       .openFeedback(webview)
-      .listen(({ payload }) => {
-        const feedbackType = payload.feedback_type as "bug" | "feature";
-        openFeedback(feedbackType);
+      .listen(() => {
+        openFeedback();
       })
       .then((fn) => {
         unlistenOpenFeedback = fn;

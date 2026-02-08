@@ -408,9 +408,30 @@ function DayCell({
           <SessionChip key={sessionId} sessionId={sessionId} />
         ))}
         {overflow > 0 && (
-          <span className="text-xs text-neutral-400 pl-1">
-            +{overflow} more
-          </span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="text-xs text-neutral-400 pl-1 text-left hover:text-neutral-600 cursor-pointer">
+                +{overflow} more
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              className="w-[220px] shadow-lg p-2 rounded-lg max-h-[300px] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-sm font-medium text-neutral-900 mb-2">
+                {format(day, "MMM d, yyyy")}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                {eventIds.map((eventId) => (
+                  <EventChip key={eventId} eventId={eventId} />
+                ))}
+                {sessionIds.map((sessionId) => (
+                  <SessionChip key={sessionId} sessionId={sessionId} />
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
         )}
       </div>
     </div>
@@ -441,10 +462,9 @@ function EventChip({ eventId }: { eventId: string }) {
   const isAllDay = !!event.is_all_day;
   const color = calendarColor ?? "#888";
 
-  const startedAt =
-    !isAllDay && event.started_at
-      ? format(toTz(event.started_at as string, tz), "h:mm a")
-      : null;
+  const startedAt = event.started_at
+    ? format(toTz(event.started_at as string, tz), "h:mm a")
+    : null;
 
   return (
     <Popover>
@@ -462,7 +482,7 @@ function EventChip({ eventId }: { eventId: string }) {
         ) : (
           <button
             className={cn([
-              "flex items-center gap-1 pl-0.5 text-xs leading-tight truncate rounded text-left w-full",
+              "flex items-center gap-1 pl-0.5 text-xs leading-tight rounded text-left w-full",
               "hover:opacity-80 cursor-pointer",
             ])}
           >
@@ -470,12 +490,12 @@ function EventChip({ eventId }: { eventId: string }) {
               className="w-[2.5px] self-stretch rounded-full shrink-0"
               style={{ backgroundColor: color }}
             />
-            <div className="truncate">
-              <span className="truncate">{event.title as string}</span>
-              {startedAt && (
-                <span className="text-neutral-400 ml-1">{startedAt}</span>
-              )}
-            </div>
+            <span className="truncate">{event.title as string}</span>
+            {startedAt && (
+              <span className="text-neutral-400 ml-1 shrink-0">
+                {startedAt}
+              </span>
+            )}
           </button>
         )}
       </PopoverTrigger>
@@ -547,17 +567,15 @@ function SessionChip({ sessionId }: { sessionId: string }) {
       <PopoverTrigger asChild>
         <button
           className={cn([
-            "flex items-center gap-1 pl-0.5 text-xs leading-tight truncate rounded text-left w-full",
+            "flex items-center gap-1 pl-0.5 text-xs leading-tight rounded text-left w-full",
             "hover:opacity-80 cursor-pointer",
           ])}
         >
           <div className="w-[2.5px] self-stretch rounded-full shrink-0 bg-blue-500" />
-          <div className="truncate">
-            <span className="truncate">{session.title as string}</span>
-            {createdAt && (
-              <span className="text-neutral-400 ml-1">{createdAt}</span>
-            )}
-          </div>
+          <span className="truncate">{session.title as string}</span>
+          {createdAt && (
+            <span className="text-neutral-400 ml-1 shrink-0">{createdAt}</span>
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent

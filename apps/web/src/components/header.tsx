@@ -1,12 +1,20 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  BookOpen,
   ChevronDown,
   ChevronUp,
+  FileText,
+  History,
+  LayoutTemplate,
+  Map,
   Menu,
+  MessageCircle,
   PanelLeft,
   PanelLeftClose,
+  Building2,
   X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
@@ -44,14 +52,19 @@ const solutionsList = [
   { to: "/product/api", label: "For Developers" },
 ];
 
-const resourcesList = [
-  { to: "/blog/", label: "Blog" },
-  { to: "/docs/", label: "Documentation" },
-  { to: "/gallery/templates", label: "Meeting Templates" },
-  { to: "/changelog/", label: "Changelog" },
-  { to: "/roadmap/", label: "Roadmap" },
-  { to: "/company-handbook/", label: "Company Handbook" },
-  { to: "https://discord.gg/hyprnote", label: "Community", external: true },
+const resourcesList: {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  external?: boolean;
+}[] = [
+  { to: "/blog/", label: "Blog", icon: FileText },
+  { to: "/docs/", label: "Documentation", icon: BookOpen },
+  { to: "/gallery/templates", label: "Meeting Templates", icon: LayoutTemplate },
+  { to: "/changelog/", label: "Changelog", icon: History },
+  { to: "/roadmap/", label: "Roadmap", icon: Map },
+  { to: "/company-handbook/", label: "Company Handbook", icon: Building2 },
+  { to: "https://discord.gg/hyprnote", label: "Community", icon: MessageCircle, external: true },
 ];
 
 export function Header() {
@@ -383,7 +396,7 @@ function ResourcesDropdown({
         {isResourcesOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       {isResourcesOpen && (
-        <div className="absolute top-full left-0 pt-2 w-48 z-50">
+        <div className="absolute top-full left-0 pt-2 w-56 z-50">
           <div className="bg-white border border-neutral-200 rounded-xs shadow-lg py-2">
             <div className="px-3 py-2">
               {resourcesList.map((link) =>
@@ -394,8 +407,9 @@ function ResourcesDropdown({
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setIsResourcesOpen(false)}
-                    className="py-2 text-sm text-neutral-700 flex items-center group"
+                    className="py-2 text-sm text-neutral-700 flex items-center gap-2 group"
                   >
+                    <link.icon size={16} className="text-neutral-400" />
                     <span className="group-hover:underline decoration-dotted">
                       {link.label}
                     </span>
@@ -405,8 +419,9 @@ function ResourcesDropdown({
                     key={link.to}
                     to={link.to}
                     onClick={() => setIsResourcesOpen(false)}
-                    className="py-2 text-sm text-neutral-700 flex items-center group"
+                    className="py-2 text-sm text-neutral-700 flex items-center gap-2 group"
                   >
+                    <link.icon size={16} className="text-neutral-400" />
                     <span className="group-hover:underline decoration-dotted">
                       {link.label}
                     </span>
@@ -689,8 +704,9 @@ function MobileResourcesSection({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMenuOpen(false)}
-                className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
+                className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1 flex items-center gap-2"
               >
+                <link.icon size={14} className="text-neutral-400" />
                 {link.label}
               </a>
             ) : (
@@ -698,8 +714,9 @@ function MobileResourcesSection({
                 key={link.to}
                 to={link.to}
                 onClick={() => setIsMenuOpen(false)}
-                className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
+                className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1 flex items-center gap-2"
               >
+                <link.icon size={14} className="text-neutral-400" />
                 {link.label}
               </Link>
             ),

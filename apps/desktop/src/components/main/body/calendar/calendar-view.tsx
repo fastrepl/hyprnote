@@ -46,7 +46,8 @@ import { AccessPermissionRow } from "../../../settings/calendar/configure/apple/
 import { PROVIDERS } from "../../../settings/calendar/shared";
 import { EventDisplay } from "../sessions/outer-header/metadata";
 
-const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_HEADERS_SUN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_HEADERS_MON = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const VIEW_BREAKPOINTS = [
   { minWidth: 700, cols: 7 },
@@ -88,6 +89,25 @@ function toTz(date: Date | string, tz?: string): Date {
 function useNow() {
   const tz = useTimezone();
   return useMemo(() => toTz(new Date(), tz), [tz]);
+}
+
+function getSystemWeekStart(): 0 | 1 {
+  const locale = navigator.language || "en-US";
+  try {
+    const options = new Intl.Locale(locale);
+    const info = (options as any).getWeekInfo?.() ?? (options as any).weekInfo;
+    if (info?.firstDay === 1) return 1;
+  } catch {}
+  return 0;
+}
+
+function useWeekStartsOn(): 0 | 1 {
+  const value = useConfigValue("week_start");
+  return useMemo(() => {
+    if (value === "monday") return 1;
+    if (value === "sunday") return 0;
+    return getSystemWeekStart();
+  }, [value]);
 }
 
 type CalendarData = {
@@ -136,8 +156,10 @@ function useCalendarData(): CalendarData {
 
 export function CalendarView() {
   const now = useNow();
+  const weekStartsOn = useWeekStartsOn();
+  const weekOpts = useMemo(() => ({ weekStartsOn }), [weekStartsOn]);
   const [currentMonth, setCurrentMonth] = useState(now);
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(now));
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(now, weekOpts));
   const [showSettings, setShowSettings] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const cols = useVisibleCols(containerRef);
@@ -163,15 +185,15 @@ export function CalendarView() {
 
   const goToToday = useCallback(() => {
     setCurrentMonth(now);
-    setWeekStart(startOfWeek(now));
-  }, [now]);
+    setWeekStart(startOfWeek(now, weekOpts));
+  }, [now, weekOpts]);
 
   const days = useMemo(() => {
     if (isMonthView) {
       const monthStart = startOfMonth(currentMonth);
       const monthEnd = endOfMonth(currentMonth);
-      const calStart = startOfWeek(monthStart);
-      const calEnd = endOfWeek(monthEnd);
+      const calStart = startOfWeek(monthStart, weekOpts);
+      const calEnd = endOfWeek(monthEnd, weekOpts);
       return eachDayOfInterval({ start: calStart, end: calEnd });
     }
 
@@ -179,12 +201,14 @@ export function CalendarView() {
       start: weekStart,
       end: addDays(weekStart, cols - 1),
     });
-  }, [currentMonth, isMonthView, cols, weekStart]);
+  }, [currentMonth, isMonthView, cols, weekStart, weekOpts]);
 
   const visibleHeaders = useMemo(() => {
-    if (isMonthView) return WEEKDAY_HEADERS;
+    if (isMonthView) {
+      return weekStartsOn === 1 ? WEEKDAY_HEADERS_MON : WEEKDAY_HEADERS_SUN;
+    }
     return days.slice(0, cols).map((d) => format(d, "EEE"));
-  }, [isMonthView, days, cols]);
+  }, [isMonthView, days, cols, weekStartsOn]);
 
   return (
     <div className="flex h-full overflow-hidden">

@@ -373,7 +373,9 @@ function AfterMeetingSection() {
           </div>
           <div className="mt-2">
             <p className="font-medium text-neutral-700">Follow-up meeting</p>
-            <p className="text-xs text-neutral-600">2 guests · 1 yes, 1 awaiting</p>
+            <p className="text-xs text-neutral-600">
+              2 guests · 1 yes, 1 awaiting
+            </p>
             <div className="mt-2 flex items-center gap-2 text-xs text-neutral-500">
               <div className="size-5 rounded-full bg-stone-200 flex items-center justify-center text-[10px] text-stone-600">
                 A

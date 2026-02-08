@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { create } from "zustand";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as tracingCommands } from "@hypr/plugin-tracing";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -81,10 +80,6 @@ export function FeedbackModal() {
     setSubmitStatus("Submitting...");
 
     try {
-      const gitHashResult = await miscCommands.getGitHash();
-      const gitHash =
-        gitHashResult.status === "ok" ? gitHashResult.data : "unknown";
-
       let logs: string | undefined;
       if (type === "bug" && attachLogs) {
         setSubmitStatus("Collecting logs...");
@@ -108,7 +103,6 @@ export function FeedbackModal() {
             arch: arch(),
             osVersion: osVersion(),
             appVersion: env.VITE_APP_VERSION ?? "unknown",
-            gitHash,
           },
         }),
       });

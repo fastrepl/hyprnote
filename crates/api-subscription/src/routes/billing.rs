@@ -50,7 +50,7 @@ struct Profile {
 
 #[utoipa::path(
     post,
-    path = "/subscription/start-trial",
+    path = "/start-trial",
     params(StartTrialQuery),
     responses(
         (status = 200, description = "Trial started successfully", body = StartTrialResponse),

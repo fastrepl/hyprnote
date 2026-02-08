@@ -1,21 +1,21 @@
 use hypr_nango::NangoClient;
 
-use crate::config::IntegrationConfig;
-use crate::error::IntegrationError;
+use crate::config::NangoConfig;
+use crate::error::NangoError;
 
 #[derive(Clone)]
-pub struct AppState {
-    pub config: IntegrationConfig,
-    pub nango: NangoClient,
+pub(crate) struct AppState {
+    pub(crate) config: NangoConfig,
+    pub(crate) nango: NangoClient,
 }
 
 impl AppState {
-    pub fn new(config: IntegrationConfig) -> Result<Self, IntegrationError> {
+    pub(crate) fn new(config: NangoConfig) -> Result<Self, NangoError> {
         let nango = hypr_nango::NangoClientBuilder::default()
-            .api_base(&config.nango_api_base)
-            .api_key(&config.nango_api_key)
+            .api_base(&config.nango.nango_api_base)
+            .api_key(&config.nango.nango_api_key)
             .build()
-            .map_err(|e| IntegrationError::Nango(e.to_string()))?;
+            .map_err(|e| NangoError::Nango(e.to_string()))?;
 
         Ok(Self { config, nango })
     }

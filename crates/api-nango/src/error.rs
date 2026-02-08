@@ -6,7 +6,7 @@ use axum::{
 use serde::Serialize;
 use thiserror::Error;
 
-pub type Result<T> = std::result::Result<T, IntegrationError>;
+pub type Result<T> = std::result::Result<T, NangoError>;
 
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse {
@@ -14,7 +14,7 @@ pub struct ErrorResponse {
 }
 
 #[derive(Debug, Error)]
-pub enum IntegrationError {
+pub enum NangoError {
     #[error("Authentication error: {0}")]
     Auth(String),
 
@@ -28,13 +28,13 @@ pub enum IntegrationError {
     Internal(String),
 }
 
-impl From<hypr_nango::Error> for IntegrationError {
+impl From<hypr_nango::Error> for NangoError {
     fn from(err: hypr_nango::Error) -> Self {
         Self::Nango(err.to_string())
     }
 }
 
-impl IntoResponse for IntegrationError {
+impl IntoResponse for NangoError {
     fn into_response(self) -> Response {
         let (status, error_code) = match &self {
             Self::Auth(_) => (StatusCode::UNAUTHORIZED, "unauthorized"),

@@ -5,7 +5,7 @@ use utoipa::ToSchema;
 use crate::error::Result;
 use crate::state::AppState;
 
-pub use hypr_api_auth::AuthContext;
+use hypr_api_auth::AuthContext;
 
 #[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -16,7 +16,7 @@ pub struct CanStartTrialResponse {
 
 #[utoipa::path(
     get,
-    path = "/subscription/can-start-trial",
+    path = "/can-start-trial",
     responses(
         (status = 200, description = "Check successful", body = CanStartTrialResponse),
         (status = 401, description = "Unauthorized"),

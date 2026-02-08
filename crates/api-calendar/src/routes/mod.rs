@@ -1,8 +1,9 @@
 mod calendar;
 
-use axum::{Router, middleware, routing::post};
+use axum::{Router, routing::post};
 use utoipa::OpenApi;
 
+use crate::config::CalendarConfig;
 use crate::state::AppState;
 
 pub use calendar::ListEventsResponse;
@@ -36,16 +37,12 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
     ApiDoc::openapi()
 }
 
-pub fn router(state: AppState) -> Router {
-    let auth_state = state.auth.clone();
+pub fn router(config: CalendarConfig) -> Result<Router, crate::error::CalendarError> {
+    let state = AppState::new(config)?;
 
-    Router::new()
-        .route("/calendar/calendars", post(calendar::list_calendars))
-        .route("/calendar/events", post(calendar::list_events))
-        .route("/calendar/events/create", post(calendar::create_event))
-        .route_layer(middleware::from_fn_with_state(
-            auth_state,
-            hypr_api_auth::require_auth,
-        ))
-        .with_state(state)
+    Ok(Router::new()
+        .route("/calendars", post(calendar::list_calendars))
+        .route("/events", post(calendar::list_events))
+        .route("/events/create", post(calendar::create_event))
+        .with_state(state))
 }

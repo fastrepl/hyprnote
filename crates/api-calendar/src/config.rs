@@ -1,16 +1,14 @@
-use hypr_api_env::{NangoEnv, SupabaseEnv};
+use hypr_api_env::NangoEnv;
 
 #[derive(Clone)]
 pub struct CalendarConfig {
     pub nango: NangoEnv,
-    pub supabase: SupabaseEnv,
 }
 
 impl CalendarConfig {
-    pub fn new(nango: &NangoEnv, supabase: &SupabaseEnv) -> Self {
+    pub fn new(nango: &NangoEnv) -> Self {
         Self {
             nango: nango.clone(),
-            supabase: supabase.clone(),
         }
     }
 }

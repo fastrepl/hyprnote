@@ -2,7 +2,7 @@ use axum::{Json, extract::State, http::HeaderMap};
 use serde::Serialize;
 use utoipa::ToSchema;
 
-use crate::error::{IntegrationError, Result};
+use crate::error::{NangoError, Result};
 use crate::state::AppState;
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -18,7 +18,7 @@ pub struct WebhookResponse {
         (status = 401, description = "Invalid signature"),
         (status = 400, description = "Bad request"),
     ),
-    tag = "integration",
+    tag = "nango",
 )]
 pub async fn nango_webhook(
     State(state): State<AppState>,
@@ -28,21 +28,19 @@ pub async fn nango_webhook(
     let signature = headers
         .get("x-nango-hmac-sha256")
         .and_then(|h| h.to_str().ok())
-        .ok_or_else(|| IntegrationError::Auth("Missing X-Nango-Hmac-Sha256 header".to_string()))?;
+        .ok_or_else(|| NangoError::Auth("Missing X-Nango-Hmac-Sha256 header".to_string()))?;
 
     let valid = hypr_nango::verify_webhook_signature(
-        &state.config.nango_webhook_secret,
+        &state.config.webhook.nango_webhook_secret,
         body.as_bytes(),
         signature,
     );
     if !valid {
-        return Err(IntegrationError::Auth(
-            "Invalid webhook signature".to_string(),
-        ));
+        return Err(NangoError::Auth("Invalid webhook signature".to_string()));
     }
 
     let payload: hypr_nango::NangoAuthWebhook =
-        serde_json::from_str(&body).map_err(|e| IntegrationError::BadRequest(e.to_string()))?;
+        serde_json::from_str(&body).map_err(|e| NangoError::BadRequest(e.to_string()))?;
 
     tracing::info!(
         webhook_type = %payload.r#type,

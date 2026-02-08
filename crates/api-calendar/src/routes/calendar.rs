@@ -81,7 +81,7 @@ pub struct CreateEventResponse {
 
 #[utoipa::path(
     post,
-    path = "/calendar/calendars",
+    path = "/calendars",
     request_body = ListCalendarsRequest,
     responses(
         (status = 200, description = "Calendars fetched", body = ListCalendarsResponse),
@@ -120,7 +120,7 @@ pub async fn list_calendars(
 
 #[utoipa::path(
     post,
-    path = "/calendar/events",
+    path = "/events",
     request_body = ListEventsRequest,
     responses(
         (status = 200, description = "Events fetched", body = ListEventsResponse),
@@ -192,7 +192,7 @@ pub async fn list_events(
 
 #[utoipa::path(
     post,
-    path = "/calendar/events/create",
+    path = "/events/create",
     request_body = CreateEventRequest,
     responses(
         (status = 200, description = "Event created", body = CreateEventResponse),

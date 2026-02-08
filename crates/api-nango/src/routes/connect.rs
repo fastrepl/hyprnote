@@ -20,7 +20,7 @@ pub struct ConnectSessionResponse {
         (status = 401, description = "Unauthorized"),
         (status = 500, description = "Internal server error"),
     ),
-    tag = "integration",
+    tag = "nango",
     security(
         ("bearer_auth" = [])
     )

@@ -50,7 +50,6 @@ import {
 import { loadExtensionPanels } from "./extensions/registry";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
-import { TabContentPrompt, TabItemPrompt } from "./prompts";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
 import { useCaretPosition } from "./sessions/caret-position-context";
@@ -404,48 +403,7 @@ function TabItem({
       />
     );
   }
-  if (tab.type === "templates") {
-    return (
-      <TabItemTemplate
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
-  if (tab.type === "prompts") {
-    return (
-      <TabItemPrompt
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
-  if (tab.type === "chat_shortcuts") {
-    return (
-      <TabItemChatShortcut
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
+
   if (tab.type === "empty") {
     return (
       <TabItemEmpty
@@ -544,6 +502,34 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "templates") {
+    return (
+      <TabItemTemplate
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
+      />
+    );
+  }
+  if (tab.type === "chat_shortcuts") {
+    return (
+      <TabItemChatShortcut
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
+      />
+    );
+  }
   if (tab.type === "search") {
     return (
       <TabItemSearch
@@ -574,15 +560,7 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "contacts") {
     return <TabContentContact tab={tab} />;
   }
-  if (tab.type === "templates") {
-    return <TabContentTemplate tab={tab} />;
-  }
-  if (tab.type === "prompts") {
-    return <TabContentPrompt tab={tab} />;
-  }
-  if (tab.type === "chat_shortcuts") {
-    return <TabContentChatShortcut tab={tab} />;
-  }
+
   if (tab.type === "empty") {
     return <TabContentEmpty tab={tab} />;
   }
@@ -603,6 +581,12 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "ai") {
     return <TabContentAI tab={tab} />;
+  }
+  if (tab.type === "templates") {
+    return <TabContentTemplate tab={tab} />;
+  }
+  if (tab.type === "chat_shortcuts") {
+    return <TabContentChatShortcut tab={tab} />;
   }
   if (tab.type === "search") {
     return <TabContentSearch tab={tab} />;

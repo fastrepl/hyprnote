@@ -3,14 +3,11 @@ import {
   CalendarIcon,
   ChevronUpIcon,
   CircleHelp,
-  FileTextIcon,
   FolderOpenIcon,
-  MessageSquareIcon,
   SearchIcon,
   SettingsIcon,
   SparklesIcon,
   UsersIcon,
-  ZapIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -129,41 +126,6 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
-  const handleClickTemplates = useCallback(() => {
-    openNew({
-      type: "templates",
-      state: {
-        showHomepage: true,
-        isWebMode: false,
-        selectedMineId: null,
-        selectedWebIndex: null,
-      },
-    });
-    closeMenu();
-  }, [openNew, closeMenu]);
-
-  const handleClickShortcuts = useCallback(() => {
-    openNew({
-      type: "chat_shortcuts",
-      state: {
-        isWebMode: false,
-        selectedMineId: null,
-        selectedWebIndex: null,
-      },
-    });
-    closeMenu();
-  }, [openNew, closeMenu]);
-
-  const handleClickPrompts = useCallback(() => {
-    openNew({
-      type: "prompts",
-      state: {
-        selectedTask: null,
-      },
-    });
-    closeMenu();
-  }, [openNew, closeMenu]);
-
   const handleClickHelp = useCallback(() => {
     openFeedback("bug");
     closeMenu();
@@ -209,21 +171,6 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       label: "Advanced Search",
       onClick: handleClickAdvancedSearch,
       badge: <Kbd className={kbdClass}>⌘ ⇧ F</Kbd>,
-    },
-    {
-      icon: FileTextIcon,
-      label: "Templates",
-      onClick: handleClickTemplates,
-    },
-    {
-      icon: ZapIcon,
-      label: "Shortcuts",
-      onClick: handleClickShortcuts,
-    },
-    {
-      icon: MessageSquareIcon,
-      label: "Prompts",
-      onClick: handleClickPrompts,
     },
     {
       icon: SparklesIcon,
@@ -277,7 +224,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                       {menuItems.map((item, index) => (
                         <div key={item.label}>
                           <MenuItem {...item} />
-                          {(index === 3 || index === 6 || index === 8) && (
+                          {(index === 3 || index === 5) && (
                             <div className="my-1 border-t border-neutral-100" />
                           )}
                         </div>

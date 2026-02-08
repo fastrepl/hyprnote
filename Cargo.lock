@@ -544,6 +544,22 @@ dependencies = [
  "api-auth",
  "api-env",
  "axum 0.8.8",
+ "reqwest 0.13.1",
+ "sentry",
+ "serde",
+ "serde_json",
+ "supabase-auth",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "utoipa",
+]
+
+[[package]]
+name = "api-nango"
+version = "0.1.0"
+dependencies = [
+ "axum 0.8.8",
  "chrono",
  "google-calendar",
  "hypr-http-utils",

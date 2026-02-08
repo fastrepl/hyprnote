@@ -31,3 +31,6 @@ jsonwebtoken = { workspace = true }
 sentry = { workspace = true, features = ["tower", "tower-axum-matched-path", "tracing"] }
 tower = { workspace = true }
 utoipa = { workspace = true }
+
+[build-dependencies]
+vergen-gix = { workspace = true, features = ["build"] }

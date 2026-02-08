@@ -69,6 +69,7 @@ fn app() -> Router {
 
     Router::new()
         .route("/health", axum::routing::get(|| async { "ok" }))
+        .route("/v", axum::routing::get(version))
         .route("/openapi.json", axum::routing::get(openapi_json))
         .merge(webhook_routes)
         .merge(protected_routes)
@@ -232,4 +233,8 @@ async fn shutdown_signal() {
 
 async fn openapi_json() -> axum::Json<utoipa::openapi::OpenApi> {
     axum::Json(openapi::openapi())
+}
+
+async fn version() -> &'static str {
+    option_env!("VERGEN_GIT_SHA").unwrap_or("unknown")
 }

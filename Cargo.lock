@@ -271,6 +271,7 @@ dependencies = [
  "transcribe-proxy",
  "url",
  "utoipa",
+ "vergen-gix",
 ]
 
 [[package]]

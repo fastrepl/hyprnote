@@ -251,6 +251,7 @@ dependencies = [
  "api-auth",
  "api-calendar",
  "api-env",
+ "api-feedback",
  "api-nango",
  "api-subscription",
  "axum 0.8.8",
@@ -567,6 +568,18 @@ name = "api-env"
 version = "0.1.0"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "api-feedback"
+version = "0.1.0"
+dependencies = [
+ "axum 0.8.8",
+ "jsonwebtoken",
+ "reqwest 0.13.1",
+ "serde",
+ "serde_json",
+ "tracing",
 ]
 
 [[package]]

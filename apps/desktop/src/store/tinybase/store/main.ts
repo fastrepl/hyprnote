@@ -398,6 +398,8 @@ interface _QueryResultRows {
     ended_at: string;
     calendar_id: string;
     recurrence_series_id: string;
+    ignored: boolean;
+    is_all_day: boolean;
   };
   timelineSessions: {
     title: string;

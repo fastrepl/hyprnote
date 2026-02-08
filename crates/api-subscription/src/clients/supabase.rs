@@ -4,10 +4,12 @@ use serde_json::Value;
 
 use crate::error::{Result, SubscriptionError};
 
+/// Encodes a string for use in URL query parameters
 fn url_encode(s: &str) -> String {
     urlencoding::encode(s).into_owned()
 }
 
+/// Client for interacting with Supabase REST API
 #[derive(Clone)]
 pub struct SupabaseClient {
     base_url: String,
@@ -16,6 +18,7 @@ pub struct SupabaseClient {
 }
 
 impl SupabaseClient {
+    /// Creates a new Supabase client
     pub fn new(supabase_url: impl Into<String>, anon_key: impl Into<String>) -> Self {
         Self {
             base_url: supabase_url.into().trim_end_matches('/').to_string(),
@@ -24,6 +27,7 @@ impl SupabaseClient {
         }
     }
 
+    /// Calls a Supabase RPC function
     pub async fn rpc<T: for<'de> Deserialize<'de>>(
         &self,
         function_name: &str,
@@ -61,6 +65,7 @@ impl SupabaseClient {
             .map_err(|e| SubscriptionError::SupabaseRequest(e.to_string()))
     }
 
+    /// Performs a SELECT query on a Supabase table
     pub async fn select<T: for<'de> Deserialize<'de>>(
         &self,
         table: &str,
@@ -105,6 +110,7 @@ impl SupabaseClient {
             .map_err(|e| SubscriptionError::SupabaseRequest(e.to_string()))
     }
 
+    /// Performs an UPDATE query on a Supabase table
     pub async fn update<T: Serialize>(
         &self,
         table: &str,
@@ -149,6 +155,7 @@ impl SupabaseClient {
         Ok(())
     }
 
+    /// Retrieves the email address for the authenticated user
     pub async fn get_user_email(&self, auth_token: &str) -> Result<Option<String>> {
         let url = format!("{}/auth/v1/user", self.base_url);
 

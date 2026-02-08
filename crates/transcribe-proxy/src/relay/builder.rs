@@ -8,7 +8,7 @@ pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 use super::handler::WebSocketProxy;
 use super::types::{FirstMessageTransformer, InitialMessage, OnCloseCallback, ResponseTransformer};
 use crate::config::DEFAULT_CONNECT_TIMEOUT_MS;
-use crate::provider_selector::SelectedProvider;
+use crate::provider::SelectedProvider;
 use crate::query_params::QueryParams;
 use crate::upstream_url::UpstreamUrlBuilder;
 

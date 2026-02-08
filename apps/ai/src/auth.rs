@@ -1,3 +1,10 @@
+//! Authentication and user context middleware.
+//!
+//! This module provides middleware for:
+//! - JWT-based authentication via Supabase
+//! - Device fingerprint extraction for analytics
+//! - User context injection into Sentry for error tracking
+
 use std::collections::BTreeMap;
 
 use axum::{extract::Request, middleware::Next, response::Response};
@@ -5,8 +12,25 @@ use axum::{extract::Request, middleware::Next, response::Response};
 use hypr_api_auth::Claims;
 pub use hypr_api_auth::{AuthState, require_auth};
 
-const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
+use crate::constants::DEVICE_FINGERPRINT_HEADER;
 
+/// Middleware that extracts user authentication and device information,
+/// then configures Sentry scope and analytics context.
+///
+/// This middleware should run after authentication but before request handlers.
+///
+/// # Context Extraction
+///
+/// - Extracts device fingerprint from `x-device-fingerprint` header
+/// - Extracts user claims from request extensions (set by `require_auth`)
+/// - Injects `AuthenticatedUserId` and `DeviceFingerprint` into request extensions
+///
+/// # Sentry Integration
+///
+/// Configures Sentry scope with:
+/// - User ID, email, and username from JWT claims
+/// - Device fingerprint as user ID
+/// - Entitlements as context for debugging
 pub async fn sentry_and_analytics(mut request: Request, next: Next) -> Response {
     let device_fingerprint = request
         .headers()

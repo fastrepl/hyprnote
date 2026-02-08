@@ -1,22 +1,20 @@
-mod billing;
-mod rpc;
-
 use axum::{
     Router,
     routing::{get, post},
 };
 use utoipa::OpenApi;
 
+use crate::handlers;
 use crate::state::AppState;
 
-pub use billing::{Interval, StartTrialResponse};
-pub use rpc::CanStartTrialResponse;
+pub use crate::handlers::trial::{CanStartTrialResponse, StartTrialResponse};
+pub use crate::models::Interval;
 
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        rpc::can_start_trial,
-        billing::start_trial,
+        handlers::can_start_trial,
+        handlers::start_trial,
     ),
     components(
         schemas(
@@ -37,7 +35,7 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
 
 pub fn router(state: AppState) -> Router {
     Router::new()
-        .route("/can-start-trial", get(rpc::can_start_trial))
-        .route("/start-trial", post(billing::start_trial))
+        .route("/can-start-trial", get(handlers::can_start_trial))
+        .route("/start-trial", post(handlers::start_trial))
         .with_state(state)
 }

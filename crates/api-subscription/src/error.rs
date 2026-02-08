@@ -31,6 +31,49 @@ pub enum SubscriptionError {
     Internal(String),
 }
 
+impl SubscriptionError {
+    /// Returns the HTTP status code for this error
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Auth(_) => StatusCode::UNAUTHORIZED,
+            Self::BadRequest(_) => StatusCode::BAD_REQUEST,
+            Self::SupabaseRequest(_) | Self::Stripe(_) | Self::Internal(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
+    }
+
+    /// Returns the error code string for the API response
+    fn error_code(&self) -> &str {
+        match self {
+            Self::Auth(_) => "unauthorized",
+            Self::BadRequest(_) => "bad_request",
+            Self::SupabaseRequest(_) => "internal_server_error",
+            Self::Stripe(_) => "failed_to_create_subscription",
+            Self::Internal(_) => "internal_server_error",
+        }
+    }
+
+    /// Logs and reports the error to Sentry if it's an internal error
+    fn report_if_internal(&self) {
+        match self {
+            Self::SupabaseRequest(msg) => {
+                tracing::error!(error = %msg, "supabase_error");
+                sentry::capture_message(msg, sentry::Level::Error);
+            }
+            Self::Stripe(msg) => {
+                tracing::error!(error = %msg, "stripe_error");
+                sentry::capture_message(msg, sentry::Level::Error);
+            }
+            Self::Internal(msg) => {
+                tracing::error!(error = %msg, "internal_error");
+                sentry::capture_message(msg, sentry::Level::Error);
+            }
+            _ => {}
+        }
+    }
+}
+
 impl From<hypr_supabase_auth::Error> for SubscriptionError {
     fn from(err: hypr_supabase_auth::Error) -> Self {
         Self::Auth(err.to_string())
@@ -45,28 +88,10 @@ impl From<stripe::StripeError> for SubscriptionError {
 
 impl IntoResponse for SubscriptionError {
     fn into_response(self) -> Response {
-        let (status, error_code) = match &self {
-            Self::Auth(_) => (StatusCode::UNAUTHORIZED, "unauthorized"),
-            Self::BadRequest(_) => (StatusCode::BAD_REQUEST, "bad_request"),
-            Self::SupabaseRequest(msg) => {
-                tracing::error!(error = %msg, "supabase_error");
-                sentry::capture_message(msg, sentry::Level::Error);
-                (StatusCode::INTERNAL_SERVER_ERROR, "internal_server_error")
-            }
-            Self::Stripe(msg) => {
-                tracing::error!(error = %msg, "stripe_error");
-                sentry::capture_message(msg, sentry::Level::Error);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "failed_to_create_subscription",
-                )
-            }
-            Self::Internal(msg) => {
-                tracing::error!(error = %msg, "internal_error");
-                sentry::capture_message(msg, sentry::Level::Error);
-                (StatusCode::INTERNAL_SERVER_ERROR, "internal_server_error")
-            }
-        };
+        self.report_if_internal();
+
+        let status = self.status_code();
+        let error_code = self.error_code();
 
         let body = Json(ErrorResponse {
             error: error_code.to_string(),

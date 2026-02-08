@@ -1,9 +1,10 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
+use crate::error::ProviderError;
 use crate::types::{ChatCompletionRequest, ChatMessage, ToolChoice, UsageInfo};
 
-use super::{GenerationMetadata, Provider, ProviderError, StreamAccumulator};
+use super::{GenerationMetadata, Provider, StreamAccumulator};
 
 pub const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
 

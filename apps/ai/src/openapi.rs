@@ -1,6 +1,15 @@
+//! OpenAPI documentation generation.
+//!
+//! This module generates OpenAPI 3.0 specifications for the AI API,
+//! merging schemas from the LLM and STT proxy crates and adding
+//! authentication security schemes.
+
 use utoipa::openapi::security::{ApiKey, ApiKeyValue, Http, HttpAuthScheme, SecurityScheme};
 use utoipa::{Modify, OpenApi};
 
+/// Base OpenAPI documentation structure.
+///
+/// This is extended with routes and schemas from proxy crates.
 #[derive(OpenApi)]
 #[openapi(
     info(
@@ -16,6 +25,16 @@ use utoipa::{Modify, OpenApi};
 )]
 pub struct ApiDoc;
 
+/// Generates the complete OpenAPI specification.
+///
+/// Merges documentation from:
+/// - STT proxy endpoints and schemas
+/// - LLM proxy endpoints and schemas
+/// - Security schemes for authentication
+///
+/// # Returns
+///
+/// A complete OpenAPI 3.0 document that can be served as JSON.
 pub fn openapi() -> utoipa::openapi::OpenApi {
     let mut doc = ApiDoc::openapi();
 
@@ -28,6 +47,7 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
     doc
 }
 
+/// Modifier that adds security schemes to the OpenAPI document.
 struct SecurityAddon;
 
 impl Modify for SecurityAddon {

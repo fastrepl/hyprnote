@@ -17,8 +17,8 @@ use owhisper_client::{
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
 
-use crate::hyprnote_routing::{RetryConfig, is_retryable_error, should_use_hyprnote_routing};
-use crate::provider_selector::SelectedProvider;
+use crate::provider::SelectedProvider;
+use crate::provider::{RetryConfig, is_retryable_error, should_use_hyprnote_routing};
 use crate::query_params::{QueryParams, QueryValue};
 
 use super::AppState;

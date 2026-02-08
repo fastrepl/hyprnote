@@ -7,8 +7,9 @@ use axum::{
 };
 
 use crate::analytics::GenerationEvent;
+use crate::error::Error;
 
-use super::{AnalyticsContext, AppState, ProxyError, spawn_analytics_report};
+use super::{AnalyticsContext, AppState, spawn_analytics_report};
 
 pub(super) async fn handle_non_stream_response(
     state: AppState,
@@ -33,7 +34,7 @@ pub(super) async fn handle_non_stream_response(
 
     let body_bytes = match response.bytes().await {
         Ok(b) => b,
-        Err(e) => return ProxyError::BodyRead(e).into_response(),
+        Err(e) => return Error::BodyRead(e.to_string()).into_response(),
     };
 
     if let Ok(metadata) = state.config.provider.parse_response(&body_bytes) {

@@ -1,9 +1,11 @@
+//! Provider selection logic and available provider management
+
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 
 use owhisper_client::Provider;
 
-use crate::error::SelectionError;
+use crate::error::ProviderSelectionError;
 
 pub struct SelectedProvider {
     provider: Provider,
@@ -60,14 +62,17 @@ impl ProviderSelector {
         }
     }
 
-    pub fn select(&self, requested: Option<Provider>) -> Result<SelectedProvider, SelectionError> {
+    pub fn select(
+        &self,
+        requested: Option<Provider>,
+    ) -> Result<SelectedProvider, ProviderSelectionError> {
         let provider = requested.unwrap_or(self.default_provider);
 
         let api_key = self
             .api_keys
             .get(&provider)
             .cloned()
-            .ok_or(SelectionError::ProviderNotAvailable(provider))?;
+            .ok_or(ProviderSelectionError::ProviderNotAvailable(provider))?;
 
         let upstream_url = self.upstream_urls.get(&provider).cloned();
 
@@ -125,7 +130,7 @@ mod tests {
 
         assert_eq!(
             result.unwrap_err(),
-            SelectionError::ProviderNotAvailable(Provider::Soniox)
+            ProviderSelectionError::ProviderNotAvailable(Provider::Soniox)
         );
     }
 
@@ -161,7 +166,7 @@ mod tests {
         let result = selector.select(None);
         assert_eq!(
             result.unwrap_err(),
-            SelectionError::ProviderNotAvailable(Provider::Deepgram)
+            ProviderSelectionError::ProviderNotAvailable(Provider::Deepgram)
         );
 
         let result = selector.select(Some(Provider::Soniox)).unwrap();

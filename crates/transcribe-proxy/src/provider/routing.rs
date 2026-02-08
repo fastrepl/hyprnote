@@ -1,3 +1,7 @@
+//! HyprNote intelligent routing algorithm for provider selection
+//!
+//! This module implements language-aware provider selection and retry logic.
+
 use std::collections::HashSet;
 
 use hypr_language::Language;

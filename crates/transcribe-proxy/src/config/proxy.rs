@@ -1,27 +1,43 @@
+//! Proxy configuration and builder
+
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
 use owhisper_client::Provider;
 
+use super::env::{ApiKeys, Env};
 use crate::analytics::SttAnalyticsReporter;
-use crate::env::{ApiKeys, Env};
-use crate::hyprnote_routing::{HyprnoteRouter, HyprnoteRoutingConfig};
-use crate::provider_selector::ProviderSelector;
+use crate::provider::{HyprnoteRouter, HyprnoteRoutingConfig, ProviderSelector};
 
+/// Default connection timeout in milliseconds (7 seconds)
 pub const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 7 * 1000;
 
+/// Main configuration for the STT proxy
+///
+/// This struct holds all configuration needed to run the proxy, including API keys,
+/// provider selection, timeouts, and optional features like analytics and routing.
 #[derive(Clone)]
 pub struct SttProxyConfig {
+    /// API keys for each provider
     pub api_keys: HashMap<Provider, String>,
+    /// Default provider to use when no specific provider is requested
     pub default_provider: Provider,
+    /// Timeout for establishing upstream connections
     pub connect_timeout: Duration,
+    /// Optional analytics reporter
     pub analytics: Option<Arc<dyn SttAnalyticsReporter>>,
+    /// Optional custom upstream URLs per provider (for testing/dev)
     pub upstream_urls: HashMap<Provider, String>,
+    /// Optional HyprNote intelligent routing configuration
     pub hyprnote_routing: Option<HyprnoteRoutingConfig>,
 }
 
 impl SttProxyConfig {
+    /// Creates a new configuration from environment variables
+    ///
+    /// Uses default values for all optional settings. Use the builder methods
+    /// to customize the configuration.
     pub fn new(env: &Env) -> Self {
         Self {
             api_keys: ApiKeys::from(env).0,

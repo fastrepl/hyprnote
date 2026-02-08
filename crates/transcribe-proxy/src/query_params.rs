@@ -1,3 +1,5 @@
+//! HTTP query parameter parsing and handling
+
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 use std::str::FromStr;

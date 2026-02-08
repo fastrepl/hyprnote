@@ -1,3 +1,5 @@
+//! HTTP route handlers for streaming and batch transcription
+
 mod batch;
 pub mod streaming;
 
@@ -14,8 +16,8 @@ use axum::{
 use owhisper_client::Provider;
 
 use crate::config::SttProxyConfig;
-use crate::hyprnote_routing::{HyprnoteRouter, should_use_hyprnote_routing};
-use crate::provider_selector::{ProviderSelector, SelectedProvider};
+use crate::provider::{HyprnoteRouter, should_use_hyprnote_routing};
+use crate::provider::{ProviderSelector, SelectedProvider};
 use crate::query_params::QueryParams;
 
 #[derive(Clone)]

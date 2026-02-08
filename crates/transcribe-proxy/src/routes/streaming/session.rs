@@ -1,6 +1,6 @@
 use owhisper_client::Provider;
 
-use crate::provider_selector::SelectedProvider;
+use crate::provider::SelectedProvider;
 use crate::query_params::QueryParams;
 use crate::routes::AppState;
 

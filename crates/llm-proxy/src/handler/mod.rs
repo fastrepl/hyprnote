@@ -1,3 +1,5 @@
+//! HTTP handlers for chat completion requests
+
 mod non_streaming;
 mod streaming;
 
@@ -11,7 +13,7 @@ use std::time::{Duration, Instant};
 use axum::{
     Json, Router,
     extract::{FromRequestParts, State},
-    http::{StatusCode, request::Parts},
+    http::request::Parts,
     response::{IntoResponse, Response},
     routing::post,
 };
@@ -20,8 +22,10 @@ use reqwest::Client;
 
 use crate::analytics::{AnalyticsReporter, GenerationEvent};
 use crate::config::LlmProxyConfig;
+use crate::error::{Error, is_retryable};
 use crate::types::{ChatCompletionRequest, ToolChoice};
 
+/// Report analytics with cost information
 async fn report_with_cost(
     analytics: &dyn AnalyticsReporter,
     provider: &dyn crate::provider::Provider,
@@ -35,6 +39,7 @@ async fn report_with_cost(
     analytics.report_generation(event).await;
 }
 
+/// Spawn a background task to report analytics with cost information
 pub(super) fn spawn_analytics_report(
     analytics: Option<Arc<dyn AnalyticsReporter>>,
     provider: Arc<dyn crate::provider::Provider>,
@@ -49,72 +54,14 @@ pub(super) fn spawn_analytics_report(
     }
 }
 
-fn is_retryable_error(error: &reqwest::Error) -> bool {
-    error.is_timeout() || error.is_connect()
-}
-
-enum ProxyError {
-    UpstreamRequest(reqwest::Error),
-    Timeout,
-    BodyRead(reqwest::Error),
-}
-
-impl IntoResponse for ProxyError {
-    fn into_response(self) -> Response {
-        let (status, message) = match self {
-            Self::UpstreamRequest(e) => {
-                let status_code = e.status().map(|s| s.as_u16());
-                let is_timeout = e.is_timeout();
-                let is_connect = e.is_connect();
-                tracing::error!(
-                    error = %e,
-                    upstream_status = ?status_code,
-                    is_timeout = %is_timeout,
-                    is_connect = %is_connect,
-                    "upstream_request_failed"
-                );
-                sentry::configure_scope(|scope| {
-                    if let Some(code) = status_code {
-                        scope.set_tag("upstream.status", code.to_string());
-                    }
-                });
-                (StatusCode::BAD_GATEWAY, e.to_string())
-            }
-            Self::Timeout => {
-                tracing::error!("upstream_request_timeout");
-                sentry::configure_scope(|scope| {
-                    scope.set_tag("upstream.status", "timeout");
-                });
-                (StatusCode::GATEWAY_TIMEOUT, "Request timeout".to_string())
-            }
-            Self::BodyRead(e) => {
-                let is_timeout = e.is_timeout();
-                let is_decode = e.is_decode();
-                tracing::error!(
-                    error = %e,
-                    is_timeout = %is_timeout,
-                    is_decode = %is_decode,
-                    "response_body_read_failed"
-                );
-                sentry::configure_scope(|scope| {
-                    scope.set_tag("upstream.status", "body_read_failed");
-                });
-                (
-                    StatusCode::BAD_GATEWAY,
-                    "Failed to read response".to_string(),
-                )
-            }
-        };
-        (status, message).into_response()
-    }
-}
-
+/// Shared application state for handlers
 #[derive(Clone)]
 pub(crate) struct AppState {
     pub(crate) config: LlmProxyConfig,
     pub(crate) client: Client,
 }
 
+/// Create a router with routes for both `/` and `/chat/completions`
 pub fn router(config: LlmProxyConfig) -> Router {
     let state = AppState {
         config,
@@ -127,6 +74,7 @@ pub fn router(config: LlmProxyConfig) -> Router {
         .with_state(state)
 }
 
+/// Create a router with only the `/chat/completions` route
 pub fn chat_completions_router(config: LlmProxyConfig) -> Router {
     let state = AppState {
         config,
@@ -140,6 +88,7 @@ pub fn chat_completions_router(config: LlmProxyConfig) -> Router {
 
 use hypr_analytics::{AuthenticatedUserId, DeviceFingerprint};
 
+/// Analytics context extracted from request extensions
 pub struct AnalyticsContext {
     pub fingerprint: Option<String>,
     pub user_id: Option<String>,
@@ -213,10 +162,7 @@ async fn completions_handler(
 
     let provider_request = match provider.build_request(&request, models, stream) {
         Ok(req) => req,
-        Err(e) => {
-            tracing::error!(error = %e, "failed_to_build_provider_request");
-            return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid request").into_response();
-        }
+        Err(e) => return Error::InvalidRequest(e).into_response(),
     };
 
     let retry_config = &state.config.retry_config;
@@ -251,15 +197,15 @@ async fn completions_handler(
                 "retrying_llm_request"
             );
         })
-        .when(is_retryable_error)
+        .when(is_retryable)
         .await
     })
     .await;
 
     let response = match result {
         Ok(Ok(resp)) => resp,
-        Ok(Err(e)) => return ProxyError::UpstreamRequest(e).into_response(),
-        Err(_) => return ProxyError::Timeout.into_response(),
+        Ok(Err(e)) => return Error::UpstreamRequest(e).into_response(),
+        Err(_) => return Error::Timeout.into_response(),
     };
 
     if stream {

@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+/// Environment configuration for the subscription service
+#[derive(Debug, Deserialize)]
 pub struct Env {
     pub supabase_url: String,
     pub supabase_anon_key: String,

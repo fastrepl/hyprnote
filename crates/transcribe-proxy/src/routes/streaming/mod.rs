@@ -14,7 +14,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use crate::hyprnote_routing::should_use_hyprnote_routing;
+use crate::provider::should_use_hyprnote_routing;
 use crate::query_params::{QueryParams, QueryValue};
 
 use super::AppState;

@@ -3,51 +3,80 @@ use axum::{
     extract::{Query, State},
     http::HeaderMap,
 };
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use stripe::StripeRequest;
-use stripe_billing::subscription::{
-    CreateSubscription, CreateSubscriptionItems, CreateSubscriptionTrialSettings,
-    CreateSubscriptionTrialSettingsEndBehavior,
-    CreateSubscriptionTrialSettingsEndBehaviorMissingPaymentMethod,
-};
-use stripe_core::customer::CreateCustomer;
 use utoipa::{IntoParams, ToSchema};
 
+use crate::auth::extract_token;
 use crate::error::{Result, SubscriptionError};
-use crate::routes::rpc::extract_token;
+use crate::models::{Interval, Profile};
+use crate::services::subscription::{create_customer, create_trial_subscription};
 use crate::state::AppState;
 
+/// Response for can_start_trial endpoint
+#[derive(Debug, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CanStartTrialResponse {
+    #[schema(example = true)]
+    pub can_start_trial: bool,
+}
+
+/// Query parameters for start_trial endpoint
 #[derive(Debug, Deserialize, IntoParams)]
 pub struct StartTrialQuery {
-    #[serde(default = "default_interval")]
+    #[serde(default)]
     #[param(example = "monthly")]
     pub interval: Interval,
 }
 
-fn default_interval() -> Interval {
-    Interval::Monthly
-}
-
-#[derive(Debug, Deserialize, Clone, Copy, ToSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum Interval {
-    Monthly,
-    Yearly,
-}
-
+/// Response for start_trial endpoint
 #[derive(Debug, Serialize, ToSchema)]
 pub struct StartTrialResponse {
     #[schema(example = true)]
     pub started: bool,
 }
 
-#[derive(Debug, Deserialize)]
-struct Profile {
-    stripe_customer_id: Option<String>,
+/// Checks if the authenticated user can start a trial subscription
+#[utoipa::path(
+    get,
+    path = "/can-start-trial",
+    responses(
+        (status = 200, description = "Check successful", body = CanStartTrialResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 500, description = "Internal server error"),
+    ),
+    tag = "subscription",
+    security(
+        ("bearer_auth" = [])
+    )
+)]
+pub async fn can_start_trial(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Json<CanStartTrialResponse>> {
+    let auth_token = extract_token(&headers)?;
+
+    let auth = state
+        .config
+        .auth
+        .as_ref()
+        .ok_or_else(|| SubscriptionError::Auth("Auth not configured".to_string()))?;
+
+    auth.verify_token(auth_token)
+        .await
+        .map_err(|e| SubscriptionError::Auth(e.to_string()))?;
+
+    let can_start: bool = state
+        .supabase
+        .rpc("can_start_trial", auth_token, None)
+        .await
+        .unwrap_or(false);
+
+    Ok(Json(CanStartTrialResponse {
+        can_start_trial: can_start,
+    }))
 }
 
+/// Starts a trial subscription for the authenticated user
 #[utoipa::path(
     post,
     path = "/start-trial",
@@ -95,16 +124,14 @@ pub async fn start_trial(
     let customer_id = customer_id
         .ok_or_else(|| SubscriptionError::Internal("stripe_customer_id_missing".to_string()))?;
 
-    let price_id = match query.interval {
-        Interval::Monthly => &state.config.stripe_monthly_price_id,
-        Interval::Yearly => &state.config.stripe_yearly_price_id,
-    };
+    let price_id = state.config.price_ids.get(query.interval);
 
     create_trial_subscription(&state.stripe, &customer_id, price_id, &user_id).await?;
 
     Ok(Json(StartTrialResponse { started: true }))
 }
 
+/// Gets the Stripe customer ID for a user or creates a new customer if none exists
 async fn get_or_create_customer(
     state: &AppState,
     auth_token: &str,
@@ -128,23 +155,7 @@ async fn get_or_create_customer(
 
     let email = state.supabase.get_user_email(auth_token).await?;
 
-    let metadata: HashMap<String, String> = [("userId".to_string(), user_id.to_string())].into();
-
-    let mut create_customer = CreateCustomer::new().metadata(metadata);
-
-    if let Some(ref email_str) = email {
-        create_customer = create_customer.email(email_str);
-    }
-
-    let idempotency_key: stripe::IdempotencyKey = format!("create-customer-{}", user_id)
-        .try_into()
-        .map_err(|e: stripe::IdempotentKeyError| SubscriptionError::Internal(e.to_string()))?;
-    let customer = create_customer
-        .customize()
-        .request_strategy(stripe::RequestStrategy::Idempotent(idempotency_key))
-        .send(&state.stripe)
-        .await
-        .map_err(|e: stripe::StripeError| SubscriptionError::Stripe(e.to_string()))?;
+    let customer_id = create_customer(&state.stripe, user_id, email.as_deref()).await?;
 
     #[derive(Serialize)]
     struct UpdateData {
@@ -161,7 +172,7 @@ async fn get_or_create_customer(
                 ("stripe_customer_id", "is.null"),
             ],
             &UpdateData {
-                stripe_customer_id: customer.id.to_string(),
+                stripe_customer_id: customer_id.clone(),
             },
         )
         .await?;
@@ -179,38 +190,4 @@ async fn get_or_create_customer(
     Ok(updated_profiles
         .first()
         .and_then(|p| p.stripe_customer_id.clone()))
-}
-
-async fn create_trial_subscription(
-    stripe: &stripe::Client,
-    customer_id: &str,
-    price_id: &str,
-    user_id: &str,
-) -> Result<()> {
-    let mut item = CreateSubscriptionItems::new();
-    item.price = Some(price_id.to_string());
-
-    let create_sub = CreateSubscription::new()
-        .customer(customer_id)
-        .items(vec![item])
-        .trial_period_days(14u32)
-        .trial_settings(CreateSubscriptionTrialSettings::new(
-            CreateSubscriptionTrialSettingsEndBehavior::new(
-                CreateSubscriptionTrialSettingsEndBehaviorMissingPaymentMethod::Cancel,
-            ),
-        ));
-
-    let date = Utc::now().format("%Y-%m-%d").to_string();
-    let idempotency_key: stripe::IdempotencyKey = format!("trial-{}-{}", user_id, date)
-        .try_into()
-        .map_err(|e: stripe::IdempotentKeyError| SubscriptionError::Internal(e.to_string()))?;
-
-    create_sub
-        .customize()
-        .request_strategy(stripe::RequestStrategy::Idempotent(idempotency_key))
-        .send(stripe)
-        .await
-        .map_err(|e: stripe::StripeError| SubscriptionError::Stripe(e.to_string()))?;
-
-    Ok(())
 }

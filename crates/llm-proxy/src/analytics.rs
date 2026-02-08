@@ -1,21 +1,37 @@
+//! Analytics tracking for LLM generations
+
 use hypr_analytics::{AnalyticsClient, AnalyticsPayload};
 
+/// Event representing a completed LLM generation
 #[derive(Debug, Clone)]
 pub struct GenerationEvent {
+    /// Device fingerprint for anonymous tracking
     pub fingerprint: Option<String>,
+    /// Authenticated user ID
     pub user_id: Option<String>,
+    /// Unique ID for this generation from the provider
     pub generation_id: String,
+    /// Model used for the generation
     pub model: String,
+    /// Number of input tokens
     pub input_tokens: u32,
+    /// Number of output tokens
     pub output_tokens: u32,
+    /// Total latency in seconds
     pub latency: f64,
+    /// HTTP status code of the response
     pub http_status: u16,
+    /// Total cost in USD (if available)
     pub total_cost: Option<f64>,
+    /// Name of the provider
     pub provider_name: String,
+    /// Base URL of the provider
     pub base_url: String,
 }
 
+/// Trait for reporting analytics events
 pub trait AnalyticsReporter: Send + Sync {
+    /// Report a generation event
     fn report_generation(
         &self,
         event: GenerationEvent,

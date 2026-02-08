@@ -1,7 +1,7 @@
 use owhisper_client::Auth;
 
 use crate::config::SttProxyConfig;
-use crate::provider_selector::SelectedProvider;
+use crate::provider::SelectedProvider;
 use crate::query_params::{QueryParams, QueryValue};
 use crate::relay::WebSocketProxy;
 use crate::routes::AppState;

@@ -1,8 +1,9 @@
 use stripe::Client as StripeClient;
 
+use crate::clients::SupabaseClient;
 use crate::config::SubscriptionConfig;
-use crate::supabase::SupabaseClient;
 
+/// Application state containing all service clients and configuration
 #[derive(Clone)]
 pub struct AppState {
     pub config: SubscriptionConfig,
@@ -11,6 +12,7 @@ pub struct AppState {
 }
 
 impl AppState {
+    /// Creates a new AppState from a SubscriptionConfig
     pub fn new(config: SubscriptionConfig) -> Self {
         let supabase = SupabaseClient::new(
             config.supabase_url.clone(),

@@ -1,16 +1,34 @@
+//! Analytics reporting for STT (Speech-to-Text) events
+//!
+//! This module provides a trait-based abstraction for reporting analytics events
+//! related to transcription requests.
+
 use std::time::Duration;
 
 use hypr_analytics::{AnalyticsClient, AnalyticsPayload};
 
+/// Event data for a completed STT transcription request
 #[derive(Debug, Clone)]
 pub struct SttEvent {
+    /// Device fingerprint for anonymous tracking
     pub fingerprint: Option<String>,
+    /// Authenticated user ID
     pub user_id: Option<String>,
+    /// STT provider used (e.g., "deepgram", "soniox")
     pub provider: String,
+    /// Duration of the transcription session
     pub duration: Duration,
 }
 
+/// Trait for reporting STT analytics events
+///
+/// Implementations should handle event reporting asynchronously and not block.
 pub trait SttAnalyticsReporter: Send + Sync {
+    /// Report an STT event asynchronously
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The STT event data to report
     fn report_stt(
         &self,
         event: SttEvent,

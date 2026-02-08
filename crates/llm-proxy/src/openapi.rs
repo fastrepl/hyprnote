@@ -1,3 +1,5 @@
+//! OpenAPI documentation generation
+
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]
@@ -8,6 +10,7 @@ use utoipa::OpenApi;
 )]
 pub struct ApiDoc;
 
+/// Generate OpenAPI documentation for the LLM proxy
 pub fn openapi() -> utoipa::openapi::OpenApi {
     ApiDoc::openapi()
 }

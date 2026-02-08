@@ -1,3 +1,5 @@
+//! URL construction utilities for upstream providers
+
 use std::collections::BTreeMap;
 
 use crate::query_params::{QueryParams, QueryValue};

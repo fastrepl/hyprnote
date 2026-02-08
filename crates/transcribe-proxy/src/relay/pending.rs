@@ -1,3 +1,8 @@
+//! Message queue management for WebSocket relay
+//!
+//! This module handles buffering and prioritization of messages before they are
+//! sent to the upstream provider. Control messages are prioritized over data messages.
+
 use futures_util::SinkExt;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 

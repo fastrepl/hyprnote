@@ -41,8 +41,8 @@ pub fn session_supervisor_name(session_id: &str) -> String {
 fn make_supervisor_options() -> SupervisorOptions {
     SupervisorOptions {
         strategy: SupervisorStrategy::RestForOne,
-        max_restarts: 3,
-        max_window: Duration::from_secs(15),
+        max_restarts: 15,
+        max_window: Duration::from_secs(60),
         reset_after: Some(Duration::from_secs(30)),
     }
 }
@@ -52,7 +52,8 @@ fn make_listener_backoff() -> ChildBackoffFn {
         if count == 0 {
             None
         } else {
-            Some(Duration::from_millis(500))
+            let delay_ms = (500u64 * (1u64 << (count - 1).min(4))).min(10_000);
+            Some(Duration::from_millis(delay_ms))
         }
     })
 }

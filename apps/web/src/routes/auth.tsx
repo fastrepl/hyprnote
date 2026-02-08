@@ -264,7 +264,7 @@ function PasswordForm({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [infoMessage, setInfoMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   const signInMutation = useMutation({
     mutationFn: () =>
@@ -309,9 +309,7 @@ function PasswordForm({
       }
       if (result && "success" in result && result.success) {
         if ("needsConfirmation" in result && result.needsConfirmation) {
-          setInfoMessage(
-            "Check your email to confirm your account before signing in.",
-          );
+          setSubmitted(true);
           return;
         }
         if ("access_token" in result) {
@@ -332,7 +330,6 @@ function PasswordForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
-    setInfoMessage("");
 
     if (isSignUp) {
       if (password !== confirmPassword) {
@@ -348,6 +345,17 @@ function PasswordForm({
       signInMutation.mutate();
     }
   };
+
+  if (submitted) {
+    return (
+      <div className="text-center p-4 bg-stone-50 rounded-lg border border-stone-200">
+        <p className="text-stone-700 font-medium">Check your email</p>
+        <p className="text-sm text-stone-500 mt-1">
+          We sent a confirmation link to {email}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -395,9 +403,6 @@ function PasswordForm({
       {errorMessage && (
         <p className="text-sm text-red-500 text-center">{errorMessage}</p>
       )}
-      {infoMessage && (
-        <p className="text-sm text-blue-600 text-center">{infoMessage}</p>
-      )}
       <button
         type="submit"
         disabled={
@@ -422,7 +427,6 @@ function PasswordForm({
           onClick={() => {
             setIsSignUp(!isSignUp);
             setErrorMessage("");
-            setInfoMessage("");
             setConfirmPassword("");
           }}
           className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"

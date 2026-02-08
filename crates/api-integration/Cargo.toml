@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 hypr-google-calendar = { workspace = true }
+hypr-http = { workspace = true }
 hypr-nango = { workspace = true }
 hypr-supabase-auth = { workspace = true }
 

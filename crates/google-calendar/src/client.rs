@@ -1,19 +1,15 @@
-use hypr_nango::{NangoClient, NangoIntegration};
+use hypr_http::HttpClient;
 
 use crate::error::Error;
 use crate::types::{ListEventsRequest, ListEventsResponse};
 
-pub struct GoogleCalendarClient<'a> {
-    nango: &'a NangoClient,
-    connection_id: String,
+pub struct GoogleCalendarClient<C> {
+    http: C,
 }
 
-impl<'a> GoogleCalendarClient<'a> {
-    pub fn new(nango: &'a NangoClient, connection_id: impl Into<String>) -> Self {
-        Self {
-            nango,
-            connection_id: connection_id.into(),
-        }
+impl<C: HttpClient> GoogleCalendarClient<C> {
+    pub fn new(http: C) -> Self {
+        Self { http }
     }
 
     pub async fn list_events(&self, req: ListEventsRequest) -> Result<ListEventsResponse, Error> {
@@ -47,14 +43,8 @@ impl<'a> GoogleCalendarClient<'a> {
             format!("{}?{}", path, query_parts.join("&"))
         };
 
-        let response = self
-            .nango
-            .for_connection(NangoIntegration::GoogleCalendar, &self.connection_id)
-            .get(&full_path)?
-            .send()
-            .await?;
-
-        let body = response.error_for_status()?.json().await?;
-        Ok(body)
+        let bytes = self.http.get(&full_path).await.map_err(Error::Http)?;
+        let response: ListEventsResponse = serde_json::from_slice(&bytes)?;
+        Ok(response)
     }
 }

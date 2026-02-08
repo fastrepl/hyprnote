@@ -61,8 +61,8 @@ pub async fn list_events(
         .await
         .map_err(|e| IntegrationError::Auth(e.to_string()))?;
 
-    let client =
-        hypr_google_calendar::GoogleCalendarClient::new(&state.nango, &payload.connection_id);
+    let http = crate::nango_http::NangoHttpClient::new(&state.nango, &payload.connection_id);
+    let client = hypr_google_calendar::GoogleCalendarClient::new(http);
 
     let time_min = payload
         .time_min

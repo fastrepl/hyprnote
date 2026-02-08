@@ -1,6 +1,7 @@
 mod config;
 mod env;
 mod error;
+pub mod nango_http;
 mod routes;
 mod state;
 

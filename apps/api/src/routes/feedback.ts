@@ -1,5 +1,4 @@
 import { createAppAuth } from "@octokit/auth-app";
-import { graphql } from "@octokit/graphql";
 import { Octokit } from "@octokit/rest";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
@@ -87,7 +86,6 @@ async function createGitHubIssue(
   title: string,
   body: string,
   labels: string[],
-  issueType: string,
 ): Promise<{ url: string; number: number } | { error: string }> {
   const octokit = getGitHubClient();
   if (!octokit) {
@@ -101,7 +99,6 @@ async function createGitHubIssue(
       title,
       body,
       labels,
-      type: issueType,
     });
 
     return {
@@ -133,79 +130,6 @@ async function addCommentToIssue(
     });
   } catch {
     // Silently fail for comment creation
-  }
-}
-
-async function getInstallationToken(): Promise<string | null> {
-  if (
-    !env.CHARLIE_APP_ID ||
-    !env.CHARLIE_APP_PRIVATE_KEY ||
-    !env.CHARLIE_APP_INSTALLATION_ID
-  ) {
-    return null;
-  }
-
-  const auth = createAppAuth({
-    appId: env.CHARLIE_APP_ID,
-    privateKey: env.CHARLIE_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    installationId: env.CHARLIE_APP_INSTALLATION_ID,
-  });
-
-  const { token } = await auth({ type: "installation" });
-  return token;
-}
-
-async function createGitHubDiscussion(
-  title: string,
-  body: string,
-  categoryId: string,
-): Promise<{ url: string } | { error: string }> {
-  const token = await getInstallationToken();
-  if (!token) {
-    return { error: "GitHub App credentials not configured" };
-  }
-
-  try {
-    const graphqlWithAuth = graphql.defaults({
-      headers: {
-        authorization: `token ${token}`,
-      },
-    });
-
-    const result = await graphqlWithAuth<{
-      createDiscussion: {
-        discussion: {
-          url: string;
-        };
-      };
-    }>(
-      `
-      mutation($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
-        createDiscussion(input: {
-          repositoryId: $repositoryId
-          categoryId: $categoryId
-          title: $title
-          body: $body
-        }) {
-          discussion {
-            url
-          }
-        }
-      }
-    `,
-      {
-        repositoryId: env.CHAR_REPO_ID,
-        categoryId,
-        title,
-        body,
-      },
-    );
-
-    return { url: result.createDiscussion.discussion.url };
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    return { error: `GitHub API error: ${errorMessage}` };
   }
 }
 
@@ -270,7 +194,7 @@ ${deviceInfoSection}
 `;
 
       const labels = ["product/desktop"];
-      const result = await createGitHubIssue(title, body, labels, "Bug");
+      const result = await createGitHubIssue(title, body, labels);
 
       if ("error" in result) {
         return c.json({ success: false, error: result.error }, 500);
@@ -306,21 +230,8 @@ ${deviceInfoSection}
 *This feature request was submitted from the Hyprnote desktop app.*
 `;
 
-      if (!env.CHAR_DISCUSSION_CATEGORY_ID) {
-        return c.json(
-          {
-            success: false,
-            error: "GitHub discussion category not configured",
-          },
-          500,
-        );
-      }
-
-      const result = await createGitHubDiscussion(
-        title,
-        body,
-        env.CHAR_DISCUSSION_CATEGORY_ID,
-      );
+      const labels = ["product/desktop"];
+      const result = await createGitHubIssue(title, body, labels);
 
       if ("error" in result) {
         return c.json({ success: false, error: result.error }, 500);

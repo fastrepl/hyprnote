@@ -27,10 +27,8 @@ export function SearchResultGroup({
 
   return (
     <div className={cn(["mb-4"])}>
-      <div
-        className={cn(["sticky top-0 z-10", "bg-neutral-50 pl-3 pr-1 py-1"])}
-      >
-        <h3 className={cn(["text-base font-bold text-neutral-900"])}>
+      <div className={cn(["sticky top-0 z-10", "bg-muted pl-3 pr-1 py-1"])}>
+        <h3 className={cn(["text-base font-bold text-foreground"])}>
           {group.title}
         </h3>
       </div>
@@ -49,8 +47,8 @@ export function SearchResultGroup({
           className={cn([
             "w-full mt-1 px-3 py-2",
             "flex items-center justify-center gap-2",
-            "text-xs font-medium text-neutral-600",
-            "hover:bg-neutral-100",
+            "text-xs font-medium text-muted-foreground",
+            "hover:bg-muted",
             "rounded-lg transition-colors",
           ])}
         >

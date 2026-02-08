@@ -82,7 +82,7 @@ function HumanSearchResultItem({
       className={cn([
         "w-full px-3 py-2",
         "flex items-start gap-3",
-        "hover:bg-neutral-100",
+        "hover:bg-muted",
         "rounded-lg transition-colors",
         "text-left",
         isSelected && "bg-neutral-100",
@@ -90,17 +90,17 @@ function HumanSearchResultItem({
     >
       <div
         className={cn([
-          "shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center",
+          "shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center",
         ])}
       >
-        <span className={cn(["text-xs font-medium text-neutral-600"])}>
+        <span className={cn(["text-xs font-medium text-muted-foreground"])}>
           {getInitials(result.title)}
         </span>
       </div>
       <div className={cn(["flex-1 min-w-0"])}>
         <div
           className={cn([
-            "text-sm font-normal truncate [&_mark]:bg-yellow-200 [&_mark]:font-semibold [&_mark]:text-neutral-900",
+            "text-sm font-normal truncate [&_mark]:bg-yellow-200 [&_mark]:font-semibold [&_mark]:text-foreground",
           ])}
           dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
         />
@@ -143,7 +143,7 @@ function OrganizationSearchResultItem({
       className={cn([
         "w-full px-3 py-2",
         "flex items-start gap-3",
-        "hover:bg-neutral-100",
+        "hover:bg-muted",
         "rounded-lg transition-colors",
         "text-left",
         isSelected && "bg-neutral-100",
@@ -152,11 +152,11 @@ function OrganizationSearchResultItem({
       <div className={cn(["flex-1 min-w-0"])}>
         <div
           className={cn([
-            "text-sm font-normal truncate [&_mark]:bg-yellow-200 [&_mark]:font-semibold [&_mark]:text-neutral-900",
+            "text-sm font-normal truncate [&_mark]:bg-yellow-200 [&_mark]:font-semibold [&_mark]:text-foreground",
           ])}
           dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
         />
-        <div className={cn(["text-xs text-neutral-500 truncate mt-0.5"])}>
+        <div className={cn(["text-xs text-muted-foreground truncate mt-0.5"])}>
           {memberText}
         </div>
       </div>
@@ -249,7 +249,7 @@ function SessionSearchResultItem({
       className={cn([
         "w-full px-3 py-2",
         "flex flex-col gap-0.5",
-        "hover:bg-neutral-100",
+        "hover:bg-muted",
         "rounded-lg transition-colors",
         "text-left",
         "min-w-0",
@@ -258,7 +258,7 @@ function SessionSearchResultItem({
     >
       <div
         className={cn([
-          "text-sm font-medium text-neutral-900 truncate [&_mark]:bg-yellow-200 [&_mark]:font-semibold",
+          "text-sm font-medium text-foreground truncate [&_mark]:bg-yellow-200 [&_mark]:font-semibold",
           "w-full",
         ])}
         dangerouslySetInnerHTML={{ __html: displayTitle }}
@@ -266,12 +266,12 @@ function SessionSearchResultItem({
       {snippet && (
         <div
           className={cn([
-            "text-xs text-neutral-500 line-clamp-2 [&_mark]:bg-yellow-200 [&_mark]:font-semibold [&_mark]:text-neutral-900",
+            "text-xs text-muted-foreground line-clamp-2 [&_mark]:bg-yellow-200 [&_mark]:font-semibold [&_mark]:text-foreground",
           ])}
           dangerouslySetInnerHTML={{ __html: snippet }}
         />
       )}
-      <div className={cn(["text-xs text-neutral-500"])}>{timeAgo}</div>
+      <div className={cn(["text-xs text-muted-foreground"])}>{timeAgo}</div>
     </button>
   );
 }

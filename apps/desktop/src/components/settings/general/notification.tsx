@@ -223,7 +223,7 @@ export function NotificationSettingsView() {
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <h3 className="mb-1 text-sm font-medium">Event notifications</h3>
-              <p className="text-xs text-neutral-600">
+              <p className="text-xs text-muted-foreground">
                 Get notified 5 minutes before calendar events start
               </p>
             </div>
@@ -243,7 +243,7 @@ export function NotificationSettingsView() {
                 <h3 className="mb-1 text-sm font-medium">
                   Microphone detection
                 </h3>
-                <p className="text-xs text-neutral-600">
+                <p className="text-xs text-muted-foreground">
                   Automatically detect when a meeting starts based on microphone
                   activity.
                 </p>
@@ -260,7 +260,7 @@ export function NotificationSettingsView() {
                   <h4 className="text-sm font-medium">
                     Exclude apps from detection
                   </h4>
-                  <p className="text-xs text-neutral-600">
+                  <p className="text-xs text-muted-foreground">
                     These apps will not trigger detection.
                   </p>
                 </div>
@@ -278,7 +278,7 @@ export function NotificationSettingsView() {
                           className={cn([
                             "flex items-center gap-1 px-2 py-0.5 text-xs",
                             isDefault
-                              ? ["bg-neutral-200 text-neutral-700"]
+                              ? ["bg-muted text-foreground"]
                               : ["bg-muted"],
                           ])}
                           title={isDefault ? "default" : undefined}
@@ -372,7 +372,7 @@ export function NotificationSettingsView() {
                 <h3 className="mb-1 text-sm font-medium">
                   Respect Do-Not-Disturb mode
                 </h3>
-                <p className="text-xs text-neutral-600">
+                <p className="text-xs text-muted-foreground">
                   Don't show notifications when Do-Not-Disturb is enabled on
                   your system
                 </p>

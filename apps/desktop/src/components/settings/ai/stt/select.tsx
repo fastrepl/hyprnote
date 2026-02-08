@@ -143,12 +143,12 @@ export function SelectProviderAndModel() {
       <div
         className={cn([
           "flex flex-col gap-4",
-          "p-4 rounded-xl border border-neutral-200",
+          "p-4 rounded-xl border border-border",
           !isConfigured || hasError
-            ? "bg-red-50"
+            ? "bg-destructive/10"
             : hasLanguageWarning
-              ? "bg-amber-50"
-              : "bg-neutral-50",
+              ? "bg-amber-500/10"
+              : "bg-muted/40",
         ])}
       >
         <div className="flex flex-row items-center gap-4">
@@ -166,7 +166,7 @@ export function SelectProviderAndModel() {
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
                 >
-                  <SelectTrigger className="bg-white shadow-none focus:ring-0">
+                  <SelectTrigger className="bg-background shadow-none focus:ring-0">
                     <SelectValue placeholder="Select a provider" />
                   </SelectTrigger>
                   <SelectContent>
@@ -192,13 +192,13 @@ export function SelectProviderAndModel() {
                                 {provider.icon}
                                 <span>{provider.displayName}</span>
                                 {requiresPro ? (
-                                  <span className="text-[10px] uppercase tracking-wide text-neutral-500 border border-neutral-200 rounded-full px-2 py-0.5">
+                                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded-full px-2 py-0.5">
                                     Pro
                                   </span>
                                 ) : null}
                               </div>
                               {locked ? (
-                                <span className="text-[11px] text-neutral-500">
+                                <span className="text-[11px] text-muted-foreground">
                                   Upgrade to Pro to use this provider.
                                 </span>
                               ) : null}
@@ -213,7 +213,7 @@ export function SelectProviderAndModel() {
             )}
           </form.Field>
 
-          <span className="text-neutral-500">/</span>
+          <span className="text-muted-foreground">/</span>
 
           <form.Field name="model">
             {(field) => {
@@ -255,7 +255,7 @@ export function SelectProviderAndModel() {
                   >
                     <SelectTrigger
                       className={cn([
-                        "bg-white shadow-none focus:ring-0",
+                        "bg-background shadow-none focus:ring-0",
                         "[&>span]:flex [&>span]:items-center [&>span]:justify-between [&>span]:w-full [&>span]:gap-2",
                         isConfigured && "[&>svg:last-child]:hidden",
                       ])}
@@ -263,7 +263,7 @@ export function SelectProviderAndModel() {
                       <SelectValue placeholder="Select a model" />
                       {isConfigured && <HealthStatusIndicator />}
                       {isConfigured && health.status !== "pending" && (
-                        <Check className="-mr-1 h-4 w-4 shrink-0 text-green-600" />
+                        <Check className="-mr-1 h-4 w-4 shrink-0 text-emerald-500" />
                       )}
                     </SelectTrigger>
                     <SelectContent>
@@ -286,8 +286,8 @@ export function SelectProviderAndModel() {
         </div>
 
         {!isConfigured && (
-          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
-            <span className="text-sm text-red-600">
+          <div className="flex items-center gap-2 pt-2 border-t border-destructive/40">
+            <span className="text-sm text-destructive">
               <strong className="font-medium">Transcription model</strong> is
               needed to make Hyprnote listen to your conversations.
             </span>
@@ -295,12 +295,12 @@ export function SelectProviderAndModel() {
         )}
 
         {hasError && health.message && (
-          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
-            <span className="text-sm text-red-600">{health.message}</span>
+          <div className="flex items-center gap-2 pt-2 border-t border-destructive/40">
+            <span className="text-sm text-destructive">{health.message}</span>
           </div>
         )}
         {hasLanguageWarning && (
-          <div className="flex items-center gap-2 pt-2 border-t border-amber-200">
+          <div className="flex items-center gap-2 pt-2 border-t border-amber-500/40">
             <span className="text-sm text-amber-600">
               Selected model may not support all your spoken languages.
             </span>
@@ -464,13 +464,13 @@ function ModelSelectItem({
         "group",
       ])}
     >
-      <span className="text-neutral-400">{displayModelId(model.id)}</span>
+      <span className="text-muted-foreground">{displayModelId(model.id)}</span>
       {isDownloading ? (
         <span
           className={cn([
             "px-2 py-0.5 rounded-full text-[11px] font-medium",
             "flex items-center gap-1",
-            "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-500",
+            "bg-muted text-muted-foreground",
           ])}
         >
           <Loader2 className="size-3 animate-spin" />
@@ -484,7 +484,7 @@ function ModelSelectItem({
             "transition-all duration-150",
             isCloud
               ? "bg-linear-to-t from-stone-600 to-stone-500 text-white shadow-xs hover:shadow-md"
-              : "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-xs hover:shadow-md",
+              : "bg-muted text-foreground shadow-xs hover:shadow-md",
           ])}
           onClick={handleAction}
         >

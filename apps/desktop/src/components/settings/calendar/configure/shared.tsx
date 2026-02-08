@@ -25,9 +25,9 @@ export function CalendarSelection({
 }: CalendarSelectionProps) {
   if (groups.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-6 px-4 border border-dashed border-neutral-200 rounded-lg bg-neutral-50/50">
-        <CalendarOffIcon className="size-6 text-neutral-300 mb-2" />
-        <p className="text-xs text-neutral-500">No calendars found</p>
+      <div className="flex flex-col items-center justify-center py-6 px-4 border border-dashed border-border rounded-lg bg-muted/40">
+        <CalendarOffIcon className="size-6 text-muted-foreground/60 mb-2" />
+        <p className="text-xs text-muted-foreground">No calendars found</p>
       </div>
     );
   }
@@ -36,7 +36,7 @@ export function CalendarSelection({
     <div className="flex flex-col gap-3">
       {groups.map((group) => (
         <div key={group.sourceName}>
-          <h5 className="text-xs font-medium text-neutral-500 mb-2">
+          <h5 className="text-xs font-medium text-muted-foreground mb-2">
             {group.sourceName}
           </h5>
           <div className="flex flex-col gap-1">
@@ -80,7 +80,7 @@ function CalendarToggleRow({
         style={
           enabled
             ? { backgroundColor: color, borderColor: color }
-            : { borderColor: "#d4d4d4" }
+            : { borderColor: "hsl(var(--border))" }
         }
       >
         {enabled && <CheckIcon className="size-3 text-white" strokeWidth={3} />}

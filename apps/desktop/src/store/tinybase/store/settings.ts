@@ -23,6 +23,10 @@ export const SETTINGS_MAPPING = {
       type: "boolean",
       path: ["general", "save_recordings"],
     },
+    theme: {
+      type: "string",
+      path: ["general", "theme"],
+    },
     notification_event: {
       type: "boolean",
       path: ["notification", "event"],

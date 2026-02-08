@@ -99,7 +99,7 @@ export function Data() {
 
   return (
     <div>
-      <StyledStreamdown className="text-neutral-500">
+      <StyledStreamdown className="text-muted-foreground">
         {
           "Import data from other apps. Read more about [import](https://hyprnote.com/docs/data/#import) and [export](https://hyprnote.com/docs/data/#export)."
         }

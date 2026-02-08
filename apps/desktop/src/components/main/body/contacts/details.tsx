@@ -211,7 +211,7 @@ export function DetailsColumn({
         <>
           <div className="px-6 py-4 border-b border-neutral-200">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                 <span className="text-lg font-medium text-neutral-600">
                   {getInitials(
                     selectedPersonData.name || selectedPersonData.email,
@@ -264,7 +264,7 @@ export function DetailsColumn({
                       className="flex items-center justify-between p-2 bg-neutral-50 rounded-md border border-neutral-200"
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
                           <span className="text-xs font-medium text-neutral-600">
                             {getInitials(dup.name || dup.email)}
                           </span>
@@ -691,10 +691,10 @@ function OrganizationControl({
                 <button
                   key={org.id}
                   type="button"
-                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
+                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-secondary transition-colors w-full"
                   onClick={() => selectOrganization(org.id)}
                 >
-                  <span className="shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
+                  <span className="shrink-0 size-5 flex items-center justify-center mr-2 bg-secondary rounded-full">
                     <Building2 className="size-3" />
                   </span>
                   <span className="font-medium truncate">{org.name}</span>
@@ -704,10 +704,10 @@ function OrganizationControl({
               {organizations.length === 0 && (
                 <button
                   type="button"
-                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
+                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-secondary transition-colors w-full"
                   onClick={() => handleCreateOrganization()}
                 >
-                  <span className="shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
+                  <span className="shrink-0 size-5 flex items-center justify-center mr-2 bg-muted rounded-full">
                     <span className="text-xs">+</span>
                   </span>
                   <span className="flex items-center gap-1 font-medium text-neutral-600">
@@ -727,10 +727,10 @@ function OrganizationControl({
                 <button
                   key={org.id}
                   type="button"
-                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
+                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-secondary transition-colors w-full"
                   onClick={() => selectOrganization(org.id)}
                 >
-                  <span className="shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
+                  <span className="shrink-0 size-5 flex items-center justify-center mr-2 bg-secondary rounded-full">
                     <Building2 className="size-3" />
                   </span>
                   <span className="font-medium truncate">{org.name}</span>

@@ -122,7 +122,7 @@ function DeviceList({ direction }: { direction: "input" | "output" }) {
       <h3 className="text-sm font-medium mb-2">
         {direction === "input" ? "Input devices" : "Output devices"}
       </h3>
-      <p className="text-xs text-neutral-500 mb-3">
+      <p className="text-xs text-muted-foreground mb-3">
         {direction === "input"
           ? "Drag to set microphone priority. Top device will be auto-selected."
           : "Drag to set speaker priority. Top device will be auto-selected."}
@@ -162,16 +162,16 @@ function DeviceItem({
         "flex items-center gap-2 px-3 py-2 rounded-lg cursor-grab active:cursor-grabbing",
         "border transition-colors",
         isTop
-          ? "bg-neutral-100 border-neutral-300"
-          : "bg-neutral-50 border-neutral-200 hover:bg-neutral-100",
+          ? "bg-muted border-border"
+          : "bg-muted/40 border-border hover:bg-muted",
       ])}
     >
-      <GripVertical className="h-4 w-4 text-neutral-400 shrink-0" />
-      <span className="text-xs text-neutral-400 w-4">{rank}</span>
+      <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+      <span className="text-xs text-muted-foreground w-4">{rank}</span>
       <span className={cn(["text-sm flex-1 truncate", isTop && "font-medium"])}>
         {device.name}
       </span>
-      {isTop && <span className="text-xs text-neutral-500">Active</span>}
+      {isTop && <span className="text-xs text-muted-foreground">Active</span>}
     </Reorder.Item>
   );
 }

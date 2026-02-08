@@ -75,7 +75,10 @@ export function Final({ onNavigate }: StepProps) {
         }
       >
         <div className="flex justify-center py-4">
-          <Loader2Icon size={64} className="text-neutral-400 animate-spin" />
+          <Loader2Icon
+            size={64}
+            className="text-muted-foreground animate-spin"
+          />
         </div>
       </OnboardingContainer>
     );
@@ -95,7 +98,7 @@ export function Final({ onNavigate }: StepProps) {
 
       <button
         onClick={() => void finishOnboarding()}
-        className="w-full py-3 rounded-full bg-linear-to-t from-neutral-800 to-neutral-700 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
+        className="w-full py-3 rounded-full bg-primary text-primary-foreground text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
       >
         Get Started
       </button>

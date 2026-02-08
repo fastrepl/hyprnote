@@ -156,7 +156,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
     <div
       data-tauri-drag-region
       className={cn([
-        "w-full h-9 flex items-center",
+        "w-full h-9 flex items-center bg-background border-b border-border",
         !leftsidebar.expanded && (isLinux ? "pl-3" : "pl-18"),
       ])}
     >
@@ -171,12 +171,15 @@ function Header({ tabs }: { tabs: Tab[] }) {
                 className="shrink-0"
                 onClick={() => leftsidebar.setExpanded(true)}
               >
-                <PanelLeftOpenIcon size={16} className="text-neutral-600" />
+                <PanelLeftOpenIcon
+                  size={16}
+                  className="text-muted-foreground"
+                />
               </Button>
             </TooltipTrigger>
             <TooltipContent
               side="bottom"
-              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm text-neutral-700 border border-neutral-200/50 shadow-lg"
+              className="flex items-center gap-2 bg-popover/80 backdrop-blur-sm text-popover-foreground border border-border/50 shadow-lg"
             >
               <span>Toggle sidebar</span>
               <Kbd className="animate-kbd-press">⌘ \</Kbd>
@@ -283,10 +286,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
           </Reorder.Group>
         </div>
         {!scrollState.atStart && (
-          <div className="absolute left-0 top-0 h-full w-8 z-20 pointer-events-none bg-linear-to-r from-white to-transparent" />
+          <div className="absolute left-0 top-0 h-full w-8 z-20 pointer-events-none bg-linear-to-r from-background to-transparent" />
         )}
         {!scrollState.atEnd && (
-          <div className="absolute right-0 top-0 h-full w-8 z-20 pointer-events-none bg-linear-to-l from-white to-transparent" />
+          <div className="absolute right-0 top-0 h-full w-8 z-20 pointer-events-none bg-linear-to-l from-background to-transparent" />
         )}
       </div>
 
@@ -300,7 +303,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
             onClick={handleNewEmptyTab}
             variant="ghost"
             size="icon"
-            className="text-neutral-600"
+            className="text-muted-foreground"
           >
             <PlusIcon size={16} />
           </Button>
@@ -649,7 +652,7 @@ export function StandardTabWrapper({
 }) {
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-col rounded-xl border border-neutral-200 flex-1 overflow-hidden relative">
+      <div className="flex flex-col rounded-xl border border-border bg-background flex-1 overflow-hidden relative">
         {children}
         {floatingButton}
         <StandardTabChatButton showTimeline={showTimeline} />

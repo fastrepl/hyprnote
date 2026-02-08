@@ -160,7 +160,7 @@ export function ChatMessageInput({
   return (
     <Container>
       {attachedSession && (
-        <div className="px-3 pt-2 text-xs text-neutral-500 truncate">
+        <div className="px-3 pt-2 text-xs text-muted-foreground truncate">
           Attached: {attachedSession.title || "Untitled"}
         </div>
       )}
@@ -184,7 +184,7 @@ export function ChatMessageInput({
                   disabled={true}
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
+                  className="h-8 w-8 text-muted-foreground cursor-not-allowed"
                 >
                   <PaperclipIcon size={16} />
                 </Button>
@@ -200,7 +200,7 @@ export function ChatMessageInput({
                   disabled={true}
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
+                  className="h-8 w-8 text-muted-foreground cursor-not-allowed"
                 >
                   <FullscreenIcon size={16} />
                 </Button>
@@ -219,7 +219,7 @@ export function ChatMessageInput({
                   disabled={true}
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
+                  className="h-8 w-8 text-muted-foreground cursor-not-allowed"
                 >
                   <MicIcon size={16} />
                 </Button>
@@ -243,7 +243,7 @@ export function ChatMessageInput({
                 disabled={disabled}
                 size="icon"
                 variant="ghost"
-                className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
+                className={cn(["h-8 w-8", disabled && "text-muted-foreground"])}
               >
                 <SendIcon size={16} />
               </Button>
@@ -252,7 +252,7 @@ export function ChatMessageInput({
         </div>
       </div>
       {hasContent && (
-        <span className="absolute bottom-1.5 right-5 text-[8px] text-neutral-400">
+        <span className="absolute bottom-1.5 right-5 text-[8px] text-muted-foreground">
           Shift + Enter to add a new line
         </span>
       )}
@@ -267,7 +267,7 @@ function Container({ children }: { children: React.ReactNode }) {
     <div className={cn(["relative", chat.mode !== "RightPanelOpen" && "p-1"])}>
       <div
         className={cn([
-          "flex flex-col border border-neutral-200 rounded-xl",
+          "flex flex-col border border-border rounded-xl",
           chat.mode === "RightPanelOpen" && "rounded-t-none border-t-0",
         ])}
       >
@@ -281,7 +281,7 @@ const ChatPlaceholder: PlaceholderFunction = ({ node, pos }) => {
   "use no memo";
   if (node.type.name === "paragraph" && pos === 0) {
     return (
-      <p className="text-sm text-neutral-400">
+      <p className="text-sm text-muted-foreground">
         Ask & search about anything, or be creative!
       </p>
     );

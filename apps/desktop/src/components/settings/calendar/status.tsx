@@ -40,12 +40,12 @@ export function CalendarStatus() {
   }
 
   return (
-    <div className="flex items-center justify-between rounded-lg border bg-neutral-50 px-4 py-3">
+    <div className="flex items-center justify-between rounded-lg border bg-muted/40 px-4 py-3">
       <div className="flex flex-col gap-0.5">
         <span className="text-sm font-medium">
           {selectedCount} calendar{selectedCount !== 1 ? "s" : ""} selected
         </span>
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-muted-foreground">
           {isRunning ? "Syncing..." : "Syncs every minute automatically"}
         </span>
       </div>

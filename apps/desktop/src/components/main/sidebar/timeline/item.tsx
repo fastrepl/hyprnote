@@ -91,8 +91,8 @@ function ItemBase({
       contextMenu={contextMenu}
       className={cn([
         "cursor-pointer w-full text-left px-3 py-2 rounded-lg",
-        selected && "bg-neutral-200",
-        !selected && "hover:bg-neutral-100",
+        selected && "bg-muted",
+        !selected && "hover:bg-muted",
         ignored && "opacity-40",
       ])}
     >
@@ -112,7 +112,7 @@ function ItemBase({
             {title}
           </div>
           {displayTime && (
-            <div className="text-xs text-neutral-500">{displayTime}</div>
+            <div className="text-xs text-muted-foreground">{displayTime}</div>
           )}
         </div>
         {calendarId && <CalendarIndicator calendarId={calendarId} />}
@@ -448,7 +448,9 @@ function CalendarIndicator({ calendarId }: { calendarId: string }) {
   const calendar = main.UI.useRow("calendars", calendarId, main.STORE_ID);
 
   const name = calendar?.name ? String(calendar.name) : undefined;
-  const color = calendar?.color ? String(calendar.color) : "#888";
+  const color = calendar?.color
+    ? String(calendar.color)
+    : "hsl(var(--muted-foreground))";
 
   return (
     <Tooltip delayDuration={0}>

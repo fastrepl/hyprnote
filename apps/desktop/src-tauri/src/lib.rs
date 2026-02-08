@@ -197,6 +197,11 @@ pub async fn main() {
                 supervisor::monitor_supervisor(handle, ctx.is_exiting.clone(), app_handle.clone());
             }
 
+            #[cfg(target_os = "macos")]
+            {
+                commands::setup_theme_observer(app_handle.clone());
+            }
+
             // control::setup(&app_handle);
 
             Ok(())
@@ -332,6 +337,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_dismissed_toasts::<tauri::Wry>,
             commands::get_env::<tauri::Wry>,
             commands::show_devtool,
+            commands::get_system_theme,
             commands::resize_window_for_chat::<tauri::Wry>,
             commands::resize_window_for_sidebar::<tauri::Wry>,
             commands::get_tinybase_values::<tauri::Wry>,

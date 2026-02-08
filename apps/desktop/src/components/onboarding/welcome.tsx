@@ -28,7 +28,7 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
         draggable={false}
       />
 
-      <p className="mb-16 text-center text-xl font-medium text-neutral-600">
+      <p className="mb-16 text-center text-xl font-medium text-muted-foreground">
         Where Conversations Stay Yours
       </p>
 
@@ -41,7 +41,7 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
         </button>
         <button
           onClick={() => goNext(true)}
-          className="text-sm text-neutral-500 transition-opacity duration-150 hover:opacity-70"
+          className="text-sm text-muted-foreground transition-opacity duration-150 hover:opacity-70"
         >
           proceed without account
         </button>

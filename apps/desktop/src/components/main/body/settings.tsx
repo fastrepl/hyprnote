@@ -127,7 +127,7 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
               activeTab === id &&
                 (id === "lab"
                   ? "bg-amber-100 border-amber-300 text-amber-800"
-                  : "bg-neutral-100 border-neutral-200"),
+                  : "bg-muted border-border"),
             ])}
           >
             <Icon size={14} />

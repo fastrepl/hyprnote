@@ -36,7 +36,7 @@ export function FolderChain({ sessionId }: { sessionId: string }) {
 
   return (
     <Breadcrumb className="ml-1.5 min-w-0">
-      <BreadcrumbList className="text-neutral-700 text-xs flex-nowrap overflow-hidden gap-0.5">
+      <BreadcrumbList className="text-muted-foreground text-xs flex-nowrap overflow-hidden gap-0.5">
         {folderId && <FolderIcon className="w-3 h-3 mr-1 shrink-0" />}
         {!folderId ? (
           <RenderIfRootNotExist
@@ -81,7 +81,7 @@ function RenderIfRootExist({
                 size="sm"
                 variant="ghost"
                 onClick={() => openNew({ type: "folders", id })}
-                className="truncate px-0 text-neutral-600 hover:text-black"
+                className="truncate px-0 text-muted-foreground hover:text-foreground"
               >
                 {name}
               </Button>
@@ -114,7 +114,7 @@ function RenderIfRootNotExist({
         <SearchableFolderDropdown
           sessionId={sessionId}
           trigger={
-            <button className="text-neutral-500 hover:text-neutral-700 transition-colors outline-hidden">
+            <button className="text-muted-foreground hover:text-foreground transition-colors outline-hidden">
               Select folder
             </button>
           }
@@ -141,7 +141,7 @@ function TitleInput({
     <input
       type="text"
       placeholder="Untitled"
-      className="truncate min-w-0 w-full border-none bg-transparent text-neutral-700 focus:outline-hidden focus:underline"
+      className="truncate min-w-0 w-full border-none bg-transparent text-foreground focus:outline-hidden focus:underline"
       value={title ?? ""}
       onChange={(e) => handleChangeTitle(e.target.value)}
     />

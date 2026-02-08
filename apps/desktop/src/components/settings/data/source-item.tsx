@@ -21,12 +21,12 @@ export function SourceItem({
     <div className="flex items-center justify-between gap-4">
       <div className="flex-1 min-w-0">
         <h3 className="text-sm font-medium mb-1">{source.name}</h3>
-        <p className="text-xs text-neutral-600">
+        <p className="text-xs text-muted-foreground">
           Import data from `
           <button
             type="button"
             onClick={() => openerCommands.revealItemInDir(source.revealPath)}
-            className="underline hover:text-neutral-900 cursor-pointer"
+            className="underline hover:text-foreground cursor-pointer"
           >
             {source.path}
           </button>

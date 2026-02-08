@@ -182,7 +182,7 @@ function SectionItem({
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <div className="group relative bg-white">
+    <div className="group relative bg-background">
       {!disabled && (
         <button
           className="absolute -left-5 top-2.5 cursor-move opacity-0 group-hover:opacity-30 hover:opacity-60 transition-opacity"
@@ -223,7 +223,7 @@ function SectionItem({
             "min-h-[100px] w-full border rounded-xl p-3 resize-y transition-colors font-mono text-sm",
             "focus-visible:outline-hidden",
             disabled
-              ? "bg-neutral-50"
+              ? "bg-muted/40"
               : isFocused
                 ? "border-blue-500 ring-2 ring-primary/20"
                 : "border-input",

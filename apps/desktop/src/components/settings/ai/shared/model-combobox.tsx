@@ -139,7 +139,7 @@ export function ModelCombobox({
           disabled={disabled || isLoadingModels}
           aria-expanded={open}
           className={cn([
-            "w-full justify-between font-normal bg-white shadow-none focus-visible:ring-0",
+            "w-full justify-between font-normal bg-background shadow-none focus-visible:ring-0",
             "rounded-md px-3",
           ])}
         >
@@ -156,7 +156,7 @@ export function ModelCombobox({
             {suffix}
           </span>
           {isConfigured ? (
-            <Check className="-mr-1 h-4 w-4 shrink-0 text-green-600" />
+            <Check className="-mr-1 h-4 w-4 shrink-0 text-emerald-500" />
           ) : (
             <ChevronDown className="-mr-1 h-4 w-4 shrink-0 opacity-50" />
           )}
@@ -207,7 +207,7 @@ export function ModelCombobox({
                   }}
                   className={cn([
                     "cursor-pointer",
-                    "focus:bg-neutral-200! hover:bg-neutral-200! aria-selected:bg-transparent",
+                    "focus:bg-muted! hover:bg-muted! aria-selected:bg-transparent",
                   ])}
                 >
                   <span className="truncate">
@@ -233,7 +233,7 @@ export function ModelCombobox({
                     }}
                     className={cn([
                       "cursor-pointer opacity-50",
-                      "focus:bg-neutral-200! hover:bg-neutral-200! aria-selected:bg-transparent",
+                      "focus:bg-muted! hover:bg-muted! aria-selected:bg-transparent",
                     ])}
                   >
                     <Tooltip delayDuration={10}>
@@ -269,7 +269,7 @@ export function ModelCombobox({
                   }}
                   className={cn([
                     "cursor-pointer",
-                    "focus:bg-neutral-200! hover:bg-neutral-200! aria-selected:bg-transparent",
+                    "focus:bg-muted! hover:bg-muted! aria-selected:bg-transparent",
                   ])}
                 >
                   <CirclePlus className="mr-2 h-4 w-4" />

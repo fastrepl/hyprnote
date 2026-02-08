@@ -117,7 +117,7 @@ export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-xs">
+          <div className="rounded-xl border border-border bg-background p-6 shadow-xs">
             <div className="flex flex-col items-center gap-4 text-center">
               <motion.div
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50"
@@ -133,10 +133,10 @@ export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
               </motion.div>
 
               <div className="flex flex-col gap-1.5">
-                <h2 className="text-base font-semibold text-neutral-900">
+                <h2 className="text-base font-semibold text-foreground">
                   Something went wrong
                 </h2>
-                <p className="text-sm text-neutral-500 leading-relaxed max-w-[260px]">
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-[260px]">
                   {error.message || "An unexpected error occurred."}
                 </p>
               </div>
@@ -190,10 +190,10 @@ export const NotFoundComponent: NotFoundRouteComponent = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-xs">
+          <div className="rounded-xl border border-border bg-background p-6 shadow-xs">
             <div className="flex flex-col items-center gap-4 text-center">
               <motion.div
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100"
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-muted"
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{
@@ -202,12 +202,12 @@ export const NotFoundComponent: NotFoundRouteComponent = () => {
                   stiffness: 200,
                 }}
               >
-                <Search className="h-6 w-6 text-neutral-400" />
+                <Search className="h-6 w-6 text-muted-foreground" />
               </motion.div>
 
               <div className="flex flex-col gap-1.5">
                 <motion.span
-                  className="block text-4xl font-bold text-neutral-300"
+                  className="block text-4xl font-bold text-muted-foreground/50"
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{
@@ -218,10 +218,10 @@ export const NotFoundComponent: NotFoundRouteComponent = () => {
                 >
                   404
                 </motion.span>
-                <h2 className="text-base font-semibold text-neutral-900">
+                <h2 className="text-base font-semibold text-foreground">
                   Page not found
                 </h2>
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-muted-foreground">
                   The page you're looking for doesn't exist.
                 </p>
               </div>

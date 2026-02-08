@@ -51,7 +51,7 @@ function StartButton({ sessionId }: { sessionId: string }) {
       disabled={isDisabled}
       className={cn([
         "inline-flex items-center justify-center rounded-md text-xs font-medium",
-        "bg-white text-neutral-900 hover:bg-neutral-100",
+        "bg-muted text-foreground hover:bg-muted/80",
         "gap-1.5",
         "w-20 h-7",
         "disabled:pointer-events-none disabled:opacity-50",
@@ -60,7 +60,7 @@ function StartButton({ sessionId }: { sessionId: string }) {
       aria-label="Listen"
     >
       <RecordingIcon />
-      <span className="text-neutral-900 hover:text-neutral-800">Listen</span>
+      <span className="text-foreground">Listen</span>
     </button>
   );
 
@@ -112,8 +112,11 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
       className={cn([
         "inline-flex items-center justify-center rounded-md text-sm font-medium",
         finalizing
-          ? ["text-neutral-500", "bg-neutral-100", "cursor-wait"]
-          : ["text-red-500 hover:text-red-600", "bg-red-50 hover:bg-red-100"],
+          ? ["text-muted-foreground", "bg-muted", "cursor-wait"]
+          : [
+              "text-destructive hover:text-destructive/90",
+              "bg-destructive/10 hover:bg-destructive/20",
+            ],
         "w-20 h-7",
         "disabled:pointer-events-none disabled:opacity-50",
       ])}
@@ -138,7 +141,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
                 (amplitude.mic + amplitude.speaker) / 2000,
                 1,
               )}
-              color="#ef4444"
+              color="hsl(var(--destructive))"
               height={18}
               width={60}
             />

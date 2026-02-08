@@ -93,7 +93,7 @@ function StoragePathRow({
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <div className="flex items-center gap-2 w-24 shrink-0 cursor-default">
-            <Icon className="size-4 text-neutral-500" />
+            <Icon className="size-4 text-muted-foreground" />
             <span className="text-sm font-medium">{title}</span>
           </div>
         </TooltipTrigger>
@@ -103,7 +103,7 @@ function StoragePathRow({
       </Tooltip>
       <button
         onClick={handleOpenPath}
-        className="flex-1 text-left text-sm text-neutral-500 truncate min-w-0 hover:underline cursor-pointer"
+        className="flex-1 text-left text-sm text-muted-foreground truncate min-w-0 hover:underline cursor-pointer"
       >
         {path ?? "Loading..."}
       </button>

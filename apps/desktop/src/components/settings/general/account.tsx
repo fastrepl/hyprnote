@@ -33,14 +33,14 @@ function PlanStatus({
   trialDaysRemaining: number | null;
 }) {
   if (!subscriptionStatus) {
-    return <span className="text-neutral-500">FREE</span>;
+    return <span className="text-muted-foreground">FREE</span>;
   }
 
   switch (subscriptionStatus) {
     case "active":
       return (
-        <span className="inline-flex items-center gap-1 font-medium text-neutral-800">
-          <Sparkles size={13} className="text-neutral-500" />
+        <span className="inline-flex items-center gap-1 font-medium text-foreground">
+          <Sparkles size={13} className="text-muted-foreground" />
           PRO
         </span>
       );
@@ -59,13 +59,16 @@ function PlanStatus({
       }
       return (
         <span className="inline-flex items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 font-medium text-neutral-800">
-            <Sparkles size={13} className="text-neutral-500" />
+          <span className="inline-flex items-center gap-1 font-medium text-foreground">
+            <Sparkles size={13} className="text-muted-foreground" />
             PRO
           </span>
           {trialText && (
             <span
-              className={cn(["text-neutral-500", isUrgent && "text-amber-600"])}
+              className={cn([
+                "text-muted-foreground",
+                isUrgent && "text-amber-600",
+              ])}
             >
               ({trialText})
             </span>
@@ -77,8 +80,8 @@ function PlanStatus({
     case "past_due":
       return (
         <span className="inline-flex items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 font-medium text-neutral-800">
-            <Sparkles size={13} className="text-neutral-500" />
+          <span className="inline-flex items-center gap-1 font-medium text-foreground">
+            <Sparkles size={13} className="text-muted-foreground" />
             PRO
           </span>
           <span className="text-amber-600">(Payment issue)</span>
@@ -89,19 +92,19 @@ function PlanStatus({
       return <span className="text-amber-600">Payment failed</span>;
 
     case "canceled":
-      return <span className="text-neutral-500">Canceled</span>;
+      return <span className="text-muted-foreground">Canceled</span>;
 
     case "incomplete":
-      return <span className="text-neutral-500">Setup incomplete</span>;
+      return <span className="text-muted-foreground">Setup incomplete</span>;
 
     case "incomplete_expired":
-      return <span className="text-neutral-500">Expired</span>;
+      return <span className="text-muted-foreground">Expired</span>;
 
     case "paused":
-      return <span className="text-neutral-500">Paused</span>;
+      return <span className="text-muted-foreground">Paused</span>;
 
     default:
-      return <span className="text-neutral-500">FREE</span>;
+      return <span className="text-muted-foreground">FREE</span>;
   }
 }
 
@@ -156,7 +159,7 @@ export function AccountSettings() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
             <h2 className="text-sm font-medium">Manual callback</h2>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-muted-foreground">
               Paste the callback URL from your browser
             </p>
           </div>
@@ -189,7 +192,7 @@ export function AccountSettings() {
             <h2 className="text-2xl font-semibold font-serif">
               Waiting for sign-in...
             </h2>
-            <p className="text-base text-neutral-500">
+            <p className="text-base text-muted-foreground">
               Complete the sign-in process in your browser
             </p>
           </div>
@@ -215,7 +218,7 @@ export function AccountSettings() {
           <h2 className="text-2xl font-semibold font-serif">
             Sign in to Hyprnote
           </h2>
-          <p className="text-base text-neutral-500">
+          <p className="text-base text-muted-foreground">
             Get started without an account. Sign in to unlock more.
           </p>
         </div>
@@ -236,10 +239,10 @@ export function AccountSettings() {
           ].map(({ label, icon: Icon, comingSoon }) => (
             <div
               key={label}
-              className="relative overflow-hidden flex flex-col items-center justify-center gap-2 w-20 h-20 shrink-0 rounded-lg bg-linear-to-b from-white to-stone-50 border border-neutral-200 text-neutral-600"
+              className="relative overflow-hidden flex flex-col items-center justify-center gap-2 w-20 h-20 shrink-0 rounded-lg bg-linear-to-b from-[hsl(var(--card))] to-[hsl(var(--muted))] border border-border text-muted-foreground"
             >
               {comingSoon && (
-                <span className="absolute top-0 px-1.5 py-0.5 text-[10px] rounded-b bg-neutral-200 text-neutral-500 opacity-50">
+                <span className="absolute top-0 px-1.5 py-0.5 text-[10px] rounded-b bg-muted text-muted-foreground opacity-50">
                   Soon
                 </span>
               )}
@@ -265,7 +268,7 @@ export function AccountSettings() {
               className="w-[100px] flex flex-row gap-1.5"
             >
               <span className="text-sm">Open</span>
-              <ExternalLinkIcon className="text-neutral-600" size={12} />
+              <ExternalLinkIcon className="text-muted-foreground" size={12} />
             </Button>
             <Button variant="outline" onClick={handleSignOut}>
               Sign out
@@ -287,7 +290,7 @@ export function AccountSettings() {
         }
         action={<BillingButton />}
       >
-        <div className="text-sm text-neutral-600 flex items-center gap-1">
+        <div className="text-sm text-muted-foreground flex items-center gap-1">
           {auth?.isRefreshingSession ? (
             <>
               <Spinner size={14} />
@@ -302,7 +305,10 @@ export function AccountSettings() {
               >
                 here
               </span>
-              <span className="text-neutral-600"> to refresh plan status.</span>
+              <span className="text-muted-foreground">
+                {" "}
+                to refresh plan status.
+              </span>
             </>
           )}
         </div>
@@ -392,7 +398,7 @@ function BillingButton() {
         className="w-[100px] flex flex-row gap-1.5"
       >
         <span className="text-sm">Manage</span>
-        <ExternalLinkIcon className="text-neutral-600" size={12} />
+        <ExternalLinkIcon className="text-muted-foreground" size={12} />
       </Button>
     );
   }
@@ -412,7 +418,7 @@ function BillingButton() {
   return (
     <Button variant="outline" onClick={handleProUpgrade}>
       <span>Upgrade to Pro</span>
-      <ExternalLinkIcon className="text-neutral-600" size={12} />
+      <ExternalLinkIcon className="text-muted-foreground" size={12} />
     </Button>
   );
 }
@@ -429,11 +435,11 @@ function Container({
   children?: ReactNode;
 }) {
   return (
-    <section className="bg-neutral-50 p-4 rounded-lg flex flex-col gap-4">
+    <section className="bg-muted p-4 rounded-lg flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <h1 className="text-md font-semibold font-serif">{title}</h1>
         {description && (
-          <p className="text-sm text-neutral-600">{description}</p>
+          <p className="text-sm text-muted-foreground">{description}</p>
         )}
       </div>
       {action ? <div>{action}</div> : null}

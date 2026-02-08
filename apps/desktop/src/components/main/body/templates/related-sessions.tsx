@@ -30,8 +30,8 @@ export function RelatedSessions({ templateId }: { templateId: string }) {
 
   if (sessionIds.length === 0) {
     return (
-      <div className="p-4 rounded-lg bg-neutral-50 border border-neutral-200">
-        <p className="text-sm text-neutral-500">
+      <div className="p-4 rounded-lg bg-muted/40 border border-border">
+        <p className="text-sm text-muted-foreground">
           Notes enhanced with this template will appear here.
         </p>
       </div>
@@ -77,17 +77,19 @@ function RelatedSessionItem({
       className={cn([
         "w-full px-3 py-2.5",
         "flex items-center gap-3",
-        "hover:bg-neutral-50 active:bg-neutral-100",
-        "rounded-lg border border-neutral-200 transition-colors",
+        "hover:bg-muted/40 active:bg-muted/60",
+        "rounded-lg border border-border transition-colors",
         "text-left",
       ])}
     >
-      <StickyNote className="w-4 h-4 text-neutral-400 shrink-0" />
+      <StickyNote className="w-4 h-4 text-muted-foreground shrink-0" />
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-neutral-900 truncate">
+        <div className="text-sm font-medium text-foreground truncate">
           {title || "Untitled"}
         </div>
-        {timeAgo && <div className="text-xs text-neutral-500">{timeAgo}</div>}
+        {timeAgo && (
+          <div className="text-xs text-muted-foreground">{timeAgo}</div>
+        )}
       </div>
     </button>
   );

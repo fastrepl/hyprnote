@@ -36,7 +36,7 @@ export function ChatHeader({
     <div
       data-tauri-drag-region={chat.mode === "RightPanelOpen"}
       className={cn([
-        "flex items-center justify-between px-1 border-b border-neutral-200 h-9",
+        "flex items-center justify-between px-1 border-b border-border h-9",
         chat.mode === "RightPanelOpen" && "border rounded-xl",
       ])}
     >
@@ -121,13 +121,13 @@ function ChatGroups({
           variant="ghost"
           className="flex items-center gap-2 h-auto px-2 py-1.5 group"
         >
-          <MessageCircle className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
-          <h3 className="font-medium text-neutral-700 text-xs truncate">
+          <MessageCircle className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <h3 className="font-medium text-foreground text-xs truncate">
             {currentChatTitle || "Ask Hyprnote anything"}
           </h3>
           <ChevronDown
             className={cn([
-              "w-3.5 h-3.5 text-neutral-400 transition-transform duration-200",
+              "w-3.5 h-3.5 text-muted-foreground transition-transform duration-200",
               isDropdownOpen && "rotate-180",
             ])}
           />
@@ -136,7 +136,7 @@ function ChatGroups({
       <DropdownMenuContent align="start" className="w-72 p-1.5">
         <div className="flex flex-col gap-0.5">
           <div className="px-2 py-1.5">
-            <h4 className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">
+            <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
               Recent Chats
             </h4>
           </div>
@@ -156,8 +156,8 @@ function ChatGroups({
             </div>
           ) : (
             <div className="px-3 py-6 text-center">
-              <MessageCircle className="w-6 h-6 text-neutral-300 mx-auto mb-1.5" />
-              <p className="text-xs text-neutral-400">No recent chats</p>
+              <MessageCircle className="w-6 h-6 text-muted-foreground/50 mx-auto mb-1.5" />
+              <p className="text-xs text-muted-foreground">No recent chats</p>
             </div>
           )}
         </div>
@@ -194,8 +194,8 @@ function ChatGroupItem({
       className={cn([
         "w-full justify-start h-auto px-2.5 py-1.5 group",
         isActive
-          ? "bg-neutral-100 shadow-xs hover:bg-neutral-100"
-          : "hover:bg-neutral-50 active:bg-neutral-100",
+          ? "bg-muted shadow-xs hover:bg-muted"
+          : "hover:bg-muted/50 active:bg-muted",
       ])}
     >
       <div className="flex items-center gap-2.5 w-full">
@@ -204,8 +204,8 @@ function ChatGroupItem({
             className={cn([
               "w-3.5 h-3.5 transition-colors",
               isActive
-                ? "text-neutral-700"
-                : "text-neutral-400 group-hover:text-neutral-600",
+                ? "text-foreground"
+                : "text-muted-foreground group-hover:text-foreground",
             ])}
           />
         </div>
@@ -213,12 +213,12 @@ function ChatGroupItem({
           <div
             className={cn([
               "text-sm font-medium truncate",
-              isActive ? "text-neutral-900" : "text-neutral-700",
+              isActive ? "text-foreground" : "text-foreground",
             ])}
           >
             {chatGroup.title}
           </div>
-          <div className="text-[11px] text-neutral-500 mt-0.5">
+          <div className="text-[11px] text-muted-foreground mt-0.5">
             {formattedTime}
           </div>
         </div>

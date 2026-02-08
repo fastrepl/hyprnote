@@ -14,6 +14,13 @@
         background-color: transparent !important;
       }
     </style>
+    <script>
+      (function() {
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
     <!-- Polyfill __TAURI_INTERNALS__ in iframe context (extension host). See docs/developers/extensions. -->
     <script>
       (function() {

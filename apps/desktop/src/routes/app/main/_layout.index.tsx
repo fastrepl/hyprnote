@@ -58,14 +58,14 @@ function Component() {
 
   return (
     <div
-      className="flex h-full overflow-hidden gap-1 p-1"
+      className="flex h-full overflow-hidden gap-1 p-1 bg-border"
       data-testid="main-app-shell"
     >
       {leftsidebar.expanded && <LeftSidebar />}
 
       <ResizablePanelGroup
         direction="horizontal"
-        className="flex-1 overflow-hidden flex"
+        className="flex-1 overflow-hidden flex bg-background"
         autoSaveId="main-chat"
       >
         <ResizablePanel ref={bodyPanelRef} className="flex-1 overflow-hidden">

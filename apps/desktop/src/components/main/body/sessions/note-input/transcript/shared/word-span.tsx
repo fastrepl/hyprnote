@@ -37,7 +37,7 @@ function ViewerWordSpan({
   const className = useMemo(
     () =>
       cn([
-        audioExists && "cursor-pointer hover:bg-neutral-200/60",
+        audioExists && "cursor-pointer hover:bg-muted",
         !word.isFinal && ["opacity-60", "italic"],
       ]),
     [audioExists, word.isFinal],
@@ -67,7 +67,7 @@ function EditorWordSpan({
   const className = useMemo(
     () =>
       cn([
-        audioExists && "cursor-pointer hover:bg-neutral-200/60",
+        audioExists && "cursor-pointer hover:bg-muted",
         !word.isFinal && ["opacity-60", "italic"],
       ]),
     [audioExists, word.isFinal],
@@ -116,7 +116,7 @@ function useHighlightedContent(
       piece.isMatch ? (
         <span
           key={`${baseKey}-match-${index}`}
-          className={isActive ? "bg-yellow-500" : "bg-yellow-200/50"}
+          className={isActive ? "search-result-current" : "search-result"}
         >
           {piece.text}
         </span>

@@ -115,7 +115,7 @@ function useAppleCalendarSelection() {
       grouped.get(source)!.push({
         id,
         title: cal.name || "Untitled",
-        color: cal.color ?? "#888",
+        color: cal.color ?? "hsl(var(--muted-foreground))",
         enabled: cal.enabled ?? false,
       });
     }

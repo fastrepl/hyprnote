@@ -19,7 +19,9 @@ export function DateDisplay({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="text-sm font-medium text-neutral-700">{displayDate}</div>
+      <div className="text-sm font-medium text-muted-foreground">
+        {displayDate}
+      </div>
     </div>
   );
 }

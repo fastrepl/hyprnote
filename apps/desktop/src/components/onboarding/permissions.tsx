@@ -29,21 +29,21 @@ function PermissionBlock({
       className={cn([
         "flex items-center justify-between rounded-xl py-3 px-4",
         isAuthorized
-          ? "border border-neutral-200"
-          : "border border-red-200 bg-red-50",
+          ? "border border-border"
+          : "border border-destructive/40 bg-destructive/10",
       ])}
     >
       <div className="flex flex-col gap-1">
         <div
           className={cn([
             "flex items-center gap-2",
-            !isAuthorized ? "text-red-500" : "text-neutral-900",
+            !isAuthorized ? "text-destructive" : "text-foreground",
           ])}
         >
           {!isAuthorized && <AlertCircleIcon className="size-4" />}
           <span className="text-sm font-medium">{name}</span>
         </div>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           {isAuthorized ? description.authorized : description.unauthorized}
         </p>
       </div>
@@ -53,8 +53,8 @@ function PermissionBlock({
         className={cn([
           "size-8 flex items-center justify-center rounded-lg transition-all",
           isAuthorized
-            ? "bg-stone-100 text-stone-800 opacity-50 cursor-not-allowed"
-            : "bg-linear-to-t from-red-600 to-red-500 text-white hover:scale-[1.05] active:scale-[0.95]",
+            ? "bg-muted text-foreground opacity-50 cursor-not-allowed"
+            : "bg-destructive text-destructive-foreground hover:scale-[1.05] active:scale-[0.95]",
           isPending && "opacity-50 cursor-not-allowed",
         ])}
         aria-label={
@@ -147,8 +147,8 @@ export function Permissions({ onNavigate }: StepProps) {
         className={cn([
           "w-full py-3 rounded-full text-sm font-medium duration-150",
           allPermissionsGranted
-            ? "bg-linear-to-t from-stone-600 to-stone-500 text-white hover:scale-[1.01] active:scale-[0.99]"
-            : "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-400 cursor-not-allowed",
+            ? "bg-primary text-primary-foreground hover:scale-[1.01] active:scale-[0.99]"
+            : "bg-muted text-muted-foreground cursor-not-allowed",
         ])}
       >
         {allPermissionsGranted

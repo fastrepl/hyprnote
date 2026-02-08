@@ -84,14 +84,14 @@ export function ConnectedServiceCard({
   };
 
   return (
-    <div className="border border-neutral-200 rounded-lg overflow-clip">
+    <div className="border border-border rounded-lg overflow-clip">
       <div className="flex items-center justify-between border-b pl-4 pr-2 py-2 text-sm font-medium">
         <div className="flex items-center gap-4">
           {icon}
           <div>
             <div>{title}</div>
             {subtitle && (
-              <div className="text-xs text-neutral-600 font-normal">
+              <div className="text-xs text-muted-foreground font-normal">
                 {subtitle}
               </div>
             )}
@@ -113,12 +113,12 @@ export function ConnectedServiceCard({
       {children && <div className="p-4">{children}</div>}
 
       {showAdvanced && (onReconnect || onDisconnect || connectedAt) && (
-        <div className="border-t border-neutral-200">
+        <div className="border-t border-border">
           <button
             onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
             className={cn([
-              "w-full flex items-center justify-between px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-50 transition-colors",
-              isAdvancedOpen && "bg-neutral-50",
+              "w-full flex items-center justify-between px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors",
+              isAdvancedOpen && "bg-muted",
             ])}
           >
             Advanced
@@ -130,9 +130,9 @@ export function ConnectedServiceCard({
           </button>
 
           {isAdvancedOpen && (
-            <div className="px-4 pb-4 flex flex-col gap-3 bg-neutral-50">
+            <div className="px-4 pb-4 flex flex-col gap-3 bg-muted">
               {connectedAt && (
-                <div className="text-xs text-neutral-600">
+                <div className="text-xs text-muted-foreground">
                   <span className="font-medium">Connected on:</span>{" "}
                   {formatConnectionDate(connectedAt)}
                 </div>

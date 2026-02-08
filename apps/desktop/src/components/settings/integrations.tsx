@@ -172,7 +172,7 @@ export function SettingsIntegrations() {
 
         <div className="relative mb-6">
           <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
             size={16}
           />
           <Input
@@ -186,10 +186,13 @@ export function SettingsIntegrations() {
 
         <div className="flex flex-col gap-4">
           {filteredIntegrations.length === 0 ? (
-            <div className="text-center py-12 text-neutral-500">
-              <Puzzle size={48} className="mx-auto mb-4 text-neutral-300" />
+            <div className="text-center py-12 text-muted-foreground">
+              <Puzzle
+                size={48}
+                className="mx-auto mb-4 text-muted-foreground/50"
+              />
               <p className="text-sm">No integrations found</p>
-              <p className="text-xs text-neutral-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Try a different search term
               </p>
             </div>
@@ -246,12 +249,12 @@ function IntegrationCard({
 
   if (!integration.connected) {
     return (
-      <div className="border border-neutral-200 rounded-lg p-4">
+      <div className="border border-border rounded-lg p-4">
         <div className="flex items-start gap-4">
           <div className="mt-1">{getProviderIcon(integration.provider)}</div>
           <div className="flex-1">
             <h3 className="text-sm font-medium mb-1">{integration.name}</h3>
-            <p className="text-xs text-neutral-600">
+            <p className="text-xs text-muted-foreground">
               {integration.description}
             </p>
           </div>
@@ -294,7 +297,7 @@ function IntegrationCard({
         </>
       }
     >
-      <p className="text-xs text-neutral-600">{integration.description}</p>
+      <p className="text-xs text-muted-foreground">{integration.description}</p>
     </ConnectedServiceCard>
   );
 }

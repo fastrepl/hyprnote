@@ -85,7 +85,7 @@ function EmptyView() {
   );
 
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-6 mb-12 text-neutral-600">
+    <div className="flex flex-col items-center justify-center h-full gap-6 mb-12 text-muted-foreground">
       <div className="flex flex-col gap-1 text-center min-w-[280px]">
         <ActionItem label="New Note" shortcut={["⌘", "N"]} onClick={newNote} />
         <ActionItem
@@ -109,7 +109,7 @@ function EmptyView() {
           shortcut={["⌘", "⇧", "F"]}
           onClick={openAdvancedSearch}
         />
-        <div className="h-px bg-neutral-200 my-1" />
+        <div className="h-px bg-border my-1" />
         <ActionItem
           label="AI Settings"
           shortcut={["⌘", "⇧", ","]}
@@ -148,7 +148,7 @@ function ActionItem({
         "flex items-center justify-between gap-8",
         "text-sm",
         "rounded-md px-4 py-2",
-        "hover:bg-neutral-100 transition-colors cursor-pointer",
+        "hover:bg-muted transition-colors cursor-pointer",
       ])}
     >
       <span>{label}</span>

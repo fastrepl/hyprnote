@@ -60,7 +60,7 @@ export const TabItemAI: TabItem<Extract<Tab, { type: "ai" }>> = ({
       title={
         <div className="flex items-center gap-1">
           <span>AI</span>
-          <span className="text-xs text-neutral-400">({suffix})</span>
+          <span className="text-xs text-muted-foreground">({suffix})</span>
         </div>
       }
       selected={tab.active}
@@ -144,7 +144,7 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
             }}
             className={cn([
               "px-1 gap-1.5 h-7 border border-transparent",
-              activeTab === item.key && "bg-neutral-100 border-neutral-200",
+              activeTab === item.key && "bg-muted border-border",
               item.disabled && "opacity-50 cursor-not-allowed",
             ])}
           >

@@ -113,14 +113,14 @@ function DevtoolCard({
   return (
     <div
       className={cn([
-        "rounded-lg border border-neutral-200 bg-white",
+        "rounded-lg border border-border bg-background",
         "shadow-xs",
         "overflow-hidden",
         "shrink-0",
       ])}
     >
-      <div className="px-2 py-1.5 border-b border-neutral-100 bg-neutral-50">
-        <h2 className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
+      <div className="px-2 py-1.5 border-b border-border bg-muted">
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           {title}
         </h2>
       </div>
@@ -182,10 +182,10 @@ function CalendarMockCard() {
     <DevtoolCard title="Calendar Mock">
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-neutral-500">
+          <span className="text-xs text-muted-foreground">
             Step {fixtureInfo.current_step + 1} of {fixtureInfo.max_steps}
           </span>
-          <span className="text-xs font-medium text-neutral-700">
+          <span className="text-xs font-medium text-foreground">
             {fixtureInfo.step_name}
           </span>
         </div>
@@ -198,7 +198,7 @@ function CalendarMockCard() {
             "text-xs font-medium",
             "border transition-colors",
             isAtEnd
-              ? ["border-neutral-100 text-neutral-300", "cursor-default"]
+              ? ["border-border text-muted-foreground/50", "cursor-default"]
               : [
                   "border-blue-200 bg-blue-50 text-blue-700",
                   "hover:bg-blue-100 hover:border-blue-300",
@@ -226,9 +226,9 @@ function SeedCard({ onSeed }: { onSeed: (seed: SeedDefinition) => void }) {
             className={cn([
               "w-full px-2 py-1.5 rounded-md",
               "text-xs font-medium text-left",
-              "border border-neutral-200 text-neutral-700",
+              "border border-border text-foreground",
               "cursor-pointer transition-colors",
-              "hover:bg-neutral-50 hover:border-neutral-300",
+              "hover:bg-muted hover:border-border",
             ])}
           >
             {seed.label}
@@ -278,9 +278,9 @@ function NavigationCard() {
           className={cn([
             "w-full px-2.5 py-1.5 rounded-md",
             "text-xs font-medium text-left",
-            "border border-neutral-200 text-neutral-700",
+            "border border-border text-foreground",
             "cursor-pointer transition-colors",
-            "hover:bg-neutral-50 hover:border-neutral-300",
+            "hover:bg-muted hover:border-border",
           ])}
         >
           Onboarding
@@ -291,9 +291,9 @@ function NavigationCard() {
           className={cn([
             "w-full px-2.5 py-1.5 rounded-md",
             "text-xs font-medium text-left",
-            "border border-neutral-200 text-neutral-700",
+            "border border-border text-foreground",
             "cursor-pointer transition-colors",
-            "hover:bg-neutral-50 hover:border-neutral-300",
+            "hover:bg-muted hover:border-border",
           ])}
         >
           Main
@@ -304,9 +304,9 @@ function NavigationCard() {
           className={cn([
             "w-full px-2.5 py-1.5 rounded-md",
             "text-xs font-medium text-left",
-            "border border-neutral-200 text-neutral-700",
+            "border border-border text-foreground",
             "cursor-pointer transition-colors",
-            "hover:bg-neutral-50 hover:border-neutral-300",
+            "hover:bg-muted hover:border-border",
           ])}
         >
           Control
@@ -317,9 +317,9 @@ function NavigationCard() {
           className={cn([
             "w-full px-2.5 py-1.5 rounded-md",
             "text-xs font-medium text-left",
-            "border border-neutral-200 text-neutral-700",
+            "border border-border text-foreground",
             "cursor-pointer transition-colors",
-            "hover:bg-neutral-50 hover:border-neutral-300",
+            "hover:bg-muted hover:border-border",
           ])}
         >
           Changelog

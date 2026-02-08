@@ -22,7 +22,7 @@ function ActionLink({
       onClick={onClick}
       disabled={disabled}
       className={cn([
-        "underline hover:text-neutral-900 transition-colors",
+        "underline hover:text-foreground transition-colors",
         disabled && "opacity-50 cursor-not-allowed",
       ])}
     >
@@ -72,14 +72,14 @@ function PermissionRow({
           {!isAuthorized && <AlertCircleIcon className="size-4" />}
           <h3 className="text-sm font-medium">{title}</h3>
         </div>
-        <div className="text-xs text-neutral-600">
+        <div className="text-xs text-muted-foreground">
           {!showActions ? (
             <div>
               {!isAuthorized && <span>{description} · </span>}
               <button
                 type="button"
                 onClick={() => setShowActions(true)}
-                className="underline hover:text-neutral-900 transition-colors"
+                className="underline hover:text-foreground transition-colors"
               >
                 Having trouble?
               </button>
@@ -109,7 +109,7 @@ function PermissionRow({
         disabled={isPending}
         className={cn([
           "size-8",
-          isAuthorized && "bg-stone-100 text-stone-800 hover:bg-stone-200",
+          isAuthorized && "bg-muted text-foreground hover:bg-muted/80",
         ])}
         aria-label={
           isAuthorized

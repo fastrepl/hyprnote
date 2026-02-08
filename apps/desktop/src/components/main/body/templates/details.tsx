@@ -84,7 +84,7 @@ function WebTemplatePreview({
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
-          <h3 className="text-sm font-medium text-neutral-600 mb-3">
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">
             Sections
           </h3>
           <SectionsList

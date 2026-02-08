@@ -98,8 +98,8 @@ function HyprProviderCard({
     <AccordionItem
       value={providerId}
       className={cn([
-        "rounded-xl border-2 bg-neutral-50",
-        isConfigured ? "border-solid border-neutral-300" : "border-dashed",
+        "rounded-xl border-2 bg-muted/40",
+        isConfigured ? "border-solid border-border" : "border-dashed",
       ])}
     >
       <AccordionTrigger
@@ -109,7 +109,7 @@ function HyprProviderCard({
           {icon}
           <span>{providerName}</span>
           {badge && (
-            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
+            <span className="text-xs text-muted-foreground font-light border border-border rounded-full px-2">
               {badge}
             </span>
           )}
@@ -121,17 +121,17 @@ function HyprProviderCard({
           <HyprProviderCloudRow />
 
           <div className="flex items-center gap-3 py-2">
-            <div className="flex-1 border-t border-dashed border-neutral-300" />
+            <div className="flex-1 border-t border-dashed border-border" />
             <a
               href="https://hyprnote.com/docs/developers/local-models"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-neutral-400 hover:underline flex items-center gap-1"
+              className="text-xs text-muted-foreground hover:underline flex items-center gap-1"
             >
               <span>or use on-device model</span>
               <HelpCircle className="size-3" />
             </a>
-            <div className="flex-1 border-t border-dashed border-neutral-300" />
+            <div className="flex-1 border-t border-dashed border-border" />
           </div>
 
           {isAppleSilicon && (
@@ -164,7 +164,7 @@ function HyprProviderRow({ children }: { children: React.ReactNode }) {
     <div
       className={cn([
         "flex flex-col gap-3",
-        "py-2 px-3 rounded-md border bg-white",
+        "py-2 px-3 rounded-md border bg-background",
       ])}
     >
       {children}
@@ -211,7 +211,7 @@ function HyprProviderCloudRow() {
     <HyprProviderRow>
       <div className="flex-1">
         <span className="text-sm font-medium">Hyprnote Cloud (Beta)</span>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           Use the Hyprnote Cloud API to transcribe your audio.
         </p>
       </div>
@@ -222,8 +222,8 @@ function HyprProviderCloudRow() {
           "px-4 rounded-full text-xs font-mono text-center",
           "transition-all duration-150",
           isPro
-            ? "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-xs hover:shadow-md"
-            : "bg-linear-to-t from-stone-600 to-stone-500 text-white shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+            ? "bg-muted text-foreground shadow-xs hover:shadow-md"
+            : "bg-primary text-primary-foreground shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
         ])}
       >
         {showShimmer && (
@@ -271,7 +271,7 @@ function LocalModelAction({
           onClick={onOpen}
           className={cn([
             "h-8.5 px-4 rounded-full text-xs font-mono text-center",
-            "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+            "bg-muted text-foreground",
             "shadow-xs hover:shadow-md",
             "transition-all duration-150",
             "flex items-center justify-center gap-1.5",
@@ -285,8 +285,8 @@ function LocalModelAction({
           title="Delete Model"
           className={cn([
             "size-8.5 rounded-full",
-            "bg-linear-to-t from-red-200 to-red-100 text-red-600",
-            "shadow-xs hover:shadow-md hover:from-red-300 hover:to-red-200",
+            "bg-destructive/10 text-destructive",
+            "shadow-xs hover:shadow-md hover:bg-destructive/20",
             "transition-all duration-150",
             "flex items-center justify-center",
           ])}
@@ -303,7 +303,7 @@ function LocalModelAction({
         onClick={onDownload}
         className={cn([
           "w-fit h-8.5 px-4 rounded-full text-xs font-mono text-center",
-          "bg-linear-to-t from-red-600 to-red-500 text-white",
+          "bg-destructive text-destructive-foreground",
           "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
           "transition-all duration-150",
           "flex items-center justify-center gap-1.5",
@@ -322,13 +322,13 @@ function LocalModelAction({
         className={cn([
           "relative overflow-hidden group",
           "w-27.5 h-8.5 px-4 rounded-full text-xs font-mono text-center",
-          "bg-linear-to-t from-neutral-300 to-neutral-200 text-neutral-900",
+          "bg-muted text-foreground",
           "shadow-xs",
           "transition-all duration-150",
         ])}
       >
         <div
-          className="absolute inset-0 bg-neutral-400/50 transition-all duration-300 rounded-full"
+          className="absolute inset-0 bg-muted-foreground/20 transition-all duration-300 rounded-full"
           style={{ width: `${progress}%` }}
         />
         <div className="relative z-10 flex items-center justify-center gap-1.5 group-hover:hidden">
@@ -349,7 +349,7 @@ function LocalModelAction({
       className={cn([
         "relative overflow-hidden w-fit h-8.5",
         "px-4 rounded-full text-xs font-mono text-center",
-        "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+        "bg-muted text-foreground",
         "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
         "transition-all duration-150",
         "flex items-center justify-center gap-1.5",
@@ -359,7 +359,7 @@ function LocalModelAction({
         <div
           className={cn([
             "absolute inset-0 -translate-x-full",
-            "bg-linear-to-r from-transparent via-neutral-400/30 to-transparent",
+            "bg-linear-to-r from-transparent via-muted-foreground/30 to-transparent",
             "animate-shimmer",
           ])}
         />
@@ -404,7 +404,7 @@ function HyprProviderLocalRow({
     <HyprProviderRow>
       <div className="flex-1">
         <span className="text-sm font-medium">{displayName}</span>
-        <p className="text-xs text-neutral-500">{description}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
 
       <LocalModelAction

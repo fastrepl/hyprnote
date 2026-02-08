@@ -33,8 +33,8 @@ export function InteractiveContainer({
           topLeft: true,
         }}
         className={cn([
-          "bg-white rounded-b-2xl rounded-t-xl shadow-2xl",
-          "border border-neutral-200",
+          "bg-background rounded-b-2xl rounded-t-xl shadow-2xl",
+          "border border-border",
           "flex flex-col",
           !isResizing && "transition-all duration-200",
         ])}

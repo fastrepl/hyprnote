@@ -2,8 +2,6 @@ import { SearchXIcon } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { forwardRef } from "react";
 
-import { cn } from "@hypr/utils";
-
 import {
   type GroupedSearchResults,
   useSearch,
@@ -37,7 +35,7 @@ export function SearchResults() {
   }, [selectedId]);
 
   return (
-    <div className={cn(["h-full rounded-xl bg-neutral-50"])}>
+    <div className="h-full rounded-xl bg-muted">
       {empty ? (
         <SearchNoResults query={query} setQuery={setQuery} />
       ) : (
@@ -78,12 +76,12 @@ function SearchNoResults({
     <div className="h-full flex items-center justify-center">
       <div className="text-center px-4 max-w-xs">
         <div className="flex justify-center mb-3">
-          <SearchXIcon className="h-10 w-10 text-neutral-300" />
+          <SearchXIcon className="h-10 w-10 text-muted-foreground/50" />
         </div>
-        <p className="text-sm font-medium text-neutral-700">
+        <p className="text-sm font-medium text-foreground">
           No results found for "{query}"
         </p>
-        <p className="text-xs text-neutral-500 mt-2 leading-relaxed underline">
+        <p className="text-xs text-muted-foreground mt-2 leading-relaxed underline">
           Help us improve search
         </p>
       </div>

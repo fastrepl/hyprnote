@@ -15,7 +15,7 @@ export function DisabledProviderCard({
     <AccordionItem
       disabled
       value={config.id}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
+      className="rounded-xl border-2 border-dashed bg-muted/40"
     >
       <AccordionTrigger
         className={cn([
@@ -27,7 +27,7 @@ export function DisabledProviderCard({
           {config.icon}
           <span>{config.displayName}</span>
           {config.badge && (
-            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
+            <span className="text-xs text-muted-foreground font-light border border-border rounded-full px-2">
               {config.badge}
             </span>
           )}

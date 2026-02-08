@@ -103,14 +103,14 @@ export function SpokenLanguagesView({
   return (
     <div>
       <h3 className="text-sm font-medium mb-1">Spoken languages</h3>
-      <p className="text-xs text-neutral-600 mb-3">
+      <p className="text-xs text-muted-foreground mb-3">
         Add other languages you use other than the main language
       </p>
       <div className="relative">
         <div
           className={cn([
-            "flex flex-wrap items-center w-full px-2 py-1.5 gap-1.5 rounded-lg bg-white border border-neutral-200 focus-within:border-neutral-300 min-h-[38px]",
-            languageInputFocused && "border-neutral-300",
+            "flex flex-wrap items-center w-full px-2 py-1.5 gap-1.5 rounded-lg bg-background border border-border focus-within:border-ring min-h-[38px]",
+            languageInputFocused && "border-ring",
           ])}
           onClick={() =>
             document.getElementById("language-search-input")?.focus()
@@ -138,7 +138,7 @@ export function SpokenLanguagesView({
             </Badge>
           ))}
           {value.length === 0 && (
-            <Search className="size-4 text-neutral-700 shrink-0" />
+            <Search className="size-4 text-muted-foreground shrink-0" />
           )}
           <input
             id="language-search-input"
@@ -162,7 +162,7 @@ export function SpokenLanguagesView({
             }
             aria-label="Add spoken language"
             placeholder={value.length === 0 ? "Add language" : ""}
-            className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-500"
+            className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-hidden placeholder:text-muted-foreground"
           />
         </div>
 
@@ -170,7 +170,7 @@ export function SpokenLanguagesView({
           <div
             id="language-options"
             role="listbox"
-            className="absolute top-full left-0 right-0 mt-1 flex flex-col w-full rounded-xs border border-neutral-200 overflow-hidden bg-white shadow-md z-10 max-h-60 overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-1 flex flex-col w-full rounded-xs border border-border overflow-hidden bg-popover shadow-md z-10 max-h-60 overflow-y-auto"
           >
             {filteredLanguages.length > 0 ? (
               filteredLanguages.map((langCode, index) => (
@@ -190,8 +190,8 @@ export function SpokenLanguagesView({
                   className={cn([
                     "flex items-center justify-between px-3 py-2 text-sm text-left transition-colors w-full",
                     languageSelectedIndex === index
-                      ? "bg-neutral-200"
-                      : "hover:bg-neutral-100",
+                      ? "bg-muted"
+                      : "hover:bg-muted/60",
                   ])}
                 >
                   <span className="font-medium truncate">
@@ -200,7 +200,7 @@ export function SpokenLanguagesView({
                 </button>
               ))
             ) : (
-              <div className="px-3 py-2 text-sm text-neutral-500 text-center">
+              <div className="px-3 py-2 text-sm text-muted-foreground text-center">
                 No matching languages found
               </div>
             )}

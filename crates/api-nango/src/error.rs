@@ -50,7 +50,11 @@ impl IntoResponse for NangoError {
             Self::Nango(message) => {
                 tracing::error!(error = %message, "nango_error");
                 sentry::capture_message(&message, sentry::Level::Error);
-                (StatusCode::INTERNAL_SERVER_ERROR, "nango_error", internal_message)
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "nango_error",
+                    internal_message,
+                )
             }
             Self::Internal(message) => {
                 tracing::error!(error = %message, "internal_error");

@@ -249,6 +249,10 @@ version = "0.1.0"
 dependencies = [
  "analytics",
  "api-auth",
+ "api-calendar",
+ "api-env",
+ "api-nango",
+ "api-subscription",
  "axum 0.8.8",
  "dotenvy",
  "envy",

@@ -58,9 +58,6 @@ struct Profile {
         (status = 500, description = "Internal server error"),
     ),
     tag = "subscription",
-    security(
-        ("bearer_auth" = [])
-    )
 )]
 pub async fn start_trial(
     State(state): State<AppState>,

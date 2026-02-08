@@ -53,12 +53,20 @@ impl IntoResponse for SubscriptionError {
             Self::SupabaseRequest(message) => {
                 tracing::error!(error = %message, "supabase_error");
                 sentry::capture_message(&message, sentry::Level::Error);
-                (StatusCode::INTERNAL_SERVER_ERROR, "supabase_error", internal_message)
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "supabase_error",
+                    internal_message,
+                )
             }
             Self::Stripe(message) => {
                 tracing::error!(error = %message, "stripe_error");
                 sentry::capture_message(&message, sentry::Level::Error);
-                (StatusCode::INTERNAL_SERVER_ERROR, "stripe_error", internal_message)
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "stripe_error",
+                    internal_message,
+                )
             }
             Self::Internal(message) => {
                 tracing::error!(error = %message, "internal_error");

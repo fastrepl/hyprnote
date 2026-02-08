@@ -89,9 +89,6 @@ pub struct CreateEventResponse {
         (status = 500, description = "Internal server error"),
     ),
     tag = "calendar",
-    security(
-        ("bearer_auth" = [])
-    )
 )]
 pub async fn list_calendars(
     State(state): State<AppState>,
@@ -128,9 +125,6 @@ pub async fn list_calendars(
         (status = 500, description = "Internal server error"),
     ),
     tag = "calendar",
-    security(
-        ("bearer_auth" = [])
-    )
 )]
 pub async fn list_events(
     State(state): State<AppState>,
@@ -200,9 +194,6 @@ pub async fn list_events(
         (status = 500, description = "Internal server error"),
     ),
     tag = "calendar",
-    security(
-        ("bearer_auth" = [])
-    )
 )]
 pub async fn create_event(
     State(state): State<AppState>,

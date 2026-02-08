@@ -6,6 +6,10 @@ edition = "2024"
 [dependencies]
 hypr-analytics = { workspace = true }
 hypr-api-auth = { workspace = true }
+hypr-api-calendar = { workspace = true }
+hypr-api-env = { workspace = true }
+hypr-api-nango = { workspace = true }
+hypr-api-subscription = { workspace = true }
 hypr-llm-proxy = { workspace = true }
 hypr-transcribe-proxy = { workspace = true }
 owhisper-client = { workspace = true }

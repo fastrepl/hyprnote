@@ -1,4 +1,9 @@
-use utoipa::openapi::security::{ApiKey, ApiKeyValue, Http, HttpAuthScheme, SecurityScheme};
+use std::collections::BTreeMap;
+
+use utoipa::openapi::path::{Operation, PathItem};
+use utoipa::openapi::security::{
+    ApiKey, ApiKeyValue, Http, HttpAuthScheme, SecurityRequirement, SecurityScheme,
+};
 use utoipa::{Modify, OpenApi};
 
 #[derive(OpenApi)]
@@ -10,7 +15,10 @@ use utoipa::{Modify, OpenApi};
     ),
     tags(
         (name = "stt", description = "Speech-to-text transcription endpoints"),
-        (name = "llm", description = "LLM chat completions endpoints")
+        (name = "llm", description = "LLM chat completions endpoints"),
+        (name = "calendar", description = "Calendar management"),
+        (name = "nango", description = "Integration management via Nango"),
+        (name = "subscription", description = "Subscription and trial management")
     ),
     modifiers(&SecurityAddon)
 )]
@@ -21,9 +29,17 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
 
     let stt_doc = hypr_transcribe_proxy::openapi();
     let llm_doc = hypr_llm_proxy::openapi();
+    let calendar_doc = with_path_prefix(hypr_api_calendar::openapi(), "/calendar");
+    let nango_doc = with_path_prefix(hypr_api_nango::openapi(), "/nango");
+    let subscription_doc = with_path_prefix(hypr_api_subscription::openapi(), "/subscription");
 
     doc.merge(stt_doc);
     doc.merge(llm_doc);
+    doc.merge(calendar_doc);
+    doc.merge(nango_doc);
+    doc.merge(subscription_doc);
+
+    apply_bearer_auth_to_protected_paths(&mut doc);
 
     doc
 }
@@ -51,5 +67,84 @@ impl Modify for SecurityAddon {
                 ))),
             );
         }
+    }
+}
+
+fn with_path_prefix(mut doc: utoipa::openapi::OpenApi, prefix: &str) -> utoipa::openapi::OpenApi {
+    let prefix = prefix.trim_end_matches('/');
+    if prefix.is_empty() {
+        return doc;
+    }
+
+    let paths = std::mem::take(&mut doc.paths.paths);
+
+    let prefixed: BTreeMap<String, PathItem> = paths
+        .into_iter()
+        .map(|(path, item)| (format!("{prefix}{path}"), item))
+        .collect();
+
+    doc.paths.paths = prefixed;
+    doc
+}
+
+fn apply_bearer_auth_to_protected_paths(doc: &mut utoipa::openapi::OpenApi) {
+    let paths = &mut doc.paths.paths;
+
+    for (path, item) in paths.iter_mut() {
+        if path == "/nango/webhook" {
+            clear_operation_security(item);
+            continue;
+        }
+
+        if path.starts_with("/calendar")
+            || path.starts_with("/subscription")
+            || path.starts_with("/nango")
+        {
+            set_operation_security(item);
+        }
+    }
+}
+
+fn set_operation_security(item: &mut PathItem) {
+    let security = Some(vec![SecurityRequirement::new(
+        "bearer_auth",
+        Vec::<String>::new(),
+    )]);
+
+    with_each_operation(item, |op| {
+        op.security = security.clone();
+    });
+}
+
+fn clear_operation_security(item: &mut PathItem) {
+    with_each_operation(item, |op| {
+        op.security = None;
+    });
+}
+
+fn with_each_operation(item: &mut PathItem, mut f: impl FnMut(&mut Operation)) {
+    if let Some(op) = item.get.as_mut() {
+        f(op);
+    }
+    if let Some(op) = item.put.as_mut() {
+        f(op);
+    }
+    if let Some(op) = item.post.as_mut() {
+        f(op);
+    }
+    if let Some(op) = item.delete.as_mut() {
+        f(op);
+    }
+    if let Some(op) = item.options.as_mut() {
+        f(op);
+    }
+    if let Some(op) = item.head.as_mut() {
+        f(op);
+    }
+    if let Some(op) = item.patch.as_mut() {
+        f(op);
+    }
+    if let Some(op) = item.trace.as_mut() {
+        f(op);
     }
 }

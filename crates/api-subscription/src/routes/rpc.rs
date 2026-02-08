@@ -23,9 +23,6 @@ pub struct CanStartTrialResponse {
         (status = 500, description = "Internal server error"),
     ),
     tag = "subscription",
-    security(
-        ("bearer_auth" = [])
-    )
 )]
 pub async fn can_start_trial(
     State(state): State<AppState>,

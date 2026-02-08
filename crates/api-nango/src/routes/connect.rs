@@ -21,9 +21,6 @@ pub struct ConnectSessionResponse {
         (status = 500, description = "Internal server error"),
     ),
     tag = "nango",
-    security(
-        ("bearer_auth" = [])
-    )
 )]
 pub async fn create_connect_session(
     State(state): State<AppState>,

@@ -91,9 +91,11 @@ mod tests {
     }
 
     #[test]
-    fn test_build_missing_api_base() {
-        let result = NangoClientBuilder::default().api_key("key").build();
-
-        assert!(result.is_err());
+    fn test_build_defaults_api_base() {
+        let nango_client = NangoClientBuilder::default()
+            .api_key("key")
+            .build()
+            .unwrap();
+        assert_eq!(nango_client.api_base.as_str(), "https://api.nango.dev/");
     }
 }

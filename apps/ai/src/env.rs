@@ -30,8 +30,6 @@ pub struct Env {
     pub nango: hypr_api_env::NangoEnv,
     #[serde(flatten)]
     pub stripe: hypr_api_subscription::StripeEnv,
-    #[serde(flatten)]
-    pub nango_webhook: hypr_api_nango::NangoWebhookEnv,
 
     #[serde(flatten)]
     pub llm: hypr_llm_proxy::Env,

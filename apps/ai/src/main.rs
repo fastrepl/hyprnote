@@ -41,7 +41,7 @@ fn app() -> Router {
         AuthState::new(&env.supabase.supabase_url).with_required_entitlement("hyprnote_pro");
 
     let calendar_config = hypr_api_calendar::CalendarConfig::new(&env.nango);
-    let nango_config = hypr_api_nango::NangoConfig::new(&env.nango, &env.nango_webhook);
+    let nango_config = hypr_api_nango::NangoConfig::new(&env.nango);
     let subscription_config =
         hypr_api_subscription::SubscriptionConfig::new(&env.supabase, &env.stripe);
 

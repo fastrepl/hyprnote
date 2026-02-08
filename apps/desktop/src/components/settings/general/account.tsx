@@ -111,7 +111,7 @@ export function AccountSettings() {
 
   const isAuthenticated = !!auth?.session;
   const [isPending, setIsPending] = useState(false);
-  const [devMode, setDevMode] = useState(false);
+  const [showCallbackInput, setShowCallbackInput] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("");
 
   useEffect(() => {
@@ -151,37 +151,6 @@ export function AccountSettings() {
   }, [auth]);
 
   if (!isAuthenticated) {
-    if (isPending && devMode) {
-      return (
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1.5">
-            <h2 className="text-sm font-medium">Manual callback</h2>
-            <p className="text-xs text-neutral-500">
-              Paste the callback URL from your browser
-            </p>
-          </div>
-          <Input
-            type="text"
-            className="text-xs font-mono"
-            placeholder="hyprnote://deeplink/auth?access_token=...&refresh_token=..."
-            value={callbackUrl}
-            onChange={(e) => setCallbackUrl(e.target.value)}
-          />
-          <div className="flex gap-2">
-            <Button
-              onClick={() => auth?.handleAuthCallback(callbackUrl)}
-              className="flex-1"
-            >
-              Submit
-            </Button>
-            <Button variant="outline" onClick={() => setDevMode(false)}>
-              Back
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
     if (isPending) {
       return (
         <div className="flex flex-col items-center gap-6 text-center">
@@ -197,13 +166,31 @@ export function AccountSettings() {
             <Button onClick={handleSignIn} variant="outline" className="w-full">
               Reopen sign-in page
             </Button>
-            <Button
-              onClick={() => setDevMode(true)}
-              variant="ghost"
-              className="w-full text-sm"
+            <button
+              onClick={() => setShowCallbackInput((v) => !v)}
+              className="w-full text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
             >
               Having trouble? Paste callback URL manually
-            </Button>
+            </button>
+            {showCallbackInput && (
+              <div className="flex flex-col gap-2 w-full">
+                <Input
+                  type="text"
+                  className="text-xs font-mono"
+                  placeholder="hyprnote://deeplink/auth?access_token=...&refresh_token=..."
+                  value={callbackUrl}
+                  onChange={(e) => setCallbackUrl(e.target.value)}
+                  autoFocus
+                />
+                <Button
+                  onClick={() => auth?.handleAuthCallback(callbackUrl)}
+                  disabled={!callbackUrl}
+                  className="w-full"
+                >
+                  Submit
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       );

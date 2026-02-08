@@ -7,5 +7,5 @@ mod state;
 pub use config::IntegrationConfig;
 pub use env::Env;
 pub use error::{IntegrationError, Result};
-pub use routes::{openapi, router};
+pub use routes::{WebhookResponse, openapi, router};
 pub use state::AppState;

@@ -18,6 +18,8 @@ pub enum Error {
     InvalidApiBase,
     #[error("invalid url: cannot modify path segments")]
     InvalidUrl,
+    #[error("webhook signature error: {0}")]
+    WebhookSignature(String),
 }
 
 impl Serialize for Error {

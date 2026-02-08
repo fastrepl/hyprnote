@@ -17613,6 +17613,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-cli2"
+version = "0.1.0"
+
+[[package]]
 name = "tauri-plugin-clipboard-manager"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -17626,6 +17630,10 @@ dependencies = [
  "tauri-plugin",
  "thiserror 2.0.18",
 ]
+
+[[package]]
+name = "tauri-plugin-db"
+version = "0.1.0"
 
 [[package]]
 name = "tauri-plugin-db2"
@@ -17728,6 +17736,10 @@ dependencies = [
  "thiserror 2.0.18",
  "url",
 ]
+
+[[package]]
+name = "tauri-plugin-export"
+version = "0.1.0"
 
 [[package]]
 name = "tauri-plugin-extensions"

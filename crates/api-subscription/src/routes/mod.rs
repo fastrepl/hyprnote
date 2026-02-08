@@ -2,7 +2,7 @@ mod billing;
 mod rpc;
 
 use axum::{
-    Router,
+    Router, middleware,
     routing::{get, post},
 };
 use utoipa::OpenApi;
@@ -36,8 +36,14 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
 }
 
 pub fn router(state: AppState) -> Router {
+    let auth_state = state.auth.clone();
+
     Router::new()
         .route("/can-start-trial", get(rpc::can_start_trial))
         .route("/start-trial", post(billing::start_trial))
+        .route_layer(middleware::from_fn_with_state(
+            auth_state,
+            hypr_api_auth::require_auth,
+        ))
         .with_state(state)
 }

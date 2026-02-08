@@ -84,6 +84,7 @@ import { Route as ViewSolutionConsultingRouteImport } from './routes/_view/solut
 import { Route as ViewSolutionCoachingRouteImport } from './routes/_view/solution/coaching'
 import { Route as ViewShortcutsSlugRouteImport } from './routes/_view/shortcuts/$slug'
 import { Route as ViewRoadmapSlugRouteImport } from './routes/_view/roadmap/$slug'
+import { Route as ViewProductTemplatesRouteImport } from './routes/_view/product/templates'
 import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
 import { Route as ViewProductSearchRouteImport } from './routes/_view/product/search'
 import { Route as ViewProductNotepadRouteImport } from './routes/_view/product/notepad'
@@ -524,6 +525,11 @@ const ViewRoadmapSlugRoute = ViewRoadmapSlugRouteImport.update({
   path: '/roadmap/$slug',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewProductTemplatesRoute = ViewProductTemplatesRouteImport.update({
+  id: '/product/templates',
+  path: '/product/templates',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewProductSelfHostingRoute = ViewProductSelfHostingRouteImport.update({
   id: '/product/self-hosting',
   path: '/product/self-hosting',
@@ -894,6 +900,7 @@ export interface FileRoutesByFullPath {
   '/product/notepad': typeof ViewProductNotepadRoute
   '/product/search': typeof ViewProductSearchRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
+  '/product/templates': typeof ViewProductTemplatesRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
   '/solution/coaching': typeof ViewSolutionCoachingRoute
@@ -1024,6 +1031,7 @@ export interface FileRoutesByTo {
   '/product/notepad': typeof ViewProductNotepadRoute
   '/product/search': typeof ViewProductSearchRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
+  '/product/templates': typeof ViewProductTemplatesRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
   '/solution/coaching': typeof ViewSolutionCoachingRoute
@@ -1160,6 +1168,7 @@ export interface FileRoutesById {
   '/_view/product/notepad': typeof ViewProductNotepadRoute
   '/_view/product/search': typeof ViewProductSearchRoute
   '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
+  '/_view/product/templates': typeof ViewProductTemplatesRoute
   '/_view/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/_view/shortcuts/$slug': typeof ViewShortcutsSlugRoute
   '/_view/solution/coaching': typeof ViewSolutionCoachingRoute
@@ -1296,6 +1305,7 @@ export interface FileRouteTypes {
     | '/product/notepad'
     | '/product/search'
     | '/product/self-hosting'
+    | '/product/templates'
     | '/roadmap/$slug'
     | '/shortcuts/$slug'
     | '/solution/coaching'
@@ -1426,6 +1436,7 @@ export interface FileRouteTypes {
     | '/product/notepad'
     | '/product/search'
     | '/product/self-hosting'
+    | '/product/templates'
     | '/roadmap/$slug'
     | '/shortcuts/$slug'
     | '/solution/coaching'
@@ -1561,6 +1572,7 @@ export interface FileRouteTypes {
     | '/_view/product/notepad'
     | '/_view/product/search'
     | '/_view/product/self-hosting'
+    | '/_view/product/templates'
     | '/_view/roadmap/$slug'
     | '/_view/shortcuts/$slug'
     | '/_view/solution/coaching'
@@ -2203,6 +2215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewRoadmapSlugRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/product/templates': {
+      id: '/_view/product/templates'
+      path: '/product/templates'
+      fullPath: '/product/templates'
+      preLoaderRoute: typeof ViewProductTemplatesRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/product/self-hosting': {
       id: '/_view/product/self-hosting'
       path: '/product/self-hosting'
@@ -2705,6 +2724,7 @@ interface ViewRouteRouteChildren {
   ViewProductNotepadRoute: typeof ViewProductNotepadRoute
   ViewProductSearchRoute: typeof ViewProductSearchRoute
   ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute
+  ViewProductTemplatesRoute: typeof ViewProductTemplatesRoute
   ViewRoadmapSlugRoute: typeof ViewRoadmapSlugRoute
   ViewShortcutsSlugRoute: typeof ViewShortcutsSlugRoute
   ViewSolutionCoachingRoute: typeof ViewSolutionCoachingRoute
@@ -2784,6 +2804,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewProductNotepadRoute: ViewProductNotepadRoute,
   ViewProductSearchRoute: ViewProductSearchRoute,
   ViewProductSelfHostingRoute: ViewProductSelfHostingRoute,
+  ViewProductTemplatesRoute: ViewProductTemplatesRoute,
   ViewRoadmapSlugRoute: ViewRoadmapSlugRoute,
   ViewShortcutsSlugRoute: ViewShortcutsSlugRoute,
   ViewSolutionCoachingRoute: ViewSolutionCoachingRoute,

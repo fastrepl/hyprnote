@@ -21,7 +21,6 @@ const FeedbackRequestSchema = z.object({
     arch: z.string(),
     osVersion: z.string(),
     appVersion: z.string(),
-    gitHash: z.string(),
   }),
 });
 
@@ -257,7 +256,6 @@ feedback.post(
       `**Architecture:** ${deviceInfo.arch}`,
       `**OS Version:** ${deviceInfo.osVersion}`,
       `**App Version:** ${deviceInfo.appVersion}`,
-      `**Git Hash:** ${deviceInfo.gitHash}`,
     ].join("\n");
 
     if (type === "bug") {

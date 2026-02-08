@@ -1,7 +1,7 @@
 mod connect;
 mod webhook;
 
-use axum::{Router, routing::post};
+use axum::{Router, middleware, routing::post};
 use utoipa::OpenApi;
 
 use crate::state::AppState;
@@ -32,8 +32,14 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
 }
 
 pub fn router(state: AppState) -> Router {
+    let auth_state = state.auth.clone();
+
     Router::new()
         .route("/connect-session", post(connect::create_connect_session))
+        .route_layer(middleware::from_fn_with_state(
+            auth_state,
+            hypr_api_auth::require_auth,
+        ))
         .route("/webhook", post(webhook::nango_webhook))
         .with_state(state)
 }

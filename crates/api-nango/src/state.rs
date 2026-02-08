@@ -1,3 +1,4 @@
+use hypr_api_auth::AuthState;
 use hypr_nango::NangoClient;
 
 use crate::config::IntegrationConfig;
@@ -7,6 +8,7 @@ use crate::error::IntegrationError;
 pub struct AppState {
     pub config: IntegrationConfig,
     pub nango: NangoClient,
+    pub auth: AuthState,
 }
 
 impl AppState {
@@ -17,6 +19,12 @@ impl AppState {
             .build()
             .map_err(|e| IntegrationError::Nango(e.to_string()))?;
 
-        Ok(Self { config, nango })
+        let auth = AuthState::new(&config.supabase_url);
+
+        Ok(Self {
+            config,
+            nango,
+            auth,
+        })
     }
 }

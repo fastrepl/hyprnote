@@ -1,3 +1,4 @@
+use hypr_api_auth::AuthState;
 use stripe::Client as StripeClient;
 
 use crate::config::SubscriptionConfig;
@@ -8,6 +9,7 @@ pub struct AppState {
     pub config: SubscriptionConfig,
     pub supabase: SupabaseClient,
     pub stripe: StripeClient,
+    pub auth: AuthState,
 }
 
 impl AppState {
@@ -18,11 +20,13 @@ impl AppState {
         );
 
         let stripe = StripeClient::new(&config.stripe_api_key);
+        let auth = AuthState::new(&config.supabase_url);
 
         Self {
             config,
             supabase,
             stripe,
+            auth,
         }
     }
 }

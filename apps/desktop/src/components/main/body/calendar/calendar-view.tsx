@@ -133,6 +133,7 @@ function useCalendarData(): CalendarData {
 
     if (eventsTable) {
       for (const [eventId, row] of Object.entries(eventsTable)) {
+        if (!row.title || row.ignored) continue;
         const raw = safeParseDate(row.started_at);
         if (!raw) continue;
         const key = format(toTz(raw, tz), "yyyy-MM-dd");
@@ -142,7 +143,7 @@ function useCalendarData(): CalendarData {
 
     if (sessionsTable) {
       for (const [sessionId, row] of Object.entries(sessionsTable)) {
-        if (row.event_id) continue;
+        if (row.event_id || !row.title) continue;
         const raw = safeParseDate(row.created_at);
         if (!raw) continue;
         const key = format(toTz(raw, tz), "yyyy-MM-dd");
@@ -429,7 +430,10 @@ function DayCell({
           {format(day, "d")}
         </div>
       </div>
-      <div ref={itemsRef} className="flex flex-col gap-0.5 flex-1 min-h-0">
+      <div
+        ref={itemsRef}
+        className="flex flex-col gap-0.5 flex-1 min-h-0 overflow-hidden"
+      >
         {visibleEvents.map((eventId) => (
           <EventChip key={eventId} eventId={eventId} />
         ))}

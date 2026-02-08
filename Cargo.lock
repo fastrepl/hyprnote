@@ -556,25 +556,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "api-nango"
-version = "0.1.0"
-dependencies = [
- "axum 0.8.8",
- "chrono",
- "google-calendar",
- "hypr-http-utils",
- "nango",
- "reqwest 0.13.1",
- "sentry",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "utoipa",
-]
-
-[[package]]
 name = "api-env"
 version = "0.1.0"
 dependencies = [

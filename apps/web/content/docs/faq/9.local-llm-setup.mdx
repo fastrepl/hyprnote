@@ -23,6 +23,10 @@ description: "How to set up LM Studio or Ollama for local AI in Hyprnote."
 3. The default base URL `http://127.0.0.1:1234/v1` should work if you haven't changed the port
 4. Select LM Studio as your provider and choose a model from the dropdown
 
+### Tool Calling Fallback
+
+Some local models (e.g., Gemma) do not support tool calling, which Hyprnote uses for structured output during summarization. Hyprnote automatically detects this and falls back to plain text generation with JSON extraction, so summarization still works with these models. No configuration is needed.
+
 ### Troubleshooting
 
 If Hyprnote cannot connect to LM Studio:

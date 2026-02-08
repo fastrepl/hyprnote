@@ -102,7 +102,8 @@ function BrandSection({ currentYear }: { currentYear: number }) {
       });
     },
     onSuccess: () => {
-      setExpanded(false);
+      setPopoverOpen(false);
+      form.reset();
       setEmail("");
       setSubscriptions({
         releaseNotesStable: false,

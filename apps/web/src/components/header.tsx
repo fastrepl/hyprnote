@@ -46,6 +46,7 @@ const solutionsList = [
 
 const resourcesList = [
   { to: "/blog/", label: "Blog" },
+  { to: "/docs/", label: "Documentation" },
   { to: "/gallery/templates", label: "Meeting Templates" },
   { to: "/changelog/", label: "Changelog" },
   { to: "/roadmap/", label: "Roadmap" },

@@ -45,37 +45,40 @@ import { PROVIDERS } from "../../../settings/calendar/shared";
 import { EventDisplay } from "../sessions/outer-header/metadata";
 
 const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MIN_CELL_WIDTH = 120;
-const MIN_CELL_HEIGHT = 80;
 
-function useGridSize(ref: React.RefObject<HTMLDivElement | null>) {
-  const [size, setSize] = useState({ cols: 7, rows: 6 });
+const VIEW_BREAKPOINTS = [
+  { minWidth: 700, cols: 7 },
+  { minWidth: 400, cols: 4 },
+  { minWidth: 200, cols: 2 },
+  { minWidth: 0, cols: 1 },
+] as const;
+
+function useVisibleCols(ref: React.RefObject<HTMLDivElement | null>) {
+  const [cols, setCols] = useState(7);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
     const observer = new ResizeObserver((entries) => {
-      const { width, height } = entries[0].contentRect;
-      const cols = Math.max(1, Math.min(7, Math.floor(width / MIN_CELL_WIDTH)));
-      const rows = Math.max(1, Math.floor(height / MIN_CELL_HEIGHT));
-      setSize((prev) =>
-        prev.cols === cols && prev.rows === rows ? prev : { cols, rows },
-      );
+      const { width } = entries[0].contentRect;
+      const match = VIEW_BREAKPOINTS.find((bp) => width >= bp.minWidth);
+      const next = match?.cols ?? 1;
+      setCols((prev) => (prev === next ? prev : next));
     });
 
     observer.observe(el);
     return () => observer.disconnect();
   }, [ref]);
 
-  return size;
+  return cols;
 }
 
 export function CalendarView() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showSettings, setShowSettings] = useState(false);
-  const gridRef = useRef<HTMLDivElement>(null);
-  const { cols, rows } = useGridSize(gridRef);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cols = useVisibleCols(containerRef);
 
   const goToPrevMonth = useCallback(
     () => setCurrentMonth((m) => subMonths(m, 1)),
@@ -98,20 +101,16 @@ export function CalendarView() {
       return eachDayOfInterval({ start: calStart, end: calEnd });
     }
 
-    const totalDays = cols * rows;
-    const today = new Date();
-    const offset = Math.floor(totalDays / 2);
-    const start = new Date(today);
-    start.setDate(start.getDate() - offset);
+    const weekStart = startOfWeek(new Date());
     return eachDayOfInterval({
-      start,
-      end: new Date(start.getTime() + (totalDays - 1) * 86400000),
+      start: weekStart,
+      end: new Date(weekStart.getTime() + (cols - 1) * 86400000),
     });
-  }, [currentMonth, isMonthView, cols, rows]);
+  }, [currentMonth, isMonthView, cols]);
 
   const visibleHeaders = useMemo(() => {
     if (isMonthView) return WEEKDAY_HEADERS;
-    return days.slice(0, cols).map((d) => format(d, "EEE"));
+    return days.slice(0, cols).map((d) => format(d, "EEE d"));
   }, [isMonthView, days, cols]);
 
   return (
@@ -143,7 +142,7 @@ export function CalendarView() {
           </>
         )}
       </div>
-      <div className="flex flex-col flex-1 min-w-0">
+      <div ref={containerRef} className="flex flex-col flex-1 min-w-0">
         <div
           className={cn([
             "flex items-center justify-between",
@@ -164,7 +163,7 @@ export function CalendarView() {
               {isMonthView
                 ? format(currentMonth, "MMMM yyyy")
                 : days.length > 0
-                  ? `${format(days[0], "MMM d")} – ${format(days[days.length - 1], "MMM d, yyyy")}`
+                  ? format(days[0], "MMMM yyyy")
                   : ""}
             </h2>
           </div>
@@ -214,8 +213,10 @@ export function CalendarView() {
         </div>
 
         <div
-          ref={gridRef}
-          className="flex-1 grid auto-rows-fr overflow-hidden"
+          className={cn([
+            "flex-1 grid overflow-hidden",
+            isMonthView ? "auto-rows-fr" : "grid-rows-1",
+          ])}
           style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
         >
           {days.map((day) => (

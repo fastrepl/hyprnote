@@ -1,10 +1,12 @@
 use rmcp::{
-    ErrorData as McpError, ServerHandler, handler::server::tool::ToolRouter,
-    handler::server::wrapper::Parameters, model::*, tool, tool_handler, tool_router,
+    ErrorData as McpError, RoleServer, ServerHandler, handler::server::tool::ToolRouter,
+    handler::server::wrapper::Parameters, model::*, service::RequestContext, tool, tool_handler,
+    tool_router,
 };
 
 use crate::state::AppState;
 
+use super::prompts;
 use super::tools::{self, ReadGitHubDataParams, SubmitBugReportParams, SubmitFeatureRequestParams};
 
 #[derive(Clone)]
@@ -58,7 +60,10 @@ impl ServerHandler for SupportMcpServer {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
             protocol_version: ProtocolVersion::V_2024_11_05,
-            capabilities: ServerCapabilities::builder().enable_tools().build(),
+            capabilities: ServerCapabilities::builder()
+                .enable_tools()
+                .enable_prompts()
+                .build(),
             server_info: Implementation {
                 name: "hyprnote-support".to_string(),
                 title: None,
@@ -70,6 +75,36 @@ impl ServerHandler for SupportMcpServer {
                 "Hyprnote support server. Provides tools for submitting bug reports and feature requests."
                     .to_string(),
             ),
+        }
+    }
+
+    async fn list_prompts(
+        &self,
+        _params: Option<PaginatedRequestParams>,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<ListPromptsResult, McpError> {
+        Ok(ListPromptsResult {
+            prompts: vec![Prompt::new(
+                "support_chat",
+                Some("System prompt for the Hyprnote support chat"),
+                None::<Vec<PromptArgument>>,
+            )],
+            next_cursor: None,
+            meta: None,
+        })
+    }
+
+    async fn get_prompt(
+        &self,
+        params: GetPromptRequestParams,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<GetPromptResult, McpError> {
+        match params.name.as_str() {
+            "support_chat" => prompts::support_chat(),
+            _ => Err(McpError::invalid_params(
+                format!("Unknown prompt: {}", params.name),
+                None,
+            )),
         }
     }
 }

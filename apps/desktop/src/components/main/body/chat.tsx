@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { Loader2, MessageCircle } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
 import type { HyprUIMessage } from "../../../chat/types";
@@ -7,7 +7,7 @@ import {
   useFeedbackLanguageModel,
   useLanguageModel,
 } from "../../../hooks/useLLMConnection";
-import { useSupportMCPTools } from "../../../hooks/useSupportMCPTools";
+import { useSupportMCP } from "../../../hooks/useSupportMCPTools";
 import * as main from "../../../store/tinybase/store/main";
 import type { Tab } from "../../../store/zustand/tabs";
 import { useTabs } from "../../../store/zustand/tabs";
@@ -83,7 +83,11 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
   const userModel = useLanguageModel();
   const feedbackModel = useFeedbackLanguageModel();
   const model = isSupport ? feedbackModel : userModel;
-  const { tools: mcpTools, isReady: mcpReady } = useSupportMCPTools(isSupport);
+  const {
+    tools: mcpTools,
+    systemPrompt: mcpSystemPrompt,
+    isReady: mcpReady,
+  } = useSupportMCP(isSupport);
 
   const onGroupCreated = useCallback(
     (newGroupId: string) =>
@@ -108,6 +112,7 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
         chatGroupId={groupId}
         modelOverride={isSupport ? feedbackModel : undefined}
         extraTools={isSupport ? mcpTools : undefined}
+        systemPromptOverride={isSupport ? mcpSystemPrompt : undefined}
       >
         {({ messages, sendMessage, regenerate, stop, status, error }) => (
           <ChatTabContent
@@ -162,6 +167,7 @@ function ChatTabContent({
   mcpReady: boolean;
 }) {
   const sentRef = useRef(false);
+  const waitingForMcp = !!tab.state.initialMessage && !mcpReady;
 
   useEffect(() => {
     const initialMessage = tab.state.initialMessage;
@@ -194,6 +200,17 @@ function ChatTabContent({
     sendMessage,
     updateChatTabState,
   ]);
+
+  if (waitingForMcp) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center gap-2 text-sm text-neutral-500">
+          <Loader2 className="size-4 animate-spin" />
+          <span>Preparing support chat...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

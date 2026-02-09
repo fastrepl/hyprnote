@@ -3,6 +3,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::config::FeedbackConfig;
 
+fn tail_str(s: &str, max_bytes: usize) -> &str {
+    if s.len() <= max_bytes {
+        return s;
+    }
+    let mut start = s.len() - max_bytes;
+    while !s.is_char_boundary(start) {
+        start += 1;
+    }
+    &s[start..]
+}
+
 #[derive(Clone)]
 pub(crate) struct AppState {
     pub(crate) client: reqwest::Client,
@@ -110,7 +121,7 @@ async fn submit_feedback(
         let log_comment = format!(
             "## Log Analysis\n\n{}\n\n<details>\n<summary>Raw Logs (last 10KB)</summary>\n\n```\n{}\n```\n\n</details>",
             summary_section,
-            &logs[logs.len().saturating_sub(10000)..],
+            tail_str(logs, 10000),
         );
         if let Err(e) = add_comment_to_issue(&state, issue.number, &log_comment).await {
             tracing::warn!(error = %e, "failed to add log comment to issue");
@@ -295,7 +306,7 @@ async fn analyze_logs(state: &AppState, logs: &str) -> Option<String> {
                 "role": "user",
                 "content": format!(
                     "Extract only ERROR and WARNING entries from these logs. Output max 800 chars, no explanation:\n\n{}",
-                    &logs[logs.len().saturating_sub(10000)..]
+                    tail_str(logs, 10000)
                 ),
             }],
         }))

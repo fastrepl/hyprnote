@@ -3,6 +3,7 @@ import type {
   AiTab,
   ChangelogState,
   ChatShortcutsState,
+  ChatState,
   ContactsState,
   EditorView,
   ExtensionsState,
@@ -18,6 +19,7 @@ export type {
   AiTab,
   ChangelogState,
   ChatShortcutsState,
+  ChatState,
   ContactsState,
   EditorView,
   ExtensionsState,
@@ -105,6 +107,10 @@ export type Tab =
   | (BaseTab & {
       type: "search";
       state: SearchState;
+    })
+  | (BaseTab & {
+      type: "chat";
+      state: ChatState;
     });
 
 export const getDefaultState = (tab: TabInput): Tab => {
@@ -201,6 +207,12 @@ export const getDefaultState = (tab: TabInput): Tab => {
         type: "search",
         state: tab.state ?? { selectedTypes: null, initialQuery: null },
       };
+    case "chat":
+      return {
+        ...base,
+        type: "chat",
+        state: tab.state ?? { groupId: null },
+      };
     default:
       const _exhaustive: never = tab;
       return _exhaustive;
@@ -241,6 +253,8 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `ai`;
     case "search":
       return `search`;
+    case "chat":
+      return `chat`;
   }
 };
 

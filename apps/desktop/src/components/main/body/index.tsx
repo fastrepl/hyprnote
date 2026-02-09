@@ -38,6 +38,7 @@ import { TabContentSearch, TabItemSearch } from "./advanced-search";
 import { TabContentAI, TabItemAI } from "./ai";
 import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
+import { TabContentChat, TabItemChat } from "./chat";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
@@ -58,16 +59,33 @@ import { TabContentTemplate, TabItemTemplate } from "./templates";
 import { Update } from "./update";
 
 export function Body() {
-  const { tabs, currentTab } = useTabs(
+  const { tabs, currentTab, close } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
       currentTab: state.currentTab,
+      close: state.close,
     })),
   );
+
+  const { chat } = useShell();
 
   useEffect(() => {
     void loadExtensionPanels();
   }, []);
+
+  useEffect(() => {
+    const hasChatTab = tabs.some((t) => t.type === "chat");
+    const isFullTabMode = chat.mode === "FullTab";
+
+    if (isFullTabMode && !hasChatTab) {
+      chat.sendEvent({ type: "CLOSE" });
+    } else if (!isFullTabMode && hasChatTab) {
+      const chatTab = tabs.find((t) => t.type === "chat");
+      if (chatTab) {
+        close(chatTab);
+      }
+    }
+  }, [tabs, chat, close]);
 
   if (!currentTab) {
     return null;
@@ -544,6 +562,20 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "chat") {
+    return (
+      <TabItemChat
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
+      />
+    );
+  }
   return null;
 }
 
@@ -591,6 +623,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "search") {
     return <TabContentSearch tab={tab} />;
   }
+  if (tab.type === "chat") {
+    return <TabContentChat tab={tab} />;
+  }
   return null;
 }
 
@@ -620,11 +655,15 @@ function TabChatButton({
     return null;
   }
 
-  if (chat.mode === "RightPanelOpen") {
+  if (chat.mode === "RightPanelOpen" || chat.mode === "FullTab") {
     return null;
   }
 
-  if (currentTab?.type === "ai" || currentTab?.type === "settings") {
+  if (
+    currentTab?.type === "ai" ||
+    currentTab?.type === "settings" ||
+    currentTab?.type === "chat"
+  ) {
     return null;
   }
 
@@ -787,6 +826,7 @@ function useTabsShortcuts() {
   const liveSessionId = useListener((state) => state.live.sessionId);
   const liveStatus = useListener((state) => state.live.status);
   const isListening = liveStatus === "active" || liveStatus === "finalizing";
+  const { chat } = useShell();
 
   const newNote = useNewNote({ behavior: "new" });
   const newNoteCurrent = useNewNote({ behavior: "current" });
@@ -834,6 +874,9 @@ function useTabsShortcuts() {
         } else if (currentTab.pinned) {
           unpin(currentTab);
         } else {
+          if (currentTab.type === "chat") {
+            chat.sendEvent({ type: "CLOSE" });
+          }
           close(currentTab);
         }
       }
@@ -850,6 +893,7 @@ function useTabsShortcuts() {
       isListening,
       liveSessionId,
       setPendingCloseConfirmationTab,
+      chat,
     ],
   );
 
@@ -973,6 +1017,20 @@ function useTabsShortcuts() {
       enableOnContentEditable: true,
     },
     [newNoteAndListen],
+  );
+
+  useHotkeys(
+    "mod+shift+j",
+    () => {
+      openNew({ type: "chat" });
+      chat.sendEvent({ type: "OPEN_TAB" });
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew, chat],
   );
 
   return {};

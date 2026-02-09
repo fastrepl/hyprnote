@@ -93,3 +93,10 @@ crate::common_derives! {
         pub initial_query: Option<String>,
     }
 }
+
+crate::common_derives! {
+    #[derive(Default)]
+    pub struct ChatState {
+        pub group_id: Option<String>,
+    }
+}

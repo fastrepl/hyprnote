@@ -2,7 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { type ActorRefFrom, createActor, fromTransition } from "xstate";
 
-export type ChatMode = "RightPanelOpen" | "FloatingClosed" | "FloatingOpen" | "FullTab";
+export type ChatMode =
+  | "RightPanelOpen"
+  | "FloatingClosed"
+  | "FloatingOpen"
+  | "FullTab";
 export type ChatEvent =
   | { type: "OPEN" }
   | { type: "CLOSE" }

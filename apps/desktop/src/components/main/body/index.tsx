@@ -37,8 +37,8 @@ import { useNewNote, useNewNoteAndListen } from "../shared";
 import { TabContentSearch, TabItemSearch } from "./advanced-search";
 import { TabContentAI, TabItemAI } from "./ai";
 import { TabContentCalendar, TabItemCalendar } from "./calendar";
-import { TabContentChat, TabItemChat } from "./chat";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
+import { TabContentChat, TabItemChat } from "./chat";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
@@ -642,7 +642,11 @@ function TabChatButton({
     return null;
   }
 
-  if (currentTab?.type === "ai" || currentTab?.type === "settings" || currentTab?.type === "chat") {
+  if (
+    currentTab?.type === "ai" ||
+    currentTab?.type === "settings" ||
+    currentTab?.type === "chat"
+  ) {
     return null;
   }
 

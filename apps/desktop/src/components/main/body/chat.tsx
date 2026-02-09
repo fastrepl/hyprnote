@@ -127,8 +127,7 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
       let currentGroupId = groupId ?? undefined;
       if (!currentGroupId) {
         currentGroupId = id();
-        const title =
-          content.slice(0, 50) + (content.length > 50 ? "..." : "");
+        const title = content.slice(0, 50) + (content.length > 50 ? "..." : "");
         createChatGroup({ groupId: currentGroupId, title });
         updateChatTabState(tab, { groupId: currentGroupId });
       }
@@ -168,9 +167,7 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
               onSendMessage={(content, parts) =>
                 handleSendMessage(content, parts, sendMessage)
               }
-              isStreaming={
-                status === "streaming" || status === "submitted"
-              }
+              isStreaming={status === "streaming" || status === "submitted"}
               onStop={stop}
             />
           </>

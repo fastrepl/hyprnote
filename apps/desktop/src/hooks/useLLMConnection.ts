@@ -69,13 +69,6 @@ export const useLLMConnection = (): LLMConnectionResult => {
     settings.STORE_ID,
   ) as AIProviderStorage | undefined;
 
-  const resetLlmModel = settings.UI.useSetValueCallback(
-    "current_llm_model",
-    () => "",
-    [],
-    settings.STORE_ID,
-  );
-
   const result = useMemo<LLMConnectionResult>(
     () =>
       resolveLLMConnection({
@@ -94,31 +87,7 @@ export const useLLMConnection = (): LLMConnectionResult => {
     ],
   );
 
-  // Reset LLM model selection when a Cloud Pro model becomes unavailable.
-  //
-  // IMPORTANT: We use `prevIsProRef` (starting as null) to skip the initial
-  // render cycle. During app startup, auth.session is null and billing.isPro
-  // is false because they load asynchronously. Without this guard, the effect
-  // would see "unauthenticated / not_pro" and wipe the user's saved model
-  // selection before auth has finished loading — the same race condition that
-  // was previously caused by the useEffect in stt/select.tsx.
-  const prevIsProRef = useRef<boolean | null>(null);
-
-  useEffect(() => {
-    if (prevIsProRef.current === null) {
-      prevIsProRef.current = billing.isPro;
-      return;
-    }
-    prevIsProRef.current = billing.isPro;
-
-    const { status } = result;
-    if (
-      status.status === "error" &&
-      (status.reason === "unauthenticated" || status.reason === "not_pro")
-    ) {
-      resetLlmModel();
-    }
-  }, [result, billing.isPro, resetLlmModel]);
+  useLLMModelReset({ status: result.status, isPro: billing.isPro });
 
   return result;
 };
@@ -128,7 +97,47 @@ export const useLLMConnectionStatus = (): LLMConnectionStatus => {
   return status;
 };
 
-const resolveLLMConnection = (params: {
+// Resets the persisted LLM model selection when a Cloud Pro model becomes
+// unavailable (unauthenticated or subscription expired).
+//
+// IMPORTANT: Uses `prevIsProRef` (starting as null) to skip the initial render
+// cycle. During app startup, `auth.session` is null and `billing.isPro` is false
+// because they load asynchronously. Without this guard, the effect would see
+// "unauthenticated / not_pro" and wipe the user's saved model selection before
+// auth has finished loading — the same race condition that was previously caused
+// by the useEffect in stt/select.tsx.
+function useLLMModelReset(params: {
+  status: LLMConnectionStatus;
+  isPro: boolean;
+}) {
+  const { status, isPro } = params;
+
+  const resetLlmModel = settings.UI.useSetValueCallback(
+    "current_llm_model",
+    () => "",
+    [],
+    settings.STORE_ID,
+  );
+
+  const prevIsProRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (prevIsProRef.current === null) {
+      prevIsProRef.current = isPro;
+      return;
+    }
+    prevIsProRef.current = isPro;
+
+    if (
+      status.status === "error" &&
+      (status.reason === "unauthenticated" || status.reason === "not_pro")
+    ) {
+      resetLlmModel();
+    }
+  }, [status, isPro, resetLlmModel]);
+}
+
+const resolveLLMConnection= (params: {
   providerId: string | undefined;
   modelId: string | undefined;
   providerConfig: AIProviderStorage | undefined;

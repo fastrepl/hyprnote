@@ -66,9 +66,17 @@ export function Body() {
     })),
   );
 
+  const { chat } = useShell();
+
   useEffect(() => {
     void loadExtensionPanels();
   }, []);
+
+  useEffect(() => {
+    if (chat.mode === "FullTab" && !tabs.some((t) => t.type === "chat")) {
+      chat.sendEvent({ type: "CLOSE" });
+    }
+  }, [tabs, chat]);
 
   if (!currentTab) {
     return null;

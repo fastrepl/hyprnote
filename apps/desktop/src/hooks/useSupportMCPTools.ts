@@ -17,6 +17,8 @@ export function useSupportMCP(enabled: boolean) {
       return;
     }
 
+    setIsReady(false);
+
     let cancelled = false;
     const timeout = setTimeout(() => {
       if (!cancelled) {

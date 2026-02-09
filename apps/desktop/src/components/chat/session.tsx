@@ -28,6 +28,7 @@ interface ChatSessionProps {
   attachedSessionId?: string;
   modelOverride?: LanguageModel;
   extraTools?: Record<string, any>;
+  systemPromptOverride?: string;
   children: (props: {
     messages: HyprUIMessage[];
     sendMessage: (message: HyprUIMessage) => void;
@@ -44,9 +45,15 @@ export function ChatSession({
   attachedSessionId,
   modelOverride,
   extraTools,
+  systemPromptOverride,
   children,
 }: ChatSessionProps) {
-  const transport = useTransport(attachedSessionId, modelOverride, extraTools);
+  const transport = useTransport(
+    attachedSessionId,
+    modelOverride,
+    extraTools,
+    systemPromptOverride,
+  );
   const store = main.UI.useStore(main.STORE_ID);
 
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -188,6 +195,7 @@ function useTransport(
   attachedSessionId?: string,
   modelOverride?: LanguageModel,
   extraTools?: Record<string, any>,
+  systemPromptOverride?: string,
 ) {
   const registry = useToolRegistry();
   const configuredModel = useLanguageModel();
@@ -285,6 +293,11 @@ function useTransport(
   }, [attachedSessionId, title, rawMd, enhancedContent, createdAt, transcript]);
 
   useEffect(() => {
+    if (systemPromptOverride) {
+      setSystemPrompt(systemPromptOverride);
+      return;
+    }
+
     templateCommands
       .render({
         chatSystem: {
@@ -298,7 +311,7 @@ function useTransport(
         }
       })
       .catch(console.error);
-  }, [language, chatContext]);
+  }, [language, chatContext, systemPromptOverride]);
 
   const transport = useMemo(() => {
     if (!model) {

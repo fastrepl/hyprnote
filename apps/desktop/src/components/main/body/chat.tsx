@@ -7,7 +7,7 @@ import {
   useFeedbackLanguageModel,
   useLanguageModel,
 } from "../../../hooks/useLLMConnection";
-import { useSupportMCPTools } from "../../../hooks/useSupportMCPTools";
+import { useSupportMCP } from "../../../hooks/useSupportMCPTools";
 import * as main from "../../../store/tinybase/store/main";
 import type { Tab } from "../../../store/zustand/tabs";
 import { useTabs } from "../../../store/zustand/tabs";
@@ -83,7 +83,11 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
   const userModel = useLanguageModel();
   const feedbackModel = useFeedbackLanguageModel();
   const model = isSupport ? feedbackModel : userModel;
-  const { tools: mcpTools, isReady: mcpReady } = useSupportMCPTools(isSupport);
+  const {
+    tools: mcpTools,
+    systemPrompt: mcpSystemPrompt,
+    isReady: mcpReady,
+  } = useSupportMCP(isSupport);
 
   const onGroupCreated = useCallback(
     (newGroupId: string) =>
@@ -108,6 +112,7 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
         chatGroupId={groupId}
         modelOverride={isSupport ? feedbackModel : undefined}
         extraTools={isSupport ? mcpTools : undefined}
+        systemPromptOverride={isSupport ? mcpSystemPrompt : undefined}
       >
         {({ messages, sendMessage, regenerate, stop, status, error }) => (
           <ChatTabContent

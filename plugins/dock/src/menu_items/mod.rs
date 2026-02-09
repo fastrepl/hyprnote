@@ -23,7 +23,7 @@ macro_rules! dock_menu_items {
                 {
                     let title = NSString::from_str(<$item as DockMenuItem>::TITLE);
                     let key_equivalent = NSString::from_str("");
-                    let sel = objc2::sel!($variant);
+                    let sel = objc2::runtime::Sel::register(concat!(stringify!($variant), ":"));
                     let item = unsafe {
                         NSMenuItem::initWithTitle_action_keyEquivalent(
                             NSMenuItem::alloc(mtm),
@@ -55,8 +55,8 @@ macro_rules! dock_menu_items {
                         }
                     }
 
-                    let sel = objc2::sel!($variant);
-                    let imp: objc2::runtime::Imp = unsafe { std::mem::transmute(handler as *const ()) };
+                    let sel = objc2::runtime::Sel::register(concat!(stringify!($variant), ":"));
+                    let imp: objc2::runtime::Imp= unsafe { std::mem::transmute(handler as *const ()) };
                     let types = c"v@:@";
 
                     unsafe {
@@ -73,5 +73,5 @@ macro_rules! dock_menu_items {
 
 #[cfg(target_os = "macos")]
 dock_menu_items! {
-    handleDockNewNote: => DockNewNote,
+    handleDockNewNote => DockNewNote,
 }

@@ -42,14 +42,15 @@ pub fn setup_dock_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
                 let windows = ns_app.windows();
                 for i in 0..windows.len() {
                     let window: *mut objc2::runtime::AnyObject =
-                        objc2::msg_send![&*windows, objectAtIndex: i];
+                        unsafe { objc2::msg_send![&*windows, objectAtIndex: i] };
                     if !window.is_null() {
-                        let _: () = objc2::msg_send![window, setExcludedFromWindowsMenu: true];
+                        let _: () =
+                            unsafe { objc2::msg_send![window, setExcludedFromWindowsMenu: true] };
                     }
                 }
 
                 let menu = NSMenu::new(mtm);
-                unsafe { menu.setAutoenablesItems(false) };
+                menu.setAutoenablesItems(false);
 
                 let title = NSString::from_str("New Note");
                 let key_equivalent = NSString::from_str("");
@@ -62,7 +63,7 @@ pub fn setup_dock_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
                         &key_equivalent,
                     )
                 };
-                unsafe { item.setEnabled(true) };
+                item.setEnabled(true);
                 menu.addItem(&item);
 
                 objc2::rc::Retained::autorelease_return(menu) as *mut objc2::runtime::AnyObject

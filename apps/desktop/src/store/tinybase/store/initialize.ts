@@ -56,7 +56,7 @@ function initializeStore(store: Store): void {
 
 function migrateSessionEventIds(store: Store): void {
   store.forEachRow("sessions", (sessionId, _forEachCell) => {
-    const eventField = store.getCell("sessions", sessionId, "event") as
+    const eventField = store.getCell("sessions", sessionId, "eventJson") as
       | string
       | undefined;
     if (!eventField) return;
@@ -97,11 +97,11 @@ function migrateSessionEventIds(store: Store): void {
           : undefined,
       };
       store.setPartialRow("sessions", sessionId, {
-        event: buildSessionEventJson(sessionEvent),
+        eventJson: buildSessionEventJson(sessionEvent),
       });
     } else {
       store.setPartialRow("sessions", sessionId, {
-        event: undefined,
+        eventJson: undefined,
       });
     }
   });

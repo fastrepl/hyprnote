@@ -372,11 +372,11 @@ const SessionItem = memo(
 
     const sessionEvent = useMemo(
       () => getSessionEvent(item.data),
-      [item.data.event],
+      [item.data.eventJson],
     );
 
     const calendarId = sessionEvent?.calendar_id ?? null;
-    const hasEvent = !!item.data.event;
+    const hasEvent = !!item.data.eventJson;
 
     const displayTime = useMemo(
       () =>

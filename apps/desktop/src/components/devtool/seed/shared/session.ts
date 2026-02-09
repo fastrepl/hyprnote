@@ -58,7 +58,7 @@ export const createSession = (
       title,
       raw_md: JSON.stringify(md2json(raw_md)),
       created_at: faker.date.recent({ days: 30 }).toISOString(),
-      event: eventId,
+      eventJson: eventId,
       folder_id: folderId,
     },
   };

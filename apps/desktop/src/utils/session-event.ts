@@ -1,6 +1,6 @@
 import type { SessionEvent } from "@hypr/store";
 
-type SessionLike = { event?: string | null };
+type SessionLike = { eventJson?: string | null };
 
 type StoreLike = {
   getRow(
@@ -10,7 +10,7 @@ type StoreLike = {
 };
 
 export function getSessionEvent(session: SessionLike): SessionEvent | null {
-  const eventJson = session.event;
+  const eventJson = session.eventJson;
   if (!eventJson) return null;
   try {
     return JSON.parse(eventJson) as SessionEvent;

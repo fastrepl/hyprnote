@@ -78,7 +78,7 @@ export function getOrCreateSessionForEventId(
 
   const sessionId = id();
   store.setRow("sessions", sessionId, {
-    event: sessionEvent ? buildSessionEventJson(sessionEvent) : undefined,
+    eventJson: sessionEvent ? buildSessionEventJson(sessionEvent) : undefined,
     title: title ?? "",
     created_at: new Date().toISOString(),
     raw_md: "",
@@ -99,7 +99,7 @@ export function isSessionEmpty(store: Store, sessionId: string): boolean {
 
   // event sessions automatically have a title
   // only consider titles if it does not have an event
-  if (session.title && session.title.trim() && !session.event) {
+  if (session.title && session.title.trim() && !session.eventJson) {
     return false;
   }
 

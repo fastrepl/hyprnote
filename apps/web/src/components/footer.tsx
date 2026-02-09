@@ -181,6 +181,7 @@ function useRotatingIndex(listLength: number, interval: number) {
     if (pausedRef.current) return;
     setFading(true);
     timeoutRef.current = setTimeout(() => {
+      if (pausedRef.current) return;
       setIndex((prev) => (prev + 1) % listLength);
       setFading(false);
     }, 200);

@@ -50,8 +50,20 @@ pub(crate) async fn read_github_data(
     params: ReadGitHubDataParams,
 ) -> Result<CallToolResult, McpError> {
     let table_name = params.table.as_str();
-    let limit = params.limit.unwrap_or(50).min(500);
-    let offset = params.offset.unwrap_or(0);
+    let limit = params.limit.unwrap_or(50).max(0).min(500);
+    let offset = params.offset.unwrap_or(0).max(0);
+
+    if params.state.is_some() {
+        match params.table {
+            GitHubTable::Comments | GitHubTable::Tags => {
+                return Err(McpError::invalid_params(
+                    "The 'state' filter is only applicable to 'issues' and 'pull_requests' tables",
+                    None,
+                ));
+            }
+            _ => {}
+        }
+    }
 
     let query = if let Some(ref state_filter) = params.state {
         let q = format!(
@@ -78,11 +90,23 @@ pub(crate) async fn read_github_data(
 
     let rows = query.map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
-    let count_query = format!("SELECT COUNT(*) FROM hyprnote_github.{}", table_name);
-    let total_count: i64 = sqlx::query_scalar(&count_query)
-        .fetch_one(&state.db_pool)
-        .await
-        .unwrap_or(0);
+    let total_count: i64 = if let Some(ref state_filter) = params.state {
+        let count_query = format!(
+            "SELECT COUNT(*) FROM hyprnote_github.{} t WHERE t.state = $1",
+            table_name
+        );
+        sqlx::query_scalar(&count_query)
+            .bind(state_filter)
+            .fetch_one(&state.db_pool)
+            .await
+            .unwrap_or(0)
+    } else {
+        let count_query = format!("SELECT COUNT(*) FROM hyprnote_github.{}", table_name);
+        sqlx::query_scalar(&count_query)
+            .fetch_one(&state.db_pool)
+            .await
+            .unwrap_or(0)
+    };
 
     let result = serde_json::json!({
         "table": table_name,

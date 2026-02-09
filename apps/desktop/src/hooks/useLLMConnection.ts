@@ -137,7 +137,7 @@ function useLLMModelReset(params: {
   }, [status, isPro, resetLlmModel]);
 }
 
-const resolveLLMConnection= (params: {
+const resolveLLMConnection = (params: {
   providerId: string | undefined;
   modelId: string | undefined;
   providerConfig: AIProviderStorage | undefined;

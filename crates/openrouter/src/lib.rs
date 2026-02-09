@@ -1,99 +1,58 @@
-use serde::{Deserialize, Serialize};
+mod client;
+mod error;
+mod types;
 
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-    #[error(transparent)]
-    Http(#[from] reqwest::Error),
-    #[error("API error ({status}): {message}")]
-    Api { status: u16, message: String },
-}
+pub use client::*;
+pub use error::*;
+pub use types::*;
 
-#[derive(Debug, Clone)]
-pub struct Client {
-    api_key: String,
-    base_url: String,
-    client: reqwest::Client,
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use futures_util::StreamExt;
 
-impl Client {
-    pub fn new(api_key: impl Into<String>) -> Self {
-        Self {
-            api_key: api_key.into(),
-            base_url: "https://openrouter.ai/api/v1".into(),
-            client: reqwest::Client::new(),
+    fn client() -> Client {
+        let api_key = std::env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY not set");
+        Client::new(api_key)
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_non_streaming() {
+        let req = ChatCompletionRequest {
+            model: "google/gemini-2.0-flash-001".into(),
+            max_tokens: Some(50),
+            messages: vec![ChatMessage::new(Role::User, "Say hello in one word.")],
+            ..Default::default()
+        };
+
+        let resp = client().chat_completion(&req).await.unwrap();
+        assert!(!resp.choices.is_empty());
+        assert!(resp.choices[0].message.content.is_some());
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_streaming() {
+        let req = ChatCompletionRequest {
+            model: "google/gemini-2.0-flash-001".into(),
+            max_tokens: Some(50),
+            messages: vec![ChatMessage::new(Role::User, "Say hello in one word.")],
+            ..Default::default()
+        };
+
+        let mut stream = client().chat_completion_stream(&req).await.unwrap();
+        let mut got_content = false;
+
+        while let Some(chunk) = stream.next().await {
+            let chunk = chunk.unwrap();
+            if let Some(choice) = chunk.choices.first() {
+                if choice.delta.content.is_some() {
+                    got_content = true;
+                }
+            }
         }
+
+        assert!(got_content);
     }
-
-    pub fn with_base_url(mut self, base_url: impl Into<String>) -> Self {
-        self.base_url = base_url.into();
-        self
-    }
-
-    pub async fn chat_completion(
-        &self,
-        req: &ChatCompletionRequest,
-    ) -> Result<ChatCompletionResponse, Error> {
-        let url = format!("{}/chat/completions", self.base_url);
-
-        let resp = self
-            .client
-            .post(&url)
-            .header("Authorization", format!("Bearer {}", self.api_key))
-            .json(req)
-            .send()
-            .await?;
-
-        if !resp.status().is_success() {
-            let status = resp.status().as_u16();
-            let message = resp.text().await.unwrap_or_default();
-            return Err(Error::Api { status, message });
-        }
-
-        Ok(resp.json().await?)
-    }
-}
-
-#[derive(Debug, Clone, Default, Serialize)]
-pub struct ChatCompletionRequest {
-    pub model: String,
-    pub messages: Vec<ChatMessage>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_tokens: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub temperature: Option<f32>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChatMessage {
-    pub role: Role,
-    pub content: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Role {
-    System,
-    User,
-    Assistant,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct ChatCompletionResponse {
-    pub id: String,
-    pub model: String,
-    pub choices: Vec<Choice>,
-    pub usage: Option<Usage>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct Choice {
-    pub message: ChatMessage,
-    pub finish_reason: Option<String>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct Usage {
-    pub prompt_tokens: u32,
-    pub completion_tokens: u32,
-    pub total_tokens: Option<u32>,
 }

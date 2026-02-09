@@ -61,11 +61,6 @@ export function useSupportMCP(enabled: boolean) {
       clientRef.current = null;
       queryClient.removeQueries({ queryKey: ["support-mcp"] });
     }
-    return () => {
-      clientRef.current?.close().catch(console.error);
-      clientRef.current = null;
-      queryClient.removeQueries({ queryKey: ["support-mcp"] });
-    };
   }, [enabled, queryClient]);
 
   const isTimedOut = useTimedOut(enabled && !isSuccess && !isError, TIMEOUT_MS);

@@ -1,6 +1,6 @@
 #[cfg(target_os = "macos")]
 pub fn setup_dock_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-    use objc2::runtime::{AnyClass, AnyObject};
+    use objc2::runtime::{AnyClass, AnyObject, Sel};
     use objc2::{msg_send, sel};
     use objc2_app_kit::NSApplication;
     use objc2_foundation::MainThreadMarker;
@@ -15,7 +15,7 @@ pub fn setup_dock_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
                 return;
             }
 
-            let delegate_class: *const AnyClass = msg_send![delegate, class];
+            let delegate_class: *mut AnyClass = msg_send![delegate, class];
             if delegate_class.is_null() {
                 return;
             }
@@ -24,7 +24,7 @@ pub fn setup_dock_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
 
             extern "C" fn dock_menu_handler(
                 _this: *mut objc2::runtime::AnyObject,
-                _sel: objc2::ffi::Sel,
+                _sel: objc2::runtime::Sel,
                 _sender: *mut objc2::runtime::AnyObject,
             ) -> *mut objc2::runtime::AnyObject {
                 use objc2::MainThreadOnly;
@@ -49,34 +49,13 @@ pub fn setup_dock_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
                 objc2::rc::Retained::into_raw(menu) as *mut objc2::runtime::AnyObject
             }
 
-            let added = objc2::ffi::class_addMethod(
-                delegate_class as *mut objc2::ffi::objc_class,
-                sel.as_ptr(),
-                Some(std::mem::transmute::<
-                    extern "C" fn(
-                        *mut AnyObject,
-                        objc2::ffi::Sel,
-                        *mut AnyObject,
-                    ) -> *mut AnyObject,
-                    unsafe extern "C" fn(),
-                >(dock_menu_handler)),
-                b"@:@\0".as_ptr() as *const _,
-            );
+            let imp: objc2::runtime::Imp = std::mem::transmute(dock_menu_handler as *const ());
+            let types = c"@:@";
 
-            if !added {
-                objc2::ffi::class_replaceMethod(
-                    delegate_class as *mut objc2::ffi::objc_class,
-                    sel.as_ptr(),
-                    Some(std::mem::transmute::<
-                        extern "C" fn(
-                            *mut AnyObject,
-                            objc2::ffi::Sel,
-                            *mut AnyObject,
-                        ) -> *mut AnyObject,
-                        unsafe extern "C" fn(),
-                    >(dock_menu_handler)),
-                    b"@:@\0".as_ptr() as *const _,
-                );
+            let added = objc2::ffi::class_addMethod(delegate_class, sel, imp, types.as_ptr());
+
+            if !added.as_bool() {
+                objc2::ffi::class_replaceMethod(delegate_class, sel, imp, types.as_ptr());
             }
         }
     })?;

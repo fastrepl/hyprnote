@@ -1581,10 +1581,7 @@ function TemplatesMobileView() {
             {category.templates.map((template) => (
               <span
                 key={template}
-                className={cn([
-                  "text-xs px-3 py-1.5 rounded-full",
-                  "bg-stone-100 text-stone-700",
-                ])}
+                className="text-[11px] font-mono text-stone-400"
               >
                 {template}
               </span>
@@ -1621,10 +1618,7 @@ function TemplatesDesktopView() {
             {category.templates.map((template) => (
               <span
                 key={template}
-                className={cn([
-                  "text-xs px-3 py-1.5 rounded-full",
-                  "bg-stone-100 text-stone-700",
-                ])}
+                className="text-[11px] font-mono text-stone-400"
               >
                 {template}
               </span>

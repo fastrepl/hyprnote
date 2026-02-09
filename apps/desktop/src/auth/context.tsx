@@ -70,10 +70,9 @@ export function useAuth() {
 }
 
 async function clearInvalidSession(
-  client: SupabaseClient,
+  _client: SupabaseClient,
   setSession: (session: Session | null) => void,
 ): Promise<void> {
-  void client.auth.stopAutoRefresh();
   await clearAuthStorage();
   setSession(null);
 }
@@ -185,6 +184,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    void supabase.auth.startAutoRefresh();
+
     if (!initStartedRef.current) {
       initStartedRef.current = true;
       void initSession(supabase, setSession);
@@ -197,9 +198,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
     });
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && supabase) {
+        void supabase.auth.startAutoRefresh();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       subscription.unsubscribe();
-      void supabase?.auth.stopAutoRefresh();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 

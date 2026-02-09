@@ -99,6 +99,7 @@ export const exchangeOAuthCode = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       code: z.string(),
+      flow: z.enum(["desktop", "web"]).default("web"),
     }),
   )
   .handler(async ({ data }) => {
@@ -123,10 +124,18 @@ export const exchangeOAuthCode = createServerFn({ method: "POST" })
       });
     }
 
-    return {
-      success: true,
+    const tokens = {
       access_token: authData.session.access_token,
       refresh_token: authData.session.refresh_token,
+    };
+
+    if (data.flow === "desktop") {
+      await supabase.auth.signOut({ scope: "local" });
+    }
+
+    return {
+      success: true,
+      ...tokens,
     };
   });
 
@@ -157,10 +166,18 @@ export const doPasswordSignUp = createServerFn({ method: "POST" })
     }
 
     if (authData.session) {
-      return {
-        success: true,
+      const tokens = {
         access_token: authData.session.access_token,
         refresh_token: authData.session.refresh_token,
+      };
+
+      if (data.flow === "desktop") {
+        await supabase.auth.signOut({ scope: "local" });
+      }
+
+      return {
+        success: true,
+        ...tokens,
       };
     }
 
@@ -190,10 +207,18 @@ export const doPasswordSignIn = createServerFn({ method: "POST" })
       return { error: true, message: "No session returned" };
     }
 
-    return {
-      success: true,
+    const tokens = {
       access_token: authData.session.access_token,
       refresh_token: authData.session.refresh_token,
+    };
+
+    if (data.flow === "desktop") {
+      await supabase.auth.signOut({ scope: "local" });
+    }
+
+    return {
+      success: true,
+      ...tokens,
     };
   });
 
@@ -202,6 +227,7 @@ export const exchangeOtpToken = createServerFn({ method: "POST" })
     z.object({
       token_hash: z.string(),
       type: z.enum(["email", "recovery"]),
+      flow: z.enum(["desktop", "web"]).default("web"),
     }),
   )
   .handler(async ({ data }) => {
@@ -215,10 +241,18 @@ export const exchangeOtpToken = createServerFn({ method: "POST" })
       return { success: false, error: error?.message || "Unknown error" };
     }
 
-    return {
-      success: true,
+    const tokens = {
       access_token: authData.session.access_token,
       refresh_token: authData.session.refresh_token,
+    };
+
+    if (data.flow === "desktop") {
+      await supabase.auth.signOut({ scope: "local" });
+    }
+
+    return {
+      success: true,
+      ...tokens,
     };
   });
 

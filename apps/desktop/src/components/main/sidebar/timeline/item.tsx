@@ -12,6 +12,7 @@ import { cn, format, getYear, safeParseDate, TZDate } from "@hypr/utils";
 
 import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
+import { useIgnoredEvents } from "../../../../hooks/tinybase";
 import {
   captureSessionData,
   deleteSessionCascade,
@@ -163,39 +164,16 @@ const EventItem = memo(
     const calendarId = item.data.calendar_id ?? null;
     const recurrenceSeriesId = item.data.recurrence_series_id;
 
-    const ignoredEventsRaw = main.UI.useValue(
-      "ignored_events",
-      main.STORE_ID,
-    ) as string | undefined;
-    const ignoredSeriesRaw = main.UI.useValue(
-      "ignored_recurring_series",
-      main.STORE_ID,
-    ) as string | undefined;
+    const {
+      isIgnored,
+      ignoreEvent,
+      unignoreEvent,
+      ignoreSeries,
+      unignoreSeries,
+    } = useIgnoredEvents();
 
-    const ignored = useMemo(() => {
-      if (trackingIdEvent) {
-        try {
-          const list = JSON.parse(ignoredEventsRaw || "[]") as Array<{
-            tracking_id: string;
-          }>;
-          if (list.some((e) => e.tracking_id === trackingIdEvent)) return true;
-        } catch {}
-      }
-      if (recurrenceSeriesId) {
-        try {
-          const list = JSON.parse(ignoredSeriesRaw || "[]") as Array<{
-            id: string;
-          }>;
-          if (list.some((e) => e.id === recurrenceSeriesId)) return true;
-        } catch {}
-      }
-      return false;
-    }, [
-      trackingIdEvent,
-      recurrenceSeriesId,
-      ignoredEventsRaw,
-      ignoredSeriesRaw,
-    ]);
+    const ignored = isIgnored(trackingIdEvent, recurrenceSeriesId);
+
     const displayTime = useMemo(
       () => formatDisplayTime(item.data.started_at, precision, timezone),
       [item.data.started_at, precision, timezone],
@@ -234,48 +212,24 @@ const EventItem = memo(
     }, [flatItemKeys, itemKey]);
 
     const handleIgnore = useCallback(() => {
-      if (!store || !trackingIdEvent) return;
-      const raw = store.getValue("ignored_events");
-      const list = raw ? JSON.parse(String(raw)) : [];
-      list.push({
-        tracking_id: trackingIdEvent,
-        last_seen: new Date().toISOString(),
-      });
-      store.setValue("ignored_events", JSON.stringify(list));
-    }, [store, trackingIdEvent]);
+      if (!trackingIdEvent) return;
+      ignoreEvent(trackingIdEvent);
+    }, [trackingIdEvent, ignoreEvent]);
 
     const handleUnignore = useCallback(() => {
-      if (!store || !trackingIdEvent) return;
-      const raw = store.getValue("ignored_events");
-      const list: Array<{ tracking_id: string }> = raw
-        ? JSON.parse(String(raw))
-        : [];
-      const filtered = list.filter((e) => e.tracking_id !== trackingIdEvent);
-      store.setValue("ignored_events", JSON.stringify(filtered));
-    }, [store, trackingIdEvent]);
+      if (!trackingIdEvent) return;
+      unignoreEvent(trackingIdEvent);
+    }, [trackingIdEvent, unignoreEvent]);
 
     const handleUnignoreSeries = useCallback(() => {
-      if (!store || !recurrenceSeriesId) return;
-      const raw = store.getValue("ignored_recurring_series");
-      const list: Array<{ id: string }> = raw ? JSON.parse(String(raw)) : [];
-      const filtered = list.filter((e) => e.id !== recurrenceSeriesId);
-      store.setValue("ignored_recurring_series", JSON.stringify(filtered));
-    }, [store, recurrenceSeriesId]);
+      if (!recurrenceSeriesId) return;
+      unignoreSeries(recurrenceSeriesId);
+    }, [recurrenceSeriesId, unignoreSeries]);
 
     const handleIgnoreSeries = useCallback(() => {
-      if (!store || !recurrenceSeriesId) return;
-      const raw = store.getValue("ignored_recurring_series");
-      const list: Array<{ id: string; last_seen: string }> = raw
-        ? JSON.parse(String(raw))
-        : [];
-      if (!list.some((e) => e.id === recurrenceSeriesId)) {
-        list.push({
-          id: recurrenceSeriesId,
-          last_seen: new Date().toISOString(),
-        });
-        store.setValue("ignored_recurring_series", JSON.stringify(list));
-      }
-    }, [store, recurrenceSeriesId]);
+      if (!recurrenceSeriesId) return;
+      ignoreSeries(recurrenceSeriesId);
+    }, [recurrenceSeriesId, ignoreSeries]);
 
     const contextMenu = useMemo(() => {
       if (ignored) {

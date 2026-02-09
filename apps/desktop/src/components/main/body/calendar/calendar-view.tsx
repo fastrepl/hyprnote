@@ -35,7 +35,7 @@ import { safeParseDate } from "@hypr/utils";
 import { cn, TZDate } from "@hypr/utils";
 
 import { useConfigValue } from "../../../../config/use-config";
-import { useEvent } from "../../../../hooks/tinybase";
+import { useEvent, useIgnoredEvents } from "../../../../hooks/tinybase";
 import { usePermission } from "../../../../hooks/usePermissions";
 import * as main from "../../../../store/tinybase/store/main";
 import { getOrCreateSessionForEventId } from "../../../../store/tinybase/store/sessions";
@@ -135,34 +135,9 @@ function useCalendarData(): CalendarData {
     main.QUERIES.timelineSessions,
     main.STORE_ID,
   );
-  const ignoredEventsRaw = main.UI.useValue("ignored_events", main.STORE_ID) as
-    | string
-    | undefined;
-  const ignoredSeriesRaw = main.UI.useValue(
-    "ignored_recurring_series",
-    main.STORE_ID,
-  ) as string | undefined;
+  const { ignoredTrackingIds, ignoredSeriesIds } = useIgnoredEvents();
 
   return useMemo(() => {
-    let ignoredTrackingIds: Set<string>;
-    let ignoredSeriesIds: Set<string>;
-    try {
-      const list = JSON.parse(ignoredEventsRaw || "[]") as Array<{
-        tracking_id: string;
-      }>;
-      ignoredTrackingIds = new Set(list.map((e) => e.tracking_id));
-    } catch {
-      ignoredTrackingIds = new Set();
-    }
-    try {
-      const list = JSON.parse(ignoredSeriesRaw || "[]") as Array<{
-        id: string;
-      }>;
-      ignoredSeriesIds = new Set(list.map((e) => e.id));
-    } catch {
-      ignoredSeriesIds = new Set();
-    }
-
     const eventIdsByDate: Record<string, string[]> = {};
     const sessionIdsByDate: Record<string, string[]> = {};
 
@@ -199,7 +174,7 @@ function useCalendarData(): CalendarData {
     }
 
     return { eventIdsByDate, sessionIdsByDate };
-  }, [eventsTable, sessionsTable, tz, ignoredEventsRaw, ignoredSeriesRaw]);
+  }, [eventsTable, sessionsTable, tz, ignoredTrackingIds, ignoredSeriesIds]);
 }
 
 export function CalendarView() {

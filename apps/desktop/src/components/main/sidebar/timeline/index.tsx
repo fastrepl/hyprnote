@@ -11,6 +11,7 @@ import {
   captureSessionData,
   deleteSessionCascade,
 } from "../../../../store/tinybase/store/deleteSession";
+import { useIgnoredEvents } from "../../../../hooks/tinybase";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { useTimelineSelection } from "../../../../store/zustand/timeline-selection";
@@ -37,36 +38,11 @@ export function TimelineView() {
   const timezone = useConfigValue("timezone") || undefined;
   const [showIgnored, setShowIgnored] = useState(false);
 
-  const ignoredEventsRaw = main.UI.useValue("ignored_events", main.STORE_ID) as
-    | string
-    | undefined;
-  const ignoredSeriesRaw = main.UI.useValue(
-    "ignored_recurring_series",
-    main.STORE_ID,
-  ) as string | undefined;
+  const { ignoredTrackingIds, ignoredSeriesIds } = useIgnoredEvents();
 
   const buckets = useMemo(() => {
     if (showIgnored) {
       return allBuckets;
-    }
-
-    let ignoredTrackingIds: Set<string>;
-    let ignoredSeriesIds: Set<string>;
-    try {
-      const list = JSON.parse(ignoredEventsRaw || "[]") as Array<{
-        tracking_id: string;
-      }>;
-      ignoredTrackingIds = new Set(list.map((e) => e.tracking_id));
-    } catch {
-      ignoredTrackingIds = new Set();
-    }
-    try {
-      const list = JSON.parse(ignoredSeriesRaw || "[]") as Array<{
-        id: string;
-      }>;
-      ignoredSeriesIds = new Set(list.map((e) => e.id));
-    } catch {
-      ignoredSeriesIds = new Set();
     }
 
     return allBuckets
@@ -82,7 +58,7 @@ export function TimelineView() {
         }),
       }))
       .filter((bucket) => bucket.items.length > 0);
-  }, [allBuckets, showIgnored, ignoredEventsRaw, ignoredSeriesRaw]);
+  }, [allBuckets, showIgnored, ignoredTrackingIds, ignoredSeriesIds]);
 
   const hasToday = useMemo(
     () => buckets.some((bucket) => bucket.label === "Today"),

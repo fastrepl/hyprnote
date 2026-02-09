@@ -3,6 +3,8 @@ import { type ReactNode, useCallback, useMemo } from "react";
 import type {
   EnhancedNoteStorage,
   HumanStorage,
+  IgnoredEvent,
+  IgnoredRecurringSeries,
   OrganizationStorage,
   SessionEvent,
   SessionStorage,
@@ -176,6 +178,129 @@ export function useEvent(eventId: string | undefined) {
       calendarId,
     ],
   );
+}
+
+function parseIgnoredEvents(raw: string | undefined): IgnoredEvent[] {
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as IgnoredEvent[];
+  } catch {
+    return [];
+  }
+}
+
+function parseIgnoredSeries(
+  raw: string | undefined,
+): IgnoredRecurringSeries[] {
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as IgnoredRecurringSeries[];
+  } catch {
+    return [];
+  }
+}
+
+export function useIgnoredEvents() {
+  const store = main.UI.useStore(main.STORE_ID);
+
+  const ignoredEventsRaw = main.UI.useValue(
+    "ignored_events",
+    main.STORE_ID,
+  ) as string | undefined;
+  const ignoredSeriesRaw = main.UI.useValue(
+    "ignored_recurring_series",
+    main.STORE_ID,
+  ) as string | undefined;
+
+  const ignoredTrackingIds = useMemo(() => {
+    const list = parseIgnoredEvents(ignoredEventsRaw);
+    return new Set(list.map((e) => e.tracking_id));
+  }, [ignoredEventsRaw]);
+
+  const ignoredSeriesIds = useMemo(() => {
+    const list = parseIgnoredSeries(ignoredSeriesRaw);
+    return new Set(list.map((e) => e.id));
+  }, [ignoredSeriesRaw]);
+
+  const isIgnored = useCallback(
+    (
+      trackingId: string | null | undefined,
+      recurrenceSeriesId: string | null | undefined,
+    ) => {
+      if (trackingId && ignoredTrackingIds.has(trackingId)) return true;
+      if (recurrenceSeriesId && ignoredSeriesIds.has(recurrenceSeriesId))
+        return true;
+      return false;
+    },
+    [ignoredTrackingIds, ignoredSeriesIds],
+  );
+
+  const ignoreEvent = useCallback(
+    (trackingId: string) => {
+      if (!store) return;
+      const list = parseIgnoredEvents(
+        store.getValue("ignored_events") as string | undefined,
+      );
+      list.push({
+        tracking_id: trackingId,
+        last_seen: new Date().toISOString(),
+      });
+      store.setValue("ignored_events", JSON.stringify(list));
+    },
+    [store],
+  );
+
+  const unignoreEvent = useCallback(
+    (trackingId: string) => {
+      if (!store) return;
+      const list = parseIgnoredEvents(
+        store.getValue("ignored_events") as string | undefined,
+      );
+      store.setValue(
+        "ignored_events",
+        JSON.stringify(list.filter((e) => e.tracking_id !== trackingId)),
+      );
+    },
+    [store],
+  );
+
+  const ignoreSeries = useCallback(
+    (seriesId: string) => {
+      if (!store) return;
+      const list = parseIgnoredSeries(
+        store.getValue("ignored_recurring_series") as string | undefined,
+      );
+      if (!list.some((e) => e.id === seriesId)) {
+        list.push({ id: seriesId, last_seen: new Date().toISOString() });
+        store.setValue("ignored_recurring_series", JSON.stringify(list));
+      }
+    },
+    [store],
+  );
+
+  const unignoreSeries = useCallback(
+    (seriesId: string) => {
+      if (!store) return;
+      const list = parseIgnoredSeries(
+        store.getValue("ignored_recurring_series") as string | undefined,
+      );
+      store.setValue(
+        "ignored_recurring_series",
+        JSON.stringify(list.filter((e) => e.id !== seriesId)),
+      );
+    },
+    [store],
+  );
+
+  return {
+    ignoredTrackingIds,
+    ignoredSeriesIds,
+    isIgnored,
+    ignoreEvent,
+    unignoreEvent,
+    ignoreSeries,
+    unignoreSeries,
+  };
 }
 
 export function useTemplate(templateId: string) {

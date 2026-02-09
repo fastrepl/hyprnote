@@ -5390,6 +5390,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "exa"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.13.1",
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "specta",
+ "thiserror 2.0.18",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "exr"
 version = "1.74.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -17819,10 +17833,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-cli2"
-version = "0.0.0"
-
-[[package]]
 name = "tauri-plugin-clipboard-manager"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -17836,10 +17846,6 @@ dependencies = [
  "tauri-plugin",
  "thiserror 2.0.18",
 ]
-
-[[package]]
-name = "tauri-plugin-db"
-version = "0.0.0"
 
 [[package]]
 name = "tauri-plugin-db2"
@@ -17942,10 +17948,6 @@ dependencies = [
  "thiserror 2.0.18",
  "url",
 ]
-
-[[package]]
-name = "tauri-plugin-export"
-version = "0.0.0"
 
 [[package]]
 name = "tauri-plugin-extensions"

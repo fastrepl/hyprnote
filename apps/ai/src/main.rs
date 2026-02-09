@@ -46,10 +46,8 @@ fn app() -> Router {
     let subscription_config =
         hypr_api_subscription::SubscriptionConfig::new(&env.supabase, &env.stripe);
     let feedback_config = hypr_api_feedback::FeedbackConfig {
-        github_app_id: env.charlie_app_id.clone(),
-        github_app_private_key: env.charlie_app_private_key.clone(),
-        github_app_installation_id: env.charlie_app_installation_id.clone(),
-        openrouter_api_key: env.openrouter_api_key.clone(),
+        charlie: env.charlie.clone(),
+        openrouter: Some(env.llm.clone()),
     };
 
     let webhook_routes = Router::new().nest(

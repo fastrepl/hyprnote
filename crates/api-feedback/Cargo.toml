@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+hypr-api-env = { workspace = true }
+
 axum = { workspace = true }
 jsonwebtoken = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }

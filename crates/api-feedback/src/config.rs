@@ -2,10 +2,8 @@ use crate::routes::AppState;
 
 #[derive(Clone)]
 pub struct FeedbackConfig {
-    pub github_app_id: Option<String>,
-    pub github_app_private_key: Option<String>,
-    pub github_app_installation_id: Option<String>,
-    pub openrouter_api_key: Option<String>,
+    pub charlie: hypr_api_env::CharlieAppEnv,
+    pub openrouter: Option<hypr_api_env::OpenRouterEnv>,
 }
 
 impl FeedbackConfig {

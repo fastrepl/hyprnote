@@ -135,17 +135,20 @@ struct GitHubIssue {
 async fn get_installation_token(state: &AppState) -> Result<String, String> {
     let app_id = state
         .config
-        .github_app_id
+        .charlie
+        .charlie_app_id
         .as_deref()
         .ok_or("GitHub App credentials not configured")?;
     let private_key_pem = state
         .config
-        .github_app_private_key
+        .charlie
+        .charlie_app_private_key
         .as_deref()
         .ok_or("GitHub App credentials not configured")?;
     let installation_id = state
         .config
-        .github_app_installation_id
+        .charlie
+        .charlie_app_installation_id
         .as_deref()
         .ok_or("GitHub App credentials not configured")?;
 
@@ -278,7 +281,7 @@ async fn add_comment_to_issue(
 }
 
 async fn analyze_logs(state: &AppState, logs: &str) -> Option<String> {
-    let api_key = state.config.openrouter_api_key.as_deref()?;
+    let api_key = &state.config.openrouter.as_ref()?.openrouter_api_key;
 
     let resp = state
         .client

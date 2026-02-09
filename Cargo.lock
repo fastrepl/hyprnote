@@ -574,6 +574,7 @@ dependencies = [
 name = "api-feedback"
 version = "0.1.0"
 dependencies = [
+ "api-env",
  "axum 0.8.8",
  "jsonwebtoken",
  "reqwest 0.13.1",
@@ -627,6 +628,7 @@ name = "api-support"
 version = "0.1.0"
 dependencies = [
  "api-auth",
+ "api-env",
  "axum 0.8.8",
  "jsonwebtoken",
  "octocrab",
@@ -10720,6 +10722,7 @@ name = "llm-proxy"
 version = "0.1.0"
 dependencies = [
  "analytics",
+ "api-env",
  "async-stream",
  "axum 0.8.8",
  "backon",

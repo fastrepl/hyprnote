@@ -5,7 +5,7 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 import type { AIProviderStorage } from "@hypr/store";
 
@@ -69,14 +69,7 @@ export const useLLMConnection = (): LLMConnectionResult => {
     settings.STORE_ID,
   ) as AIProviderStorage | undefined;
 
-  const resetLlmModel = settings.UI.useSetValueCallback(
-    "current_llm_model",
-    () => "",
-    [],
-    settings.STORE_ID,
-  );
-
-  const result = useMemo<LLMConnectionResult>(
+  return useMemo<LLMConnectionResult>(
     () =>
       resolveLLMConnection({
         providerId: current_llm_provider,
@@ -93,18 +86,6 @@ export const useLLMConnection = (): LLMConnectionResult => {
       providerConfig,
     ],
   );
-
-  useEffect(() => {
-    const { status } = result;
-    if (
-      status.status === "error" &&
-      (status.reason === "unauthenticated" || status.reason === "not_pro")
-    ) {
-      resetLlmModel();
-    }
-  }, [result, resetLlmModel]);
-
-  return result;
 };
 
 export const useLLMConnectionStatus = (): LLMConnectionStatus => {

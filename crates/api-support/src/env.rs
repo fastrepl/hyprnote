@@ -9,4 +9,9 @@ pub struct GitHubAppEnv {
     pub github_discussion_category_id: String,
 }
 
+#[derive(Clone, Deserialize)]
+pub struct SupabaseDbEnv {
+    pub supabase_db_url: String,
+}
+
 pub use hypr_api_env::OpenRouterEnv;

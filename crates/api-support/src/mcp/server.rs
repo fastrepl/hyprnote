@@ -5,7 +5,7 @@ use rmcp::{
 
 use crate::state::AppState;
 
-use super::tools::{self, SubmitBugReportParams, SubmitFeatureRequestParams};
+use super::tools::{self, ReadGitHubDataParams, SubmitBugReportParams, SubmitFeatureRequestParams};
 
 #[derive(Clone)]
 pub(crate) struct SupportMcpServer {
@@ -40,6 +40,16 @@ impl SupportMcpServer {
         Parameters(params): Parameters<SubmitFeatureRequestParams>,
     ) -> Result<CallToolResult, McpError> {
         tools::submit_feature_request(&self.state, params).await
+    }
+
+    #[tool(
+        description = "Read GitHub data (issues, pull requests, comments, tags) from the database. Data is synced from GitHub via Airbyte."
+    )]
+    async fn read_github_data(
+        &self,
+        Parameters(params): Parameters<ReadGitHubDataParams>,
+    ) -> Result<CallToolResult, McpError> {
+        tools::read_github_data(&self.state, params).await
     }
 }
 

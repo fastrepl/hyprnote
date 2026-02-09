@@ -298,6 +298,8 @@ function useTransport(
       return;
     }
 
+    let stale = false;
+
     templateCommands
       .render({
         chatSystem: {
@@ -306,11 +308,15 @@ function useTransport(
         },
       })
       .then((result) => {
-        if (result.status === "ok") {
+        if (!stale && result.status === "ok") {
           setSystemPrompt(result.data);
         }
       })
       .catch(console.error);
+
+    return () => {
+      stale = true;
+    };
   }, [language, chatContext, systemPromptOverride]);
 
   const transport = useMemo(() => {

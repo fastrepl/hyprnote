@@ -165,7 +165,13 @@ function ChatTabContent({
 
   useEffect(() => {
     const initialMessage = tab.state.initialMessage;
-    if (!initialMessage || sentRef.current || !model || status !== "ready" || !mcpReady) {
+    if (
+      !initialMessage ||
+      sentRef.current ||
+      !model ||
+      status !== "ready" ||
+      !mcpReady
+    ) {
       return;
     }
 
@@ -179,7 +185,15 @@ function ChatTabContent({
       ...tab.state,
       initialMessage: null,
     });
-  }, [tab, model, status, mcpReady, handleSendMessage, sendMessage, updateChatTabState]);
+  }, [
+    tab,
+    model,
+    status,
+    mcpReady,
+    handleSendMessage,
+    sendMessage,
+    updateChatTabState,
+  ]);
 
   return (
     <>

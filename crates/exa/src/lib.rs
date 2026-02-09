@@ -90,7 +90,12 @@ mod tests {
         let _ = client
             .get_contents(GetContentsRequest {
                 urls: vec!["https://arxiv.org/pdf/2307.06435".to_string()],
-                contents: None,
+                text: None,
+                highlights: None,
+                summary: None,
+                livecrawl: None,
+                livecrawl_timeout: None,
+                max_age_hours: None,
             })
             .await;
     }

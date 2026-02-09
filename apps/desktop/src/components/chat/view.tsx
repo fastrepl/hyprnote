@@ -39,14 +39,20 @@ export function ChatView() {
   );
 
   const openNew = useTabs((state) => state.openNew);
+  const tabs = useTabs((state) => state.tabs);
+  const updateChatTabState = useTabs((state) => state.updateChatTabState);
 
   const handleOpenInTab = useCallback(() => {
+    const existingChatTab = tabs.find((t) => t.type === "chat");
     openNew({
       type: "chat",
       state: { groupId: groupId ?? null },
     });
+    if (existingChatTab) {
+      updateChatTabState(existingChatTab, { groupId: groupId ?? null });
+    }
     chat.sendEvent({ type: "OPEN_TAB" });
-  }, [openNew, groupId, chat]);
+  }, [openNew, tabs, updateChatTabState, groupId, chat]);
 
   return (
     <div className="flex flex-col h-full gap-1">

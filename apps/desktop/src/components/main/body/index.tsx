@@ -809,6 +809,7 @@ function useTabsShortcuts() {
   const liveSessionId = useListener((state) => state.live.sessionId);
   const liveStatus = useListener((state) => state.live.status);
   const isListening = liveStatus === "active" || liveStatus === "finalizing";
+  const { chat } = useShell();
 
   const newNote = useNewNote({ behavior: "new" });
   const newNoteCurrent = useNewNote({ behavior: "current" });
@@ -856,6 +857,9 @@ function useTabsShortcuts() {
         } else if (currentTab.pinned) {
           unpin(currentTab);
         } else {
+          if (currentTab.type === "chat") {
+            chat.sendEvent({ type: "CLOSE" });
+          }
           close(currentTab);
         }
       }
@@ -872,6 +876,7 @@ function useTabsShortcuts() {
       isListening,
       liveSessionId,
       setPendingCloseConfirmationTab,
+      chat,
     ],
   );
 
@@ -996,8 +1001,6 @@ function useTabsShortcuts() {
     },
     [newNoteAndListen],
   );
-
-  const { chat } = useShell();
 
   useHotkeys(
     "mod+shift+j",

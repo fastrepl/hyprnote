@@ -13,6 +13,7 @@ import {
   updateTranscriptWords,
 } from "../store/transcript/utils";
 import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
+import { getSessionEventById } from "../utils/session-event";
 import { id } from "../utils";
 import { useKeywords } from "./useKeywords";
 import { useSTTConnection } from "./useSTTConnection";
@@ -47,10 +48,9 @@ export function useStartListening(sessionId: string) {
       speaker_hints: "[]",
     });
 
-    const eventJson = store.getCell("sessions", sessionId, "event");
     void analyticsCommands.event({
       event: "session_started",
-      has_calendar_event: !!eventJson,
+      has_calendar_event: !!getSessionEventById(store, sessionId),
       stt_provider: conn.provider,
       stt_model: conn.model,
     });

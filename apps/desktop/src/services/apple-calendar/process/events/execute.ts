@@ -3,7 +3,7 @@ import type { EventStorage, SessionEvent } from "@hypr/store";
 import { id } from "../../../../utils";
 import {
   buildSessionEventJson,
-  getSessionEventTrackingId,
+  getSessionEventById,
 } from "../../../../utils/session-event";
 import type { Ctx } from "../../ctx";
 import type { IncomingEvent } from "../../fetch/types";
@@ -90,10 +90,7 @@ export function syncSessionEmbeddedEvents(
 
   ctx.store.transaction(() => {
     ctx.store.forEachRow("sessions", (sessionId, _forEachCell) => {
-      const eventJson = ctx.store.getCell("sessions", sessionId, "event") as
-        | string
-        | undefined;
-      const trackingId = getSessionEventTrackingId(eventJson);
+      const trackingId = getSessionEventById(ctx.store, sessionId)?.tracking_id;
       if (!trackingId) return;
 
       const incomingEvent = incomingByTrackingId.get(trackingId);

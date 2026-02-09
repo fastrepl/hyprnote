@@ -6,6 +6,7 @@ import {
 
 import type * as main from "../../store/tinybase/store/main";
 import type * as settings from "../../store/tinybase/store/settings";
+import { getSessionEventById } from "../../utils/session-event";
 
 export const EVENT_NOTIFICATION_TASK_ID = "eventNotification";
 export const EVENT_NOTIFICATION_INTERVAL = 30 * 1000; // 30 sec
@@ -21,16 +22,9 @@ function getSessionIdForEvent(
 ): string | null {
   let sessionId: string | null = null;
   store.forEachRow("sessions", (rowId, _forEachCell) => {
-    const eventJson = store.getCell("sessions", rowId, "event") as
-      | string
-      | undefined;
-    if (!eventJson) return;
-    try {
-      const parsed = JSON.parse(eventJson);
-      if (parsed?.tracking_id === trackingId) {
-        sessionId = rowId;
-      }
-    } catch {}
+    if (getSessionEventById(store, rowId)?.tracking_id === trackingId) {
+      sessionId = rowId;
+    }
   });
   return sessionId;
 }

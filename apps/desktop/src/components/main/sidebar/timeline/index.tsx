@@ -15,6 +15,7 @@ import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { useTimelineSelection } from "../../../../store/zustand/timeline-selection";
 import { useUndoDelete } from "../../../../store/zustand/undo-delete";
+import { getSessionEventById } from "../../../../utils/session-event";
 import {
   buildTimelineBuckets,
   calculateIndicatorIndex,
@@ -99,13 +100,7 @@ export function TimelineView() {
     if (!selectedSessionId || !store) {
       return undefined;
     }
-    const eventJson = store.getCell("sessions", selectedSessionId, "event");
-    if (!eventJson) return undefined;
-    try {
-      return JSON.parse(eventJson as string)?.tracking_id as string | undefined;
-    } catch {
-      return undefined;
-    }
+    return getSessionEventById(store, selectedSessionId)?.tracking_id ?? undefined;
   }, [selectedSessionId, store]);
 
   const selectedIds = useTimelineSelection((s) => s.selectedIds);

@@ -13,6 +13,8 @@ import {
 import { SCHEMA, type Schemas } from "@hypr/store";
 import { format } from "@hypr/utils";
 
+import { getSessionEvent } from "../../../utils/session-event";
+
 import { useMainPersisters } from "./persisters";
 
 export const STORE_ID = "main";
@@ -273,13 +275,9 @@ export const StoreComponent = () => {
         INDEXES.sessionsByEventTrackingId,
         "sessions",
         (getCell) => {
-          const event = getCell("event");
+          const event = getCell("event") as string | undefined;
           if (!event) return "";
-          try {
-            return JSON.parse(event as string).tracking_id || "";
-          } catch {
-            return "";
-          }
+          return getSessionEvent({ event })?.tracking_id || "";
         },
       )
       .setIndexDefinition(

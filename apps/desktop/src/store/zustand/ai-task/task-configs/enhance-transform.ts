@@ -18,6 +18,7 @@ import {
   defaultRenderLabelContext,
   SpeakerLabelManager,
 } from "../../../../utils/segment/shared";
+import { getSessionEventById } from "../../../../utils/session-event";
 import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
 import type { Store as MainStore } from "../../../tinybase/store/main";
 import type { Store as SettingsStore } from "../../../tinybase/store/settings";
@@ -141,26 +142,18 @@ function getSessionContext(sessionId: string, store: MainStore) {
 
 function getSessionData(sessionId: string, store: MainStore): Session {
   const rawTitle = getStringCell(store, "sessions", sessionId, "title");
-  const eventJson = getOptionalStringCell(
-    store,
-    "sessions",
-    sessionId,
-    "event",
-  );
+  const parsed = getSessionEventById(store, sessionId);
 
-  if (eventJson) {
-    try {
-      const parsed = JSON.parse(eventJson);
-      const eventTitle = parsed?.title;
-      return {
-        title: eventTitle || rawTitle || null,
-        startedAt: parsed?.started_at ?? null,
-        endedAt: parsed?.ended_at ?? null,
-        event: {
-          name: eventTitle || rawTitle || "",
-        },
-      };
-    } catch {}
+  if (parsed) {
+    const eventTitle = parsed.title;
+    return {
+      title: eventTitle || rawTitle || null,
+      startedAt: parsed.started_at ?? null,
+      endedAt: parsed.ended_at ?? null,
+      event: {
+        name: eventTitle || rawTitle || "",
+      },
+    };
   }
 
   return {

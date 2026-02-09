@@ -8,6 +8,8 @@ import {
   TZDate,
 } from "@hypr/utils";
 
+import { getSessionEvent } from "./session-event";
+
 function toTZ(date: Date, timezone?: string): Date {
   return timezone ? new TZDate(date, timezone) : date;
 }
@@ -186,30 +188,7 @@ export function getItemTimestamp(item: TimelineItem): Date | null {
   if (item.type === "event") {
     return safeParseDate(item.data.started_at);
   }
-  const eventStartedAt = getEmbeddedEventStartedAt(item.data.event);
-  return safeParseDate(eventStartedAt ?? item.data.created_at);
-}
-
-function getEmbeddedEventStartedAt(
-  eventJson: string | null | undefined,
-): string | null {
-  if (!eventJson) return null;
-  try {
-    return JSON.parse(eventJson)?.started_at ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function getEmbeddedEventTrackingId(
-  eventJson: string | null | undefined,
-): string | null {
-  if (!eventJson) return null;
-  try {
-    return JSON.parse(eventJson)?.tracking_id ?? null;
-  } catch {
-    return null;
-  }
+  return safeParseDate(getSessionEvent(item.data)?.started_at ?? item.data.created_at);
 }
 
 export function buildTimelineBuckets({
@@ -226,8 +205,8 @@ export function buildTimelineBuckets({
 
   if (timelineSessionsTable) {
     Object.entries(timelineSessionsTable).forEach(([sessionId, row]) => {
-      const eventStartedAt = getEmbeddedEventStartedAt(row.event);
-      const startTime = safeParseDate(eventStartedAt ?? row.created_at);
+      const sessionEvent = getSessionEvent(row);
+      const startTime = safeParseDate(sessionEvent?.started_at ?? row.created_at);
 
       if (!startTime) {
         return;
@@ -238,7 +217,7 @@ export function buildTimelineBuckets({
         id: sessionId,
         data: row,
       });
-      const trackingId = getEmbeddedEventTrackingId(row.event);
+      const trackingId = sessionEvent?.tracking_id;
       if (trackingId) {
         seenEventIds.add(trackingId);
       }

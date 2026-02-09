@@ -6,7 +6,7 @@ import { DEFAULT_USER_ID } from "../../../utils";
 import { id } from "../../../utils";
 import {
   buildSessionEventJson,
-  getSessionEventTrackingId,
+  getSessionEventById,
 } from "../../../utils/session-event";
 import * as main from "./main";
 
@@ -36,8 +36,7 @@ export function getOrCreateSessionForEventId(
 
   store.forEachRow("sessions", (rowId, _forEachCell) => {
     if (existingSessionId) return;
-    const event = store.getCell("sessions", rowId, "event");
-    const trackingId = getSessionEventTrackingId(event as string | undefined);
+    const trackingId = getSessionEventById(store, rowId)?.tracking_id;
     if (trackingId === eventId) {
       existingSessionId = rowId;
     }

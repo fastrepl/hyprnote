@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useState } from "react";
 
 import { safeParseDate } from "@hypr/utils";
 
+import { getSessionEvent } from "../../../../utils/session-event";
 import type {
   TimelineEventsTable,
   TimelineSessionsTable,
@@ -62,14 +63,9 @@ export function useSmartCurrentTime(
 
       if (sessionsTable) {
         Object.values(sessionsTable).forEach((session) => {
-          let eventStartedAt: string | undefined;
-          if (session.event) {
-            try {
-              const parsed = JSON.parse(session.event);
-              eventStartedAt = parsed?.started_at;
-            } catch {}
-          }
-          const time = safeParseDate(eventStartedAt ?? session.created_at);
+          const time = safeParseDate(
+            getSessionEvent(session)?.started_at ?? session.created_at,
+          );
           if (time && time.getTime() > currentTime) {
             importantTimes.push(time.getTime());
           }

@@ -38,9 +38,9 @@ export function processMetaFile(
         : undefined;
 
     result.sessions[sessionId] = {
-      user_id: meta.user_id,
-      created_at: meta.created_at,
-      title: meta.title,
+      user_id: meta.user_id ?? "",
+      created_at: meta.created_at ?? "",
+      title: meta.title ?? "",
       folder_id: folderPath,
       event: eventValue,
       raw_md: "",

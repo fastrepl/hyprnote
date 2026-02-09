@@ -1,19 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-import * as main from "../store/tinybase/store/main";
-import { parseSessionEvent } from "../utils/session-event";
+import { useSessionEvent } from "./tinybase";
 
 export function useEventCountdown(sessionId: string): string | null {
-  const eventJson = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "event",
-    main.STORE_ID,
-  );
-  const sessionEvent = useMemo(
-    () => parseSessionEvent(eventJson as string | undefined),
-    [eventJson],
-  );
+  const sessionEvent = useSessionEvent(sessionId);
   const startedAt = sessionEvent?.started_at;
 
   const [countdown, setCountdown] = useState<string | null>(null);

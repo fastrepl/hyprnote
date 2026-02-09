@@ -8,9 +8,9 @@ import type {
   SessionStorage,
   TemplateStorage,
 } from "@hypr/store";
-import { sessionEventSchema } from "@hypr/store";
 
 import * as main from "../store/tinybase/store/main";
+import { getSessionEvent } from "../utils/session-event";
 
 export function useSession(sessionId: string) {
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
@@ -21,12 +21,22 @@ export function useSession(sessionId: string) {
     "created_at",
     main.STORE_ID,
   );
-  const event = main.UI.useCell("sessions", sessionId, "event", main.STORE_ID);
+  const eventJson = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "event",
+    main.STORE_ID,
+  );
   const folderId = main.UI.useCell(
     "sessions",
     sessionId,
     "folder_id",
     main.STORE_ID,
+  );
+
+  const event = useMemo(
+    () => getSessionEvent({ event: eventJson }),
+    [eventJson],
   );
 
   return useMemo(
@@ -36,16 +46,13 @@ export function useSession(sessionId: string) {
 }
 
 export function useSessionEvent(sessionId: string): SessionEvent | null {
-  const event = main.UI.useCell("sessions", sessionId, "event", main.STORE_ID);
-
-  return useMemo(() => {
-    if (!event) return null;
-    try {
-      return sessionEventSchema.safeParse(event).data ?? null;
-    } catch {
-      return null;
-    }
-  }, [event]);
+  const eventJson = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "event",
+    main.STORE_ID,
+  );
+  return useMemo(() => getSessionEvent({ event: eventJson }), [eventJson]);
 }
 
 export function useSetSessionTitle() {

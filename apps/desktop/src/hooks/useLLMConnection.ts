@@ -220,16 +220,12 @@ const createLanguageModel = (
 ): Exclude<LanguageModel, string> => {
   switch (conn.providerId) {
     case "hyprnote": {
-      const provider = createOpenAICompatible({
+      const provider = createOpenRouter({
         fetch: tracedFetch,
-        name: "hyprnote",
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
-        headers: {
-          Authorization: `Bearer ${conn.apiKey}`,
-        },
       });
-      return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
+      return wrapWithThinkingMiddleware(provider.chat(conn.modelId));
     }
 
     case "anthropic": {
@@ -258,10 +254,7 @@ const createLanguageModel = (
         fetch: tauriFetch,
         apiKey: conn.apiKey,
       });
-      // Type cast needed due to @ai-sdk/mistral using @ai-sdk/provider@3.x while @openrouter uses @2.x
-      return wrapWithThinkingMiddleware(
-        provider(conn.modelId) as Exclude<LanguageModel, string>,
-      );
+      return wrapWithThinkingMiddleware(provider.chat(conn.modelId));
     }
 
     case "openai": {

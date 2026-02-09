@@ -3,11 +3,18 @@ import { useEffect, useRef, useState } from "react";
 
 import { env } from "../env";
 
-export function useSupportMCPTools() {
+export function useSupportMCPTools(enabled: boolean) {
   const [tools, setTools] = useState<Record<string, any>>({});
+  const [isReady, setIsReady] = useState(false);
   const clientRef = useRef<MCPClient | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setTools({});
+      setIsReady(false);
+      return;
+    }
+
     let cancelled = false;
 
     const init = async () => {
@@ -32,9 +39,13 @@ export function useSupportMCPTools() {
 
         if (!cancelled) {
           setTools(mcpTools);
+          setIsReady(true);
         }
       } catch (error) {
         console.error("Failed to initialize MCP client:", error);
+        if (!cancelled) {
+          setIsReady(true);
+        }
       }
     };
 
@@ -45,7 +56,7 @@ export function useSupportMCPTools() {
       clientRef.current?.close().catch(console.error);
       clientRef.current = null;
     };
-  }, []);
+  }, [enabled]);
 
-  return tools;
+  return { tools, isReady: enabled ? isReady : true };
 }

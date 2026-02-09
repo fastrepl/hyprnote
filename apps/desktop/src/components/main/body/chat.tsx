@@ -83,7 +83,7 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
   const userModel = useLanguageModel();
   const feedbackModel = useFeedbackLanguageModel();
   const model = isSupport ? feedbackModel : userModel;
-  const mcpTools = useSupportMCPTools();
+  const { tools: mcpTools, isReady: mcpReady } = useSupportMCPTools(isSupport);
 
   const onGroupCreated = useCallback(
     (newGroupId: string) =>
@@ -121,6 +121,7 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
             model={model}
             handleSendMessage={handleSendMessage}
             updateChatTabState={updateChatTabState}
+            mcpReady={mcpReady}
           />
         )}
       </ChatSession>
@@ -139,6 +140,7 @@ function ChatTabContent({
   model,
   handleSendMessage,
   updateChatTabState,
+  mcpReady,
 }: {
   tab: Extract<Tab, { type: "chat" }>;
   messages: HyprUIMessage[];
@@ -157,12 +159,13 @@ function ChatTabContent({
     tab: Extract<Tab, { type: "chat" }>,
     state: Extract<Tab, { type: "chat" }>["state"],
   ) => void;
+  mcpReady: boolean;
 }) {
   const sentRef = useRef(false);
 
   useEffect(() => {
     const initialMessage = tab.state.initialMessage;
-    if (!initialMessage || sentRef.current || !model || status !== "ready") {
+    if (!initialMessage || sentRef.current || !model || status !== "ready" || !mcpReady) {
       return;
     }
 
@@ -176,7 +179,7 @@ function ChatTabContent({
       ...tab.state,
       initialMessage: null,
     });
-  }, [tab, model, status, handleSendMessage, sendMessage, updateChatTabState]);
+  }, [tab, model, status, mcpReady, handleSendMessage, sendMessage, updateChatTabState]);
 
   return (
     <>

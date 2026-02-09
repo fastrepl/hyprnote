@@ -46,10 +46,7 @@ export const TabItemChat: TabItem<Extract<Tab, { type: "chat" }>> = ({
         handleCloseThis(tab);
       }}
       handleSelectThis={() => handleSelectThis(tab)}
-      handleCloseOthers={() => {
-        chat.sendEvent({ type: "CLOSE" });
-        handleCloseOthers();
-      }}
+      handleCloseOthers={handleCloseOthers}
       handleCloseAll={() => {
         chat.sendEvent({ type: "CLOSE" });
         handleCloseAll();

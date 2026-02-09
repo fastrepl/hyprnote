@@ -2,7 +2,6 @@ import { useForm } from "@tanstack/react-form";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { arch } from "@tauri-apps/plugin-os";
 import { Check, Loader2 } from "lucide-react";
-import { useEffect } from "react";
 
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import type { SupportedSttModel } from "@hypr/plugin-local-stt";
@@ -106,36 +105,6 @@ export function SelectProviderAndModel() {
       handleSelectModel(value.model);
     },
   });
-
-  useEffect(() => {
-    if (!current_stt_provider || !current_stt_model) {
-      return;
-    }
-
-    const providerConfig =
-      configuredProviders[current_stt_provider as ProviderId];
-    if (!providerConfig) {
-      return;
-    }
-
-    if (current_stt_provider === "custom") {
-      return;
-    }
-
-    const modelEntry = providerConfig.models.find(
-      (m) => m.id === current_stt_model,
-    );
-    if (modelEntry && !modelEntry.isDownloaded) {
-      handleSelectModel("");
-      form.setFieldValue("model", "");
-    }
-  }, [
-    current_stt_provider,
-    current_stt_model,
-    configuredProviders,
-    handleSelectModel,
-    form,
-  ]);
 
   return (
     <div className="flex flex-col gap-3">

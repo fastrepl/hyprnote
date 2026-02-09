@@ -59,33 +59,16 @@ import { TabContentTemplate, TabItemTemplate } from "./templates";
 import { Update } from "./update";
 
 export function Body() {
-  const { tabs, currentTab, close } = useTabs(
+  const { tabs, currentTab } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
       currentTab: state.currentTab,
-      close: state.close,
     })),
   );
-
-  const { chat } = useShell();
 
   useEffect(() => {
     void loadExtensionPanels();
   }, []);
-
-  useEffect(() => {
-    const hasChatTab = tabs.some((t) => t.type === "chat");
-    const isFullTabMode = chat.mode === "FullTab";
-
-    if (isFullTabMode && !hasChatTab) {
-      chat.sendEvent({ type: "CLOSE" });
-    } else if (!isFullTabMode && hasChatTab) {
-      const chatTab = tabs.find((t) => t.type === "chat");
-      if (chatTab) {
-        close(chatTab);
-      }
-    }
-  }, [tabs, chat, close]);
 
   if (!currentTab) {
     return null;

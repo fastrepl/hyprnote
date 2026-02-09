@@ -18,17 +18,16 @@ export type TimelineEventRow = {
   started_at?: string | null;
   ended_at?: string | null;
   calendar_id?: string | null;
+  tracking_id_event?: string | null;
   recurrence_series_id?: string | null;
-  ignored?: boolean | null;
 };
 
 // comes from QUERIES.timelineSessions
 export type TimelineSessionRow = {
   title?: string | null;
   created_at?: string | null;
-  event_id?: string | null;
+  event?: string | null;
   folder_id?: string | null;
-  event_started_at?: string | null;
 };
 
 export type TimelineEventsTable =
@@ -184,11 +183,33 @@ export function calculateIndicatorIndex(
 }
 
 export function getItemTimestamp(item: TimelineItem): Date | null {
-  const value =
-    item.type === "event"
-      ? item.data.started_at
-      : (item.data.event_started_at ?? item.data.created_at);
-  return safeParseDate(value);
+  if (item.type === "event") {
+    return safeParseDate(item.data.started_at);
+  }
+  const eventStartedAt = getEmbeddedEventStartedAt(item.data.event);
+  return safeParseDate(eventStartedAt ?? item.data.created_at);
+}
+
+function getEmbeddedEventStartedAt(
+  eventJson: string | null | undefined,
+): string | null {
+  if (!eventJson) return null;
+  try {
+    return JSON.parse(eventJson)?.started_at ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function getEmbeddedEventTrackingId(
+  eventJson: string | null | undefined,
+): string | null {
+  if (!eventJson) return null;
+  try {
+    return JSON.parse(eventJson)?.tracking_id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function buildTimelineBuckets({
@@ -205,7 +226,8 @@ export function buildTimelineBuckets({
 
   if (timelineSessionsTable) {
     Object.entries(timelineSessionsTable).forEach(([sessionId, row]) => {
-      const startTime = safeParseDate(row.event_started_at ?? row.created_at);
+      const eventStartedAt = getEmbeddedEventStartedAt(row.event);
+      const startTime = safeParseDate(eventStartedAt ?? row.created_at);
 
       if (!startTime) {
         return;
@@ -216,16 +238,16 @@ export function buildTimelineBuckets({
         id: sessionId,
         data: row,
       });
-      if (row.event_id) {
-        seenEventIds.add(row.event_id);
+      const trackingId = getEmbeddedEventTrackingId(row.event);
+      if (trackingId) {
+        seenEventIds.add(trackingId);
       }
     });
   }
 
   if (timelineEventsTable) {
     Object.entries(timelineEventsTable).forEach(([eventId, row]) => {
-      // only return events without sessions for timeline
-      if (seenEventIds.has(eventId)) {
+      if (row.tracking_id_event && seenEventIds.has(row.tracking_id_event)) {
         return;
       }
       const eventStartTime = safeParseDate(row.started_at);

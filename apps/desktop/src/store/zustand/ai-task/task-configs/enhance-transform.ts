@@ -141,25 +141,26 @@ function getSessionContext(sessionId: string, store: MainStore) {
 
 function getSessionData(sessionId: string, store: MainStore): Session {
   const rawTitle = getStringCell(store, "sessions", sessionId, "title");
-  const eventId = getOptionalStringCell(
+  const eventJson = getOptionalStringCell(
     store,
     "sessions",
     sessionId,
-    "event_id",
+    "event",
   );
 
-  if (eventId) {
-    const eventTitle = getStringCell(store, "events", eventId, "title");
-    return {
-      title: eventTitle || rawTitle || null,
-      startedAt:
-        getOptionalStringCell(store, "events", eventId, "started_at") ?? null,
-      endedAt:
-        getOptionalStringCell(store, "events", eventId, "ended_at") ?? null,
-      event: {
-        name: eventTitle || rawTitle || "",
-      },
-    };
+  if (eventJson) {
+    try {
+      const parsed = JSON.parse(eventJson);
+      const eventTitle = parsed?.title;
+      return {
+        title: eventTitle || rawTitle || null,
+        startedAt: parsed?.started_at ?? null,
+        endedAt: parsed?.ended_at ?? null,
+        event: {
+          name: eventTitle || rawTitle || "",
+        },
+      };
+    } catch {}
   }
 
   return {

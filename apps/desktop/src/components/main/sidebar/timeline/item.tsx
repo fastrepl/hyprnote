@@ -154,16 +154,47 @@ const EventItem = memo(
     flatItemKeys: string[];
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
-    const indexes = main.UI.useIndexes(main.STORE_ID);
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
-    const invalidateResource = useTabs((state) => state.invalidateResource);
 
-    const eventId = item.id;
+    const trackingIdEvent = item.data.tracking_id_event;
     const title = item.data.title || "Untitled";
     const calendarId = item.data.calendar_id ?? null;
     const recurrenceSeriesId = item.data.recurrence_series_id;
-    const ignored = !!item.data.ignored;
+
+    const ignoredEventsRaw = main.UI.useValue(
+      "ignored_events",
+      main.STORE_ID,
+    ) as string | undefined;
+    const ignoredSeriesRaw = main.UI.useValue(
+      "ignored_recurring_series",
+      main.STORE_ID,
+    ) as string | undefined;
+
+    const ignored = useMemo(() => {
+      if (trackingIdEvent) {
+        try {
+          const list = JSON.parse(ignoredEventsRaw || "[]") as Array<{
+            tracking_id: string;
+          }>;
+          if (list.some((e) => e.tracking_id === trackingIdEvent)) return true;
+        } catch {}
+      }
+      if (recurrenceSeriesId) {
+        try {
+          const list = JSON.parse(ignoredSeriesRaw || "[]") as Array<{
+            id: string;
+          }>;
+          if (list.some((e) => e.id === recurrenceSeriesId)) return true;
+        } catch {}
+      }
+      return false;
+    }, [
+      trackingIdEvent,
+      recurrenceSeriesId,
+      ignoredEventsRaw,
+      ignoredSeriesRaw,
+    ]);
     const displayTime = useMemo(
       () => formatDisplayTime(item.data.started_at, precision, timezone),
       [item.data.started_at, precision, timezone],
@@ -171,15 +202,19 @@ const EventItem = memo(
 
     const openEvent = useCallback(
       (openInNewTab: boolean) => {
-        if (!store) {
+        if (!store || !trackingIdEvent) {
           return;
         }
 
-        const sessionId = getOrCreateSessionForEventId(store, eventId, title);
+        const sessionId = getOrCreateSessionForEventId(
+          store,
+          trackingIdEvent,
+          title,
+        );
         const tab: TabInput = { id: sessionId, type: "sessions" };
         openInNewTab ? openNew(tab) : openCurrent(tab);
       },
-      [eventId, store, title, openCurrent, openNew],
+      [trackingIdEvent, store, title, openCurrent, openNew],
     );
 
     const itemKey = `event-${item.id}`;
@@ -198,64 +233,47 @@ const EventItem = memo(
     }, [flatItemKeys, itemKey]);
 
     const handleIgnore = useCallback(() => {
-      if (!store) {
-        return;
-      }
-      store.setPartialRow("events", eventId, { ignored: true });
-    }, [store, eventId, invalidateResource, indexes]);
+      if (!store || !trackingIdEvent) return;
+      const raw = store.getValue("ignored_events");
+      const list = raw ? JSON.parse(String(raw)) : [];
+      list.push({
+        tracking_id: trackingIdEvent,
+        last_seen: new Date().toISOString(),
+      });
+      store.setValue("ignored_events", JSON.stringify(list));
+    }, [store, trackingIdEvent]);
 
     const handleUnignore = useCallback(() => {
-      if (!store) {
-        return;
-      }
-      store.setPartialRow("events", eventId, { ignored: false });
-    }, [store, eventId]);
+      if (!store || !trackingIdEvent) return;
+      const raw = store.getValue("ignored_events");
+      const list: Array<{ tracking_id: string }> = raw
+        ? JSON.parse(String(raw))
+        : [];
+      const filtered = list.filter((e) => e.tracking_id !== trackingIdEvent);
+      store.setValue("ignored_events", JSON.stringify(filtered));
+    }, [store, trackingIdEvent]);
 
     const handleUnignoreSeries = useCallback(() => {
-      if (!store || !recurrenceSeriesId) {
-        return;
-      }
-      store.transaction(() => {
-        store.forEachRow("events", (rowId, _forEachCell) => {
-          const event = store.getRow("events", rowId);
-          if (event?.recurrence_series_id === recurrenceSeriesId) {
-            store.setPartialRow("events", rowId, { ignored: false });
-          }
-        });
-
-        const currentIgnored = store.getValue("ignored_recurring_series");
-        const ignoredList: string[] = currentIgnored
-          ? JSON.parse(String(currentIgnored))
-          : [];
-        const filtered = ignoredList.filter((id) => id !== recurrenceSeriesId);
-        store.setValue("ignored_recurring_series", JSON.stringify(filtered));
-      });
+      if (!store || !recurrenceSeriesId) return;
+      const raw = store.getValue("ignored_recurring_series");
+      const list: Array<{ id: string }> = raw ? JSON.parse(String(raw)) : [];
+      const filtered = list.filter((e) => e.id !== recurrenceSeriesId);
+      store.setValue("ignored_recurring_series", JSON.stringify(filtered));
     }, [store, recurrenceSeriesId]);
 
     const handleIgnoreSeries = useCallback(() => {
-      if (!store || !recurrenceSeriesId) {
-        return;
-      }
-      store.transaction(() => {
-        store.forEachRow("events", (rowId, _forEachCell) => {
-          const event = store.getRow("events", rowId);
-          if (event?.recurrence_series_id === recurrenceSeriesId) {
-            store.setPartialRow("events", rowId, { ignored: true });
-          }
+      if (!store || !recurrenceSeriesId) return;
+      const raw = store.getValue("ignored_recurring_series");
+      const list: Array<{ id: string; last_seen: string }> = raw
+        ? JSON.parse(String(raw))
+        : [];
+      if (!list.some((e) => e.id === recurrenceSeriesId)) {
+        list.push({
+          id: recurrenceSeriesId,
+          last_seen: new Date().toISOString(),
         });
-
-        const currentIgnored = store.getValue("ignored_recurring_series");
-        const ignoredList: string[] = currentIgnored
-          ? JSON.parse(String(currentIgnored))
-          : [];
-        if (!ignoredList.includes(recurrenceSeriesId)) {
-          ignoredList.push(recurrenceSeriesId);
-          store.setValue(
-            "ignored_recurring_series",
-            JSON.stringify(ignoredList),
-          );
-        }
-      });
+        store.setValue("ignored_recurring_series", JSON.stringify(list));
+      }
     }, [store, recurrenceSeriesId]);
 
     const contextMenu = useMemo(() => {
@@ -351,29 +369,30 @@ const SessionItem = memo(
     const showSpinner =
       !selected && (isFinalizing || isEnhancing || isBatching);
 
-    const calendarId =
-      main.UI.useCell(
-        "events",
-        item.data.event_id ?? "",
-        "calendar_id",
-        store,
-      ) ?? null;
-    const eventStartedAt = main.UI.useCell(
-      "events",
-      item.data.event_id ?? "",
-      "started_at",
-      store,
-    );
-    const hasEvent = !!item.data.event_id;
+    const sessionEvent = useMemo(() => {
+      if (!item.data.event) return null;
+      try {
+        return JSON.parse(item.data.event) as {
+          tracking_id?: string;
+          calendar_id?: string;
+          started_at?: string;
+        };
+      } catch {
+        return null;
+      }
+    }, [item.data.event]);
+
+    const calendarId = sessionEvent?.calendar_id ?? null;
+    const hasEvent = !!item.data.event;
 
     const displayTime = useMemo(
       () =>
         formatDisplayTime(
-          eventStartedAt ?? item.data.created_at,
+          sessionEvent?.started_at ?? item.data.created_at,
           precision,
           timezone,
         ),
-      [eventStartedAt, item.data.created_at, precision, timezone],
+      [sessionEvent?.started_at, item.data.created_at, precision, timezone],
     );
 
     const itemKey = `session-${item.id}`;

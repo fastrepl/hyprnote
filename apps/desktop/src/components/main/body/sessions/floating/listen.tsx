@@ -1,11 +1,12 @@
 import { HeadsetIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
 import { useListener } from "../../../../../contexts/listener";
 import { useShell } from "../../../../../contexts/shell";
+import { useSessionEvent } from "../../../../../hooks/tinybase";
 import { useEventCountdown } from "../../../../../hooks/useEventCountdown";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import * as main from "../../../../../store/tinybase/store/main";
@@ -303,18 +304,8 @@ function detectMeetingType(
 }
 
 function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
-  const eventId = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "event_id",
-    main.STORE_ID,
-  );
-  const meetingLink = main.UI.useCell(
-    "events",
-    eventId ?? "",
-    "meeting_link",
-    main.STORE_ID,
-  );
+  const event = useSessionEvent(sessionId);
+  const meetingLink = event?.meeting_link ?? null;
 
   if (!meetingLink) {
     return null;

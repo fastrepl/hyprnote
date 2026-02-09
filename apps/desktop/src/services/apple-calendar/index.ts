@@ -12,6 +12,7 @@ import {
   executeForParticipantsSync,
   syncEvents,
   syncParticipants,
+  syncSessionEmbeddedEvents,
 } from "./process";
 
 export const CALENDAR_SYNC_TASK_ID = "calendarSync";
@@ -53,6 +54,8 @@ async function run(store: Store, queries: Queries<Schemas>) {
 
   const eventsOut = syncEvents(ctx, { incoming, existing });
   const { trackingIdToEventId } = executeForEventsSync(ctx, eventsOut);
+
+  syncSessionEmbeddedEvents(ctx, incoming);
 
   const participantsOut = syncParticipants(ctx, {
     incomingParticipants,

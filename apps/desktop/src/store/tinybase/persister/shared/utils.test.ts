@@ -407,7 +407,7 @@ describe("iterateTableRows", () => {
           created_at: "2024-01-01",
           title: "Test",
           folder_id: "",
-          event_id: "",
+          event: "",
           raw_md: "",
         },
         "session-2": {
@@ -415,7 +415,7 @@ describe("iterateTableRows", () => {
           created_at: "2024-01-02",
           title: "Test 2",
           folder_id: "",
-          event_id: "",
+          event: "",
           raw_md: "",
         },
       },

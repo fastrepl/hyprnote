@@ -24,12 +24,11 @@ export function syncParticipants(
   const humansToCreateMap = new Map<string, HumanToCreate>();
 
   for (const [trackingId, participants] of input.incomingParticipants) {
-    const eventId = input.trackingIdToEventId.get(trackingId);
-    if (!eventId) {
+    if (!input.trackingIdToEventId.has(trackingId)) {
       continue;
     }
 
-    const sessionId = getSessionForEvent(ctx.store, eventId);
+    const sessionId = getSessionForEvent(ctx.store, trackingId);
     if (!sessionId) {
       continue;
     }

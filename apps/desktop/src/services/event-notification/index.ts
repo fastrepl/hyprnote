@@ -17,14 +17,20 @@ export type NotifiedEventsMap = Map<string, number>;
 
 function getSessionIdForEvent(
   store: main.Store,
-  eventId: string,
+  trackingId: string,
 ): string | null {
   let sessionId: string | null = null;
   store.forEachRow("sessions", (rowId, _forEachCell) => {
-    const session = store.getRow("sessions", rowId);
-    if (session?.event_id === eventId) {
-      sessionId = rowId;
-    }
+    const eventJson = store.getCell("sessions", rowId, "event") as
+      | string
+      | undefined;
+    if (!eventJson) return;
+    try {
+      const parsed = JSON.parse(eventJson);
+      if (parsed?.tracking_id === trackingId) {
+        sessionId = rowId;
+      }
+    } catch {}
   });
   return sessionId;
 }
@@ -99,7 +105,12 @@ export function checkEventNotifications(
       };
 
       let participants: Participant[] | null = null;
-      const sessionId = getSessionIdForEvent(store, eventId);
+      const trackingId = event.tracking_id_event
+        ? String(event.tracking_id_event)
+        : null;
+      const sessionId = trackingId
+        ? getSessionIdForEvent(store, trackingId)
+        : null;
       if (sessionId) {
         const sessionParticipants = getParticipantsForSession(store, sessionId);
         if (sessionParticipants.length > 0) {

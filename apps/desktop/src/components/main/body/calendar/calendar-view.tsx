@@ -135,14 +135,44 @@ function useCalendarData(): CalendarData {
     main.QUERIES.timelineSessions,
     main.STORE_ID,
   );
+  const ignoredEventsRaw = main.UI.useValue("ignored_events", main.STORE_ID) as
+    | string
+    | undefined;
+  const ignoredSeriesRaw = main.UI.useValue(
+    "ignored_recurring_series",
+    main.STORE_ID,
+  ) as string | undefined;
 
   return useMemo(() => {
+    let ignoredTrackingIds: Set<string>;
+    let ignoredSeriesIds: Set<string>;
+    try {
+      const list = JSON.parse(ignoredEventsRaw || "[]") as Array<{
+        tracking_id: string;
+      }>;
+      ignoredTrackingIds = new Set(list.map((e) => e.tracking_id));
+    } catch {
+      ignoredTrackingIds = new Set();
+    }
+    try {
+      const list = JSON.parse(ignoredSeriesRaw || "[]") as Array<{
+        id: string;
+      }>;
+      ignoredSeriesIds = new Set(list.map((e) => e.id));
+    } catch {
+      ignoredSeriesIds = new Set();
+    }
+
     const eventIdsByDate: Record<string, string[]> = {};
     const sessionIdsByDate: Record<string, string[]> = {};
 
     if (eventsTable) {
       for (const [eventId, row] of Object.entries(eventsTable)) {
-        if (!row.title || row.ignored) continue;
+        if (!row.title) continue;
+        const tid = row.tracking_id_event;
+        if (tid && ignoredTrackingIds.has(tid)) continue;
+        const sid = row.recurrence_series_id;
+        if (sid && ignoredSeriesIds.has(sid)) continue;
         const raw = safeParseDate(row.started_at);
         if (!raw) continue;
         const key = format(toTz(raw, tz), "yyyy-MM-dd");
@@ -160,7 +190,7 @@ function useCalendarData(): CalendarData {
 
     if (sessionsTable) {
       for (const [sessionId, row] of Object.entries(sessionsTable)) {
-        if (row.event_id || !row.title) continue;
+        if (row.event || !row.title) continue;
         const raw = safeParseDate(row.created_at);
         if (!raw) continue;
         const key = format(toTz(raw, tz), "yyyy-MM-dd");
@@ -169,7 +199,7 @@ function useCalendarData(): CalendarData {
     }
 
     return { eventIdsByDate, sessionIdsByDate };
-  }, [eventsTable, sessionsTable, tz]);
+  }, [eventsTable, sessionsTable, tz, ignoredEventsRaw, ignoredSeriesRaw]);
 }
 
 export function CalendarView() {
@@ -505,7 +535,7 @@ function EventChip({ eventId }: { eventId: string }) {
     (event?.calendar_id as string) ?? null,
   );
 
-  if (!event || !event.title || event.ignored) {
+  if (!event || !event.title) {
     return null;
   }
 
@@ -574,9 +604,11 @@ function EventPopoverContent({ eventId }: { eventId: string }) {
   const handleOpen = useCallback(() => {
     if (!store) return;
     const title = (eventRow?.title as string) || "Untitled";
-    const sessionId = getOrCreateSessionForEventId(store, eventId, title);
+    const trackingId = eventRow?.tracking_id_event as string | undefined;
+    if (!trackingId) return;
+    const sessionId = getOrCreateSessionForEventId(store, trackingId, title);
     openNew({ type: "sessions", id: sessionId });
-  }, [store, eventId, eventRow?.title, openNew]);
+  }, [store, eventRow?.title, eventRow?.tracking_id_event, openNew]);
 
   if (!event) {
     return null;

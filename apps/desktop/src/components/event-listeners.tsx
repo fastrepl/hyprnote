@@ -59,8 +59,15 @@ function useNotificationEvents() {
     if (pendingAutoStart.current && store) {
       const { eventId } = pendingAutoStart.current;
       pendingAutoStart.current = null;
-      const sessionId = eventId
-        ? getOrCreateSessionForEventId(store, eventId)
+      let trackingId: string | undefined;
+      if (eventId) {
+        const eventRow = store.getRow("events", eventId);
+        trackingId = eventRow?.tracking_id_event
+          ? String(eventRow.tracking_id_event)
+          : undefined;
+      }
+      const sessionId = trackingId
+        ? getOrCreateSessionForEventId(store, trackingId)
         : createSession(store);
       openNew({
         type: "sessions",
@@ -89,8 +96,15 @@ function useNotificationEvents() {
             pendingAutoStart.current = { eventId: payload.event_id };
             return;
           }
-          const sessionId = payload.event_id
-            ? getOrCreateSessionForEventId(currentStore, payload.event_id)
+          let trackingId: string | undefined;
+          if (payload.event_id) {
+            const eventRow = currentStore.getRow("events", payload.event_id);
+            trackingId = eventRow?.tracking_id_event
+              ? String(eventRow.tracking_id_event)
+              : undefined;
+          }
+          const sessionId = trackingId
+            ? getOrCreateSessionForEventId(currentStore, trackingId)
             : createSession(currentStore);
           openNewRef.current({
             type: "sessions",

@@ -31,12 +31,18 @@ export function processMetaFile(
   try {
     const meta = JSON.parse(content) as SessionMetaJson;
 
+    const eventValue = meta.event
+      ? JSON.stringify(meta.event)
+      : meta.event_id
+        ? meta.event_id
+        : undefined;
+
     result.sessions[sessionId] = {
       user_id: meta.user_id,
       created_at: meta.created_at,
       title: meta.title,
       folder_id: folderPath,
-      event_id: meta.event_id,
+      event: eventValue,
       raw_md: "",
     };
 

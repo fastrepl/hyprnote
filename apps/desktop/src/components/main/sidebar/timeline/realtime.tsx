@@ -62,9 +62,14 @@ export function useSmartCurrentTime(
 
       if (sessionsTable) {
         Object.values(sessionsTable).forEach((session) => {
-          const time = safeParseDate(
-            session.event_started_at ?? session.created_at,
-          );
+          let eventStartedAt: string | undefined;
+          if (session.event) {
+            try {
+              const parsed = JSON.parse(session.event);
+              eventStartedAt = parsed?.started_at;
+            } catch {}
+          }
+          const time = safeParseDate(eventStartedAt ?? session.created_at);
           if (time && time.getTime() > currentTime) {
             importantTimes.push(time.getTime());
           }

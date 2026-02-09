@@ -1,8 +1,13 @@
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import type { Event, SessionEvent } from "@hypr/store";
 import { json2md } from "@hypr/tiptap/shared";
 
 import { DEFAULT_USER_ID } from "../../../utils";
 import { id } from "../../../utils";
+import {
+  buildSessionEventJson,
+  getSessionEventTrackingId,
+} from "../../../utils/session-event";
 import * as main from "./main";
 
 type Store = NonNullable<ReturnType<typeof main.UI.useStore>>;
@@ -27,12 +32,14 @@ export function getOrCreateSessionForEventId(
   eventId: string,
   title?: string,
 ): string {
-  const sessions = store.getTable("sessions");
   let existingSessionId: string | null = null;
 
-  Object.entries(sessions).forEach(([sessionId, session]) => {
-    if (session.event_id === eventId) {
-      existingSessionId = sessionId;
+  store.forEachRow("sessions", (rowId, _forEachCell) => {
+    if (existingSessionId) return;
+    const event = store.getCell("sessions", rowId, "event");
+    const trackingId = getSessionEventTrackingId(event as string | undefined);
+    if (trackingId === eventId) {
+      existingSessionId = rowId;
     }
   });
 
@@ -40,9 +47,39 @@ export function getOrCreateSessionForEventId(
     return existingSessionId;
   }
 
+  let eventRow: Event | undefined;
+  store.forEachRow("events", (rowId, _forEachCell) => {
+    if (eventRow) return;
+    const row = store.getRow("events", rowId);
+    if (row?.tracking_id_event === eventId) {
+      // TODO: fix tinybase types
+      eventRow = row as Event;
+    }
+  });
+
+  let sessionEvent: SessionEvent | undefined;
+  if (eventRow) {
+    sessionEvent = {
+      tracking_id: eventRow.tracking_id_event,
+      calendar_id: eventRow.calendar_id,
+      title: eventRow.title,
+      started_at: eventRow.started_at,
+      ended_at: eventRow.ended_at,
+      // TODO: fix this
+      is_all_day: !!eventRow.is_all_day,
+      has_recurrence_rules: !!eventRow.has_recurrence_rules,
+      location: eventRow.location,
+      meeting_link: eventRow.meeting_link,
+      description: eventRow.description,
+      recurrence_series_id: eventRow.recurrence_series_id,
+    };
+  } else {
+    sessionEvent = undefined;
+  }
+
   const sessionId = id();
   store.setRow("sessions", sessionId, {
-    event_id: eventId,
+    event: sessionEvent ? buildSessionEventJson(sessionEvent) : undefined,
     title: title ?? "",
     created_at: new Date().toISOString(),
     raw_md: "",
@@ -63,7 +100,7 @@ export function isSessionEmpty(store: Store, sessionId: string): boolean {
 
   // event sessions automatically have a title
   // only consider titles if it does not have an event
-  if (session.title && session.title.trim() && !session.event_id) {
+  if (session.title && session.title.trim() && !session.event) {
     return false;
   }
 

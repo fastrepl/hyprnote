@@ -4,9 +4,11 @@ import type {
   EnhancedNoteStorage,
   HumanStorage,
   OrganizationStorage,
+  SessionEvent,
   SessionStorage,
   TemplateStorage,
 } from "@hypr/store";
+import { sessionEventSchema } from "@hypr/store";
 
 import * as main from "../store/tinybase/store/main";
 
@@ -19,12 +21,7 @@ export function useSession(sessionId: string) {
     "created_at",
     main.STORE_ID,
   );
-  const eventId = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "event_id",
-    main.STORE_ID,
-  );
+  const event = main.UI.useCell("sessions", sessionId, "event", main.STORE_ID);
   const folderId = main.UI.useCell(
     "sessions",
     sessionId,
@@ -33,9 +30,22 @@ export function useSession(sessionId: string) {
   );
 
   return useMemo(
-    () => ({ title, rawMd, createdAt, eventId, folderId }),
-    [title, rawMd, createdAt, eventId, folderId],
+    () => ({ title, rawMd, createdAt, event, folderId }),
+    [title, rawMd, createdAt, event, folderId],
   );
+}
+
+export function useSessionEvent(sessionId: string): SessionEvent | null {
+  const event = main.UI.useCell("sessions", sessionId, "event", main.STORE_ID);
+
+  return useMemo(() => {
+    if (!event) return null;
+    try {
+      return sessionEventSchema.safeParse(event).data ?? null;
+    } catch {
+      return null;
+    }
+  }, [event]);
 }
 
 export function useSetSessionTitle() {
@@ -287,19 +297,12 @@ export function TinyBaseTestWrapper({
   );
 
   const relationships = useCreateRelationships(store, (store) =>
-    createRelationships(store)
-      .setRelationshipDefinition(
-        main.RELATIONSHIPS.sessionToEvent,
-        "sessions",
-        "events",
-        "event_id",
-      )
-      .setRelationshipDefinition(
-        main.RELATIONSHIPS.enhancedNoteToSession,
-        "enhanced_notes",
-        "sessions",
-        "session_id",
-      ),
+    createRelationships(store).setRelationshipDefinition(
+      main.RELATIONSHIPS.enhancedNoteToSession,
+      "enhanced_notes",
+      "sessions",
+      "session_id",
+    ),
   );
 
   const queries = useCreateQueries(store, (store) =>

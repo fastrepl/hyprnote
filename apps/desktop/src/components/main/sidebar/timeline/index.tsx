@@ -36,19 +36,52 @@ export function TimelineView() {
   const timezone = useConfigValue("timezone") || undefined;
   const [showIgnored, setShowIgnored] = useState(false);
 
+  const ignoredEventsRaw = main.UI.useValue("ignored_events", main.STORE_ID) as
+    | string
+    | undefined;
+  const ignoredSeriesRaw = main.UI.useValue(
+    "ignored_recurring_series",
+    main.STORE_ID,
+  ) as string | undefined;
+
   const buckets = useMemo(() => {
     if (showIgnored) {
       return allBuckets;
     }
+
+    let ignoredTrackingIds: Set<string>;
+    let ignoredSeriesIds: Set<string>;
+    try {
+      const list = JSON.parse(ignoredEventsRaw || "[]") as Array<{
+        tracking_id: string;
+      }>;
+      ignoredTrackingIds = new Set(list.map((e) => e.tracking_id));
+    } catch {
+      ignoredTrackingIds = new Set();
+    }
+    try {
+      const list = JSON.parse(ignoredSeriesRaw || "[]") as Array<{
+        id: string;
+      }>;
+      ignoredSeriesIds = new Set(list.map((e) => e.id));
+    } catch {
+      ignoredSeriesIds = new Set();
+    }
+
     return allBuckets
       .map((bucket) => ({
         ...bucket,
-        items: bucket.items.filter(
-          (item) => item.type !== "event" || !item.data.ignored,
-        ),
+        items: bucket.items.filter((item) => {
+          if (item.type !== "event") return true;
+          const tid = item.data.tracking_id_event;
+          if (tid && ignoredTrackingIds.has(tid)) return false;
+          const sid = item.data.recurrence_series_id;
+          if (sid && ignoredSeriesIds.has(sid)) return false;
+          return true;
+        }),
       }))
       .filter((bucket) => bucket.items.length > 0);
-  }, [allBuckets, showIgnored]);
+  }, [allBuckets, showIgnored, ignoredEventsRaw, ignoredSeriesRaw]);
 
   const hasToday = useMemo(
     () => buckets.some((bucket) => bucket.label === "Today"),
@@ -62,12 +95,17 @@ export function TimelineView() {
     return currentTab?.type === "sessions" ? currentTab.id : undefined;
   }, [currentTab]);
 
-  const selectedEventId = useMemo(() => {
+  const selectedEventTrackingId = useMemo(() => {
     if (!selectedSessionId || !store) {
       return undefined;
     }
-    const session = store.getRow("sessions", selectedSessionId);
-    return session?.event_id ? String(session.event_id) : undefined;
+    const eventJson = store.getCell("sessions", selectedSessionId, "event");
+    if (!eventJson) return undefined;
+    try {
+      return JSON.parse(eventJson as string)?.tracking_id as string | undefined;
+    } catch {
+      return undefined;
+    }
   }, [selectedSessionId, store]);
 
   const selectedIds = useTimelineSelection((s) => s.selectedIds);
@@ -239,7 +277,7 @@ export function TimelineView() {
                   precision={bucket.precision}
                   registerIndicator={setCurrentTimeIndicatorRef}
                   selectedSessionId={selectedSessionId}
-                  selectedEventId={selectedEventId}
+                  selectedEventTrackingId={selectedEventTrackingId}
                   timezone={timezone}
                   selectedIds={selectedIds}
                   flatItemKeys={flatItemKeys}
@@ -250,7 +288,7 @@ export function TimelineView() {
                   const selected =
                     item.type === "session"
                       ? item.id === selectedSessionId
-                      : item.id === selectedEventId;
+                      : item.data.tracking_id_event === selectedEventTrackingId;
                   return (
                     <TimelineItemComponent
                       key={itemKey}
@@ -304,7 +342,7 @@ function TodayBucket({
   precision,
   registerIndicator,
   selectedSessionId,
-  selectedEventId,
+  selectedEventTrackingId,
   timezone,
   selectedIds,
   flatItemKeys,
@@ -313,7 +351,7 @@ function TodayBucket({
   precision: TimelinePrecision;
   registerIndicator: (node: HTMLDivElement | null) => void;
   selectedSessionId: string | undefined;
-  selectedEventId: string | undefined;
+  selectedEventTrackingId: string | undefined;
   timezone?: string;
   selectedIds: string[];
   flatItemKeys: string[];
@@ -364,7 +402,7 @@ function TodayBucket({
       const selected =
         entry.item.type === "session"
           ? entry.item.id === selectedSessionId
-          : entry.item.id === selectedEventId;
+          : entry.item.data.tracking_id_event === selectedEventTrackingId;
 
       nodes.push(
         <TimelineItemComponent
@@ -395,7 +433,7 @@ function TodayBucket({
     precision,
     registerIndicator,
     selectedSessionId,
-    selectedEventId,
+    selectedEventTrackingId,
     timezone,
     selectedIds,
     flatItemKeys,

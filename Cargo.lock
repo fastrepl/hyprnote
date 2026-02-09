@@ -4614,6 +4614,7 @@ dependencies = [
  "tauri-plugin-deeplink2",
  "tauri-plugin-detect",
  "tauri-plugin-dialog",
+ "tauri-plugin-dock",
  "tauri-plugin-extensions",
  "tauri-plugin-flag",
  "tauri-plugin-fs-db",
@@ -17903,9 +17904,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin"
-version = "2.5.2"
+version = "2.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e1d0a4860b7ff570c891e1d2a586bf1ede205ff858fbc305e0b5ae5d14c1377"
+checksum = "692a77abd8b8773e107a42ec0e05b767b8d2b7ece76ab36c6c3947e34df9f53f"
 dependencies = [
  "anyhow",
  "glob",
@@ -18182,6 +18183,17 @@ dependencies = [
  "tauri-plugin-fs",
  "thiserror 2.0.18",
  "url",
+]
+
+[[package]]
+name = "tauri-plugin-dock"
+version = "0.1.0"
+dependencies = [
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
+ "tauri",
+ "tauri-plugin",
 ]
 
 [[package]]

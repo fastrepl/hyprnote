@@ -7,21 +7,13 @@ fn default_port() -> u16 {
     3001
 }
 
-fn filter_empty<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: Option<String> = Option::deserialize(deserializer)?;
-    Ok(s.filter(|s| !s.is_empty()))
-}
-
 #[derive(Deserialize)]
 pub struct Env {
     #[serde(default = "default_port")]
     pub port: u16,
-    #[serde(default, deserialize_with = "filter_empty")]
+    #[serde(default, deserialize_with = "hypr_api_env::filter_empty")]
     pub sentry_dsn: Option<String>,
-    #[serde(default, deserialize_with = "filter_empty")]
+    #[serde(default, deserialize_with = "hypr_api_env::filter_empty")]
     pub posthog_api_key: Option<String>,
 
     #[serde(flatten)]
@@ -30,6 +22,8 @@ pub struct Env {
     pub nango: hypr_api_env::NangoEnv,
     #[serde(flatten)]
     pub stripe: hypr_api_subscription::StripeEnv,
+    #[serde(flatten)]
+    pub charlie: hypr_api_env::CharlieAppEnv,
 
     #[serde(flatten)]
     pub llm: hypr_llm_proxy::Env,

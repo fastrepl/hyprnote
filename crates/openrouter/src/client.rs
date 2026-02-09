@@ -89,11 +89,26 @@ impl Client {
     }
 }
 
+fn process_line(line: &str) -> Option<Result<ChatCompletionChunk, Error>> {
+    let line = line.trim();
+    if line.is_empty() {
+        return None;
+    }
+    let data = line.strip_prefix("data: ")?;
+    let data = data.trim();
+    if data == "[DONE]" {
+        return None;
+    }
+    Some(
+        serde_json::from_str::<ChatCompletionChunk>(data).map_err(|e| Error::Stream(e.to_string())),
+    )
+}
+
 fn parse_sse_stream(
     byte_stream: impl Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Send + 'static,
 ) -> impl Stream<Item = Result<ChatCompletionChunk, Error>> + Send {
     async_stream::stream! {
-        let mut buffer = String::new();
+        let mut buffer = Vec::<u8>::new();
         futures_util::pin_mut!(byte_stream);
 
         while let Some(chunk) = byte_stream.next().await {
@@ -105,29 +120,36 @@ fn parse_sse_stream(
                 }
             };
 
-            buffer.push_str(&String::from_utf8_lossy(&chunk));
+            buffer.extend_from_slice(&chunk);
 
-            while let Some(newline_pos) = buffer.find('\n') {
-                let line = buffer[..newline_pos].trim_end().to_string();
-                buffer = buffer[newline_pos + 1..].to_string();
+            while let Some(newline_pos) = buffer.iter().position(|&b| b == b'\n') {
+                let line_bytes = buffer[..newline_pos].to_vec();
+                buffer = buffer[newline_pos + 1..].to_vec();
 
-                if line.is_empty() {
-                    continue;
-                }
-
-                let Some(data) = line.strip_prefix("data: ") else {
-                    continue;
+                let line = match std::str::from_utf8(&line_bytes) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        yield Err(Error::Stream(e.to_string()));
+                        continue;
+                    }
                 };
 
-                let data = data.trim();
-
-                if data == "[DONE]" {
-                    return;
+                if let Some(result) = process_line(line) {
+                    match result {
+                        Ok(chunk) => yield Ok(chunk),
+                        Err(e) => yield Err(e),
+                    }
                 }
+            }
+        }
 
-                match serde_json::from_str::<ChatCompletionChunk>(data) {
-                    Ok(chunk) => yield Ok(chunk),
-                    Err(e) => yield Err(Error::Stream(e.to_string())),
+        if !buffer.is_empty() {
+            if let Ok(line) = std::str::from_utf8(&buffer) {
+                if let Some(result) = process_line(line) {
+                    match result {
+                        Ok(chunk) => yield Ok(chunk),
+                        Err(e) => yield Err(e),
+                    }
                 }
             }
         }

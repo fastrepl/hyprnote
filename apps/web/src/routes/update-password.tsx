@@ -1,17 +1,28 @@
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
-import { doUpdatePassword } from "@/functions/auth";
+import { doUpdatePassword, fetchUser } from "@/functions/auth";
 
 export const Route = createFileRoute("/update-password")({
   component: Component,
   head: () => ({
     meta: [{ name: "robots", content: "noindex, nofollow" }],
   }),
+  beforeLoad: async () => {
+    const user = await fetchUser();
+    if (!user) {
+      throw redirect({ to: "/auth/" });
+    }
+  },
 });
 
 function Component() {

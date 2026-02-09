@@ -1,10 +1,16 @@
+mod commands;
 mod error;
 mod ext;
 pub mod migrations;
+pub mod types;
 pub mod version;
 
 pub use error::{Error, Result};
 pub use ext::*;
+pub use types::{
+    EnhancedNoteData, SessionContent, SessionEnhancedNotes, SessionTranscript, SpeakerHint,
+    TranscriptData, Word,
+};
 pub use version::*;
 
 const PLUGIN_NAME: &str = "fs-db";
@@ -12,7 +18,14 @@ const PLUGIN_NAME: &str = "fs-db";
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![])
+        .commands(tauri_specta::collect_commands![
+            commands::load_session_content::<tauri::Wry>,
+            commands::load_session_transcript::<tauri::Wry>,
+            commands::load_session_enhanced_notes::<tauri::Wry>,
+            commands::save_session_content::<tauri::Wry>,
+            commands::save_session_transcript::<tauri::Wry>,
+            commands::save_session_enhanced_note::<tauri::Wry>,
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -26,16 +39,32 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
             let base_dir = match app.settings().fresh_vault_base() {
                 Ok(dir) => dir,
-                Err(_) => return Ok(()),
+                Err(_) => {
+                    return Ok(());
+                }
             };
 
             let app_version = app.config().version.as_ref().map_or_else(
                 || hypr_version::Version::new(0, 0, 0),
-                |v| hypr_version::Version::parse(v).expect("version must be semver"),
+                |v| {
+                    v.parse::<hypr_version::Version>()
+                        .expect("version must be semver")
+                },
             );
 
-            migrations::run(&base_dir, &app_version)?;
-            version::write_version(&base_dir, &app_version)?;
+            std::thread::spawn({
+                let base_dir = base_dir.clone();
+                let app_version = app_version.clone();
+                move || {
+                    let rt = tokio::runtime::Builder::new_current_thread()
+                        .enable_all()
+                        .build()
+                        .expect("failed to create migration runtime");
+                    rt.block_on(migrations::run(&base_dir, &app_version))
+                }
+            })
+            .join()
+            .expect("migration thread panicked")?;
 
             Ok(())
         })

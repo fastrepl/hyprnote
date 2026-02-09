@@ -36,7 +36,7 @@ export function StorageSettingsView() {
 
   return (
     <div>
-      <h2 className="font-semibold font-serif mb-4">Storage</h2>
+      <h2 className="text-lg font-semibold font-serif mb-4">Storage</h2>
       <div className="flex flex-col gap-3">
         <StoragePathRow
           icon={FolderIcon}

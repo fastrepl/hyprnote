@@ -1,65 +1,45 @@
-mod v1_0_2_move_uuid_folders_to_sessions;
-mod v1_0_3_rename_transcript;
+mod runner;
+mod utils;
 
+use std::future::Future;
 use std::path::Path;
+use std::pin::Pin;
 
 use hypr_version::Version;
 
-use crate::version::default_detector;
 use crate::Result;
+use crate::version::{DetectedVersion, version_from_name};
 
-struct Migration {
-    from: Version,
-    to: Version,
-    run: fn(&Path) -> Result<()>,
-}
+pub use runner::run;
 
-fn all_migrations() -> Vec<Migration> {
-    vec![
-        Migration {
-            from: v1_0_2_move_uuid_folders_to_sessions::FROM_VERSION,
-            to: v1_0_2_move_uuid_folders_to_sessions::TO_VERSION,
-            run: v1_0_2_move_uuid_folders_to_sessions::run,
-        },
-        Migration {
-            from: v1_0_3_rename_transcript::FROM_VERSION,
-            to: v1_0_3_rename_transcript::TO_VERSION,
-            run: v1_0_3_rename_transcript::run,
-        },
-    ]
-}
+pub trait Migration: Send + Sync {
+    fn introduced_in(&self) -> &'static Version;
 
-pub fn run(base_dir: &Path, app_version: &Version) -> Result<()> {
-    let Some(vault_version) = default_detector().detect(base_dir) else {
-        return Ok(());
-    };
-
-    let mut current = vault_version.version;
-
-    if current.base() == app_version.base() {
-        return Ok(());
+    fn applies_to(&self, _detected: &DetectedVersion) -> bool {
+        true
     }
 
-    let mut migrations = all_migrations();
-    migrations.sort_by(|a, b| a.from.cmp(&b.from));
+    fn run<'a>(&self, base_dir: &'a Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>;
+}
 
-    for migration in &migrations {
-        let migration_applies =
-            migration.from.base() == current.base()
-            && migration.to.base() <= app_version.base();
+macro_rules! migrations {
+    ($($module:ident),* $(,)?) => {
+        $(mod $module;)*
 
-        if migration_applies {
-            (migration.run)(base_dir)?;
-            current = migration.to.clone();
+        fn all_migrations() -> Vec<&'static dyn Migration> {
+            vec![$(&$module::Migrate),*]
         }
-    }
 
-    if current.base() != app_version.base() {
-        return Err(crate::Error::MigrationGap {
-            from: current,
-            to: app_version.clone(),
-        });
-    }
+        pub fn latest_introduced_version() -> &'static Version {
+            all_migrations().into_iter().map(|m| m.introduced_in()).max().expect("at least one migration must exist")
+        }
+    };
+}
 
-    Ok(())
+migrations! {
+    v1_0_2_nightly_15_from_v0,
+    v1_0_2_nightly_6_move_uuid_folders,
+    v1_0_2_nightly_6_rename_transcript,
+    v1_0_2_nightly_14_extract_from_sqlite,
+    v1_0_4_nightly_2_repair_transcripts,
 }

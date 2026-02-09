@@ -17,7 +17,14 @@ import { ShellProvider } from "../../../contexts/shell";
 import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
 import { useDeeplinkHandler } from "../../../hooks/useDeeplinkHandler";
-import { useTabs } from "../../../store/zustand/tabs";
+import { deleteSessionCascade } from "../../../store/tinybase/store/deleteSession";
+import * as main from "../../../store/tinybase/store/main";
+import { isSessionEmpty } from "../../../store/tinybase/store/sessions";
+import {
+  restorePinnedTabsToStore,
+  restoreRecentlyOpenedToStore,
+  useTabs,
+} from "../../../store/zustand/tabs";
 
 export const Route = createFileRoute("/app/main/_layout")({
   component: Component,
@@ -27,15 +34,20 @@ function Component() {
   const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({
     from: "__root__",
   });
-  const { registerOnEmpty, registerCanClose, registerOnClose, openNew, pin } =
-    useTabs();
-  const tabs = useTabs((state) => state.tabs);
+  const {
+    registerOnEmpty,
+    registerCanClose,
+    registerOnClose,
+    openNew,
+    pin,
+    invalidateResource,
+  } = useTabs();
   const hasOpenedInitialTab = useRef(false);
   const liveSessionId = useListener((state) => state.live.sessionId);
   const liveStatus = useListener((state) => state.live.status);
   const prevLiveStatus = usePrevious(liveStatus);
-  const getSessionMode = useListener((state) => state.getSessionMode);
-  const stop = useListener((state) => state.stop);
+  const store = main.UI.useStore(main.STORE_ID);
+  const indexes = main.UI.useIndexes(main.STORE_ID);
 
   useDeeplinkHandler();
 
@@ -44,13 +56,27 @@ function Component() {
   }, [openNew]);
 
   useEffect(() => {
-    if (tabs.length === 0 && !hasOpenedInitialTab.current) {
-      hasOpenedInitialTab.current = true;
-      openDefaultEmptyTab();
-    }
+    const initializeTabs = async () => {
+      if (!hasOpenedInitialTab.current) {
+        hasOpenedInitialTab.current = true;
+        await restorePinnedTabsToStore(
+          openNew,
+          pin,
+          () => useTabs.getState().tabs,
+        );
+        await restoreRecentlyOpenedToStore((ids) => {
+          useTabs.setState({ recentlyOpenedSessionIds: ids });
+        });
+        const currentTabs = useTabs.getState().tabs;
+        if (currentTabs.length === 0) {
+          openDefaultEmptyTab();
+        }
+      }
+    };
 
+    initializeTabs();
     registerOnEmpty(openDefaultEmptyTab);
-  }, [tabs.length, openDefaultEmptyTab, registerOnEmpty]);
+  }, [openNew, pin, openDefaultEmptyTab, registerOnEmpty]);
 
   useEffect(() => {
     const justStartedListening =
@@ -67,20 +93,23 @@ function Component() {
   }, [liveStatus, prevLiveStatus, liveSessionId, pin]);
 
   useEffect(() => {
-    registerOnClose((tab) => {
-      if (tab.type !== "sessions") {
-        return;
-      }
-      const mode = getSessionMode(tab.id);
-      if (mode === "active" || mode === "finalizing") {
-        stop();
-      }
-    });
-  }, [registerOnClose, getSessionMode, stop]);
-
-  useEffect(() => {
     registerCanClose(() => true);
   }, [registerCanClose]);
+
+  useEffect(() => {
+    if (!store) {
+      return;
+    }
+    registerOnClose((tab) => {
+      if (tab.type === "sessions") {
+        const sessionId = tab.id;
+        if (isSessionEmpty(store, sessionId)) {
+          invalidateResource("sessions", sessionId);
+          void deleteSessionCascade(store, indexes, sessionId);
+        }
+      }
+    });
+  }, [registerOnClose, invalidateResource, store, indexes]);
 
   if (!aiTaskStore) {
     return null;

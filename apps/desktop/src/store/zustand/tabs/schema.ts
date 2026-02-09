@@ -3,10 +3,12 @@ import type {
   AiTab,
   ChangelogState,
   ChatShortcutsState,
+  ChatState,
   ContactsState,
   EditorView,
   ExtensionsState,
   PromptsState,
+  SearchState,
   SessionsState,
   TabInput,
   TemplatesState,
@@ -17,13 +19,26 @@ export type {
   AiTab,
   ChangelogState,
   ChatShortcutsState,
+  ChatState,
   ContactsState,
   EditorView,
   ExtensionsState,
   PromptsState,
+  SearchState,
   SessionsState,
   TabInput,
   TemplatesState,
+};
+
+export type SettingsTab =
+  | "account"
+  | "app"
+  | "notifications"
+  | "system"
+  | "lab";
+
+export type SettingsState = {
+  tab: SettingsTab | null;
 };
 
 export const isEnhancedView = (
@@ -84,10 +99,18 @@ export type Tab =
       type: "changelog";
       state: ChangelogState;
     })
-  | (BaseTab & { type: "settings" })
+  | (BaseTab & { type: "settings"; state: SettingsState })
   | (BaseTab & {
       type: "ai";
       state: AiState;
+    })
+  | (BaseTab & {
+      type: "search";
+      state: SearchState;
+    })
+  | (BaseTab & {
+      type: "chat";
+      state: ChatState;
     });
 
 export const getDefaultState = (tab: TabInput): Tab => {
@@ -171,44 +194,28 @@ export const getDefaultState = (tab: TabInput): Tab => {
         state: tab.state,
       };
     case "settings":
-      return { ...base, type: "settings" };
+      return { ...base, type: "settings", state: { tab: "account" } };
     case "ai":
       return {
         ...base,
         type: "ai",
         state: tab.state ?? { tab: null },
       };
+    case "search":
+      return {
+        ...base,
+        type: "search",
+        state: tab.state ?? { selectedTypes: null, initialQuery: null },
+      };
+    case "chat":
+      return {
+        ...base,
+        type: "chat",
+        state: tab.state ?? { groupId: null },
+      };
     default:
       const _exhaustive: never = tab;
       return _exhaustive;
-  }
-};
-
-export const rowIdfromTab = (tab: Tab): string => {
-  switch (tab.type) {
-    case "sessions":
-      return tab.id;
-    case "humans":
-      return tab.id;
-    case "organizations":
-      return tab.id;
-    case "contacts":
-    case "templates":
-    case "prompts":
-    case "chat_shortcuts":
-    case "extensions":
-    case "empty":
-    case "extension":
-    case "calendar":
-    case "changelog":
-    case "settings":
-    case "ai":
-      throw new Error("invalid_resource");
-    case "folders":
-      if (!tab.id) {
-        throw new Error("invalid_resource");
-      }
-      return tab.id;
   }
 };
 
@@ -244,6 +251,10 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `settings`;
     case "ai":
       return `ai`;
+    case "search":
+      return `search`;
+    case "chat":
+      return `chat`;
   }
 };
 

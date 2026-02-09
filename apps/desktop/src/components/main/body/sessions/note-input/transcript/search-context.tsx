@@ -35,19 +35,56 @@ function getMatchingElements(
     return [];
   }
 
-  const terms = query
-    .toLowerCase()
-    .trim()
-    .split(/\s+/); // split by spaces, not characters
+  const normalizedQuery = query.trim().toLowerCase().normalize("NFC");
+  if (!normalizedQuery) return [];
 
   const allSpans = Array.from(
     container.querySelectorAll<HTMLElement>("[data-word-id]"),
   );
+  if (allSpans.length === 0) return [];
 
-  return allSpans.filter((span) => {
-    const text = (span.textContent || "").toLowerCase();
-    return terms.every((term) => text.includes(term));
-  });
+  // Build concatenated text from all spans, tracking each span's position
+  const spanPositions: { start: number; end: number }[] = [];
+  let fullText = "";
+
+  for (let i = 0; i < allSpans.length; i++) {
+    const text = (allSpans[i].textContent || "").normalize("NFC");
+    if (i > 0) fullText += " ";
+    const start = fullText.length;
+    fullText += text;
+    spanPositions.push({ start, end: fullText.length });
+  }
+
+  const lowerFullText = fullText.toLowerCase();
+  const result: HTMLElement[] = [];
+  let searchFrom = 0;
+
+  while (searchFrom <= lowerFullText.length - normalizedQuery.length) {
+    const idx = lowerFullText.indexOf(normalizedQuery, searchFrom);
+    if (idx === -1) break;
+
+    // Find the span containing the start of this match
+    for (let i = 0; i < spanPositions.length; i++) {
+      const { start, end } = spanPositions[i];
+      if (idx >= start && idx < end) {
+        result.push(allSpans[i]);
+        break;
+      }
+      // Match starts in the space between spans
+      if (
+        i < spanPositions.length - 1 &&
+        idx >= end &&
+        idx < spanPositions[i + 1].start
+      ) {
+        result.push(allSpans[i + 1]);
+        break;
+      }
+    }
+
+    searchFrom = idx + 1;
+  }
+
+  return result;
 }
 
 export function SearchProvider({ children }: { children: React.ReactNode }) {

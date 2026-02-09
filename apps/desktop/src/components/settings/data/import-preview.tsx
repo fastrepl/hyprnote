@@ -31,7 +31,7 @@ export function ImportPreview({
   isPending: boolean;
 }) {
   const totalItems =
-    stats.notesCount +
+    stats.sessionsCount +
     stats.transcriptsCount +
     stats.humansCount +
     stats.organizationsCount +
@@ -40,7 +40,7 @@ export function ImportPreview({
   const hasData = totalItems > 0;
 
   const statItems = [
-    { icon: FileTextIcon, label: "Notes", count: stats.notesCount },
+    { icon: FileTextIcon, label: "Sessions", count: stats.sessionsCount },
     { icon: MicIcon, label: "Transcripts", count: stats.transcriptsCount },
     { icon: UserIcon, label: "People", count: stats.humansCount },
     {

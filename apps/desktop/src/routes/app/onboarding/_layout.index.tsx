@@ -4,6 +4,7 @@ import { Volume2Icon, VolumeXIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 
 import {
@@ -15,7 +16,7 @@ import {
 const validateSearch = z.object({
   step: z.enum(STEP_IDS).default("welcome"),
   platform: z.string().default(platform()),
-  skipAutoForward: z.boolean().default(false),
+  skipLogin: z.boolean().optional(),
 });
 
 export type Search = z.infer<typeof validateSearch>;
@@ -29,6 +30,15 @@ function Component() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    void analyticsCommands.event({
+      event: "onboarding_step_viewed",
+      step: search.step,
+      platform: search.platform,
+      skip_login: search.skipLogin ?? false,
+    });
+  }, [search.step]);
 
   useEffect(() => {
     sfxCommands.play("BGM").catch(console.error);

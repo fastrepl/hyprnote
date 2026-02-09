@@ -47,7 +47,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["status"],
+                  "required": [
+                    "status"
+                  ],
                   "additionalProperties": false
                 }
               }
@@ -55,7 +57,9 @@
           }
         },
         "operationId": "getHealth",
-        "tags": ["private-skip-openapi"],
+        "tags": [
+          "private-skip-openapi"
+        ],
         "parameters": []
       }
     },
@@ -71,9 +75,19 @@
                   "properties": {
                     "started": {
                       "type": "boolean"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "enum": [
+                        "started",
+                        "not_eligible",
+                        "error"
+                      ]
                     }
                   },
-                  "required": ["started"],
+                  "required": [
+                    "started"
+                  ],
                   "additionalProperties": false
                 }
               }
@@ -81,7 +95,9 @@
           }
         },
         "operationId": "postBillingStart-trial",
-        "tags": ["private"],
+        "tags": [
+          "private"
+        ],
         "parameters": [
           {
             "in": "query",
@@ -89,102 +105,155 @@
             "schema": {
               "default": "monthly",
               "type": "string",
-              "enum": ["monthly", "yearly"]
+              "enum": [
+                "monthly",
+                "yearly"
+              ]
             },
             "required": true
           }
         ]
       }
     },
-    "/chat/completions": {
+    "/feedback/submit": {
       "post": {
         "responses": {
           "200": {
-            "description": "-"
+            "description": "Feedback submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "issueUrl": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
-          "401": {
-            "description": "-"
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "issueUrl": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "issueUrl": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         },
-        "operationId": "postChatCompletions",
-        "tags": ["private-skip-openapi"],
-        "parameters": [],
-        "security": [
-          {
-            "Bearer": []
-          }
+        "operationId": "postFeedbackSubmit",
+        "tags": [
+          "private-skip-openapi"
         ],
+        "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "model": {
-                    "type": "string"
-                  },
-                  "messages": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "role": {
-                          "type": "string",
-                          "enum": ["system", "user", "assistant"]
-                        },
-                        "content": {
-                          "type": "string"
-                        }
-                      },
-                      "required": ["role", "content"],
-                      "additionalProperties": false
-                    }
-                  },
-                  "tools": {
-                    "type": "array",
-                    "items": {}
-                  },
-                  "tool_choice": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "enum": ["none", "auto", "required"]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "const": "function"
-                          },
-                          "function": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string"
-                              }
-                            },
-                            "required": ["name"],
-                            "additionalProperties": false
-                          }
-                        },
-                        "required": ["type", "function"],
-                        "additionalProperties": false
-                      }
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "bug",
+                      "feature"
                     ]
                   },
-                  "stream": {
-                    "type": "boolean"
+                  "description": {
+                    "type": "string",
+                    "minLength": 10
                   },
-                  "temperature": {
-                    "type": "number"
+                  "logs": {
+                    "type": "string"
                   },
-                  "max_tokens": {
-                    "type": "number"
+                  "deviceInfo": {
+                    "type": "object",
+                    "properties": {
+                      "platform": {
+                        "type": "string"
+                      },
+                      "arch": {
+                        "type": "string"
+                      },
+                      "osVersion": {
+                        "type": "string"
+                      },
+                      "appVersion": {
+                        "type": "string"
+                      },
+                      "gitHash": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "platform",
+                      "arch",
+                      "osVersion",
+                      "appVersion",
+                      "gitHash"
+                    ],
+                    "additionalProperties": false
                   }
                 },
-                "required": ["messages"],
-                "additionalProperties": {}
+                "required": [
+                  "type",
+                  "description",
+                  "deviceInfo"
+                ],
+                "additionalProperties": false
               }
             }
           }
@@ -208,7 +277,10 @@
                       "type": "string"
                     }
                   },
-                  "required": ["pipelineId", "invocationId"],
+                  "required": [
+                    "pipelineId",
+                    "invocationId"
+                  ],
                   "additionalProperties": false
                 }
               }
@@ -225,7 +297,9 @@
           }
         },
         "operationId": "postFile-transcriptionStart",
-        "tags": ["private"],
+        "tags": [
+          "private"
+        ],
         "parameters": [],
         "security": [
           {
@@ -245,7 +319,9 @@
                     "type": "string"
                   }
                 },
-                "required": ["fileId"],
+                "required": [
+                  "fileId"
+                ],
                 "additionalProperties": false
               }
             }
@@ -284,7 +360,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["status"],
+                  "required": [
+                    "status"
+                  ],
                   "additionalProperties": false
                 }
               }
@@ -293,12 +371,17 @@
           "401": {
             "description": "Unauthorized"
           },
+          "403": {
+            "description": "Forbidden"
+          },
           "500": {
             "description": "Internal error"
           }
         },
         "operationId": "getFile-transcriptionStatusByPipelineId",
-        "tags": ["private"],
+        "tags": [
+          "private"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -347,7 +430,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["status"],
+                  "required": [
+                    "status"
+                  ],
                   "additionalProperties": false
                 }
               }
@@ -356,12 +441,17 @@
           "401": {
             "description": "Unauthorized"
           },
+          "403": {
+            "description": "Forbidden"
+          },
           "500": {
             "description": "Internal error"
           }
         },
         "operationId": "getFile-transcriptionResultByPipelineId",
-        "tags": ["private"],
+        "tags": [
+          "private"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -391,9 +481,20 @@
                   "properties": {
                     "canStartTrial": {
                       "type": "boolean"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "enum": [
+                        "eligible",
+                        "has_active_subscription",
+                        "had_recent_trial",
+                        "error"
+                      ]
                     }
                   },
-                  "required": ["canStartTrial"],
+                  "required": [
+                    "canStartTrial"
+                  ],
                   "additionalProperties": false
                 }
               }
@@ -401,153 +502,10 @@
           }
         },
         "operationId": "getRpcCan-start-trial",
-        "tags": ["private"],
+        "tags": [
+          "private"
+        ],
         "parameters": []
-      }
-    },
-    "/listen": {
-      "get": {
-        "responses": {
-          "101": {
-            "description": "-"
-          },
-          "400": {
-            "description": "-"
-          },
-          "401": {
-            "description": "-"
-          },
-          "502": {
-            "description": "-"
-          },
-          "504": {
-            "description": "-"
-          }
-        },
-        "operationId": "getListen",
-        "tags": ["private-skip-openapi"],
-        "parameters": [],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ]
-      }
-    },
-    "/transcribe": {
-      "post": {
-        "responses": {
-          "200": {
-            "description": "result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "metadata": {},
-                    "results": {
-                      "type": "object",
-                      "properties": {
-                        "channels": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "alternatives": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "transcript": {
-                                      "type": "string"
-                                    },
-                                    "confidence": {
-                                      "type": "number"
-                                    },
-                                    "words": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "object",
-                                        "properties": {
-                                          "word": {
-                                            "type": "string"
-                                          },
-                                          "start": {
-                                            "type": "number"
-                                          },
-                                          "end": {
-                                            "type": "number"
-                                          },
-                                          "confidence": {
-                                            "type": "number"
-                                          },
-                                          "speaker": {
-                                            "anyOf": [
-                                              {
-                                                "type": "number"
-                                              },
-                                              {
-                                                "type": "null"
-                                              }
-                                            ]
-                                          },
-                                          "punctuated_word": {
-                                            "anyOf": [
-                                              {
-                                                "type": "string"
-                                              },
-                                              {
-                                                "type": "null"
-                                              }
-                                            ]
-                                          }
-                                        },
-                                        "required": ["word", "start", "end", "confidence"],
-                                        "additionalProperties": false
-                                      }
-                                    }
-                                  },
-                                  "required": ["transcript", "confidence", "words"],
-                                  "additionalProperties": false
-                                }
-                              }
-                            },
-                            "required": ["alternatives"],
-                            "additionalProperties": false
-                          }
-                        }
-                      },
-                      "required": ["channels"],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": ["metadata", "results"],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "-"
-          },
-          "401": {
-            "description": "-"
-          },
-          "500": {
-            "description": "-"
-          },
-          "502": {
-            "description": "-"
-          }
-        },
-        "operationId": "postTranscribe",
-        "tags": ["private-skip-openapi"],
-        "parameters": [],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ]
       }
     },
     "/webhook/stripe": {
@@ -564,7 +522,9 @@
                       "type": "boolean"
                     }
                   },
-                  "required": ["ok"],
+                  "required": [
+                    "ok"
+                  ],
                   "additionalProperties": false
                 }
               }
@@ -578,7 +538,9 @@
           }
         },
         "operationId": "postWebhookStripe",
-        "tags": ["private-skip-openapi"],
+        "tags": [
+          "private-skip-openapi"
+        ],
         "parameters": [
           {
             "in": "header",
@@ -589,6 +551,42 @@
             "required": true
           }
         ]
+      }
+    },
+    "/webhook/slack/events": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "-"
+          },
+          "500": {
+            "description": "-"
+          }
+        },
+        "operationId": "postWebhookSlackEvents",
+        "tags": [
+          "private-skip-openapi"
+        ],
+        "parameters": []
       }
     }
   }

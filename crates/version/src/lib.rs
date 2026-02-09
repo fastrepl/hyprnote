@@ -1,12 +1,6 @@
 use std::fmt;
 use std::ops::Deref;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BaseVersion {
-    pub major: u64,
-    pub minor: u64,
-    pub patch: u64,
-}
+use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Version(semver::Version);
@@ -15,17 +9,13 @@ impl Version {
     pub const fn new(major: u64, minor: u64, patch: u64) -> Self {
         Self(semver::Version::new(major, minor, patch))
     }
+}
 
-    pub fn parse(text: &str) -> Result<Self, semver::Error> {
-        semver::Version::parse(text).map(Self)
-    }
+impl FromStr for Version {
+    type Err = semver::Error;
 
-    pub fn base(&self) -> BaseVersion {
-        BaseVersion {
-            major: self.0.major,
-            minor: self.0.minor,
-            patch: self.0.patch,
-        }
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        semver::Version::parse(s).map(Self)
     }
 }
 
@@ -54,8 +44,8 @@ mod tests {
                 let versions = [$($version),+];
                 for i in 0..versions.len() {
                     for j in (i + 1)..versions.len() {
-                        let left = Version::parse(versions[i]).unwrap();
-                        let right = Version::parse(versions[j]).unwrap();
+                        let left: Version = versions[i].parse().unwrap();
+                        let right: Version = versions[j].parse().unwrap();
                         assert!(
                             left < right,
                             "Expected {} < {}, but got {} >= {}",
@@ -117,9 +107,9 @@ mod tests {
 
     #[test]
     fn build_metadata_comparison() {
-        let base = Version::parse("1.0.2-nightly.12.dev.5169").unwrap();
-        let with_meta = Version::parse("1.0.2-nightly.12.dev.5169+8797281").unwrap();
-        let with_other_meta = Version::parse("1.0.2-nightly.12.dev.5169+abcdef0").unwrap();
+        let base: Version = "1.0.2-nightly.12.dev.5169".parse().unwrap();
+        let with_meta: Version = "1.0.2-nightly.12.dev.5169+8797281".parse().unwrap();
+        let with_other_meta: Version = "1.0.2-nightly.12.dev.5169+abcdef0".parse().unwrap();
 
         assert!(base < with_meta);
         assert!(with_meta < with_other_meta);
@@ -127,40 +117,13 @@ mod tests {
 
     #[test]
     fn real_world_staging_build() {
-        let nightly_tag = Version::parse("1.0.2-nightly.12").unwrap();
-        let staging_build = Version::parse("1.0.2-nightly.12.dev.5169+8797281").unwrap();
-        let next_nightly = Version::parse("1.0.2-nightly.13").unwrap();
-        let stable = Version::parse("1.0.2").unwrap();
+        let nightly_tag: Version = "1.0.2-nightly.12".parse().unwrap();
+        let staging_build: Version = "1.0.2-nightly.12.dev.5169+8797281".parse().unwrap();
+        let next_nightly: Version = "1.0.2-nightly.13".parse().unwrap();
+        let stable: Version = "1.0.2".parse().unwrap();
 
         assert!(nightly_tag < staging_build);
         assert!(staging_build < next_nightly);
         assert!(next_nightly < stable);
-    }
-
-    #[test]
-    fn base_version_strips_prerelease_and_build() {
-        let release = Version::parse("1.0.2").unwrap();
-        let prerelease = Version::parse("1.0.2-nightly.12").unwrap();
-        let dev_build = Version::parse("1.0.2-nightly.12.dev.5169+8797281").unwrap();
-
-        let expected = BaseVersion {
-            major: 1,
-            minor: 0,
-            patch: 2,
-        };
-        assert_eq!(release.base(), expected);
-        assert_eq!(prerelease.base(), expected);
-        assert_eq!(dev_build.base(), expected);
-    }
-
-    #[test]
-    fn base_version_comparison() {
-        let v1 = Version::new(1, 0, 2);
-        let v2 = Version::parse("1.0.2-nightly.12.dev.5169+8797281").unwrap();
-        let v3 = Version::new(1, 0, 3);
-
-        assert_eq!(v1.base(), v2.base());
-        assert!(v1.base() < v3.base());
-        assert!(v2.base() < v3.base());
     }
 }

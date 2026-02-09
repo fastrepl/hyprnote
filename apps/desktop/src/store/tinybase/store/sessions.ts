@@ -1,4 +1,5 @@
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { json2md } from "@hypr/tiptap/shared";
 
 import { DEFAULT_USER_ID } from "../../../utils";
 import { id } from "../../../utils";
@@ -52,4 +53,78 @@ export function getOrCreateSessionForEventId(
     has_event_id: true,
   });
   return sessionId;
+}
+
+export function isSessionEmpty(store: Store, sessionId: string): boolean {
+  const session = store.getRow("sessions", sessionId);
+  if (!session) {
+    return true;
+  }
+
+  // event sessions automatically have a title
+  // only consider titles if it does not have an event
+  if (session.title && session.title.trim() && !session.event_id) {
+    return false;
+  }
+
+  if (session.raw_md) {
+    let raw_md: string;
+    try {
+      raw_md = json2md(JSON.parse(session.raw_md));
+    } catch {
+      raw_md = session.raw_md;
+    }
+    raw_md = raw_md.trim();
+    // see: https://github.com/ueberdosis/tiptap/issues/7495
+    // this is a known regression on @tiptap/markdown on v3.18.0.
+    if (raw_md && raw_md !== "&nbsp;") {
+      return false;
+    }
+  }
+
+  let hasTranscript = false;
+  store.forEachRow("transcripts", (rowId, _forEachCell) => {
+    const row = store.getRow("transcripts", rowId);
+    if (row?.session_id === sessionId) {
+      hasTranscript = true;
+    }
+  });
+  if (hasTranscript) {
+    return false;
+  }
+
+  let hasEnhancedNote = false;
+  store.forEachRow("enhanced_notes", (rowId, _forEachCell) => {
+    const row = store.getRow("enhanced_notes", rowId);
+    if (row?.session_id === sessionId) {
+      hasEnhancedNote = true;
+    }
+  });
+  if (hasEnhancedNote) {
+    return false;
+  }
+
+  let hasParticipant = false;
+  store.forEachRow("mapping_session_participant", (rowId, _forEachCell) => {
+    const row = store.getRow("mapping_session_participant", rowId);
+    if (row?.session_id === sessionId) {
+      hasParticipant = true;
+    }
+  });
+  if (hasParticipant) {
+    return false;
+  }
+
+  let hasTag = false;
+  store.forEachRow("mapping_tag_session", (rowId, _forEachCell) => {
+    const row = store.getRow("mapping_tag_session", rowId);
+    if (row?.session_id === sessionId) {
+      hasTag = true;
+    }
+  });
+  if (hasTag) {
+    return false;
+  }
+
+  return true;
 }

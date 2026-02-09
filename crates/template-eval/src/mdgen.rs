@@ -7,7 +7,7 @@ pub struct MdgenSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use askama_utils::tpl_snapshot;
+    use hypr_askama_utils::tpl_snapshot;
 
     tpl_snapshot!(
         test_mdgen_system,

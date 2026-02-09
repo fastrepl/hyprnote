@@ -1,38 +1,96 @@
 mod auth;
 mod env;
+mod openapi;
 
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Duration;
 
 use axum::{Router, body::Body, extract::MatchedPath, http::Request, middleware};
 use sentry::integrations::tower::{NewSentryLayer, SentryHttpLayer};
 use tower::ServiceBuilder;
-use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
+use tower_http::{
+    classify::ServerErrorsFailureClass,
+    cors::{self, CorsLayer},
+    trace::TraceLayer,
+};
 use tracing_subscriber::prelude::*;
+
+use hypr_analytics::AnalyticsClientBuilder;
 
 use auth::AuthState;
 use env::env;
 
-pub use auth::DEVICE_FINGERPRINT_HEADER;
+pub const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 
-fn app() -> Router {
-    let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key);
-    let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys());
-    let auth_state = AuthState::new(&env().supabase_url);
+async fn app() -> Router {
+    let env = env();
 
-    let protected_routes = Router::new()
+    let analytics = {
+        let mut builder = AnalyticsClientBuilder::default();
+        if let Some(key) = &env.posthog_api_key {
+            builder = builder.with_posthog(key);
+        }
+        Arc::new(builder.build())
+    };
+
+    let llm_config =
+        hypr_llm_proxy::LlmProxyConfig::new(&env.llm).with_analytics(analytics.clone());
+    let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(&env.stt).with_analytics(analytics);
+    let auth_state_pro =
+        AuthState::new(&env.supabase.supabase_url).with_required_entitlement("hyprnote_pro");
+    let auth_state_basic = AuthState::new(&env.supabase.supabase_url);
+
+    let calendar_config = hypr_api_calendar::CalendarConfig::new(&env.nango);
+    let nango_config = hypr_api_nango::NangoConfig::new(&env.nango);
+    let subscription_config =
+        hypr_api_subscription::SubscriptionConfig::new(&env.supabase, &env.stripe);
+    let support_config =
+        hypr_api_support::SupportConfig::new(&env.github_app, &env.llm, &env.supabase_db);
+
+    let webhook_routes = Router::new().nest(
+        "/nango",
+        hypr_api_nango::webhook_router(nango_config.clone()),
+    );
+
+    let pro_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
         .merge(hypr_llm_proxy::chat_completions_router(llm_config.clone()))
         .nest("/stt", hypr_transcribe_proxy::router(stt_config))
         .nest("/llm", hypr_llm_proxy::router(llm_config))
+        .nest("/calendar", hypr_api_calendar::router(calendar_config))
+        .nest("/nango", hypr_api_nango::router(nango_config.clone()))
+        .route_layer(middleware::from_fn(auth::sentry_and_analytics))
         .route_layer(middleware::from_fn_with_state(
-            auth_state,
-            auth::require_pro,
+            auth_state_pro,
+            auth::require_auth,
+        ));
+
+    let subscription_router = hypr_api_subscription::router(subscription_config);
+    let auth_routes = Router::new()
+        .nest("/subscription", subscription_router.clone())
+        .nest("/rpc", subscription_router.clone())
+        .nest("/billing", subscription_router)
+        .route_layer(middleware::from_fn(auth::sentry_and_analytics))
+        .route_layer(middleware::from_fn_with_state(
+            auth_state_basic,
+            auth::require_auth,
         ));
 
     Router::new()
         .route("/health", axum::routing::get(|| async { "ok" }))
-        .merge(protected_routes)
+        .route("/v", axum::routing::get(version))
+        .route("/openapi.json", axum::routing::get(openapi_json))
+        .nest("/support", hypr_api_support::router(support_config).await)
+        .merge(webhook_routes)
+        .merge(pro_routes)
+        .merge(auth_routes)
+        .layer(
+            CorsLayer::new()
+                .allow_origin(cors::Any)
+                .allow_methods(cors::Any)
+                .allow_headers(cors::Any),
+        )
         .layer(
             ServiceBuilder::new()
                 .layer(NewSentryLayer::<Request<Body>>::new_from_top())
@@ -119,6 +177,8 @@ fn app() -> Router {
 }
 
 fn main() -> std::io::Result<()> {
+    let _ = openapi::write_openapi_json();
+
     let env = env();
 
     let _guard = sentry::init(sentry::ClientOptions {
@@ -155,7 +215,7 @@ fn main() -> std::io::Result<()> {
         .with(sentry::integrations::tracing::layer())
         .init();
 
-    env.log_configured_providers();
+    hypr_transcribe_proxy::ApiKeys::from(&env.stt).log_configured_providers();
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -165,7 +225,7 @@ fn main() -> std::io::Result<()> {
             tracing::info!(addr = %addr, "server_listening");
 
             let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-            axum::serve(listener, app())
+            axum::serve(listener, app().await)
                 .with_graceful_shutdown(shutdown_signal())
                 .await
                 .unwrap();
@@ -183,4 +243,12 @@ async fn shutdown_signal() {
         .await
         .expect("failed to install CTRL+C signal handler");
     tracing::info!("shutdown_signal_received");
+}
+
+async fn openapi_json() -> axum::Json<utoipa::openapi::OpenApi> {
+    axum::Json(openapi::openapi())
+}
+
+async fn version() -> &'static str {
+    option_env!("VERGEN_GIT_SHA").unwrap_or("unknown")
 }

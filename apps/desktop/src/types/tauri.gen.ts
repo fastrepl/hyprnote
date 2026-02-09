@@ -38,22 +38,6 @@ async setDismissedToasts(v: string[]) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async getOnboardingLocal() : Promise<Result<boolean, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("get_onboarding_local") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async setOnboardingLocal(v: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("set_onboarding_local", { v }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async getEnv(key: string) : Promise<string> {
     return await TAURI_INVOKE("get_env", { key });
 },
@@ -63,6 +47,14 @@ async showDevtool() : Promise<boolean> {
 async resizeWindowForChat() : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("resize_window_for_chat") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async resizeWindowForSidebar() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("resize_window_for_sidebar") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -84,17 +76,33 @@ async setTinybaseValues(v: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async getLocalPersisterLoaded() : Promise<Result<boolean, string>> {
+async getPinnedTabs() : Promise<Result<string | null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("get_local_persister_loaded") };
+    return { status: "ok", data: await TAURI_INVOKE("get_pinned_tabs") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async setLocalPersisterLoaded(v: boolean) : Promise<Result<null, string>> {
+async setPinnedTabs(v: string) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("set_local_persister_loaded", { v }) };
+    return { status: "ok", data: await TAURI_INVOKE("set_pinned_tabs", { v }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getRecentlyOpenedSessions() : Promise<Result<string | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_recently_opened_sessions") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async setRecentlyOpenedSessions(v: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_recently_opened_sessions", { v }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

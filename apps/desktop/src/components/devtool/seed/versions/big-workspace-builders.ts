@@ -184,9 +184,6 @@ export const buildLongTranscriptsForSessions = (
       for (const wordData of turn.words) {
         wordsList.push({
           id: id(),
-          user_id: DEFAULT_USER_ID,
-          created_at: createdAtStr,
-          transcript_id: transcriptId,
           channel: currentChannel,
           text: wordData.text,
           start_ms: currentTimeMs,

@@ -10,5 +10,5 @@ specta = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-askama-utils = { workspace = true }
+hypr-askama-utils = { workspace = true }
 insta = { workspace = true }

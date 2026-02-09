@@ -17,8 +17,20 @@ extension NotificationManager {
     clickableView.notification = notification
     notification.progressBar = backgroundView
 
+    if payload.isPersistent {
+      backgroundView.isProgressHidden = true
+    }
+
     clickableView.addSubview(container)
     panel.contentView = clickableView
+    if isMacOS26() {
+      panel.contentView?.wantsLayer = true
+      panel.contentView?.layer?.cornerRadius = Layout.cornerRadius
+      panel.contentView?.layer?.masksToBounds = true
+      if #available(macOS 11.0, *) {
+        panel.contentView?.layer?.cornerCurve = .continuous
+      }
+    }
 
     setupContent(effectView: effectView, container: container, notification: notification)
 

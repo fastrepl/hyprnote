@@ -14,6 +14,12 @@ import { useShallow } from "zustand/shallow";
 
 import { commands as flagCommands } from "@hypr/plugin-flag";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Kbd } from "@hypr/ui/components/ui/kbd";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../contexts/listener";
@@ -27,10 +33,12 @@ import {
 import { ChatFloatingButton } from "../../chat";
 import { NotificationBadge } from "../../ui/notification-badge";
 import { TrafficLights } from "../../window/traffic-lights";
-import { useNewNote } from "../shared";
+import { useNewNote, useNewNoteAndListen } from "../shared";
+import { TabContentSearch, TabItemSearch } from "./advanced-search";
 import { TabContentAI, TabItemAI } from "./ai";
 import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
+import { TabContentChat, TabItemChat } from "./chat";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
@@ -43,7 +51,6 @@ import {
 import { loadExtensionPanels } from "./extensions/registry";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
-import { TabContentPrompt, TabItemPrompt } from "./prompts";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
 import { useCaretPosition } from "./sessions/caret-position-context";
@@ -93,6 +100,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
     closeAll,
     pin,
     unpin,
+    pendingCloseConfirmationTab,
+    setPendingCloseConfirmationTab,
   } = useTabs(
     useShallow((state) => ({
       select: state.select,
@@ -106,6 +115,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
       closeAll: state.closeAll,
       pin: state.pin,
       unpin: state.unpin,
+      pendingCloseConfirmationTab: state.pendingCloseConfirmationTab,
+      setPendingCloseConfirmationTab: state.setPendingCloseConfirmationTab,
     })),
   );
 
@@ -153,14 +164,25 @@ function Header({ tabs }: { tabs: Tab[] }) {
       {!leftsidebar.expanded && isLinux && <TrafficLights className="mr-2" />}
       {!leftsidebar.expanded && (
         <div className="relative">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="shrink-0"
-            onClick={() => leftsidebar.setExpanded(true)}
-          >
-            <PanelLeftOpenIcon size={16} className="text-neutral-600" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="shrink-0"
+                onClick={() => leftsidebar.setExpanded(true)}
+              >
+                <PanelLeftOpenIcon size={16} className="text-neutral-600" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="bottom"
+              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm text-neutral-700 border border-neutral-200/50 shadow-lg"
+            >
+              <span>Toggle sidebar</span>
+              <Kbd className="animate-kbd-press">⌘ \</Kbd>
+            </TooltipContent>
+          </Tooltip>
           <NotificationBadge show={notifications.shouldShowBadge} />
         </div>
       )}
@@ -195,6 +217,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
             handlePin={pin}
             handleUnpin={unpin}
             tabIndex={1}
+            pendingCloseConfirmationTab={pendingCloseConfirmationTab}
+            setPendingCloseConfirmationTab={setPendingCloseConfirmationTab}
           />
         </div>
       )}
@@ -249,6 +273,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
                     handlePin={pin}
                     handleUnpin={unpin}
                     tabIndex={shortcutIndex}
+                    pendingCloseConfirmationTab={pendingCloseConfirmationTab}
+                    setPendingCloseConfirmationTab={
+                      setPendingCloseConfirmationTab
+                    }
                   />
                 </Reorder.Item>
               );
@@ -300,6 +328,8 @@ function TabItem({
   handlePin,
   handleUnpin,
   tabIndex,
+  pendingCloseConfirmationTab,
+  setPendingCloseConfirmationTab,
 }: {
   tab: Tab;
   handleClose: (tab: Tab) => void;
@@ -309,6 +339,8 @@ function TabItem({
   handlePin: (tab: Tab) => void;
   handleUnpin: (tab: Tab) => void;
   tabIndex?: number;
+  pendingCloseConfirmationTab?: Tab | null;
+  setPendingCloseConfirmationTab?: (tab: Tab | null) => void;
 }) {
   const handleCloseOthers = () => handleCloseOthersCallback(tab);
   const handlePinThis = () => handlePin(tab);
@@ -325,6 +357,8 @@ function TabItem({
         handleCloseAll={handleCloseAll}
         handlePinThis={handlePinThis}
         handleUnpinThis={handleUnpinThis}
+        pendingCloseConfirmationTab={pendingCloseConfirmationTab}
+        setPendingCloseConfirmationTab={setPendingCloseConfirmationTab}
       />
     );
   }
@@ -370,48 +404,7 @@ function TabItem({
       />
     );
   }
-  if (tab.type === "templates") {
-    return (
-      <TabItemTemplate
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
-  if (tab.type === "prompts") {
-    return (
-      <TabItemPrompt
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
-  if (tab.type === "chat_shortcuts") {
-    return (
-      <TabItemChatShortcut
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
+
   if (tab.type === "empty") {
     return (
       <TabItemEmpty
@@ -510,6 +503,62 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "templates") {
+    return (
+      <TabItemTemplate
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
+      />
+    );
+  }
+  if (tab.type === "chat_shortcuts") {
+    return (
+      <TabItemChatShortcut
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
+      />
+    );
+  }
+  if (tab.type === "search") {
+    return (
+      <TabItemSearch
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
+      />
+    );
+  }
+  if (tab.type === "chat") {
+    return (
+      <TabItemChat
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
+      />
+    );
+  }
   return null;
 }
 
@@ -526,15 +575,7 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "contacts") {
     return <TabContentContact tab={tab} />;
   }
-  if (tab.type === "templates") {
-    return <TabContentTemplate tab={tab} />;
-  }
-  if (tab.type === "prompts") {
-    return <TabContentPrompt tab={tab} />;
-  }
-  if (tab.type === "chat_shortcuts") {
-    return <TabContentChatShortcut tab={tab} />;
-  }
+
   if (tab.type === "empty") {
     return <TabContentEmpty tab={tab} />;
   }
@@ -555,6 +596,18 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "ai") {
     return <TabContentAI tab={tab} />;
+  }
+  if (tab.type === "templates") {
+    return <TabContentTemplate tab={tab} />;
+  }
+  if (tab.type === "chat_shortcuts") {
+    return <TabContentChatShortcut tab={tab} />;
+  }
+  if (tab.type === "search") {
+    return <TabContentSearch tab={tab} />;
+  }
+  if (tab.type === "chat") {
+    return <TabContentChat tab={tab} />;
   }
   return null;
 }
@@ -585,11 +638,15 @@ function TabChatButton({
     return null;
   }
 
-  if (chat.mode === "RightPanelOpen") {
+  if (chat.mode === "RightPanelOpen" || chat.mode === "FullTab") {
     return null;
   }
 
-  if (currentTab?.type === "ai" || currentTab?.type === "settings") {
+  if (
+    currentTab?.type === "ai" ||
+    currentTab?.type === "settings" ||
+    currentTab?.type === "chat"
+  ) {
     return null;
   }
 
@@ -734,6 +791,7 @@ function useTabsShortcuts() {
     restoreLastClosedTab,
     openNew,
     unpin,
+    setPendingCloseConfirmationTab,
   } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
@@ -745,10 +803,17 @@ function useTabsShortcuts() {
       restoreLastClosedTab: state.restoreLastClosedTab,
       openNew: state.openNew,
       unpin: state.unpin,
+      setPendingCloseConfirmationTab: state.setPendingCloseConfirmationTab,
     })),
   );
+  const liveSessionId = useListener((state) => state.live.sessionId);
+  const liveStatus = useListener((state) => state.live.status);
+  const isListening = liveStatus === "active" || liveStatus === "finalizing";
+  const { chat } = useShell();
+
   const newNote = useNewNote({ behavior: "new" });
   const newNoteCurrent = useNewNote({ behavior: "current" });
+  const newNoteAndListen = useNewNoteAndListen();
   const newEmptyTab = useNewEmptyTab();
 
   useHotkeys(
@@ -783,9 +848,18 @@ function useTabsShortcuts() {
     "mod+w",
     async () => {
       if (currentTab) {
-        if (currentTab.pinned) {
+        const isCurrentTabListening =
+          isListening &&
+          currentTab.type === "sessions" &&
+          currentTab.id === liveSessionId;
+        if (isCurrentTabListening) {
+          setPendingCloseConfirmationTab(currentTab);
+        } else if (currentTab.pinned) {
           unpin(currentTab);
         } else {
+          if (currentTab.type === "chat") {
+            chat.sendEvent({ type: "CLOSE" });
+          }
           close(currentTab);
         }
       }
@@ -795,7 +869,15 @@ function useTabsShortcuts() {
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [currentTab, close, unpin],
+    [
+      currentTab,
+      close,
+      unpin,
+      isListening,
+      liveSessionId,
+      setPendingCloseConfirmationTab,
+      chat,
+    ],
   );
 
   useHotkeys(
@@ -877,7 +959,7 @@ function useTabsShortcuts() {
   );
 
   useHotkeys(
-    "mod+shift+a",
+    "mod+shift+comma",
     () => openNew({ type: "ai" }),
     {
       preventDefault: true,
@@ -896,6 +978,42 @@ function useTabsShortcuts() {
       enableOnContentEditable: true,
     },
     [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+f",
+    () => openNew({ type: "search" }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+n",
+    () => newNoteAndListen(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [newNoteAndListen],
+  );
+
+  useHotkeys(
+    "mod+shift+j",
+    () => {
+      openNew({ type: "chat" });
+      chat.sendEvent({ type: "OPEN_TAB" });
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew, chat],
   );
 
   return {};

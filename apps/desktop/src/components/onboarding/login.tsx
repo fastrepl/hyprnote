@@ -1,47 +1,18 @@
-import { useEffect, useState } from "react";
-
-import { commands as sfxCommands } from "@hypr/plugin-sfx";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "../../auth";
 import { Route } from "../../routes/app/onboarding/_layout.index";
-import { commands } from "../../types/tauri.gen";
 import { getBack, getNext, type StepProps } from "./config";
 import { Divider, OnboardingContainer } from "./shared";
 
 export const STEP_ID_LOGIN = "login" as const;
 
-async function finishOnboarding() {
-  await sfxCommands.stop("BGM").catch(console.error);
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await commands.setOnboardingNeeded(false).catch(console.error);
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await windowsCommands.windowShow({ type: "main" });
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await windowsCommands.windowDestroy({ type: "onboarding" });
-}
-
 export function Login({ onNavigate }: StepProps) {
   const search = Route.useSearch();
-  const auth = useAuth();
+  const auth = useAutoSignIn();
   const [callbackUrl, setCallbackUrl] = useState("");
 
-  useEffect(() => {
-    if (auth?.session) {
-      const nextStep = getNext(search);
-      if (nextStep) {
-        onNavigate({ ...search, step: nextStep });
-      } else {
-        void finishOnboarding();
-      }
-    }
-  }, [auth?.session, search, onNavigate]);
-
-  useEffect(() => {
-    if (!auth?.session) {
-      void auth?.signIn();
-    }
-  }, [auth?.session, auth?.signIn]);
+  usePostAuthNavigation(onNavigate);
 
   const backStep = getBack(search);
 
@@ -80,4 +51,34 @@ export function Login({ onNavigate }: StepProps) {
       </div>
     </OnboardingContainer>
   );
+}
+
+function useAutoSignIn() {
+  const auth = useAuth();
+
+  useEffect(() => {
+    if (!auth?.session) {
+      void auth?.signIn();
+    }
+  }, [auth?.session, auth?.signIn]);
+
+  return auth;
+}
+
+function usePostAuthNavigation(onNavigate: StepProps["onNavigate"]) {
+  const search = Route.useSearch();
+  const auth = useAuth();
+  const hasHandledRef = useRef(false);
+
+  useEffect(() => {
+    if (!auth?.session || hasHandledRef.current) {
+      return;
+    }
+    hasHandledRef.current = true;
+
+    const nextStep = getNext(search);
+    if (nextStep) {
+      onNavigate({ ...search, step: nextStep });
+    }
+  }, [auth, search, onNavigate]);
 }

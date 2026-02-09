@@ -25,11 +25,11 @@ extension NotificationManager {
   func repositionNotifications(animated: Bool = true) {
     guard let screen = getTargetScreen() else { return }
     let screenRect = screen.visibleFrame
-    let rightPosition = screenRect.maxX - panelWidth() - Layout.rightMargin + Layout.buttonOverhang
+    let rightPosition = screenRect.maxX - panelWidth() - Layout.rightMargin + buttonOverhang()
 
     let sorted = activeNotifications.values.sorted { $0.panel.frame.minY > $1.panel.frame.minY }
 
-    var currentY = screenRect.maxY - Layout.topMargin + Layout.buttonOverhang
+    var currentY = screenRect.maxY - Layout.topMargin + buttonOverhang()
 
     for notification in sorted {
       let height = notification.panel.frame.height
@@ -70,16 +70,16 @@ extension NotificationManager {
       occupiedHeight += notification.panel.frame.height + notificationSpacing
     }
 
-    let baseY = screenRect.maxY - panelHeight() - Layout.topMargin + Layout.buttonOverhang
+    let baseY = screenRect.maxY - panelHeight() - Layout.topMargin + buttonOverhang()
     return baseY - occupiedHeight
   }
 
   func panelWidth() -> CGFloat {
-    Layout.notificationWidth + Layout.buttonOverhang
+    Layout.notificationWidth + buttonOverhang()
   }
 
   func panelHeight(expanded: Bool = false) -> CGFloat {
     let contentHeight = expanded ? Layout.expandedNotificationHeight : Layout.notificationHeight
-    return contentHeight + Layout.buttonOverhang
+    return contentHeight + buttonOverhang()
   }
 }

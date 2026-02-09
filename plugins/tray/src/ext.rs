@@ -6,8 +6,8 @@ use tauri::{
 };
 
 use crate::menu_items::{
-    AppHide, AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, HyprMenuItem, MenuItemHandler,
-    TrayCheckUpdate, TrayOpen, TrayQuit, TraySettings, TrayStart, TrayVersion,
+    AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, HyprMenuItem, MenuItemHandler,
+    TrayCheckUpdate, TrayOpen, TrayQuit, TraySettings, TrayStart,
 };
 
 const TRAY_ID: &str = "hypr-tray";
@@ -53,7 +53,6 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                         &PredefinedMenuItem::hide_others(app, None)?,
                         &PredefinedMenuItem::show_all(app, None)?,
                         &PredefinedMenuItem::separator(app)?,
-                        &AppHide::build(app)?, // `cmd+q` will do nothing if removed
                         &TrayQuit::build(app)?,
                     ],
                 )?;
@@ -95,8 +94,6 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         let menu = Menu::with_items(
             app,
             &[
-                &TrayVersion::build(app)?,
-                &PredefinedMenuItem::separator(app)?,
                 &TrayOpen::build(app)?,
                 &TrayStart::build_with_disabled(app, false)?,
                 &PredefinedMenuItem::separator(app)?,
@@ -132,8 +129,6 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
             let menu = Menu::with_items(
                 app,
                 &[
-                    &TrayVersion::build(app)?,
-                    &PredefinedMenuItem::separator(app)?,
                     &TrayOpen::build(app)?,
                     &TrayStart::build_with_disabled(app, disabled)?,
                     &PredefinedMenuItem::separator(app)?,

@@ -16,6 +16,7 @@ tauri-plugin-store = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
+hypr-supabase-auth = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }

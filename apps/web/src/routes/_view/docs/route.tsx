@@ -27,7 +27,9 @@ function LeftSidebar() {
   const match = matchRoute({ to: "/docs/$/", fuzzy: true });
 
   const currentSlug = (
-    match && typeof match !== "boolean" ? match._splat : undefined
+    match && typeof match !== "boolean"
+      ? (match._splat as string)?.replace(/\/$/, "")
+      : undefined
   ) as string | undefined;
 
   const { sections } = getDocsBySection();

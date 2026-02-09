@@ -332,13 +332,11 @@ function useConfiguredMapping(): Record<
 
   const isAppleSilicon = targetArch.data === "aarch64";
 
-  const [p2, p3, whisperLargeV3, tinyEn, smallEn] = useQueries({
+  const [p2, p3, whisperLargeV3] = useQueries({
     queries: [
       sttModelQueries.isDownloaded("am-parakeet-v2"),
       sttModelQueries.isDownloaded("am-parakeet-v3"),
       sttModelQueries.isDownloaded("am-whisper-large-v3"),
-      sttModelQueries.isDownloaded("QuantizedTinyEn"),
-      sttModelQueries.isDownloaded("QuantizedSmallEn"),
     ],
   });
 
@@ -362,16 +360,8 @@ function useConfiguredMapping(): Record<
       }
 
       if (provider.id === "hyprnote") {
-        const models = [
+        const models: Array<{ id: string; isDownloaded: boolean }> = [
           { id: "cloud", isDownloaded: billing.isPro },
-          {
-            id: "QuantizedTinyEn",
-            isDownloaded: tinyEn.data ?? false,
-          },
-          {
-            id: "QuantizedSmallEn",
-            isDownloaded: smallEn.data ?? false,
-          },
         ];
 
         if (isAppleSilicon) {
@@ -460,7 +450,9 @@ function ModelSelectItem({
     }
   };
 
-  const cloudButtonLabel = billing.canStartTrial ? "Free Trial" : "Upgrade";
+  const cloudButtonLabel = billing.canStartTrial.data
+    ? "Free Trial"
+    : "Upgrade";
 
   return (
     <div

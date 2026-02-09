@@ -1,105 +1,54 @@
 use std::collections::BTreeMap;
 
-use axum::{
-    extract::{Request, State},
-    http::StatusCode,
-    middleware::Next,
-    response::{IntoResponse, Response},
-};
-use hypr_supabase_auth::{Error as SupabaseAuthError, SupabaseAuth};
+use axum::{extract::Request, middleware::Next, response::Response};
 
-const PRO_ENTITLEMENT: &str = "hyprnote_pro";
-pub const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
+use hypr_api_auth::AuthContext;
+pub use hypr_api_auth::{AuthState, require_auth};
 
-#[derive(Clone)]
-pub struct AuthState {
-    inner: SupabaseAuth,
-}
+const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 
-impl AuthState {
-    pub fn new(supabase_url: &str) -> Self {
-        Self {
-            inner: SupabaseAuth::new(supabase_url),
-        }
-    }
-}
-
-pub struct AuthError(SupabaseAuthError);
-
-impl From<SupabaseAuthError> for AuthError {
-    fn from(err: SupabaseAuthError) -> Self {
-        Self(err)
-    }
-}
-
-impl IntoResponse for AuthError {
-    fn into_response(self) -> Response {
-        let (status, message) = match self.0 {
-            SupabaseAuthError::MissingAuthHeader => {
-                (StatusCode::UNAUTHORIZED, "missing_authorization_header")
-            }
-            SupabaseAuthError::InvalidAuthHeader => {
-                (StatusCode::UNAUTHORIZED, "invalid_authorization_header")
-            }
-            SupabaseAuthError::JwksFetchFailed => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "jwks_fetch_failed")
-            }
-            SupabaseAuthError::InvalidToken => (StatusCode::UNAUTHORIZED, "invalid_token"),
-            SupabaseAuthError::MissingEntitlement(_) => {
-                (StatusCode::FORBIDDEN, "subscription_required")
-            }
-        };
-        (status, message).into_response()
-    }
-}
-
-pub async fn require_pro(
-    State(state): State<AuthState>,
-    request: Request,
-    next: Next,
-) -> Result<Response, AuthError> {
-    let auth_header = request
-        .headers()
-        .get("Authorization")
-        .and_then(|h| h.to_str().ok())
-        .ok_or(SupabaseAuthError::MissingAuthHeader)?;
-
+pub async fn sentry_and_analytics(mut request: Request, next: Next) -> Response {
     let device_fingerprint = request
         .headers()
         .get(DEVICE_FINGERPRINT_HEADER)
         .and_then(|h| h.to_str().ok())
         .map(String::from);
 
-    let token =
-        SupabaseAuth::extract_token(auth_header).ok_or(SupabaseAuthError::InvalidAuthHeader)?;
+    if let Some(auth) = request.extensions().get::<AuthContext>() {
+        sentry::configure_scope(|scope| {
+            scope.set_user(Some(sentry::User {
+                id: device_fingerprint.clone(),
+                email: auth.claims.email.clone(),
+                username: Some(auth.claims.sub.clone()),
+                ..Default::default()
+            }));
+            scope.set_tag("user.id", &auth.claims.sub);
 
-    let claims = state
-        .inner
-        .require_entitlement(token, PRO_ENTITLEMENT)
-        .await?;
+            let mut ctx = BTreeMap::new();
+            ctx.insert(
+                "entitlements".into(),
+                sentry::protocol::Value::Array(
+                    auth.claims
+                        .entitlements
+                        .iter()
+                        .map(|e| sentry::protocol::Value::String(e.clone()))
+                        .collect(),
+                ),
+            );
+            scope.set_context("user_claims", sentry::protocol::Context::Other(ctx));
+        });
 
-    sentry::configure_scope(|scope| {
-        scope.set_user(Some(sentry::User {
-            id: device_fingerprint,
-            email: claims.email.clone(),
-            username: Some(claims.sub.clone()),
-            ..Default::default()
-        }));
-        scope.set_tag("user.id", &claims.sub);
+        let user_id = auth.claims.sub.clone();
+        request
+            .extensions_mut()
+            .insert(hypr_analytics::AuthenticatedUserId(user_id));
+    }
 
-        let mut ctx = BTreeMap::new();
-        ctx.insert(
-            "entitlements".into(),
-            sentry::protocol::Value::Array(
-                claims
-                    .entitlements
-                    .iter()
-                    .map(|e| sentry::protocol::Value::String(e.clone()))
-                    .collect(),
-            ),
-        );
-        scope.set_context("user_claims", sentry::protocol::Context::Other(ctx));
-    });
+    if let Some(fingerprint) = device_fingerprint {
+        request
+            .extensions_mut()
+            .insert(hypr_analytics::DeviceFingerprint(fingerprint));
+    }
 
-    Ok(next.run(request).await)
+    next.run(request).await
 }

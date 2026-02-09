@@ -1,49 +1,36 @@
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
-import { Bug, Lightbulb, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { create } from "zustand";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as tracingCommands } from "@hypr/plugin-tracing";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Checkbox } from "@hypr/ui/components/ui/checkbox";
 import { cn } from "@hypr/utils";
 
 import { env } from "../../env";
 
-type FeedbackType = "bug" | "feature";
-
 type FeedbackModalStore = {
   isOpen: boolean;
-  initialType: FeedbackType;
-  open: (initialType?: FeedbackType) => void;
+  open: () => void;
   close: () => void;
 };
 
 export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
   isOpen: false,
-  initialType: "bug",
-  open: (initialType = "bug") => set({ isOpen: true, initialType }),
+  open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
 }));
 
-async function getLogContent(): Promise<string | null> {
-  const result = await tracingCommands.logContent();
-  if (result.status !== "ok") {
-    return null;
-  }
-  return result.data ?? null;
-}
-
 export function FeedbackModal() {
-  const { isOpen, initialType, close } = useFeedbackModal();
-  const [type, setType] = useState<FeedbackType>(initialType);
+  const { isOpen, close } = useFeedbackModal();
   const [description, setDescription] = useState("");
+  const [attachLogs, setAttachLogs] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [gitHash, setGitHash] = useState<string>("");
-  const [attachLogs, setAttachLogs] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -62,113 +49,83 @@ export function FeedbackModal() {
   }, [isOpen, close]);
 
   useEffect(() => {
-    if (isOpen) {
-      setType(initialType);
-      miscCommands.getGitHash().then((result) => {
-        setGitHash(result.status === "ok" ? result.data : "unknown");
-      });
-    } else {
+    if (!isOpen) {
       setDescription("");
-      setGitHash("");
-      setAttachLogs(false);
+      setAttachLogs(true);
+      setSubmitStatus("");
+      setErrorMessage("");
     }
-  }, [isOpen, initialType]);
+  }, [isOpen]);
 
   const handleSubmit = useCallback(async () => {
-    if (!description.trim()) {
+    const trimmed = description.trim();
+    if (!trimmed) {
       return;
     }
 
+    if (trimmed.length < 10) {
+      setErrorMessage("Description must be at least 10 characters");
+      return;
+    }
+
+    setErrorMessage("");
     setIsSubmitting(true);
+    setSubmitStatus("Submitting...");
 
     try {
-      const gitHashResult = await miscCommands.getGitHash();
-      const gitHash =
-        gitHashResult.status === "ok" ? gitHashResult.data : "unknown";
-
-      const deviceInfo = [
-        `**Platform:** ${platform()}`,
-        `**Architecture:** ${arch()}`,
-        `**OS Version:** ${osVersion()}`,
-        `**App Version:** ${env.VITE_APP_VERSION ?? "unknown"}`,
-        `**Git Hash:** ${gitHash}`,
-      ].join("\n");
-
-      const trimmedDescription = description.trim();
-      const firstLine = trimmedDescription.split("\n")[0].slice(0, 100).trim();
-      const title =
-        firstLine || (type === "bug" ? "Bug Report" : "Feature Request");
-
-      let logSection = "";
+      let logs: string | undefined;
       if (attachLogs) {
-        const logContent = await getLogContent();
-        if (logContent) {
-          logSection = `
-
-## Application Logs (last 1000 lines, redacted)
-<details>
-<summary>Click to expand logs</summary>
-
-\`\`\`
-${logContent}
-\`\`\`
-
-</details>
-`;
+        setSubmitStatus("Collecting logs...");
+        const logsResult = await tracingCommands.logContent();
+        if (logsResult.status === "ok" && logsResult.data) {
+          logs = logsResult.data.slice(-10000);
         }
       }
 
-      if (type === "bug") {
-        const body = `## Description
-${trimmedDescription}
+      setSubmitStatus("Submitting...");
 
-## Device Information
-${deviceInfo}
-${logSection}
----
-*This issue was submitted from the Hyprnote desktop app.*
-`;
+      const response = await tauriFetch(`${env.VITE_API_URL}/feedback/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: trimmed,
+          logs,
+          deviceInfo: {
+            platform: platform(),
+            arch: arch(),
+            osVersion: osVersion(),
+            appVersion: env.VITE_APP_VERSION ?? "unknown",
+          },
+        }),
+      });
 
-        const url = new URL("https://github.com/fastrepl/hyprnote/issues/new");
-        url.searchParams.set("title", title);
-        url.searchParams.set("body", body);
-        url.searchParams.set("labels", "bug,user-reported");
+      const data = (await response.json()) as {
+        success: boolean;
+        issueUrl?: string;
+        error?: string;
+      };
 
-        await openerCommands.openUrl(url.toString(), null);
+      if (data.success && data.issueUrl) {
+        await openerCommands.openUrl(data.issueUrl, null);
+        close();
       } else {
-        const body = `## Feature Request
-${trimmedDescription}
-
-## Submitted From
-${deviceInfo}
-${logSection}
----
-*This feature request was submitted from the Hyprnote desktop app.*
-`;
-
-        const url = new URL(
-          "https://github.com/fastrepl/hyprnote/discussions/new",
-        );
-        url.searchParams.set("category", "ideas");
-        url.searchParams.set("title", title);
-        url.searchParams.set("body", body);
-
-        await openerCommands.openUrl(url.toString(), null);
+        setErrorMessage(data.error ?? "Failed to submit feedback");
       }
-
-      close();
     } catch (error) {
-      console.error("Failed to submit feedback:", error);
+      console.error(
+        "Failed to submit feedback:",
+        error instanceof Error ? error.message : String(error),
+      );
+      setErrorMessage("Failed to submit feedback. Please try again.");
     } finally {
       setIsSubmitting(false);
+      setSubmitStatus("");
     }
-  }, [description, type, close, attachLogs]);
+  }, [description, attachLogs, close]);
 
   if (!isOpen) {
     return null;
   }
-
-  const isBug = type === "bug";
 
   return createPortal(
     <>
@@ -202,33 +159,6 @@ ${logSection}
           <div className="p-4">
             <h2 className="text-base font-semibold mb-3">Send Feedback</h2>
 
-            <div className="flex gap-1 p-1 bg-neutral-100 rounded-md mb-3">
-              <button
-                onClick={() => setType("bug")}
-                className={cn([
-                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xs text-sm font-medium transition-colors",
-                  isBug
-                    ? ["bg-white shadow-xs text-black"]
-                    : ["text-neutral-600 hover:text-black"],
-                ])}
-              >
-                <Bug className="h-3.5 w-3.5" />
-                Bug Report
-              </button>
-              <button
-                onClick={() => setType("feature")}
-                className={cn([
-                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xs text-sm font-medium transition-colors",
-                  !isBug
-                    ? ["bg-white shadow-xs text-black"]
-                    : ["text-neutral-600 hover:text-black"],
-                ])}
-              >
-                <Lightbulb className="h-3.5 w-3.5" />
-                Feature Request
-              </button>
-            </div>
-
             <div className="flex flex-col gap-3">
               <div>
                 <label
@@ -240,42 +170,37 @@ ${logSection}
                 <textarea
                   id="feedback-description"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder={
-                    isBug
-                      ? "What happened? What did you expect to happen? Steps to reproduce..."
-                      : "Describe the feature you'd like to see. How would it help you?"
-                  }
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (errorMessage) setErrorMessage("");
+                  }}
+                  placeholder="Describe the bug or feature request..."
                   rows={6}
                   className={cn([
                     "w-full px-2.5 py-1.5 rounded-md",
-                    "border border-neutral-200",
+                    "border",
+                    errorMessage ? "border-red-500" : "border-neutral-200",
                     "text-sm resize-none",
                     "focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-1",
                   ])}
                   maxLength={5000}
                 />
+                {errorMessage && (
+                  <p className="text-xs text-red-500 mt-1">{errorMessage}</p>
+                )}
               </div>
 
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="attach-logs"
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
                   checked={attachLogs}
-                  onCheckedChange={(checked) => setAttachLogs(checked === true)}
+                  onChange={(e) => setAttachLogs(e.target.checked)}
+                  className="rounded border-neutral-300"
                 />
-                <label
-                  htmlFor="attach-logs"
-                  className="text-sm text-neutral-600 cursor-pointer"
-                >
-                  Attach application logs (user info redacted)
-                </label>
-              </div>
-
-              {gitHash && (
-                <div className="mt-4 text-[10px] text-neutral-100 font-mono">
-                  {gitHash}
-                </div>
-              )}
+                <span className="text-sm text-neutral-600">
+                  Attach app logs to help diagnose the issue
+                </span>
+              </label>
             </div>
 
             <div className="flex justify-start mt-4">
@@ -284,11 +209,7 @@ ${logSection}
                 disabled={isSubmitting || !description.trim()}
                 className="h-8 text-sm"
               >
-                {isSubmitting
-                  ? "Opening..."
-                  : isBug
-                    ? "Report Bug"
-                    : "Suggest Feature"}
+                {isSubmitting ? submitStatus || "Submitting..." : "Submit"}
               </Button>
             </div>
           </div>

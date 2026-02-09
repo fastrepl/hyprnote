@@ -8,15 +8,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
-import { cn, safeParseDate } from "@hypr/utils";
+import { cn, format, getYear, safeParseDate, TZDate } from "@hypr/utils";
 
 import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
-import { deleteSessionCascade } from "../../../../store/tinybase/store/deleteSession";
+import {
+  captureSessionData,
+  deleteSessionCascade,
+} from "../../../../store/tinybase/store/deleteSession";
 import * as main from "../../../../store/tinybase/store/main";
 import { save } from "../../../../store/tinybase/store/save";
 import { getOrCreateSessionForEventId } from "../../../../store/tinybase/store/sessions";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
+import { useUndoDelete } from "../../../../store/zustand/undo-delete";
 import {
   type EventTimelineItem,
   type SessionTimelineItem,
@@ -24,24 +28,37 @@ import {
   TimelinePrecision,
 } from "../../../../utils/timeline";
 import { InteractiveButton } from "../../../interactive-button";
+import { DissolvingContainer } from "../../../ui/dissolving-container";
 
 export const TimelineItemComponent = memo(
   ({
     item,
     precision,
     selected,
+    timezone,
   }: {
     item: TimelineItem;
     precision: TimelinePrecision;
     selected: boolean;
+    timezone?: string;
   }) => {
     if (item.type === "event") {
       return (
-        <EventItem item={item} precision={precision} selected={selected} />
+        <EventItem
+          item={item}
+          precision={precision}
+          selected={selected}
+          timezone={timezone}
+        />
       );
     }
     return (
-      <SessionItem item={item} precision={precision} selected={selected} />
+      <SessionItem
+        item={item}
+        precision={precision}
+        selected={selected}
+        timezone={timezone}
+      />
     );
   },
 );
@@ -52,6 +69,7 @@ function ItemBase({
   calendarId,
   showSpinner,
   selected,
+  ignored,
   onClick,
   onCmdClick,
   contextMenu,
@@ -61,6 +79,7 @@ function ItemBase({
   calendarId: string | null;
   showSpinner?: boolean;
   selected: boolean;
+  ignored?: boolean;
   onClick: () => void;
   onCmdClick: () => void;
   contextMenu: Array<{ id: string; text: string; action: () => void }>;
@@ -74,6 +93,7 @@ function ItemBase({
         "cursor-pointer w-full text-left px-3 py-2 rounded-lg",
         selected && "bg-neutral-200",
         !selected && "hover:bg-neutral-100",
+        ignored && "opacity-40",
       ])}
     >
       <div className="flex items-center gap-2">
@@ -83,7 +103,14 @@ function ItemBase({
           </div>
         )}
         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-          <div className="text-sm font-normal truncate">{title}</div>
+          <div
+            className={cn(
+              "text-sm font-normal truncate",
+              ignored && "line-through",
+            )}
+          >
+            {title}
+          </div>
           {displayTime && (
             <div className="text-xs text-neutral-500">{displayTime}</div>
           )}
@@ -99,10 +126,12 @@ const EventItem = memo(
     item,
     precision,
     selected,
+    timezone,
   }: {
     item: EventTimelineItem;
     precision: TimelinePrecision;
     selected: boolean;
+    timezone?: string;
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
     const indexes = main.UI.useIndexes(main.STORE_ID);
@@ -111,52 +140,13 @@ const EventItem = memo(
     const invalidateResource = useTabs((state) => state.invalidateResource);
 
     const eventId = item.id;
-
-    const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
-    const attachedSessionId = useMemo(() => {
-      if (!store) {
-        return undefined;
-      }
-      let sessionId: string | undefined;
-      store.forEachRow("sessions", (rowId, _forEachCell) => {
-        const session = store.getRow("sessions", rowId);
-        if (session?.event_id === eventId) {
-          sessionId = rowId;
-        }
-      });
-      return sessionId;
-    }, [store, eventId, sessionIds]);
-
-    const attachedNoteIds = main.UI.useSliceRowIds(
-      main.INDEXES.enhancedNotesBySession,
-      attachedSessionId ?? "",
-      main.STORE_ID,
-    );
-    const rawMd = main.UI.useCell(
-      "sessions",
-      attachedSessionId ?? "",
-      "raw_md",
-      main.STORE_ID,
-    );
-    const hasRawContent = typeof rawMd === "string" && rawMd.trim().length > 0;
-    const hasNote =
-      attachedSessionId && (attachedNoteIds.length > 0 || hasRawContent);
-
-    const sessionTitle = main.UI.useCell(
-      "sessions",
-      attachedSessionId ?? "",
-      "title",
-      main.STORE_ID,
-    ) as string | undefined;
-    const title = attachedSessionId
-      ? sessionTitle || "Untitled"
-      : item.data.title || "Untitled";
-
+    const title = item.data.title || "Untitled";
     const calendarId = item.data.calendar_id ?? null;
     const recurrenceSeriesId = item.data.recurrence_series_id;
+    const ignored = !!item.data.ignored;
     const displayTime = useMemo(
-      () => formatDisplayTime(item.data.started_at, precision),
-      [item.data.started_at, precision],
+      () => formatDisplayTime(item.data.started_at, precision, timezone),
+      [item.data.started_at, precision, timezone],
     );
 
     const openEvent = useCallback(
@@ -180,18 +170,35 @@ const EventItem = memo(
         return;
       }
       store.setPartialRow("events", eventId, { ignored: true });
-      if (attachedSessionId && !hasNote) {
-        invalidateResource("sessions", attachedSessionId);
-        void deleteSessionCascade(store, indexes, attachedSessionId);
+    }, [store, eventId, invalidateResource, indexes]);
+
+    const handleUnignore = useCallback(() => {
+      if (!store) {
+        return;
       }
-    }, [
-      store,
-      eventId,
-      attachedSessionId,
-      hasNote,
-      invalidateResource,
-      indexes,
-    ]);
+      store.setPartialRow("events", eventId, { ignored: false });
+    }, [store, eventId]);
+
+    const handleUnignoreSeries = useCallback(() => {
+      if (!store || !recurrenceSeriesId) {
+        return;
+      }
+      store.transaction(() => {
+        store.forEachRow("events", (rowId, _forEachCell) => {
+          const event = store.getRow("events", rowId);
+          if (event?.recurrence_series_id === recurrenceSeriesId) {
+            store.setPartialRow("events", rowId, { ignored: false });
+          }
+        });
+
+        const currentIgnored = store.getValue("ignored_recurring_series");
+        const ignoredList: string[] = currentIgnored
+          ? JSON.parse(String(currentIgnored))
+          : [];
+        const filtered = ignoredList.filter((id) => id !== recurrenceSeriesId);
+        store.setValue("ignored_recurring_series", JSON.stringify(filtered));
+      });
+    }, [store, recurrenceSeriesId]);
 
     const handleIgnoreSeries = useCallback(() => {
       if (!store || !recurrenceSeriesId) {
@@ -219,60 +226,42 @@ const EventItem = memo(
       });
     }, [store, recurrenceSeriesId]);
 
-    const handleDelete = useCallback(() => {
-      if (!store || !attachedSessionId) {
-        return;
-      }
-      store.setPartialRow("events", eventId, { ignored: true });
-      invalidateResource("sessions", attachedSessionId);
-      void deleteSessionCascade(store, indexes, attachedSessionId);
-    }, [store, indexes, attachedSessionId, invalidateResource, eventId]);
-
-    const handleRevealInFinder = useCallback(async () => {
-      if (!attachedSessionId) {
-        return;
-      }
-      await save();
-      const result = await fsSyncCommands.sessionDir(attachedSessionId);
-      if (result.status === "ok") {
-        await openerCommands.revealItemInDir(result.data);
-      }
-    }, [attachedSessionId]);
-
     const contextMenu = useMemo(() => {
-      if (hasNote) {
+      if (ignored) {
+        if (recurrenceSeriesId) {
+          return [
+            {
+              id: "unignore",
+              text: "Unignore Only This Event",
+              action: handleUnignore,
+            },
+            {
+              id: "unignore-series",
+              text: "Unignore All Recurring Events",
+              action: handleUnignoreSeries,
+            },
+          ];
+        }
         return [
-          {
-            id: "open-new-tab",
-            text: "Open in new tab",
-            action: handleCmdClick,
-          },
-          {
-            id: "reveal",
-            text: "Reveal in Finder",
-            action: handleRevealInFinder,
-          },
-          { id: "delete", text: "Delete completely", action: handleDelete },
+          { id: "unignore", text: "Unignore Event", action: handleUnignore },
         ];
       }
-
       const menu = [
-        { id: "ignore", text: "Ignore this event", action: handleIgnore },
+        { id: "ignore", text: "Ignore Event", action: handleIgnore },
       ];
       if (recurrenceSeriesId) {
         menu.push({
           id: "ignore-series",
-          text: "Ignore all recurring events",
+          text: "Ignore All Recurring Events",
           action: handleIgnoreSeries,
         });
       }
       return menu;
     }, [
-      hasNote,
-      handleCmdClick,
-      handleRevealInFinder,
-      handleDelete,
+      ignored,
       handleIgnore,
+      handleUnignore,
+      handleUnignoreSeries,
       handleIgnoreSeries,
       recurrenceSeriesId,
     ]);
@@ -283,6 +272,7 @@ const EventItem = memo(
         displayTime={displayTime}
         calendarId={calendarId}
         selected={selected}
+        ignored={ignored}
         onClick={handleClick}
         onCmdClick={handleCmdClick}
         contextMenu={contextMenu}
@@ -296,16 +286,19 @@ const SessionItem = memo(
     item,
     precision,
     selected,
+    timezone,
   }: {
     item: SessionTimelineItem;
     precision: TimelinePrecision;
     selected: boolean;
+    timezone?: string;
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
     const indexes = main.UI.useIndexes(main.STORE_ID);
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
     const invalidateResource = useTabs((state) => state.invalidateResource);
+    const { setDeletedSession, setTimeoutId } = useUndoDelete();
 
     const sessionId = item.id;
     const title =
@@ -318,26 +311,29 @@ const SessionItem = memo(
     const isFinalizing = sessionMode === "finalizing";
     const showSpinner = !selected && (isFinalizing || isEnhancing);
 
-    const calendarId = useMemo(() => {
-      if (!store || !item.data.event_id) {
-        return null;
-      }
-      const event = store.getRow("events", item.data.event_id);
-      return event?.calendar_id ? String(event.calendar_id) : null;
-    }, [store, item.data.event_id]);
-
-    const eventStartedAt = useMemo(() => {
-      if (!store || !item.data.event_id) {
-        return null;
-      }
-      const event = store.getRow("events", item.data.event_id);
-      return event?.started_at ? String(event.started_at) : null;
-    }, [store, item.data.event_id]);
+    const calendarId =
+      main.UI.useCell(
+        "events",
+        item.data.event_id ?? "",
+        "calendar_id",
+        store,
+      ) ?? null;
+    const eventStartedAt = main.UI.useCell(
+      "events",
+      item.data.event_id ?? "",
+      "started_at",
+      store,
+    );
+    const hasEvent = !!item.data.event_id;
 
     const displayTime = useMemo(
       () =>
-        formatDisplayTime(eventStartedAt ?? item.data.created_at, precision),
-      [eventStartedAt, item.data.created_at, precision],
+        formatDisplayTime(
+          eventStartedAt ?? item.data.created_at,
+          precision,
+          timezone,
+        ),
+      [eventStartedAt, item.data.created_at, precision, timezone],
     );
 
     const handleClick = useCallback(() => {
@@ -352,9 +348,29 @@ const SessionItem = memo(
       if (!store) {
         return;
       }
-      invalidateResource("sessions", sessionId);
-      void deleteSessionCascade(store, indexes, sessionId);
-    }, [store, indexes, sessionId, invalidateResource]);
+
+      const capturedData = captureSessionData(store, indexes, sessionId);
+
+      if (capturedData) {
+        const performDelete = () => {
+          invalidateResource("sessions", sessionId);
+          void deleteSessionCascade(store, indexes, sessionId);
+        };
+
+        setDeletedSession(capturedData, performDelete);
+        const timeoutId = setTimeout(() => {
+          useUndoDelete.getState().confirmDelete();
+        }, 5000);
+        setTimeoutId(timeoutId);
+      }
+    }, [
+      store,
+      indexes,
+      sessionId,
+      invalidateResource,
+      setDeletedSession,
+      setTimeoutId,
+    ]);
 
     const handleRevealInFinder = useCallback(async () => {
       await save();
@@ -368,7 +384,7 @@ const SessionItem = memo(
       () => [
         {
           id: "open-new-tab",
-          text: "Open in new tab",
+          text: "Open in New Tab",
           action: handleCmdClick,
         },
         {
@@ -376,22 +392,28 @@ const SessionItem = memo(
           text: "Reveal in Finder",
           action: handleRevealInFinder,
         },
-        { id: "delete", text: "Delete completely", action: handleDelete },
+        {
+          id: "delete",
+          text: hasEvent ? "Delete Attached Note" : "Delete Note",
+          action: handleDelete,
+        },
       ],
-      [handleCmdClick, handleRevealInFinder, handleDelete],
+      [handleCmdClick, handleRevealInFinder, handleDelete, hasEvent],
     );
 
     return (
-      <ItemBase
-        title={title}
-        displayTime={displayTime}
-        calendarId={calendarId}
-        showSpinner={showSpinner}
-        selected={selected}
-        onClick={handleClick}
-        onCmdClick={handleCmdClick}
-        contextMenu={contextMenu}
-      />
+      <DissolvingContainer sessionId={sessionId} variant="sidebar">
+        <ItemBase
+          title={title}
+          displayTime={displayTime}
+          calendarId={calendarId}
+          showSpinner={showSpinner}
+          selected={selected}
+          onClick={handleClick}
+          onCmdClick={handleCmdClick}
+          contextMenu={contextMenu}
+        />
+      </DissolvingContainer>
     );
   },
 );
@@ -399,29 +421,25 @@ const SessionItem = memo(
 function formatDisplayTime(
   timestamp: string | null | undefined,
   precision: TimelinePrecision,
+  timezone?: string,
 ): string {
-  const date = safeParseDate(timestamp);
-  if (!date) {
+  const parsed = safeParseDate(timestamp);
+  if (!parsed) {
     return "";
   }
 
-  const time = date.toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "numeric",
-  });
+  const date = timezone ? new TZDate(parsed, timezone) : parsed;
+  const time = format(date, "h:mm a");
 
   if (precision === "time") {
     return time;
   }
 
-  const sameYear = date.getFullYear() === new Date().getFullYear();
+  const now = timezone ? new TZDate(new Date(), timezone) : new Date();
+  const sameYear = getYear(date) === getYear(now);
   const dateStr = sameYear
-    ? date.toLocaleDateString([], { month: "short", day: "numeric" })
-    : date.toLocaleDateString([], {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
+    ? format(date, "MMM d")
+    : format(date, "MMM d, yyyy");
 
   return `${dateStr}, ${time}`;
 }

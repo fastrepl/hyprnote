@@ -4,7 +4,6 @@ import type { SayFn } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
 
 import {
-  agent,
   clearThread,
   extractOutput,
   generateRunId,
@@ -13,9 +12,10 @@ import {
   getInterruptToolName,
   getLangSmithUrl,
   isInterrupted,
-} from "@hypr/agent-internal";
-import type { AgentStateType, AgentStreamState } from "@hypr/agent-internal";
+} from "@hypr/agent-support";
+import type { AgentStateType, AgentStreamState } from "@hypr/agent-support";
 
+import { getAgentForChannel } from "../../config/agents";
 import { env } from "../../env";
 import {
   fetchReferencedSlackMessages,
@@ -135,6 +135,8 @@ export async function handleAgentMessage(
 
     const referencedMessages = await fetchReferencedContent(client, rawText);
     const initialState = buildAgentState(text, referencedMessages);
+
+    const { agent } = getAgentForChannel(channel);
 
     let finalState: AgentStreamState = {};
     const progressItems: Array<{ name: string; task: string }> = [];

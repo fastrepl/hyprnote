@@ -1,80 +1,50 @@
-use std::collections::HashMap;
 use std::path::Path;
 use std::sync::OnceLock;
 
-use owhisper_client::Provider;
+use serde::Deserialize;
 
+fn default_port() -> u16 {
+    3001
+}
+
+#[derive(Deserialize)]
 pub struct Env {
+    #[serde(default = "default_port")]
     pub port: u16,
+    #[serde(default, deserialize_with = "hypr_api_env::filter_empty")]
     pub sentry_dsn: Option<String>,
-    pub supabase_url: String,
-    pub openrouter_api_key: String,
-    api_keys: HashMap<Provider, String>,
+    #[serde(default, deserialize_with = "hypr_api_env::filter_empty")]
+    pub posthog_api_key: Option<String>,
+
+    #[serde(flatten)]
+    pub supabase: hypr_api_env::SupabaseEnv,
+    #[serde(flatten)]
+    pub nango: hypr_api_env::NangoEnv,
+    #[serde(flatten)]
+    pub stripe: hypr_api_subscription::StripeEnv,
+    #[serde(flatten)]
+    pub github_app: hypr_api_support::GitHubAppEnv,
+    #[serde(flatten)]
+    pub supabase_db: hypr_api_support::SupabaseDbEnv,
+
+    #[serde(flatten)]
+    pub llm: hypr_llm_proxy::Env,
+    #[serde(flatten)]
+    pub stt: hypr_transcribe_proxy::Env,
 }
 
 static ENV: OnceLock<Env> = OnceLock::new();
 
 pub fn env() -> &'static Env {
     ENV.get_or_init(|| {
-        let _ = dotenvy::from_path(Path::new(env!("CARGO_MANIFEST_DIR")).join(".env"));
-        Env::from_env()
+        let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let repo_root = manifest_dir
+            .parent()
+            .and_then(|p| p.parent())
+            .unwrap_or(manifest_dir);
+
+        let _ = dotenvy::from_path(repo_root.join(".env.supabase"));
+        let _ = dotenvy::from_path(manifest_dir.join(".env"));
+        envy::from_env().expect("Failed to load environment")
     })
-}
-
-impl Env {
-    fn from_env() -> Self {
-        let providers = [
-            Provider::Deepgram,
-            Provider::AssemblyAI,
-            Provider::Soniox,
-            Provider::Fireworks,
-            Provider::OpenAI,
-            Provider::Gladia,
-        ];
-        let api_keys: HashMap<Provider, String> = providers
-            .into_iter()
-            .filter_map(|p| optional(p.env_key_name()).map(|key| (p, key)))
-            .collect();
-
-        Self {
-            port: parse_or("PORT", 3001),
-            sentry_dsn: optional("SENTRY_DSN"),
-            supabase_url: required("SUPABASE_URL"),
-            openrouter_api_key: required("OPENROUTER_API_KEY"),
-            api_keys,
-        }
-    }
-
-    pub fn api_keys(&self) -> HashMap<Provider, String> {
-        self.api_keys.clone()
-    }
-
-    pub fn configured_providers(&self) -> Vec<Provider> {
-        self.api_keys.keys().copied().collect()
-    }
-
-    pub fn log_configured_providers(&self) {
-        let providers: Vec<_> = self.configured_providers();
-        if providers.is_empty() {
-            tracing::warn!("no_stt_providers_configured");
-        } else {
-            let names: Vec<_> = providers.iter().map(|p| format!("{:?}", p)).collect();
-            tracing::info!(providers = ?names, "stt_providers_configured");
-        }
-    }
-}
-
-fn required(key: &str) -> String {
-    std::env::var(key).unwrap_or_else(|_| panic!("{key} is required"))
-}
-
-fn optional(key: &str) -> Option<String> {
-    std::env::var(key).ok().filter(|s| !s.is_empty())
-}
-
-fn parse_or<T: std::str::FromStr>(key: &str, default: T) -> T {
-    std::env::var(key)
-        .ok()
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(default)
 }

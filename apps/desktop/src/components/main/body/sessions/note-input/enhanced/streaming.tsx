@@ -36,7 +36,7 @@ export function StreamingView({ enhancedNoteId }: { enhancedNoteId: string }) {
       ) : (
         <Streamdown
           components={streamdownComponents}
-          className={cn(["flex flex-col gap-2"])}
+          className={cn(["flex flex-col"])}
           caret="block"
           isAnimating={isGenerating}
         >
@@ -47,47 +47,48 @@ export function StreamingView({ enhancedNoteId }: { enhancedNoteId: string }) {
   );
 }
 
-const HEADING_SHARED = "text-gray-700 font-semibold text-sm mt-0 mb-1 min-h-6";
+const HEADING_SHARED = "text-gray-700 font-semibold text-sm mb-1 min-h-6";
+const HEADING_WITH_MARGIN = "mt-4 first:mt-0";
 
 const streamdownComponents = {
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
     return (
-      <h1 className={cn([HEADING_SHARED, "text-xl"])}>
+      <h1 className={cn([HEADING_SHARED, HEADING_WITH_MARGIN, "text-xl"])}>
         {props.children as React.ReactNode}
       </h1>
     );
   },
   h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
     return (
-      <h2 className={cn([HEADING_SHARED, "text-lg"])}>
+      <h2 className={cn([HEADING_SHARED, HEADING_WITH_MARGIN, "text-lg"])}>
         {props.children as React.ReactNode}
       </h2>
     );
   },
   h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
     return (
-      <h3 className={cn([HEADING_SHARED, "text-base"])}>
+      <h3 className={cn([HEADING_SHARED, HEADING_WITH_MARGIN, "text-base"])}>
         {props.children as React.ReactNode}
       </h3>
     );
   },
   h4: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
     return (
-      <h4 className={cn([HEADING_SHARED, "text-sm"])}>
+      <h4 className={cn([HEADING_SHARED, HEADING_WITH_MARGIN, "text-sm"])}>
         {props.children as React.ReactNode}
       </h4>
     );
   },
   h5: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
     return (
-      <h5 className={cn([HEADING_SHARED, "text-sm"])}>
+      <h5 className={cn([HEADING_SHARED, HEADING_WITH_MARGIN, "text-sm"])}>
         {props.children as React.ReactNode}
       </h5>
     );
   },
   h6: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
     return (
-      <h6 className={cn([HEADING_SHARED, "text-xs"])}>
+      <h6 className={cn([HEADING_SHARED, HEADING_WITH_MARGIN, "text-xs"])}>
         {props.children as React.ReactNode}
       </h6>
     );
@@ -110,6 +111,6 @@ const streamdownComponents = {
     return <li className="mb-1">{props.children as React.ReactNode}</li>;
   },
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => {
-    return <p className="py-2">{props.children as React.ReactNode}</p>;
+    return <p className="mb-1">{props.children as React.ReactNode}</p>;
   },
 } as const;

@@ -307,6 +307,18 @@
           "markdownDescription": "Denies the clear command without any pre-configured scope."
         },
         {
+          "description": "Enables the decode_claims command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-decode-claims",
+          "markdownDescription": "Enables the decode_claims command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the decode_claims command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-decode-claims",
+          "markdownDescription": "Denies the decode_claims command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_item command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-item",
@@ -343,10 +355,10 @@
           "markdownDescription": "Denies the set_item command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-item`\n- `allow-set-item`\n- `allow-remove-item`\n- `allow-clear`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-decode-claims`\n- `allow-get-item`\n- `allow-set-item`\n- `allow-remove-item`\n- `allow-clear`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-item`\n- `allow-set-item`\n- `allow-remove-item`\n- `allow-clear`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-decode-claims`\n- `allow-get-item`\n- `allow-set-item`\n- `allow-remove-item`\n- `allow-clear`"
         }
       ]
     }

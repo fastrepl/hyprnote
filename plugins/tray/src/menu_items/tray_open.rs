@@ -11,7 +11,10 @@ impl MenuItemHandler for TrayOpen {
     const ID: &'static str = "hypr_tray_open";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = MenuItem::with_id(app, Self::ID, "Open Hyprnote", true, None::<&str>)?;
+        let package = app.package_info();
+        let title = format!("Open {}  {}", package.name, package.version);
+
+        let item = MenuItem::with_id(app, Self::ID, &title, true, None::<&str>)?;
         Ok(MenuItemKind::MenuItem(item))
     }
 

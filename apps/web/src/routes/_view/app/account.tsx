@@ -18,11 +18,13 @@ const VALID_SCHEMES = [
   "hypr",
 ] as const;
 
-const validateSearch = z.object({
-  success: z.enum(["true"]).optional(),
-  trial: z.enum(["started"]).optional(),
-  scheme: z.enum(VALID_SCHEMES).optional(),
-});
+const validateSearch = z
+  .object({
+    success: z.coerce.boolean(),
+    trial: z.enum(["started"]),
+    scheme: z.enum(VALID_SCHEMES),
+  })
+  .partial();
 
 export const Route = createFileRoute("/_view/app/account")({
   validateSearch,
@@ -35,10 +37,7 @@ function Component() {
   const search = Route.useSearch();
 
   useEffect(() => {
-    if (
-      (search.success === "true" || search.trial === "started") &&
-      search.scheme
-    ) {
+    if ((search.success || search.trial === "started") && search.scheme) {
       window.location.href = `${search.scheme}://billing/refresh`;
     }
   }, [search.success, search.trial, search.scheme]);

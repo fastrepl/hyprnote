@@ -7,15 +7,11 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
-import { useProModelAutoConfig } from "../hooks/useProModelAutoConfig";
-import { useProSettingsReset } from "../hooks/useProSettingsReset";
-import { useTrialExpiredModalTrigger } from "../hooks/useTrialExpiredModalTrigger";
-import { useTrialStartOnFirstLaunch } from "../hooks/useTrialStartOnFirstLaunch";
+import { useProSettingsSync } from "../hooks/useProSettingsSync";
 import { useTabs } from "../store/zustand/tabs";
-import { TrialBeginModal } from "./devtool/trial-begin-modal";
-import { TrialExpiredModal } from "./devtool/trial-expired-modal";
 import { FeedbackModal, useFeedbackModal } from "./feedback/feedback-modal";
 import { useNewNote } from "./main/shared";
+import { UndoDeleteKeyboardHandler } from "./main/sidebar/toast/undo-delete-toast";
 
 export default function MainAppLayout() {
   useNavigationEvents();
@@ -33,17 +29,13 @@ export default function MainAppLayout() {
 }
 
 function MainAppContent() {
-  useProSettingsReset();
-  useTrialExpiredModalTrigger();
-  useProModelAutoConfig();
-  useTrialStartOnFirstLaunch();
+  useProSettingsSync();
 
   return (
     <>
       <Outlet />
-      <TrialBeginModal />
-      <TrialExpiredModal />
       <FeedbackModal />
+      <UndoDeleteKeyboardHandler />
     </>
   );
 }
@@ -123,9 +115,8 @@ const useFeedbackEvents = () => {
 
     void windowsEvents
       .openFeedback(webview)
-      .listen(({ payload }) => {
-        const feedbackType = payload.feedback_type as "bug" | "feature";
-        openFeedback(feedbackType);
+      .listen(() => {
+        openFeedback();
       })
       .then((fn) => {
         unlistenOpenFeedback = fn;

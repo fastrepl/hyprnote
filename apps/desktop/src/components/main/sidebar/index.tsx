@@ -4,6 +4,12 @@ import { AxeIcon, PanelLeftCloseIcon } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
+import { Kbd } from "@hypr/ui/components/ui/kbd";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useSearch } from "../../../contexts/search/ui";
@@ -55,13 +61,24 @@ export function LeftSidebar() {
               <AxeIcon size={16} />
             </Button>
           )}
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={leftsidebar.toggleExpanded}
-          >
-            <PanelLeftCloseIcon size={16} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={leftsidebar.toggleExpanded}
+              >
+                <PanelLeftCloseIcon size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="bottom"
+              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm text-neutral-700 border border-neutral-200/50 shadow-lg"
+            >
+              <span>Toggle sidebar</span>
+              <Kbd className="animate-kbd-press">⌘ \</Kbd>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </header>
 

@@ -95,9 +95,12 @@ function HeaderTabTranscript({
   sessionId: string;
 }) {
   const { audioExists } = useAudioPlayer();
-  const isBatchProcessing = useListener(
-    (state) => state.getSessionMode(sessionId) === "running_batch",
-  );
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const isBatchProcessing = sessionMode === "running_batch";
+  const isSessionInactive =
+    sessionMode !== "active" &&
+    sessionMode !== "finalizing" &&
+    sessionMode !== "running_batch";
   const store = main.UI.useStore(main.STORE_ID);
   const runBatch = useRunBatch(sessionId);
   const [isRedoing, setIsRedoing] = useState(false);
@@ -158,7 +161,7 @@ function HeaderTabTranscript({
     [audioExists, isBatchProcessing, runBatch, sessionId, store],
   );
 
-  const showRefreshButton = audioExists && isActive;
+  const showRefreshButton = audioExists && isActive && isSessionInactive;
 
   return (
     <button
@@ -445,7 +448,7 @@ function CreateOtherFormatButton({
                 className="italic text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50"
                 onClick={() => {
                   setOpen(false);
-                  openNew({ type: "templates" });
+                  openNew({ type: "ai", state: { tab: "templates" } });
                 }}
               >
                 Manage templates
@@ -459,7 +462,7 @@ function CreateOtherFormatButton({
               <button
                 onClick={() => {
                   setOpen(false);
-                  openNew({ type: "templates" });
+                  openNew({ type: "ai", state: { tab: "templates" } });
                 }}
                 className="px-6 py-2 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
               >

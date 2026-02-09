@@ -241,6 +241,17 @@ pub async fn main() {
     #[cfg(target_os = "macos")]
     hypr_intercept::setup_force_quit_handler();
 
+    #[cfg(target_os = "macos")]
+    {
+        let handle = app.handle().clone();
+        hypr_intercept::set_close_handler(move || {
+            for (_, window) in handle.webview_windows() {
+                let _ = window.close();
+            }
+            let _ = handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
+        });
+    }
+
     #[allow(unused_variables)]
     app.run(move |app, event| match event {
         #[cfg(target_os = "macos")]
@@ -260,11 +271,6 @@ pub async fn main() {
             }
 
             api.prevent_exit();
-
-            for (_, window) in app.webview_windows() {
-                let _ = window.close();
-            }
-
             let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
         }
         tauri::RunEvent::Exit => {
@@ -324,15 +330,16 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_onboarding_needed::<tauri::Wry>,
             commands::get_dismissed_toasts::<tauri::Wry>,
             commands::set_dismissed_toasts::<tauri::Wry>,
-            commands::get_onboarding_local::<tauri::Wry>,
-            commands::set_onboarding_local::<tauri::Wry>,
             commands::get_env::<tauri::Wry>,
             commands::show_devtool,
             commands::resize_window_for_chat::<tauri::Wry>,
+            commands::resize_window_for_sidebar::<tauri::Wry>,
             commands::get_tinybase_values::<tauri::Wry>,
             commands::set_tinybase_values::<tauri::Wry>,
-            commands::get_local_persister_loaded::<tauri::Wry>,
-            commands::set_local_persister_loaded::<tauri::Wry>,
+            commands::get_pinned_tabs::<tauri::Wry>,
+            commands::set_pinned_tabs::<tauri::Wry>,
+            commands::get_recently_opened_sessions::<tauri::Wry>,
+            commands::set_recently_opened_sessions::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

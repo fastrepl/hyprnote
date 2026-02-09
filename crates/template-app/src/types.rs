@@ -56,7 +56,7 @@ common_derives! {
 mod tests {
     use super::*;
     use askama::Template;
-    use askama_utils::tpl_snapshot;
+    use hypr_askama_utils::tpl_snapshot;
 
     #[derive(Template)]
     #[template(

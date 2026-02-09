@@ -27,11 +27,11 @@ export function getSitemap(): Sitemap<TRoutes> {
         changeFrequency: "monthly",
       },
 
-      "/blog": {
+      "/blog/": {
         priority: 0.8,
         changeFrequency: "daily",
       },
-      "/changelog": {
+      "/changelog/": {
         priority: 0.7,
         changeFrequency: "weekly",
       },
@@ -61,7 +61,11 @@ export function getSitemap(): Sitemap<TRoutes> {
         priority: 0.7,
         changeFrequency: "monthly",
       },
-      "/gallery": {
+      "/eval/": {
+        priority: 0.7,
+        changeFrequency: "weekly",
+      },
+      "/gallery/": {
         priority: 0.7,
         changeFrequency: "weekly",
       },
@@ -69,7 +73,7 @@ export function getSitemap(): Sitemap<TRoutes> {
         priority: 0.6,
         changeFrequency: "monthly",
       },
-      "/roadmap": {
+      "/roadmap/": {
         priority: 0.7,
         changeFrequency: "weekly",
       },
@@ -78,7 +82,7 @@ export function getSitemap(): Sitemap<TRoutes> {
         changeFrequency: "monthly",
       },
 
-      "/download": {
+      "/download/": {
         priority: 0.7,
         changeFrequency: "weekly",
       },
@@ -91,7 +95,7 @@ export function getSitemap(): Sitemap<TRoutes> {
         changeFrequency: "weekly",
       },
 
-      "/legal": {
+      "/legal/": {
         priority: 0.5,
         changeFrequency: "yearly",
       },

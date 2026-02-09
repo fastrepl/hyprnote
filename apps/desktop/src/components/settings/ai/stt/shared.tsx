@@ -2,11 +2,7 @@ import { Icon } from "@iconify-icon/react";
 import { AssemblyAI, ElevenLabs, Fireworks, OpenAI } from "@lobehub/icons";
 import type { ReactNode } from "react";
 
-import type {
-  AmModel,
-  SupportedSttModel,
-  WhisperModel,
-} from "@hypr/plugin-local-stt";
+import type { AmModel, SupportedSttModel } from "@hypr/plugin-local-stt";
 
 import { env } from "../../../../env";
 import { localSttQueries } from "../../../../hooks/useLocalSttModel";
@@ -75,16 +71,6 @@ export const displayModelId = (model: string) => {
     }
   }
 
-  if (model.startsWith("Quantized")) {
-    const whisper = model as WhisperModel;
-    if (whisper == "QuantizedTinyEn") {
-      return "Whisper Tiny (English)";
-    }
-    if (whisper == "QuantizedSmallEn") {
-      return "Whisper Small (English)";
-    }
-  }
-
   return model;
 };
 
@@ -101,8 +87,6 @@ const _PROVIDERS = [
       "am-parakeet-v2",
       "am-parakeet-v3",
       "am-whisper-large-v3",
-      "QuantizedTinyEn",
-      "QuantizedSmallEn",
     ],
     requirements: [],
   },

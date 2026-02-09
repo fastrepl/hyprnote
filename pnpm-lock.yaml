@@ -359,8 +359,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2(@lobehub/ui@3.4.0(@types/mdast@4.0.4)(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(antd@6.1.1(date-fns@4.1.0)(luxon@3.7.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(micromark-util-types@2.0.2)(micromark@4.0.2)(motion@11.18.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(solid-js@1.9.10))(@types/react@19.2.10)(antd@6.1.1(date-fns@4.1.0)(luxon@3.7.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@openrouter/ai-sdk-provider':
-        specifier: ^1.5.4
-        version: 1.5.4(ai@6.0.67(zod@4.3.6))(zod@4.3.6)
+        specifier: ^2.1.1
+        version: 2.1.1(ai@6.0.67(zod@4.3.6))(zod@4.3.6)
       '@orama/highlight':
         specifier: ^0.1.9
         version: 0.1.9
@@ -4617,12 +4617,12 @@ packages:
   '@open-draft/until@2.1.0':
     resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
 
-  '@openrouter/ai-sdk-provider@1.5.4':
-    resolution: {integrity: sha512-xrSQPUIH8n9zuyYZR0XK7Ba0h2KsjJcMkxnwaYfmv13pKs3sDkjPzVPPhlhzqBGddHb5cFEwJ9VFuFeDcxCDSw==}
+  '@openrouter/ai-sdk-provider@2.1.1':
+    resolution: {integrity: sha512-UypPbVnSExxmG/4Zg0usRiit3auvQVrjUXSyEhm0sZ9GQnW/d8p/bKgCk2neh1W5YyRSo7PNQvCrAEBHZnqQkQ==}
     engines: {node: '>=18'}
     peerDependencies:
-      ai: ^5.0.0
-      zod: ^3.24.1 || ^v4
+      ai: ^6.0.0
+      zod: ^3.25.0 || ^4.0.0
 
   '@openrouter/sdk@0.1.27':
     resolution: {integrity: sha512-RH//L10bSmc81q25zAZudiI4kNkLgxF2E+WU42vghp3N6TEvZ6F0jK7uT3tOxkEn91gzmMw9YVmDENy7SJsajQ==}
@@ -20008,9 +20008,8 @@ snapshots:
 
   '@open-draft/until@2.1.0': {}
 
-  '@openrouter/ai-sdk-provider@1.5.4(ai@6.0.67(zod@4.3.6))(zod@4.3.6)':
+  '@openrouter/ai-sdk-provider@2.1.1(ai@6.0.67(zod@4.3.6))(zod@4.3.6)':
     dependencies:
-      '@openrouter/sdk': 0.1.27
       ai: 6.0.67(zod@4.3.6)
       zod: 4.3.6
 

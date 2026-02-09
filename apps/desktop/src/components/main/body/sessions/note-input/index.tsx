@@ -29,6 +29,8 @@ import { Enhanced } from "./enhanced";
 import { Header, useAttachments, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
+import { SearchBar } from "./transcript/search-bar";
+import { useTranscriptSearch } from "./transcript/search-context";
 
 export const NoteInput = forwardRef<
   { editor: TiptapEditor | null },
@@ -215,6 +217,9 @@ export const NoteInput = forwardRef<
     }
   };
 
+  const search = useTranscriptSearch();
+  const showSearchBar = search?.isVisible ?? false;
+
   return (
     <div className="flex flex-col h-full -mx-2">
       <div className="px-2 relative">
@@ -227,6 +232,12 @@ export const NoteInput = forwardRef<
           setIsEditing={setIsEditing}
         />
       </div>
+
+      {showSearchBar && (
+        <div className="px-2">
+          <SearchBar />
+        </div>
+      )}
 
       <div className="relative flex-1 overflow-hidden">
         <div

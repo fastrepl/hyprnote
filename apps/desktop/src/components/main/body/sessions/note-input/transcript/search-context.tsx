@@ -27,10 +27,15 @@ export function useTranscriptSearch() {
   return useContext(SearchContext);
 }
 
+interface MatchResult {
+  element: HTMLElement;
+  id: string | null;
+}
+
 function getMatchingElements(
   container: HTMLElement | null,
   query: string,
-): HTMLElement[] {
+): MatchResult[] {
   if (!container || !query) {
     return [];
   }
@@ -38,12 +43,28 @@ function getMatchingElements(
   const normalizedQuery = query.trim().toLowerCase().normalize("NFC");
   if (!normalizedQuery) return [];
 
-  const allSpans = Array.from(
+  const wordSpans = Array.from(
     container.querySelectorAll<HTMLElement>("[data-word-id]"),
   );
-  if (allSpans.length === 0) return [];
 
-  // Build concatenated text from all spans, tracking each span's position
+  if (wordSpans.length > 0) {
+    return getTranscriptMatches(wordSpans, normalizedQuery);
+  }
+
+  const proseMirror =
+    container.querySelector<HTMLElement>(".ProseMirror") ??
+    (container.classList.contains("ProseMirror") ? container : null);
+  if (proseMirror) {
+    return getEditorMatches(proseMirror, normalizedQuery);
+  }
+
+  return [];
+}
+
+function getTranscriptMatches(
+  allSpans: HTMLElement[],
+  normalizedQuery: string,
+): MatchResult[] {
   const spanPositions: { start: number; end: number }[] = [];
   let fullText = "";
 
@@ -56,27 +77,31 @@ function getMatchingElements(
   }
 
   const lowerFullText = fullText.toLowerCase();
-  const result: HTMLElement[] = [];
+  const result: MatchResult[] = [];
   let searchFrom = 0;
 
   while (searchFrom <= lowerFullText.length - normalizedQuery.length) {
     const idx = lowerFullText.indexOf(normalizedQuery, searchFrom);
     if (idx === -1) break;
 
-    // Find the span containing the start of this match
     for (let i = 0; i < spanPositions.length; i++) {
       const { start, end } = spanPositions[i];
       if (idx >= start && idx < end) {
-        result.push(allSpans[i]);
+        result.push({
+          element: allSpans[i],
+          id: allSpans[i].dataset.wordId || null,
+        });
         break;
       }
-      // Match starts in the space between spans
       if (
         i < spanPositions.length - 1 &&
         idx >= end &&
         idx < spanPositions[i + 1].start
       ) {
-        result.push(allSpans[i + 1]);
+        result.push({
+          element: allSpans[i + 1],
+          id: allSpans[i + 1].dataset.wordId || null,
+        });
         break;
       }
     }
@@ -87,31 +112,56 @@ function getMatchingElements(
   return result;
 }
 
+function getEditorMatches(
+  proseMirror: HTMLElement,
+  normalizedQuery: string,
+): MatchResult[] {
+  const blocks = Array.from(
+    proseMirror.querySelectorAll<HTMLElement>(
+      "p, h1, h2, h3, h4, h5, h6, li, blockquote, td, th",
+    ),
+  );
+
+  const result: MatchResult[] = [];
+
+  for (const block of blocks) {
+    const text = (block.textContent || "").normalize("NFC").toLowerCase();
+    let searchFrom = 0;
+
+    while (searchFrom <= text.length - normalizedQuery.length) {
+      const idx = text.indexOf(normalizedQuery, searchFrom);
+      if (idx === -1) break;
+      result.push({ element: block, id: null });
+      searchFrom = idx + 1;
+    }
+  }
+
+  return result;
+}
+
+function findSearchContainer(): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+
+  const transcript = document.querySelector<HTMLElement>(
+    "[data-transcript-container]",
+  );
+  if (transcript) return transcript;
+
+  const proseMirror = document.querySelector<HTMLElement>(".ProseMirror");
+  if (proseMirror) {
+    return proseMirror.parentElement ?? proseMirror;
+  }
+
+  return null;
+}
+
 export function SearchProvider({ children }: { children: React.ReactNode }) {
   const [isVisible, setIsVisible] = useState(false);
   const [query, setQuery] = useState("");
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [totalMatches, setTotalMatches] = useState(0);
   const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
-  const containerRef = useRef<HTMLElement | null>(null);
-
-  const ensureContainer = useCallback(() => {
-    if (typeof document === "undefined") {
-      containerRef.current = null;
-      return null;
-    }
-
-    const current = containerRef.current;
-    if (current && document.body.contains(current)) {
-      return current;
-    }
-
-    const next = document.querySelector<HTMLElement>(
-      "[data-transcript-container]",
-    );
-    containerRef.current = next;
-    return next;
-  }, []);
+  const matchesRef = useRef<MatchResult[]>([]);
 
   const close = useCallback(() => {
     setIsVisible(false);
@@ -121,11 +171,6 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     "mod+f",
     (event) => {
       event.preventDefault();
-      const container = ensureContainer();
-      if (!container) {
-        return;
-      }
-
       setIsVisible((prev) => !prev);
     },
     {
@@ -133,7 +178,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [ensureContainer],
+    [],
   );
 
   useHotkeys(
@@ -154,76 +199,65 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       setQuery("");
       setCurrentMatchIndex(0);
       setActiveMatchId(null);
+      matchesRef.current = [];
     }
   }, [isVisible]);
 
   useEffect(() => {
-    const container = ensureContainer();
+    const container = findSearchContainer();
     if (!container || !query) {
       setTotalMatches(0);
       setCurrentMatchIndex(0);
       setActiveMatchId(null);
+      matchesRef.current = [];
       return;
     }
 
     const matches = getMatchingElements(container, query);
+    matchesRef.current = matches;
     setTotalMatches(matches.length);
     setCurrentMatchIndex(0);
-    setActiveMatchId(matches[0]?.dataset.wordId || null);
-  }, [query, ensureContainer]);
+    setActiveMatchId(matches[0]?.id || null);
+
+    if (matches.length > 0 && !matches[0].id) {
+      matches[0].element.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [query]);
 
   const onNext = useCallback(() => {
-    const container = ensureContainer();
-    if (!container) {
-      return;
-    }
-
-    const matches = getMatchingElements(container, query);
-    if (matches.length === 0) {
-      return;
-    }
+    const matches = matchesRef.current;
+    if (matches.length === 0) return;
 
     const nextIndex = (currentMatchIndex + 1) % matches.length;
     setCurrentMatchIndex(nextIndex);
-    setActiveMatchId(matches[nextIndex]?.dataset.wordId || null);
-  }, [ensureContainer, query, currentMatchIndex]);
+    setActiveMatchId(matches[nextIndex]?.id || null);
+    matches[nextIndex]?.element.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [currentMatchIndex]);
 
   const onPrev = useCallback(() => {
-    const container = ensureContainer();
-    if (!container) {
-      return;
-    }
-
-    const matches = getMatchingElements(container, query);
-    if (matches.length === 0) {
-      return;
-    }
+    const matches = matchesRef.current;
+    if (matches.length === 0) return;
 
     const prevIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
     setCurrentMatchIndex(prevIndex);
-    setActiveMatchId(matches[prevIndex]?.dataset.wordId || null);
-  }, [ensureContainer, query, currentMatchIndex]);
+    setActiveMatchId(matches[prevIndex]?.id || null);
+    matches[prevIndex]?.element.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [currentMatchIndex]);
 
   useEffect(() => {
-    if (!isVisible) {
-      return;
-    }
+    if (!isVisible || !activeMatchId) return;
 
-    const container = ensureContainer();
-    if (!container) {
-      setIsVisible(false);
-    }
-  }, [isVisible, ensureContainer]);
-
-  useEffect(() => {
-    if (!isVisible || !activeMatchId) {
-      return;
-    }
-
-    const container = ensureContainer();
-    if (!container) {
-      return;
-    }
+    const container = findSearchContainer();
+    if (!container) return;
 
     const element = container.querySelector<HTMLElement>(
       `[data-word-id="${activeMatchId}"]`,
@@ -232,7 +266,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [isVisible, activeMatchId, ensureContainer]);
+  }, [isVisible, activeMatchId]);
 
   const value = useMemo(
     () => ({

@@ -55,7 +55,7 @@ export function SearchBar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search in transcript..."
+          placeholder="Search..."
           className={cn([
             "flex-1 h-full px-2 text-sm",
             "bg-neutral-100 border border-neutral-200 rounded-xs",

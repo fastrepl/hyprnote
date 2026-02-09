@@ -6,18 +6,13 @@ import { md2json } from "@hypr/tiptap/shared";
 import { useAITask } from "../../contexts/ai-task";
 import { useListener } from "../../contexts/listener";
 import * as main from "../../store/tinybase/store/main";
-import * as settings from "../../store/tinybase/store/settings";
 import { createTaskId } from "../../store/zustand/ai-task/task-configs";
 import { getTaskState } from "../../store/zustand/ai-task/tasks";
 import { useTabs } from "../../store/zustand/tabs";
 import type { Tab } from "../../store/zustand/tabs/schema";
 import { useAITaskTask } from "../useAITaskTask";
 import { useCreateEnhancedNote } from "../useEnhancedNotes";
-import {
-  useLanguageModel,
-  useLLMConnection,
-  type LLMConnectionStatus,
-} from "../useLLMConnection";
+import { useLanguageModel, useLLMConnection } from "../useLLMConnection";
 import { getEligibility } from "./eligibility";
 
 type RunResult =
@@ -35,7 +30,7 @@ export function useAutoEnhanceRunner(
 } {
   const sessionId = tab.id;
   const model = useLanguageModel();
-  const { conn: llmConn, status: llmStatus } = useLLMConnection();
+  const { conn: llmConn } = useLLMConnection();
   const { updateSessionTabState } = useTabs();
   const createEnhancedNote = useCreateEnhancedNote();
 
@@ -43,13 +38,6 @@ export function useAutoEnhanceRunner(
   const liveSessionId = useListener((state) => state.live.sessionId);
 
   const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
-
-  const resetLlmModel = settings.UI.useSetValueCallback(
-    "current_llm_model",
-    () => "",
-    [],
-    settings.STORE_ID,
-  );
 
   const startedTasksRef = useRef<Set<string>>(new Set());
   const currentNoteIdRef = useRef<string | null>(null);
@@ -147,9 +135,6 @@ export function useAutoEnhanceRunner(
     }
 
     if (!model) {
-      if (isCloudProLlmError(llmStatus)) {
-        resetLlmModel();
-      }
       return { type: "no_model" };
     }
 
@@ -189,8 +174,6 @@ export function useAutoEnhanceRunner(
     transcriptIds,
     store,
     model,
-    llmStatus,
-    resetLlmModel,
     sessionId,
     createEnhancedNote,
     updateSessionTabState,
@@ -210,11 +193,4 @@ export function useAutoEnhanceRunner(
     run,
     isEnhancing,
   };
-}
-
-function isCloudProLlmError(status: LLMConnectionStatus): boolean {
-  return (
-    status.status === "error" &&
-    (status.reason === "unauthenticated" || status.reason === "not_pro")
-  );
 }

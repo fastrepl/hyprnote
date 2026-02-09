@@ -13,7 +13,7 @@ pub(crate) async fn analyze_logs(api_key: &str, logs: &str) -> Option<String> {
     let tail = safe_tail(logs, 10000);
 
     let req = hypr_openrouter::ChatCompletionRequest {
-        model: "google/gemini-2.0-flash-001".into(),
+        model: Some("google/gemini-2.0-flash-001".to_string()),
         max_tokens: Some(300),
         messages: vec![hypr_openrouter::ChatMessage::new(
             hypr_openrouter::Role::User,
@@ -26,5 +26,6 @@ pub(crate) async fn analyze_logs(api_key: &str, logs: &str) -> Option<String> {
 
     let resp = client.chat_completion(&req).await.ok()?;
     let content = resp.choices.first()?.message.content.as_ref()?;
-    Some(content.chars().take(800).collect())
+    let text = content.as_text()?;
+    Some(text.chars().take(800).collect())
 }

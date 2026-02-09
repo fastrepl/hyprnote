@@ -33,17 +33,17 @@ const heroContent = {
     {
       title: "No forced stack",
       description:
-        "Choose your preferred STT and LLM provider. Use our managed service, bring your own Key, or run local models.",
+        "Use our managed cloud, bring your own API keys, or run fully local models.",
     },
     {
-      title: "Files over apps",
+      title: "You own your data",
       description:
-        "Unlike other AI note-takers that lock your history in their app, Hyprnote saves notes as markdown files on your device.",
+        "Plain markdown files on your device. Works with Obsidian, Notion, or any tool.",
     },
     {
-      title: "Private by design",
+      title: "Just works",
       description:
-        "System audio capture\u2014no bot joins your calls, no calendar permissions needed. Data stays on your device.",
+        "A simple, familiar notepad with real-time transcription and AI summaries.",
     },
   ],
 };

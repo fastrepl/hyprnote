@@ -14,12 +14,16 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
     private registry: ToolRegistry,
     private model: LanguageModel,
     private systemPrompt?: string,
+    private extraTools?: Record<string, any>,
   ) {}
 
   sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (
     options,
   ) => {
-    const tools = this.registry.getTools("chat");
+    const tools = {
+      ...this.registry.getTools("chat"),
+      ...this.extraTools,
+    };
 
     const agent = new ToolLoopAgent({
       model: this.model,

@@ -1,6 +1,6 @@
 #[cfg(target_os = "macos")]
 pub fn setup_dock_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-    use objc2::runtime::{AnyClass, AnyObject, Sel};
+    use objc2::runtime::{AnyClass, AnyObject};
     use objc2::{msg_send, sel};
     use objc2_app_kit::NSApplication;
     use objc2_foundation::MainThreadMarker;
@@ -38,7 +38,7 @@ pub fn setup_dock_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
                 let key_equivalent = NSString::from_str("");
                 let item = unsafe {
                     NSMenuItem::initWithTitle_action_keyEquivalent(
-                        NSMenuItem::alloc(),
+                        NSMenuItem::alloc(mtm),
                         &title,
                         None,
                         &key_equivalent,
@@ -46,7 +46,7 @@ pub fn setup_dock_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
                 };
                 menu.addItem(&item);
 
-                objc2::rc::Retained::into_raw(menu) as *mut objc2::runtime::AnyObject
+                objc2::rc::Retained::autorelease_return(menu) as *mut objc2::runtime::AnyObject
             }
 
             let imp: objc2::runtime::Imp = std::mem::transmute(dock_menu_handler as *const ());

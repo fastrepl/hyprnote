@@ -59,10 +59,11 @@ import { TabContentTemplate, TabItemTemplate } from "./templates";
 import { Update } from "./update";
 
 export function Body() {
-  const { tabs, currentTab } = useTabs(
+  const { tabs, currentTab, close } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
       currentTab: state.currentTab,
+      close: state.close,
     })),
   );
 
@@ -73,10 +74,18 @@ export function Body() {
   }, []);
 
   useEffect(() => {
-    if (chat.mode === "FullTab" && !tabs.some((t) => t.type === "chat")) {
+    const hasChatTab = tabs.some((t) => t.type === "chat");
+    const isFullTabMode = chat.mode === "FullTab";
+
+    if (isFullTabMode && !hasChatTab) {
       chat.sendEvent({ type: "CLOSE" });
+    } else if (!isFullTabMode && hasChatTab) {
+      const chatTab = tabs.find((t) => t.type === "chat");
+      if (chatTab) {
+        close(chatTab);
+      }
     }
-  }, [tabs, chat]);
+  }, [tabs, chat, close]);
 
   if (!currentTab) {
     return null;

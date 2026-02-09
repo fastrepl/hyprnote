@@ -22,6 +22,7 @@ pub struct ErrorResponse {
 #[derive(Debug, Error)]
 pub enum CalendarError {
     #[error("Authentication error: {0}")]
+    #[allow(dead_code)]
     Auth(String),
 
     #[error("Invalid request: {0}")]

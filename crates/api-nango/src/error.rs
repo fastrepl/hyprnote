@@ -31,6 +31,7 @@ pub enum NangoError {
     BadRequest(String),
 
     #[error("Internal error: {0}")]
+    #[allow(dead_code)]
     Internal(String),
 }
 

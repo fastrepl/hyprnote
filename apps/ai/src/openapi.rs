@@ -46,9 +46,8 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
 
 pub fn write_openapi_json() -> std::io::Result<std::path::PathBuf> {
     let doc = openapi();
-    let json = serde_json::to_string_pretty(&doc).map_err(|e| {
-        std::io::Error::new(std::io::ErrorKind::Other, format!("serialize openapi: {e}"))
-    })?;
+    let json = serde_json::to_string_pretty(&doc)
+        .map_err(|e| std::io::Error::other(format!("serialize openapi: {e}")))?;
 
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("openapi.gen.json");
     std::fs::write(&path, json)?;

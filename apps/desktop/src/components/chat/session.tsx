@@ -319,13 +319,15 @@ function useTransport(
     };
   }, [language, chatContext, systemPromptOverride]);
 
+  const effectiveSystemPrompt = systemPromptOverride ?? systemPrompt;
+
   const transport = useMemo(() => {
     if (!model) {
       return null;
     }
 
-    return new CustomChatTransport(registry, model, systemPrompt, extraTools);
-  }, [registry, model, systemPrompt, extraTools]);
+    return new CustomChatTransport(registry, model, effectiveSystemPrompt, extraTools);
+  }, [registry, model, effectiveSystemPrompt, extraTools]);
 
   return transport;
 }

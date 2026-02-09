@@ -1,17 +1,10 @@
 import { useCallback } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import {
-  commands as localSttCommands,
-  type SupportedSttModel,
-} from "@hypr/plugin-local-stt";
 
-import { useAuth } from "../auth";
-import { useBillingAccess } from "../billing";
-import { useConfigValue, useConfigValues } from "../config/use-config";
+import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/store/main";
-import * as settings from "../store/tinybase/store/settings";
 import type { SpeakerHintWithId, WordWithId } from "../store/transcript/types";
 import {
   parseTranscriptHints,
@@ -30,43 +23,15 @@ export function useStartListening(sessionId: string) {
 
   const record_enabled = useConfigValue("save_recordings");
   const languages = useConfigValue("spoken_languages");
-  const { current_stt_provider, current_stt_model } = useConfigValues([
-    "current_stt_provider",
-    "current_stt_model",
-  ] as const);
 
   const start = useListener((state) => state.start);
-  const { conn, isLocalModel } = useSTTConnection();
-  const auth = useAuth();
-  const billing = useBillingAccess();
+  const { conn } = useSTTConnection();
 
   const keywords = useKeywords(sessionId);
 
-  const resetSttModel = settings.UI.useSetValueCallback(
-    "current_stt_model",
-    () => "",
-    [],
-    settings.STORE_ID,
-  );
-
   const startListening = useCallback(() => {
     if (!conn || !store) {
-      if (current_stt_provider && current_stt_model) {
-        const isCloud =
-          current_stt_provider === "hyprnote" && current_stt_model === "cloud";
-
-        if (isLocalModel) {
-          void localSttCommands
-            .isModelDownloaded(current_stt_model as SupportedSttModel)
-            .then((result) => {
-              if (result.status === "ok" && !result.data) {
-                resetSttModel();
-              }
-            });
-        } else if (isCloud && (!auth?.session || !billing.isPro)) {
-          resetSttModel();
-        }
-      }
+      console.error("no_stt_connection");
       return;
     }
 
@@ -178,12 +143,6 @@ export function useStartListening(sessionId: string) {
     user_id,
     record_enabled,
     languages,
-    current_stt_provider,
-    current_stt_model,
-    isLocalModel,
-    auth,
-    billing.isPro,
-    resetSttModel,
   ]);
 
   return startListening;

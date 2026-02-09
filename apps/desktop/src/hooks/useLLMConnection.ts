@@ -5,7 +5,7 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { extractReasoningMiddleware, wrapLanguageModel } from "ai";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import type { AIProviderStorage } from "@hypr/store";
 
@@ -69,7 +69,14 @@ export const useLLMConnection = (): LLMConnectionResult => {
     settings.STORE_ID,
   ) as AIProviderStorage | undefined;
 
-  return useMemo<LLMConnectionResult>(
+  const resetLlmModel = settings.UI.useSetValueCallback(
+    "current_llm_model",
+    () => "",
+    [],
+    settings.STORE_ID,
+  );
+
+  const result = useMemo<LLMConnectionResult>(
     () =>
       resolveLLMConnection({
         providerId: current_llm_provider,
@@ -86,6 +93,34 @@ export const useLLMConnection = (): LLMConnectionResult => {
       providerConfig,
     ],
   );
+
+  // Reset LLM model selection when a Cloud Pro model becomes unavailable.
+  //
+  // IMPORTANT: We use `prevIsProRef` (starting as null) to skip the initial
+  // render cycle. During app startup, auth.session is null and billing.isPro
+  // is false because they load asynchronously. Without this guard, the effect
+  // would see "unauthenticated / not_pro" and wipe the user's saved model
+  // selection before auth has finished loading — the same race condition that
+  // was previously caused by the useEffect in stt/select.tsx.
+  const prevIsProRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (prevIsProRef.current === null) {
+      prevIsProRef.current = billing.isPro;
+      return;
+    }
+    prevIsProRef.current = billing.isPro;
+
+    const { status } = result;
+    if (
+      status.status === "error" &&
+      (status.reason === "unauthenticated" || status.reason === "not_pro")
+    ) {
+      resetLlmModel();
+    }
+  }, [result, billing.isPro, resetLlmModel]);
+
+  return result;
 };
 
 export const useLLMConnectionStatus = (): LLMConnectionStatus => {

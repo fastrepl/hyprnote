@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
-import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import {
+  commands as localSttCommands,
+  type SupportedSttModel,
+} from "@hypr/plugin-local-stt";
 import type { AIProviderStorage } from "@hypr/store";
 
 import { useAuth } from "../auth";
@@ -119,6 +122,55 @@ export const useSTTConnection = () => {
     apiKey,
     auth,
     billing.isPro,
+  ]);
+
+  const resetSttModel = settings.UI.useSetValueCallback(
+    "current_stt_model",
+    () => "",
+    [],
+    settings.STORE_ID,
+  );
+
+  // Reset STT model selection when it becomes invalid.
+  //
+  // IMPORTANT: We use `prevIsProRef` (starting as null) to skip the initial
+  // render cycle. During app startup, auth.session is null and billing.isPro
+  // is false because they load asynchronously. Without this guard, the effect
+  // would see "not authenticated / not pro" and wipe the user's saved model
+  // selection before auth has finished loading — the exact race condition that
+  // was previously caused by the useEffect in stt/select.tsx.
+  const prevIsProRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (prevIsProRef.current === null) {
+      prevIsProRef.current = billing.isPro;
+      return;
+    }
+    prevIsProRef.current = billing.isPro;
+
+    if (!current_stt_provider || !current_stt_model) {
+      return;
+    }
+
+    if (isLocalModel) {
+      void localSttCommands
+        .isModelDownloaded(current_stt_model as SupportedSttModel)
+        .then((result) => {
+          if (result.status === "ok" && !result.data) {
+            resetSttModel();
+          }
+        });
+    } else if (isCloudModel && (!auth?.session || !billing.isPro)) {
+      resetSttModel();
+    }
+  }, [
+    current_stt_provider,
+    current_stt_model,
+    isLocalModel,
+    isCloudModel,
+    auth?.session,
+    billing.isPro,
+    resetSttModel,
   ]);
 
   return {

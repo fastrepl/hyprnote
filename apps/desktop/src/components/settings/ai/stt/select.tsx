@@ -42,7 +42,8 @@ export function SelectProviderAndModel() {
       "spoken_languages",
     ] as const);
   const billing = useBillingAccess();
-  const configuredProviders = useConfiguredMapping();
+  const { providers: configuredProviders, isLoading: isModelsLoading } =
+    useConfiguredMapping();
   const { startDownload, startTrial } = useSttSettings();
   const health = useConnectionHealth();
 
@@ -108,6 +109,10 @@ export function SelectProviderAndModel() {
   });
 
   useEffect(() => {
+    if (isModelsLoading) {
+      return;
+    }
+
     if (!current_stt_provider || !current_stt_model) {
       return;
     }
@@ -130,6 +135,7 @@ export function SelectProviderAndModel() {
       form.setFieldValue("model", "");
     }
   }, [
+    isModelsLoading,
     current_stt_provider,
     current_stt_model,
     configuredProviders,
@@ -311,13 +317,16 @@ export function SelectProviderAndModel() {
   );
 }
 
-function useConfiguredMapping(): Record<
-  ProviderId,
-  {
-    configured: boolean;
-    models: Array<{ id: string; isDownloaded: boolean }>;
-  }
-> {
+function useConfiguredMapping(): {
+  providers: Record<
+    ProviderId,
+    {
+      configured: boolean;
+      models: Array<{ id: string; isDownloaded: boolean }>;
+    }
+  >;
+  isLoading: boolean;
+} {
   const billing = useBillingAccess();
   const configuredProviders = settings.UI.useResultTable(
     settings.QUERIES.sttProviders,
@@ -340,7 +349,9 @@ function useConfiguredMapping(): Record<
     ],
   });
 
-  return Object.fromEntries(
+  const isLoading = p2.isLoading || p3.isLoading || whisperLargeV3.isLoading;
+
+  const providers = Object.fromEntries(
     PROVIDERS.map((provider) => {
       const config = configuredProviders[provider.id] as
         | AIProviderStorage
@@ -412,6 +423,8 @@ function useConfiguredMapping(): Record<
       models: Array<{ id: string; isDownloaded: boolean }>;
     }
   >;
+
+  return { providers, isLoading };
 }
 
 function ModelSelectItem({

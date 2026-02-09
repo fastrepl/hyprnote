@@ -121,7 +121,7 @@ const mainFeatures = [
 ];
 
 const activeFeatureIndices = mainFeatures.map((_, i) => i);
-const FEATURES_AUTO_ADVANCE_DURATION = 5000;
+const FEATURES_AUTO_ADVANCE_DURATION = 8000;
 
 export const Route = createFileRoute("/_view/")({
   component: Component,

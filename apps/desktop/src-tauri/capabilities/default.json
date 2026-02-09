@@ -74,6 +74,7 @@
     "os:default",
     "opener2:default",
     "detect:default",
+    "dock:default",
     "permissions:default",
     "screen:default",
     "settings:default",

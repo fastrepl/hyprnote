@@ -35,6 +35,7 @@ tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-deeplink2 = { workspace = true }
 tauri-plugin-detect = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
+tauri-plugin-dock = { workspace = true }
 tauri-plugin-extensions = { workspace = true }
 tauri-plugin-flag = { workspace = true }
 tauri-plugin-fs-db = { workspace = true }

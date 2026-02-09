@@ -1213,11 +1213,20 @@ function FeaturesMobileCarousel({
   scrollToFeature: (index: number) => void;
   progress: number;
 }) {
+  const isSwiping = useRef(false);
+
   return (
     <div className="max-[800px]:block hidden">
       <div
         ref={featuresScrollRef}
         className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
+        onTouchStart={() => {
+          isSwiping.current = true;
+          onIndexChange(selectedFeature);
+        }}
+        onTouchEnd={() => {
+          isSwiping.current = false;
+        }}
         onScroll={(e) => {
           const container = e.currentTarget;
           const scrollLeft = container.scrollLeft;
@@ -1236,14 +1245,15 @@ function FeaturesMobileCarousel({
                   to={feature.link}
                   className={cn([
                     "aspect-video border-b border-neutral-100 overflow-hidden relative block",
-                    (feature.image || feature.muxPlaybackId) && "bg-neutral-100",
+                    (feature.image || feature.muxPlaybackId) &&
+                      "bg-neutral-100",
                   ])}
                 >
                   {feature.muxPlaybackId ? (
-                    <img
-                      src={`https://image.mux.com/${feature.muxPlaybackId}/thumbnail.jpg?width=1920&height=1080&fit_mode=smartcrop`}
+                    <MobileFeatureVideo
+                      playbackId={feature.muxPlaybackId}
                       alt={`${feature.title} feature`}
-                      className="w-full h-full object-contain"
+                      isActive={selectedFeature === index}
                     />
                   ) : feature.image ? (
                     <Image
@@ -1261,7 +1271,10 @@ function FeaturesMobileCarousel({
                 </Link>
                 <div className="p-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <Icon icon={feature.icon} className="text-2xl text-stone-600" />
+                    <Icon
+                      icon={feature.icon}
+                      className="text-2xl text-stone-600"
+                    />
                     <h3 className="text-lg font-serif text-stone-600">
                       {feature.title}
                     </h3>
@@ -1298,6 +1311,62 @@ function FeaturesMobileCarousel({
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+function MobileFeatureVideo({
+  playbackId,
+  alt,
+  isActive,
+}: {
+  playbackId: string;
+  alt: string;
+  isActive: boolean;
+}) {
+  const playerRef = useRef<MuxPlayerRefAttributes>(null);
+  const thumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg?width=1920&height=1080&fit_mode=smartcrop`;
+
+  useEffect(() => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    if (isActive) {
+      player.play();
+    } else {
+      player.pause();
+      player.currentTime = 0;
+    }
+  }, [isActive]);
+
+  return (
+    <div className="w-full h-full relative">
+      <img
+        src={thumbnailUrl}
+        alt={alt}
+        className={cn([
+          "w-full h-full object-contain absolute inset-0 transition-opacity duration-300",
+          isActive ? "opacity-0" : "opacity-100",
+        ])}
+      />
+      <MuxPlayer
+        ref={playerRef}
+        playbackId={playbackId}
+        muted
+        loop
+        playsInline
+        maxResolution="1080p"
+        minResolution="720p"
+        className={cn([
+          "w-full h-full object-contain transition-opacity duration-300",
+          isActive ? "opacity-100" : "opacity-0",
+        ])}
+        style={
+          {
+            "--controls": "none",
+          } as React.CSSProperties & { [key: `--${string}`]: string }
+        }
+      />
     </div>
   );
 }

@@ -28,22 +28,22 @@ const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
 
 const heroContent = {
   title: "AI Notepad for Meetings\u2014No Strings Attached.",
-  subtitle: "Own your data. Pick your AI provider. No bots. No lock-in",
+  subtitle: "No forced cloud. No data held hostage. No bots in your meetings.",
   valueProps: [
     {
-      title: "No forced stack",
+      title: "Zero lock-in",
       description:
-        "Use our managed cloud, bring your own API keys, or run fully local models.",
+        "Choose your preferred STT and LLM provider. Cloud or local.",
     },
     {
       title: "You own your data",
       description:
-        "Plain markdown files on your device. Works with Obsidian, Notion, or any tool.",
+        "Plain markdown files on your device. Works with any tool.",
     },
     {
       title: "Just works",
       description:
-        "A simple, familiar notepad with real-time transcription and AI summaries.",
+        "A simple, familiar notepad, real-time transcription, and AI summaries.",
     },
   ],
 };

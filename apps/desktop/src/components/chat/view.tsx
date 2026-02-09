@@ -114,6 +114,16 @@ export function ChatView() {
     [setGroupId],
   );
 
+  const openNew = useTabs((state) => state.openNew);
+
+  const handleOpenInTab = useCallback(() => {
+    openNew({
+      type: "chat",
+      state: { groupId: groupId ?? null },
+    });
+    chat.sendEvent({ type: "OPEN_TAB" });
+  }, [openNew, groupId, chat]);
+
   return (
     <div className="flex flex-col h-full gap-1">
       <ChatHeader
@@ -121,6 +131,7 @@ export function ChatView() {
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
         handleClose={() => chat.sendEvent({ type: "CLOSE" })}
+        onOpenInTab={handleOpenInTab}
       />
       <ChatSession
         key={stableSessionId}

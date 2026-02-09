@@ -37,6 +37,7 @@ import { useNewNote, useNewNoteAndListen } from "../shared";
 import { TabContentSearch, TabItemSearch } from "./advanced-search";
 import { TabContentAI, TabItemAI } from "./ai";
 import { TabContentCalendar, TabItemCalendar } from "./calendar";
+import { TabContentChat, TabItemChat } from "./chat";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
@@ -544,6 +545,20 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "chat") {
+    return (
+      <TabItemChat
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
+      />
+    );
+  }
   return null;
 }
 
@@ -591,6 +606,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "search") {
     return <TabContentSearch tab={tab} />;
   }
+  if (tab.type === "chat") {
+    return <TabContentChat tab={tab} />;
+  }
   return null;
 }
 
@@ -620,11 +638,11 @@ function TabChatButton({
     return null;
   }
 
-  if (chat.mode === "RightPanelOpen") {
+  if (chat.mode === "RightPanelOpen" || chat.mode === "FullTab") {
     return null;
   }
 
-  if (currentTab?.type === "ai" || currentTab?.type === "settings") {
+  if (currentTab?.type === "ai" || currentTab?.type === "settings" || currentTab?.type === "chat") {
     return null;
   }
 
@@ -973,6 +991,17 @@ function useTabsShortcuts() {
       enableOnContentEditable: true,
     },
     [newNoteAndListen],
+  );
+
+  useHotkeys(
+    "mod+shift+j",
+    () => openNew({ type: "chat" }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
   );
 
   return {};

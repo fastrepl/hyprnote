@@ -1,5 +1,6 @@
 import {
   ChevronDown,
+  Maximize2Icon,
   MessageCircle,
   PanelRightIcon,
   PictureInPicture2Icon,
@@ -24,11 +25,13 @@ export function ChatHeader({
   onNewChat,
   onSelectChat,
   handleClose,
+  onOpenInTab,
 }: {
   currentChatGroupId: string | undefined;
   onNewChat: () => void;
   onSelectChat: (chatGroupId: string) => void;
   handleClose: () => void;
+  onOpenInTab?: () => void;
 }) {
   const { chat } = useShell();
 
@@ -53,6 +56,13 @@ export function ChatHeader({
       </div>
 
       <div className="flex items-center">
+        {onOpenInTab && (
+          <ChatActionButton
+            icon={<Maximize2Icon className="w-4 h-4" />}
+            onClick={onOpenInTab}
+            title="Open in tab"
+          />
+        )}
         <ChatActionButton
           icon={
             chat.mode === "RightPanelOpen" ? (

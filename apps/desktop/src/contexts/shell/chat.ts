@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { type ActorRefFrom, createActor, fromTransition } from "xstate";
 
-export type ChatMode = "RightPanelOpen" | "FloatingClosed" | "FloatingOpen";
+export type ChatMode = "RightPanelOpen" | "FloatingClosed" | "FloatingOpen" | "FullTab";
 export type ChatEvent =
   | { type: "OPEN" }
   | { type: "CLOSE" }
   | { type: "SHIFT" }
-  | { type: "TOGGLE" };
+  | { type: "TOGGLE" }
+  | { type: "OPEN_TAB" };
 
 const chatModeLogic = fromTransition(
   (state: ChatMode, event: ChatEvent): ChatMode => {
@@ -19,10 +20,16 @@ const chatModeLogic = fromTransition(
         if (event.type === "SHIFT") {
           return "FloatingOpen";
         }
+        if (event.type === "OPEN_TAB") {
+          return "FullTab";
+        }
         return state;
       case "FloatingClosed":
         if (event.type === "OPEN" || event.type === "TOGGLE") {
           return "FloatingOpen";
+        }
+        if (event.type === "OPEN_TAB") {
+          return "FullTab";
         }
         return state;
       case "FloatingOpen":
@@ -31,6 +38,14 @@ const chatModeLogic = fromTransition(
         }
         if (event.type === "SHIFT") {
           return "RightPanelOpen";
+        }
+        if (event.type === "OPEN_TAB") {
+          return "FullTab";
+        }
+        return state;
+      case "FullTab":
+        if (event.type === "CLOSE") {
+          return "FloatingClosed";
         }
         return state;
       default:

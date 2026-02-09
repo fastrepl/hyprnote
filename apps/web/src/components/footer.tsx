@@ -1,6 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ExternalLinkIcon, MailIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
 
@@ -167,17 +169,47 @@ function ProductLinks() {
   );
 }
 
-function ResourcesLinks() {
-  const [vsIndex, setVsIndex] = useState(0);
-  const [useCaseIndex, setUseCaseIndex] = useState(0);
+function useRotatingIndex(listLength: number, interval: number) {
+  const [index, setIndex] = useState(() =>
+    Math.floor(Math.random() * listLength),
+  );
+  const [fading, setFading] = useState(false);
+  const pausedRef = useRef(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const advance = useCallback(() => {
+    if (pausedRef.current) return;
+    setFading(true);
+    timeoutRef.current = setTimeout(() => {
+      setIndex((prev) => (prev + 1) % listLength);
+      setFading(false);
+    }, 200);
+  }, [listLength]);
 
   useEffect(() => {
-    setVsIndex(Math.floor(Math.random() * vsList.length));
-    setUseCaseIndex(Math.floor(Math.random() * useCasesList.length));
+    const id = setInterval(advance, interval);
+    return () => {
+      clearInterval(id);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [advance, interval]);
+
+  const pause = useCallback(() => {
+    pausedRef.current = true;
+  }, []);
+  const resume = useCallback(() => {
+    pausedRef.current = false;
   }, []);
 
-  const currentVs = vsList[vsIndex];
-  const currentUseCase = useCasesList[useCaseIndex];
+  return { index, fading, pause, resume };
+}
+
+function ResourcesLinks() {
+  const vs = useRotatingIndex(vsList.length, 3000);
+  const useCase = useRotatingIndex(useCasesList.length, 4000);
+
+  const currentVs = vsList[vs.index];
+  const currentUseCase = useCasesList[useCase.index];
 
   return (
     <div>
@@ -237,20 +269,34 @@ function ResourcesLinks() {
             <MailIcon className="size-3" />
           </a>
         </li>
-        <li>
+        <li onMouseEnter={useCase.pause} onMouseLeave={useCase.resume}>
           <Link
             to={currentUseCase.to}
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className={cn(
+              "text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted",
+              "inline-flex items-center gap-1",
+            )}
             aria-label={`Hyprnote for ${currentUseCase.label}`}
           >
-            👍 for {currentUseCase.label}
+            👍 for{" "}
+            <span
+              className={cn(
+                "transition-opacity duration-200",
+                useCase.fading ? "opacity-0" : "opacity-100",
+              )}
+            >
+              {currentUseCase.label}
+            </span>
           </Link>
         </li>
-        <li>
+        <li onMouseEnter={vs.pause} onMouseLeave={vs.resume}>
           <Link
             to="/vs/$slug/"
             params={{ slug: currentVs.slug }}
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className={cn(
+              "text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted",
+              "inline-flex items-center gap-1",
+            )}
             aria-label={`Versus ${currentVs.name}`}
           >
             <img
@@ -260,7 +306,15 @@ function ResourcesLinks() {
               height={12}
               className="size-4 rounded border border-neutral-100 inline"
             />{" "}
-            vs {currentVs.name}
+            vs{" "}
+            <span
+              className={cn(
+                "transition-opacity duration-200",
+                vs.fading ? "opacity-0" : "opacity-100",
+              )}
+            >
+              {currentVs.name}
+            </span>
           </Link>
         </li>
       </ul>

@@ -1332,7 +1332,9 @@ function MobileFeatureVideo({
     if (!player) return;
 
     if (isActive) {
-      player.play();
+      player.play()?.catch(() => {
+        // Autoplay blocked or player not ready - fail silently
+      });
     } else {
       player.pause();
       player.currentTime = 0;

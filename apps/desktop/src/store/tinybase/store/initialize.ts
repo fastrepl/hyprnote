@@ -3,14 +3,17 @@ import { useEffect } from "react";
 import { DEFAULT_USER_ID } from "../../../utils";
 import type { Store } from "./main";
 
-export function useInitializeStore(store: Store): void {
+export function useInitializeStore(
+  store: Store,
+  sessionPersister: unknown,
+): void {
   useEffect(() => {
-    if (!store) {
+    if (!store || !sessionPersister) {
       return;
     }
 
     initializeStore(store);
-  }, [store]);
+  }, [store, sessionPersister]);
 }
 function initializeStore(store: Store): void {
   store.transaction(() => {

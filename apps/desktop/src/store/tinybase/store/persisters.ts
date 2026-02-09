@@ -70,7 +70,11 @@ export function useMainPersisters(store: Store) {
     calendarPersister,
   ]);
 
-  useInitializeStore(store, sessionPersister);
+  useInitializeStore(store, {
+    session: sessionPersister,
+    human: humanPersister,
+    values: valuesPersister,
+  });
 
   return {
     valuesPersister,

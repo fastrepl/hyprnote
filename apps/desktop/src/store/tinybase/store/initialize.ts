@@ -5,15 +5,17 @@ import type { Store } from "./main";
 
 export function useInitializeStore(
   store: Store,
-  sessionPersister: unknown,
+  persisters: { session: unknown; human: unknown; values: unknown },
 ): void {
+  const { session, human, values } = persisters;
+
   useEffect(() => {
-    if (!store || !sessionPersister) {
+    if (!store || !session || !human || !values) {
       return;
     }
 
     initializeStore(store);
-  }, [store, sessionPersister]);
+  }, [store, session, human, values]);
 }
 function initializeStore(store: Store): void {
   store.transaction(() => {

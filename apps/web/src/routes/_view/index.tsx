@@ -37,8 +37,7 @@ const heroContent = {
     },
     {
       title: "You own your data",
-      description:
-        "Plain markdown files on your device. Works with any tool.",
+      description: "Plain markdown files on your device. Works with any tool.",
     },
     {
       title: "Just works",

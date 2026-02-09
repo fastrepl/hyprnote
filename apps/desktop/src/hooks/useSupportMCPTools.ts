@@ -1,5 +1,5 @@
 import { createMCPClient, type MCPClient } from "@ai-sdk/mcp";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 import { env } from "../env";
@@ -7,6 +7,7 @@ import { env } from "../env";
 const TIMEOUT_MS = 10_000;
 
 export function useSupportMCP(enabled: boolean) {
+  const queryClient = useQueryClient();
   const clientRef = useRef<MCPClient | null>(null);
 
   const { data, isSuccess, isError } = useQuery({
@@ -58,12 +59,14 @@ export function useSupportMCP(enabled: boolean) {
     if (!enabled) {
       clientRef.current?.close().catch(console.error);
       clientRef.current = null;
+      queryClient.removeQueries({ queryKey: ["support-mcp"] });
     }
     return () => {
       clientRef.current?.close().catch(console.error);
       clientRef.current = null;
+      queryClient.removeQueries({ queryKey: ["support-mcp"] });
     };
-  }, [enabled]);
+  }, [enabled, queryClient]);
 
   const isTimedOut = useTimedOut(enabled && !isSuccess && !isError, TIMEOUT_MS);
 

@@ -154,6 +154,7 @@ async function finishOnboarding() {
   await new Promise((resolve) => setTimeout(resolve, 100));
   await commands.setOnboardingNeeded(false).catch(console.error);
   await new Promise((resolve) => setTimeout(resolve, 100));
+  await analyticsCommands.event({ event: "onboarding_completed" });
   await windowsCommands.windowShow({ type: "main" });
   await new Promise((resolve) => setTimeout(resolve, 100));
   await windowsCommands.windowDestroy({ type: "onboarding" });

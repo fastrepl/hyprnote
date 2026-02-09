@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 hypr-analytics = { workspace = true }
+hypr-api-env = { workspace = true }
 
 async-stream = { workspace = true }
 axum = { workspace = true }

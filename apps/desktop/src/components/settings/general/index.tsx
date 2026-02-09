@@ -18,6 +18,7 @@ import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 import { StorageSettingsView } from "./storage";
 import { TimezoneSelector } from "./timezone";
+import { WeekStartSelector } from "./week-start";
 
 function useSettingsForm() {
   const value = useConfigValues([
@@ -189,6 +190,7 @@ export function SettingsApp() {
             )}
           </form.Field>
           <TimezoneSelector />
+          <WeekStartSelector />
         </div>
       </div>
 
@@ -204,7 +206,6 @@ export function SettingsApp() {
               />
             )}
           </form.Field>
-          <TimezoneSelector />
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Kbd } from "@hypr/ui/components/ui/kbd";
@@ -7,6 +7,7 @@ import { cn } from "@hypr/utils";
 
 import { useSearch } from "../../../contexts/search/ui";
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
+import { useTabs } from "../../../store/zustand/tabs";
 
 export function Search({
   hasSpace,
@@ -95,10 +96,24 @@ function ExpandedSearch({
   onFocus?: () => void;
   onBlur?: () => void;
 }) {
-  const { query, setQuery, isSearching, isIndexing, inputRef, results } =
-    useSearch();
+  const {
+    query,
+    setQuery,
+    isSearching,
+    isIndexing,
+    inputRef,
+    results,
+    selectedIndex,
+    setSelectedIndex,
+  } = useSearch();
   const [isFocused, setIsFocused] = useState(false);
   const isCmdPressed = useCmdKeyPressed();
+  const openNew = useTabs((state) => state.openNew);
+
+  const flatResults = useMemo(() => {
+    if (!results) return [];
+    return results.groups.flatMap((g) => g.results);
+  }, [results]);
 
   const showLoading = isSearching || isIndexing;
   const showShortcut = isCmdPressed && !query;
@@ -139,6 +154,63 @@ function ExpandedSearch({
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
+              if (query.trim()) {
+                setQuery("");
+                setSelectedIndex(-1);
+              } else {
+                e.currentTarget.blur();
+              }
+            }
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && query.trim()) {
+              e.preventDefault();
+              openNew({
+                type: "search",
+                state: {
+                  selectedTypes: null,
+                  initialQuery: query.trim(),
+                },
+              });
+              setQuery("");
+              e.currentTarget.blur();
+            }
+            if (e.key === "ArrowDown" && flatResults.length > 0) {
+              e.preventDefault();
+              setSelectedIndex(
+                Math.min(selectedIndex + 1, flatResults.length - 1),
+              );
+            }
+            if (e.key === "ArrowUp" && flatResults.length > 0) {
+              e.preventDefault();
+              setSelectedIndex(Math.max(selectedIndex - 1, -1));
+            }
+            if (
+              e.key === "Enter" &&
+              !e.metaKey &&
+              !e.ctrlKey &&
+              selectedIndex >= 0 &&
+              selectedIndex < flatResults.length
+            ) {
+              e.preventDefault();
+              const item = flatResults[selectedIndex];
+              if (item.type === "session") {
+                openNew({ type: "sessions", id: item.id });
+              } else if (item.type === "human") {
+                openNew({
+                  type: "contacts",
+                  state: {
+                    selectedPerson: item.id,
+                    selectedOrganization: null,
+                  },
+                });
+              } else if (item.type === "organization") {
+                openNew({
+                  type: "contacts",
+                  state: {
+                    selectedOrganization: item.id,
+                    selectedPerson: null,
+                  },
+                });
+              }
               e.currentTarget.blur();
             }
           }}

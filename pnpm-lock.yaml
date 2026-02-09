@@ -56,9 +56,6 @@ importers:
       '@octokit/auth-app':
         specifier: ^8.1.2
         version: 8.2.0
-      '@octokit/graphql':
-        specifier: ^9.0.3
-        version: 9.0.3
       '@octokit/rest':
         specifier: ^22.0.1
         version: 22.0.1
@@ -74,9 +71,6 @@ importers:
       '@sentry/bun':
         specifier: ^10.38.0
         version: 10.38.0
-      '@supabase/stripe-sync-engine':
-        specifier: ^0.45.0
-        version: 0.45.0(stripe@19.3.1(@types/node@25.2.0))
       '@supabase/supabase-js':
         specifier: ^2.93.3
         version: 2.93.3
@@ -365,8 +359,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2(@lobehub/ui@3.4.0(@types/mdast@4.0.4)(@types/react-dom@19.2.3(@types/react@19.2.10))(@types/react@19.2.10)(antd@6.1.1(date-fns@4.1.0)(luxon@3.7.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(micromark-util-types@2.0.2)(micromark@4.0.2)(motion@11.18.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(solid-js@1.9.10))(@types/react@19.2.10)(antd@6.1.1(date-fns@4.1.0)(luxon@3.7.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@openrouter/ai-sdk-provider':
-        specifier: ^1.5.4
-        version: 1.5.4(ai@6.0.67(zod@4.3.6))(zod@4.3.6)
+        specifier: ^2.1.1
+        version: 2.1.1(ai@6.0.67(zod@4.3.6))(zod@4.3.6)
       '@orama/highlight':
         specifier: ^0.1.9
         version: 0.1.9
@@ -433,9 +427,6 @@ importers:
       '@wavesurfer/react':
         specifier: ^1.0.12
         version: 1.0.12(react@19.2.4)(wavesurfer.js@7.12.1)
-      '@xstate/react':
-        specifier: ^6.0.0
-        version: 6.0.0(@types/react@19.2.10)(react@19.2.4)(xstate@5.26.0)
       '@xstate/store':
         specifier: ^3.15.0
         version: 3.15.0(react@19.2.4)(solid-js@1.9.10)
@@ -538,9 +529,6 @@ importers:
       wavesurfer.js:
         specifier: ^7.12.1
         version: 7.12.1
-      xstate:
-        specifier: ^5.26.0
-        version: 5.26.0
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -1270,6 +1258,12 @@ importers:
         version: 5.9.3
 
   packages/api-client: {}
+
+  packages/api-client2:
+    devDependencies:
+      '@hey-api/openapi-ts':
+        specifier: ^0.91.1
+        version: 0.91.1(magicast@0.5.1)(typescript@5.9.3)
 
   packages/codemirror:
     dependencies:
@@ -4617,12 +4611,12 @@ packages:
   '@open-draft/until@2.1.0':
     resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
 
-  '@openrouter/ai-sdk-provider@1.5.4':
-    resolution: {integrity: sha512-xrSQPUIH8n9zuyYZR0XK7Ba0h2KsjJcMkxnwaYfmv13pKs3sDkjPzVPPhlhzqBGddHb5cFEwJ9VFuFeDcxCDSw==}
+  '@openrouter/ai-sdk-provider@2.1.1':
+    resolution: {integrity: sha512-UypPbVnSExxmG/4Zg0usRiit3auvQVrjUXSyEhm0sZ9GQnW/d8p/bKgCk2neh1W5YyRSo7PNQvCrAEBHZnqQkQ==}
     engines: {node: '>=18'}
     peerDependencies:
-      ai: ^5.0.0
-      zod: ^3.24.1 || ^v4
+      ai: ^6.0.0
+      zod: ^3.25.0 || ^4.0.0
 
   '@openrouter/sdk@0.1.27':
     resolution: {integrity: sha512-RH//L10bSmc81q25zAZudiI4kNkLgxF2E+WU42vghp3N6TEvZ6F0jK7uT3tOxkEn91gzmMw9YVmDENy7SJsajQ==}
@@ -8794,15 +8788,6 @@ packages:
   '@xhmikosr/downloader@13.0.1':
     resolution: {integrity: sha512-mBvWew1kZJHfNQVVfVllMjUDwCGN9apPa0t4/z1zaUJ9MzpXjRL3w8fsfJKB8gHN/h4rik9HneKfDbh2fErN+w==}
     engines: {node: ^14.14.0 || >=16.0.0}
-
-  '@xstate/react@6.0.0':
-    resolution: {integrity: sha512-xXlLpFJxqLhhmecAXclBECgk+B4zYSrDTl8hTfPZBogkn82OHKbm9zJxox3Z/YXoOhAQhKFTRLMYGdlbhc6T9A==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-      xstate: ^5.20.0
-    peerDependenciesMeta:
-      xstate:
-        optional: true
 
   '@xstate/store@3.15.0':
     resolution: {integrity: sha512-1V4/5D55zvJz3inEbAH+pqrAy2xhb2d8OKC1fZcBwWmr51VpxTOCNgf9ma4fa/seUfpQPjRf9wxBSyfcTKtUbQ==}
@@ -16038,15 +16023,6 @@ packages:
       '@types/react':
         optional: true
 
-  use-isomorphic-layout-effect@1.2.1:
-    resolution: {integrity: sha512-tpZZ+EX0gaghDAiFR37hj5MgY6ZN55kLiPkJsKxBMZ6GZdOSPJXiOzPM984oPYZ5AnehYx5WQp1+ME8I/P/pRA==}
-    peerDependencies:
-      '@types/react': '*'
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-
   use-merge-value@1.2.0:
     resolution: {integrity: sha512-DXgG0kkgJN45TcyoXL49vJnn55LehnrmoHc7MbKi+QDBvr8dsesqws8UlyIWGHMR+JXgxc1nvY+jDGMlycsUcw==}
     peerDependencies:
@@ -16596,9 +16572,6 @@ packages:
     resolution: {integrity: sha512-FVdlVVC67WOIPvfOwhoMETV72f6GbW7aOabBC3WxN/oUdoEMDyLz4OgRv5/gck2ZeNqEQu+Tb0kloovXOfpYVg==}
     engines: {node: '>= 0.10.0'}
     hasBin: true
-
-  xstate@5.26.0:
-    resolution: {integrity: sha512-Fvi9VBoqHgsGYLU2NTag8xDTWtKqUC0+ue7EAhBNBb06wf620QEy05upBaEI1VLMzIn63zugLV8nHb69ZUWYAA==}
 
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
@@ -20080,9 +20053,8 @@ snapshots:
 
   '@open-draft/until@2.1.0': {}
 
-  '@openrouter/ai-sdk-provider@1.5.4(ai@6.0.67(zod@4.3.6))(zod@4.3.6)':
+  '@openrouter/ai-sdk-provider@2.1.1(ai@6.0.67(zod@4.3.6))(zod@4.3.6)':
     dependencies:
-      '@openrouter/sdk': 0.1.27
       ai: 6.0.67(zod@4.3.6)
       zod: 4.3.6
 
@@ -24953,16 +24925,6 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - react-native-b4a
-
-  '@xstate/react@6.0.0(@types/react@19.2.10)(react@19.2.4)(xstate@5.26.0)':
-    dependencies:
-      react: 19.2.4
-      use-isomorphic-layout-effect: 1.2.1(@types/react@19.2.10)(react@19.2.4)
-      use-sync-external-store: 1.6.0(react@19.2.4)
-    optionalDependencies:
-      xstate: 5.26.0
-    transitivePeerDependencies:
-      - '@types/react'
 
   '@xstate/store@3.15.0(react@19.2.4)(solid-js@1.9.10)':
     optionalDependencies:
@@ -33811,12 +33773,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.10
 
-  use-isomorphic-layout-effect@1.2.1(@types/react@19.2.10)(react@19.2.4):
-    dependencies:
-      react: 19.2.4
-    optionalDependencies:
-      '@types/react': 19.2.10
-
   use-merge-value@1.2.0(react@19.2.4):
     dependencies:
       react: 19.2.4
@@ -34545,8 +34501,6 @@ snapshots:
     dependencies:
       commander: 2.20.3
       cssfilter: 0.0.10
-
-  xstate@5.26.0: {}
 
   xtend@4.0.2: {}
 

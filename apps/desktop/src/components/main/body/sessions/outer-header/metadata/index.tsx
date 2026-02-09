@@ -14,8 +14,10 @@ import {
   safeFormat,
   safeParseDate,
   startOfDay,
+  TZDate,
 } from "@hypr/utils";
 
+import { useConfigValue } from "../../../../../../config/use-config";
 import { useEvent, useSession } from "../../../../../../hooks/tinybase";
 import * as main from "../../../../../../store/tinybase/store/main";
 import { DateDisplay } from "./date";
@@ -73,7 +75,7 @@ const TriggerInner = forwardRef<
       {hasEvent && event?.meetingLink ? (
         <VideoIcon size={14} className="shrink-0" />
       ) : (
-        <CalendarIcon size={14} className="shrink-0 -mt-0.5" />
+        <CalendarIcon size={14} className="shrink-0" />
       )}
       <span className={cn([hasEvent && "truncate"])}>{displayText}</span>
     </Button>
@@ -93,7 +95,7 @@ function ContentInner({ sessionId }: { sessionId: string }) {
   );
 }
 
-function EventDisplay({
+export function EventDisplay({
   event,
 }: {
   event: {
@@ -106,23 +108,30 @@ function EventDisplay({
     calendarId: string | undefined;
   };
 }) {
+  const tz = useConfigValue("timezone") || undefined;
+
   const handleJoinMeeting = () => {
     if (event.meetingLink) {
       void openerCommands.openUrl(event.meetingLink, null);
     }
   };
 
+  const toTz = (date: Date): Date => (tz ? new TZDate(date, tz) : date);
+
   const formatEventDateTime = () => {
     if (!event.startedAt) {
       return "";
     }
 
-    const startDate = safeParseDate(event.startedAt);
-    const endDate = event.endedAt ? safeParseDate(event.endedAt) : null;
+    const rawStart = safeParseDate(event.startedAt);
+    const rawEnd = event.endedAt ? safeParseDate(event.endedAt) : null;
 
-    if (!startDate) {
+    if (!rawStart) {
       return "";
     }
+
+    const startDate = toTz(rawStart);
+    const endDate = rawEnd ? toTz(rawEnd) : null;
 
     const startStr = safeFormat(startDate, "MMM d, yyyy h:mm a");
     if (!endDate) {
@@ -168,9 +177,10 @@ function EventDisplay({
         {event.title || "Untitled Event"}
       </div>
 
+      <div className="h-px bg-neutral-200" />
+
       {shouldShowLocation && (
         <>
-          <div className="h-px bg-neutral-200" />
           <div className="flex items-center gap-2 text-sm text-neutral-700">
             <MapPinIcon size={16} className="shrink-0 text-neutral-500" />
             <span>{event.location}</span>
@@ -180,7 +190,6 @@ function EventDisplay({
 
       {event.meetingLink && (
         <>
-          <div className="h-px bg-neutral-200" />
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-sm text-neutral-700 min-w-0">
               <VideoIcon size={16} className="shrink-0 text-neutral-500" />

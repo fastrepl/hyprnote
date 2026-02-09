@@ -1,6 +1,6 @@
-import { CalendarOffIcon } from "lucide-react";
+import { CalendarOffIcon, CheckIcon } from "lucide-react";
 
-import { Switch } from "@hypr/ui/components/ui/switch";
+import { cn } from "@hypr/utils";
 
 export interface CalendarItem {
   id: string;
@@ -64,16 +64,28 @@ function CalendarToggleRow({
   enabled: boolean;
   onToggle: (enabled: boolean) => void;
 }) {
+  const color = calendar.color ?? "#888";
+
   return (
-    <div className="flex items-center justify-between gap-3 py-1">
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        <div
-          className="size-3 rounded-full shrink-0"
-          style={{ backgroundColor: calendar.color ?? "#888" }}
-        />
-        <span className="text-sm truncate">{calendar.title}</span>
+    <button
+      type="button"
+      onClick={() => onToggle(!enabled)}
+      className="flex items-center gap-2 py-1 w-full text-left"
+    >
+      <div
+        className={cn([
+          "size-4 rounded shrink-0 flex items-center justify-center border",
+          "transition-colors duration-100",
+        ])}
+        style={
+          enabled
+            ? { backgroundColor: color, borderColor: color }
+            : { borderColor: "#d4d4d4" }
+        }
+      >
+        {enabled && <CheckIcon className="size-3 text-white" strokeWidth={3} />}
       </div>
-      <Switch checked={enabled} onCheckedChange={onToggle} />
-    </div>
+      <span className="text-sm truncate">{calendar.title}</span>
+    </button>
   );
 }

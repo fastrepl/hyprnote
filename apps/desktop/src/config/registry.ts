@@ -21,6 +21,7 @@ export type ConfigKey =
   | "current_llm_provider"
   | "current_llm_model"
   | "timezone"
+  | "week_start"
   | "notification_in_meeting_reminder";
 
 type ConfigValueType<K extends ConfigKey> =
@@ -145,6 +146,11 @@ export const CONFIG_REGISTRY = {
   timezone: {
     key: "timezone",
     default: undefined as string | undefined,
+  },
+
+  week_start: {
+    key: "week_start",
+    default: undefined as "sunday" | "monday" | undefined,
   },
 
   notification_in_meeting_reminder: {

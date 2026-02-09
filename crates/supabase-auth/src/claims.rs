@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use crate::error::Error;
 
 // https://docs.stripe.com/api/subscriptions/object#subscription_object-status
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(rename_all = "snake_case")]
 pub enum SubscriptionStatus {
     Incomplete,
@@ -16,7 +16,7 @@ pub enum SubscriptionStatus {
     Paused,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct Claims {
     pub sub: String,
     #[serde(default)]

@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-hypr-supabase-auth = { workspace = true }
+hypr-api-auth = { workspace = true }
+hypr-api-env = { workspace = true }
 
 utoipa = { workspace = true }
 

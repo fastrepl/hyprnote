@@ -19,7 +19,7 @@ import {
 } from "./listeners";
 import type { Index, SearchFilters, SearchHit } from "./types";
 import { SEARCH_SCHEMA } from "./types";
-import { normalizeQuery } from "./utils";
+import { normalizeQuery, parseQuery } from "./utils";
 
 export type {
   SearchDocument,
@@ -106,27 +106,39 @@ export function SearchEngineProvider({
       query: string,
       filters: SearchFilters | null = null,
     ): Promise<SearchHit[]> => {
-      const normalizedQuery = normalizeQuery(query);
-
-      if (normalizedQuery.length < 1) {
-        return [];
-      }
-
       if (!oramaInstance.current) {
         return [];
       }
 
+      const normalizedQuery = normalizeQuery(query);
+
       try {
         const whereClause = buildOramaFilters(filters);
 
+        if (normalizedQuery.length < 1) {
+          const searchResults = await oramaSearch(oramaInstance.current, {
+            term: "",
+            sortBy: {
+              property: "created_at",
+              order: "DESC",
+            },
+            limit: 10,
+            ...(whereClause && { where: whereClause }),
+          });
+          return searchResults.hits as SearchHit[];
+        }
+
+        const parsed = parseQuery(query);
+
         const searchResults = await oramaSearch(oramaInstance.current, {
-          term: normalizedQuery,
+          term: parsed.term,
+          exact: parsed.exact,
           boost: {
             title: 3,
             content: 1,
           },
           limit: 100,
-          tolerance: 1,
+          tolerance: parsed.exact ? 0 : 1,
           ...(whereClause && { where: whereClause }),
         });
 

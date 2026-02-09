@@ -4,6 +4,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
 import { id } from "../../../utils";
 import { listenerStore } from "../listener/instance";
+import type { ChatModeState } from "./chat-mode";
 import type { LifecycleState } from "./lifecycle";
 import type { NavigationState, TabHistory } from "./navigation";
 import { pushHistory } from "./navigation";
@@ -37,7 +38,8 @@ export const createBasicSlice = <
     NavigationState &
     LifecycleState &
     RecentlyOpenedState &
-    RecentlyOpenedActions,
+    RecentlyOpenedActions &
+    ChatModeState,
 >(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
@@ -132,6 +134,8 @@ export const createBasicSlice = <
       return;
     }
 
+    const shouldResetChatMode =
+      tabToClose.type === "chat" && get().chatMode === "FullTab";
     const remainingTabs = tabs.filter((t) => !isSameTab(t, tab));
 
     if (remainingTabs.length === 0) {
@@ -141,6 +145,7 @@ export const createBasicSlice = <
         history: new Map(),
         canGoBack: false,
         canGoNext: false,
+        ...(shouldResetChatMode ? { chatMode: "FloatingClosed" as const } : {}),
       } as unknown as Partial<T>);
       return;
     }
@@ -160,6 +165,7 @@ export const createBasicSlice = <
       tabs: nextTabs,
       currentTab: nextCurrentTab,
       history: nextHistory,
+      ...(shouldResetChatMode ? { chatMode: "FloatingClosed" as const } : {}),
     } as Partial<T>);
   },
   reorder: (tabs) => {
@@ -173,6 +179,11 @@ export const createBasicSlice = <
     if (!tabToKeep) {
       return;
     }
+
+    const isRemovingChatTab =
+      tabToKeep.type !== "chat" && tabs.some((t) => t.type === "chat");
+    const shouldResetChatMode =
+      isRemovingChatTab && get().chatMode === "FullTab";
 
     const nextHistory = new Map(history);
     const tabWithActiveFlag = { ...tabToKeep, active: true };
@@ -188,15 +199,18 @@ export const createBasicSlice = <
       tabs: nextTabs,
       currentTab: tabWithActiveFlag,
       history: nextHistory,
+      ...(shouldResetChatMode ? { chatMode: "FloatingClosed" as const } : {}),
     } as Partial<T>);
   },
   closeAll: () => {
+    const shouldResetChatMode = get().chatMode === "FullTab";
     set({
       tabs: [],
       currentTab: null,
       history: new Map(),
       canGoBack: false,
       canGoNext: false,
+      ...(shouldResetChatMode ? { chatMode: "FloatingClosed" as const } : {}),
     } as unknown as Partial<T>);
   },
   pin: (tab) => {

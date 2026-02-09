@@ -152,25 +152,56 @@ function useTranscriptSearchHighlights(word: SegmentWord) {
   return { segments, isActive };
 }
 
-function createSegments(text: string, query: string): HighlightSegment[] {
+function createSegments(rawText: string, query: string): HighlightSegment[] {
+  const text = rawText.normalize("NFC");
   const lowerText = text.toLowerCase();
-  const lowerQuery = query.toLowerCase();
-  const segments: HighlightSegment[] = [];
 
-  let cursor = 0;
-  let index = lowerText.indexOf(lowerQuery, cursor);
+  // Tokenize query to handle multi-word searches
+  const tokens = query
+    .normalize("NFC")
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (tokens.length === 0) return [{ text, isMatch: false }];
 
-  while (index !== -1) {
-    if (index > cursor) {
-      segments.push({ text: text.slice(cursor, index), isMatch: false });
+  // Collect all match ranges from all tokens
+  const ranges: { start: number; end: number }[] = [];
+  for (const token of tokens) {
+    let cursor = 0;
+    let index = lowerText.indexOf(token, cursor);
+    while (index !== -1) {
+      ranges.push({ start: index, end: index + token.length });
+      cursor = index + 1;
+      index = lowerText.indexOf(token, cursor);
     }
-
-    const end = index + query.length;
-    segments.push({ text: text.slice(index, end), isMatch: true });
-    cursor = end;
-    index = lowerText.indexOf(lowerQuery, cursor);
   }
 
+  if (ranges.length === 0) {
+    return [{ text, isMatch: false }];
+  }
+
+  // Sort and merge overlapping ranges
+  ranges.sort((a, b) => a.start - b.start);
+  const merged: { start: number; end: number }[] = [{ ...ranges[0] }];
+  for (let i = 1; i < ranges.length; i++) {
+    const last = merged[merged.length - 1];
+    if (ranges[i].start <= last.end) {
+      last.end = Math.max(last.end, ranges[i].end);
+    } else {
+      merged.push({ ...ranges[i] });
+    }
+  }
+
+  // Build segments
+  const segments: HighlightSegment[] = [];
+  let cursor = 0;
+  for (const range of merged) {
+    if (range.start > cursor) {
+      segments.push({ text: text.slice(cursor, range.start), isMatch: false });
+    }
+    segments.push({ text: text.slice(range.start, range.end), isMatch: true });
+    cursor = range.end;
+  }
   if (cursor < text.length) {
     segments.push({ text: text.slice(cursor), isMatch: false });
   }

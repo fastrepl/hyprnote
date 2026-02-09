@@ -38,6 +38,7 @@ export const eventSchema = z.object({
     (val) => val ?? undefined,
     z.boolean().optional(),
   ),
+  is_all_day: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
 });
 
 export const calendarProviderSchema = z.enum(["apple", "google", "outlook"]);
@@ -100,6 +101,24 @@ export const mappingTagSessionSchema = z.object({
   user_id: z.string(),
   tag_id: z.string(),
   session_id: z.string(),
+});
+
+export const mentionTargetTypeSchema = z.enum([
+  "session",
+  "human",
+  "organization",
+]);
+export type MentionTargetType = z.infer<typeof mentionTargetTypeSchema>;
+
+export const mentionSourceTypeSchema = z.enum(["session", "enhanced_note"]);
+export type MentionSourceType = z.infer<typeof mentionSourceTypeSchema>;
+
+export const mappingMentionSchema = z.object({
+  user_id: z.string(),
+  source_id: z.string(),
+  source_type: mentionSourceTypeSchema,
+  target_id: z.string(),
+  target_type: mentionTargetTypeSchema,
 });
 
 export const templateSectionSchema = z.object({
@@ -198,6 +217,7 @@ export const generalSchema = z.object({
   current_stt_provider: z.string().optional(),
   current_stt_model: z.string().optional(),
   timezone: z.string().optional(),
+  week_start: z.string().optional(),
 });
 
 export const aiProviderSchema = z
@@ -232,6 +252,7 @@ export type MappingSessionParticipant = z.infer<
 >;
 export type Tag = z.infer<typeof tagSchema>;
 export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
+export type MappingMention = z.infer<typeof mappingMentionSchema>;
 export type Template = z.infer<typeof templateSchema>;
 export type TemplateSection = z.infer<typeof templateSectionSchema>;
 export type ChatGroup = z.infer<typeof chatGroupSchema>;
@@ -257,5 +278,6 @@ export type EventStorage = ToStorageType<typeof eventSchema>;
 export type MappingSessionParticipantStorage = ToStorageType<
   typeof mappingSessionParticipantSchema
 >;
+export type MappingMentionStorage = ToStorageType<typeof mappingMentionSchema>;
 export type AIProviderStorage = ToStorageType<typeof aiProviderSchema>;
 export type GeneralStorage = ToStorageType<typeof generalSchema>;

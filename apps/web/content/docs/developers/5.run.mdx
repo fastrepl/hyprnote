@@ -57,3 +57,11 @@ task stripe
 ```
 
 - `task stripe` will modify `apps/api/.env` based on the output of `stripe listen`.
+
+## Stripe Webhook Service (apps/stripe)
+
+```bash
+pnpm -F stripe dev
+```
+
+This runs the dedicated Stripe webhook handler on Bun (default port 8788). It processes Stripe webhook events for subscription and entitlement management. See [Environment Variables](/docs/developers/env) for required configuration.

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+hex = "0.4"
 reqwest = { workspace = true, features = ["json"] }
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
@@ -12,6 +13,9 @@ specta = { workspace = true, features = ["derive", "serde_json"] }
 strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 url = { workspace = true }
+
+hmac = { workspace = true }
+sha2 = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "macros"] }

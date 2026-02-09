@@ -11,7 +11,7 @@ import { exchangeOAuthCode, exchangeOtpToken } from "@/functions/auth";
 const validateSearch = z.object({
   code: z.string().optional(),
   token_hash: z.string().optional(),
-  type: z.literal("email").optional(),
+  type: z.enum(["email", "recovery"]).optional(),
   flow: z.enum(["desktop", "web"]).default("desktop"),
   scheme: z.string().default("hyprnote"),
   redirect: z.string().optional(),
@@ -30,6 +30,9 @@ export const Route = createFileRoute("/_view/callback/auth")({
       const result = await exchangeOAuthCode({ data: { code: search.code } });
 
       if (result.success) {
+        if (search.type === "recovery") {
+          throw redirect({ to: "/update-password/" });
+        }
         throw redirect({ to: search.redirect || "/app/account/" });
       } else {
         console.error(result.error);
@@ -55,31 +58,46 @@ export const Route = createFileRoute("/_view/callback/auth")({
     }
 
     if (search.token_hash && search.type) {
-      const result = await exchangeOtpToken({
-        data: {
-          token_hash: search.token_hash,
-          type: search.type,
-        },
-      });
+      if (search.type === "recovery") {
+        const result = await exchangeOtpToken({
+          data: {
+            token_hash: search.token_hash,
+            type: search.type,
+          },
+        });
 
-      if (result.success) {
-        if (search.flow === "web") {
-          throw redirect({ to: search.redirect || "/app/account/" });
-        }
-
-        if (search.flow === "desktop") {
-          throw redirect({
-            to: "/callback/auth/",
-            search: {
-              flow: "desktop",
-              scheme: search.scheme,
-              access_token: result.access_token,
-              refresh_token: result.refresh_token,
-            },
-          });
+        if (result.success) {
+          throw redirect({ to: "/update-password/" });
+        } else {
+          console.error(result.error);
         }
       } else {
-        console.error(result.error);
+        const result = await exchangeOtpToken({
+          data: {
+            token_hash: search.token_hash,
+            type: search.type,
+          },
+        });
+
+        if (result.success) {
+          if (search.flow === "web") {
+            throw redirect({ to: search.redirect || "/app/account/" });
+          }
+
+          if (search.flow === "desktop") {
+            throw redirect({
+              to: "/callback/auth/",
+              search: {
+                flow: "desktop",
+                scheme: search.scheme,
+                access_token: result.access_token,
+                refresh_token: result.refresh_token,
+              },
+            });
+          }
+        } else {
+          console.error(result.error);
+        }
       }
     }
   },

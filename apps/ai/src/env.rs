@@ -7,23 +7,25 @@ fn default_port() -> u16 {
     3001
 }
 
-fn filter_empty<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: Option<String> = Option::deserialize(deserializer)?;
-    Ok(s.filter(|s| !s.is_empty()))
-}
-
 #[derive(Deserialize)]
 pub struct Env {
     #[serde(default = "default_port")]
     pub port: u16,
-    #[serde(default, deserialize_with = "filter_empty")]
+    #[serde(default, deserialize_with = "hypr_api_env::filter_empty")]
     pub sentry_dsn: Option<String>,
-    #[serde(default, deserialize_with = "filter_empty")]
+    #[serde(default, deserialize_with = "hypr_api_env::filter_empty")]
     pub posthog_api_key: Option<String>,
-    pub supabase_url: String,
+
+    #[serde(flatten)]
+    pub supabase: hypr_api_env::SupabaseEnv,
+    #[serde(flatten)]
+    pub nango: hypr_api_env::NangoEnv,
+    #[serde(flatten)]
+    pub stripe: hypr_api_subscription::StripeEnv,
+    #[serde(flatten)]
+    pub github_app: hypr_api_support::GitHubAppEnv,
+    #[serde(flatten)]
+    pub supabase_db: hypr_api_support::SupabaseDbEnv,
 
     #[serde(flatten)]
     pub llm: hypr_llm_proxy::Env,
@@ -35,7 +37,14 @@ static ENV: OnceLock<Env> = OnceLock::new();
 
 pub fn env() -> &'static Env {
     ENV.get_or_init(|| {
-        let _ = dotenvy::from_path(Path::new(env!("CARGO_MANIFEST_DIR")).join(".env"));
+        let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let repo_root = manifest_dir
+            .parent()
+            .and_then(|p| p.parent())
+            .unwrap_or(manifest_dir);
+
+        let _ = dotenvy::from_path(repo_root.join(".env.supabase"));
+        let _ = dotenvy::from_path(manifest_dir.join(".env"));
         envy::from_env().expect("Failed to load environment")
     })
 }

@@ -1,10 +1,14 @@
 import { MDXContent } from "@content-collections/mdx/react";
+import { Link } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
+import { useMemo } from "react";
 
 import { cn } from "@hypr/utils";
 
 import { SidebarDownloadCard } from "@/components/cta-card";
 import { defaultMDXComponents } from "@/components/mdx";
+
+import { docsStructure } from "./-structure";
 
 export function DocLayout({
   doc,
@@ -18,6 +22,7 @@ export function DocLayout({
       <main className="flex-1 min-w-0 px-4 py-6">
         <ArticleHeader doc={doc} showSectionTitle={showSectionTitle} />
         <ArticleContent doc={doc} />
+        <PageNavigation currentSlug={doc.slug} />
       </main>
 
       <RightSidebar toc={doc.toc} />
@@ -93,6 +98,71 @@ function ArticleContent({ doc }: { doc: any }) {
     <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-xs prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-xs prose-img:my-8 max-w-none">
       <MDXContent code={doc.mdx} components={defaultMDXComponents} />
     </article>
+  );
+}
+
+function PageNavigation({ currentSlug }: { currentSlug: string }) {
+  const { prev, next } = useMemo(() => {
+    const orderedPages = docsStructure.sections.flatMap((sectionId) => {
+      return allDocs
+        .filter(
+          (doc) =>
+            doc.section.toLowerCase() === sectionId.toLowerCase() &&
+            !doc.isIndex,
+        )
+        .sort((a, b) => a.order - b.order);
+    });
+
+    const currentIndex = orderedPages.findIndex(
+      (doc) => doc.slug === currentSlug,
+    );
+
+    return {
+      prev: currentIndex > 0 ? orderedPages[currentIndex - 1] : null,
+      next:
+        currentIndex < orderedPages.length - 1
+          ? orderedPages[currentIndex + 1]
+          : null,
+    };
+  }, [currentSlug]);
+
+  if (!prev && !next) return null;
+
+  return (
+    <nav className="mt-12 border-t border-neutral-200 pt-6 flex items-center justify-between gap-4">
+      {prev ? (
+        <Link
+          to="/docs/$/"
+          params={{ _splat: prev.slug }}
+          className="group flex flex-col items-start gap-1 text-sm"
+        >
+          <span className="text-neutral-400 group-hover:text-neutral-500 transition-colors">
+            Previous
+          </span>
+          <span className="text-stone-600 group-hover:text-stone-800 transition-colors font-medium">
+            {prev.title}
+          </span>
+        </Link>
+      ) : (
+        <div />
+      )}
+      {next ? (
+        <Link
+          to="/docs/$/"
+          params={{ _splat: next.slug }}
+          className="group flex flex-col items-end gap-1 text-sm text-right"
+        >
+          <span className="text-neutral-400 group-hover:text-neutral-500 transition-colors">
+            Next
+          </span>
+          <span className="text-stone-600 group-hover:text-stone-800 transition-colors font-medium">
+            {next.title}
+          </span>
+        </Link>
+      ) : (
+        <div />
+      )}
+    </nav>
   );
 }
 

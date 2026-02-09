@@ -10,7 +10,6 @@ export function useChatMode() {
   const transitionChatMode = useTabs((state) => state.transitionChatMode);
 
   const [groupId, setGroupId] = useState<string | undefined>(undefined);
-  const [draftMessage, setDraftMessage] = useState<any>(undefined);
 
   useHotkeys(
     "mod+j",
@@ -28,7 +27,5 @@ export function useChatMode() {
     sendEvent: transitionChatMode,
     groupId,
     setGroupId,
-    draftMessage,
-    setDraftMessage,
   };
 }

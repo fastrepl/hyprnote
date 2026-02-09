@@ -25,6 +25,7 @@ interface ChatEditorProps {
   editable?: boolean;
   placeholderComponent?: PlaceholderFunction;
   slashCommandConfig?: SlashCommandConfig;
+  onUpdate?: (json: JSONContent) => void;
 }
 
 const ChatEditor = forwardRef<{ editor: TiptapEditor | null }, ChatEditorProps>(
@@ -34,23 +35,29 @@ const ChatEditor = forwardRef<{ editor: TiptapEditor | null }, ChatEditorProps>(
       editable = true,
       placeholderComponent,
       slashCommandConfig,
+      onUpdate,
     },
     ref,
   ) => {
     const previousContentRef = useRef<JSONContent>(initialContent);
+    const slashCommandConfigRef = useRef(slashCommandConfig);
+    slashCommandConfigRef.current = slashCommandConfig;
+    const onUpdateRef = useRef(onUpdate);
+    onUpdateRef.current = onUpdate;
 
     const mentionConfigs = useMemo(() => {
       const configs: MentionConfig[] = [];
 
-      if (slashCommandConfig) {
+      if (slashCommandConfigRef.current) {
         configs.push({
           trigger: "/",
-          handleSearch: slashCommandConfig.handleSearch,
+          handleSearch: (query) =>
+            slashCommandConfigRef.current!.handleSearch(query),
         });
       }
 
       return configs;
-    }, [slashCommandConfig]);
+    }, []);
 
     const extensions = useMemo(
       () => [
@@ -72,6 +79,9 @@ const ChatEditor = forwardRef<{ editor: TiptapEditor | null }, ChatEditorProps>(
           editor.view.dom.setAttribute("autocomplete", "off");
           editor.view.dom.setAttribute("autocorrect", "off");
           editor.view.dom.setAttribute("autocapitalize", "off");
+        },
+        onUpdate: ({ editor }) => {
+          onUpdateRef.current?.(editor.getJSON());
         },
         immediatelyRender: false,
         shouldRerenderOnTransaction: false,

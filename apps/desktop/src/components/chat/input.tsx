@@ -8,7 +8,11 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import type { SlashCommandConfig, TiptapEditor } from "@hypr/tiptap/chat";
+import type {
+  JSONContent,
+  SlashCommandConfig,
+  TiptapEditor,
+} from "@hypr/tiptap/chat";
 import ChatEditor from "@hypr/tiptap/chat";
 import {
   EMPTY_TIPTAP_DOC,
@@ -25,6 +29,8 @@ import { cn } from "@hypr/utils";
 import { useShell } from "../../contexts/shell";
 import * as main from "../../store/tinybase/store/main";
 
+let _draft: JSONContent | undefined;
+
 export function ChatMessageInput({
   onSendMessage,
   disabled: disabledProp,
@@ -40,7 +46,7 @@ export function ChatMessageInput({
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const [hasContent, setHasContent] = useState(false);
-  const { chat } = useShell();
+  const initialContent = useRef(_draft ?? EMPTY_TIPTAP_DOC);
   const chatShortcuts = main.UI.useResultTable(
     main.QUERIES.visibleChatShortcuts,
     main.STORE_ID,
@@ -64,8 +70,8 @@ export function ChatMessageInput({
     void analyticsCommands.event({ event: "message_sent" });
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
-    chat.setDraftMessage(undefined);
-  }, [disabled, onSendMessage, chat]);
+    _draft = undefined;
+  }, [disabled, onSendMessage]);
 
   useEffect(() => {
     const editor = editorRef.current?.editor;
@@ -78,36 +84,11 @@ export function ChatMessageInput({
     }
   }, [disabled]);
 
-  useEffect(() => {
-    let updateHandler: (() => void) | null = null;
-    const checkEditor = setInterval(() => {
-      const editor = editorRef.current?.editor;
-      if (editor && !editor.isDestroyed && editor.isInitialized) {
-        clearInterval(checkEditor);
-
-        if (chat.draftMessage) {
-          editor.commands.setContent(chat.draftMessage);
-        }
-
-        updateHandler = () => {
-          const json = editor.getJSON();
-          const text = tiptapJsonToText(json).trim();
-          setHasContent(text.length > 0);
-          chat.setDraftMessage(json);
-        };
-
-        editor.on("update", updateHandler);
-      }
-    }, 100);
-
-    return () => {
-      clearInterval(checkEditor);
-      const editor = editorRef.current?.editor;
-      if (editor && updateHandler) {
-        editor.off("update", updateHandler);
-      }
-    };
-  }, [chat]);
+  const handleEditorUpdate = useCallback((json: JSONContent) => {
+    const text = tiptapJsonToText(json).trim();
+    setHasContent(text.length > 0);
+    _draft = json;
+  }, []);
 
   const handleAttachFile = useCallback(() => {}, []);
 
@@ -169,9 +150,10 @@ export function ChatMessageInput({
           <ChatEditor
             ref={editorRef}
             editable={!disabled}
-            initialContent={EMPTY_TIPTAP_DOC}
+            initialContent={initialContent.current}
             placeholderComponent={ChatPlaceholder}
             slashCommandConfig={slashCommandConfig}
+            onUpdate={handleEditorUpdate}
           />
         </div>
 

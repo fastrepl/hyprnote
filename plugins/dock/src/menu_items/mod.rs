@@ -23,7 +23,8 @@ macro_rules! dock_menu_items {
                 {
                     let title = NSString::from_str(<$item as DockMenuItem>::TITLE);
                     let key_equivalent = NSString::from_str("");
-                    let sel = objc2::runtime::Sel::register(concat!(stringify!($variant), ":"));
+                    let sel_name = std::ffi::CString::new(concat!(stringify!($variant), ":")).unwrap();
+                    let sel = objc2::runtime::Sel::register(&sel_name);
                     let item = unsafe {
                         NSMenuItem::initWithTitle_action_keyEquivalent(
                             NSMenuItem::alloc(mtm),
@@ -55,8 +56,9 @@ macro_rules! dock_menu_items {
                         }
                     }
 
-                    let sel = objc2::runtime::Sel::register(concat!(stringify!($variant), ":"));
-                    let imp: objc2::runtime::Imp= unsafe { std::mem::transmute(handler as *const ()) };
+                    let sel_name = std::ffi::CString::new(concat!(stringify!($variant), ":")).unwrap();
+                    let sel = objc2::runtime::Sel::register(&sel_name);
+                    let imp: objc2::runtime::Imp = unsafe { std::mem::transmute(handler as *const ()) };
                     let types = c"v@:@";
 
                     unsafe {

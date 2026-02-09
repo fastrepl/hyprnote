@@ -117,7 +117,7 @@ function PageNavigation({ currentSlug }: { currentSlug: string }) {
     return {
       prev: currentIndex > 0 ? orderedPages[currentIndex - 1] : null,
       next:
-        currentIndex < orderedPages.length - 1
+        currentIndex >= 0 && currentIndex < orderedPages.length - 1
           ? orderedPages[currentIndex + 1]
           : null,
     };

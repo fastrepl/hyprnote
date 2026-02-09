@@ -126,10 +126,17 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   }, [openNew, closeMenu]);
 
   const handleClickHelp = useCallback(() => {
-    openNew({
-      type: "chat",
-      state: { groupId: null, initialMessage: "I need help.", chatType: null },
-    });
+    const state = {
+      groupId: null,
+      initialMessage: "I need help.",
+      chatType: "support" as const,
+    };
+    openNew({ type: "chat", state });
+    const { tabs, updateChatTabState } = useTabs.getState();
+    const existingChatTab = tabs.find((t) => t.type === "chat");
+    if (existingChatTab) {
+      updateChatTabState(existingChatTab, state);
+    }
     transitionChatMode({ type: "OPEN_TAB" });
     closeMenu();
   }, [openNew, transitionChatMode, closeMenu]);

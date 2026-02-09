@@ -90,6 +90,13 @@ const useNavigationEvents = () => {
         } else {
           openNew(payload.tab);
           if (payload.tab.type === "chat") {
+            if (payload.tab.state) {
+              const { tabs, updateChatTabState } = useTabs.getState();
+              const chatTab = tabs.find((t) => t.type === "chat");
+              if (chatTab) {
+                updateChatTabState(chatTab, payload.tab.state);
+              }
+            }
             transitionChatMode({ type: "OPEN_TAB" });
           }
         }

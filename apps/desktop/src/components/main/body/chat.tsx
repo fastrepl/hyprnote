@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { Loader2, MessageCircle } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
 import type { HyprUIMessage } from "../../../chat/types";
@@ -167,6 +167,7 @@ function ChatTabContent({
   mcpReady: boolean;
 }) {
   const sentRef = useRef(false);
+  const waitingForMcp = !!tab.state.initialMessage && !mcpReady;
 
   useEffect(() => {
     const initialMessage = tab.state.initialMessage;
@@ -199,6 +200,17 @@ function ChatTabContent({
     sendMessage,
     updateChatTabState,
   ]);
+
+  if (waitingForMcp) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center gap-2 text-sm text-neutral-500">
+          <Loader2 className="size-4 animate-spin" />
+          <span>Preparing support chat...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

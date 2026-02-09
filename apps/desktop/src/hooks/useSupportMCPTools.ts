@@ -1,17 +1,19 @@
 import { createMCPClient, type MCPClient } from "@ai-sdk/mcp";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { env } from "../env";
+
+const TIMEOUT_MS = 10_000;
 
 export function useSupportMCP(enabled: boolean) {
   const clientRef = useRef<MCPClient | null>(null);
 
-  const { data, isSuccess } = useQuery({
+  const { data, isSuccess, isError } = useQuery({
     enabled,
     queryKey: ["support-mcp"],
     staleTime: Infinity,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const mcpUrl = new URL("/support/mcp", env.VITE_AI_URL).toString();
 
       const client = await createMCPClient({
@@ -19,6 +21,12 @@ export function useSupportMCP(enabled: boolean) {
         name: "hyprnote-support-client",
       });
 
+      if (signal.aborted) {
+        await client.close().catch(console.error);
+        throw new DOMException("Aborted", "AbortError");
+      }
+
+      clientRef.current?.close().catch(console.error);
       clientRef.current = client;
 
       const [tools, prompt] = await Promise.all([
@@ -47,15 +55,36 @@ export function useSupportMCP(enabled: boolean) {
   });
 
   useEffect(() => {
+    if (!enabled) {
+      clientRef.current?.close().catch(console.error);
+      clientRef.current = null;
+    }
     return () => {
       clientRef.current?.close().catch(console.error);
       clientRef.current = null;
     };
-  }, []);
+  }, [enabled]);
+
+  const isTimedOut = useTimedOut(enabled && !isSuccess && !isError, TIMEOUT_MS);
 
   return {
     tools: data?.tools ?? {},
     systemPrompt: data?.systemPrompt,
-    isReady: enabled ? isSuccess : true,
+    isReady: enabled ? isSuccess || isError || isTimedOut : true,
   };
+}
+
+function useTimedOut(active: boolean, ms: number): boolean {
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (!active) {
+      setTimedOut(false);
+      return;
+    }
+    const id = setTimeout(() => setTimedOut(true), ms);
+    return () => clearTimeout(id);
+  }, [active, ms]);
+
+  return timedOut;
 }

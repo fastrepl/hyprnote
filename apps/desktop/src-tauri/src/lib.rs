@@ -103,6 +103,7 @@ pub async fn main() {
         .plugin(tauri_plugin_template::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_detect::init())
+        .plugin(tauri_plugin_dock::init())
         .plugin(tauri_plugin_extensions::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_notify::init())

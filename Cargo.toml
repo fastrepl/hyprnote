@@ -144,6 +144,7 @@ tauri-plugin-bedrock = { path = "plugins/bedrock" }
 tauri-plugin-db2 = { path = "plugins/db2" }
 tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }
 tauri-plugin-detect = { path = "plugins/detect" }
+tauri-plugin-dock = { path = "plugins/dock" }
 tauri-plugin-extensions = { path = "plugins/extensions" }
 tauri-plugin-flag = { path = "plugins/flag" }
 tauri-plugin-fs-db = { path = "plugins/fs-db" }

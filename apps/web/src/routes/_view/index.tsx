@@ -1577,13 +1577,14 @@ function TemplatesMobileView() {
           <p className="text-sm text-neutral-600 mb-4">
             {category.description}
           </p>
-          <div className="flex flex-wrap gap-2">
-            {category.templates.map((template) => (
+          <div className="text-left">
+            {category.templates.map((template, i) => (
               <span
                 key={template}
                 className="text-[11px] font-mono text-stone-400"
               >
                 {template}
+                {i < category.templates.length - 1 ? ", " : ""}
               </span>
             ))}
           </div>
@@ -1614,13 +1615,14 @@ function TemplatesDesktopView() {
           <p className="text-sm text-neutral-600 mb-4">
             {category.description}
           </p>
-          <div className="flex flex-wrap gap-2">
-            {category.templates.map((template) => (
+          <div className="text-left">
+            {category.templates.map((template, i) => (
               <span
                 key={template}
                 className="text-[11px] font-mono text-stone-400"
               >
                 {template}
+                {i < category.templates.length - 1 ? ", " : ""}
               </span>
             ))}
           </div>

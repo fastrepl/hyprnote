@@ -16,6 +16,7 @@ hypr-transcribe-proxy = { workspace = true }
 owhisper-client = { workspace = true }
 
 axum = { workspace = true, features = ["ws"] }
+rustls = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "signal"] }
 tower-http = { workspace = true, features = ["trace", "cors"] }
 tracing = { workspace = true }

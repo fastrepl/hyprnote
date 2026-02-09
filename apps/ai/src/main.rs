@@ -46,7 +46,7 @@ async fn app() -> Router {
     let subscription_config =
         hypr_api_subscription::SubscriptionConfig::new(&env.supabase, &env.stripe);
     let support_config =
-        hypr_api_support::SupportConfig::new(&env.github_app, &env.llm, &env.supabase_db);
+        hypr_api_support::SupportConfig::new(&env.github_app, &env.llm, &env.support_database);
 
     let webhook_routes = Router::new().nest(
         "/nango",
@@ -77,11 +77,22 @@ async fn app() -> Router {
             auth::require_auth,
         ));
 
+    let support_llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env.llm)
+        .with_models_default(vec![
+            "openai/gpt-oss-120b".into(),
+            "moonshotai/kimi-k2-0905".into(),
+        ])
+        .with_models_tool_calling(vec![
+            "anthropic/claude-haiku-4.5".into(),
+            "moonshotai/kimi-k2-0905:exacto".into(),
+        ]);
+
     Router::new()
         .route("/health", axum::routing::get(|| async { "ok" }))
         .route("/v", axum::routing::get(version))
         .route("/openapi.json", axum::routing::get(openapi_json))
         .nest("/support", hypr_api_support::router(support_config).await)
+        .nest("/support/llm", hypr_llm_proxy::router(support_llm_config))
         .merge(webhook_routes)
         .merge(pro_routes)
         .merge(auth_routes)
@@ -177,6 +188,10 @@ async fn app() -> Router {
 }
 
 fn main() -> std::io::Result<()> {
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .expect("failed to install rustls crypto provider");
+
     let _ = openapi::write_openapi_json();
 
     let env = env();

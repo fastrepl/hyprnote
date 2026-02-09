@@ -1,22 +1,22 @@
-use crate::env::{GitHubAppEnv, OpenRouterEnv, SupabaseDbEnv};
+use crate::env::{GitHubAppEnv, OpenRouterEnv, SupportDatabaseEnv};
 
 #[derive(Clone)]
 pub struct SupportConfig {
     pub github: GitHubAppEnv,
     pub openrouter: OpenRouterEnv,
-    pub supabase_db: SupabaseDbEnv,
+    pub support_database: SupportDatabaseEnv,
 }
 
 impl SupportConfig {
     pub fn new(
         github: &GitHubAppEnv,
         openrouter: &OpenRouterEnv,
-        supabase_db: &SupabaseDbEnv,
+        support_database: &SupportDatabaseEnv,
     ) -> Self {
         Self {
             github: github.clone(),
             openrouter: openrouter.clone(),
-            supabase_db: supabase_db.clone(),
+            support_database: support_database.clone(),
         }
     }
 }

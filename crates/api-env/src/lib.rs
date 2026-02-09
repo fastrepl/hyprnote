@@ -8,6 +8,14 @@ where
     Ok(s.filter(|s| !s.is_empty()))
 }
 
+pub fn string_to_u64<'de, D>(deserializer: D) -> Result<u64, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    s.parse().map_err(serde::de::Error::custom)
+}
+
 #[derive(Clone, Deserialize)]
 pub struct SupabaseEnv {
     pub supabase_url: String,

@@ -261,6 +261,56 @@
           }
         ]
       }
+    },
+    "/support/submit": {
+      "post": {
+        "tags": [
+          "support"
+        ],
+        "operationId": "submit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Feedback submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -349,6 +399,29 @@
           "event": {}
         }
       },
+      "DeviceInfo": {
+        "type": "object",
+        "required": [
+          "platform",
+          "arch",
+          "osVersion",
+          "appVersion"
+        ],
+        "properties": {
+          "appVersion": {
+            "type": "string"
+          },
+          "arch": {
+            "type": "string"
+          },
+          "osVersion": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          }
+        }
+      },
       "EventAttendee": {
         "type": "object",
         "required": [
@@ -394,6 +467,61 @@
             ]
           }
         }
+      },
+      "FeedbackRequest": {
+        "type": "object",
+        "required": [
+          "type",
+          "description",
+          "deviceInfo"
+        ],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "deviceInfo": {
+            "$ref": "#/components/schemas/DeviceInfo"
+          },
+          "logs": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "$ref": "#/components/schemas/FeedbackType"
+          }
+        }
+      },
+      "FeedbackResponse": {
+        "type": "object",
+        "required": [
+          "success"
+        ],
+        "properties": {
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "issueUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FeedbackType": {
+        "type": "string",
+        "enum": [
+          "bug",
+          "feature"
+        ]
       },
       "Interval": {
         "type": "string",
@@ -563,6 +691,10 @@
     {
       "name": "llm",
       "description": "LLM chat completions proxy"
+    },
+    {
+      "name": "support",
+      "description": "User feedback and support"
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import type { ChatStatus } from "ai";
+import type { LanguageModel } from "ai";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -25,6 +26,7 @@ interface ChatSessionProps {
   sessionId: string;
   chatGroupId?: string;
   attachedSessionId?: string;
+  modelOverride?: LanguageModel;
   children: (props: {
     messages: HyprUIMessage[];
     sendMessage: (message: HyprUIMessage) => void;
@@ -39,9 +41,10 @@ export function ChatSession({
   sessionId,
   chatGroupId,
   attachedSessionId,
+  modelOverride,
   children,
 }: ChatSessionProps) {
-  const transport = useTransport(attachedSessionId);
+  const transport = useTransport(attachedSessionId, modelOverride);
   const store = main.UI.useStore(main.STORE_ID);
 
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -179,9 +182,13 @@ export function ChatSession({
   );
 }
 
-function useTransport(attachedSessionId?: string) {
+function useTransport(
+  attachedSessionId?: string,
+  modelOverride?: LanguageModel,
+) {
   const registry = useToolRegistry();
-  const model = useLanguageModel();
+  const configuredModel = useLanguageModel();
+  const model = modelOverride ?? configuredModel;
   const store = main.UI.useStore(main.STORE_ID);
   const language = main.UI.useValue("ai_language", main.STORE_ID) ?? "en";
   const [systemPrompt, setSystemPrompt] = useState<string | undefined>();

@@ -25,7 +25,7 @@ pub struct Env {
     #[serde(flatten)]
     pub github_app: hypr_api_support::GitHubAppEnv,
     #[serde(flatten)]
-    pub supabase_db: hypr_api_support::SupabaseDbEnv,
+    pub support_database: hypr_api_support::SupportDatabaseEnv,
 
     #[serde(flatten)]
     pub llm: hypr_llm_proxy::Env,

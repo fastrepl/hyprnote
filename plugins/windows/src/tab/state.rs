@@ -98,5 +98,6 @@ crate::common_derives! {
     #[derive(Default)]
     pub struct ChatState {
         pub group_id: Option<String>,
+        pub initial_message: Option<String>,
     }
 }

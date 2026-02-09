@@ -199,6 +199,18 @@ const resolveLLMConnection = (params: {
   };
 };
 
+export const useFeedbackLanguageModel = (): LanguageModelV3 => {
+  return useMemo(() => {
+    const baseUrl = new URL("/support/llm", env.VITE_AI_URL).toString();
+    const provider = createOpenRouter({
+      fetch: tauriFetch,
+      baseURL: baseUrl,
+      apiKey: "CANT_BE_EMPTY",
+    });
+    return wrapWithThinkingMiddleware(provider.chat("unused"));
+  }, []);
+};
+
 const wrapWithThinkingMiddleware = (
   model: LanguageModelV3,
 ): LanguageModelV3 => {

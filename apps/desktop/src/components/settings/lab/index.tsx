@@ -6,6 +6,7 @@ import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Switch } from "@hypr/ui/components/ui/switch";
+import { cn } from "@hypr/utils";
 
 import { useConfigValue } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/store/settings";
@@ -21,8 +22,7 @@ export function SettingsLab() {
         <div className="flex-1">
           <h3 className="text-sm font-medium mb-1">Control Overlay</h3>
           <p className="text-xs text-neutral-600">
-            Open a floating control window for quick access to recording
-            controls. This window stays on top and can be used during meetings.
+            Floating window for quick access to recording controls.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={handleOpenControlWindow}>
@@ -51,9 +51,8 @@ function MeetingReminderToggle() {
       <div className="flex-1">
         <h3 className="text-sm font-medium mb-1">In-Meeting Reminder</h3>
         <p className="text-xs text-neutral-600">
-          Get a nudge when an app like Zoom or Google Meet has been using your
-          mic for a few minutes without Hyprnote recording. Helps you never miss
-          capturing a meeting.
+          Get nudged when a meeting app is using your mic without Hyprnote
+          recording.
         </p>
       </div>
       <Switch
@@ -110,11 +109,6 @@ function DownloadButtons() {
         const downloadUrl = getDownloadUrl(channel);
         if (!downloadUrl) return null;
 
-        const iconUrl =
-          channel === "nightly"
-            ? "https://hyprnote.com/api/images/icons/nightly-icon.png"
-            : "https://hyprnote.com/api/images/icons/stable-icon.png";
-
         return (
           <div
             key={channel}
@@ -126,17 +120,18 @@ function DownloadButtons() {
               </h3>
               <p className="text-xs text-neutral-600">
                 {channel === "nightly"
-                  ? "Download the latest nightly build to try new features before they are released. Nightly builds may be less stable."
-                  : "Download the latest stable build for a more reliable experience."}
+                  ? "Try new features early. May be less stable."
+                  : "The latest stable release."}
               </p>
             </div>
             <Button
               size="sm"
-              className={
+              className={cn([
+                "text-white bg-gradient-to-br border",
                 channel === "nightly"
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
-                  : "bg-neutral-900 hover:bg-neutral-800 text-white"
-              }
+                  ? "from-[#03BCF1] to-[#127FE5]"
+                  : "from-[#535353] to-[#000000]",
+              ])}
               onClick={() => openerCommands.openUrl(downloadUrl, null)}
             >
               Download

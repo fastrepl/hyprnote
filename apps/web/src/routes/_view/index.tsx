@@ -1232,8 +1232,20 @@ function FeaturesMobileCarousel({
           {mainFeatures.map((feature, index) => (
             <div key={index} className="w-full shrink-0 snap-center">
               <div className="border-y border-neutral-100 overflow-hidden flex flex-col">
-                <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-                  {feature.image ? (
+                <Link
+                  to={feature.link}
+                  className={cn([
+                    "aspect-video border-b border-neutral-100 overflow-hidden relative block",
+                    (feature.image || feature.muxPlaybackId) && "bg-neutral-100",
+                  ])}
+                >
+                  {feature.muxPlaybackId ? (
+                    <img
+                      src={`https://image.mux.com/${feature.muxPlaybackId}/thumbnail.jpg?width=1920&height=1080&fit_mode=smartcrop`}
+                      alt={`${feature.title} feature`}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : feature.image ? (
                     <Image
                       src={feature.image}
                       alt={`${feature.title} feature`}
@@ -1246,9 +1258,10 @@ function FeaturesMobileCarousel({
                       className="w-full h-full object-cover"
                     />
                   )}
-                </div>
+                </Link>
                 <div className="p-6">
-                  <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon icon={feature.icon} className="text-2xl text-stone-600" />
                     <h3 className="text-lg font-serif text-stone-600">
                       {feature.title}
                     </h3>

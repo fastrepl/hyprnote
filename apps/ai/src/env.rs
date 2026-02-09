@@ -23,7 +23,7 @@ pub struct Env {
     #[serde(flatten)]
     pub stripe: hypr_api_subscription::StripeEnv,
     #[serde(flatten)]
-    pub charlie: hypr_api_env::CharlieAppEnv,
+    pub github_app: hypr_api_support::GitHubAppEnv,
 
     #[serde(flatten)]
     pub llm: hypr_llm_proxy::Env,

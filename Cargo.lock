@@ -251,9 +251,9 @@ dependencies = [
  "api-auth",
  "api-calendar",
  "api-env",
- "api-feedback",
  "api-nango",
  "api-subscription",
+ "api-support",
  "axum 0.8.8",
  "dotenvy",
  "envy",
@@ -571,19 +571,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "api-feedback"
-version = "0.1.0"
-dependencies = [
- "api-env",
- "axum 0.8.8",
- "jsonwebtoken",
- "reqwest 0.13.1",
- "serde",
- "serde_json",
- "tracing",
-]
-
-[[package]]
 name = "api-nango"
 version = "0.1.0"
 dependencies = [
@@ -629,12 +616,12 @@ version = "0.1.0"
 dependencies = [
  "api-auth",
  "api-env",
+ "askama",
  "axum 0.8.8",
  "jsonwebtoken",
  "octocrab",
  "reqwest 0.13.1",
  "rmcp",
- "secrecy",
  "sentry",
  "serde",
  "serde_json",

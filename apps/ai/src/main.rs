@@ -45,10 +45,7 @@ fn app() -> Router {
     let nango_config = hypr_api_nango::NangoConfig::new(&env.nango);
     let subscription_config =
         hypr_api_subscription::SubscriptionConfig::new(&env.supabase, &env.stripe);
-    let feedback_config = hypr_api_feedback::FeedbackConfig {
-        charlie: env.charlie.clone(),
-        openrouter: Some(env.llm.clone()),
-    };
+    let support_config = hypr_api_support::SupportConfig::new(&env.github_app, &env.llm);
 
     let webhook_routes = Router::new().nest(
         "/nango",
@@ -83,7 +80,7 @@ fn app() -> Router {
         .route("/health", axum::routing::get(|| async { "ok" }))
         .route("/v", axum::routing::get(version))
         .route("/openapi.json", axum::routing::get(openapi_json))
-        .nest("/feedback", hypr_api_feedback::router(feedback_config))
+        .nest("/support", hypr_api_support::router(support_config))
         .merge(webhook_routes)
         .merge(pro_routes)
         .merge(auth_routes)

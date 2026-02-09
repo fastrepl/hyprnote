@@ -1,5 +1,4 @@
 use octocrab::Octocrab;
-use secrecy::SecretString;
 
 use crate::config::SupportConfig;
 
@@ -31,13 +30,5 @@ impl AppState {
     pub(crate) async fn installation_client(&self) -> Result<Octocrab, octocrab::Error> {
         self.octocrab
             .installation(self.config.github.github_bot_installation_id.into())
-    }
-
-    pub(crate) async fn installation_token(&self) -> Result<SecretString, octocrab::Error> {
-        let (_client, token) = self
-            .octocrab
-            .installation_and_token(self.config.github.github_bot_installation_id.into())
-            .await?;
-        Ok(token)
     }
 }

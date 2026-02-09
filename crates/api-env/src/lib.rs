@@ -25,13 +25,3 @@ pub struct NangoEnv {
 pub struct OpenRouterEnv {
     pub openrouter_api_key: String,
 }
-
-#[derive(Clone, Deserialize)]
-pub struct CharlieAppEnv {
-    #[serde(default, deserialize_with = "filter_empty")]
-    pub charlie_app_id: Option<String>,
-    #[serde(default, deserialize_with = "filter_empty")]
-    pub charlie_app_private_key: Option<String>,
-    #[serde(default, deserialize_with = "filter_empty")]
-    pub charlie_app_installation_id: Option<String>,
-}

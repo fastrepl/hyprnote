@@ -32,12 +32,14 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
     let calendar_doc = with_path_prefix(hypr_api_calendar::openapi(), "/calendar");
     let nango_doc = with_path_prefix(hypr_api_nango::openapi(), "/nango");
     let subscription_doc = with_path_prefix(hypr_api_subscription::openapi(), "/subscription");
+    let support_doc = with_path_prefix(hypr_api_support::openapi(), "/support");
 
     doc.merge(stt_doc);
     doc.merge(llm_doc);
     doc.merge(calendar_doc);
     doc.merge(nango_doc);
     doc.merge(subscription_doc);
+    doc.merge(support_doc);
 
     apply_bearer_auth_to_protected_paths(&mut doc);
 

@@ -1,0 +1,218 @@
+use askama::Template;
+
+use crate::error::{Result, SupportError};
+use crate::logs;
+use crate::state::AppState;
+
+const GITHUB_OWNER: &str = "fastrepl";
+const GITHUB_REPO: &str = "hyprnote";
+
+#[derive(Template)]
+#[template(path = "bug_report.md.jinja")]
+struct BugReportBody<'a> {
+    description: &'a str,
+    platform: &'a str,
+    arch: &'a str,
+    os_version: &'a str,
+    app_version: &'a str,
+    source: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "feature_request.md.jinja")]
+struct FeatureRequestBody<'a> {
+    description: &'a str,
+    platform: &'a str,
+    arch: &'a str,
+    os_version: &'a str,
+    app_version: &'a str,
+    source: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "log_analysis.md.jinja")]
+struct LogAnalysisComment<'a> {
+    summary_section: &'a str,
+    tail: &'a str,
+}
+
+pub(crate) struct BugReportInput<'a> {
+    pub description: &'a str,
+    pub platform: &'a str,
+    pub arch: &'a str,
+    pub os_version: &'a str,
+    pub app_version: &'a str,
+    pub source: &'a str,
+    pub logs: Option<&'a str>,
+}
+
+pub(crate) struct FeatureRequestInput<'a> {
+    pub description: &'a str,
+    pub platform: &'a str,
+    pub arch: &'a str,
+    pub os_version: &'a str,
+    pub app_version: &'a str,
+    pub source: &'a str,
+}
+
+pub(crate) async fn submit_bug_report(
+    state: &AppState,
+    input: BugReportInput<'_>,
+) -> Result<String> {
+    let (description, title) = make_title(input.description, "Bug Report");
+
+    let body = BugReportBody {
+        description: &description,
+        platform: input.platform,
+        arch: input.arch,
+        os_version: input.os_version,
+        app_version: input.app_version,
+        source: input.source,
+    }
+    .render()
+    .map_err(|e| SupportError::Internal(e.to_string()))?;
+
+    let labels = vec!["product/desktop".to_string()];
+    let (url, number) = create_issue(state, &title, &body, &labels).await?;
+
+    if let Some(logs) = input.logs {
+        attach_log_analysis(state, number, logs).await;
+    }
+
+    Ok(url)
+}
+
+pub(crate) async fn submit_feature_request(
+    state: &AppState,
+    input: FeatureRequestInput<'_>,
+) -> Result<String> {
+    let (description, title) = make_title(input.description, "Feature Request");
+
+    let body = FeatureRequestBody {
+        description: &description,
+        platform: input.platform,
+        arch: input.arch,
+        os_version: input.os_version,
+        app_version: input.app_version,
+        source: input.source,
+    }
+    .render()
+    .map_err(|e| SupportError::Internal(e.to_string()))?;
+
+    let category_id = &state.config.github.github_discussion_category_id;
+    if category_id.is_empty() {
+        return Err(SupportError::Internal(
+            "GitHub discussion category not configured".to_string(),
+        ));
+    }
+
+    create_discussion(state, &title, &body, category_id).await
+}
+
+fn make_title(description: &str, fallback: &str) -> (String, String) {
+    let description = description.trim().to_string();
+    let first_line = description
+        .lines()
+        .next()
+        .unwrap_or("")
+        .chars()
+        .take(100)
+        .collect::<String>();
+    let title = if first_line.is_empty() {
+        fallback.to_string()
+    } else {
+        first_line
+    };
+    (description, title)
+}
+
+async fn attach_log_analysis(state: &AppState, issue_number: u64, log_text: &str) {
+    let log_summary =
+        logs::analyze_logs(&state.config.openrouter.openrouter_api_key, log_text).await;
+
+    let summary_section = match log_summary.as_deref() {
+        Some(s) if !s.trim().is_empty() => format!("### Summary\n```\n{s}\n```"),
+        _ => "_No errors or warnings found._".to_string(),
+    };
+
+    let tail = logs::safe_tail(log_text, 10000);
+    let comment = LogAnalysisComment {
+        summary_section: &summary_section,
+        tail,
+    };
+    let log_comment = comment.render().unwrap_or_default();
+
+    let _ = add_issue_comment(state, issue_number, &log_comment).await;
+}
+
+async fn create_issue(
+    state: &AppState,
+    title: &str,
+    body: &str,
+    labels: &[String],
+) -> Result<(String, u64)> {
+    let client = state.installation_client().await?;
+
+    let issue = client
+        .issues(GITHUB_OWNER, GITHUB_REPO)
+        .create(title)
+        .body(body)
+        .labels(labels.to_vec())
+        .send()
+        .await?;
+
+    Ok((issue.html_url.to_string(), issue.number))
+}
+
+async fn add_issue_comment(state: &AppState, issue_number: u64, comment: &str) -> Result<()> {
+    let client = state.installation_client().await?;
+    client
+        .issues(GITHUB_OWNER, GITHUB_REPO)
+        .create_comment(issue_number, comment)
+        .await?;
+    Ok(())
+}
+
+async fn create_discussion(
+    state: &AppState,
+    title: &str,
+    body: &str,
+    category_id: &str,
+) -> Result<String> {
+    let client = state.installation_client().await?;
+
+    let query = serde_json::json!({
+        "query": r#"
+            mutation($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
+                createDiscussion(input: {
+                    repositoryId: $repositoryId
+                    categoryId: $categoryId
+                    title: $title
+                    body: $body
+                }) {
+                    discussion {
+                        url
+                    }
+                }
+            }
+        "#,
+        "variables": {
+            "repositoryId": state.config.github.github_repo_id,
+            "categoryId": category_id,
+            "title": title,
+            "body": body,
+        },
+    });
+
+    let data: serde_json::Value = client.graphql(&query).await?;
+
+    data["data"]["createDiscussion"]["discussion"]["url"]
+        .as_str()
+        .map(|s| s.to_string())
+        .ok_or_else(|| {
+            SupportError::GitHub(format!(
+                "unexpected GraphQL response: {}",
+                serde_json::to_string(&data).unwrap_or_default()
+            ))
+        })
+}

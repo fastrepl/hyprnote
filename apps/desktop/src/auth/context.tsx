@@ -69,9 +69,6 @@ export function useAuth() {
   return context;
 }
 
-// Never call stopAutoRefresh() here — the client is a module-level singleton
-// and _initialize() (which sets up auto-refresh) only runs once per client lifetime.
-// Stopping it here would permanently kill token refresh for the rest of the app session.
 async function clearInvalidSession(
   _client: SupabaseClient,
   setSession: (session: Session | null) => void,
@@ -187,11 +184,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Ensure auto-refresh is running on every mount. Supabase's _initialize()
-    // only runs once per client lifetime, so after any stopAutoRefresh() call
-    // (e.g. from StrictMode cleanup), only an explicit startAutoRefresh() restarts it.
-    void supabase.auth.startAutoRefresh();
-
     if (!initStartedRef.current) {
       initStartedRef.current = true;
       void initSession(supabase, setSession);
@@ -204,22 +196,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
     });
 
-    // Restart auto-refresh when app returns from background (laptop wake, window restore).
-    // JS timers are suspended while the app is hidden, so the access token may have
-    // expired. This ensures an immediate refresh attempt on visibility change.
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible" && supabase) {
-        void supabase.auth.startAutoRefresh();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
     return () => {
       subscription.unsubscribe();
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      // Do NOT call stopAutoRefresh() here. The Supabase client is a module-level
-      // singleton that outlives this component. Stopping it would permanently kill
-      // token refresh (StrictMode remount, HMR) since _initialize() won't re-run.
     };
   }, []);
 

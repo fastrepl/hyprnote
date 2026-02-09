@@ -620,7 +620,7 @@ dependencies = [
  "axum 0.8.8",
  "jsonwebtoken",
  "octocrab",
- "reqwest 0.13.1",
+ "openrouter",
  "rmcp",
  "sentry",
  "serde",
@@ -12440,15 +12440,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "openai"
+name = "openrouter"
 version = "0.1.0"
 dependencies = [
- "async-openai",
  "reqwest 0.13.1",
- "reqwest-middleware",
- "reqwest-retry",
- "tracing",
- "url",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -14607,27 +14605,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "reqwest-retry"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "180e3930c1c07a59122f304ff269a634a4d5013afecbe646ccad4ff98e0803c2"
-dependencies = [
- "anyhow",
- "async-trait",
- "futures",
- "getrandom 0.2.17",
- "http 1.4.0",
- "hyper 1.8.1",
- "reqwest 0.13.1",
- "reqwest-middleware",
- "retry-policies",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "wasmtimer",
-]
-
-[[package]]
 name = "reqwest-streams"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14674,15 +14651,6 @@ dependencies = [
  "tiny-skia",
  "usvg",
  "zune-jpeg 0.4.21",
-]
-
-[[package]]
-name = "retry-policies"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46a4bd6027df676bcb752d3724db0ea3c0c5fc1dd0376fec51ac7dcaf9cc69be"
-dependencies = [
- "rand 0.9.2",
 ]
 
 [[package]]
@@ -21588,20 +21556,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4abf1132c1fdf747d56bbc1bb52152400c70f336870f968b85e89ea422198ae3"
 dependencies = [
  "bitflags 2.10.0",
-]
-
-[[package]]
-name = "wasmtimer"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c598d6b99ea013e35844697fc4670d08339d5cda15588f193c6beedd12f644b"
-dependencies = [
- "futures",
- "js-sys",
- "parking_lot",
- "pin-utils",
- "slab",
- "wasm-bindgen",
 ]
 
 [[package]]

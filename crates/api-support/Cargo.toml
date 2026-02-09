@@ -6,11 +6,11 @@ edition = "2024"
 [dependencies]
 hypr-api-auth = { workspace = true }
 hypr-api-env = { workspace = true }
+hypr-openrouter = { workspace = true }
 
 utoipa = { workspace = true }
 
 axum = { workspace = true }
-reqwest = { workspace = true, features = ["json"] }
 sentry = { workspace = true }
 tracing = { workspace = true }
 

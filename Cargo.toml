@@ -78,7 +78,7 @@ hypr-notification = { path = "crates/notification", package = "notification" }
 hypr-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
-hypr-openai = { path = "crates/openai", package = "openai" }
+hypr-openrouter = { path = "crates/openrouter", package = "openrouter" }
 hypr-openstatus = { path = "crates/openstatus", package = "openstatus" }
 hypr-posthog = { path = "crates/posthog", package = "posthog" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }

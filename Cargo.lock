@@ -593,6 +593,7 @@ dependencies = [
 name = "api-research"
 version = "0.1.0"
 dependencies = [
+ "askama",
  "axum 0.8.8",
  "exa",
  "rmcp",

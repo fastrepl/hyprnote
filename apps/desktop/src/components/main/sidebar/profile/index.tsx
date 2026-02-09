@@ -128,7 +128,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   const handleClickHelp = useCallback(() => {
     openNew({
       type: "chat",
-      state: { groupId: null, initialMessage: "I need help." },
+      state: { groupId: null, initialMessage: "I need help.", chatType: null },
     });
     transitionChatMode({ type: "OPEN_TAB" });
     closeMenu();

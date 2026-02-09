@@ -16,7 +16,9 @@ impl MenuItemHandler for HelpSuggestFeature {
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {
-        use tauri_plugin_windows::{AppWindow, ChatState, OpenTab, TabInput, WindowsPluginExt};
+        use tauri_plugin_windows::{
+            AppWindow, ChatState, ChatType, OpenTab, TabInput, WindowsPluginExt,
+        };
         use tauri_specta::Event;
 
         if app.windows().show(AppWindow::Main).is_ok() {
@@ -24,6 +26,7 @@ impl MenuItemHandler for HelpSuggestFeature {
                 tab: TabInput::Chat {
                     state: Some(ChatState {
                         initial_message: Some("I'd like to suggest a feature.".to_string()),
+                        chat_type: Some(ChatType::Support),
                         ..Default::default()
                     }),
                 },

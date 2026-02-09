@@ -46,12 +46,13 @@ export function ChatView() {
     const existingChatTab = tabs.find((t) => t.type === "chat");
     openNew({
       type: "chat",
-      state: { groupId: groupId ?? null, initialMessage: null },
+      state: { groupId: groupId ?? null, initialMessage: null, chatType: null },
     });
     if (existingChatTab) {
       updateChatTabState(existingChatTab, {
         groupId: groupId ?? null,
         initialMessage: null,
+        chatType: null,
       });
     }
     chat.sendEvent({ type: "OPEN_TAB" });

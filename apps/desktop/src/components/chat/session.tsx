@@ -27,6 +27,7 @@ interface ChatSessionProps {
   chatGroupId?: string;
   attachedSessionId?: string;
   modelOverride?: LanguageModel;
+  extraTools?: Record<string, any>;
   children: (props: {
     messages: HyprUIMessage[];
     sendMessage: (message: HyprUIMessage) => void;
@@ -42,9 +43,10 @@ export function ChatSession({
   chatGroupId,
   attachedSessionId,
   modelOverride,
+  extraTools,
   children,
 }: ChatSessionProps) {
-  const transport = useTransport(attachedSessionId, modelOverride);
+  const transport = useTransport(attachedSessionId, modelOverride, extraTools);
   const store = main.UI.useStore(main.STORE_ID);
 
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -185,6 +187,7 @@ export function ChatSession({
 function useTransport(
   attachedSessionId?: string,
   modelOverride?: LanguageModel,
+  extraTools?: Record<string, any>,
 ) {
   const registry = useToolRegistry();
   const configuredModel = useLanguageModel();
@@ -302,8 +305,8 @@ function useTransport(
       return null;
     }
 
-    return new CustomChatTransport(registry, model, systemPrompt);
-  }, [registry, model, systemPrompt]);
+    return new CustomChatTransport(registry, model, systemPrompt, extraTools);
+  }, [registry, model, systemPrompt, extraTools]);
 
   return transport;
 }

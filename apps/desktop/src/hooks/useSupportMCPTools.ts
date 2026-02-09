@@ -1,5 +1,4 @@
 import { createMCPClient, type MCPClient } from "@ai-sdk/mcp";
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { useEffect, useRef, useState } from "react";
 
 import { env } from "../env";
@@ -19,7 +18,6 @@ export function useSupportMCPTools() {
           transport: {
             type: "http",
             url: mcpUrl,
-            fetch: tauriFetch as unknown as typeof globalThis.fetch,
           },
           name: "hyprnote-support-client",
         });

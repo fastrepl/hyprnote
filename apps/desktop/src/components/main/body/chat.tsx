@@ -2,6 +2,7 @@ import { MessageCircle } from "lucide-react";
 import { useCallback, useRef } from "react";
 
 import type { HyprUIMessage } from "../../../chat/types";
+import { useShell } from "../../../contexts/shell";
 import { useLanguageModel } from "../../../hooks/useLLMConnection";
 import * as main from "../../../store/tinybase/store/main";
 import type { Tab } from "../../../store/zustand/tabs";
@@ -23,6 +24,7 @@ export const TabItemChat: TabItem<Extract<Tab, { type: "chat" }>> = ({
   handlePinThis,
   handleUnpinThis,
 }) => {
+  const { chat } = useShell();
   const chatTitle = main.UI.useCell(
     "chat_groups",
     tab.state.groupId || "",
@@ -37,7 +39,10 @@ export const TabItemChat: TabItem<Extract<Tab, { type: "chat" }>> = ({
       selected={tab.active}
       pinned={tab.pinned}
       tabIndex={tabIndex}
-      handleCloseThis={() => handleCloseThis(tab)}
+      handleCloseThis={() => {
+        chat.sendEvent({ type: "CLOSE" });
+        handleCloseThis(tab);
+      }}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}

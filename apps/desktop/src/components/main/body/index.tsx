@@ -997,15 +997,20 @@ function useTabsShortcuts() {
     [newNoteAndListen],
   );
 
+  const { chat } = useShell();
+
   useHotkeys(
     "mod+shift+j",
-    () => openNew({ type: "chat" }),
+    () => {
+      openNew({ type: "chat" });
+      chat.sendEvent({ type: "OPEN_TAB" });
+    },
     {
       preventDefault: true,
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [openNew],
+    [openNew, chat],
   );
 
   return {};

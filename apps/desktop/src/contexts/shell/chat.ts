@@ -48,7 +48,7 @@ const chatModeLogic = fromTransition(
         }
         return state;
       case "FullTab":
-        if (event.type === "CLOSE") {
+        if (event.type === "CLOSE" || event.type === "TOGGLE") {
           return "FloatingClosed";
         }
         return state;

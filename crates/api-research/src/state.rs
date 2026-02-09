@@ -1,4 +1,4 @@
-use exa::ExaClient;
+use hypr_exa::ExaClient;
 
 use crate::config::ResearchConfig;
 

@@ -21,9 +21,9 @@ pub(crate) async fn search(
 ) -> Result<CallToolResult, McpError> {
     let response = state
         .exa
-        .search(exa::SearchRequest {
+        .search(hypr_exa::SearchRequest {
             query: params.query,
-            r#type: Some(exa::SearchType::Auto),
+            r#type: Some(hypr_exa::SearchType::Auto),
             category: None,
             num_results: params.num_results,
             include_domains: None,
@@ -37,7 +37,7 @@ pub(crate) async fn search(
             contents: None,
         })
         .await
-        .map_err(|e| McpError::internal_error(e.to_string(), None))?;
+        .map_err(|e: hypr_exa::Error| McpError::internal_error(e.to_string(), None))?;
 
     Ok(CallToolResult::success(vec![Content::text(
         serde_json::to_string(&response)

@@ -7,7 +7,7 @@ use rmcp::{
 use crate::state::AppState;
 
 use super::prompts;
-use super::tools::{self, GetContentsParams, SearchParams};
+use super::tools;
 
 #[derive(Clone)]
 pub(crate) struct ResearchMcpServer {
@@ -29,7 +29,7 @@ impl ResearchMcpServer {
     #[tool(description = "Search the web using Exa. Returns relevant results for a given query.")]
     async fn search(
         &self,
-        Parameters(params): Parameters<SearchParams>,
+        Parameters(params): Parameters<hypr_exa::SearchRequest>,
     ) -> Result<CallToolResult, McpError> {
         tools::search(&self.state, params).await
     }
@@ -39,7 +39,7 @@ impl ResearchMcpServer {
     )]
     async fn get_contents(
         &self,
-        Parameters(params): Parameters<GetContentsParams>,
+        Parameters(params): Parameters<hypr_exa::GetContentsRequest>,
     ) -> Result<CallToolResult, McpError> {
         tools::get_contents(&self.state, params).await
     }

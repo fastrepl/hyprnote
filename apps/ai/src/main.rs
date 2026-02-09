@@ -23,7 +23,7 @@ use env::env;
 
 pub const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 
-fn app() -> Router {
+async fn app() -> Router {
     let env = env();
 
     let analytics = {
@@ -45,7 +45,8 @@ fn app() -> Router {
     let nango_config = hypr_api_nango::NangoConfig::new(&env.nango);
     let subscription_config =
         hypr_api_subscription::SubscriptionConfig::new(&env.supabase, &env.stripe);
-    let support_config = hypr_api_support::SupportConfig::new(&env.github_app, &env.llm);
+    let support_config =
+        hypr_api_support::SupportConfig::new(&env.github_app, &env.llm, &env.supabase_db);
 
     let webhook_routes = Router::new().nest(
         "/nango",
@@ -80,7 +81,7 @@ fn app() -> Router {
         .route("/health", axum::routing::get(|| async { "ok" }))
         .route("/v", axum::routing::get(version))
         .route("/openapi.json", axum::routing::get(openapi_json))
-        .nest("/support", hypr_api_support::router(support_config))
+        .nest("/support", hypr_api_support::router(support_config).await)
         .merge(webhook_routes)
         .merge(pro_routes)
         .merge(auth_routes)
@@ -224,7 +225,7 @@ fn main() -> std::io::Result<()> {
             tracing::info!(addr = %addr, "server_listening");
 
             let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-            axum::serve(listener, app())
+            axum::serve(listener, app().await)
                 .with_graceful_shutdown(shutdown_signal())
                 .await
                 .unwrap();

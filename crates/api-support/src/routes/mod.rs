@@ -8,8 +8,8 @@ use crate::state::AppState;
 
 pub use feedback::{FeedbackRequest, FeedbackResponse};
 
-pub fn router(config: SupportConfig) -> Router {
-    let state = AppState::new(config);
+pub async fn router(config: SupportConfig) -> Router {
+    let state = AppState::new(config).await;
     let mcp = mcp_service(state.clone());
 
     Router::new()

@@ -315,6 +315,7 @@ whichlang = "0.1"
 swift-rs = { git = "https://github.com/yujonglee/swift-rs", rev = "41a1605" }
 
 rmcp = "0.14"
+sqlx = { version = "0.8", default-features = false }
 sysinfo = "0.38"
 
 [patch.crates-io]

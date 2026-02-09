@@ -1,4 +1,6 @@
 use octocrab::Octocrab;
+use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 
 use crate::config::SupportConfig;
 
@@ -6,10 +8,11 @@ use crate::config::SupportConfig;
 pub(crate) struct AppState {
     pub(crate) config: SupportConfig,
     pub(crate) octocrab: Octocrab,
+    pub(crate) db_pool: PgPool,
 }
 
 impl AppState {
-    pub(crate) fn new(config: SupportConfig) -> Self {
+    pub(crate) async fn new(config: SupportConfig) -> Self {
         let key = jsonwebtoken::EncodingKey::from_rsa_pem(
             config
                 .github
@@ -24,7 +27,17 @@ impl AppState {
             .build()
             .expect("failed to build octocrab client");
 
-        Self { config, octocrab }
+        let db_pool = PgPoolOptions::new()
+            .max_connections(5)
+            .connect(&config.supabase_db.supabase_db_url)
+            .await
+            .expect("failed to connect to Supabase Postgres");
+
+        Self {
+            config,
+            octocrab,
+            db_pool,
+        }
     }
 
     pub(crate) async fn installation_client(&self) -> Result<Octocrab, octocrab::Error> {

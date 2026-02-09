@@ -326,7 +326,12 @@ function useTransport(
       return null;
     }
 
-    return new CustomChatTransport(registry, model, effectiveSystemPrompt, extraTools);
+    return new CustomChatTransport(
+      registry,
+      model,
+      effectiveSystemPrompt,
+      extraTools,
+    );
   }, [registry, model, effectiveSystemPrompt, extraTools]);
 
   return transport;

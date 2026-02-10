@@ -41,6 +41,7 @@ export const tableSchemaForTinybase = {
   } as const satisfies InferTinyBaseSchema<typeof transcriptSchema>,
   humans: {
     user_id: { type: "string" },
+    created_at: { type: "string" },
     name: { type: "string" },
     email: { type: "string" },
     org_id: { type: "string" },
@@ -52,6 +53,7 @@ export const tableSchemaForTinybase = {
   } as const satisfies InferTinyBaseSchema<typeof humanSchema>,
   organizations: {
     user_id: { type: "string" },
+    created_at: { type: "string" },
     name: { type: "string" },
     pinned: { type: "boolean" },
     pin_order: { type: "number" },

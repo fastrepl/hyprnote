@@ -53,6 +53,8 @@ describe("timeline utils", () => {
         started_at: "2024-01-18T12:00:00.000Z",
         ended_at: "2024-01-18T13:00:00.000Z",
         calendar_id: "cal-1",
+        tracking_id_event: "event-1",
+        has_recurrence_rules: false,
       },
     };
 
@@ -102,6 +104,8 @@ describe("timeline utils", () => {
         started_at: "2024-01-10T10:00:00.000Z",
         ended_at: "2024-01-10T11:00:00.000Z",
         calendar_id: "cal-1",
+        tracking_id_event: "event-past",
+        has_recurrence_rules: false,
       },
     };
 

@@ -1,4 +1,3 @@
-import { SessionEvent } from "@hypr/store";
 import {
   differenceInCalendarDays,
   differenceInCalendarMonths,

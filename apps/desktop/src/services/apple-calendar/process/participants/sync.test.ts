@@ -5,7 +5,7 @@ import { syncParticipants } from "./sync";
 
 type MockStoreData = {
   humans: Record<string, { email?: string; name?: string }>;
-  sessions: Record<string, { event_id?: string }>;
+  sessions: Record<string, { eventJson?: string }>;
   mapping_session_participant: Record<
     string,
     { session_id: string; human_id: string; source?: string }
@@ -79,7 +79,11 @@ describe("syncParticipants", () => {
   test("creates new human when participant email not found", () => {
     const store = createMockStore({
       humans: {},
-      sessions: { "session-1": { event_id: "event-1" } },
+      sessions: {
+        "session-1": {
+          eventJson: JSON.stringify({ tracking_id: "tracking-1" }),
+        },
+      },
       mapping_session_participant: {},
     });
     const ctx = createMockCtx(store);
@@ -99,7 +103,11 @@ describe("syncParticipants", () => {
   test("uses existing human when email matches", () => {
     const store = createMockStore({
       humans: { "human-1": { email: "existing@example.com" } },
-      sessions: { "session-1": { event_id: "event-1" } },
+      sessions: {
+        "session-1": {
+          eventJson: JSON.stringify({ tracking_id: "tracking-1" }),
+        },
+      },
       mapping_session_participant: {},
     });
     const ctx = createMockCtx(store);
@@ -119,7 +127,11 @@ describe("syncParticipants", () => {
   test("deletes auto-source mappings when participant removed from event", () => {
     const store = createMockStore({
       humans: { "human-1": { email: "removed@example.com" } },
-      sessions: { "session-1": { event_id: "event-1" } },
+      sessions: {
+        "session-1": {
+          eventJson: JSON.stringify({ tracking_id: "tracking-1" }),
+        },
+      },
       mapping_session_participant: {
         "mapping-1": {
           session_id: "session-1",
@@ -141,7 +153,11 @@ describe("syncParticipants", () => {
   test("does not delete excluded mappings", () => {
     const store = createMockStore({
       humans: { "human-1": { email: "excluded@example.com" } },
-      sessions: { "session-1": { event_id: "event-1" } },
+      sessions: {
+        "session-1": {
+          eventJson: JSON.stringify({ tracking_id: "tracking-1" }),
+        },
+      },
       mapping_session_participant: {
         "mapping-1": {
           session_id: "session-1",

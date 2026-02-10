@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_view/templates/")({
   },
   head: () => ({
     meta: [
-      { title: "Meeting Templates - Char Templates" },
+      { title: "Meeting Templates - Hyprnote Templates" },
       {
         name: "description",
         content:
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_view/templates/")({
       },
       {
         property: "og:title",
-        content: "Meeting Templates - Char Templates",
+        content: "Meeting Templates - Hyprnote Templates",
       },
       {
         property: "og:description",
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/_view/templates/")({
           "Browse our collection of AI meeting templates. From engineering standups to sales discovery calls, find the perfect template for your meeting type.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://char.com/templates" },
+      { property: "og:url", content: "https://hyprnote.com/templates" },
     ],
   }),
 });
@@ -219,7 +219,7 @@ function QuoteSection() {
   return (
     <div className="py-4 px-4 text-center border-y border-neutral-100 bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <p className="text-base text-stone-600 font-serif italic">
-        "Curated by Char and the community"
+        "Curated by Hyprnote and the community"
       </p>
     </div>
   );
@@ -466,7 +466,7 @@ function CTASection() {
           Ready to transform your meetings?
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Char and start using these templates to capture perfect
+          Download Hyprnote and start using these templates to capture perfect
           meeting notes with AI.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
@@ -572,7 +572,7 @@ function TemplateModal({
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <DownloadButton />
                   <p className="text-sm text-neutral-500 text-center sm:text-left">
-                    Download Char to use this template
+                    Download Hyprnote to use this template
                   </p>
                 </div>
               </div>

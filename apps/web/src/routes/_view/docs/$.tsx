@@ -49,16 +49,16 @@ export const Route = createFileRoute("/_view/docs/$")({
     }
 
     const { doc } = loaderData;
-    const url = `https://char.com/docs/${doc.slug}`;
-    const ogImageUrl = `https://char.com/og?type=docs&title=${encodeURIComponent(doc.title)}&section=${encodeURIComponent(doc.section)}${doc.summary ? `&description=${encodeURIComponent(doc.summary)}` : ""}&v=1`;
+    const url = `https://hyprnote.com/docs/${doc.slug}`;
+    const ogImageUrl = `https://hyprnote.com/og?type=docs&title=${encodeURIComponent(doc.title)}&section=${encodeURIComponent(doc.section)}${doc.summary ? `&description=${encodeURIComponent(doc.summary)}` : ""}&v=1`;
 
     return {
       meta: [
-        { title: `${doc.title} - Char Documentation` },
+        { title: `${doc.title} - Hyprnote Documentation` },
         { name: "description", content: doc.summary || doc.title },
         {
           property: "og:title",
-          content: `${doc.title} - Char Documentation`,
+          content: `${doc.title} - Hyprnote Documentation`,
         },
         {
           property: "og:description",
@@ -70,7 +70,7 @@ export const Route = createFileRoute("/_view/docs/$")({
         { name: "twitter:card", content: "summary_large_image" },
         {
           name: "twitter:title",
-          content: `${doc.title} - Char Documentation`,
+          content: `${doc.title} - Hyprnote Documentation`,
         },
         {
           name: "twitter:description",

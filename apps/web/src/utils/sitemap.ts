@@ -6,7 +6,7 @@ export type TRoutes = FileRouteTypes["fullPaths"];
 
 export function getSitemap(): Sitemap<TRoutes> {
   return {
-    siteUrl: "https://char.com",
+    siteUrl: "https://hyprnote.com",
     defaultPriority: 0.5,
     defaultChangeFreq: "monthly",
     routes: {

@@ -53,7 +53,11 @@ function BrandSection({ currentYear }: { currentYear: number }) {
   return (
     <div className="lg:flex-1">
       <Link to="/" className="inline-block mb-4">
-        <Image src="/api/images/hyprnote/logo.svg" alt="Char" className="h-6" />
+        <Image
+          src="/api/images/hyprnote/logo.svg"
+          alt="Hyprnote"
+          className="h-6"
+        />
       </Link>
       <p className="text-sm text-neutral-500 mb-4">Fastrepl © {currentYear}</p>
       <p className="text-sm text-neutral-600 mb-3">
@@ -151,7 +155,7 @@ function ProductLinks() {
         </li>
         <li>
           <a
-            href="https://status.char.com"
+            href="https://status.hyprnote.com"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
@@ -259,7 +263,7 @@ function ResourcesLinks() {
         </li>
         <li>
           <a
-            href="mailto:support@char.com"
+            href="mailto:support@hyprnote.com"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
           >
             Support
@@ -273,7 +277,7 @@ function ResourcesLinks() {
               "text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted",
               "inline-flex items-center gap-1",
             )}
-            aria-label={`Char for ${currentUseCase.label}`}
+            aria-label={`Hyprnote for ${currentUseCase.label}`}
           >
             👍 for{" "}
             <span
@@ -298,7 +302,7 @@ function ResourcesLinks() {
           >
             <img
               src="/api/images/hyprnote/icon.png"
-              alt="Char"
+              alt="Hyprnote"
               width={12}
               height={12}
               className="size-4 rounded border border-neutral-100 inline"

@@ -15,12 +15,12 @@ export function MDXLink({
     return <span {...props}>{children}</span>;
   }
 
-  const isCharUrl = href.startsWith("https://char.com");
+  const isHyprnoteUrl = href.startsWith("https://hyprnote.com");
   const isInternalPath = href.startsWith("/") || href.startsWith(".");
   const isAnchor = href.startsWith("#");
 
-  if (isCharUrl) {
-    const relativePath = href.replace("https://char.com", "") || "/";
+  if (isHyprnoteUrl) {
+    const relativePath = href.replace("https://hyprnote.com", "") || "/";
     return (
       <Link
         to={relativePath}

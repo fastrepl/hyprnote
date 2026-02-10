@@ -25,13 +25,13 @@ export const Route = createFileRoute("/_view/templates/$slug")({
     }
 
     const { template } = loaderData;
-    const url = `https://char.com/templates/${template.slug}`;
+    const url = `https://hyprnote.com/templates/${template.slug}`;
 
-    const ogImageUrl = `https://char.com/og?type=templates&title=${encodeURIComponent(template.title)}&category=${encodeURIComponent(template.category)}${template.description ? `&description=${encodeURIComponent(template.description)}` : ""}&v=1`;
+    const ogImageUrl = `https://hyprnote.com/og?type=templates&title=${encodeURIComponent(template.title)}&category=${encodeURIComponent(template.category)}${template.description ? `&description=${encodeURIComponent(template.description)}` : ""}&v=1`;
 
     return {
       meta: [
-        { title: `${template.title} - Char Templates` },
+        { title: `${template.title} - Hyprnote Templates` },
         { name: "description", content: template.description },
         { name: "robots", content: "noindex, nofollow" },
         {
@@ -256,7 +256,8 @@ function RightSidebar() {
             Use this template
           </h3>
           <p className="text-sm text-neutral-600 mb-6">
-            Download Char to use this template and get AI-powered meeting notes.
+            Download Hyprnote to use this template and get AI-powered meeting
+            notes.
           </p>
           <DownloadButton />
           <p className="text-xs text-neutral-500 mt-4">

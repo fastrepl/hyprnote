@@ -154,6 +154,7 @@ export function ChatMessageInput({
             placeholderComponent={ChatPlaceholder}
             slashCommandConfig={slashCommandConfig}
             onUpdate={handleEditorUpdate}
+            onSubmit={handleSubmit}
           />
         </div>
 
@@ -235,7 +236,7 @@ export function ChatMessageInput({
       </div>
       {hasContent && (
         <span className="absolute bottom-1.5 right-5 text-[8px] text-neutral-400">
-          Shift + Enter to add a new line
+          Enter to send, Shift + Enter for new line
         </span>
       )}
     </Container>

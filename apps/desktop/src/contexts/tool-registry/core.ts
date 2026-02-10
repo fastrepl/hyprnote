@@ -1,4 +1,8 @@
-export type ToolScope = "chat" | "enhancing" | (string & {});
+export type ToolScope =
+  | "chat-general"
+  | "chat-support"
+  | "enhancing"
+  | (string & {});
 
 interface ToolEntry<TTool> {
   id: symbol;

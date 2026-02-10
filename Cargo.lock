@@ -634,11 +634,14 @@ dependencies = [
  "api-auth",
  "api-env",
  "askama",
+ "async-stripe",
+ "async-stripe-billing",
  "axum 0.8.8",
  "jsonwebtoken",
  "mcp",
  "octocrab",
  "openrouter",
+ "reqwest 0.13.1",
  "rmcp",
  "sentry",
  "serde",
@@ -648,6 +651,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+ "urlencoding",
  "utoipa",
 ]
 
@@ -4632,6 +4636,7 @@ dependencies = [
  "tauri-plugin-listener",
  "tauri-plugin-listener2",
  "tauri-plugin-local-stt",
+ "tauri-plugin-mcp",
  "tauri-plugin-misc",
  "tauri-plugin-network",
  "tauri-plugin-notification",
@@ -11121,7 +11126,9 @@ dependencies = [
 name = "mcp"
 version = "0.1.0"
 dependencies = [
+ "api-auth",
  "askama",
+ "axum 0.8.8",
  "rmcp",
 ]
 
@@ -18620,6 +18627,20 @@ dependencies = [
  "transcribe-whisper-local",
  "whisper-local",
  "whisper-local-model",
+]
+
+[[package]]
+name = "tauri-plugin-mcp"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.18",
+ "tokio",
 ]
 
 [[package]]

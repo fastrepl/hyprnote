@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { searchFiltersSchema } from "../contexts/search/engine/types";
 import type { SearchFilters, SearchHit } from "../contexts/search/engine/types";
+import type { SupportMcpTools } from "./support-mcp-tools";
 
 export interface ToolDependencies {
   search: (
@@ -42,7 +43,7 @@ export const buildChatTools = (deps: ToolDependencies) => ({
   search_sessions: buildSearchSessionsTool(deps),
 });
 
-export type Tools = {
+type LocalTools = {
   search_sessions: {
     input: { query: string; filters?: SearchFilters };
     output: {
@@ -56,5 +57,7 @@ export type Tools = {
     };
   };
 };
+
+export type Tools = LocalTools & SupportMcpTools;
 
 export type ToolPartType = `tool-${keyof Tools}`;

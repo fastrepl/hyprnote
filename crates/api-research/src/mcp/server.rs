@@ -26,7 +26,14 @@ impl ResearchMcpServer {
 
 #[tool_router]
 impl ResearchMcpServer {
-    #[tool(description = "Search the web using Exa. Returns relevant results for a given query.")]
+    #[tool(
+        description = "Search the web using Exa. Returns relevant results for a given query.",
+        annotations(
+            read_only_hint = true,
+            destructive_hint = false,
+            open_world_hint = true
+        )
+    )]
     async fn search(
         &self,
         Parameters(params): Parameters<hypr_exa::SearchRequest>,
@@ -35,7 +42,12 @@ impl ResearchMcpServer {
     }
 
     #[tool(
-        description = "Get the contents of web pages by URL. Returns the text content of the given URLs."
+        description = "Get the contents of web pages by URL. Returns the text content of the given URLs.",
+        annotations(
+            read_only_hint = true,
+            destructive_hint = false,
+            open_world_hint = true
+        )
     )]
     async fn get_contents(
         &self,

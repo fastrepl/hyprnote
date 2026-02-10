@@ -13,6 +13,7 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
   constructor(
     private registry: ToolRegistry,
     private model: LanguageModel,
+    private chatType: "general" | "support",
     private systemPrompt?: string,
     private extraTools?: Record<string, any>,
   ) {}
@@ -20,8 +21,9 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
   sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (
     options,
   ) => {
+    const scope = this.chatType === "support" ? "chat-support" : "chat-general";
     const tools = {
-      ...this.registry.getTools("chat"),
+      ...this.registry.getTools(scope),
       ...this.extraTools,
     };
 

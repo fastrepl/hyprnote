@@ -45,13 +45,22 @@ export function ExportTranscript({ sessionId }: { sessionId: string }) {
       channel: number;
     }> = [];
 
-    const firstStartedAt = store.getCell("transcripts", transcriptIds[0], "started_at");
+    const firstStartedAt = store.getCell(
+      "transcripts",
+      transcriptIds[0],
+      "started_at",
+    );
 
     for (const transcriptId of transcriptIds) {
-      const startedAt = store.getCell("transcripts", transcriptId, "started_at");
-      const offset = typeof startedAt === "number" && typeof firstStartedAt === "number"
-        ? startedAt - firstStartedAt
-        : 0;
+      const startedAt = store.getCell(
+        "transcripts",
+        transcriptId,
+        "started_at",
+      );
+      const offset =
+        typeof startedAt === "number" && typeof firstStartedAt === "number"
+          ? startedAt - firstStartedAt
+          : 0;
 
       const words = parseTranscriptWords(store, transcriptId);
       for (const word of words) {

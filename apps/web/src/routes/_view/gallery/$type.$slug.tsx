@@ -38,14 +38,14 @@ export const Route = createFileRoute("/_view/gallery/$type/$slug")({
 
     const { type, item } = loaderData;
     const typeLabel = type === "template" ? "Template" : "Shortcut";
-    const url = `https://hyprnote.com/gallery/${type}/${item.slug}`;
+    const url = `https://char.com/gallery/${type}/${item.slug}`;
 
     const ogType = type === "template" ? "templates" : "shortcuts";
-    const ogImageUrl = `https://hyprnote.com/og?type=${ogType}&title=${encodeURIComponent(item.title)}&category=${encodeURIComponent(item.category)}${item.description ? `&description=${encodeURIComponent(item.description)}` : ""}&v=1`;
+    const ogImageUrl = `https://char.com/og?type=${ogType}&title=${encodeURIComponent(item.title)}&category=${encodeURIComponent(item.category)}${item.description ? `&description=${encodeURIComponent(item.description)}` : ""}&v=1`;
 
     return {
       meta: [
-        { title: `${item.title} - ${typeLabel} - Hyprnote` },
+        { title: `${item.title} - ${typeLabel} - Char` },
         { name: "description", content: item.description },
         {
           property: "og:title",
@@ -356,8 +356,8 @@ function RightSidebar({
             Use this {isTemplate ? "template" : "shortcut"}
           </h3>
           <p className="text-sm text-neutral-600 mb-6">
-            Download Hyprnote to use this {isTemplate ? "template" : "shortcut"}{" "}
-            and get AI-powered meeting notes.
+            Download Char to use this {isTemplate ? "template" : "shortcut"} and
+            get AI-powered meeting notes.
           </p>
           <DownloadButton />
           <p className="text-xs text-neutral-500 mt-4">

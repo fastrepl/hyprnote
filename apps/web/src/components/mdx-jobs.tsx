@@ -87,7 +87,7 @@ const TOOL_NAMES: Record<string, string> = {
   figma: "Figma",
   slack: "Slack",
   github: "GitHub",
-  hyprnote: "Hyprnote",
+  hyprnote: "Char",
 };
 
 function ToolWithIcon({ tool }: { tool: string }) {
@@ -225,11 +225,11 @@ export function GitHubMention({
   );
 }
 
-export function HyprnoteIcon() {
+export function CharIcon() {
   return (
     <img
       src="/api/images/hyprnote/icon.png"
-      alt="Hyprnote"
+      alt="Char"
       className="inline-block align-middle size-4.5 mb-0.75 rounded-md"
     />
   );
@@ -395,7 +395,7 @@ export const jobsMdxComponents = {
   GitToolStack,
   AnimatedJobText,
   GitHubMention,
-  HyprnoteIcon,
+  CharIcon,
   ChevronIcon,
   Collapsible,
   FAQ,

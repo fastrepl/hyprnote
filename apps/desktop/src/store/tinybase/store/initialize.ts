@@ -51,6 +51,7 @@ function initializeStore(store: Store): void {
 
     migrateSessionEventIds(store);
     migrateIgnoredRecurringSeries(store);
+    migrateIgnoredEvents(store);
   });
 }
 
@@ -105,6 +106,26 @@ function migrateSessionEventIds(store: Store): void {
       });
     }
   });
+}
+
+function migrateIgnoredEvents(store: Store): void {
+  const raw = store.getValue("ignored_events") as string | undefined;
+  if (!raw) return;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) return;
+
+    const needsMigration = parsed.some(
+      (e: { day?: string }) => typeof e.day !== "string",
+    );
+    if (needsMigration) {
+      const migrated = parsed.filter(
+        (e: { day?: string }) => typeof e.day === "string",
+      );
+      store.setValue("ignored_events", JSON.stringify(migrated));
+    }
+  } catch {}
 }
 
 function migrateIgnoredRecurringSeries(store: Store): void {

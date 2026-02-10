@@ -36,10 +36,7 @@ export function useSession(sessionId: string) {
     main.STORE_ID,
   );
 
-  const event = useMemo(
-    () => getSessionEvent({ eventJson }),
-    [eventJson],
-  );
+  const event = useMemo(() => getSessionEvent({ eventJson }), [eventJson]);
 
   return useMemo(
     () => ({ title, rawMd, createdAt, event, folderId }),
@@ -189,9 +186,7 @@ function parseIgnoredEvents(raw: string | undefined): IgnoredEvent[] {
   }
 }
 
-function parseIgnoredSeries(
-  raw: string | undefined,
-): IgnoredRecurringSeries[] {
+function parseIgnoredSeries(raw: string | undefined): IgnoredRecurringSeries[] {
   if (!raw) return [];
   try {
     return JSON.parse(raw) as IgnoredRecurringSeries[];
@@ -203,18 +198,24 @@ function parseIgnoredSeries(
 export function useIgnoredEvents() {
   const store = main.UI.useStore(main.STORE_ID);
 
-  const ignoredEventsRaw = main.UI.useValue(
-    "ignored_events",
-    main.STORE_ID,
-  ) as string | undefined;
+  const ignoredEventsRaw = main.UI.useValue("ignored_events", main.STORE_ID) as
+    | string
+    | undefined;
   const ignoredSeriesRaw = main.UI.useValue(
     "ignored_recurring_series",
     main.STORE_ID,
   ) as string | undefined;
 
-  const ignoredTrackingIds = useMemo(() => {
+  const ignoredEventMap = useMemo(() => {
     const list = parseIgnoredEvents(ignoredEventsRaw);
-    return new Set(list.map((e) => e.tracking_id));
+    const map = new Map<string, Set<string>>();
+    for (const e of list) {
+      if (!e.day) continue;
+      const set = map.get(e.tracking_id) ?? new Set();
+      set.add(e.day);
+      map.set(e.tracking_id, set);
+    }
+    return map;
   }, [ignoredEventsRaw]);
 
   const ignoredSeriesIds = useMemo(() => {
@@ -226,23 +227,26 @@ export function useIgnoredEvents() {
     (
       trackingId: string | null | undefined,
       recurrenceSeriesId: string | null | undefined,
+      day: string | null | undefined,
     ) => {
-      if (trackingId && ignoredTrackingIds.has(trackingId)) return true;
+      if (trackingId && day && ignoredEventMap.get(trackingId)?.has(day))
+        return true;
       if (recurrenceSeriesId && ignoredSeriesIds.has(recurrenceSeriesId))
         return true;
       return false;
     },
-    [ignoredTrackingIds, ignoredSeriesIds],
+    [ignoredEventMap, ignoredSeriesIds],
   );
 
   const ignoreEvent = useCallback(
-    (trackingId: string) => {
+    (trackingId: string, day: string) => {
       if (!store) return;
       const list = parseIgnoredEvents(
         store.getValue("ignored_events") as string | undefined,
       );
       list.push({
         tracking_id: trackingId,
+        day,
         last_seen: new Date().toISOString(),
       });
       store.setValue("ignored_events", JSON.stringify(list));
@@ -251,14 +255,16 @@ export function useIgnoredEvents() {
   );
 
   const unignoreEvent = useCallback(
-    (trackingId: string) => {
+    (trackingId: string, day: string) => {
       if (!store) return;
       const list = parseIgnoredEvents(
         store.getValue("ignored_events") as string | undefined,
       );
       store.setValue(
         "ignored_events",
-        JSON.stringify(list.filter((e) => e.tracking_id !== trackingId)),
+        JSON.stringify(
+          list.filter((e) => !(e.tracking_id === trackingId && e.day === day)),
+        ),
       );
     },
     [store],
@@ -293,7 +299,7 @@ export function useIgnoredEvents() {
   );
 
   return {
-    ignoredTrackingIds,
+    ignoredEventMap,
     ignoredSeriesIds,
     isIgnored,
     ignoreEvent,

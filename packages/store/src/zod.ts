@@ -33,6 +33,7 @@ export const sessionEventSchema = z.object({
 
 export const ignoredEventEntrySchema = z.object({
   tracking_id: z.string(),
+  day: z.string(),
   last_seen: z.string(),
 });
 

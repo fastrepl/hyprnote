@@ -135,7 +135,7 @@ function useCalendarData(): CalendarData {
     main.QUERIES.timelineSessions,
     main.STORE_ID,
   );
-  const { ignoredTrackingIds, ignoredSeriesIds } = useIgnoredEvents();
+  const { isIgnored } = useIgnoredEvents();
 
   return useMemo(() => {
     const eventIdsByDate: Record<string, string[]> = {};
@@ -144,13 +144,11 @@ function useCalendarData(): CalendarData {
     if (eventsTable) {
       for (const [eventId, row] of Object.entries(eventsTable)) {
         if (!row.title) continue;
-        const tid = row.tracking_id_event;
-        if (tid && ignoredTrackingIds.has(tid)) continue;
-        const sid = row.recurrence_series_id;
-        if (sid && ignoredSeriesIds.has(sid)) continue;
         const raw = safeParseDate(row.started_at);
         if (!raw) continue;
         const key = format(toTz(raw, tz), "yyyy-MM-dd");
+        if (isIgnored(row.tracking_id_event, row.recurrence_series_id, key))
+          continue;
         (eventIdsByDate[key] ??= []).push(eventId);
       }
 
@@ -174,7 +172,7 @@ function useCalendarData(): CalendarData {
     }
 
     return { eventIdsByDate, sessionIdsByDate };
-  }, [eventsTable, sessionsTable, tz, ignoredTrackingIds, ignoredSeriesIds]);
+  }, [eventsTable, sessionsTable, tz, isIgnored]);
 }
 
 export function CalendarView() {
@@ -579,11 +577,9 @@ function EventPopoverContent({ eventId }: { eventId: string }) {
   const handleOpen = useCallback(() => {
     if (!store) return;
     const title = (eventRow?.title as string) || "Untitled";
-    const trackingId = eventRow?.tracking_id_event as string | undefined;
-    if (!trackingId) return;
-    const sessionId = getOrCreateSessionForEventId(store, trackingId, title);
+    const sessionId = getOrCreateSessionForEventId(store, eventId, title);
     openNew({ type: "sessions", id: sessionId });
-  }, [store, eventRow?.title, eventRow?.tracking_id_event, openNew]);
+  }, [store, eventId, eventRow?.title, openNew]);
 
   if (!event) {
     return null;

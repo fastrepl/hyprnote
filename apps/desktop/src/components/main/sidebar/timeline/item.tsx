@@ -11,8 +11,8 @@ import {
 import { cn, format, getYear, safeParseDate, TZDate } from "@hypr/utils";
 
 import { useListener } from "../../../../contexts/listener";
-import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useIgnoredEvents } from "../../../../hooks/tinybase";
+import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import {
   captureSessionData,
   deleteSessionCascade,
@@ -159,6 +159,7 @@ const EventItem = memo(
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
 
+    const eventId = item.id;
     const trackingIdEvent = item.data.tracking_id_event;
     const title = item.data.title || "Untitled";
     const calendarId = item.data.calendar_id ?? null;
@@ -172,7 +173,13 @@ const EventItem = memo(
       unignoreSeries,
     } = useIgnoredEvents();
 
-    const ignored = isIgnored(trackingIdEvent, recurrenceSeriesId);
+    const day = useMemo(() => {
+      const date = safeParseDate(item.data.started_at);
+      if (!date) return undefined;
+      return format(date, "yyyy-MM-dd");
+    }, [item.data.started_at]);
+
+    const ignored = isIgnored(trackingIdEvent, recurrenceSeriesId, day);
 
     const displayTime = useMemo(
       () => formatDisplayTime(item.data.started_at, precision, timezone),
@@ -181,15 +188,11 @@ const EventItem = memo(
 
     const openEvent = useCallback(
       (openInNewTab: boolean) => {
-        if (!store || !trackingIdEvent) {
+        if (!store || !eventId) {
           return;
         }
 
-        const sessionId = getOrCreateSessionForEventId(
-          store,
-          trackingIdEvent,
-          title,
-        );
+        const sessionId = getOrCreateSessionForEventId(store, eventId, title);
         const tab: TabInput = { id: sessionId, type: "sessions" };
         openInNewTab ? openNew(tab) : openCurrent(tab);
       },
@@ -212,14 +215,14 @@ const EventItem = memo(
     }, [flatItemKeys, itemKey]);
 
     const handleIgnore = useCallback(() => {
-      if (!trackingIdEvent) return;
-      ignoreEvent(trackingIdEvent);
-    }, [trackingIdEvent, ignoreEvent]);
+      if (!trackingIdEvent || !day) return;
+      ignoreEvent(trackingIdEvent, day);
+    }, [trackingIdEvent, day, ignoreEvent]);
 
     const handleUnignore = useCallback(() => {
-      if (!trackingIdEvent) return;
-      unignoreEvent(trackingIdEvent);
-    }, [trackingIdEvent, unignoreEvent]);
+      if (!trackingIdEvent || !day) return;
+      unignoreEvent(trackingIdEvent, day);
+    }, [trackingIdEvent, day, unignoreEvent]);
 
     const handleUnignoreSeries = useCallback(() => {
       if (!recurrenceSeriesId) return;

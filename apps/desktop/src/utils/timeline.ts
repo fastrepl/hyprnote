@@ -1,6 +1,8 @@
+import { SessionEvent } from "@hypr/store";
 import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
+  formatDate,
   isPast,
   safeParseDate,
   startOfDay,
@@ -21,6 +23,7 @@ export type TimelineEventRow = {
   ended_at?: string | null;
   calendar_id?: string | null;
   tracking_id_event?: string | null;
+  has_recurrence_rules: boolean;
   recurrence_series_id?: string | null;
 };
 
@@ -188,7 +191,31 @@ export function getItemTimestamp(item: TimelineItem): Date | null {
   if (item.type === "event") {
     return safeParseDate(item.data.started_at);
   }
-  return safeParseDate(getSessionEvent(item.data)?.started_at ?? item.data.created_at);
+  return safeParseDate(
+    getSessionEvent(item.data)?.started_at ?? item.data.created_at,
+  );
+}
+
+// TODO: eww! keey sync between apple-calendar
+
+function getEventKey(row: TimelineEventRow): string {
+  const startedAt = safeParseDate(row.started_at);
+  if (row.has_recurrence_rules) {
+    const day = startedAt ? formatDate(startedAt, "yyyy-MM-dd") : "1970-01-01";
+    return `${row.tracking_id_event}:${day}`;
+  }
+  return row.tracking_id_event ?? "";
+}
+
+function getSessionKey(row: TimelineSessionRow): string {
+  const event = getSessionEvent(row);
+  if (!event) return "";
+  const startedAt = safeParseDate(event.started_at);
+  if (event.has_recurrence_rules) {
+    const day = startedAt ? formatDate(startedAt, "yyyy-MM-dd") : "1970-01-01";
+    return `${event.tracking_id}:${day}`;
+  }
+  return event.tracking_id;
 }
 
 export function buildTimelineBuckets({
@@ -201,12 +228,14 @@ export function buildTimelineBuckets({
   timezone?: string;
 }): TimelineBucket[] {
   const items: TimelineItem[] = [];
-  const seenEventIds = new Set<string>();
+  const seenEventKeys = new Set<string>();
 
   if (timelineSessionsTable) {
     Object.entries(timelineSessionsTable).forEach(([sessionId, row]) => {
       const sessionEvent = getSessionEvent(row);
-      const startTime = safeParseDate(sessionEvent?.started_at ?? row.created_at);
+      const startTime = safeParseDate(
+        sessionEvent?.started_at ?? row.created_at,
+      );
 
       if (!startTime) {
         return;
@@ -217,16 +246,17 @@ export function buildTimelineBuckets({
         id: sessionId,
         data: row,
       });
-      const trackingId = sessionEvent?.tracking_id;
-      if (trackingId) {
-        seenEventIds.add(trackingId);
+      const key = getSessionKey(row);
+      if (key) {
+        seenEventKeys.add(key);
       }
     });
   }
 
   if (timelineEventsTable) {
     Object.entries(timelineEventsTable).forEach(([eventId, row]) => {
-      if (row.tracking_id_event && seenEventIds.has(row.tracking_id_event)) {
+      const key = getEventKey(row);
+      if (key && seenEventKeys.has(key)) {
         return;
       }
       const eventStartTime = safeParseDate(row.started_at);
@@ -251,6 +281,13 @@ export function buildTimelineBuckets({
     const dateB = getItemTimestamp(b);
     const timeAValue = dateA?.getTime() ?? 0;
     const timeBValue = dateB?.getTime() ?? 0;
+    if (timeBValue == timeAValue) {
+      return (a.data.title ?? "Untitled") > (b.data.title ?? "Untitled")
+        ? 1
+        : (a.data.title ?? "Untitled") < (b.data.title ?? "Untitled")
+          ? -1
+          : 0;
+    }
     return timeBValue - timeAValue;
   });
 

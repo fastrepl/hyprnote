@@ -1,12 +1,13 @@
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { Event, SessionEvent } from "@hypr/store";
 import { json2md } from "@hypr/tiptap/shared";
+import { formatDate } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../../utils";
 import { id } from "../../../utils";
 import {
   buildSessionEventJson,
-  getSessionEventById,
+  getSessionEvent,
 } from "../../../utils/session-event";
 import * as main from "./main";
 
@@ -27,17 +28,42 @@ export function createSession(store: Store, title?: string): string {
   return sessionId;
 }
 
+// EWW!!!
+
+function getKey(event: Event): string {
+  const startedAt = event.started_at ? new Date(event.started_at) : null;
+  if (event.has_recurrence_rules) {
+    const day = startedAt ? formatDate(startedAt, "yyyy-MM-dd") : "1970-01-01";
+    return `${event.tracking_id_event}:${day}`;
+  }
+  return event.tracking_id_event;
+}
+
+function getSessionEventKey(event: SessionEvent): string {
+  const startedAt = event.started_at ? new Date(event.started_at) : null;
+  if (event.has_recurrence_rules) {
+    const day = startedAt ? formatDate(startedAt, "yyyy-MM-dd") : "1970-01-01";
+    return `${event.tracking_id}:${day}`;
+  }
+  return event.tracking_id;
+}
+
 export function getOrCreateSessionForEventId(
   store: Store,
   eventId: string,
   title?: string,
 ): string {
   let existingSessionId: string | null = null;
+  const event = store.getRow("events", eventId);
+  const eventKey = getKey(event as Event); // TODO
 
   store.forEachRow("sessions", (rowId, _forEachCell) => {
     if (existingSessionId) return;
-    const trackingId = getSessionEventById(store, rowId)?.tracking_id;
-    if (trackingId === eventId) {
+    const session = store.getRow("sessions", rowId);
+    const sessionEvent = getSessionEvent(session);
+    if (!sessionEvent) return;
+    const sessionKey = getSessionEventKey(sessionEvent);
+    if (sessionKey === eventKey) {
       existingSessionId = rowId;
     }
   });
@@ -46,15 +72,7 @@ export function getOrCreateSessionForEventId(
     return existingSessionId;
   }
 
-  let eventRow: Event | undefined;
-  store.forEachRow("events", (rowId, _forEachCell) => {
-    if (eventRow) return;
-    const row = store.getRow("events", rowId);
-    if (row?.tracking_id_event === eventId) {
-      // TODO: fix tinybase types
-      eventRow = row as Event;
-    }
-  });
+  let eventRow = store.getRow("events", eventId) as Event;
 
   let sessionEvent: SessionEvent | undefined;
   if (eventRow) {

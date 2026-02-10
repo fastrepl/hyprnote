@@ -3,15 +3,15 @@ import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn, startOfDay } from "@hypr/utils";
+import { cn, format, safeParseDate, startOfDay, TZDate } from "@hypr/utils";
 
 import { useConfigValue } from "../../../../config/use-config";
-import { useNativeContextMenu } from "../../../../hooks/useNativeContextMenu";
 import {
   captureSessionData,
   deleteSessionCascade,
 } from "../../../../store/tinybase/store/deleteSession";
 import { useIgnoredEvents } from "../../../../hooks/tinybase";
+import { useNativeContextMenu } from "../../../../hooks/useNativeContextMenu";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { useTimelineSelection } from "../../../../store/zustand/timeline-selection";
@@ -38,7 +38,7 @@ export function TimelineView() {
   const timezone = useConfigValue("timezone") || undefined;
   const [showIgnored, setShowIgnored] = useState(false);
 
-  const { ignoredTrackingIds, ignoredSeriesIds } = useIgnoredEvents();
+  const { isIgnored } = useIgnoredEvents();
 
   const buckets = useMemo(() => {
     if (showIgnored) {
@@ -50,15 +50,22 @@ export function TimelineView() {
         ...bucket,
         items: bucket.items.filter((item) => {
           if (item.type !== "event") return true;
-          const tid = item.data.tracking_id_event;
-          if (tid && ignoredTrackingIds.has(tid)) return false;
-          const sid = item.data.recurrence_series_id;
-          if (sid && ignoredSeriesIds.has(sid)) return false;
-          return true;
+          const parsed = safeParseDate(item.data.started_at);
+          const day = parsed
+            ? format(
+                timezone ? new TZDate(parsed, timezone) : parsed,
+                "yyyy-MM-dd",
+              )
+            : undefined;
+          return !isIgnored(
+            item.data.tracking_id_event,
+            item.data.recurrence_series_id,
+            day,
+          );
         }),
       }))
       .filter((bucket) => bucket.items.length > 0);
-  }, [allBuckets, showIgnored, ignoredTrackingIds, ignoredSeriesIds]);
+  }, [allBuckets, showIgnored, isIgnored, timezone]);
 
   const hasToday = useMemo(
     () => buckets.some((bucket) => bucket.label === "Today"),
@@ -66,11 +73,12 @@ export function TimelineView() {
   );
 
   const currentTab = useTabs((state) => state.currentTab);
-  const store = main.UI.useStore(main.STORE_ID);
 
   const selectedSessionId = useMemo(() => {
     return currentTab?.type === "sessions" ? currentTab.id : undefined;
   }, [currentTab]);
+
+  const store = main.UI.useStore(main.STORE_ID);
 
   const selectedEventTrackingId = useMemo(() => {
     if (!selectedSessionId || !store) {
@@ -248,7 +256,6 @@ export function TimelineView() {
                   precision={bucket.precision}
                   registerIndicator={setCurrentTimeIndicatorRef}
                   selectedSessionId={selectedSessionId}
-                  selectedEventTrackingId={selectedEventTrackingId}
                   timezone={timezone}
                   selectedIds={selectedIds}
                   flatItemKeys={flatItemKeys}
@@ -257,9 +264,7 @@ export function TimelineView() {
                 bucket.items.map((item) => {
                   const itemKey = `${item.type}-${item.id}`;
                   const selected =
-                    item.type === "session"
-                      ? item.id === selectedSessionId
-                      : item.data.tracking_id_event === selectedEventTrackingId;
+                    item.type === "session" && item.id === selectedSessionId;
                   return (
                     <TimelineItemComponent
                       key={itemKey}
@@ -313,7 +318,6 @@ function TodayBucket({
   precision,
   registerIndicator,
   selectedSessionId,
-  selectedEventTrackingId,
   timezone,
   selectedIds,
   flatItemKeys,
@@ -322,7 +326,6 @@ function TodayBucket({
   precision: TimelinePrecision;
   registerIndicator: (node: HTMLDivElement | null) => void;
   selectedSessionId: string | undefined;
-  selectedEventTrackingId: string | undefined;
   timezone?: string;
   selectedIds: string[];
   flatItemKeys: string[];
@@ -371,9 +374,7 @@ function TodayBucket({
 
       const itemKey = `${entry.item.type}-${entry.item.id}`;
       const selected =
-        entry.item.type === "session"
-          ? entry.item.id === selectedSessionId
-          : entry.item.data.tracking_id_event === selectedEventTrackingId;
+        entry.item.type === "session" && entry.item.id === selectedSessionId;
 
       nodes.push(
         <TimelineItemComponent
@@ -404,7 +405,6 @@ function TodayBucket({
     precision,
     registerIndicator,
     selectedSessionId,
-    selectedEventTrackingId,
     timezone,
     selectedIds,
     flatItemKeys,

@@ -14,7 +14,6 @@ import { SCHEMA, type Schemas } from "@hypr/store";
 import { format } from "@hypr/utils";
 
 import { getSessionEvent } from "../../../utils/session-event";
-
 import { useMainPersisters } from "./persisters";
 
 export const STORE_ID = "main";
@@ -98,6 +97,7 @@ export const StoreComponent = () => {
           select("ended_at");
           select("calendar_id");
           select("tracking_id_event");
+          select("has_recurrence_rules");
           select("recurrence_series_id");
           select("is_all_day");
         })
@@ -392,6 +392,7 @@ interface _QueryResultRows {
     ended_at: string;
     calendar_id: string;
     tracking_id_event: string;
+    has_recurrence_rules: boolean;
     recurrence_series_id: string;
     is_all_day: boolean;
   };

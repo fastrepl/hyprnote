@@ -1,4 +1,5 @@
 import type { EventStorage, SessionEvent } from "@hypr/store";
+import { formatDate } from "@hypr/utils";
 
 import { id } from "../../../../utils";
 import {
@@ -79,21 +80,42 @@ export function executeForEventsSync(
   return { trackingIdToEventId };
 }
 
+// TODO: eww!
+
+function getKey(event: IncomingEvent): string {
+  const startedAt = event.started_at ? new Date(event.started_at) : null;
+  if (event.has_recurrence_rules) {
+    const day = startedAt ? formatDate(startedAt, "yyyy-MM-dd") : "1970-01-01";
+    return `${event.tracking_id_event}:${day}`;
+  }
+  return event.tracking_id_event;
+}
+
+function getSessionEventKey(event: SessionEvent): string {
+  const startedAt = event.started_at ? new Date(event.started_at) : null;
+  if (event.has_recurrence_rules) {
+    const day = startedAt ? formatDate(startedAt, "yyyy-MM-dd") : "1970-01-01";
+    return `${event.tracking_id}:${day}`;
+  }
+  return event.tracking_id;
+}
+
 export function syncSessionEmbeddedEvents(
   ctx: Ctx,
   incoming: IncomingEvent[],
 ): void {
-  const incomingByTrackingId = new Map<string, IncomingEvent>();
+  const incomingByKey = new Map<string, IncomingEvent>();
   for (const event of incoming) {
-    incomingByTrackingId.set(event.tracking_id_event, event);
+    incomingByKey.set(getKey(event), event);
   }
 
   ctx.store.transaction(() => {
     ctx.store.forEachRow("sessions", (sessionId, _forEachCell) => {
-      const trackingId = getSessionEventById(ctx.store, sessionId)?.tracking_id;
-      if (!trackingId) return;
+      const sessionEvent = getSessionEventById(ctx.store, sessionId);
+      if (!sessionEvent) return;
+      const key = getSessionEventKey(sessionEvent);
 
-      const incomingEvent = incomingByTrackingId.get(trackingId);
+      const incomingEvent = incomingByKey.get(key);
       if (!incomingEvent) return;
 
       const calendarId =

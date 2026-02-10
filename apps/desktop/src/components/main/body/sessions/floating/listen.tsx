@@ -9,7 +9,6 @@ import { useShell } from "../../../../../contexts/shell";
 import { useSessionEvent } from "../../../../../hooks/tinybase";
 import { useEventCountdown } from "../../../../../hooks/useEventCountdown";
 import { useStartListening } from "../../../../../hooks/useStartListening";
-
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { RecordingIcon, useListenButtonState } from "../shared";
 import { OptionsMenu } from "./options-menu";

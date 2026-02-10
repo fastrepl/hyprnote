@@ -13,8 +13,8 @@ import {
   updateTranscriptWords,
 } from "../store/transcript/utils";
 import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
-import { getSessionEventById } from "../utils/session-event";
 import { id } from "../utils";
+import { getSessionEventById } from "../utils/session-event";
 import { useKeywords } from "./useKeywords";
 import { useSTTConnection } from "./useSTTConnection";
 

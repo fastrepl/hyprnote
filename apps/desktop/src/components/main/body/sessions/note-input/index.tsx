@@ -110,26 +110,80 @@ function handleTranscriptReplace(
   );
   if (!transcriptIds) return;
 
-  let globalMatch = 0;
+  const searchQuery = detail.caseSensitive
+    ? detail.query
+    : detail.query.toLowerCase();
+
+  let globalMatchIndex = 0;
 
   for (const transcriptId of transcriptIds) {
     const words = parseTranscriptWords(store, transcriptId);
-    let changed = false;
+    if (words.length === 0) continue;
 
-    for (const word of words) {
-      const originalText = word.text ?? "";
-      const searchText = detail.caseSensitive
-        ? originalText
-        : originalText.toLowerCase();
-      const searchQuery = detail.caseSensitive
-        ? detail.query
-        : detail.query.toLowerCase();
+    type WordPosition = { start: number; end: number; wordIndex: number };
+    const wordPositions: WordPosition[] = [];
+    let fullText = "";
 
-      if (!searchText.includes(searchQuery)) {
-        continue;
+    for (let i = 0; i < words.length; i++) {
+      const text = (words[i].text ?? "").normalize("NFC");
+      if (i > 0) fullText += " ";
+      const start = fullText.length;
+      fullText += text;
+      wordPositions.push({ start, end: fullText.length, wordIndex: i });
+    }
+
+    const searchText = detail.caseSensitive ? fullText : fullText.toLowerCase();
+    let from = 0;
+
+    type Match = { textPos: number; wordIndex: number; offsetInWord: number };
+    const matches: Match[] = [];
+
+    while (from <= searchText.length - searchQuery.length) {
+      const idx = searchText.indexOf(searchQuery, from);
+      if (idx === -1) break;
+
+      if (detail.wholeWord) {
+        const beforeOk = isWordBoundary(searchText, idx - 1);
+        const afterOk = isWordBoundary(searchText, idx + searchQuery.length);
+        if (!beforeOk || !afterOk) {
+          from = idx + 1;
+          continue;
+        }
       }
 
-      if (detail.all) {
+      for (let i = 0; i < wordPositions.length; i++) {
+        const { start, end, wordIndex } = wordPositions[i];
+        if (idx >= start && idx < end) {
+          matches.push({
+            textPos: idx,
+            wordIndex,
+            offsetInWord: idx - start,
+          });
+          break;
+        }
+        if (
+          i < wordPositions.length - 1 &&
+          idx >= end &&
+          idx < wordPositions[i + 1].start
+        ) {
+          matches.push({
+            textPos: idx,
+            wordIndex: wordPositions[i + 1].wordIndex,
+            offsetInWord: 0,
+          });
+          break;
+        }
+      }
+
+      from = idx + 1;
+    }
+
+    let changed = false;
+
+    if (detail.all) {
+      for (const match of matches) {
+        const word = words[match.wordIndex];
+        const originalText = word.text ?? "";
         word.text = replaceInText(
           originalText,
           detail.query,
@@ -140,29 +194,57 @@ function handleTranscriptReplace(
           0,
         );
         if (word.text !== originalText) changed = true;
-      } else {
-        const count = countOccurrences(
-          searchText,
-          searchQuery,
-          detail.wholeWord,
-        );
-        for (let i = 0; i < count; i++) {
-          if (globalMatch === detail.matchIndex) {
-            word.text = replaceInText(
-              originalText,
-              detail.query,
-              detail.replacement,
-              detail.caseSensitive,
-              detail.wholeWord,
-              false,
-              i,
-            );
-            changed = true;
-            break;
+      }
+    } else {
+      for (const match of matches) {
+        if (globalMatchIndex === detail.matchIndex) {
+          const word = words[match.wordIndex];
+          const originalText = word.text ?? "";
+          const searchTextInWord = detail.caseSensitive
+            ? originalText
+            : originalText.toLowerCase();
+          const searchQueryInWord = detail.caseSensitive
+            ? detail.query
+            : detail.query.toLowerCase();
+
+          let nthInWord = 0;
+          let pos = 0;
+          while (pos <= searchTextInWord.length - searchQueryInWord.length) {
+            const foundIdx = searchTextInWord.indexOf(searchQueryInWord, pos);
+            if (foundIdx === -1) break;
+
+            if (detail.wholeWord) {
+              const beforeOk = isWordBoundary(searchTextInWord, foundIdx - 1);
+              const afterOk = isWordBoundary(
+                searchTextInWord,
+                foundIdx + searchQueryInWord.length,
+              );
+              if (!beforeOk || !afterOk) {
+                pos = foundIdx + 1;
+                continue;
+              }
+            }
+
+            if (foundIdx === match.offsetInWord) {
+              break;
+            }
+            nthInWord++;
+            pos = foundIdx + 1;
           }
-          globalMatch++;
+
+          word.text = replaceInText(
+            originalText,
+            detail.query,
+            detail.replacement,
+            detail.caseSensitive,
+            detail.wholeWord,
+            false,
+            nthInWord,
+          );
+          changed = true;
+          break;
         }
-        if (changed) break;
+        globalMatchIndex++;
       }
     }
 
@@ -172,28 +254,6 @@ function handleTranscriptReplace(
       if (!detail.all) return;
     }
   }
-}
-
-function countOccurrences(
-  text: string,
-  query: string,
-  wholeWord: boolean,
-): number {
-  let count = 0;
-  let from = 0;
-  while (from <= text.length - query.length) {
-    const idx = text.indexOf(query, from);
-    if (idx === -1) break;
-    if (wholeWord) {
-      const beforeOk = isWordBoundary(text, idx - 1);
-      const afterOk = isWordBoundary(text, idx + query.length);
-      if (beforeOk && afterOk) count++;
-    } else {
-      count++;
-    }
-    from = idx + 1;
-  }
-  return count;
 }
 
 function handleEditorReplace(

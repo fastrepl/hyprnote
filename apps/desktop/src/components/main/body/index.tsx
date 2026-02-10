@@ -25,6 +25,7 @@ import { cn } from "@hypr/utils";
 import { useListener } from "../../../contexts/listener";
 import { useNotifications } from "../../../contexts/notifications";
 import { useShell } from "../../../contexts/shell";
+import { useNativeContextMenu } from "../../../hooks/useNativeContextMenu";
 import {
   type Tab,
   uniqueIdfromTab,
@@ -141,6 +142,17 @@ function Header({ tabs }: { tabs: Tab[] }) {
 
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const handleNewEmptyTab = useNewEmptyTab();
+  const handleNewNote = useNewNote({ behavior: "new" });
+  const handleNewNoteAndListen = useNewNoteAndListen();
+  const showNewTabMenu = useNativeContextMenu([
+    { id: "empty-tab", text: "Open Empty Tab", action: handleNewEmptyTab },
+    { id: "new-note", text: "Create New Note", action: handleNewNote },
+    {
+      id: "new-note-listen",
+      text: "Create and Start Listening",
+      action: handleNewNoteAndListen,
+    },
+  ]);
   const [isSearchManuallyExpanded, setIsSearchManuallyExpanded] =
     useState(false);
   const scrollState = useScrollState(
@@ -296,6 +308,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
         {!isSearchManuallyExpanded && (
           <Button
             onClick={handleNewEmptyTab}
+            onContextMenu={showNewTabMenu}
             variant="ghost"
             size="icon"
             className="text-neutral-600"

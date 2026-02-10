@@ -1,11 +1,10 @@
-import { insert } from "@orama/orama";
+import { commands as tantivy } from "@hypr/plugin-tantivy";
 
 import { type Store as MainStore } from "../../../store/tinybase/store/main";
 import {
   createHumanSearchableContent,
   createSessionSearchableContent,
 } from "./content";
-import type { Index } from "./types";
 import {
   collectCells,
   collectEnhancedNotesContent,
@@ -13,7 +12,7 @@ import {
   toTrimmedString,
 } from "./utils";
 
-export function indexSessions(db: Index, store: MainStore): void {
+export function indexSessions(store: MainStore): void {
   const fields = [
     "user_id",
     "created_at",
@@ -29,17 +28,22 @@ export function indexSessions(db: Index, store: MainStore): void {
     row.enhanced_notes_content = collectEnhancedNotesContent(store, rowId);
     const title = toTrimmedString(row.title) || "Untitled";
 
-    void insert(db, {
-      id: rowId,
-      type: "session",
-      title,
-      content: createSessionSearchableContent(row),
-      created_at: toEpochMs(row.created_at),
-    });
+    void tantivy.updateDocument(
+      {
+        id: rowId,
+        doc_type: "session",
+        language: null,
+        title,
+        content: createSessionSearchableContent(row),
+        created_at: toEpochMs(row.created_at),
+        facets: [],
+      },
+      null,
+    );
   });
 }
 
-export function indexHumans(db: Index, store: MainStore): void {
+export function indexHumans(store: MainStore): void {
   const fields = [
     "name",
     "email",
@@ -54,29 +58,39 @@ export function indexHumans(db: Index, store: MainStore): void {
     const row = collectCells(store, "humans", rowId, fields);
     const title = toTrimmedString(row.name) || "Unknown";
 
-    void insert(db, {
-      id: rowId,
-      type: "human",
-      title,
-      content: createHumanSearchableContent(row),
-      created_at: toEpochMs(row.created_at),
-    });
+    void tantivy.updateDocument(
+      {
+        id: rowId,
+        doc_type: "human",
+        language: null,
+        title,
+        content: createHumanSearchableContent(row),
+        created_at: toEpochMs(row.created_at),
+        facets: [],
+      },
+      null,
+    );
   });
 }
 
-export function indexOrganizations(db: Index, store: MainStore): void {
+export function indexOrganizations(store: MainStore): void {
   const fields = ["name", "created_at"];
 
   store.forEachRow("organizations", (rowId: string, _forEachCell) => {
     const row = collectCells(store, "organizations", rowId, fields);
     const title = toTrimmedString(row.name) || "Unknown Organization";
 
-    void insert(db, {
-      id: rowId,
-      type: "organization",
-      title,
-      content: "",
-      created_at: toEpochMs(row.created_at),
-    });
+    void tantivy.updateDocument(
+      {
+        id: rowId,
+        doc_type: "organization",
+        language: null,
+        title,
+        content: "",
+        created_at: toEpochMs(row.created_at),
+        facets: [],
+      },
+      null,
+    );
   });
 }

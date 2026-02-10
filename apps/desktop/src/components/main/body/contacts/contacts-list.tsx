@@ -1,6 +1,7 @@
 import { Building2, CornerDownLeft, Pin } from "lucide-react";
 import { Reorder } from "motion/react";
 import React, { useCallback, useMemo, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import type { ContactsSelection } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
@@ -23,6 +24,14 @@ export function ContactsListColumn({
   const [showNewOrg, setShowNewOrg] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
+  const [showSearch, setShowSearch] = useState(false);
+
+  useHotkeys(
+    "mod+f",
+    () => setShowSearch(true),
+    { preventDefault: true, enableOnFormTags: true },
+    [setShowSearch],
+  );
 
   const allHumans = main.UI.useTable("humans", main.STORE_ID);
   const allOrgs = main.UI.useTable("organizations", main.STORE_ID);
@@ -205,6 +214,8 @@ export function ContactsListColumn({
         onAdd={handleAdd}
         searchValue={searchValue}
         onSearchChange={setSearchValue}
+        showSearch={showSearch}
+        onShowSearchChange={setShowSearch}
       />
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
@@ -315,7 +326,7 @@ function PersonItem({
     <button
       onClick={onClick}
       className={cn([
-        "group w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors flex items-center gap-2 bg-white",
+        "group w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors flex items-center gap-2 bg-white overflow-hidden",
         active ? "border-neutral-500 bg-neutral-100" : "border-transparent",
       ])}
     >
@@ -370,7 +381,7 @@ function OrganizationItem({
     <button
       onClick={onClick}
       className={cn([
-        "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors flex items-center gap-2",
+        "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors flex items-center gap-2 overflow-hidden",
         active ? "border-neutral-500 bg-neutral-100" : "border-transparent",
       ])}
     >

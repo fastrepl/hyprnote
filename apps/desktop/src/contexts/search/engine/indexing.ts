@@ -47,6 +47,7 @@ export function indexHumans(db: Index, store: MainStore): void {
     "job_title",
     "linkedin_username",
     "created_at",
+    "memo",
   ];
 
   store.forEachRow("humans", (rowId: string, _forEachCell) => {

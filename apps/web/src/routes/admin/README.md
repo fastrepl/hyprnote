@@ -6,9 +6,9 @@ The admin interface at `/admin` provides content management capabilities for the
 
 Access is restricted to whitelisted email addresses. The whitelist is defined in `src/functions/admin.ts`:
 
-- yujonglee@char.com
-- john@char.com
-- harshika@char.com
+- yujonglee@hyprnote.com
+- john@hyprnote.com
+- harshika@hyprnote.com
 
 Users must be authenticated via Supabase to access admin routes.
 

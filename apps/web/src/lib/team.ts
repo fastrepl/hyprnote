@@ -2,7 +2,7 @@ export const TEAM_MEMBERS = {
   john: {
     id: "john",
     name: "John Jeong",
-    email: "john@char.com",
+    email: "john@hyprnote.com",
     avatar: "/api/images/team/john.png",
     role: "Chief Wisdom Seeker",
     bio: "I love designing simple and intuitive user interfaces.",
@@ -15,7 +15,7 @@ export const TEAM_MEMBERS = {
   yujong: {
     id: "yujong",
     name: "Yujong Lee",
-    email: "yujonglee@char.com",
+    email: "yujonglee@hyprnote.com",
     avatar: "/api/images/team/yujong.png",
     role: "Chief OSS Lover",
     bio: "I am super bullish about open-source software.",
@@ -63,10 +63,10 @@ export function getAuthorAvatar(author: string, absolute = false): string {
 }
 
 export const ADMIN_EMAILS = [
-  "yujonglee@char.com",
+  "yujonglee@hyprnote.com",
   "yujonglee.dev@gmail.com",
-  "john@char.com",
-  "marketing@char.com",
+  "john@hyprnote.com",
+  "marketing@hyprnote.com",
   "harshika.alagh@gmail.com",
   "yunhyungjo@yonsei.ac.kr",
 ];

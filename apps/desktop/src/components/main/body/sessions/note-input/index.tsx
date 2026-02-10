@@ -203,29 +203,58 @@ function handleEditorReplace(
   if (!editor) return;
 
   const doc = editor.state.doc;
-  const fullText = doc.textBetween(0, doc.content.size, "\n");
-  const searchText = detail.caseSensitive ? fullText : fullText.toLowerCase();
   const searchQuery = detail.caseSensitive
     ? detail.query
     : detail.query.toLowerCase();
 
+  type TextNodeWithPosition = { text: string; pos: number };
+  const textNodesWithPosition: TextNodeWithPosition[] = [];
+  let index = 0;
+
+  doc.descendants((node, pos) => {
+    if (node.isText) {
+      if (textNodesWithPosition[index]) {
+        textNodesWithPosition[index] = {
+          text: textNodesWithPosition[index].text + node.text,
+          pos: textNodesWithPosition[index].pos,
+        };
+      } else {
+        textNodesWithPosition[index] = {
+          text: node.text ?? "",
+          pos,
+        };
+      }
+    } else {
+      index += 1;
+    }
+  });
+
   type Hit = { from: number; to: number };
   const hits: Hit[] = [];
-  let from = 0;
 
-  while (from <= searchText.length - searchQuery.length) {
-    const idx = searchText.indexOf(searchQuery, from);
-    if (idx === -1) break;
-    if (detail.wholeWord) {
-      const beforeOk = isWordBoundary(searchText, idx - 1);
-      const afterOk = isWordBoundary(searchText, idx + searchQuery.length);
-      if (!beforeOk || !afterOk) {
-        from = idx + 1;
-        continue;
+  for (const { text, pos } of textNodesWithPosition) {
+    const searchText = detail.caseSensitive ? text : text.toLowerCase();
+    let from = 0;
+
+    while (from <= searchText.length - searchQuery.length) {
+      const idx = searchText.indexOf(searchQuery, from);
+      if (idx === -1) break;
+
+      if (detail.wholeWord) {
+        const beforeOk = isWordBoundary(searchText, idx - 1);
+        const afterOk = isWordBoundary(searchText, idx + searchQuery.length);
+        if (!beforeOk || !afterOk) {
+          from = idx + 1;
+          continue;
+        }
       }
+
+      hits.push({
+        from: pos + idx,
+        to: pos + idx + detail.query.length,
+      });
+      from = idx + 1;
     }
-    hits.push({ from: idx, to: idx + detail.query.length });
-    from = idx + 1;
   }
 
   if (hits.length === 0) return;
@@ -237,8 +266,8 @@ function handleEditorReplace(
   const tr = editor.state.tr;
 
   for (const hit of toReplace) {
-    const adjustedFrom = hit.from + offset + 1;
-    const adjustedTo = hit.to + offset + 1;
+    const adjustedFrom = hit.from + offset;
+    const adjustedTo = hit.to + offset;
     if (detail.replacement) {
       tr.replaceWith(
         adjustedFrom,

@@ -166,13 +166,20 @@ export function ContactsListColumn({
       return name.includes(q);
     };
 
-    const pinnedPeople: ContactItem[] = pinnedHumanIds
-      .filter(filterHuman)
-      .map((id) => ({ kind: "person" as const, id }));
-
-    const pinnedOrgs: ContactItem[] = pinnedOrgIds
-      .filter(filterOrg)
-      .map((id) => ({ kind: "organization" as const, id }));
+    const allPinned = [
+      ...pinnedHumanIds.filter(filterHuman).map((id) => ({
+        kind: "person" as const,
+        id,
+        pin_order: (allHumans[id]?.pin_order as number | undefined) ?? Infinity,
+      })),
+      ...pinnedOrgIds.filter(filterOrg).map((id) => ({
+        kind: "organization" as const,
+        id,
+        pin_order: (allOrgs[id]?.pin_order as number | undefined) ?? Infinity,
+      })),
+    ]
+      .sort((a, b) => a.pin_order - b.pin_order)
+      .map(({ kind, id }) => ({ kind, id }));
 
     const unpinnedOrgs: ContactItem[] = unpinnedOrgIds
       .filter(filterOrg)
@@ -183,7 +190,7 @@ export function ContactsListColumn({
       .map((id) => ({ kind: "person" as const, id }));
 
     return {
-      pinnedItems: [...pinnedPeople, ...pinnedOrgs],
+      pinnedItems: allPinned,
       nonPinnedItems: [...unpinnedOrgs, ...unpinnedPeople],
     };
   }, [

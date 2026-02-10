@@ -1,28 +1,30 @@
 import { MessageSquareIcon } from "lucide-react";
 
-import {
-  extractMcpOutputText,
-  parseAddCommentOutput,
-} from "../../../../chat/support-mcp-tools";
+import { parseAddCommentOutput } from "../../../../chat/support-mcp-tools";
 import type { ToolRenderer } from "../types";
 import {
   MarkdownPreview,
   ToolCard,
+  ToolCardApproval,
   ToolCardBody,
-  ToolCardFooterError,
-  ToolCardFooterRaw,
+  ToolCardFooters,
   ToolCardFooterSuccess,
   ToolCardHeader,
+  useMcpOutput,
+  useToolApproval,
+  useToolState,
 } from "./shared";
 
 type Renderer = ToolRenderer<"tool-add_comment">;
 
 function headerLabel(
   running: boolean,
+  awaitingApproval: boolean,
   failed: boolean,
   issueNumber: string | number,
   parsed: ReturnType<typeof parseAddCommentOutput>,
 ): string {
+  if (awaitingApproval) return `Add comment to #${issueNumber} — review needed`;
   if (running) return `Commenting on #${issueNumber}...`;
   if (failed) return `Comment failed for #${issueNumber}`;
   if (parsed) return `Comment posted to #${issueNumber}`;
@@ -30,22 +32,30 @@ function headerLabel(
 }
 
 export const ToolAddComment: Renderer = ({ part }) => {
-  const running =
-    part.state === "input-streaming" || part.state === "input-available";
-  const failed = part.state === "output-error";
-  const done = part.state === "output-available";
-  const parsed = done ? parseAddCommentOutput(part.output) : null;
-  const rawText = done && !parsed ? extractMcpOutputText(part.output) : null;
+  const { running, failed, done } = useToolState(part);
+  const { parsed, rawText } = useMcpOutput(
+    done,
+    part.output,
+    parseAddCommentOutput,
+  );
   const issueNumber = part.input?.issue_number ?? "?";
+  const awaitingApproval = useToolApproval(running);
 
   return (
     <ToolCard failed={failed}>
       <ToolCardHeader
         icon={<MessageSquareIcon />}
         running={running}
+        awaitingApproval={awaitingApproval}
         failed={failed}
         done={!!parsed}
-        label={headerLabel(running, failed, issueNumber, parsed)}
+        label={headerLabel(
+          running,
+          awaitingApproval,
+          failed,
+          issueNumber,
+          parsed,
+        )}
       />
 
       {part.input ? (
@@ -59,16 +69,20 @@ export const ToolAddComment: Renderer = ({ part }) => {
         </ToolCardBody>
       ) : null}
 
-      {failed ? (
-        <ToolCardFooterError text={String(part.errorText ?? "Unknown error")} />
-      ) : null}
-      {parsed ? (
-        <ToolCardFooterSuccess
-          href={parsed.comment_url}
-          label="Comment posted"
-        />
-      ) : null}
-      {rawText ? <ToolCardFooterRaw text={rawText} /> : null}
+      {awaitingApproval ? <ToolCardApproval /> : null}
+
+      <ToolCardFooters
+        failed={failed}
+        errorText={part.errorText}
+        rawText={rawText}
+      >
+        {parsed ? (
+          <ToolCardFooterSuccess
+            href={parsed.comment_url}
+            label="Comment posted"
+          />
+        ) : null}
+      </ToolCardFooters>
     </ToolCard>
   );
 };

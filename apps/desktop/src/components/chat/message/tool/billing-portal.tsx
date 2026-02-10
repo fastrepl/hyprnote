@@ -1,16 +1,14 @@
 import { ExternalLinkIcon } from "lucide-react";
 
-import {
-  extractMcpOutputText,
-  parseCreateBillingPortalSessionOutput,
-} from "../../../../chat/support-mcp-tools";
+import { parseCreateBillingPortalSessionOutput } from "../../../../chat/support-mcp-tools";
 import type { ToolRenderer } from "../types";
 import {
   ToolCard,
-  ToolCardFooterError,
-  ToolCardFooterRaw,
+  ToolCardFooters,
   ToolCardFooterSuccess,
   ToolCardHeader,
+  useMcpOutput,
+  useToolState,
 } from "./shared";
 
 type Renderer = ToolRenderer<"tool-create_billing_portal_session">;
@@ -27,14 +25,12 @@ function headerLabel(
 }
 
 export const ToolBillingPortal: Renderer = ({ part }) => {
-  const running =
-    part.state === "input-streaming" || part.state === "input-available";
-  const failed = part.state === "output-error";
-  const done = part.state === "output-available";
-  const parsed = done
-    ? parseCreateBillingPortalSessionOutput(part.output)
-    : null;
-  const rawText = done && !parsed ? extractMcpOutputText(part.output) : null;
+  const { running, failed, done } = useToolState(part);
+  const { parsed, rawText } = useMcpOutput(
+    done,
+    part.output,
+    parseCreateBillingPortalSessionOutput,
+  );
 
   return (
     <ToolCard failed={failed}>
@@ -46,13 +42,18 @@ export const ToolBillingPortal: Renderer = ({ part }) => {
         label={headerLabel(running, failed, parsed)}
       />
 
-      {failed ? (
-        <ToolCardFooterError text={String(part.errorText ?? "Unknown error")} />
-      ) : null}
-      {parsed ? (
-        <ToolCardFooterSuccess href={parsed.url} label="Open billing portal" />
-      ) : null}
-      {rawText ? <ToolCardFooterRaw text={rawText} /> : null}
+      <ToolCardFooters
+        failed={failed}
+        errorText={part.errorText}
+        rawText={rawText}
+      >
+        {parsed ? (
+          <ToolCardFooterSuccess
+            href={parsed.url}
+            label="Open billing portal"
+          />
+        ) : null}
+      </ToolCardFooters>
     </ToolCard>
   );
 };

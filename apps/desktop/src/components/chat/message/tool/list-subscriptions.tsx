@@ -2,17 +2,15 @@ import { CreditCardIcon } from "lucide-react";
 
 import { cn } from "@hypr/utils";
 
-import {
-  extractMcpOutputText,
-  parseListSubscriptionsOutput,
-} from "../../../../chat/support-mcp-tools";
+import { parseListSubscriptionsOutput } from "../../../../chat/support-mcp-tools";
 import type { ToolRenderer } from "../types";
 import {
   ToolCard,
   ToolCardBody,
-  ToolCardFooterError,
-  ToolCardFooterRaw,
+  ToolCardFooters,
   ToolCardHeader,
+  useMcpOutput,
+  useToolState,
 } from "./shared";
 
 type Renderer = ToolRenderer<"tool-list_subscriptions">;
@@ -47,12 +45,12 @@ function formatTimestamp(value: number | null): string {
 }
 
 export const ToolListSubscriptions: Renderer = ({ part }) => {
-  const running =
-    part.state === "input-streaming" || part.state === "input-available";
-  const failed = part.state === "output-error";
-  const done = part.state === "output-available";
-  const parsed = done ? parseListSubscriptionsOutput(part.output) : null;
-  const rawText = done && !parsed ? extractMcpOutputText(part.output) : null;
+  const { running, failed, done } = useToolState(part);
+  const { parsed, rawText } = useMcpOutput(
+    done,
+    part.output,
+    parseListSubscriptionsOutput,
+  );
   const statusFilter = part.input?.status ?? "active";
 
   return (
@@ -102,10 +100,11 @@ export const ToolListSubscriptions: Renderer = ({ part }) => {
         </ToolCardBody>
       ) : null}
 
-      {failed ? (
-        <ToolCardFooterError text={String(part.errorText ?? "Unknown error")} />
-      ) : null}
-      {rawText ? <ToolCardFooterRaw text={rawText} /> : null}
+      <ToolCardFooters
+        failed={failed}
+        errorText={part.errorText}
+        rawText={rawText}
+      />
     </ToolCard>
   );
 };

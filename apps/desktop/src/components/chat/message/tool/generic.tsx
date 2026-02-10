@@ -1,6 +1,14 @@
 import { WrenchIcon } from "lucide-react";
 
 import { Disclosure } from "../shared";
+import {
+  ToolCard,
+  ToolCardApproval,
+  ToolCardBody,
+  ToolCardHeader,
+  useToolApproval,
+  useToolState,
+} from "./shared";
 
 function formatToolName(name: string): string {
   return name.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
@@ -29,23 +37,68 @@ export function ToolGeneric({ part }: { part: Record<string, unknown> }) {
     part.toolName ??
       (typeof part.type === "string" ? part.type.replace("tool-", "") : "tool"),
   );
-  const state = part.state as string;
-  const running = state === "input-streaming" || state === "input-available";
-  const failed = state === "output-error";
+  const { running, failed } = useToolState(part as { state: string });
+  const done = (part.state as string) === "output-available";
+  const awaitingApproval = useToolApproval(running);
 
-  const title = running
-    ? `Running ${formatToolName(toolName)}…`
-    : failed
-      ? `${formatToolName(toolName)} failed`
-      : formatToolName(toolName);
+  if (awaitingApproval) {
+    return (
+      <ToolCard>
+        <ToolCardHeader
+          icon={<WrenchIcon />}
+          running={running}
+          awaitingApproval
+          failed={false}
+          done={false}
+          label={`${formatToolName(toolName)} — review needed`}
+        />
+        {part.input ? (
+          <ToolCardBody>
+            <InputDisplay input={part.input} />
+          </ToolCardBody>
+        ) : null}
+        <ToolCardApproval />
+      </ToolCard>
+    );
+  }
+
+  if (done || failed) {
+    const outputText =
+      done && part.output ? extractOutputText(part.output) : null;
+
+    return (
+      <Disclosure
+        icon={<WrenchIcon className="w-3 h-3" />}
+        title={
+          failed
+            ? `${formatToolName(toolName)} failed`
+            : formatToolName(toolName)
+        }
+      >
+        <div className="flex flex-col gap-2">
+          <InputDisplay input={part.input} />
+          {failed ? (
+            <p className="text-xs text-red-500">
+              {String(part.errorText ?? "Unknown error")}
+            </p>
+          ) : null}
+          {outputText ? (
+            <p className="text-xs text-neutral-600 whitespace-pre-wrap">
+              {outputText}
+            </p>
+          ) : null}
+        </div>
+      </Disclosure>
+    );
+  }
 
   return (
     <Disclosure
       icon={<WrenchIcon className="w-3 h-3" />}
-      title={title}
-      disabled={running}
+      title={`Running ${formatToolName(toolName)}…`}
+      disabled
     >
-      <Content part={part} />
+      {null}
     </Disclosure>
   );
 }
@@ -67,31 +120,4 @@ function InputDisplay({ input }: { input: unknown }) {
       ))}
     </dl>
   );
-}
-
-function Content({ part }: { part: Record<string, unknown> }) {
-  if (part.state === "output-error") {
-    return (
-      <div className="flex flex-col gap-2">
-        <InputDisplay input={part.input} />
-        <p className="text-xs text-red-500">
-          {String(part.errorText ?? "Unknown error")}
-        </p>
-      </div>
-    );
-  }
-
-  if (part.state === "output-available") {
-    const text = part.output ? extractOutputText(part.output) : null;
-    return (
-      <div className="flex flex-col gap-2">
-        <InputDisplay input={part.input} />
-        {text && (
-          <p className="text-xs text-neutral-600 whitespace-pre-wrap">{text}</p>
-        )}
-      </div>
-    );
-  }
-
-  return null;
 }

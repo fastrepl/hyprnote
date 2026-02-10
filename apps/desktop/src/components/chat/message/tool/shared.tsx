@@ -2,12 +2,16 @@ import {
   CheckCircle2Icon,
   ExternalLinkIcon,
   Loader2Icon,
+  ShieldAlertIcon,
   XCircleIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
 import { cn } from "@hypr/utils";
+
+import { extractMcpOutputText } from "../../../../chat/support-mcp-tools";
+import { useElicitation } from "../../../../contexts/elicitation";
 
 export function ToolCard({
   failed,
@@ -19,8 +23,8 @@ export function ToolCard({
   return (
     <div
       className={cn([
-        "my-2 rounded-lg border overflow-hidden",
-        failed ? "border-red-200" : "border-neutral-200",
+        "my-2.5 rounded-xl border overflow-hidden shadow-sm",
+        failed ? "border-red-200" : "border-neutral-200/80",
       ])}
     >
       {children}
@@ -31,12 +35,14 @@ export function ToolCard({
 export function ToolCardHeader({
   icon,
   running,
+  awaitingApproval,
   failed,
   done,
   label,
 }: {
   icon: ReactNode;
   running: boolean;
+  awaitingApproval?: boolean;
   failed: boolean;
   done: boolean;
   label: string;
@@ -44,16 +50,22 @@ export function ToolCardHeader({
   return (
     <div
       className={cn([
-        "px-3 py-1.5 flex items-center gap-2 text-xs",
-        failed ? "bg-red-50 text-red-700" : "bg-neutral-50 text-neutral-600",
+        "px-3.5 py-2 flex items-center gap-2.5 text-[13px]",
+        failed
+          ? "bg-red-50 text-red-700"
+          : awaitingApproval
+            ? "bg-neutral-100 text-neutral-700"
+            : "bg-neutral-50/80 text-neutral-600",
       ])}
     >
-      {running ? (
-        <Loader2Icon className="w-3.5 h-3.5 animate-spin" />
+      {running && !awaitingApproval ? (
+        <Loader2Icon className="w-4 h-4 animate-spin" />
+      ) : awaitingApproval ? (
+        <ShieldAlertIcon className="w-4 h-4 text-neutral-500" />
       ) : (
         <span
           className={cn([
-            "shrink-0 [&>svg]:w-3.5 [&>svg]:h-3.5",
+            "shrink-0 [&>svg]:w-4 [&>svg]:h-4",
             failed
               ? "text-red-500"
               : done
@@ -70,7 +82,7 @@ export function ToolCardHeader({
 }
 
 export function ToolCardBody({ children }: { children: ReactNode }) {
-  return <div className="px-3 py-2 flex flex-col gap-2">{children}</div>;
+  return <div className="px-3.5 py-2.5 flex flex-col gap-2.5">{children}</div>;
 }
 
 export function ToolCardFooterSuccess({
@@ -85,38 +97,112 @@ export function ToolCardFooterSuccess({
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="px-3 py-2 bg-emerald-50 border-t border-emerald-200 flex items-center gap-2 hover:bg-emerald-100 transition-colors"
+      className="px-3.5 py-2.5 bg-emerald-50 border-t border-emerald-200 flex items-center gap-2 hover:bg-emerald-100/80 transition-colors"
     >
-      <CheckCircle2Icon className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-      <span className="text-xs text-emerald-700 font-medium">{label}</span>
-      <ExternalLinkIcon className="w-3 h-3 text-emerald-500 ml-auto shrink-0" />
+      <CheckCircle2Icon className="w-4 h-4 text-emerald-600 shrink-0" />
+      <span className="text-[13px] text-emerald-700 font-medium">{label}</span>
+      <ExternalLinkIcon className="w-3.5 h-3.5 text-emerald-500 ml-auto shrink-0" />
     </a>
   );
 }
 
 export function ToolCardFooterError({ text }: { text: string }) {
   return (
-    <div className="px-3 py-2 bg-red-50 border-t border-red-200 flex items-center gap-2">
-      <XCircleIcon className="w-3.5 h-3.5 text-red-500 shrink-0" />
-      <p className="text-xs text-red-600">{text}</p>
+    <div className="px-3.5 py-2.5 bg-red-50 border-t border-red-200 flex items-center gap-2">
+      <XCircleIcon className="w-4 h-4 text-red-500 shrink-0" />
+      <p className="text-[13px] text-red-600">{text}</p>
     </div>
   );
 }
 
 export function ToolCardFooterRaw({ text }: { text: string }) {
   return (
-    <div className="px-3 py-2 bg-neutral-50 border-t border-neutral-200">
-      <p className="text-xs text-neutral-600 whitespace-pre-wrap">{text}</p>
+    <div className="px-3.5 py-2.5 bg-neutral-50/80 border-t border-neutral-200/80">
+      <p className="text-[13px] text-neutral-600 whitespace-pre-wrap">{text}</p>
     </div>
   );
 }
 
+export function useToolState(part: { state: string }) {
+  const running =
+    part.state === "input-streaming" || part.state === "input-available";
+  const failed = part.state === "output-error";
+  const done = part.state === "output-available";
+  return { running, failed, done };
+}
+
+export function useMcpOutput<T>(
+  done: boolean,
+  output: unknown,
+  parseFn: (output: unknown) => T | null,
+): { parsed: T | null; rawText: string | null } {
+  const parsed = done ? parseFn(output) : null;
+  const rawText = done && !parsed ? extractMcpOutputText(output) : null;
+  return { parsed, rawText };
+}
+
+export function ToolCardFooters({
+  failed,
+  errorText,
+  rawText,
+  children,
+}: {
+  failed: boolean;
+  errorText?: unknown;
+  rawText: string | null;
+  children?: ReactNode;
+}) {
+  return (
+    <>
+      {children}
+      {failed ? (
+        <ToolCardFooterError text={String(errorText ?? "Unknown error")} />
+      ) : null}
+      {rawText ? <ToolCardFooterRaw text={rawText} /> : null}
+    </>
+  );
+}
+
+export function ToolCardApproval() {
+  const { pending, respond } = useElicitation();
+
+  if (!pending || !respond) {
+    return null;
+  }
+
+  return (
+    <div className="px-3.5 py-2.5 bg-neutral-50/80 border-t border-neutral-200/80 flex items-center gap-2.5">
+      <span className="flex-1 text-[13px] text-neutral-500">
+        {pending.message}
+      </span>
+      <button
+        className="px-3 py-1 text-[13px] rounded-md border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-600 transition-colors"
+        onClick={() => respond(false)}
+      >
+        Decline
+      </button>
+      <button
+        className="px-3 py-1 text-[13px] rounded-md bg-neutral-800 hover:bg-neutral-700 text-white transition-colors"
+        onClick={() => respond(true)}
+        autoFocus
+      >
+        Approve
+      </button>
+    </div>
+  );
+}
+
+export function useToolApproval(running: boolean) {
+  const { pending } = useElicitation();
+  return running && !!pending;
+}
+
 export function MarkdownPreview({ children }: { children: string }) {
   return (
-    <div className="rounded-md border border-neutral-200 bg-white">
-      <div className="px-2.5 py-2 max-h-64 overflow-y-auto">
+    <div className="rounded-lg border border-neutral-200/80 bg-white">
+      <div className="px-3 py-2.5 max-h-64 overflow-y-auto">
         <Streamdown
-          className="text-xs text-neutral-700 leading-relaxed"
+          className="text-[13px] text-neutral-700 leading-relaxed"
           linkSafety={{ enabled: false }}
         >
           {children}

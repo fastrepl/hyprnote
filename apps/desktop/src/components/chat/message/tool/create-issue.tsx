@@ -1,18 +1,18 @@
 import { CircleDotIcon, TagIcon } from "lucide-react";
 
-import {
-  extractMcpOutputText,
-  parseCreateIssueOutput,
-} from "../../../../chat/support-mcp-tools";
+import { parseCreateIssueOutput } from "../../../../chat/support-mcp-tools";
 import type { ToolRenderer } from "../types";
 import {
   MarkdownPreview,
   ToolCard,
+  ToolCardApproval,
   ToolCardBody,
-  ToolCardFooterError,
-  ToolCardFooterRaw,
+  ToolCardFooters,
   ToolCardFooterSuccess,
   ToolCardHeader,
+  useMcpOutput,
+  useToolApproval,
+  useToolState,
 } from "./shared";
 
 type Renderer = ToolRenderer<"tool-create_issue">;
@@ -30,9 +30,11 @@ function normalizeLabels(
 
 function headerLabel(
   running: boolean,
+  awaitingApproval: boolean,
   failed: boolean,
   parsed: ReturnType<typeof parseCreateIssueOutput>,
 ): string {
+  if (awaitingApproval) return "Create issue — review needed";
   if (running) return "Drafting GitHub issue...";
   if (failed) return "Issue creation failed";
   if (parsed) return `Created #${parsed.issue_number}`;
@@ -40,22 +42,24 @@ function headerLabel(
 }
 
 export const ToolCreateIssue: Renderer = ({ part }) => {
-  const running =
-    part.state === "input-streaming" || part.state === "input-available";
-  const failed = part.state === "output-error";
-  const done = part.state === "output-available";
-  const parsed = done ? parseCreateIssueOutput(part.output) : null;
-  const rawText = done && !parsed ? extractMcpOutputText(part.output) : null;
+  const { running, failed, done } = useToolState(part);
+  const { parsed, rawText } = useMcpOutput(
+    done,
+    part.output,
+    parseCreateIssueOutput,
+  );
   const labels = normalizeLabels(part.input?.labels);
+  const awaitingApproval = useToolApproval(running);
 
   return (
     <ToolCard failed={failed}>
       <ToolCardHeader
         icon={<CircleDotIcon />}
         running={running}
+        awaitingApproval={awaitingApproval}
         failed={failed}
         done={!!parsed}
-        label={headerLabel(running, failed, parsed)}
+        label={headerLabel(running, awaitingApproval, failed, parsed)}
       />
 
       {part.input ? (
@@ -84,16 +88,20 @@ export const ToolCreateIssue: Renderer = ({ part }) => {
         </ToolCardBody>
       ) : null}
 
-      {failed ? (
-        <ToolCardFooterError text={String(part.errorText ?? "Unknown error")} />
-      ) : null}
-      {parsed ? (
-        <ToolCardFooterSuccess
-          href={parsed.issue_url}
-          label={`Issue #${parsed.issue_number} created`}
-        />
-      ) : null}
-      {rawText ? <ToolCardFooterRaw text={rawText} /> : null}
+      {awaitingApproval ? <ToolCardApproval /> : null}
+
+      <ToolCardFooters
+        failed={failed}
+        errorText={part.errorText}
+        rawText={rawText}
+      >
+        {parsed ? (
+          <ToolCardFooterSuccess
+            href={parsed.issue_url}
+            label={`Issue #${parsed.issue_number} created`}
+          />
+        ) : null}
+      </ToolCardFooters>
     </ToolCard>
   );
 };

@@ -9,13 +9,13 @@ import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
 import {
+  createDesktopSession,
   doAuth,
   doMagicLinkAuth,
   doPasswordSignIn,
   doPasswordSignUp,
   fetchUser,
 } from "@/functions/auth";
-import { getSupabaseServerClient } from "@/functions/supabase";
 
 const validateSearch = z.object({
   flow: z.enum(["desktop", "web"]).default("web"),
@@ -40,17 +40,18 @@ export const Route = createFileRoute("/auth")({
       }
 
       if (search.flow === "desktop") {
-        const supabase = getSupabaseServerClient();
-        const { data } = await supabase.auth.getSession();
+        const result = await createDesktopSession({
+          data: { email: user.email },
+        });
 
-        if (data.session) {
+        if (result) {
           throw redirect({
             to: "/callback/auth/",
             search: {
               flow: "desktop",
               scheme: search.scheme,
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token,
+              access_token: result.access_token,
+              refresh_token: result.refresh_token,
             },
           });
         }

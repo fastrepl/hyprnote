@@ -3,7 +3,11 @@ import { z } from "zod";
 
 import { env } from "@/env";
 import { isAdminEmail } from "@/functions/admin";
-import { getSupabaseServerClient } from "@/functions/supabase";
+import {
+  getSupabaseAdminClient,
+  getSupabaseDesktopFlowClient,
+  getSupabaseServerClient,
+} from "@/functions/supabase";
 
 const shared = z.object({
   flow: z.enum(["desktop", "web"]).default("desktop"),
@@ -99,10 +103,14 @@ export const exchangeOAuthCode = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       code: z.string(),
+      flow: z.enum(["desktop", "web"]).default("web"),
     }),
   )
   .handler(async ({ data }) => {
-    const supabase = getSupabaseServerClient();
+    const supabase =
+      data.flow === "desktop"
+        ? getSupabaseDesktopFlowClient()
+        : getSupabaseServerClient();
     const { data: authData, error } =
       await supabase.auth.exchangeCodeForSession(data.code);
 
@@ -138,7 +146,10 @@ export const doPasswordSignUp = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
-    const supabase = getSupabaseServerClient();
+    const supabase =
+      data.flow === "desktop"
+        ? getSupabaseDesktopFlowClient()
+        : getSupabaseServerClient();
 
     const params = new URLSearchParams({ flow: data.flow });
     if (data.scheme) params.set("scheme", data.scheme);
@@ -175,7 +186,10 @@ export const doPasswordSignIn = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
-    const supabase = getSupabaseServerClient();
+    const supabase =
+      data.flow === "desktop"
+        ? getSupabaseDesktopFlowClient()
+        : getSupabaseServerClient();
 
     const { data: authData, error } = await supabase.auth.signInWithPassword({
       email: data.email,
@@ -202,10 +216,14 @@ export const exchangeOtpToken = createServerFn({ method: "POST" })
     z.object({
       token_hash: z.string(),
       type: z.enum(["email", "recovery"]),
+      flow: z.enum(["desktop", "web"]).default("web"),
     }),
   )
   .handler(async ({ data }) => {
-    const supabase = getSupabaseServerClient();
+    const supabase =
+      data.flow === "desktop"
+        ? getSupabaseDesktopFlowClient()
+        : getSupabaseServerClient();
     const { data: authData, error } = await supabase.auth.verifyOtp({
       token_hash: data.token_hash,
       type: data.type,
@@ -220,6 +238,40 @@ export const exchangeOtpToken = createServerFn({ method: "POST" })
       access_token: authData.session.access_token,
       refresh_token: authData.session.refresh_token,
     };
+  });
+
+export const createDesktopSession = createServerFn({ method: "POST" })
+  .inputValidator(z.object({ email: z.string().email() }))
+  .handler(async ({ data }) => {
+    try {
+      const admin = getSupabaseAdminClient();
+      const { data: linkData, error: linkError } =
+        await admin.auth.admin.generateLink({
+          type: "magiclink",
+          email: data.email,
+        });
+
+      if (linkError || !linkData.properties?.hashed_token) {
+        return null;
+      }
+
+      const supabase = getSupabaseDesktopFlowClient();
+      const { data: authData, error } = await supabase.auth.verifyOtp({
+        token_hash: linkData.properties.hashed_token,
+        type: "email",
+      });
+
+      if (error || !authData.session) {
+        return null;
+      }
+
+      return {
+        access_token: authData.session.access_token,
+        refresh_token: authData.session.refresh_token,
+      };
+    } catch {
+      return null;
+    }
   });
 
 export const doPasswordResetRequest = createServerFn({ method: "POST" })

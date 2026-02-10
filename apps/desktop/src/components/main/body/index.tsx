@@ -143,8 +143,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
   const handleNewEmptyTab = useNewEmptyTab();
   const [isSearchManuallyExpanded, setIsSearchManuallyExpanded] =
     useState(false);
-  const { ref: rightContainerRef, hasSpace: hasSpaceForSearch } =
-    useHasSpaceForSearch();
   const scrollState = useScrollState(
     tabsScrollContainerRef,
     regularTabs.length,
@@ -292,11 +290,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
       </div>
 
       <div
-        ref={rightContainerRef}
         data-tauri-drag-region
         className="flex-1 flex h-full items-center justify-between"
       >
-        {!(isSearchManuallyExpanded && !hasSpaceForSearch) && (
+        {!isSearchManuallyExpanded && (
           <Button
             onClick={handleNewEmptyTab}
             variant="ghost"
@@ -309,10 +306,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
 
         <div className="flex items-center gap-1 h-full ml-auto">
           <Update />
-          <Search
-            hasSpace={hasSpaceForSearch}
-            onManualExpandChange={setIsSearchManuallyExpanded}
-          />
+          <Search onManualExpandChange={setIsSearchManuallyExpanded} />
         </div>
       </div>
     </div>
@@ -695,14 +689,6 @@ function StandardTabChatButton({
       showTimeline={showTimeline}
     />
   );
-}
-
-function useHasSpaceForSearch() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { width = 0 } = useResizeObserver({
-    ref: ref as React.RefObject<HTMLDivElement>,
-  });
-  return { ref, hasSpace: width >= 220 };
 }
 
 function useScrollState(

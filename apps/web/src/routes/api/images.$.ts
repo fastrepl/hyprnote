@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 const SUPABASE_STORAGE_URL =
-  "https://auth.char.com/storage/v1/object/public/public_images";
+  "https://auth.hyprnote.com/storage/v1/object/public/public_images";
 
 const SAFE_SEGMENT = /^[A-Za-z0-9._+-]+$/;
 

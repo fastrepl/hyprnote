@@ -44,6 +44,7 @@ user_common_derives! {
         pub jargons: Vec<String>,
         pub telemetry_consent: bool,
         pub save_recordings: Option<bool>,
+        pub recording_retention_days: Option<u32>,
         pub selected_template_id: Option<String>,
         #[specta(type = String)]
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
@@ -61,6 +62,7 @@ impl Default for ConfigGeneral {
             jargons: vec![],
             telemetry_consent: true,
             save_recordings: Some(false),
+            recording_retention_days: None,
             selected_template_id: None,
             summary_language: hypr_language::ISO639::En.into(),
         }

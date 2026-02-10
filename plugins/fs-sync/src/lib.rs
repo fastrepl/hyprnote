@@ -37,6 +37,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::rename_folder::<tauri::Wry>,
             commands::delete_folder::<tauri::Wry>,
             commands::cleanup_orphan::<tauri::Wry>,
+            commands::cleanup_old_recordings::<tauri::Wry>,
             commands::audio_exist::<tauri::Wry>,
             commands::audio_delete::<tauri::Wry>,
             commands::audio_import::<tauri::Wry>,

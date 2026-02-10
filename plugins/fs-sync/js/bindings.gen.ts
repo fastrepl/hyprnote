@@ -86,6 +86,14 @@ async cleanupOrphan(target: CleanupTarget, validIds: string[]) : Promise<Result<
     else return { status: "error", error: e  as any };
 }
 },
+async cleanupOldRecordings(retentionDays: number) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|cleanup_old_recordings", { retentionDays }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async audioExist(sessionId: string) : Promise<Result<boolean, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|audio_exist", { sessionId }) };

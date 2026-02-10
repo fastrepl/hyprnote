@@ -194,6 +194,19 @@ pub(crate) async fn cleanup_orphan<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn cleanup_old_recordings<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    retention_days: u32,
+) -> Result<u32, String> {
+    spawn_blocking!({
+        app.fs_sync()
+            .cleanup_old_recordings(retention_days)
+            .map_err(|e| e.to_string())
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn audio_exist<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,

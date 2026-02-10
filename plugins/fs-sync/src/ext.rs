@@ -309,10 +309,74 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
         Ok(())
     }
 
+    pub fn cleanup_old_recordings(&self, retention_days: u32) -> Result<u32, crate::Error> {
+        let sessions_dir = self.sessions_dir()?;
+        if !sessions_dir.exists() {
+            return Ok(0);
+        }
+
+        let cutoff = std::time::SystemTime::now()
+            - std::time::Duration::from_secs(u64::from(retention_days) * 24 * 60 * 60);
+
+        let mut deleted = 0u32;
+        cleanup_old_recordings_recursive(&sessions_dir, cutoff, &mut deleted)?;
+        Ok(deleted)
+    }
+
     fn resolve_session_dir(&self, session_id: &str) -> Result<PathBuf, crate::Error> {
         let sessions_dir = self.sessions_dir()?;
         Ok(find_session_dir(&sessions_dir, session_id))
     }
+}
+
+fn cleanup_old_recordings_recursive(
+    dir: &std::path::Path,
+    cutoff: std::time::SystemTime,
+    deleted: &mut u32,
+) -> Result<(), crate::Error> {
+    let entries = match std::fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => return Err(e.into()),
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+
+        if is_uuid(name) {
+            for format in &["audio.wav", "audio.ogg"] {
+                let audio_path = path.join(format);
+                if !audio_path.exists() {
+                    continue;
+                }
+
+                let modified = match std::fs::metadata(&audio_path).and_then(|m| m.modified()) {
+                    Ok(t) => t,
+                    Err(_) => continue,
+                };
+
+                if modified < cutoff {
+                    if let Err(e) = std::fs::remove_file(&audio_path) {
+                        tracing::warn!("Failed to delete old recording {:?}: {}", audio_path, e);
+                    } else {
+                        tracing::info!("Deleted old recording: {:?}", audio_path);
+                        *deleted += 1;
+                    }
+                }
+            }
+        } else {
+            cleanup_old_recordings_recursive(&path, cutoff, deleted)?;
+        }
+    }
+
+    Ok(())
 }
 
 fn sanitize_filename(filename: &str) -> Result<String, crate::Error> {

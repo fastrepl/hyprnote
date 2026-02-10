@@ -18,6 +18,7 @@ import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 import { StorageSettingsView } from "./storage";
 import { TimezoneSelector } from "./timezone";
+import { RecordingRetentionSelector } from "./recording-retention";
 import { WeekStartSelector } from "./week-start";
 
 function useSettingsForm() {
@@ -206,6 +207,13 @@ export function SettingsApp() {
               />
             )}
           </form.Field>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold font-serif mb-4">Recordings</h2>
+        <div className="flex flex-col gap-6">
+          <RecordingRetentionSelector />
         </div>
       </div>
 

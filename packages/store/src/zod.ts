@@ -204,6 +204,7 @@ export const generalSchema = z.object({
   autostart: z.boolean().default(false),
   telemetry_consent: z.boolean().default(true),
   save_recordings: z.boolean().default(true),
+  recording_retention_days: z.number().optional(),
   notification_event: z.boolean().default(true),
   notification_detect: z.boolean().default(true),
   respect_dnd: z.boolean().default(false),

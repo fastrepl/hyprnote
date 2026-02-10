@@ -23,6 +23,10 @@ export const SETTINGS_MAPPING = {
       type: "boolean",
       path: ["general", "save_recordings"],
     },
+    recording_retention_days: {
+      type: "number",
+      path: ["general", "recording_retention_days"],
+    },
     notification_event: {
       type: "boolean",
       path: ["notification", "event"],

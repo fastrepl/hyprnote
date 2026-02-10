@@ -1,6 +1,7 @@
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import { commands as detectCommands } from "@hypr/plugin-detect";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import {
   commands as localSttCommands,
   type SupportedSttModel,
@@ -17,6 +18,7 @@ export type ConfigKey =
   | "ai_language"
   | "spoken_languages"
   | "save_recordings"
+  | "recording_retention_days"
   | "telemetry_consent"
   | "current_llm_provider"
   | "current_llm_model"
@@ -126,6 +128,16 @@ export const CONFIG_REGISTRY = {
   save_recordings: {
     key: "save_recordings",
     default: true,
+  },
+
+  recording_retention_days: {
+    key: "recording_retention_days",
+    default: undefined as number | undefined,
+    sideEffect: async (value: number | undefined, _) => {
+      if (value && value > 0) {
+        await fsSyncCommands.cleanupOldRecordings(value);
+      }
+    },
   },
 
   telemetry_consent: {

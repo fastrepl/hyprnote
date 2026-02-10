@@ -9,6 +9,7 @@ const COMMANDS: &[&str] = &[
     "rename_folder",
     "delete_folder",
     "cleanup_orphan",
+    "cleanup_old_recordings",
     "audio_exist",
     "audio_delete",
     "audio_import",

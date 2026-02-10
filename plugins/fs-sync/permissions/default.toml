@@ -11,6 +11,7 @@ permissions = [
     "allow-rename-folder",
     "allow-delete-folder",
     "allow-cleanup-orphan",
+    "allow-cleanup-old-recordings",
     "allow-audio-exist",
     "allow-audio-delete",
     "allow-audio-import",

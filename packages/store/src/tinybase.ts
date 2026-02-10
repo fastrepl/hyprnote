@@ -149,6 +149,7 @@ export const valueSchemaForTinybase = {
   user_id: { type: "string" },
   autostart: { type: "boolean" },
   save_recordings: { type: "boolean" },
+  recording_retention_days: { type: "number" },
   notification_event: { type: "boolean" },
   notification_detect: { type: "boolean" },
   respect_dnd: { type: "boolean" },

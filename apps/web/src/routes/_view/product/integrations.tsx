@@ -101,8 +101,8 @@ function Component() {
                 Integrations & Workflows
               </h1>
               <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
-                Connect Char with your favorite tools. Automate repetitive
-                tasks with powerful workflows. No coding required.
+                Connect Char with your favorite tools. Automate repetitive tasks
+                with powerful workflows. No coding required.
               </p>
               <div className="mt-8">
                 <button

@@ -126,8 +126,8 @@ function HeroSection() {
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto">
             Stop taking notes during sales calls. Focus on building
-            relationships while Char captures every detail, extracts
-            insights, and prepares your follow-ups.
+            relationships while Char captures every detail, extracts insights,
+            and prepares your follow-ups.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link

@@ -164,9 +164,8 @@ function HeroSection() {
             in One Place
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto">
-            Zoom, Teams, Meet, Discord, or in-person, Char records it all
-            and generates searchable meeting summaries that never leave your
-            device.
+            Zoom, Teams, Meet, Discord, or in-person, Char records it all and
+            generates searchable meeting summaries that never leave your device.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link

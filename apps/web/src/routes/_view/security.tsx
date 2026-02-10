@@ -74,10 +74,10 @@ function HeroSection() {
             is our priority
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
-            At Char, we believe your meeting conversations are among your
-            most sensitive data. That's why we've built security into every
-            layer of our architecture, not as an afterthought, but as a
-            foundational principle.
+            At Char, we believe your meeting conversations are among your most
+            sensitive data. That's why we've built security into every layer of
+            our architecture, not as an afterthought, but as a foundational
+            principle.
           </p>
         </header>
       </div>
@@ -210,11 +210,11 @@ function LocalFirstSection() {
                 Works completely offline
               </h3>
               <p className="text-neutral-600">
-                Because everything runs locally, Char works without an
-                internet connection. Record meetings, transcribe audio, and
-                generate summaries even when you're offline. Your productivity
-                isn't dependent on network availability, and your data isn't
-                exposed to network-based attacks.
+                Because everything runs locally, Char works without an internet
+                connection. Record meetings, transcribe audio, and generate
+                summaries even when you're offline. Your productivity isn't
+                dependent on network availability, and your data isn't exposed
+                to network-based attacks.
               </p>
             </div>
           </div>
@@ -405,8 +405,8 @@ function EnterpriseSecuritySection() {
             Enterprise-ready security
           </h2>
           <p className="text-neutral-600 max-w-2xl mx-auto">
-            For organizations with advanced security requirements, Char
-            offers enterprise features that meet the most demanding standards.
+            For organizations with advanced security requirements, Char offers
+            enterprise features that meet the most demanding standards.
           </p>
         </div>
 

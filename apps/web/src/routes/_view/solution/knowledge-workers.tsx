@@ -125,9 +125,9 @@ function HeroSection() {
             not on taking notes
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto">
-            Stop scrambling to capture everything. Char records your
-            meetings, transcribes conversations, and creates smart summaries so
-            you can stay present.
+            Stop scrambling to capture everything. Char records your meetings,
+            transcribes conversations, and creates smart summaries so you can
+            stay present.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link

@@ -195,8 +195,8 @@ function UseCasesSection() {
           For every client engagement
         </h2>
         <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-          From discovery to delivery, Char helps you capture and leverage
-          every client interaction.
+          From discovery to delivery, Char helps you capture and leverage every
+          client interaction.
         </p>
         <div className="grid md:grid-cols-2 gap-6">
           {useCases.map((useCase) => (

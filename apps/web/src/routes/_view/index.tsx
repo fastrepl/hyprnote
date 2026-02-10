@@ -791,9 +791,9 @@ export function HowItWorksSection() {
         <div className="border-r border-neutral-100 flex flex-col overflow-clip">
           <div className="p-8 flex flex-col gap-4">
             <p className="text-lg font-serif text-neutral-600 leading-relaxed">
-              <span className="font-semibold">While you take notes,</span>{" "}
-              Char listens and keeps track of everything that happens during
-              the meeting.
+              <span className="font-semibold">While you take notes,</span> Char
+              listens and keeps track of everything that happens during the
+              meeting.
             </p>
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -913,9 +913,9 @@ export function HowItWorksSection() {
         <div className="border-b border-neutral-100">
           <div className="p-6 pb-2">
             <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
-              <span className="font-semibold">While you take notes,</span>{" "}
-              Char listens and keeps track of everything that happens during
-              the meeting.
+              <span className="font-semibold">While you take notes,</span> Char
+              listens and keeps track of everything that happens during the
+              meeting.
             </p>
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
@@ -1612,8 +1612,8 @@ function FAQSection() {
           <FAQItem question="Does Char train AI models on my data?">
             No. Char does not use your recordings, transcripts, or notes to
             train AI models. When using cloud providers, your data is processed
-            according to their privacy policies, but Char itself never
-            collects or uses your data for training.
+            according to their privacy policies, but Char itself never collects
+            or uses your data for training.
           </FAQItem>
 
           <FAQItem question="Is Char safe?">
@@ -1661,10 +1661,10 @@ function ManifestoSection() {
                 you and your team.
               </p>
               <p>
-                Char exists to preserve what makes us human: conversations
-                that spark ideas, collaborations that move work forward. We
-                build tools that amplify human agency, not replace it. No ghost
-                bots. No silent note lurkers. Just people, thinking together.
+                Char exists to preserve what makes us human: conversations that
+                spark ideas, collaborations that move work forward. We build
+                tools that amplify human agency, not replace it. No ghost bots.
+                No silent note lurkers. Just people, thinking together.
               </p>
               <p>
                 We stand with those who value real connection and purposeful

@@ -144,8 +144,8 @@ function EditorSection() {
               Simple, Familiar Notepad
             </h2>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Char comes with a easy-to-use text editor where you can jot
-              down stuff in markdown.
+              Char comes with a easy-to-use text editor where you can jot down
+              stuff in markdown.
             </p>
             <ul className="flex flex-col gap-3">
               <li className="flex items-start gap-3">
@@ -765,8 +765,8 @@ function SummariesSection() {
             <div className="p-8 flex flex-col gap-4">
               <p className="text-lg font-serif text-neutral-600 leading-relaxed">
                 <span className="font-semibold">While you take notes,</span>{" "}
-                Char listens and keeps track of everything that happens
-                during the meeting.
+                Char listens and keeps track of everything that happens during
+                the meeting.
               </p>
             </div>
             <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -799,8 +799,7 @@ function SummariesSection() {
                 <span className="font-semibold">
                   After the meeting is over,
                 </span>{" "}
-                Char combines your notes with transcripts to create a
-                summary.
+                Char combines your notes with transcripts to create a summary.
               </p>
             </div>
             <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -889,8 +888,8 @@ function SummariesSection() {
             <div className="p-6 pb-2">
               <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
                 <span className="font-semibold">While you take notes,</span>{" "}
-                Char listens and keeps track of everything that happens
-                during the meeting.
+                Char listens and keeps track of everything that happens during
+                the meeting.
               </p>
             </div>
             <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
@@ -923,8 +922,7 @@ function SummariesSection() {
                 <span className="font-semibold">
                   After the meeting is over,
                 </span>{" "}
-                Char combines your notes with transcripts to create a
-                summary.
+                Char combines your notes with transcripts to create a summary.
               </p>
             </div>
             <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">

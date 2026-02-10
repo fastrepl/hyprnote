@@ -556,8 +556,7 @@ function CTASection() {
           Start using your AI assistant
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Get AI-powered help before, during, and after every meeting with
-          Char
+          Get AI-powered help before, during, and after every meeting with Char
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link

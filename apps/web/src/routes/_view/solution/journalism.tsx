@@ -125,8 +125,8 @@ function HeroSection() {
             AI-powered meeting notes
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto">
-            Focus on asking the right questions while Char captures every
-            quote, verifies accuracy, and helps you tell compelling stories.
+            Focus on asking the right questions while Char captures every quote,
+            verifies accuracy, and helps you tell compelling stories.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link

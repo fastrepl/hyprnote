@@ -213,8 +213,8 @@ function HeroSection() {
           Brand
         </h1>
         <p className="text-lg sm:text-xl text-neutral-600">
-          Download Char logos, icons, and brand assets. Learn about our
-          visual identity, typography, and color palette.
+          Download Char logos, icons, and brand assets. Learn about our visual
+          identity, typography, and color palette.
         </p>
       </div>
     </div>

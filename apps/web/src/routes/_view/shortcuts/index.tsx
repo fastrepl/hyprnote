@@ -455,8 +455,8 @@ function CTASection() {
           Ready to transform your meetings?
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Char and start using these shortcuts to get instant
-          insights from your meeting conversations.
+          Download Char and start using these shortcuts to get instant insights
+          from your meeting conversations.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
           <DownloadButton />

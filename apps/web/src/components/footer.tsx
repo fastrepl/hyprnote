@@ -53,11 +53,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
   return (
     <div className="lg:flex-1">
       <Link to="/" className="inline-block mb-4">
-        <Image
-          src="/api/images/hyprnote/logo.svg"
-          alt="Char"
-          className="h-6"
-        />
+        <Image src="/api/images/hyprnote/logo.svg" alt="Char" className="h-6" />
       </Link>
       <p className="text-sm text-neutral-500 mb-4">Fastrepl © {currentYear}</p>
       <p className="text-sm text-neutral-600 mb-3">

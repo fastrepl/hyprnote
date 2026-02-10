@@ -569,8 +569,8 @@ function CTASection() {
           Ready to transform your meetings?
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Char and start using these templates and shortcuts to
-          capture perfect meeting notes with AI.
+          Download Char and start using these templates and shortcuts to capture
+          perfect meeting notes with AI.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
           <DownloadButton />

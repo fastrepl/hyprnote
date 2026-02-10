@@ -268,8 +268,7 @@ function CTASection({
           <br className="sm:hidden" /> stay yours
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Start using Char today and bring clarity to your back-to-back
-          meetings
+          Start using Char today and bring clarity to your back-to-back meetings
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           {platformCTA.action === "download" ? (

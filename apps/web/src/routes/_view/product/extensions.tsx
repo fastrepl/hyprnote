@@ -45,8 +45,8 @@ function Component() {
               Build Beyond the Defaults
             </h1>
             <p className="text-lg sm:text-xl text-neutral-600 mb-10">
-              Extend Char with custom themes, plugins, and views. Build
-              together with the community.
+              Extend Char with custom themes, plugins, and views. Build together
+              with the community.
             </p>
 
             <div className="mb-10">

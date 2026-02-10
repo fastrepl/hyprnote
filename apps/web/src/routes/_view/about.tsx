@@ -714,8 +714,8 @@ function StoryDetail({ onClose }: { onClose: () => void }) {
             Where we are now
           </h3>
           <p className="text-base text-neutral-600 leading-relaxed mb-8">
-            Char today is the result of that reset. A fast, private,
-            local-first notetaker built for people like us: meeting-heavy,
+            Char today is the result of that reset. A fast, private, local-first
+            notetaker built for people like us: meeting-heavy,
             privacy-conscious, and tired of complicated tools. It stays on your
             device. It respects your data. And it helps you think better, not
             attend meetings on autopilot.

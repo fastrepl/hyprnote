@@ -74,10 +74,10 @@ function HeroSection() {
             belong to you
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
-            At Char, we believe privacy isn't just a feature—it's a
-            fundamental right. Your meeting conversations contain your most
-            sensitive ideas, strategies, and personal moments. We've built
-            Char to ensure they stay yours, and yours alone.
+            At Char, we believe privacy isn't just a feature—it's a fundamental
+            right. Your meeting conversations contain your most sensitive ideas,
+            strategies, and personal moments. We've built Char to ensure they
+            stay yours, and yours alone.
           </p>
         </header>
       </div>
@@ -156,9 +156,8 @@ function DataOwnershipSection() {
             You own your data, completely
           </h2>
           <p className="text-neutral-600 max-w-2xl mx-auto">
-            With Char, data ownership isn't a marketing term—it's a
-            technical reality. Your data lives on your device, in formats you
-            control.
+            With Char, data ownership isn't a marketing term—it's a technical
+            reality. Your data lives on your device, in formats you control.
           </p>
         </div>
 
@@ -254,8 +253,8 @@ function NoTrackingSection() {
                 </h3>
                 <p className="text-neutral-600">
                   Your transcripts and notes are never used to train AI models.
-                  The AI features in Char run locally on your device, and
-                  your content stays private.
+                  The AI features in Char run locally on your device, and your
+                  content stays private.
                 </p>
               </div>
             </div>
@@ -317,8 +316,8 @@ function TransparencySection() {
             Verify, don't trust
           </h2>
           <p className="text-neutral-600 max-w-2xl mx-auto">
-            We don't ask you to take our word for it. Char is fully open
-            source, so you can verify every privacy claim yourself.
+            We don't ask you to take our word for it. Char is fully open source,
+            so you can verify every privacy claim yourself.
           </p>
         </div>
 

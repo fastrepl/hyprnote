@@ -602,8 +602,8 @@ function CTASection() {
           Get the complete experience
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Download Char to start using contacts, calendar, and folders
-          today. Daily notes coming soon
+          Download Char to start using contacts, calendar, and folders today.
+          Daily notes coming soon
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link

@@ -74,9 +74,9 @@ function HeroSection() {
             your infrastructure
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 max-w-3xl mx-auto">
-            Deploy Char entirely on your own servers. Complete control over
-            your meeting data with on-premises deployment, air-gapped
-            environments, and full data sovereignty.
+            Deploy Char entirely on your own servers. Complete control over your
+            meeting data with on-premises deployment, air-gapped environments,
+            and full data sovereignty.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 pt-6 items-center">

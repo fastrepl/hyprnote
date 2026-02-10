@@ -522,8 +522,8 @@ function SponsorsSection() {
             Paying It Forward
           </h2>
           <p className="text-neutral-600 text-center max-w-2xl mx-auto">
-            We love giving back to the community that makes Char possible.
-            As we grow, we hope to sponsor even more projects and creators.
+            We love giving back to the community that makes Char possible. As we
+            grow, we hope to sponsor even more projects and creators.
           </p>
         </div>
 
@@ -580,8 +580,8 @@ function SponsorsSection() {
                 We Appreciate Your Support
               </h3>
               <p className="text-sm text-neutral-600 mt-2">
-                Your sponsorship keeps Char free, open source, and
-                independent for everyone.
+                Your sponsorship keeps Char free, open source, and independent
+                for everyone.
               </p>
             </div>
             <a

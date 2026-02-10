@@ -141,10 +141,10 @@ function Component() {
               relevance of outputs.
             </p>
             <p className="text-neutral-600 leading-relaxed">
-              Char supports multiple AI providers, allowing you to choose
-              the model that best fits your needs. Whether you prioritize
-              accuracy, speed, or privacy with local models, our flexible
-              architecture adapts to your workflow.
+              Char supports multiple AI providers, allowing you to choose the
+              model that best fits your needs. Whether you prioritize accuracy,
+              speed, or privacy with local models, our flexible architecture
+              adapts to your workflow.
             </p>
           </div>
         </div>

@@ -196,8 +196,8 @@ function UseCasesSection() {
           For every coaching practice
         </h2>
         <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-          Whatever your coaching specialty, Char helps you capture and
-          leverage every client session.
+          Whatever your coaching specialty, Char helps you capture and leverage
+          every client session.
         </p>
         <div className="grid md:grid-cols-2 gap-6">
           {useCases.map((useCase) => (

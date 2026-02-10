@@ -187,7 +187,6 @@ export function ContactsListColumn({
       nonPinnedItems: [...unpinnedOrgs, ...unpinnedPeople],
     };
   }, [
-    sortedOrgIds,
     pinnedHumanIds,
     unpinnedHumanIds,
     pinnedOrgIds,

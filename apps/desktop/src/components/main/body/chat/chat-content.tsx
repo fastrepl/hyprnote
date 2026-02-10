@@ -1,12 +1,13 @@
-import { Check, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 
+import type { ContextItem } from "../../../../chat/context-item";
 import type { HyprUIMessage } from "../../../../chat/types";
 import { ElicitationProvider } from "../../../../contexts/elicitation";
 import { useLanguageModel } from "../../../../hooks/useLLMConnection";
-import type { ContextItem } from "../../../../hooks/useSupportMCPTools";
 import type { Tab } from "../../../../store/zustand/tabs";
 import { ChatBody } from "../../../chat/body";
+import { ContextBar } from "../../../chat/context-bar";
 import { ChatMessageInput } from "../../../chat/input";
 
 export function ChatTabContent({
@@ -94,8 +95,6 @@ export function ChatTabContent({
     );
   }
 
-  const loadedItems = contextItems ?? [];
-
   return (
     <>
       <ElicitationProvider
@@ -110,20 +109,7 @@ export function ChatTabContent({
           isModelConfigured={!!model}
         />
       </ElicitationProvider>
-      {loadedItems.length > 0 && (
-        <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400">
-          <Check className="size-3" />
-          {loadedItems.map((c) => (
-            <span
-              key={c.label}
-              className="rounded bg-neutral-100 px-1.5 py-0.5"
-            >
-              {c.label}
-            </span>
-          ))}
-          <span>loaded</span>
-        </div>
-      )}
+      <ContextBar items={contextItems ?? []} />
       <ChatMessageInput
         disabled={!model || status !== "ready"}
         onSendMessage={(content, parts) =>

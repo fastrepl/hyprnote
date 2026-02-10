@@ -9,10 +9,12 @@ import {
 } from "@hypr/plugin-template";
 import type { ChatMessage, ChatMessageStorage } from "@hypr/store";
 
+import type { ContextItem, ContextSource } from "../../chat/context-item";
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
 import { useSession } from "../../hooks/tinybase";
+import { useContextCollection } from "../../hooks/useContextCollection";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
 import * as main from "../../store/tinybase/store/main";
 import { id } from "../../utils";
@@ -37,6 +39,7 @@ interface ChatSessionProps {
     stop: () => void;
     status: ChatStatus;
     error?: Error;
+    contextItems: ContextItem[];
   }) => ReactNode;
 }
 
@@ -50,12 +53,21 @@ export function ChatSession({
   systemPromptOverride,
   children,
 }: ChatSessionProps) {
-  const transport = useTransport(
-    chatType,
+  const { transport, sessionTitle, sessionDate, wordCount, notePreview } =
+    useTransport(
+      chatType,
+      attachedSessionId,
+      modelOverride,
+      extraTools,
+      systemPromptOverride,
+    );
+
+  const contextItems = useSessionContextItems(
     attachedSessionId,
-    modelOverride,
-    extraTools,
-    systemPromptOverride,
+    sessionTitle,
+    sessionDate,
+    wordCount,
+    notePreview,
   );
   const store = main.UI.useStore(main.STORE_ID);
 
@@ -189,9 +201,39 @@ export function ChatSession({
         stop,
         status,
         error,
+        contextItems,
       })}
     </div>
   );
+}
+
+function useSessionContextItems(
+  attachedSessionId?: string,
+  sessionTitle?: string | null,
+  sessionDate?: string | null,
+  wordCount?: number,
+  notePreview?: string | null,
+): ContextItem[] {
+  const sources = useMemo(() => {
+    if (!attachedSessionId) return [];
+    const s: ContextSource[] = [];
+    if (sessionTitle || sessionDate) {
+      s.push({
+        type: "session",
+        title: sessionTitle ?? undefined,
+        date: sessionDate ?? undefined,
+      });
+    }
+    if (wordCount && wordCount > 0) {
+      s.push({ type: "transcript", wordCount });
+    }
+    if (notePreview) {
+      s.push({ type: "note", preview: notePreview });
+    }
+    return s;
+  }, [attachedSessionId, sessionTitle, sessionDate, wordCount, notePreview]);
+
+  return useContextCollection(sources);
 }
 
 function useTransport(
@@ -339,5 +381,15 @@ function useTransport(
     );
   }, [registry, model, chatType, effectiveSystemPrompt, extraTools]);
 
-  return transport;
+  const sessionTitle = (title as string) || null;
+  const sessionDate = (createdAt as string) || null;
+  const notePreview = (enhancedContent as string) || null;
+
+  return {
+    transport,
+    sessionTitle,
+    sessionDate,
+    wordCount: words.length,
+    notePreview,
+  };
 }

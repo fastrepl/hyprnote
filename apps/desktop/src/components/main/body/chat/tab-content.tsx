@@ -79,7 +79,15 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
         extraTools={isSupport ? mcpTools : undefined}
         systemPromptOverride={supportSystemPrompt}
       >
-        {({ messages, sendMessage, regenerate, stop, status, error }) => (
+        {({
+          messages,
+          sendMessage,
+          regenerate,
+          stop,
+          status,
+          error,
+          contextItems: sessionContextItems,
+        }) => (
           <ChatTabContent
             tab={tab}
             messages={messages}
@@ -92,7 +100,10 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
             handleSendMessage={handleSendMessage}
             updateChatTabState={updateChatTabState}
             mcpReady={isReady}
-            contextItems={supportContextItems}
+            contextItems={[
+              ...(supportContextItems ?? []),
+              ...sessionContextItems,
+            ]}
             pendingElicitation={pendingElicitation}
             respondToElicitation={respondToElicitation}
           />

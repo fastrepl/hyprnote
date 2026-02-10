@@ -1,11 +1,10 @@
 import { Icon } from "@iconify-icon/react";
 import MuxPlayer, { type MuxPlayerRefAttributes } from "@mux/mux-player-react";
-import { useFeatureFlagVariantKey } from "@posthog/react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -27,54 +26,26 @@ import { useAnalytics } from "@/hooks/use-posthog";
 
 const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
 
-// Hero A/B test variants
-const HERO_VARIANTS = {
-  control: {
-    title: "Take Meeting Notes With AI of Your Choice",
-    subtitle:
-      "The only AI note-taker that lets you choose your preferred STT and LLM provider",
-    valueProps: [
-      {
-        title: "No forced stack",
-        description:
-          "Use our managed cloud, bring your own API keys, or run fully local models.",
-      },
-      {
-        title: "You own your data",
-        description:
-          "Plain markdown files on your device. Works with Obsidian, Notion, or any tool.",
-      },
-      {
-        title: "Just works",
-        description:
-          "A simple, familiar notepad with real-time transcription and AI summaries.",
-      },
-    ],
-  },
-  variant_a: {
-    title: "AI Notepad for Meetings—No Strings Attached.",
-    subtitle: "Own your data. Pick your AI provider. No bots. No lock-in",
-    valueProps: [
-      {
-        title: "No forced stack",
-        description:
-          "Choose your preferred STT and LLM provider. Use our managed service, bring your own Key, or run local models.",
-      },
-      {
-        title: "Files over apps",
-        description:
-          "Unlike other AI note-takers that lock your history in their app, Hyprnote saves notes as markdown files on your device.",
-      },
-      {
-        title: "Private by design",
-        description:
-          "System audio capture—no bot joins your calls, no calendar permissions needed. Data stays on your device.",
-      },
-    ],
-  },
-} as const;
-
-type HeroVariant = keyof typeof HERO_VARIANTS;
+const heroContent = {
+  title: "AI Notepad for Meetings\u2014No Strings Attached.",
+  subtitle: "No forced cloud. No data held hostage. No bots in your meetings.",
+  valueProps: [
+    {
+      title: "Zero lock-in",
+      description:
+        "Choose your preferred STT and LLM provider. Cloud or local.",
+    },
+    {
+      title: "You own your data",
+      description: "Plain markdown files on your device. Works with any tool.",
+    },
+    {
+      title: "Just works",
+      description:
+        "A simple, familiar notepad, real-time transcription, and AI summaries.",
+    },
+  ],
+};
 
 const mainFeatures = [
   {
@@ -232,25 +203,11 @@ function HeroSection({
   const { track } = useAnalytics();
   const [shake, setShake] = useState(false);
 
-  const flagVariant = useFeatureFlagVariantKey("hero-ab-test");
-
-  const variant = useMemo(() => {
-    if (typeof flagVariant !== "string" || !(flagVariant in HERO_VARIANTS)) {
-      return "control";
-    }
-    return flagVariant as HeroVariant;
-  }, [flagVariant]);
-
-  const heroContent = HERO_VARIANTS[variant];
-
   useEffect(() => {
-    if (variant) {
-      track("hero_section_viewed", {
-        variant,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }, [variant, track]);
+    track("hero_section_viewed", {
+      timestamp: new Date().toISOString(),
+    });
+  }, [track]);
 
   const mutation = useMutation({
     mutationFn: async (email: string) => {
@@ -262,7 +219,6 @@ function HeroSection({
         platform: platform,
         timestamp: new Date().toISOString(),
         email: email,
-        hero_variant: variant,
       });
 
       await addContact({

@@ -212,6 +212,15 @@ export function EventDisplay({
       {event.startedAt && (
         <div className="text-sm text-neutral-700">{formatEventDateTime()}</div>
       )}
+
+      {event.description && (
+        <>
+          <div className="h-px bg-neutral-200" />
+          <div className="text-sm text-neutral-700 whitespace-pre-wrap break-words">
+            {event.description}
+          </div>
+        </>
+      )}
     </div>
   );
 }

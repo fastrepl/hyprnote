@@ -136,42 +136,62 @@ export function ContactsListColumn({
     return { pinnedHumanIds: sortedPinned, unpinnedHumanIds: unpinned };
   }, [sortedHumanIds, allHumans]);
 
-  const items: ContactItem[] = useMemo(() => {
+  const { pinnedOrgIds, unpinnedOrgIds } = useMemo(() => {
+    const pinned = sortedOrgIds.filter((id) => allOrgs[id]?.pinned);
+    const unpinned = sortedOrgIds.filter((id) => !allOrgs[id]?.pinned);
+
+    const sortedPinned = [...pinned].sort((a, b) => {
+      const orderA = (allOrgs[a]?.pin_order as number | undefined) ?? Infinity;
+      const orderB = (allOrgs[b]?.pin_order as number | undefined) ?? Infinity;
+      return orderA - orderB;
+    });
+
+    return { pinnedOrgIds: sortedPinned, unpinnedOrgIds: unpinned };
+  }, [sortedOrgIds, allOrgs]);
+
+  const { pinnedItems, nonPinnedItems } = useMemo(() => {
     const q = searchValue.toLowerCase().trim();
 
-    let orgItems: ContactItem[] = sortedOrgIds
-      .filter((id) => {
-        if (!q) return true;
-        const name = (allOrgs[id]?.name ?? "").toLowerCase();
-        return name.includes(q);
-      })
+    const filterHuman = (id: string) => {
+      if (!q) return true;
+      const human = allHumans[id];
+      const name = (human?.name ?? "").toLowerCase();
+      const email = (human?.email ?? "").toLowerCase();
+      return name.includes(q) || email.includes(q);
+    };
+
+    const filterOrg = (id: string) => {
+      if (!q) return true;
+      const name = (allOrgs[id]?.name ?? "").toLowerCase();
+      return name.includes(q);
+    };
+
+    const pinnedPeople: ContactItem[] = pinnedHumanIds
+      .filter(filterHuman)
+      .map((id) => ({ kind: "person" as const, id }));
+
+    const pinnedOrgs: ContactItem[] = pinnedOrgIds
+      .filter(filterOrg)
       .map((id) => ({ kind: "organization" as const, id }));
 
-    let pinnedPeople: ContactItem[] = pinnedHumanIds
-      .filter((id) => {
-        if (!q) return true;
-        const human = allHumans[id];
-        const name = (human?.name ?? "").toLowerCase();
-        const email = (human?.email ?? "").toLowerCase();
-        return name.includes(q) || email.includes(q);
-      })
+    const unpinnedOrgs: ContactItem[] = unpinnedOrgIds
+      .filter(filterOrg)
+      .map((id) => ({ kind: "organization" as const, id }));
+
+    const unpinnedPeople: ContactItem[] = unpinnedHumanIds
+      .filter(filterHuman)
       .map((id) => ({ kind: "person" as const, id }));
 
-    let unpinnedPeople: ContactItem[] = unpinnedHumanIds
-      .filter((id) => {
-        if (!q) return true;
-        const human = allHumans[id];
-        const name = (human?.name ?? "").toLowerCase();
-        const email = (human?.email ?? "").toLowerCase();
-        return name.includes(q) || email.includes(q);
-      })
-      .map((id) => ({ kind: "person" as const, id }));
-
-    return [...pinnedPeople, ...orgItems, ...unpinnedPeople];
+    return {
+      pinnedItems: [...pinnedPeople, ...pinnedOrgs],
+      nonPinnedItems: [...unpinnedOrgs, ...unpinnedPeople],
+    };
   }, [
     sortedOrgIds,
     pinnedHumanIds,
     unpinnedHumanIds,
+    pinnedOrgIds,
+    unpinnedOrgIds,
     allOrgs,
     allHumans,
     searchValue,
@@ -182,11 +202,16 @@ export function ContactsListColumn({
       if (!store) return;
       store.transaction(() => {
         newOrder.forEach((id, index) => {
-          store.setCell("humans", id, "pin_order", index);
+          const item = pinnedItems.find((i) => i.id === id);
+          if (item?.kind === "person") {
+            store.setCell("humans", id, "pin_order", index);
+          } else if (item?.kind === "organization") {
+            store.setCell("organizations", id, "pin_order", index);
+          }
         });
       });
     },
-    [store],
+    [store, pinnedItems],
   );
 
   const handleAdd = useCallback(() => {
@@ -197,13 +222,6 @@ export function ContactsListColumn({
     if (!selected) return false;
     return selected.type === item.kind && selected.id === item.id;
   };
-
-  const pinnedItems = items.filter(
-    (item) => item.kind === "person" && pinnedHumanIds.includes(item.id),
-  );
-  const nonPinnedItems = items.filter(
-    (item) => !(item.kind === "person" && pinnedHumanIds.includes(item.id)),
-  );
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -243,11 +261,23 @@ export function ContactsListColumn({
             >
               {pinnedItems.map((item) => (
                 <Reorder.Item key={item.id} value={item.id}>
-                  <PersonItem
-                    active={isActive(item)}
-                    humanId={item.id}
-                    onClick={() => setSelected({ type: "person", id: item.id })}
-                  />
+                  {item.kind === "person" ? (
+                    <PersonItem
+                      active={isActive(item)}
+                      humanId={item.id}
+                      onClick={() =>
+                        setSelected({ type: "person", id: item.id })
+                      }
+                    />
+                  ) : (
+                    <OrganizationItem
+                      active={isActive(item)}
+                      organizationId={item.id}
+                      onClick={() =>
+                        setSelected({ type: "organization", id: item.id })
+                      }
+                    />
+                  )}
                 </Reorder.Item>
               ))}
             </Reorder.Group>
@@ -373,6 +403,39 @@ function OrganizationItem({
     organizationId,
     main.STORE_ID,
   );
+  const isPinned = Boolean(organization.pinned);
+  const store = main.UI.useStore(main.STORE_ID);
+
+  const handleTogglePin = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!store) return;
+
+      const currentPinned = store.getCell(
+        "organizations",
+        organizationId,
+        "pinned",
+      );
+      if (currentPinned) {
+        store.setPartialRow("organizations", organizationId, {
+          pinned: false,
+          pin_order: undefined,
+        });
+      } else {
+        const allOrgs = store.getTable("organizations");
+        const maxOrder = Object.values(allOrgs).reduce((max, o) => {
+          const order = (o.pin_order as number | undefined) ?? 0;
+          return Math.max(max, order);
+        }, 0);
+        store.setPartialRow("organizations", organizationId, {
+          pinned: true,
+          pin_order: maxOrder + 1,
+        });
+      }
+    },
+    [store, organizationId],
+  );
+
   if (!organization) {
     return null;
   }
@@ -381,7 +444,7 @@ function OrganizationItem({
     <button
       onClick={onClick}
       className={cn([
-        "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors flex items-center gap-2 overflow-hidden",
+        "group w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors flex items-center gap-2 overflow-hidden",
         active ? "border-neutral-500 bg-neutral-100" : "border-transparent",
       ])}
     >
@@ -391,6 +454,18 @@ function OrganizationItem({
       <div className="flex-1 min-w-0">
         <div className="font-medium truncate">{organization.name}</div>
       </div>
+      <button
+        onClick={handleTogglePin}
+        className={cn([
+          "shrink-0 p-1 rounded-xs transition-colors",
+          isPinned
+            ? "text-blue-600 hover:text-blue-700"
+            : "text-neutral-300 opacity-0 group-hover:opacity-100 hover:text-neutral-500",
+        ])}
+        aria-label={isPinned ? "Unpin organization" : "Pin organization"}
+      >
+        <Pin className="size-3.5" fill={isPinned ? "currentColor" : "none"} />
+      </button>
     </button>
   );
 }

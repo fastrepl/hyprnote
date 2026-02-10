@@ -3,9 +3,8 @@ import Cocoa
 // MARK: - Configuration
 
 private enum QuitOverlay {
-  static let size = NSSize(width: 340, height: 96)
+  static let size = NSSize(width: 340, height: 126)
   static let cornerRadius: CGFloat = 12
-  static let verticalOffsetRatio: CGFloat = 0.15
   static let backgroundColor = NSColor(white: 0.12, alpha: 0.88)
 
   static let pressText = "Press ⌘Q to Close"
@@ -17,6 +16,12 @@ private enum QuitOverlay {
   static let animationDuration: TimeInterval = 0.15
   static let holdDuration: TimeInterval = 1.0
   static let overlayDuration: TimeInterval = 1.5
+
+  static let progressBarHeight: CGFloat = 4
+  static let progressBarInset: CGFloat = 32
+  static let progressBarCornerRadius: CGFloat = 2
+  static let progressBarTrackColor = NSColor(white: 1.0, alpha: 0.15)
+  static let progressBarFillColor = NSColor.white
 }
 
 // MARK: - FFI
@@ -40,6 +45,7 @@ private final class QuitInterceptor {
 
   private var keyMonitor: Any?
   private var panel: NSPanel?
+  private var progressFillLayer: CALayer?
   private var state: State = .idle
   private var dismissTimer: DispatchWorkItem?
   private var quitTimer: DispatchWorkItem?
@@ -108,12 +114,24 @@ private final class QuitInterceptor {
   }
 
   private func centeredFrame(size: NSSize) -> NSRect {
+    let appWindow = NSApplication.shared.windows.first(where: {
+      !($0 is NSPanel) && $0.isVisible
+    })
+
+    if let windowFrame = appWindow?.frame {
+      let origin = NSPoint(
+        x: windowFrame.midX - size.width / 2,
+        y: windowFrame.midY - size.height / 2
+      )
+      return NSRect(origin: origin, size: size)
+    }
+
     guard let screen = NSScreen.main ?? NSScreen.screens.first else {
       return NSRect(origin: .zero, size: size)
     }
     let origin = NSPoint(
       x: screen.frame.midX - size.width / 2,
-      y: screen.frame.midY - size.height / 2 + screen.frame.height * QuitOverlay.verticalOffsetRatio
+      y: screen.frame.midY - size.height / 2
     )
     return NSRect(origin: origin, size: size)
   }
@@ -136,9 +154,12 @@ private final class QuitInterceptor {
         string: "Hold ", attributes: [.font: QuitOverlay.font]
       ).size().width
 
-    let spacing: CGFloat = 10
-    let totalHeight = pressLabel.frame.height + spacing + holdLabel.frame.height
-    let topY = (size.height + totalHeight) / 2 - pressLabel.frame.height
+    let progressBarWidth = size.width - QuitOverlay.progressBarInset * 2
+    let progressBarY: CGFloat = 18
+    let textSpacing: CGFloat = 10
+    let barTextSpacing: CGFloat = 14
+    let topY = progressBarY + QuitOverlay.progressBarHeight + barTextSpacing + holdLabel.frame.height
+      + textSpacing
     let pressX = (size.width - pressLabel.frame.width) / 2
 
     pressLabel.frame = NSRect(
@@ -149,13 +170,42 @@ private final class QuitInterceptor {
     )
     holdLabel.frame = NSRect(
       x: pressX + prefixDelta,
-      y: topY - spacing - holdLabel.frame.height,
+      y: topY - textSpacing - holdLabel.frame.height,
       width: holdLabel.frame.width,
       height: holdLabel.frame.height
     )
 
     container.addSubview(pressLabel)
     container.addSubview(holdLabel)
+
+    let trackLayer = CALayer()
+    trackLayer.frame = CGRect(
+      x: QuitOverlay.progressBarInset,
+      y: progressBarY,
+      width: progressBarWidth,
+      height: QuitOverlay.progressBarHeight
+    )
+    trackLayer.backgroundColor = QuitOverlay.progressBarTrackColor.cgColor
+    trackLayer.cornerRadius = QuitOverlay.progressBarCornerRadius
+    trackLayer.masksToBounds = true
+    container.layer?.addSublayer(trackLayer)
+
+    let fillLayer = CALayer()
+    fillLayer.frame = CGRect(
+      x: 0,
+      y: 0,
+      width: progressBarWidth,
+      height: QuitOverlay.progressBarHeight
+    )
+    fillLayer.backgroundColor = QuitOverlay.progressBarFillColor.cgColor
+    fillLayer.cornerRadius = QuitOverlay.progressBarCornerRadius
+    fillLayer.anchorPoint = CGPoint(x: 0, y: 0.5)
+    fillLayer.position = CGPoint(x: 0, y: QuitOverlay.progressBarHeight / 2)
+    fillLayer.transform = CATransform3DMakeScale(0, 1, 1)
+    trackLayer.addSublayer(fillLayer)
+
+    self.progressFillLayer = fillLayer
+
     return container
   }
 
@@ -168,6 +218,29 @@ private final class QuitInterceptor {
     return label
   }
 
+  // MARK: - Progress Bar Animation
+
+  private func startProgressAnimation() {
+    guard let fillLayer = progressFillLayer else { return }
+
+    fillLayer.removeAnimation(forKey: "progress")
+
+    let animation = CABasicAnimation(keyPath: "transform.scale.x")
+    animation.fromValue = 0
+    animation.toValue = 1
+    animation.duration = QuitOverlay.holdDuration
+    animation.timingFunction = CAMediaTimingFunction(name: .linear)
+    animation.fillMode = .forwards
+    animation.isRemovedOnCompletion = false
+    fillLayer.add(animation, forKey: "progress")
+  }
+
+  private func resetProgress() {
+    guard let fillLayer = progressFillLayer else { return }
+    fillLayer.removeAnimation(forKey: "progress")
+    fillLayer.transform = CATransform3DMakeScale(0, 1, 1)
+  }
+
   // MARK: - Panel Visibility
 
   func showOverlay() {
@@ -175,6 +248,9 @@ private final class QuitInterceptor {
       panel = makePanel()
     }
     guard let panel else { return }
+
+    panel.setFrame(centeredFrame(size: QuitOverlay.size), display: false)
+    resetProgress()
 
     panel.alphaValue = 0
     panel.orderFrontRegardless()
@@ -195,6 +271,7 @@ private final class QuitInterceptor {
       panel.animator().alphaValue = 0
     }) {
       panel.orderOut(nil)
+      self.resetProgress()
     }
   }
 
@@ -214,6 +291,7 @@ private final class QuitInterceptor {
     case .awaiting:
       state = .holding
       cancelTimer(&dismissTimer)
+      startProgressAnimation()
       scheduleTimer(&quitTimer, delay: QuitOverlay.holdDuration) { [weak self] in
         self?.performQuit()
       }
@@ -231,6 +309,7 @@ private final class QuitInterceptor {
     case .holding:
       state = .idle
       cancelTimer(&quitTimer)
+      resetProgress()
       performClose()
     }
   }

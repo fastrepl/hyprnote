@@ -187,7 +187,14 @@ pub(crate) async fn search_issues(
 
     let mut q = format!("repo:{GITHUB_OWNER}/{GITHUB_REPO} is:issue {query}");
     if let Some(s) = state_filter {
-        q.push_str(&format!(" is:{s}"));
+        match s {
+            "open" | "closed" => q.push_str(&format!(" is:{s}")),
+            _ => {
+                return Err(SupportError::Internal(
+                    "Invalid state filter: must be 'open' or 'closed'".to_string(),
+                ));
+            }
+        }
     }
 
     let result = client

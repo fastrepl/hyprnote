@@ -145,7 +145,7 @@ async fn attach_log_analysis(state: &AppState, issue_number: u64, log_text: &str
     let _ = add_issue_comment(state, issue_number, &log_comment).await;
 }
 
-async fn create_issue(
+pub(crate) async fn create_issue(
     state: &AppState,
     title: &str,
     body: &str,
@@ -164,13 +164,62 @@ async fn create_issue(
     Ok((issue.html_url.to_string(), issue.number))
 }
 
-async fn add_issue_comment(state: &AppState, issue_number: u64, comment: &str) -> Result<()> {
+pub(crate) async fn add_issue_comment(
+    state: &AppState,
+    issue_number: u64,
+    comment: &str,
+) -> Result<String> {
     let client = state.installation_client().await?;
-    client
+    let comment = client
         .issues(GITHUB_OWNER, GITHUB_REPO)
         .create_comment(issue_number, comment)
         .await?;
-    Ok(())
+    Ok(comment.html_url.to_string())
+}
+
+pub(crate) async fn search_issues(
+    state: &AppState,
+    query: &str,
+    state_filter: Option<&str>,
+    limit: u8,
+) -> Result<Vec<serde_json::Value>> {
+    let client = state.installation_client().await?;
+
+    let mut q = format!("repo:{GITHUB_OWNER}/{GITHUB_REPO} is:issue {query}");
+    if let Some(s) = state_filter {
+        match s {
+            "open" | "closed" => q.push_str(&format!(" is:{s}")),
+            _ => {
+                return Err(SupportError::Internal(
+                    "Invalid state filter: must be 'open' or 'closed'".to_string(),
+                ));
+            }
+        }
+    }
+
+    let result = client
+        .search()
+        .issues_and_pull_requests(&q)
+        .per_page(limit)
+        .send()
+        .await?;
+
+    let items: Vec<serde_json::Value> = result
+        .items
+        .into_iter()
+        .map(|issue| {
+            serde_json::json!({
+                "number": issue.number,
+                "title": issue.title,
+                "state": format!("{:?}", issue.state).to_lowercase(),
+                "url": issue.html_url.to_string(),
+                "created_at": issue.created_at.to_rfc3339(),
+                "labels": issue.labels.iter().map(|l| &l.name).collect::<Vec<_>>(),
+            })
+        })
+        .collect();
+
+    Ok(items)
 }
 
 async fn create_discussion(

@@ -53,7 +53,7 @@ function replaceInText(
   all: boolean,
   nth: number,
 ): string {
-  const searchText = caseSensitive ? text : text.toLowerCase();
+  let searchText = caseSensitive ? text : text.toLowerCase();
   const searchQuery = caseSensitive ? query : query.toLowerCase();
   let count = 0;
   let from = 0;
@@ -78,6 +78,7 @@ function replaceInText(
       const after = text.slice(idx + query.length);
       if (all) {
         text = before + replacement + after;
+        searchText = caseSensitive ? text : text.toLowerCase();
         from = idx + replacement.length;
         continue;
       }

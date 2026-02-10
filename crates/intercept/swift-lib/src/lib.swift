@@ -128,11 +128,13 @@ private final class QuitInterceptor {
     let pressLabel = makeLabel(QuitOverlay.pressText, color: QuitOverlay.primaryTextColor)
     let holdLabel = makeLabel(QuitOverlay.holdText, color: QuitOverlay.secondaryTextColor)
 
-    let prefixDelta = NSAttributedString(
-      string: "Press ", attributes: [.font: QuitOverlay.font]
-    ).size().width - NSAttributedString(
-      string: "Hold ", attributes: [.font: QuitOverlay.font]
-    ).size().width
+    let prefixDelta =
+      NSAttributedString(
+        string: "Press ", attributes: [.font: QuitOverlay.font]
+      ).size().width
+      - NSAttributedString(
+        string: "Hold ", attributes: [.font: QuitOverlay.font]
+      ).size().width
 
     let spacing: CGFloat = 10
     let totalHeight = pressLabel.frame.height + spacing + holdLabel.frame.height

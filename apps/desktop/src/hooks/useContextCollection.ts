@@ -139,7 +139,10 @@ export function useContextCollection(sources: ContextSource[]): ContextItem[] {
     return () => {
       stale = true;
     };
-  }, [hasDevice, syncItems.map((i) => `${i.key}:${i.label}:${i.tooltip}`).join()]);
+  }, [
+    hasDevice,
+    syncItems.map((i) => `${i.key}:${i.label}:${i.tooltip}`).join(),
+  ]);
 
   if (!hasDevice) return syncItems;
   return items;

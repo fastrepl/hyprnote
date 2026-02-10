@@ -10,23 +10,19 @@ import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 import { useTabs } from "../../../store/zustand/tabs";
 
 export function Search({
-  hasSpace,
   onManualExpandChange,
 }: {
-  hasSpace: boolean;
   onManualExpandChange?: (isManuallyExpanded: boolean) => void;
 }) {
   const { focus, setFocusImpl, inputRef } = useSearch();
   const [isManuallyExpanded, setIsManuallyExpanded] = useState(false);
-
-  const shouldShowExpanded = hasSpace || isManuallyExpanded;
 
   useEffect(() => {
     onManualExpandChange?.(isManuallyExpanded);
   }, [isManuallyExpanded, onManualExpandChange]);
 
   useEffect(() => {
-    if (!shouldShowExpanded) {
+    if (!isManuallyExpanded) {
       setFocusImpl(() => {
         setIsManuallyExpanded(true);
         setTimeout(() => inputRef.current?.focus(), 100);
@@ -36,32 +32,18 @@ export function Search({
         inputRef.current?.focus();
       });
     }
-  }, [shouldShowExpanded, setFocusImpl, inputRef]);
+  }, [isManuallyExpanded, setFocusImpl, inputRef]);
 
   const handleCollapsedClick = () => {
     focus();
   };
 
-  const handleExpandedFocus = () => {
-    if (!hasSpace) {
-      setIsManuallyExpanded(true);
-    }
-  };
-
   const handleExpandedBlur = () => {
-    if (!hasSpace) {
-      setIsManuallyExpanded(false);
-    }
+    setIsManuallyExpanded(false);
   };
 
-  if (shouldShowExpanded) {
-    return (
-      <ExpandedSearch
-        hasSpace={hasSpace}
-        onFocus={handleExpandedFocus}
-        onBlur={handleExpandedBlur}
-      />
-    );
+  if (isManuallyExpanded) {
+    return <ExpandedSearch onBlur={handleExpandedBlur} />;
   }
 
   return <CollapsedSearch onClick={handleCollapsedClick} />;
@@ -87,15 +69,7 @@ function CollapsedSearch({ onClick }: { onClick: () => void }) {
   );
 }
 
-function ExpandedSearch({
-  hasSpace,
-  onFocus,
-  onBlur,
-}: {
-  hasSpace: boolean;
-  onFocus?: () => void;
-  onBlur?: () => void;
-}) {
+function ExpandedSearch({ onBlur }: { onBlur?: () => void }) {
   const {
     query,
     setQuery,
@@ -120,11 +94,7 @@ function ExpandedSearch({
   const hasResults = results && results.totalResults > 0;
   const resultCount = results?.totalResults ?? 0;
 
-  const width = hasSpace
-    ? isFocused
-      ? "w-[250px]"
-      : "w-[180px]"
-    : "w-[180px]";
+  const width = isFocused ? "w-[250px]" : "w-[180px]";
 
   return (
     <div
@@ -216,7 +186,6 @@ function ExpandedSearch({
           }}
           onFocus={() => {
             setIsFocused(true);
-            onFocus?.();
           }}
           onBlur={() => {
             setIsFocused(false);

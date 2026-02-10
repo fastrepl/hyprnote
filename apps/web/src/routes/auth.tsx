@@ -11,7 +11,6 @@ import { Image } from "@/components/image";
 import {
   createDesktopSession,
   doAuth,
-  doMagicLinkAuth,
   doPasswordSignIn,
   doPasswordSignUp,
   fetchUser,
@@ -189,7 +188,7 @@ function LegalText() {
   );
 }
 
-type EmailMode = "password" | "magic-link";
+type EmailMode = "sign-up" | "password";
 
 function EmailAuthView({
   flow,
@@ -216,6 +215,17 @@ function EmailAuthView({
 
       <div className="flex gap-1 p-1 bg-neutral-100 rounded-lg">
         <button
+          onClick={() => setMode("sign-up")}
+          className={cn([
+            "flex-1 py-1.5 text-sm font-medium rounded-md transition-colors",
+            mode === "sign-up"
+              ? "bg-white text-neutral-900 shadow-sm"
+              : "text-neutral-500 hover:text-neutral-700",
+          ])}
+        >
+          Sign up
+        </button>
+        <button
           onClick={() => setMode("password")}
           className={cn([
             "flex-1 py-1.5 text-sm font-medium rounded-md transition-colors",
@@ -226,24 +236,13 @@ function EmailAuthView({
         >
           Password
         </button>
-        <button
-          onClick={() => setMode("magic-link")}
-          className={cn([
-            "flex-1 py-1.5 text-sm font-medium rounded-md transition-colors",
-            mode === "magic-link"
-              ? "bg-white text-neutral-900 shadow-sm"
-              : "text-neutral-500 hover:text-neutral-700",
-          ])}
-        >
-          Magic Link
-        </button>
       </div>
 
-      {mode === "password" && (
-        <PasswordForm flow={flow} scheme={scheme} redirect={redirect} />
+      {mode === "sign-up" && (
+        <SignUpForm flow={flow} scheme={scheme} redirect={redirect} />
       )}
-      {mode === "magic-link" && (
-        <MagicLinkForm flow={flow} scheme={scheme} redirect={redirect} />
+      {mode === "password" && (
+        <SignInForm flow={flow} scheme={scheme} redirect={redirect} />
       )}
 
       <LegalText />
@@ -251,7 +250,7 @@ function EmailAuthView({
   );
 }
 
-function PasswordForm({
+function SignUpForm({
   flow,
   scheme,
   redirect,
@@ -263,38 +262,8 @@ function PasswordForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
-
-  const signInMutation = useMutation({
-    mutationFn: () =>
-      doPasswordSignIn({
-        data: { email, password, flow, scheme, redirect },
-      }),
-    onSuccess: (result) => {
-      if (result && "error" in result && result.error) {
-        setErrorMessage(
-          (result as { error: boolean; message: string }).message,
-        );
-        return;
-      }
-      if (
-        result &&
-        "success" in result &&
-        result.success &&
-        "access_token" in result
-      ) {
-        handlePasswordSuccess(
-          result.access_token as string,
-          result.refresh_token as string,
-          flow,
-          scheme,
-          redirect,
-        );
-      }
-    },
-  });
 
   const signUpMutation = useMutation({
     mutationFn: () =>
@@ -326,25 +295,19 @@ function PasswordForm({
     },
   });
 
-  const isPending = signInMutation.isPending || signUpMutation.isPending;
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
 
-    if (isSignUp) {
-      if (password !== confirmPassword) {
-        setErrorMessage("Passwords do not match");
-        return;
-      }
-      if (password.length < 6) {
-        setErrorMessage("Password must be at least 6 characters");
-        return;
-      }
-      signUpMutation.mutate();
-    } else {
-      signInMutation.mutate();
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match");
+      return;
     }
+    if (password.length < 6) {
+      setErrorMessage("Password must be at least 6 characters");
+      return;
+    }
+    signUpMutation.mutate();
   };
 
   if (submitted) {
@@ -386,28 +349,26 @@ function PasswordForm({
           "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
         ])}
       />
-      {isSignUp && (
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm password"
-          required
-          className={cn([
-            "w-full px-4 py-2",
-            "border border-neutral-300 rounded-lg",
-            "text-neutral-700 placeholder:text-neutral-400",
-            "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
-          ])}
-        />
-      )}
+      <input
+        type="password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        placeholder="Confirm password"
+        required
+        className={cn([
+          "w-full px-4 py-2",
+          "border border-neutral-300 rounded-lg",
+          "text-neutral-700 placeholder:text-neutral-400",
+          "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
+        ])}
+      />
       {errorMessage && (
         <p className="text-sm text-red-500 text-center">{errorMessage}</p>
       )}
       <button
         type="submit"
         disabled={
-          isPending || !email || !password || (isSignUp && !confirmPassword)
+          signUpMutation.isPending || !email || !password || !confirmPassword
         }
         className={cn([
           "w-full px-4 py-2 cursor-pointer",
@@ -420,30 +381,114 @@ function PasswordForm({
           "flex items-center justify-center gap-2",
         ])}
       >
-        {isPending ? "Loading..." : isSignUp ? "Create account" : "Sign in"}
+        {signUpMutation.isPending ? "Loading..." : "Create account"}
+      </button>
+    </form>
+  );
+}
+
+function SignInForm({
+  flow,
+  scheme,
+  redirect,
+}: {
+  flow: "desktop" | "web";
+  scheme?: string;
+  redirect?: string;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const signInMutation = useMutation({
+    mutationFn: () =>
+      doPasswordSignIn({
+        data: { email, password, flow, scheme, redirect },
+      }),
+    onSuccess: (result) => {
+      if (result && "error" in result && result.error) {
+        setErrorMessage(
+          (result as { error: boolean; message: string }).message,
+        );
+        return;
+      }
+      if (
+        result &&
+        "success" in result &&
+        result.success &&
+        "access_token" in result
+      ) {
+        handlePasswordSuccess(
+          result.access_token as string,
+          result.refresh_token as string,
+          flow,
+          scheme,
+          redirect,
+        );
+      }
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage("");
+    signInMutation.mutate();
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
+        required
+        className={cn([
+          "w-full px-4 py-2",
+          "border border-neutral-300 rounded-lg",
+          "text-neutral-700 placeholder:text-neutral-400",
+          "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
+        ])}
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
+        required
+        className={cn([
+          "w-full px-4 py-2",
+          "border border-neutral-300 rounded-lg",
+          "text-neutral-700 placeholder:text-neutral-400",
+          "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
+        ])}
+      />
+      {errorMessage && (
+        <p className="text-sm text-red-500 text-center">{errorMessage}</p>
+      )}
+      <button
+        type="submit"
+        disabled={signInMutation.isPending || !email || !password}
+        className={cn([
+          "w-full px-4 py-2 cursor-pointer",
+          "border border-neutral-300",
+          "rounded-lg font-medium text-neutral-700",
+          "hover:bg-neutral-50",
+          "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
+          "disabled:opacity-50 disabled:cursor-not-allowed",
+          "transition-colors",
+          "flex items-center justify-center gap-2",
+        ])}
+      >
+        {signInMutation.isPending ? "Loading..." : "Sign in"}
       </button>
       <div className="flex flex-col items-center gap-1">
-        <button
-          type="button"
-          onClick={() => {
-            setIsSignUp(!isSignUp);
-            setErrorMessage("");
-            setConfirmPassword("");
-          }}
+        <Link
+          to="/reset-password/"
           className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
         >
-          {isSignUp
-            ? "Already have an account? Sign in"
-            : "Don't have an account? Sign up"}
-        </button>
-        {!isSignUp && (
-          <Link
-            to="/reset-password/"
-            className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
-          >
-            Forgot password?
-          </Link>
-        )}
+          Forgot password?
+        </Link>
       </div>
     </form>
   );
@@ -466,94 +511,6 @@ function handlePasswordSuccess(
   } else {
     window.location.href = redirectPath || "/app/account/";
   }
-}
-
-function MagicLinkForm({
-  flow,
-  scheme,
-  redirect,
-}: {
-  flow: "desktop" | "web";
-  scheme?: string;
-  redirect?: string;
-}) {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  const magicLinkMutation = useMutation({
-    mutationFn: (email: string) =>
-      doMagicLinkAuth({
-        data: {
-          email,
-          flow,
-          scheme,
-          redirect,
-        },
-      }),
-    onSuccess: (result) => {
-      if (result && !("error" in result)) {
-        setSubmitted(true);
-      }
-    },
-  });
-
-  if (submitted) {
-    return (
-      <div className="text-center p-4 bg-stone-50 rounded-lg border border-stone-200">
-        <p className="text-stone-700 font-medium">Check your email</p>
-        <p className="text-sm text-stone-500 mt-1">
-          We sent a magic link to {email}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (email) {
-          magicLinkMutation.mutate(email);
-        }
-      }}
-      className="flex flex-col gap-3"
-    >
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Enter your email"
-        required
-        className={cn([
-          "w-full px-4 py-2",
-          "border border-neutral-300 rounded-lg",
-          "text-neutral-700 placeholder:text-neutral-400",
-          "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
-        ])}
-      />
-      <button
-        type="submit"
-        disabled={magicLinkMutation.isPending || !email}
-        className={cn([
-          "w-full px-4 py-2 cursor-pointer",
-          "border border-neutral-300",
-          "rounded-lg font-medium text-neutral-700",
-          "hover:bg-neutral-50",
-          "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          "transition-colors",
-          "flex items-center justify-center gap-2",
-        ])}
-      >
-        {magicLinkMutation.isPending ? "Sending..." : "Send magic link"}
-      </button>
-      {magicLinkMutation.isError && (
-        <p className="text-sm text-red-500 text-center">
-          Failed to send magic link. Please try again.
-        </p>
-      )}
-    </form>
-  );
 }
 
 function OAuthButton({

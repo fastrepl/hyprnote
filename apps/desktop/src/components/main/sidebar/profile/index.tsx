@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Facehash } from "facehash";
 import {
   CalendarIcon,
   ChevronUpIcon,
@@ -313,17 +314,22 @@ function ProfileButton({
         className={cn([
           "flex size-8 shrink-0 items-center justify-center",
           "overflow-hidden rounded-full",
-          "border border-t border-neutral-400",
-          "bg-linear-to-br from-indigo-400 to-purple-500",
           "shadow-xs",
           "transition-transform duration-300",
         ])}
       >
-        {profile.data && (
+        {profile.data ? (
           <img
             src={profile.data}
             alt="Profile"
             className="h-full w-full rounded-full"
+          />
+        ) : (
+          <Facehash
+            name={auth?.session?.user.email || name || "user"}
+            size={32}
+            interactive={false}
+            showInitial={false}
           />
         )}
       </div>

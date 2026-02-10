@@ -20,6 +20,7 @@ import { cn } from "@hypr/utils";
 export interface SearchableSelectOption {
   value: string;
   label: string;
+  detail?: string;
 }
 
 interface SearchableSelectProps {
@@ -82,7 +83,11 @@ export function SearchableSelect({
           ])}
         >
           <span className="truncate">
-            {selectedOption ? selectedOption.label : placeholder}
+            {selectedOption
+              ? selectedOption.detail
+                ? `${selectedOption.label} (${selectedOption.detail})`
+                : selectedOption.label
+              : placeholder}
           </span>
           <ChevronDown className="-mr-1 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -108,7 +113,11 @@ export function SearchableSelect({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label}
+                  value={
+                    option.detail
+                      ? `${option.label} ${option.detail}`
+                      : option.label
+                  }
                   onSelect={() => handleSelect(option.value)}
                   className={cn([
                     "cursor-pointer",
@@ -116,6 +125,11 @@ export function SearchableSelect({
                   ])}
                 >
                   <span className="truncate flex-1">{option.label}</span>
+                  {option.detail && (
+                    <span className="text-[10px] font-mono text-neutral-400 shrink-0">
+                      {option.detail}
+                    </span>
+                  )}
                   {value === option.value && (
                     <Check className="h-4 w-4 shrink-0" />
                   )}

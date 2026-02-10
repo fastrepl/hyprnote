@@ -30,20 +30,16 @@ export function WeekStartSelector() {
 
   const options: SearchableSelectOption[] = useMemo(
     () => [
-      {
-        value: "system",
-        label: `System (${systemDefault === "monday" ? "Monday" : "Sunday"})`,
-      },
       { value: "sunday", label: "Sunday" },
       { value: "monday", label: "Monday" },
     ],
-    [systemDefault],
+    [],
   );
 
-  const displayValue = value || "system";
+  const displayValue = value || systemDefault;
 
   const handleChange = (val: string) => {
-    setWeekStart(val === "system" ? "" : val);
+    setWeekStart(val === systemDefault ? "" : val);
   };
 
   return (
@@ -59,7 +55,7 @@ export function WeekStartSelector() {
         onChange={handleChange}
         options={options}
         placeholder="Select day"
-        className="w-56"
+        className="w-40"
       />
     </div>
   );

@@ -134,17 +134,16 @@ export function SettingsApp() {
                     {(telemetryConsentField) => (
                       <AppSettingsView
                         autostart={{
-                          title: "Start Hyprnote automatically at login",
+                          title: "Start Hyprnote at login",
                           description:
-                            "Hyprnote will always be ready for action without you having to turn it on",
+                            "Always ready without manually launching.",
                           value: autostartField.state.value,
                           onChange: (val) => autostartField.handleChange(val),
                         }}
                         notificationDetect={{
-                          title:
-                            "Start/Stop listening to meetings automatically",
+                          title: "Auto-detect meetings",
                           description:
-                            "You don't have to press button every time — we'll start/stop listening for you",
+                            "Automatically start and stop listening when a meeting is detected.",
                           value: notificationDetectField.state.value,
                           onChange: (val) =>
                             notificationDetectField.handleChange(val),
@@ -152,7 +151,7 @@ export function SettingsApp() {
                         saveRecordings={{
                           title: "Save recordings",
                           description:
-                            "Audio files of meetings will be saved locally and won't be leaving your device",
+                            "Keep audio files locally on your device.",
                           value: saveRecordingsField.state.value,
                           onChange: (val) =>
                             saveRecordingsField.handleChange(val),
@@ -160,7 +159,7 @@ export function SettingsApp() {
                         telemetryConsent={{
                           title: "Share usage data",
                           description:
-                            "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
+                            "Send anonymous usage metadata to help improve Hyprnote.",
                           value: telemetryConsentField.state.value,
                           onChange: (val) =>
                             telemetryConsentField.handleChange(val),

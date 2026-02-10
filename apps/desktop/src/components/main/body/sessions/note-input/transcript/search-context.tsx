@@ -58,7 +58,7 @@ function prepareText(text: string, caseSensitive: boolean): string {
 }
 
 function isWordBoundary(text: string, index: number): boolean {
-  if (index <= 0 || index >= text.length) return true;
+  if (index < 0 || index >= text.length) return true;
   return !/\w/.test(text[index]);
 }
 
@@ -73,7 +73,7 @@ function findOccurrences(
     const idx = text.indexOf(query, from);
     if (idx === -1) break;
     if (wholeWord) {
-      const beforeOk = isWordBoundary(text, idx);
+      const beforeOk = isWordBoundary(text, idx - 1);
       const afterOk = isWordBoundary(text, idx + query.length);
       if (beforeOk && afterOk) {
         indices.push(idx);

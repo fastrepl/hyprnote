@@ -155,7 +155,7 @@ function useTranscriptSearchHighlights(word: SegmentWord) {
 }
 
 function isWordBoundaryChar(text: string, index: number): boolean {
-  if (index <= 0 || index >= text.length) return true;
+  if (index < 0 || index >= text.length) return true;
   return !/\w/.test(text[index]);
 }
 
@@ -181,7 +181,7 @@ function createSegments(
     let index = searchText.indexOf(token, cursor);
     while (index !== -1) {
       if (wholeWord) {
-        const beforeOk = isWordBoundaryChar(searchText, index);
+        const beforeOk = isWordBoundaryChar(searchText, index - 1);
         const afterOk = isWordBoundaryChar(searchText, index + token.length);
         if (beforeOk && afterOk) {
           ranges.push({ start: index, end: index + token.length });

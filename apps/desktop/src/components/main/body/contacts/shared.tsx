@@ -71,18 +71,6 @@ export function SortDropdown({
           >
             Newest
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem
-            value="reverse-alphabetical"
-            className="text-xs"
-          >
-            Z-A
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="oldest" className="text-xs">
-            Oldest
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="newest" className="text-xs">
-            Newest
-          </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>

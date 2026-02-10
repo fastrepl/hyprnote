@@ -21,6 +21,7 @@ export function useMCPClient(
       clientRef.current = null;
       setClient(null);
       setIsConnected(false);
+      setError(null);
       return;
     }
 
@@ -60,6 +61,7 @@ export function useMCPClient(
         setClient(created);
         clearTimeout(timeout);
         setIsConnected(true);
+        setError(null);
       } catch (err) {
         const connectError =
           err instanceof Error ? err : new Error(String(err));

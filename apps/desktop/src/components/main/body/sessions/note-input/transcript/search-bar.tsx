@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 
+import { Kbd } from "@hypr/ui/components/ui/kbd";
 import {
   Tooltip,
   TooltipContent,
@@ -26,7 +27,7 @@ function ToggleButton({
 }: {
   active: boolean;
   onClick: () => void;
-  tooltip: string;
+  tooltip: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -44,7 +45,9 @@ function ToggleButton({
           {children}
         </button>
       </TooltipTrigger>
-      <TooltipContent side="bottom">{tooltip}</TooltipContent>
+      <TooltipContent side="bottom" className="flex items-center gap-2">
+        {tooltip}
+      </TooltipContent>
     </Tooltip>
   );
 }
@@ -57,26 +60,32 @@ function IconButton({
 }: {
   onClick: () => void;
   disabled?: boolean;
-  tooltip: string;
+  tooltip: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const btn = (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn([
+        "p-0.5 rounded-sm transition-colors",
+        disabled
+          ? "text-neutral-300 cursor-not-allowed"
+          : "hover:bg-neutral-200 text-neutral-500",
+      ])}
+    >
+      {children}
+    </button>
+  );
+
+  if (disabled) return btn;
+
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          onClick={onClick}
-          disabled={disabled}
-          className={cn([
-            "p-0.5 rounded-sm transition-colors",
-            disabled
-              ? "text-neutral-300 cursor-not-allowed"
-              : "hover:bg-neutral-200 text-neutral-500",
-          ])}
-        >
-          {children}
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">{tooltip}</TooltipContent>
+      <TooltipTrigger asChild>{btn}</TooltipTrigger>
+      <TooltipContent side="bottom" className="flex items-center gap-2">
+        {tooltip}
+      </TooltipContent>
     </Tooltip>
   );
 }
@@ -134,7 +143,11 @@ export function SearchBar() {
   const handleReplaceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      replaceCurrent();
+      if (e.metaKey || e.ctrlKey) {
+        replaceAll();
+      } else {
+        replaceCurrent();
+      }
     }
   };
 
@@ -171,7 +184,12 @@ export function SearchBar() {
           <ToggleButton
             active={showReplace}
             onClick={toggleReplace}
-            tooltip="Toggle replace (⌘H)"
+            tooltip={
+              <>
+                <span>Replace</span>
+                <Kbd className="animate-kbd-press">⌘ H</Kbd>
+              </>
+            }
           >
             <ReplaceIcon className="size-3.5" />
           </ToggleButton>
@@ -183,19 +201,37 @@ export function SearchBar() {
           <IconButton
             onClick={onPrev}
             disabled={totalMatches === 0}
-            tooltip="Previous match (Shift+Enter)"
+            tooltip={
+              <>
+                <span>Previous match</span>
+                <Kbd className="animate-kbd-press">⇧ ↵</Kbd>
+              </>
+            }
           >
             <ChevronUpIcon className="size-3.5" />
           </IconButton>
           <IconButton
             onClick={onNext}
             disabled={totalMatches === 0}
-            tooltip="Next match (Enter)"
+            tooltip={
+              <>
+                <span>Next match</span>
+                <Kbd className="animate-kbd-press">↵</Kbd>
+              </>
+            }
           >
             <ChevronDownIcon className="size-3.5" />
           </IconButton>
         </div>
-        <IconButton onClick={close} tooltip="Close (Esc)">
+        <IconButton
+          onClick={close}
+          tooltip={
+            <>
+              <span>Close</span>
+              <Kbd className="animate-kbd-press">Esc</Kbd>
+            </>
+          }
+        >
           <XIcon className="size-3.5" />
         </IconButton>
       </div>
@@ -214,15 +250,23 @@ export function SearchBar() {
           <div className="flex items-center gap-0.5">
             <IconButton
               onClick={replaceCurrent}
-              disabled={totalMatches === 0}
-              tooltip="Replace"
+              tooltip={
+                <>
+                  <span>Replace</span>
+                  <Kbd className="animate-kbd-press">↵</Kbd>
+                </>
+              }
             >
               <ReplaceIcon className="size-3.5" />
             </IconButton>
             <IconButton
               onClick={replaceAll}
-              disabled={totalMatches === 0}
-              tooltip="Replace all"
+              tooltip={
+                <>
+                  <span>Replace all</span>
+                  <Kbd className="animate-kbd-press">⌘ ↵</Kbd>
+                </>
+              }
             >
               <ReplaceAllIcon className="size-3.5" />
             </IconButton>

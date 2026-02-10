@@ -7,14 +7,13 @@ import {
   commands as templateCommands,
   type Transcript,
 } from "@hypr/plugin-template";
-import type { ChatMessage, ChatMessageStorage } from "@hypr/store";
-
 import type { ContextItem, ContextSource } from "../../chat/context-item";
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
 import { useSession } from "../../hooks/tinybase";
 import { useContextCollection } from "../../hooks/useContextCollection";
+import { useCreateChatMessage } from "../../hooks/useCreateChatMessage";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
 import * as main from "../../store/tinybase/store/main";
 import { id } from "../../utils";
@@ -70,25 +69,7 @@ export function ChatSession({
     notePreview,
   );
   const store = main.UI.useStore(main.STORE_ID);
-
-  const { user_id } = main.UI.useValues(main.STORE_ID);
-
-  const createChatMessage = main.UI.useSetRowCallback(
-    "chat_messages",
-    (p: Omit<ChatMessage, "user_id" | "created_at"> & { id: string }) => p.id,
-    (p: Omit<ChatMessage, "user_id" | "created_at"> & { id: string }) =>
-      ({
-        user_id,
-        chat_group_id: p.chat_group_id,
-        content: p.content,
-        created_at: new Date().toISOString(),
-        role: p.role,
-        metadata: JSON.stringify(p.metadata),
-        parts: JSON.stringify(p.parts),
-      }) satisfies ChatMessageStorage,
-    [user_id],
-    main.STORE_ID,
-  );
+  const createChatMessage = useCreateChatMessage();
 
   const messageIds = main.UI.useSliceRowIds(
     main.INDEXES.chatMessagesByGroup,
@@ -105,11 +86,19 @@ export function ChatSession({
     for (const messageId of messageIds) {
       const row = store.getRow("chat_messages", messageId);
       if (row) {
+        let parsedParts: HyprUIMessage["parts"] = [];
+        let parsedMetadata: Record<string, unknown> = {};
+        try {
+          parsedParts = JSON.parse(row.parts ?? "[]");
+        } catch {}
+        try {
+          parsedMetadata = JSON.parse(row.metadata ?? "{}");
+        } catch {}
         loaded.push({
           id: messageId as string,
           role: row.role as "user" | "assistant",
-          parts: JSON.parse(row.parts ?? "[]"),
-          metadata: JSON.parse(row.metadata ?? "{}"),
+          parts: parsedParts,
+          metadata: parsedMetadata,
         });
       }
     }

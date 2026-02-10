@@ -1,4 +1,6 @@
-import type { Part } from "../types";
+import type { ComponentType } from "react";
+
+import type { Part, ToolRenderer } from "../types";
 import { ToolAddComment } from "./add-comment";
 import { ToolBillingPortal } from "./billing-portal";
 import { ToolCreateIssue } from "./create-issue";
@@ -7,50 +9,19 @@ import { ToolListSubscriptions } from "./list-subscriptions";
 import { ToolSearchSessions } from "./search";
 import { ToolSearchIssues } from "./search-issues";
 
-export function Tool({ part }: { part: Record<string, unknown> }) {
-  if (part.type === "tool-search_sessions") {
-    return (
-      <ToolSearchSessions
-        part={part as Extract<Part, { type: "tool-search_sessions" }>}
-      />
-    );
+const toolRegistry: Record<string, ComponentType<{ part: Extract<Part, { type: string }> }>> = {
+  "tool-search_sessions": ToolSearchSessions as ToolRenderer,
+  "tool-create_issue": ToolCreateIssue as ToolRenderer,
+  "tool-add_comment": ToolAddComment as ToolRenderer,
+  "tool-search_issues": ToolSearchIssues as ToolRenderer,
+  "tool-list_subscriptions": ToolListSubscriptions as ToolRenderer,
+  "tool-create_billing_portal_session": ToolBillingPortal as ToolRenderer,
+};
+
+export function Tool({ part }: { part: Part }) {
+  const Renderer = toolRegistry[part.type];
+  if (Renderer) {
+    return <Renderer part={part as Extract<Part, { type: string }>} />;
   }
-  if (part.type === "tool-create_issue") {
-    return (
-      <ToolCreateIssue
-        part={part as Extract<Part, { type: "tool-create_issue" }>}
-      />
-    );
-  }
-  if (part.type === "tool-add_comment") {
-    return (
-      <ToolAddComment
-        part={part as Extract<Part, { type: "tool-add_comment" }>}
-      />
-    );
-  }
-  if (part.type === "tool-search_issues") {
-    return (
-      <ToolSearchIssues
-        part={part as Extract<Part, { type: "tool-search_issues" }>}
-      />
-    );
-  }
-  if (part.type === "tool-list_subscriptions") {
-    return (
-      <ToolListSubscriptions
-        part={part as Extract<Part, { type: "tool-list_subscriptions" }>}
-      />
-    );
-  }
-  if (part.type === "tool-create_billing_portal_session") {
-    return (
-      <ToolBillingPortal
-        part={
-          part as Extract<Part, { type: "tool-create_billing_portal_session" }>
-        }
-      />
-    );
-  }
-  return <ToolGeneric part={part} />;
+  return <ToolGeneric part={part as Record<string, unknown>} />;
 }

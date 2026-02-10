@@ -1,7 +1,4 @@
 import {
-  FullscreenIcon,
-  MicIcon,
-  PaperclipIcon,
   SendIcon,
   SquareIcon,
 } from "lucide-react";
@@ -19,11 +16,6 @@ import {
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../contexts/shell";
@@ -38,7 +30,7 @@ export function ChatMessageInput({
   isStreaming,
   onStop,
 }: {
-  onSendMessage: (content: string, parts: any[]) => void;
+  onSendMessage: (content: string, parts: Array<{ type: string; text: string }>) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
   attachedSession?: { id: string; title?: string };
   isStreaming?: boolean;
@@ -89,12 +81,6 @@ export function ChatMessageInput({
     setHasContent(text.length > 0);
     _draft = json;
   }, []);
-
-  const handleAttachFile = useCallback(() => {}, []);
-
-  const handleTakeScreenshot = useCallback(() => {}, []);
-
-  const handleVoiceInput = useCallback(() => {}, []);
 
   const slashCommandConfig: SlashCommandConfig = useMemo(
     () => ({
@@ -158,59 +144,7 @@ export function ChatMessageInput({
           />
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleAttachFile}
-                  disabled={true}
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
-                >
-                  <PaperclipIcon size={16} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <span>Coming soon</span>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleTakeScreenshot}
-                  disabled={true}
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
-                >
-                  <FullscreenIcon size={16} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <span>Coming soon</span>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-
-          <div className="flex items-center">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleVoiceInput}
-                  disabled={true}
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
-                >
-                  <MicIcon size={16} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <span>Coming soon</span>
-              </TooltipContent>
-            </Tooltip>
+        <div className="flex items-center justify-end">
             {isStreaming ? (
               <Button
                 onClick={onStop}
@@ -231,8 +165,6 @@ export function ChatMessageInput({
                 <SendIcon size={16} />
               </Button>
             )}
-          </div>
-        </div>
       </div>
       {hasContent && (
         <span className="absolute bottom-1.5 right-5 text-[8px] text-neutral-400">

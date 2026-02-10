@@ -9,9 +9,10 @@ const TIMEOUT_MS = 5_000;
 export function useMCPClient(
   enabled: boolean,
   accessToken?: string | null,
-): { client: MCPClient | null; isConnected: boolean } {
+): { client: MCPClient | null; isConnected: boolean; error: Error | null } {
   const [client, setClient] = useState<MCPClient | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const clientRef = useRef<MCPClient | null>(null);
 
   useEffect(() => {
@@ -59,12 +60,12 @@ export function useMCPClient(
         setClient(created);
         clearTimeout(timeout);
         setIsConnected(true);
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        const cause = error instanceof Error ? (error as any).cause : undefined;
-        console.error("Failed to initialize MCP client:", msg, cause ?? "");
+      } catch (err) {
+        const connectError = err instanceof Error ? err : new Error(String(err));
+        console.error("Failed to initialize MCP client:", connectError.message);
         if (!cancelled) {
           clearTimeout(timeout);
+          setError(connectError);
           setIsConnected(true);
         }
       }
@@ -81,5 +82,5 @@ export function useMCPClient(
     };
   }, [enabled, accessToken]);
 
-  return { client, isConnected };
+  return { client, isConnected, error };
 }

@@ -43,6 +43,7 @@
 
   p {
     margin-bottom: 0.25rem;
+    text-wrap: wrap;
   }
 
   .node-image {

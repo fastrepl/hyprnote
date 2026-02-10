@@ -25,6 +25,10 @@ export function CustomVocabularyView() {
     onSubmit: ({ value }) => {
       const text = value.search.trim();
       if (text) {
+        const allTexts = vocabItems.map((item) => item.text.toLowerCase());
+        if (allTexts.includes(text.toLowerCase())) {
+          return;
+        }
         mutations.create(text);
         form.reset();
         setSearchValue("");

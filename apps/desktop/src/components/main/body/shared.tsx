@@ -180,7 +180,7 @@ export function TabItemBase({
         onMouseDown={handleMouseDown}
         className={cn([
           "flex items-center gap-1 relative",
-          "w-48 h-full px-2",
+          "w-[160px] h-full px-2",
           "rounded-xl border",
           "cursor-pointer group",
           "transition-colors duration-200",

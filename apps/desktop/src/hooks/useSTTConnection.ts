@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 
 import {
   commands as localSttCommands,
@@ -38,6 +38,13 @@ export const useSTTConnection = () => {
   const isCloudModel =
     current_stt_provider === "hyprnote" && current_stt_model === "cloud";
 
+  const resetSttModel = settings.UI.useSetValueCallback(
+    "current_stt_model",
+    () => "",
+    [],
+    settings.STORE_ID,
+  );
+
   const local = useQuery({
     enabled: current_stt_provider === "hyprnote",
     queryKey: ["stt-connection", isLocalModel, current_stt_model],
@@ -45,6 +52,13 @@ export const useSTTConnection = () => {
     queryFn: async () => {
       if (!isLocalModel || !current_stt_model) {
         return null;
+      }
+
+      const downloaded = await localSttCommands.isModelDownloaded(
+        current_stt_model as SupportedSttModel,
+      );
+      if (downloaded.status === "ok" && !downloaded.data) {
+        return { status: "not_downloaded" as const, connection: null };
       }
 
       const servers = await localSttCommands.getServers();
@@ -124,14 +138,11 @@ export const useSTTConnection = () => {
     billing.isPro,
   ]);
 
-  useSTTModelReset({
-    current_stt_provider,
-    current_stt_model,
-    isLocalModel,
-    isCloudModel,
-    session: auth?.session,
-    isPro: billing.isPro,
-  });
+  useEffect(() => {
+    if (local.data?.status === "not_downloaded") {
+      resetSttModel();
+    }
+  }, [local.data, resetSttModel]);
 
   return {
     conn: connection,
@@ -139,74 +150,3 @@ export const useSTTConnection = () => {
     isLocalModel,
   };
 };
-
-// Resets the persisted STT model selection when it becomes invalid.
-//
-// Handles two cases:
-//   1. On-device model (Parakeet/Whisper) is no longer downloaded
-//   2. Cloud Pro model selected but user is unauthenticated or subscription expired
-//
-// IMPORTANT: Uses `prevIsProRef` (starting as null) to skip the initial render
-// cycle. During app startup, `auth.session` is null and `billing.isPro` is false
-// because they load asynchronously. Without this guard, the effect would see
-// "not authenticated / not pro" and wipe the user's saved model selection before
-// auth has finished loading — the exact race condition that was previously caused
-// by the useEffect in stt/select.tsx.
-function useSTTModelReset(params: {
-  current_stt_provider: string | undefined;
-  current_stt_model: string | undefined;
-  isLocalModel: boolean;
-  isCloudModel: boolean;
-  session: { access_token: string } | null | undefined;
-  isPro: boolean;
-}) {
-  const {
-    current_stt_provider,
-    current_stt_model,
-    isLocalModel,
-    isCloudModel,
-    session,
-    isPro,
-  } = params;
-
-  const resetSttModel = settings.UI.useSetValueCallback(
-    "current_stt_model",
-    () => "",
-    [],
-    settings.STORE_ID,
-  );
-
-  const prevIsProRef = useRef<boolean | null>(null);
-
-  useEffect(() => {
-    if (prevIsProRef.current === null) {
-      prevIsProRef.current = isPro;
-      return;
-    }
-    prevIsProRef.current = isPro;
-
-    if (!current_stt_provider || !current_stt_model) {
-      return;
-    }
-
-    if (isLocalModel) {
-      void localSttCommands
-        .isModelDownloaded(current_stt_model as SupportedSttModel)
-        .then((result) => {
-          if (result.status === "ok" && !result.data) {
-            resetSttModel();
-          }
-        });
-    } else if (isCloudModel && (!session || !isPro)) {
-      resetSttModel();
-    }
-  }, [
-    current_stt_provider,
-    current_stt_model,
-    isLocalModel,
-    isCloudModel,
-    session,
-    isPro,
-    resetSttModel,
-  ]);
-}

@@ -7,7 +7,7 @@ use rmcp::{
 use crate::state::AppState;
 
 use super::prompts;
-use super::tools::{self, ReadGitHubDataParams, SubmitBugReportParams, SubmitFeatureRequestParams};
+use super::tools::{self, AddCommentParams, CreateIssueParams, SearchIssuesParams};
 
 #[derive(Clone)]
 pub(crate) struct SupportMcpServer {
@@ -26,32 +26,28 @@ impl SupportMcpServer {
 
 #[tool_router]
 impl SupportMcpServer {
-    #[tool(
-        description = "Submit a bug report. Creates a GitHub issue with device information and optional log analysis."
-    )]
-    async fn submit_bug_report(
+    #[tool(description = "Create a new GitHub issue.")]
+    async fn create_issue(
         &self,
-        Parameters(params): Parameters<SubmitBugReportParams>,
+        Parameters(params): Parameters<CreateIssueParams>,
     ) -> Result<CallToolResult, McpError> {
-        tools::submit_bug_report(&self.state, params).await
+        tools::create_issue(&self.state, params).await
     }
 
-    #[tool(description = "Submit a feature request. Creates a GitHub discussion.")]
-    async fn submit_feature_request(
+    #[tool(description = "Add a new comment to an existing GitHub issue.")]
+    async fn add_comment(
         &self,
-        Parameters(params): Parameters<SubmitFeatureRequestParams>,
+        Parameters(params): Parameters<AddCommentParams>,
     ) -> Result<CallToolResult, McpError> {
-        tools::submit_feature_request(&self.state, params).await
+        tools::add_comment(&self.state, params).await
     }
 
-    #[tool(
-        description = "Read GitHub data (issues, pull requests, comments, tags) from the database. Data is synced from GitHub via Airbyte."
-    )]
-    async fn read_github_data(
+    #[tool(description = "Search for GitHub issues by keywords, error messages, or other criteria.")]
+    async fn search_issues(
         &self,
-        Parameters(params): Parameters<ReadGitHubDataParams>,
+        Parameters(params): Parameters<SearchIssuesParams>,
     ) -> Result<CallToolResult, McpError> {
-        tools::read_github_data(&self.state, params).await
+        tools::search_issues(&self.state, params).await
     }
 }
 
@@ -72,7 +68,7 @@ impl ServerHandler for SupportMcpServer {
                 website_url: None,
             },
             instructions: Some(
-                "Hyprnote support server. Provides tools for submitting bug reports and feature requests."
+                "Hyprnote support server. Provides tools for managing GitHub issues."
                     .to_string(),
             ),
         }

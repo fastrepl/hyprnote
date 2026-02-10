@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 import {
   commands as localSttCommands,
@@ -38,12 +38,7 @@ export const useSTTConnection = () => {
   const isCloudModel =
     current_stt_provider === "hyprnote" && current_stt_model === "cloud";
 
-  const resetSttModel = settings.UI.useSetValueCallback(
-    "current_stt_model",
-    () => "",
-    [],
-    settings.STORE_ID,
-  );
+  const store = settings.UI.useStore(settings.STORE_ID);
 
   const local = useQuery({
     enabled: current_stt_provider === "hyprnote",
@@ -58,6 +53,7 @@ export const useSTTConnection = () => {
         current_stt_model as SupportedSttModel,
       );
       if (downloaded.status === "ok" && !downloaded.data) {
+        store?.setValue("current_stt_model", "");
         return { status: "not_downloaded" as const, connection: null };
       }
 
@@ -137,12 +133,6 @@ export const useSTTConnection = () => {
     auth,
     billing.isPro,
   ]);
-
-  useEffect(() => {
-    if (local.data?.status === "not_downloaded") {
-      resetSttModel();
-    }
-  }, [local.data, resetSttModel]);
 
   return {
     conn: connection,

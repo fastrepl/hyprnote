@@ -1,6 +1,4 @@
-import type { ComponentType } from "react";
-
-import type { Part, ToolRenderer } from "../types";
+import type { Part } from "../types";
 import { ToolAddComment } from "./add-comment";
 import { ToolBillingPortal } from "./billing-portal";
 import { ToolCreateIssue } from "./create-issue";
@@ -9,19 +7,19 @@ import { ToolListSubscriptions } from "./list-subscriptions";
 import { ToolSearchSessions } from "./search";
 import { ToolSearchIssues } from "./search-issues";
 
-const toolRegistry: Record<string, ComponentType<{ part: Extract<Part, { type: string }> }>> = {
-  "tool-search_sessions": ToolSearchSessions as ToolRenderer,
-  "tool-create_issue": ToolCreateIssue as ToolRenderer,
-  "tool-add_comment": ToolAddComment as ToolRenderer,
-  "tool-search_issues": ToolSearchIssues as ToolRenderer,
-  "tool-list_subscriptions": ToolListSubscriptions as ToolRenderer,
-  "tool-create_billing_portal_session": ToolBillingPortal as ToolRenderer,
+const toolRegistry: Record<string, (props: { part: Part }) => React.ReactNode> = {
+  "tool-search_sessions": ToolSearchSessions as (props: { part: Part }) => React.ReactNode,
+  "tool-create_issue": ToolCreateIssue as (props: { part: Part }) => React.ReactNode,
+  "tool-add_comment": ToolAddComment as (props: { part: Part }) => React.ReactNode,
+  "tool-search_issues": ToolSearchIssues as (props: { part: Part }) => React.ReactNode,
+  "tool-list_subscriptions": ToolListSubscriptions as (props: { part: Part }) => React.ReactNode,
+  "tool-create_billing_portal_session": ToolBillingPortal as (props: { part: Part }) => React.ReactNode,
 };
 
 export function Tool({ part }: { part: Part }) {
   const Renderer = toolRegistry[part.type];
   if (Renderer) {
-    return <Renderer part={part as Extract<Part, { type: string }>} />;
+    return <Renderer part={part} />;
   }
   return <ToolGeneric part={part as Record<string, unknown>} />;
 }

@@ -30,7 +30,7 @@ export function ChatMessageInput({
   isStreaming,
   onStop,
 }: {
-  onSendMessage: (content: string, parts: Array<{ type: string; text: string }>) => void;
+  onSendMessage: (content: string, parts: Array<{ type: "text"; text: string }>) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
   attachedSession?: { id: string; title?: string };
   isStreaming?: boolean;

@@ -247,8 +247,16 @@ function OrganizationItem({
         isSelected && isViewingDetails ? "border-black" : "border-transparent",
       ])}
     >
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setSelectedOrganization(organizationId)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelectedOrganization(organizationId);
+          }
+        }}
         className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-neutral-100 transition-colors rounded-md"
       >
         <Building2 className="h-4 w-4 text-neutral-500 shrink-0" />
@@ -265,7 +273,7 @@ function OrganizationItem({
         >
           <Pin className="size-3.5" fill={isPinned ? "currentColor" : "none"} />
         </button>
-      </button>
+      </div>
     </div>
   );
 }

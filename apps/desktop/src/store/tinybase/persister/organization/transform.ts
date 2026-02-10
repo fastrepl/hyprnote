@@ -12,6 +12,8 @@ export function frontmatterToOrganization(
       : undefined,
     name: String(frontmatter.name ?? ""),
     pinned: Boolean(frontmatter.pinned ?? false),
+    pin_order:
+      frontmatter.pin_order != null ? Number(frontmatter.pin_order) : undefined,
   };
 }
 
@@ -25,6 +27,7 @@ export function organizationToFrontmatter(org: OrganizationStorage): {
       created_at: org.created_at ?? "",
       name: org.name ?? "",
       pinned: org.pinned ?? false,
+      pin_order: org.pin_order ?? 0,
     },
     body: "",
   };

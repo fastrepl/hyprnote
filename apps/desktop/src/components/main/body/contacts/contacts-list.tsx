@@ -345,13 +345,18 @@ function PersonItem({
         });
       } else {
         const allHumans = store.getTable("humans");
-        const maxOrder = Object.values(allHumans).reduce((max, h) => {
+        const allOrgs = store.getTable("organizations");
+        const maxHumanOrder = Object.values(allHumans).reduce((max, h) => {
           const order = (h.pin_order as number | undefined) ?? 0;
+          return Math.max(max, order);
+        }, 0);
+        const maxOrgOrder = Object.values(allOrgs).reduce((max, o) => {
+          const order = (o.pin_order as number | undefined) ?? 0;
           return Math.max(max, order);
         }, 0);
         store.setPartialRow("humans", humanId, {
           pinned: true,
-          pin_order: maxOrder + 1,
+          pin_order: Math.max(maxHumanOrder, maxOrgOrder) + 1,
         });
       }
     },
@@ -359,8 +364,16 @@ function PersonItem({
   );
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       className={cn([
         "group w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors flex items-center gap-2 bg-white overflow-hidden",
         active ? "border-neutral-500 bg-neutral-100" : "border-transparent",
@@ -391,7 +404,7 @@ function PersonItem({
       >
         <Pin className="size-3.5" fill={isPinned ? "currentColor" : "none"} />
       </button>
-    </button>
+    </div>
   );
 }
 
@@ -429,13 +442,18 @@ function OrganizationItem({
         });
       } else {
         const allOrgs = store.getTable("organizations");
-        const maxOrder = Object.values(allOrgs).reduce((max, o) => {
+        const allHumans = store.getTable("humans");
+        const maxOrgOrder = Object.values(allOrgs).reduce((max, o) => {
           const order = (o.pin_order as number | undefined) ?? 0;
+          return Math.max(max, order);
+        }, 0);
+        const maxHumanOrder = Object.values(allHumans).reduce((max, h) => {
+          const order = (h.pin_order as number | undefined) ?? 0;
           return Math.max(max, order);
         }, 0);
         store.setPartialRow("organizations", organizationId, {
           pinned: true,
-          pin_order: maxOrder + 1,
+          pin_order: Math.max(maxOrgOrder, maxHumanOrder) + 1,
         });
       }
     },
@@ -447,8 +465,16 @@ function OrganizationItem({
   }
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       className={cn([
         "group w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors flex items-center gap-2 overflow-hidden",
         active ? "border-neutral-500 bg-neutral-100" : "border-transparent",
@@ -472,7 +498,7 @@ function OrganizationItem({
       >
         <Pin className="size-3.5" fill={isPinned ? "currentColor" : "none"} />
       </button>
-    </button>
+    </div>
   );
 }
 

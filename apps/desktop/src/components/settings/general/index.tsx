@@ -15,10 +15,10 @@ import { Audio } from "./audio";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
+import { RecordingRetentionSelector } from "./recording-retention";
 import { SpokenLanguagesView } from "./spoken-languages";
 import { StorageSettingsView } from "./storage";
 import { TimezoneSelector } from "./timezone";
-import { RecordingRetentionSelector } from "./recording-retention";
 import { WeekStartSelector } from "./week-start";
 
 function useSettingsForm() {

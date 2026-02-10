@@ -37,9 +37,7 @@ export function RecordingRetentionSelector() {
   return (
     <div className="flex flex-row items-center justify-between">
       <div>
-        <h3 className="text-sm font-medium mb-1">
-          Auto-delete recordings
-        </h3>
+        <h3 className="text-sm font-medium mb-1">Auto-delete recordings</h3>
         <p className="text-xs text-neutral-600">
           Automatically remove old audio recordings to free up disk space
         </p>

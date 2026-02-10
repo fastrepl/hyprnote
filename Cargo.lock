@@ -19000,6 +19000,8 @@ dependencies = [
 name = "tauri-plugin-tantivy"
 version = "0.1.0"
 dependencies = [
+ "chrono",
+ "db-user",
  "language",
  "serde",
  "serde_json",
@@ -19008,6 +19010,7 @@ dependencies = [
  "tantivy",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-db2",
  "tauri-plugin-notify",
  "tauri-plugin-settings",
  "tauri-specta",

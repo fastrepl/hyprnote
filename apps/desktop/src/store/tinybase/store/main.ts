@@ -205,6 +205,16 @@ export const StoreComponent = () => {
             where("user_id", (param("user_id") as string) ?? "");
           },
           { user_id: "" },
+        )
+        .setQueryDefinition(
+          QUERIES.visibleVocabs,
+          "memories",
+          ({ select, where }) => {
+            select("text");
+            select("type");
+            select("created_at");
+            where("type", "vocab");
+          },
         ),
     [],
   )!;
@@ -355,6 +365,7 @@ export const QUERIES = {
   visibleHumans: "visibleHumans",
   visibleTemplates: "visibleTemplates",
   visibleChatShortcuts: "visibleChatShortcuts",
+  visibleVocabs: "visibleVocabs",
   sessionParticipantsWithDetails: "sessionParticipantsWithDetails",
   sessionRecordingTimes: "sessionRecordingTimes",
   enabledAppleCalendars: "enabledAppleCalendars",
@@ -453,6 +464,11 @@ interface _QueryResultRows {
     description: string;
     sections: string;
     user_id: string;
+  };
+  visibleVocabs: {
+    text: string;
+    type: string;
+    created_at: string;
   };
 }
 

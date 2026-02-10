@@ -1,6 +1,7 @@
 mod commands;
 mod error;
 mod ext;
+mod indexer;
 mod query;
 mod schema;
 mod tokenizer;
@@ -174,7 +175,10 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
                 if let Err(e) = handle.tantivy().register_collection(config).await {
                     tracing::error!("Failed to register default collection: {}", e);
+                    return;
                 }
+
+                indexer::populate_index(&handle).await;
             });
 
             Ok(())

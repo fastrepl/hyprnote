@@ -143,15 +143,13 @@ fn parse_sse_stream(
             }
         }
 
-        if !buffer.is_empty() {
-            if let Ok(line) = std::str::from_utf8(&buffer) {
-                if let Some(result) = process_line(line) {
+        if !buffer.is_empty()
+            && let Ok(line) = std::str::from_utf8(&buffer)
+                && let Some(result) = process_line(line) {
                     match result {
                         Ok(chunk) => yield Ok(chunk),
                         Err(e) => yield Err(e),
                     }
                 }
-            }
-        }
     }
 }

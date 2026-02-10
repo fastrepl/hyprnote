@@ -50,7 +50,7 @@ pub(crate) async fn read_github_data(
     params: ReadGitHubDataParams,
 ) -> Result<CallToolResult, McpError> {
     let table_name = params.table.as_str();
-    let limit = params.limit.unwrap_or(50).max(0).min(500);
+    let limit = params.limit.unwrap_or(50).clamp(0, 500);
     let offset = params.offset.unwrap_or(0).max(0);
 
     if params.state.is_some() {

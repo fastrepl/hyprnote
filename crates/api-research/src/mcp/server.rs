@@ -10,7 +10,7 @@ use super::prompts;
 use super::tools;
 
 #[derive(Clone)]
-pub(crate) struct ResearchMcpServer {
+pub struct ResearchMcpServer {
     state: AppState,
     tool_router: ToolRouter<Self>,
 }

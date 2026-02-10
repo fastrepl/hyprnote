@@ -4,7 +4,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import {
   AlertTriangleIcon,
-  CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   ClipboardIcon,
@@ -1441,9 +1440,6 @@ function ContentPanel({
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
             onSave={handleSave}
             isSaving={isSaving}
-            onPublish={handlePublish}
-            onUnpublish={handleUnpublish}
-            isPublishing={isPublishing}
             isPublished={currentFileContent?.published}
             onSubmitForReview={handleSubmitForReview}
             isSubmittingForReview={isSubmittingForReview}
@@ -1497,9 +1493,6 @@ function EditorHeader({
   onTogglePreview,
   onSave,
   isSaving,
-  onPublish: _onPublish,
-  onUnpublish,
-  isPublishing,
   isPublished,
   onSubmitForReview,
   isSubmittingForReview,
@@ -1520,9 +1513,6 @@ function EditorHeader({
   onTogglePreview: () => void;
   onSave: () => void;
   isSaving: boolean;
-  onPublish: () => void;
-  onUnpublish: () => void;
-  isPublishing: boolean;
   isPublished?: boolean;
   onSubmitForReview?: () => void;
   isSubmittingForReview?: boolean;
@@ -1531,7 +1521,6 @@ function EditorHeader({
   hasUnsavedChanges?: boolean;
   autoSaveCountdown?: number | null;
 }) {
-  const [isHoveringPublish, setIsHoveringPublish] = useState(false);
   const [isEditingSlug, setIsEditingSlug] = useState(false);
   const [slugValue, setSlugValue] = useState("");
   const slugInputRef = useRef<HTMLInputElement>(null);
@@ -1598,11 +1587,22 @@ function EditorHeader({
                     className="text-neutral-700 font-medium bg-transparent outline-none"
                   />
                 ) : (
-                  <span
-                    onClick={handleSlugClick}
-                    className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
-                  >
-                    {crumb.replace(/\.mdx$/, "")}
+                  <span className="flex items-center gap-2">
+                    <span
+                      onClick={handleSlugClick}
+                      className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
+                    >
+                      {crumb.replace(/\.mdx$/, "")}
+                    </span>
+                    {isPublished ? (
+                      <span className="px-1.5 py-0.5 text-[10px] font-medium font-mono rounded bg-green-100 text-green-700">
+                        Published
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 text-[10px] font-medium font-mono rounded bg-neutral-100 text-neutral-500">
+                        Draft
+                      </span>
+                    )}
                   </span>
                 )
               ) : (
@@ -1686,44 +1686,6 @@ function EditorHeader({
                 )}
                 Submit for Review
               </button>
-            )}
-            {isPublished ? (
-              <button
-                type="button"
-                onClick={onUnpublish}
-                disabled={isPublishing}
-                onMouseEnter={() => setIsHoveringPublish(true)}
-                onMouseLeave={() => setIsHoveringPublish(false)}
-                className={cn([
-                  "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
-                  isHoveringPublish
-                    ? "text-white bg-red-600 hover:bg-red-700"
-                    : "text-white bg-green-600",
-                  "disabled:cursor-not-allowed",
-                ])}
-              >
-                {isPublishing ? (
-                  <>
-                    <Spinner size={14} color="white" />
-                    Unpublishing
-                  </>
-                ) : isHoveringPublish ? (
-                  <>
-                    <XIcon className="size-4" />
-                    Unpublish
-                  </>
-                ) : (
-                  <>
-                    <CheckIcon className="size-4" />
-                    Published
-                  </>
-                )}
-              </button>
-            ) : (
-              <span className="px-2 py-1.5 text-xs font-medium font-mono rounded-xs bg-neutral-100 text-neutral-400 flex items-center gap-1.5">
-                <XIcon className="size-4" />
-                Not Published
-              </span>
             )}
           </div>
         )}

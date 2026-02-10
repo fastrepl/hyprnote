@@ -1,0 +1,63 @@
+---
+meta_title: "Hyprnote Weekly: Three Stable Releases, Calendar Redesign, and Backlink Mentions"
+display_title: "Hyprnote Weekly: February 8, 2026"
+meta_description: "This week we shipped v1.0.3, v1.0.4, and v1.0.5 stable with a redesigned calendar view, backlink mentions, hold-to-quit, undo delete, and an experimental in-meeting reminder notification."
+author: "John Jeong"
+published: true
+category: "Hyprnote Weekly"
+date: "2026-02-08"
+---
+
+Three stable releases in one week. That's the headline. We shipped v1.0.3, v1.0.4, and v1.0.5 in rapid succession, each packing meaningful improvements. Here's what changed and why it matters.
+
+## Calendar Redesign
+
+The calendar got a full overhaul this week. There's now a proper week view with event popovers and improved navigation controls, replacing the previous minimal layout. You can set your preferred week start day in settings, and if you travel or work across time zones, there's a new manual timezone override so meeting times in the sidebar show up correctly regardless of your system clock.
+
+We also fixed a longstanding annoyance where rescheduling a recurring calendar event would show both the old and new occurrences. Only the current one appears now. And if you've ever accidentally ignored a calendar event in the timeline, there's a new context menu option to unignore it directly from the sidebar.
+
+## Backlink Mentions
+
+Notes now support backlink mentions for other notes, people, and companies. Type `@` in the editor and you'll see a searchable list with type badges. This is the beginning of turning your notes into a connected knowledge graph rather than isolated documents.
+
+## Hold-to-Quit
+
+We replaced the old Cmd+Q behavior with a Chrome-inspired hold-to-quit overlay. Instead of immediately hiding the app or quitting, you now hold Cmd+Q to confirm. This prevents the accidental quit that interrupts an active recording session. Cmd+Shift+Q has been removed since it's no longer needed.
+
+## Undo Delete
+
+Accidentally deleted a note? You now have a 5-second window to bring it back. A dissolving animation shows the countdown, and you can hover to pause it and click "Restore" or just press Cmd+Z. It's a small safety net that makes a big difference.
+
+## New Keyboard Shortcuts
+
+This was a good week for keyboard-driven users. Cmd+Shift+N creates a new note and immediately starts listening, so you can jump into a meeting capture with a single shortcut. The Space bar now controls audio playback when reviewing transcripts. AI settings moved to Cmd+Shift+Comma, and the sidebar toggle button now shows its keyboard shortcut in a tooltip.
+
+## Experimental: In-Meeting Reminder
+
+There's a new opt-in notification in lab settings. If another app has been using your microphone for 3+ minutes while Hyprnote isn't listening, you'll get a gentle nudge. It's designed for those moments when you join a Zoom call and forget to start Hyprnote. This is experimental and still being refined.
+
+## Advanced Search
+
+We added a dedicated advanced search tab with full-text search across all your notes and transcripts. Search results highlight matching terms in context, making it easier to find that one thing someone said three meetings ago.
+
+## AI & Transcription Improvements
+
+Auto-enhance now correctly counts words across multiple transcript segments, fixing cases where short segments wouldn't trigger enhancement. We also added a fallback for local AI models that don't support tool calling (like Gemma via LM Studio), so enhancement works even with simpler models. If you hit LM Studio context length errors, there's now a helpful "Learn how to fix this" link pointing to step-by-step instructions.
+
+## Stability & Performance
+
+We fixed memory leaks from actor subscriptions and timer accumulation that weren't being cleaned up properly. High CPU usage caused by a MutationObserver watching the entire document tree was replaced with a targeted ResizeObserver. The auth system got a significant refactor to fix a token IO race condition that could cause "invalid Refresh Token: Already Used" errors. macOS notification glass borders now render correctly, and we fixed a crash when removing corrupted model files after checksum mismatch.
+
+## Website & Auth
+
+The website saw significant work this week. There's a new "Why Hyprnote" page, a redesigned auth page with Google, GitHub, and email sign-in buttons, and new password reset and update flows. We also added solution pages for meetings and engineering teams, refreshed the AI assistant product page, and updated the company handbook with new team structure and engineering guidelines.
+
+## Under the Hood
+
+On the backend, we're building out a new Rust API server with dedicated crates for calendar, subscription, and integration management. A new Google Calendar crate talks to Google's API through Nango proxy, laying groundwork for the cross-platform calendar integration on our roadmap. The Stripe webhook handling moved to its own dedicated service, and we added OpenAPI documentation across the API crates.
+
+## What's Next
+
+We're continuing to build out calendar integrations and the connected notes experience. The advanced search and backlink mentions shipped this week are early steps toward making Hyprnote a true second brain for your meetings. If you're on nightly, expect more refinements landing soon. If you're on stable, v1.0.5 is available now.
+
+Check out the full release notes on our [changelog](/changelog).

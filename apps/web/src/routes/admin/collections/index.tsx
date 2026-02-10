@@ -1671,7 +1671,7 @@ function EditorHeader({
             {onSubmitForReview && (
               <button
                 onClick={onSubmitForReview}
-                disabled={isSubmittingForReview || !hasUnsavedChanges}
+                disabled={isSubmittingForReview}
                 className={cn([
                   "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
                   "text-white bg-blue-600 hover:bg-blue-700",

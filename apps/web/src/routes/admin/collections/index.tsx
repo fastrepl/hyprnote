@@ -294,8 +294,23 @@ function CollectionsPage() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       setEditingItem(null);
+      if (data.branch && variables.type === "file") {
+        const slug = variables.name.replace(/\.mdx$/, "");
+        queryClient.setQueryData(
+          ["draftArticles"],
+          (old: DraftArticle[] = []) => [
+            ...old,
+            {
+              name: variables.name,
+              path: `${variables.folder}/${variables.name}`,
+              slug,
+              branch: data.branch,
+            },
+          ],
+        );
+      }
       queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
     },
   });

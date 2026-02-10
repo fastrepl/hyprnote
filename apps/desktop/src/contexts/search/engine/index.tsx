@@ -54,9 +54,9 @@ export function SearchEngineProvider({
       setIsIndexing(true);
 
       try {
-        indexSessions(store);
-        indexHumans(store);
-        indexOrganizations(store);
+        await indexSessions(store);
+        await indexHumans(store);
+        await indexOrganizations(store);
 
         const listener1 = store.addRowListener(
           "sessions",

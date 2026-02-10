@@ -1,4 +1,4 @@
-import { commands as tantivy } from "@hypr/plugin-tantivy";
+import { type SearchDocument, commands as tantivy } from "@hypr/plugin-tantivy";
 
 import { type Store as MainStore } from "../../../store/tinybase/store/main";
 import {
@@ -12,7 +12,7 @@ import {
   toTrimmedString,
 } from "./utils";
 
-export function indexSessions(store: MainStore): void {
+export async function indexSessions(store: MainStore): Promise<void> {
   const fields = [
     "user_id",
     "created_at",
@@ -23,27 +23,30 @@ export function indexSessions(store: MainStore): void {
     "transcript",
   ];
 
+  const documents: SearchDocument[] = [];
+
   store.forEachRow("sessions", (rowId: string, _forEachCell) => {
     const row = collectCells(store, "sessions", rowId, fields);
     row.enhanced_notes_content = collectEnhancedNotesContent(store, rowId);
     const title = toTrimmedString(row.title) || "Untitled";
 
-    void tantivy.updateDocument(
-      {
-        id: rowId,
-        doc_type: "session",
-        language: null,
-        title,
-        content: createSessionSearchableContent(row),
-        created_at: toEpochMs(row.created_at),
-        facets: [],
-      },
-      null,
-    );
+    documents.push({
+      id: rowId,
+      doc_type: "session",
+      language: null,
+      title,
+      content: createSessionSearchableContent(row),
+      created_at: toEpochMs(row.created_at),
+      facets: [],
+    });
   });
+
+  if (documents.length > 0) {
+    await tantivy.updateDocuments(documents, null);
+  }
 }
 
-export function indexHumans(store: MainStore): void {
+export async function indexHumans(store: MainStore): Promise<void> {
   const fields = [
     "name",
     "email",
@@ -54,43 +57,49 @@ export function indexHumans(store: MainStore): void {
     "memo",
   ];
 
+  const documents: SearchDocument[] = [];
+
   store.forEachRow("humans", (rowId: string, _forEachCell) => {
     const row = collectCells(store, "humans", rowId, fields);
     const title = toTrimmedString(row.name) || "Unknown";
 
-    void tantivy.updateDocument(
-      {
-        id: rowId,
-        doc_type: "human",
-        language: null,
-        title,
-        content: createHumanSearchableContent(row),
-        created_at: toEpochMs(row.created_at),
-        facets: [],
-      },
-      null,
-    );
+    documents.push({
+      id: rowId,
+      doc_type: "human",
+      language: null,
+      title,
+      content: createHumanSearchableContent(row),
+      created_at: toEpochMs(row.created_at),
+      facets: [],
+    });
   });
+
+  if (documents.length > 0) {
+    await tantivy.updateDocuments(documents, null);
+  }
 }
 
-export function indexOrganizations(store: MainStore): void {
+export async function indexOrganizations(store: MainStore): Promise<void> {
   const fields = ["name", "created_at"];
+
+  const documents: SearchDocument[] = [];
 
   store.forEachRow("organizations", (rowId: string, _forEachCell) => {
     const row = collectCells(store, "organizations", rowId, fields);
     const title = toTrimmedString(row.name) || "Unknown Organization";
 
-    void tantivy.updateDocument(
-      {
-        id: rowId,
-        doc_type: "organization",
-        language: null,
-        title,
-        content: "",
-        created_at: toEpochMs(row.created_at),
-        facets: [],
-      },
-      null,
-    );
+    documents.push({
+      id: rowId,
+      doc_type: "organization",
+      language: null,
+      title,
+      content: "",
+      created_at: toEpochMs(row.created_at),
+      facets: [],
+    });
   });
+
+  if (documents.length > 0) {
+    await tantivy.updateDocuments(documents, null);
+  }
 }

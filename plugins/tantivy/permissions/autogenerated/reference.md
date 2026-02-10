@@ -8,6 +8,7 @@ Default permissions for the plugin
 - `allow-reindex`
 - `allow-add-document`
 - `allow-update-document`
+- `allow-update-documents`
 - `allow-remove-document`
 
 ## Permission Table
@@ -145,6 +146,32 @@ Enables the update_document command without any pre-configured scope.
 <td>
 
 Denies the update_document command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`tantivy:allow-update-documents`
+
+</td>
+<td>
+
+Enables the update_documents command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`tantivy:deny-update-documents`
+
+</td>
+<td>
+
+Denies the update_documents command without any pre-configured scope.
 
 </td>
 </tr>

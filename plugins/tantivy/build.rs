@@ -3,6 +3,7 @@ const COMMANDS: &[&str] = &[
     "reindex",
     "add_document",
     "update_document",
+    "update_documents",
     "remove_document",
 ];
 

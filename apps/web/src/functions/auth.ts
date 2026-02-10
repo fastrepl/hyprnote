@@ -240,39 +240,39 @@ export const exchangeOtpToken = createServerFn({ method: "POST" })
     };
   });
 
-export async function createDesktopSession(
-  email: string,
-): Promise<{ access_token: string; refresh_token: string } | null> {
-  try {
-    const admin = getSupabaseAdminClient();
-    const { data: linkData, error: linkError } =
-      await admin.auth.admin.generateLink({
-        type: "magiclink",
-        email,
+export const createDesktopSession = createServerFn({ method: "POST" })
+  .inputValidator(z.object({ email: z.string().email() }))
+  .handler(async ({ data }) => {
+    try {
+      const admin = getSupabaseAdminClient();
+      const { data: linkData, error: linkError } =
+        await admin.auth.admin.generateLink({
+          type: "magiclink",
+          email: data.email,
+        });
+
+      if (linkError || !linkData.properties?.hashed_token) {
+        return null;
+      }
+
+      const supabase = getSupabaseDesktopFlowClient();
+      const { data: authData, error } = await supabase.auth.verifyOtp({
+        token_hash: linkData.properties.hashed_token,
+        type: "email",
       });
 
-    if (linkError || !linkData.properties?.hashed_token) {
+      if (error || !authData.session) {
+        return null;
+      }
+
+      return {
+        access_token: authData.session.access_token,
+        refresh_token: authData.session.refresh_token,
+      };
+    } catch {
       return null;
     }
-
-    const supabase = getSupabaseDesktopFlowClient();
-    const { data: authData, error } = await supabase.auth.verifyOtp({
-      token_hash: linkData.properties.hashed_token,
-      type: "email",
-    });
-
-    if (error || !authData.session) {
-      return null;
-    }
-
-    return {
-      access_token: authData.session.access_token,
-      refresh_token: authData.session.refresh_token,
-    };
-  } catch {
-    return null;
-  }
-}
+  });
 
 export const doPasswordResetRequest = createServerFn({ method: "POST" })
   .inputValidator(

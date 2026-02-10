@@ -40,7 +40,9 @@ export const Route = createFileRoute("/auth")({
       }
 
       if (search.flow === "desktop") {
-        const result = await createDesktopSession(user.email);
+        const result = await createDesktopSession({
+          data: { email: user.email },
+        });
 
         if (result) {
           throw redirect({

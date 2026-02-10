@@ -133,6 +133,8 @@ export const StoreComponent = () => {
           "organizations",
           ({ select }) => {
             select("name");
+            select("pinned");
+            select("pin_order");
           },
         )
         .setQueryDefinition(
@@ -419,6 +421,8 @@ interface _QueryResultRows {
   };
   visibleOrganizations: {
     name: string;
+    pinned: boolean;
+    pin_order: number;
   };
   visibleTemplates: {
     title: string;

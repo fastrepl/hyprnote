@@ -58,6 +58,8 @@ export const calendarSchema = z.object({
 export const organizationSchema = z.object({
   user_id: z.string(),
   name: z.string(),
+  pinned: z.preprocess((val) => val ?? false, z.boolean()),
+  pin_order: z.preprocess((val) => val ?? undefined, z.number().optional()),
 });
 
 export const sessionSchema = z.object({

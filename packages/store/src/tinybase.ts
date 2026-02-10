@@ -53,6 +53,8 @@ export const tableSchemaForTinybase = {
   organizations: {
     user_id: { type: "string" },
     name: { type: "string" },
+    pinned: { type: "boolean" },
+    pin_order: { type: "number" },
   } as const satisfies InferTinyBaseSchema<typeof organizationSchema>,
   calendars: {
     user_id: { type: "string" },

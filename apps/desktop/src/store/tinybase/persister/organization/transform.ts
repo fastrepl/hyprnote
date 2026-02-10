@@ -8,6 +8,7 @@ export function frontmatterToOrganization(
   return {
     user_id: String(frontmatter.user_id ?? ""),
     name: String(frontmatter.name ?? ""),
+    pinned: Boolean(frontmatter.pinned ?? false),
   };
 }
 
@@ -19,6 +20,7 @@ export function organizationToFrontmatter(org: OrganizationStorage): {
     frontmatter: {
       name: org.name ?? "",
       user_id: org.user_id ?? "",
+      pinned: org.pinned ?? false,
     },
     body: "",
   };

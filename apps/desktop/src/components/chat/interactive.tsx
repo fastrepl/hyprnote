@@ -20,7 +20,7 @@ export function InteractiveContainer({
       <Resizable
         defaultSize={{ width, height }}
         minWidth={280}
-        minHeight={height / 2}
+        minHeight={400}
         bounds="window"
         enable={{
           top: true,

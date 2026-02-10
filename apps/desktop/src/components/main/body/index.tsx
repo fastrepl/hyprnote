@@ -719,9 +719,10 @@ function useScrollState(
     if (!container) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
+    const hasOverflow = scrollWidth > clientWidth + 1;
     const newState = {
-      atStart: scrollLeft <= 1,
-      atEnd: scrollLeft + clientWidth >= scrollWidth - 1,
+      atStart: !hasOverflow || scrollLeft <= 1,
+      atEnd: !hasOverflow || scrollLeft + clientWidth >= scrollWidth - 1,
     };
     setScrollState((prev) => {
       if (prev.atStart === newState.atStart && prev.atEnd === newState.atEnd) {
@@ -741,6 +742,7 @@ function useScrollState(
     if (!container) return;
 
     updateScrollState();
+    requestAnimationFrame(updateScrollState);
     container.addEventListener("scroll", updateScrollState);
 
     return () => {

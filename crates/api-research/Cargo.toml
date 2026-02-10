@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 hypr-exa = { workspace = true }
+hypr-mcp = { workspace = true }
 
 axum = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
@@ -13,7 +14,7 @@ thiserror = { workspace = true }
 
 askama = { workspace = true }
 
-rmcp = { workspace = true, features = ["server", "transport-streamable-http-server"] }
+rmcp = { workspace = true, features = ["server"] }
 tokio-util = { workspace = true }
 
 [dev-dependencies]

@@ -56,8 +56,10 @@ private final class QuitInterceptor {
         return self.handleKeyDown(event)
       case .keyUp:
         self.handleKeyUp(event)
+        return event
       case .flagsChanged:
         self.handleFlagsChanged(event)
+        return event
       default:
         return event
       }

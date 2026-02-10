@@ -21,7 +21,7 @@ pub struct Env {
     #[serde(flatten)]
     pub nango: hypr_api_env::NangoEnv,
     #[serde(flatten)]
-    pub stripe: hypr_api_subscription::StripeEnv,
+    pub stripe: hypr_api_env::StripeEnv,
     #[serde(flatten)]
     pub github_app: hypr_api_support::GitHubAppEnv,
     #[serde(flatten)]

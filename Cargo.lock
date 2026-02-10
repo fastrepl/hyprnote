@@ -634,11 +634,14 @@ dependencies = [
  "api-auth",
  "api-env",
  "askama",
+ "async-stripe",
+ "async-stripe-billing",
  "axum 0.8.8",
  "jsonwebtoken",
  "mcp",
  "octocrab",
  "openrouter",
+ "reqwest 0.13.1",
  "rmcp",
  "sentry",
  "serde",
@@ -648,6 +651,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+ "urlencoding",
  "utoipa",
 ]
 
@@ -11121,7 +11125,9 @@ dependencies = [
 name = "mcp"
 version = "0.1.0"
 dependencies = [
+ "api-auth",
  "askama",
+ "axum 0.8.8",
  "rmcp",
 ]
 

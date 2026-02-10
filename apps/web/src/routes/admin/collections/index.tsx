@@ -1241,41 +1241,6 @@ function ContentPanel({
     },
   });
 
-  const { mutate: publishContent, isPending: isPublishing } = useMutation({
-    mutationFn: async (params: {
-      path: string;
-      content: string;
-      metadata: ArticleMetadata;
-      branch?: string;
-      action?: "publish" | "unpublish";
-    }) => {
-      if (!params.branch) {
-        throw new Error("Cannot publish: no branch specified");
-      }
-      const response = await fetch("/api/admin/content/publish", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          path: params.path,
-          content: params.content,
-          branch: params.branch,
-          metadata: params.metadata,
-          action: params.action || "publish",
-        }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to publish");
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.prUrl) {
-        window.open(data.prUrl, "_blank");
-      }
-    },
-  });
-
   const handleSave = useCallback(
     (options?: { isAutoSave?: boolean }) => {
       if (currentTab?.type === "file" && editorData) {
@@ -1291,29 +1256,7 @@ function ContentPanel({
     [currentTab, editorData, saveContent],
   );
 
-  const handlePublish = useCallback(() => {
-    if (currentTab?.type === "file" && editorData) {
-      publishContent({
-        path: currentTab.path,
-        content: editorData.content,
-        metadata: editorData.metadata,
-        branch: currentTab.branch,
-        action: "publish",
-      });
-    }
-  }, [currentTab, editorData, publishContent]);
 
-  const handleUnpublish = useCallback(() => {
-    if (currentTab?.type === "file" && editorData) {
-      publishContent({
-        path: currentTab.path,
-        content: editorData.content,
-        metadata: editorData.metadata,
-        branch: currentTab.branch,
-        action: "unpublish",
-      });
-    }
-  }, [currentTab, editorData, publishContent]);
 
   const currentFileContent = useMemo(
     () =>

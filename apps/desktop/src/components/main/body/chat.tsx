@@ -1,6 +1,8 @@
 import { Loader2, MessageCircle } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
+import { cn } from "@hypr/utils";
+
 import type { HyprUIMessage } from "../../../chat/types";
 import { useShell } from "../../../contexts/shell";
 import {
@@ -39,13 +41,16 @@ export const TabItemChat: TabItem<Extract<Tab, { type: "chat" }>> = ({
     main.STORE_ID,
   );
 
+  const isSupport = tab.state.chatType === "support";
+
   return (
     <TabItemBase
       icon={<MessageCircle className="w-4 h-4" />}
-      title={chatTitle || "Chat"}
+      title={isSupport ? "Chat (Support)" : chatTitle || "Chat"}
       selected={tab.active}
       pinned={tab.pinned}
       tabIndex={tabIndex}
+      accent={isSupport ? "blue" : "neutral"}
       handleCloseThis={() => {
         chat.sendEvent({ type: "CLOSE" });
         handleCloseThis(tab);
@@ -105,7 +110,7 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
   });
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={cn(["flex flex-col h-full", isSupport && "bg-sky-50/30"])}>
       <ChatSession
         key={stableSessionId}
         sessionId={stableSessionId}

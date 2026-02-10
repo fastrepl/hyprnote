@@ -1256,8 +1256,6 @@ function ContentPanel({
     [currentTab, editorData, saveContent],
   );
 
-
-
   const currentFileContent = useMemo(
     () =>
       currentTab?.type === "file" ? getFileContent(currentTab.path) : undefined,

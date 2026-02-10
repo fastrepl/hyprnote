@@ -12,13 +12,13 @@ export const Route = createFileRoute("/_view/oss-friends")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "OSS Friends - Hyprnote" },
+      { title: "OSS Friends - Char" },
       {
         name: "description",
         content:
-          "Discover amazing open source projects and tools built by our friends in the community. Hyprnote is proud to be part of the open source ecosystem.",
+          "Discover amazing open source projects and tools built by our friends in the community. Char is proud to be part of the open source ecosystem.",
       },
-      { property: "og:title", content: "OSS Friends - Hyprnote" },
+      { property: "og:title", content: "OSS Friends - Char" },
       {
         property: "og:description",
         content:
@@ -27,10 +27,10 @@ export const Route = createFileRoute("/_view/oss-friends")({
       { property: "og:type", content: "website" },
       {
         property: "og:url",
-        content: "https://hyprnote.com/oss-friends",
+        content: "https://char.com/oss-friends",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "OSS Friends - Hyprnote" },
+      { name: "twitter:title", content: "OSS Friends - Char" },
       {
         name: "twitter:description",
         content:

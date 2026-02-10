@@ -50,20 +50,20 @@ export const Route = createFileRoute("/_view/blog/$slug")({
     }
 
     const { article } = loaderData;
-    const url = `https://hyprnote.com/blog/${article.slug}`;
+    const url = `https://char.com/blog/${article.slug}`;
 
     const ogImage =
       article.coverImage ||
-      `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
+      `https://char.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
 
     return {
       meta: [
-        { title: `${article.title} - Hyprnote Blog` },
+        { title: `${article.title} - Char Blog` },
         { name: "description", content: article.meta_description },
         { tag: "link", attrs: { rel: "canonical", href: url } },
         {
           property: "og:title",
-          content: `${article.title} - Hyprnote Blog`,
+          content: `${article.title} - Char Blog`,
         },
         {
           property: "og:description",
@@ -75,7 +75,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
         { name: "twitter:card", content: "summary_large_image" },
         {
           name: "twitter:title",
-          content: `${article.title} - Hyprnote Blog`,
+          content: `${article.title} - Char Blog`,
         },
         {
           name: "twitter:description",
@@ -214,14 +214,14 @@ function CTASection() {
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <Image
             src="/api/images/hyprnote/icon.png"
-            alt="Hyprnote"
+            alt="Char"
             width={144}
             height={144}
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>
         <h2 className="text-2xl sm:text-3xl font-serif">
-          Try Hyprnote for yourself
+          Try Char for yourself
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
           The AI notepad for people in back-to-back meetings. Local-first,
@@ -312,7 +312,7 @@ function MobileCTA() {
 function RelatedArticleCard({ article }: { article: any }) {
   const ogImage =
     article.coverImage ||
-    `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
+    `https://char.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
 
   return (
     <Link

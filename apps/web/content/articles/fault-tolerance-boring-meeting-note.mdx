@@ -1,6 +1,6 @@
 ---
 meta_title: "This \"boring-meeting-note\" app is... Fault Tolerant?"
-meta_description: "Fault tolerance in Hyprnote, a open-source desktop app for meeting notes."
+meta_description: "Fault tolerance in Char, a open-source desktop app for meeting notes."
 author: "Yujong Lee"
 published: false
 date: "2025-11-30"
@@ -8,7 +8,7 @@ date: "2025-11-30"
 
 ## TL;DR
 
-- [Hyprnote](https://github.com/fastrepl/hyprnote) is open-source desktop app for meeting notes.
+- [Char](https://github.com/fastrepl/hyprnote) is open-source desktop app for meeting notes.
 - It consists of multiple components, including audio pipeline and websocket server/client.
 - We ended up using [Ractor](https://github.com/slawlor/ractor) for Erlang / OTP-style fault tolerance.
 - Most of the code mentioned in this article is located in [plugins/listener/src](https://github.com/fastrepl/hyprnote/tree/main/plugins/listener/src).
@@ -34,7 +34,7 @@ https://chatgpt.com/c/69267f03-dd24-8322-a906-95f22feb5158
 Some might say why Erlang/Elixir is meaningful since we have K8S?
 The answe is that they work in different layers.
 
-In Hyprnote, this is desktop app. No k8s here.
+In Char, this is desktop app. No k8s here.
 
 ## The Design
 

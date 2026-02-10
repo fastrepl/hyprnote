@@ -1,14 +1,14 @@
 # Admin Interface
 
-The admin interface at `/admin` provides content management capabilities for the Hyprnote website.
+The admin interface at `/admin` provides content management capabilities for the Char website.
 
 ## Authentication
 
 Access is restricted to whitelisted email addresses. The whitelist is defined in `src/functions/admin.ts`:
 
-- yujonglee@hyprnote.com
-- john@hyprnote.com
-- harshika@hyprnote.com
+- yujonglee@char.com
+- john@char.com
+- harshika@char.com
 
 Users must be authenticated via Supabase to access admin routes.
 

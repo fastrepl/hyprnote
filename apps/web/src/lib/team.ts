@@ -2,7 +2,7 @@ export const TEAM_MEMBERS = {
   john: {
     id: "john",
     name: "John Jeong",
-    email: "john@hyprnote.com",
+    email: "john@char.com",
     avatar: "/api/images/team/john.png",
     role: "Chief Wisdom Seeker",
     bio: "I love designing simple and intuitive user interfaces.",
@@ -15,7 +15,7 @@ export const TEAM_MEMBERS = {
   yujong: {
     id: "yujong",
     name: "Yujong Lee",
-    email: "yujonglee@hyprnote.com",
+    email: "yujonglee@char.com",
     avatar: "/api/images/team/yujong.png",
     role: "Chief OSS Lover",
     bio: "I am super bullish about open-source software.",
@@ -56,17 +56,17 @@ export function getAuthorAvatar(author: string, absolute = false): string {
   const avatar = AUTHOR_AVATARS[author];
   if (!avatar) {
     return absolute
-      ? "https://hyprnote.com/api/images/icons/stable-icon.png"
+      ? "https://char.com/api/images/icons/stable-icon.png"
       : "/api/images/icons/stable-icon.png";
   }
-  return absolute ? `https://hyprnote.com${avatar}` : avatar;
+  return absolute ? `https://char.com${avatar}` : avatar;
 }
 
 export const ADMIN_EMAILS = [
-  "yujonglee@hyprnote.com",
+  "yujonglee@char.com",
   "yujonglee.dev@gmail.com",
-  "john@hyprnote.com",
-  "marketing@hyprnote.com",
+  "john@char.com",
+  "marketing@char.com",
   "harshika.alagh@gmail.com",
   "yunhyungjo@yonsei.ac.kr",
 ];

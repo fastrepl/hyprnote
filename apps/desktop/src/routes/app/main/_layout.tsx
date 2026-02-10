@@ -136,7 +136,7 @@ function Component() {
 function ToolRegistration() {
   const { search } = useSearchEngine();
 
-  useRegisterTools("chat", () => buildChatTools({ search }), [search]);
+  useRegisterTools("chat-general", () => buildChatTools({ search }), [search]);
 
   return null;
 }

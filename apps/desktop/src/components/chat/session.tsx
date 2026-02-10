@@ -25,6 +25,7 @@ import {
 interface ChatSessionProps {
   sessionId: string;
   chatGroupId?: string;
+  chatType?: "general" | "support";
   attachedSessionId?: string;
   modelOverride?: LanguageModel;
   extraTools?: Record<string, any>;
@@ -42,6 +43,7 @@ interface ChatSessionProps {
 export function ChatSession({
   sessionId,
   chatGroupId,
+  chatType = "general",
   attachedSessionId,
   modelOverride,
   extraTools,
@@ -49,6 +51,7 @@ export function ChatSession({
   children,
 }: ChatSessionProps) {
   const transport = useTransport(
+    chatType,
     attachedSessionId,
     modelOverride,
     extraTools,
@@ -192,6 +195,7 @@ export function ChatSession({
 }
 
 function useTransport(
+  chatType: "general" | "support",
   attachedSessionId?: string,
   modelOverride?: LanguageModel,
   extraTools?: Record<string, any>,
@@ -329,10 +333,11 @@ function useTransport(
     return new CustomChatTransport(
       registry,
       model,
+      chatType,
       effectiveSystemPrompt,
       extraTools,
     );
-  }, [registry, model, effectiveSystemPrompt, extraTools]);
+  }, [registry, model, chatType, effectiveSystemPrompt, extraTools]);
 
   return transport;
 }

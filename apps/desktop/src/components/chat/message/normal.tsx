@@ -2,7 +2,6 @@ import { BrainIcon, CheckIcon, CopyIcon, RotateCcwIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Streamdown } from "streamdown";
 
-import type { ToolPartType } from "../../../chat/tools";
 import type { HyprUIMessage } from "../../../chat/types";
 import { hasRenderableContent } from "../shared";
 import { Disclosure, MessageBubble, MessageContainer } from "./shared";
@@ -87,12 +86,7 @@ function Part({ part }: { part: Part }) {
     return null;
   }
 
-  if (part.type.startsWith("tool-")) {
-    const toolPart = part as Extract<Part, { type: ToolPartType }>;
-    return <Tool part={toolPart} />;
-  }
-
-  return <pre>{JSON.stringify(part, null, 2)}</pre>;
+  return <Tool part={part as unknown as Record<string, unknown>} />;
 }
 
 function Reasoning({ part }: { part: Extract<Part, { type: "reasoning" }> }) {
@@ -153,6 +147,7 @@ function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
       className="px-0.5 py-1"
       caret="block"
       isAnimating={isAnimating}
+      linkSafety={{ enabled: false }}
     >
       {part.text}
     </Streamdown>

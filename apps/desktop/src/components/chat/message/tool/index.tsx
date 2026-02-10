@@ -1,14 +1,14 @@
-import type { ToolPartType } from "../../../../chat/tools";
 import type { Part } from "../types";
+import { ToolGeneric } from "./generic";
 import { ToolSearchSessions } from "./search";
 
-export function Tool({
-  part,
-}: {
-  part: Extract<Part, { type: ToolPartType }>;
-}) {
+export function Tool({ part }: { part: Record<string, unknown> }) {
   if (part.type === "tool-search_sessions") {
-    return <ToolSearchSessions part={part} />;
+    return (
+      <ToolSearchSessions
+        part={part as Extract<Part, { type: "tool-search_sessions" }>}
+      />
+    );
   }
-  return <pre>{JSON.stringify(part)}</pre>;
+  return <ToolGeneric part={part} />;
 }

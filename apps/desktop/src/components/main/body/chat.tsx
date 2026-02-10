@@ -1,15 +1,19 @@
-import { Loader2, MessageCircle } from "lucide-react";
+import { Check, Loader2, MessageCircle } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
 import { cn } from "@hypr/utils";
 
+import { useAuth } from "../../../auth";
 import type { HyprUIMessage } from "../../../chat/types";
 import { useShell } from "../../../contexts/shell";
 import {
   useFeedbackLanguageModel,
   useLanguageModel,
 } from "../../../hooks/useLLMConnection";
-import { useSupportMCP } from "../../../hooks/useSupportMCPTools";
+import {
+  type ContextItem,
+  useSupportMCP,
+} from "../../../hooks/useSupportMCPTools";
 import * as main from "../../../store/tinybase/store/main";
 import type { Tab } from "../../../store/zustand/tabs";
 import { useTabs } from "../../../store/zustand/tabs";
@@ -83,6 +87,7 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
   const groupId = tab.state.groupId ?? undefined;
   const isSupport = tab.state.chatType === "support";
   const updateChatTabState = useTabs((state) => state.updateChatTabState);
+  const { session } = useAuth();
 
   const stableSessionId = useStableSessionId(groupId);
   const userModel = useLanguageModel();
@@ -90,9 +95,16 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
   const model = isSupport ? feedbackModel : userModel;
   const {
     tools: mcpTools,
-    systemPrompt: mcpSystemPrompt,
-    isReady: mcpReady,
-  } = useSupportMCP(isSupport);
+    systemPrompt,
+    contextItems,
+    pendingElicitation,
+    respondToElicitation,
+    isReady,
+  } = useSupportMCP(isSupport, session?.access_token);
+
+  const mcpToolCount = Object.keys(mcpTools).length;
+  const supportContextItems = isSupport ? contextItems : undefined;
+  const supportSystemPrompt = isSupport ? systemPrompt : undefined;
 
   const onGroupCreated = useCallback(
     (newGroupId: string) =>
@@ -110,14 +122,15 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
   });
 
   return (
-    <div className={cn(["flex flex-col h-full", isSupport && "bg-sky-50/30"])}>
+    <div className={cn(["flex flex-col h-full", isSupport && "bg-sky-50/40"])}>
       <ChatSession
-        key={stableSessionId}
+        key={`${stableSessionId}-${mcpToolCount}`}
         sessionId={stableSessionId}
         chatGroupId={groupId}
+        chatType={isSupport ? "support" : "general"}
         modelOverride={isSupport ? feedbackModel : undefined}
         extraTools={isSupport ? mcpTools : undefined}
-        systemPromptOverride={isSupport ? mcpSystemPrompt : undefined}
+        systemPromptOverride={supportSystemPrompt}
       >
         {({ messages, sendMessage, regenerate, stop, status, error }) => (
           <ChatTabContent
@@ -131,7 +144,10 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
             model={model}
             handleSendMessage={handleSendMessage}
             updateChatTabState={updateChatTabState}
-            mcpReady={mcpReady}
+            mcpReady={isReady}
+            contextItems={supportContextItems}
+            pendingElicitation={pendingElicitation}
+            respondToElicitation={respondToElicitation}
           />
         )}
       </ChatSession>
@@ -151,6 +167,9 @@ function ChatTabContent({
   handleSendMessage,
   updateChatTabState,
   mcpReady,
+  contextItems,
+  pendingElicitation,
+  respondToElicitation,
 }: {
   tab: Extract<Tab, { type: "chat" }>;
   messages: HyprUIMessage[];
@@ -170,9 +189,13 @@ function ChatTabContent({
     state: Extract<Tab, { type: "chat" }>["state"],
   ) => void;
   mcpReady: boolean;
+  contextItems?: ContextItem[];
+  pendingElicitation?: { message: string } | null;
+  respondToElicitation?: (approved: boolean) => void;
 }) {
   const sentRef = useRef(false);
-  const waitingForMcp = !!tab.state.initialMessage && !mcpReady;
+  const isSupport = tab.state.chatType === "support";
+  const waitingForMcp = isSupport && !mcpReady;
 
   useEffect(() => {
     const initialMessage = tab.state.initialMessage;
@@ -217,6 +240,8 @@ function ChatTabContent({
     );
   }
 
+  const loadedItems = contextItems ?? [];
+
   return (
     <>
       <ChatBody
@@ -226,6 +251,40 @@ function ChatTabContent({
         onReload={regenerate}
         isModelConfigured={!!model}
       />
+      {pendingElicitation && respondToElicitation && (
+        <div className="flex items-center gap-2 px-3 py-2 border-t border-neutral-200 bg-amber-50/60 text-sm">
+          <span className="flex-1 text-neutral-700">
+            {pendingElicitation.message}
+          </span>
+          <button
+            className="px-2.5 py-1 text-xs rounded border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-600"
+            onClick={() => respondToElicitation(false)}
+          >
+            Decline
+          </button>
+          <button
+            className="px-2.5 py-1 text-xs rounded bg-neutral-800 hover:bg-neutral-700 text-white"
+            onClick={() => respondToElicitation(true)}
+            autoFocus
+          >
+            Approve
+          </button>
+        </div>
+      )}
+      {loadedItems.length > 0 && (
+        <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400">
+          <Check className="size-3" />
+          {loadedItems.map((c) => (
+            <span
+              key={c.label}
+              className="rounded bg-neutral-100 px-1.5 py-0.5"
+            >
+              {c.label}
+            </span>
+          ))}
+          <span>loaded</span>
+        </div>
+      )}
       <ChatMessageInput
         disabled={!model || status !== "ready"}
         onSendMessage={(content, parts) =>

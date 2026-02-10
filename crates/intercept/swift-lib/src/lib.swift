@@ -38,13 +38,6 @@ private final class QuitInterceptor {
     case holding
   }
 
-  private enum Event {
-    case cmdQPressed
-    case keyReleased
-    case dismissTimerFired
-    case quitTimerFired
-  }
-
   private var keyMonitor: Any?
   private var panel: NSPanel?
   private var state: State = .idle
@@ -63,12 +56,13 @@ private final class QuitInterceptor {
         return self.handleKeyDown(event)
       case .keyUp:
         self.handleKeyUp(event)
+        return event
       case .flagsChanged:
         self.handleFlagsChanged(event)
+        return event
       default:
-        break
+        return event
       }
-      return event
     }
   }
 
@@ -131,27 +125,16 @@ private final class QuitInterceptor {
     container.layer?.cornerRadius = QuitOverlay.cornerRadius
     container.layer?.masksToBounds = true
 
-    let font = QuitOverlay.font
+    let pressLabel = makeLabel(QuitOverlay.pressText, color: QuitOverlay.primaryTextColor)
+    let holdLabel = makeLabel(QuitOverlay.holdText, color: QuitOverlay.secondaryTextColor)
 
-    let pressLabel = NSTextField(labelWithString: QuitOverlay.pressText)
-    pressLabel.font = font
-    pressLabel.textColor = QuitOverlay.primaryTextColor
-    pressLabel.alignment = .left
-    pressLabel.sizeToFit()
-
-    let holdLabel = NSTextField(labelWithString: QuitOverlay.holdText)
-    holdLabel.font = font
-    holdLabel.textColor = QuitOverlay.secondaryTextColor
-    holdLabel.alignment = .left
-    holdLabel.sizeToFit()
-
-    let pressPrefixWidth = NSAttributedString(
-      string: "Press ", attributes: [.font: font]
-    ).size().width
-    let holdPrefixWidth = NSAttributedString(
-      string: "Hold ", attributes: [.font: font]
-    ).size().width
-    let prefixDelta = pressPrefixWidth - holdPrefixWidth
+    let prefixDelta =
+      NSAttributedString(
+        string: "Press ", attributes: [.font: QuitOverlay.font]
+      ).size().width
+      - NSAttributedString(
+        string: "Hold ", attributes: [.font: QuitOverlay.font]
+      ).size().width
 
     let spacing: CGFloat = 10
     let totalHeight = pressLabel.frame.height + spacing + holdLabel.frame.height
@@ -176,13 +159,18 @@ private final class QuitInterceptor {
     return container
   }
 
-  // MARK: - Show / Hide
-
-  func showOverlay() {
-    showPanel()
+  private func makeLabel(_ text: String, color: NSColor) -> NSTextField {
+    let label = NSTextField(labelWithString: text)
+    label.font = QuitOverlay.font
+    label.textColor = color
+    label.alignment = .left
+    label.sizeToFit()
+    return label
   }
 
-  private func showPanel() {
+  // MARK: - Panel Visibility
+
+  func showOverlay() {
     if panel == nil {
       panel = makePanel()
     }
@@ -212,66 +200,55 @@ private final class QuitInterceptor {
 
   // MARK: - State Machine
 
-  private func transition(_ event: Event) {
-    switch (state, event) {
-    case (.idle, .cmdQPressed):
+  private func onCmdQPressed() {
+    switch state {
+    case .idle:
       state = .awaiting
-      showPanel()
-      startDismissTimer()
+      showOverlay()
+      scheduleTimer(&dismissTimer, delay: QuitOverlay.overlayDuration) { [weak self] in
+        guard let self, self.state == .awaiting else { return }
+        self.state = .idle
+        self.hidePanel()
+      }
 
-    case (.awaiting, .cmdQPressed):
+    case .awaiting:
       state = .holding
-      cancelDismissTimer()
-      startQuitTimer()
+      cancelTimer(&dismissTimer)
+      scheduleTimer(&quitTimer, delay: QuitOverlay.holdDuration) { [weak self] in
+        self?.performQuit()
+      }
 
-    case (.awaiting, .keyReleased):
+    case .holding:
+      break
+    }
+  }
+
+  private func onKeyReleased() {
+    switch state {
+    case .idle, .awaiting:
       break
 
-    case (.awaiting, .dismissTimerFired):
+    case .holding:
       state = .idle
-      hidePanel()
-
-    case (.holding, .keyReleased):
-      state = .idle
-      cancelQuitTimer()
+      cancelTimer(&quitTimer)
       performClose()
-
-    case (.holding, .quitTimerFired):
-      performQuit()
-
-    default:
-      break
     }
   }
 
-  // MARK: - Timers
+  // MARK: - Timer Helpers
 
-  private func startDismissTimer() {
-    dismissTimer?.cancel()
-    let timer = DispatchWorkItem { [weak self] in
-      self?.transition(.dismissTimerFired)
-    }
-    dismissTimer = timer
-    DispatchQueue.main.asyncAfter(deadline: .now() + QuitOverlay.overlayDuration, execute: timer)
+  private func scheduleTimer(
+    _ timer: inout DispatchWorkItem?, delay: TimeInterval, action: @escaping () -> Void
+  ) {
+    timer?.cancel()
+    let workItem = DispatchWorkItem(block: action)
+    timer = workItem
+    DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
   }
 
-  private func cancelDismissTimer() {
-    dismissTimer?.cancel()
-    dismissTimer = nil
-  }
-
-  private func startQuitTimer() {
-    quitTimer?.cancel()
-    let timer = DispatchWorkItem { [weak self] in
-      self?.transition(.quitTimerFired)
-    }
-    quitTimer = timer
-    DispatchQueue.main.asyncAfter(deadline: .now() + QuitOverlay.holdDuration, execute: timer)
-  }
-
-  private func cancelQuitTimer() {
-    quitTimer?.cancel()
-    quitTimer = nil
+  private func cancelTimer(_ timer: inout DispatchWorkItem?) {
+    timer?.cancel()
+    timer = nil
   }
 
   // MARK: - Event Handlers
@@ -280,19 +257,28 @@ private final class QuitInterceptor {
     let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
     let isQ = event.charactersIgnoringModifiers?.lowercased() == "q"
     guard flags.contains(.command), isQ else { return event }
+
+    if flags.contains(.shift) {
+      performQuit()
+      return nil
+    }
+
     if event.isARepeat { return nil }
-    transition(.cmdQPressed)
+    onCmdQPressed()
     return nil
   }
 
   private func handleKeyUp(_ event: NSEvent) {
-    let isQ = event.charactersIgnoringModifiers?.lowercased() == "q"
-    if isQ { transition(.keyReleased) }
+    if event.charactersIgnoringModifiers?.lowercased() == "q" {
+      onKeyReleased()
+    }
   }
 
   private func handleFlagsChanged(_ event: NSEvent) {
     let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-    if !flags.contains(.command) { transition(.keyReleased) }
+    if !flags.contains(.command) {
+      onKeyReleased()
+    }
   }
 }
 

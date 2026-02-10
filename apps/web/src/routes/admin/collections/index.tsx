@@ -4,7 +4,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import {
   AlertTriangleIcon,
-  CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   ClipboardIcon,
@@ -1242,41 +1241,6 @@ function ContentPanel({
     },
   });
 
-  const { mutate: publishContent, isPending: isPublishing } = useMutation({
-    mutationFn: async (params: {
-      path: string;
-      content: string;
-      metadata: ArticleMetadata;
-      branch?: string;
-      action?: "publish" | "unpublish";
-    }) => {
-      if (!params.branch) {
-        throw new Error("Cannot publish: no branch specified");
-      }
-      const response = await fetch("/api/admin/content/publish", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          path: params.path,
-          content: params.content,
-          branch: params.branch,
-          metadata: params.metadata,
-          action: params.action || "publish",
-        }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to publish");
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.prUrl) {
-        window.open(data.prUrl, "_blank");
-      }
-    },
-  });
-
   const handleSave = useCallback(
     (options?: { isAutoSave?: boolean }) => {
       if (currentTab?.type === "file" && editorData) {
@@ -1291,30 +1255,6 @@ function ContentPanel({
     },
     [currentTab, editorData, saveContent],
   );
-
-  const handlePublish = useCallback(() => {
-    if (currentTab?.type === "file" && editorData) {
-      publishContent({
-        path: currentTab.path,
-        content: editorData.content,
-        metadata: editorData.metadata,
-        branch: currentTab.branch,
-        action: "publish",
-      });
-    }
-  }, [currentTab, editorData, publishContent]);
-
-  const handleUnpublish = useCallback(() => {
-    if (currentTab?.type === "file" && editorData) {
-      publishContent({
-        path: currentTab.path,
-        content: editorData.content,
-        metadata: editorData.metadata,
-        branch: currentTab.branch,
-        action: "unpublish",
-      });
-    }
-  }, [currentTab, editorData, publishContent]);
 
   const currentFileContent = useMemo(
     () =>
@@ -1441,9 +1381,6 @@ function ContentPanel({
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
             onSave={handleSave}
             isSaving={isSaving}
-            onPublish={handlePublish}
-            onUnpublish={handleUnpublish}
-            isPublishing={isPublishing}
             isPublished={currentFileContent?.published}
             onSubmitForReview={handleSubmitForReview}
             isSubmittingForReview={isSubmittingForReview}
@@ -1497,9 +1434,6 @@ function EditorHeader({
   onTogglePreview,
   onSave,
   isSaving,
-  onPublish: _onPublish,
-  onUnpublish,
-  isPublishing,
   isPublished,
   onSubmitForReview,
   isSubmittingForReview,
@@ -1520,9 +1454,6 @@ function EditorHeader({
   onTogglePreview: () => void;
   onSave: () => void;
   isSaving: boolean;
-  onPublish: () => void;
-  onUnpublish: () => void;
-  isPublishing: boolean;
   isPublished?: boolean;
   onSubmitForReview?: () => void;
   isSubmittingForReview?: boolean;
@@ -1531,7 +1462,6 @@ function EditorHeader({
   hasUnsavedChanges?: boolean;
   autoSaveCountdown?: number | null;
 }) {
-  const [isHoveringPublish, setIsHoveringPublish] = useState(false);
   const [isEditingSlug, setIsEditingSlug] = useState(false);
   const [slugValue, setSlugValue] = useState("");
   const slugInputRef = useRef<HTMLInputElement>(null);
@@ -1598,11 +1528,22 @@ function EditorHeader({
                     className="text-neutral-700 font-medium bg-transparent outline-none"
                   />
                 ) : (
-                  <span
-                    onClick={handleSlugClick}
-                    className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
-                  >
-                    {crumb.replace(/\.mdx$/, "")}
+                  <span className="flex items-center gap-2">
+                    <span
+                      onClick={handleSlugClick}
+                      className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
+                    >
+                      {crumb.replace(/\.mdx$/, "")}
+                    </span>
+                    {isPublished ? (
+                      <span className="px-1.5 py-0.5 text-[10px] font-medium font-mono rounded bg-green-100 text-green-700">
+                        Published
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 text-[10px] font-medium font-mono rounded bg-neutral-100 text-neutral-500">
+                        Draft
+                      </span>
+                    )}
                   </span>
                 )
               ) : (
@@ -1671,7 +1612,7 @@ function EditorHeader({
             {onSubmitForReview && (
               <button
                 onClick={onSubmitForReview}
-                disabled={isSubmittingForReview || !hasUnsavedChanges}
+                disabled={isSubmittingForReview}
                 className={cn([
                   "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
                   "text-white bg-blue-600 hover:bg-blue-700",
@@ -1686,44 +1627,6 @@ function EditorHeader({
                 )}
                 Submit for Review
               </button>
-            )}
-            {isPublished ? (
-              <button
-                type="button"
-                onClick={onUnpublish}
-                disabled={isPublishing}
-                onMouseEnter={() => setIsHoveringPublish(true)}
-                onMouseLeave={() => setIsHoveringPublish(false)}
-                className={cn([
-                  "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
-                  isHoveringPublish
-                    ? "text-white bg-red-600 hover:bg-red-700"
-                    : "text-white bg-green-600",
-                  "disabled:cursor-not-allowed",
-                ])}
-              >
-                {isPublishing ? (
-                  <>
-                    <Spinner size={14} color="white" />
-                    Unpublishing
-                  </>
-                ) : isHoveringPublish ? (
-                  <>
-                    <XIcon className="size-4" />
-                    Unpublish
-                  </>
-                ) : (
-                  <>
-                    <CheckIcon className="size-4" />
-                    Published
-                  </>
-                )}
-              </button>
-            ) : (
-              <span className="px-2 py-1.5 text-xs font-medium font-mono rounded-xs bg-neutral-100 text-neutral-400 flex items-center gap-1.5">
-                <XIcon className="size-4" />
-                Not Published
-              </span>
             )}
           </div>
         )}

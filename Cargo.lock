@@ -596,6 +596,7 @@ dependencies = [
  "askama",
  "axum 0.8.8",
  "exa",
+ "mcp",
  "rmcp",
  "serde",
  "serde_json",
@@ -635,6 +636,7 @@ dependencies = [
  "askama",
  "axum 0.8.8",
  "jsonwebtoken",
+ "mcp",
  "octocrab",
  "openrouter",
  "rmcp",
@@ -11113,6 +11115,14 @@ checksum = "8ea1f30cedd69f0a2954655f7188c6a834246d2bcf1e315e2ac40c4b24dc9519"
 dependencies = [
  "cfg-if",
  "rayon",
+]
+
+[[package]]
+name = "mcp"
+version = "0.1.0"
+dependencies = [
+ "askama",
+ "rmcp",
 ]
 
 [[package]]

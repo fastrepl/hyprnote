@@ -232,7 +232,10 @@ function handleEditorReplace(
   type Hit = { from: number; to: number };
   const hits: Hit[] = [];
 
-  for (const { text, pos } of textNodesWithPosition) {
+  for (const entry of textNodesWithPosition) {
+    if (!entry) continue;
+    const { text, pos } = entry;
+
     const searchText = detail.caseSensitive ? text : text.toLowerCase();
     let from = 0;
 

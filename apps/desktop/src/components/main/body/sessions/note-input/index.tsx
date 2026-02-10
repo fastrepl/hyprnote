@@ -44,6 +44,11 @@ type Store = NonNullable<ReturnType<typeof main.UI.useStore>>;
 type Indexes = ReturnType<typeof main.UI.useIndexes>;
 type Checkpoints = ReturnType<typeof main.UI.useCheckpoints>;
 
+function isWordBoundary(text: string, index: number): boolean {
+  if (index < 0 || index >= text.length) return true;
+  return !/\w/.test(text[index]);
+}
+
 function replaceInText(
   text: string,
   query: string,
@@ -63,10 +68,8 @@ function replaceInText(
     if (idx === -1) break;
 
     if (wholeWord) {
-      const beforeOk = idx === 0 || !/\w/.test(searchText[idx - 1]);
-      const afterOk =
-        idx + searchQuery.length >= searchText.length ||
-        !/\w/.test(searchText[idx + searchQuery.length]);
+      const beforeOk = isWordBoundary(searchText, idx - 1);
+      const afterOk = isWordBoundary(searchText, idx + searchQuery.length);
       if (!beforeOk || !afterOk) {
         from = idx + 1;
         continue;
@@ -182,10 +185,8 @@ function countOccurrences(
     const idx = text.indexOf(query, from);
     if (idx === -1) break;
     if (wholeWord) {
-      const beforeOk = idx === 0 || !/\w/.test(text[idx - 1]);
-      const afterOk =
-        idx + query.length >= text.length ||
-        !/\w/.test(text[idx + query.length]);
+      const beforeOk = isWordBoundary(text, idx - 1);
+      const afterOk = isWordBoundary(text, idx + query.length);
       if (beforeOk && afterOk) count++;
     } else {
       count++;
@@ -216,10 +217,8 @@ function handleEditorReplace(
     const idx = searchText.indexOf(searchQuery, from);
     if (idx === -1) break;
     if (detail.wholeWord) {
-      const beforeOk = idx === 0 || !/\w/.test(searchText[idx - 1]);
-      const afterOk =
-        idx + searchQuery.length >= searchText.length ||
-        !/\w/.test(searchText[idx + searchQuery.length]);
+      const beforeOk = isWordBoundary(searchText, idx - 1);
+      const afterOk = isWordBoundary(searchText, idx + searchQuery.length);
       if (!beforeOk || !afterOk) {
         from = idx + 1;
         continue;

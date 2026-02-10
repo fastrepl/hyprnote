@@ -97,7 +97,7 @@ const articles = defineCollection({
       .enum([
         "Case Study",
         "Products In-depth",
-        "Char Weekly",
+        "Hyprnote Weekly",
         "Productivity Hack",
         "Engineering",
       ])
@@ -124,7 +124,7 @@ const articles = defineCollection({
 
     const slug = document._meta.path.replace(/\.mdx$/, "");
 
-    const author = document.author || "Char Team";
+    const author = document.author || "Hyprnote Team";
     const title = document.display_title || document.meta_title;
 
     return {

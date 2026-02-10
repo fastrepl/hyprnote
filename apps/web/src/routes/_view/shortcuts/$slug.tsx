@@ -25,13 +25,13 @@ export const Route = createFileRoute("/_view/shortcuts/$slug")({
     }
 
     const { shortcut } = loaderData;
-    const url = `https://char.com/shortcuts/${shortcut.slug}`;
+    const url = `https://hyprnote.com/shortcuts/${shortcut.slug}`;
 
-    const ogImageUrl = `https://char.com/og?type=shortcuts&title=${encodeURIComponent(shortcut.title)}&category=${encodeURIComponent(shortcut.category)}${shortcut.description ? `&description=${encodeURIComponent(shortcut.description)}` : ""}&v=1`;
+    const ogImageUrl = `https://hyprnote.com/og?type=shortcuts&title=${encodeURIComponent(shortcut.title)}&category=${encodeURIComponent(shortcut.category)}${shortcut.description ? `&description=${encodeURIComponent(shortcut.description)}` : ""}&v=1`;
 
     return {
       meta: [
-        { title: `${shortcut.title} - AI Shortcut - Char` },
+        { title: `${shortcut.title} - AI Shortcut - Hyprnote` },
         { name: "description", content: shortcut.description },
         { name: "robots", content: "noindex, nofollow" },
         {
@@ -230,7 +230,7 @@ function RightSidebar({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
             Use this shortcut
           </h3>
           <p className="text-sm text-neutral-600 mb-6">
-            Download Char to use this shortcut and get AI-powered meeting
+            Download Hyprnote to use this shortcut and get AI-powered meeting
             insights.
           </p>
           <DownloadButton />

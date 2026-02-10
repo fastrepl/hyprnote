@@ -16,7 +16,7 @@ const config = defineConfig(() => ({
     tailwindcss(),
     tanstackStart({
       sitemap: {
-        host: "https://char.com",
+        host: "https://hyprnote.com",
       },
       prerender: {
         enabled: true,

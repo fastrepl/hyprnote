@@ -303,7 +303,7 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
             display: "flex",
           }}
         >
-          Char.
+          Hyprnote.
         </div>
         <div
           style={{
@@ -324,7 +324,7 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
             bottom: -69,
             position: "absolute",
           }}
-          src="https://char.com/api/images/icons/nightly-icon.png"
+          src="https://hyprnote.com/api/images/icons/nightly-icon.png"
         />
       </div>
     );
@@ -401,7 +401,7 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
           display: "flex",
         }}
       >
-        Char.
+        Hyprnote.
       </div>
       <div
         style={{
@@ -422,7 +422,7 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
           bottom: -69,
           position: "absolute",
         }}
-        src="https://char.com/api/images/icons/stable-icon.png"
+        src="https://hyprnote.com/api/images/icons/stable-icon.png"
       />
     </div>
   );
@@ -430,15 +430,15 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
 
 // Keep in sync with apps/web/src/lib/team.ts
 const AUTHOR_AVATARS: Record<string, string> = {
-  "John Jeong": "https://char.com/api/images/team/john.png",
-  "Yujong Lee": "https://char.com/api/images/team/yujong.png",
-  Harshika: "https://char.com/api/images/team/harshika.jpeg",
+  "John Jeong": "https://hyprnote.com/api/images/team/john.png",
+  "Yujong Lee": "https://hyprnote.com/api/images/team/yujong.png",
+  Harshika: "https://hyprnote.com/api/images/team/harshika.jpeg",
 };
 
 function getAuthorAvatar(author: string): string {
   return (
     AUTHOR_AVATARS[author] ||
-    "https://char.com/api/images/icons/stable-icon.png"
+    "https://hyprnote.com/api/images/icons/stable-icon.png"
   );
 }
 
@@ -514,7 +514,7 @@ function renderBlogTemplate(params: z.infer<typeof blogSchema>) {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <img
             style={{ width: 48, height: 48 }}
-            src="https://char.com/api/images/icons/stable-icon.png"
+            src="https://hyprnote.com/api/images/icons/stable-icon.png"
           />
           <div
             style={{
@@ -525,7 +525,7 @@ function renderBlogTemplate(params: z.infer<typeof blogSchema>) {
               wordWrap: "break-word",
             }}
           >
-            Char.
+            Hyprnote.
           </div>
         </div>
       </div>
@@ -568,7 +568,7 @@ function renderGenericTemplate({
       >
         <img
           style={{ width: 48, height: 48 }}
-          src="https://char.com/api/images/icons/stable-icon.png"
+          src="https://hyprnote.com/api/images/icons/stable-icon.png"
         />
         <div
           style={{
@@ -636,7 +636,7 @@ function renderGenericTemplate({
 
 function renderDocsTemplate(params: z.infer<typeof docsSchema>) {
   return renderGenericTemplate({
-    headerText: "Char / Docs",
+    headerText: "Hyprnote / Docs",
     category: params.section,
     title: params.title,
     description: params.description,
@@ -645,7 +645,7 @@ function renderDocsTemplate(params: z.infer<typeof docsSchema>) {
 
 function renderHandbookTemplate(params: z.infer<typeof handbookSchema>) {
   return renderGenericTemplate({
-    headerText: "Char / Company Handbook",
+    headerText: "Hyprnote / Company Handbook",
     category: params.section,
     title: params.title,
     description: params.description,
@@ -654,7 +654,7 @@ function renderHandbookTemplate(params: z.infer<typeof handbookSchema>) {
 
 function renderTemplatesTemplate(params: z.infer<typeof templatesSchema>) {
   return renderGenericTemplate({
-    headerText: "Char / Meeting Templates",
+    headerText: "Hyprnote / Meeting Templates",
     category: params.category,
     title: params.title,
     description: params.description,
@@ -663,7 +663,7 @@ function renderTemplatesTemplate(params: z.infer<typeof templatesSchema>) {
 
 function renderShortcutsTemplate(params: z.infer<typeof shortcutsSchema>) {
   return renderGenericTemplate({
-    headerText: "Char / Shortcuts",
+    headerText: "Hyprnote / Shortcuts",
     category: params.category,
     title: params.title,
     description: params.description,
@@ -672,7 +672,7 @@ function renderShortcutsTemplate(params: z.infer<typeof shortcutsSchema>) {
 
 function renderJobsTemplate(params: z.infer<typeof jobsSchema>) {
   const backgroundUrl = params.backgroundImage.startsWith("/")
-    ? `https://char.com${params.backgroundImage}`
+    ? `https://hyprnote.com${params.backgroundImage}`
     : params.backgroundImage;
 
   return (
@@ -723,7 +723,7 @@ function renderJobsTemplate(params: z.infer<typeof jobsSchema>) {
         >
           <img
             style={{ width: 48, height: 48 }}
-            src="https://char.com/api/images/icons/stable-icon.png"
+            src="https://hyprnote.com/api/images/icons/stable-icon.png"
           />
           <div
             style={{

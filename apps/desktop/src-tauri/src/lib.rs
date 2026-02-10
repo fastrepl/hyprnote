@@ -178,6 +178,15 @@ pub async fn main() {
             }
 
             {
+                use tauri_plugin_tray::HyprMenuItem;
+                app_handle.on_menu_event(|app, event| {
+                    if let Ok(item) = HyprMenuItem::try_from(event.id().clone()) {
+                        item.handle(app);
+                    }
+                });
+            }
+
+            {
                 use tauri_plugin_settings::SettingsPluginExt;
                 if let Ok(base) = app_handle.settings().global_base()
                     && let Err(e) = agents::write_agents_file(&base)
@@ -272,6 +281,11 @@ pub async fn main() {
             }
 
             api.prevent_exit();
+
+            for (_, window) in app.webview_windows() {
+                let _ = window.close();
+            }
+
             let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
         }
         tauri::RunEvent::Exit => {

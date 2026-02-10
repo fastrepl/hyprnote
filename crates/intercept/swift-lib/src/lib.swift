@@ -279,7 +279,8 @@ private final class QuitInterceptor {
   private func handleKeyDown(_ event: NSEvent) -> NSEvent? {
     let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
     let isQ = event.charactersIgnoringModifiers?.lowercased() == "q"
-    guard flags.contains(.command), isQ else { return event }
+    let isShift = flags.contains(.shift)
+    guard flags.contains(.command), !isShift, isQ else { return event }
     if event.isARepeat { return nil }
     transition(.cmdQPressed)
     return nil

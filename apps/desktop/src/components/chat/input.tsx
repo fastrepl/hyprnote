@@ -165,6 +165,7 @@ export function ChatMessageInput({
                 <SendIcon size={16} />
               </Button>
             )}
+        </div>
       </div>
       {hasContent && (
         <span className="absolute bottom-1.5 right-5 text-[8px] text-neutral-400">

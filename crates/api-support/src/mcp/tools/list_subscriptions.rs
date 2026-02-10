@@ -12,7 +12,7 @@ use crate::state::AppState;
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct ListSubscriptionsParams {
     #[schemars(
-        description = "Filter by status: active, canceled, ended, past_due, trialing, unpaid, or all"
+        description = "Filter by subscription status. Values: 'active', 'canceled', 'ended', 'past_due', 'trialing', 'unpaid', or 'all'. Omit to return only active subscriptions."
     )]
     pub status: Option<String>,
 }

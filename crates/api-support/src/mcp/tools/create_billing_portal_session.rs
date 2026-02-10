@@ -11,7 +11,9 @@ use crate::state::AppState;
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub(crate) struct CreateBillingPortalSessionParams {
-    #[schemars(description = "Optional URL to redirect the customer back to after portal session")]
+    #[schemars(
+        description = "URL to redirect the user back to after they finish in the billing portal. Can be omitted."
+    )]
     pub return_url: Option<String>,
 }
 

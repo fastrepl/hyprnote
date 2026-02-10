@@ -53,7 +53,7 @@ async fn require_confirmation(
 #[tool_router]
 impl SupportMcpServer {
     #[tool(
-        description = "Create a new GitHub issue.",
+        description = "Create a new GitHub issue for a bug report or feature request. Always search_issues first to avoid duplicates. Include reproduction steps for bugs and a clear rationale for feature requests.",
         annotations(
             read_only_hint = false,
             destructive_hint = true,
@@ -78,7 +78,7 @@ impl SupportMcpServer {
     }
 
     #[tool(
-        description = "Add a new comment to an existing GitHub issue.",
+        description = "Add a comment to an existing GitHub issue. Use this to append user-reported details, reproduction steps, or environment info to an already-tracked issue.",
         annotations(
             read_only_hint = false,
             destructive_hint = true,
@@ -103,7 +103,7 @@ impl SupportMcpServer {
     }
 
     #[tool(
-        description = "Search for GitHub issues by keywords, error messages, or other criteria.",
+        description = "Search GitHub issues by keywords or error messages. Use this before creating a new issue to check for duplicates. Try broad terms first, then narrow down.",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -118,7 +118,7 @@ impl SupportMcpServer {
     }
 
     #[tool(
-        description = "Create a Stripe billing portal session for the customer to manage subscription and payment methods.",
+        description = "Create a Stripe billing portal session URL. The user can visit this URL to manage their subscription, update payment methods, or cancel. Only use when the user explicitly wants to manage billing.",
         annotations(
             read_only_hint = false,
             destructive_hint = false,
@@ -138,7 +138,7 @@ impl SupportMcpServer {
     }
 
     #[tool(
-        description = "List the customer's Stripe subscriptions, optionally filtered by status.",
+        description = "List the user's Stripe subscriptions with plan details and status. Use this to answer billing questions like current plan, trial status, or cancellation state before suggesting further actions.",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -174,7 +174,7 @@ impl ServerHandler for SupportMcpServer {
                 website_url: None,
             },
             instructions: Some(
-                "Hyprnote support server. Provides tools for managing GitHub issues.".to_string(),
+                "Hyprnote support server. Provides tools for GitHub issue management (search, create, comment) and Stripe billing operations (list subscriptions, billing portal). Always search before creating issues to avoid duplicates.".to_string(),
             ),
         }
     }

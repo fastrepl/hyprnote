@@ -57,18 +57,26 @@ export function useSupportMCP(enabled: boolean, accessToken?: string | null) {
         miscCommands.getGitHash(),
       ]);
       const gitHash = gitHashResult.status === "ok" ? gitHashResult.data : null;
-      items.push({ label: "Device Info" });
+      items.push({ label: "Device" });
       lines.push(`- Platform: ${platform()}`);
       lines.push(`- OS Version: ${os}`);
       lines.push(`- App Version: ${appVersion}`);
       if (gitHash) lines.push(`- Build: ${gitHash}`);
     } catch {}
 
+    const locale = navigator.language || "en";
+    lines.push(`- Locale: ${locale}`);
+
     if (lines.length === 0) {
       return { items, block: null };
     }
 
-    return { items, block: `---\nUser context:\n${lines.join("\n")}` };
+    return {
+      items,
+      block:
+        "---\nThe following is automatically collected context about the current user and their environment. Use it when filing issues or diagnosing problems.\n\n" +
+        lines.join("\n"),
+    };
   };
 
   const respondToElicitation = useCallback((approved: boolean) => {

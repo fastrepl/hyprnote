@@ -9,7 +9,9 @@ export function frontmatterToOrganization(
     user_id: String(frontmatter.user_id ?? ""),
     name: String(frontmatter.name ?? ""),
     pinned: Boolean(frontmatter.pinned ?? false),
+    pin_order: frontmatter.pin_order != null ? Number(frontmatter.pin_order) : undefined,
   };
+
 }
 
 export function organizationToFrontmatter(org: OrganizationStorage): {

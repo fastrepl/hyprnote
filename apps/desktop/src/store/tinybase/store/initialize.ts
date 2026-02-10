@@ -51,11 +51,75 @@ function initializeStore(store: Store): void {
 
     migrateSessionEventIds(store);
     migrateIgnoredRecurringSeries(store);
-    migrateIgnoredEvents(store);
   });
 }
 
 function migrateSessionEventIds(store: Store): void {
+  if ((store as any).getTableCellIds("events").includes("ignored")) {
+    const recurrenceMap = new Map<string, boolean>();
+    const ignoredEvents: {
+      tracking_id: string;
+      day: string;
+      last_seen: string;
+    }[] = [];
+    const now = new Date().toISOString();
+
+    store.forEachRow("events", (rowId, _forEachCell) => {
+      const trackingId = store.getCell(
+        "events",
+        rowId,
+        "tracking_id_event",
+      ) as string;
+      const hasRecurrenceRules = !!store.getCell(
+        "events",
+        rowId,
+        "has_recurrence_rules",
+      );
+      recurrenceMap.set(trackingId, hasRecurrenceRules);
+
+      const ignored = (store as any).getCell("events", rowId, "ignored");
+      if (!ignored) return;
+
+      const startedAt = store.getCell("events", rowId, "started_at") as
+        | string
+        | undefined;
+      const day = startedAt ? startedAt.slice(0, 10) : "1970-01-01";
+      ignoredEvents.push({ tracking_id: trackingId, day, last_seen: now });
+    });
+
+    function getKey(trackingId: string, day: string): string {
+      return recurrenceMap.get(trackingId)
+        ? `${trackingId}:${day}`
+        : trackingId;
+    }
+
+    if (ignoredEvents.length > 0) {
+      const existing = store.getValue("ignored_events") as string | undefined;
+      let merged = ignoredEvents;
+      if (existing) {
+        try {
+          const parsed = JSON.parse(existing);
+          if (Array.isArray(parsed)) {
+            const existingKeys = new Set(
+              parsed.map((e: { tracking_id: string; day: string }) =>
+                getKey(e.tracking_id, e.day),
+              ),
+            );
+            const newEntries = ignoredEvents.filter(
+              (e) => !existingKeys.has(getKey(e.tracking_id, e.day)),
+            );
+            merged = [...parsed, ...newEntries];
+          }
+        } catch {}
+      }
+      store.setValue("ignored_events", JSON.stringify(merged));
+    }
+
+    store.forEachRow("events", (eventId, _forEachCell) => {
+      (store as any).delCell("events", eventId, "ignored");
+    });
+  }
+
   store.forEachRow("sessions", (sessionId, _forEachCell) => {
     const eventField = store.getCell("sessions", sessionId, "eventJson") as
       | string
@@ -106,26 +170,6 @@ function migrateSessionEventIds(store: Store): void {
       });
     }
   });
-}
-
-function migrateIgnoredEvents(store: Store): void {
-  const raw = store.getValue("ignored_events") as string | undefined;
-  if (!raw) return;
-
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed) || parsed.length === 0) return;
-
-    const needsMigration = parsed.some(
-      (e: { day?: string }) => typeof e.day !== "string",
-    );
-    if (needsMigration) {
-      const migrated = parsed.filter(
-        (e: { day?: string }) => typeof e.day === "string",
-      );
-      store.setValue("ignored_events", JSON.stringify(migrated));
-    }
-  } catch {}
 }
 
 function migrateIgnoredRecurringSeries(store: Store): void {

@@ -189,6 +189,93 @@ describe("timeline utils", () => {
     expect(monthAgo.sortKey).toBeLessThan(weeksAgo4.sortKey);
   });
 
+  test("buildTimelineBuckets deduplicates recurring events by composite key (tracking_id + day)", () => {
+    const timelineEventsTable: TimelineEventsTable = {
+      "event-jan18": {
+        title: "Weekly Standup",
+        started_at: "2024-01-18T09:00:00.000Z",
+        ended_at: "2024-01-18T09:30:00.000Z",
+        calendar_id: "cal-1",
+        tracking_id_event: "recurring-1",
+        has_recurrence_rules: true,
+        recurrence_series_id: "series-1",
+      },
+      "event-jan25": {
+        title: "Weekly Standup",
+        started_at: "2024-01-25T09:00:00.000Z",
+        ended_at: "2024-01-25T09:30:00.000Z",
+        calendar_id: "cal-1",
+        tracking_id_event: "recurring-1",
+        has_recurrence_rules: true,
+        recurrence_series_id: "series-1",
+      },
+    };
+
+    const timelineSessionsTable: TimelineSessionsTable = {
+      "session-jan18": {
+        title: "Weekly Standup",
+        created_at: "2024-01-18T09:00:00.000Z",
+        eventJson: JSON.stringify({
+          tracking_id: "recurring-1",
+          started_at: "2024-01-18T09:00:00.000Z",
+          has_recurrence_rules: true,
+        }),
+      },
+    };
+
+    const buckets = buildTimelineBuckets({
+      timelineEventsTable,
+      timelineSessionsTable,
+    });
+
+    const allItems = buckets.flatMap((b) => b.items);
+
+    const jan18Session = allItems.find(
+      (i) => i.type === "session" && i.id === "session-jan18",
+    );
+    expect(jan18Session).toBeDefined();
+
+    const jan18Event = allItems.find(
+      (i) => i.type === "event" && i.id === "event-jan18",
+    );
+    expect(jan18Event).toBeUndefined();
+
+    const jan25Event = allItems.find(
+      (i) => i.type === "event" && i.id === "event-jan25",
+    );
+    expect(jan25Event).toBeDefined();
+  });
+
+  test("buildTimelineBuckets does not deduplicate recurring events on different days", () => {
+    const timelineEventsTable: TimelineEventsTable = {
+      "event-jan18": {
+        title: "Weekly Standup",
+        started_at: "2024-01-18T09:00:00.000Z",
+        ended_at: "2024-01-18T09:30:00.000Z",
+        calendar_id: "cal-1",
+        tracking_id_event: "recurring-1",
+        has_recurrence_rules: true,
+      },
+      "event-jan25": {
+        title: "Weekly Standup",
+        started_at: "2024-01-25T09:00:00.000Z",
+        ended_at: "2024-01-25T09:30:00.000Z",
+        calendar_id: "cal-1",
+        tracking_id_event: "recurring-1",
+        has_recurrence_rules: true,
+      },
+    };
+
+    const buckets = buildTimelineBuckets({
+      timelineEventsTable,
+      timelineSessionsTable: null,
+    });
+
+    const allItems = buckets.flatMap((b) => b.items);
+    const eventItems = allItems.filter((i) => i.type === "event");
+    expect(eventItems).toHaveLength(2);
+  });
+
   test("buildTimelineBuckets: future buckets sort correctly (weeks before months)", () => {
     const timelineSessionsTable: TimelineSessionsTable = {
       "session-2weeks": {

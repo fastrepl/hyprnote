@@ -42,7 +42,9 @@ impl SupportMcpServer {
         tools::add_comment(&self.state, params).await
     }
 
-    #[tool(description = "Search for GitHub issues by keywords, error messages, or other criteria.")]
+    #[tool(
+        description = "Search for GitHub issues by keywords, error messages, or other criteria."
+    )]
     async fn search_issues(
         &self,
         Parameters(params): Parameters<SearchIssuesParams>,
@@ -68,8 +70,7 @@ impl ServerHandler for SupportMcpServer {
                 website_url: None,
             },
             instructions: Some(
-                "Hyprnote support server. Provides tools for managing GitHub issues."
-                    .to_string(),
+                "Hyprnote support server. Provides tools for managing GitHub issues.".to_string(),
             ),
         }
     }

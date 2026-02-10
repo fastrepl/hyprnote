@@ -61,7 +61,8 @@ export function useMCPClient(
         clearTimeout(timeout);
         setIsConnected(true);
       } catch (err) {
-        const connectError = err instanceof Error ? err : new Error(String(err));
+        const connectError =
+          err instanceof Error ? err : new Error(String(err));
         console.error("Failed to initialize MCP client:", connectError.message);
         if (!cancelled) {
           clearTimeout(timeout);

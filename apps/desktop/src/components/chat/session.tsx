@@ -7,6 +7,7 @@ import {
   commands as templateCommands,
   type Transcript,
 } from "@hypr/plugin-template";
+
 import type { ContextItem, ContextSource } from "../../chat/context-item";
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";

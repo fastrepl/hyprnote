@@ -142,9 +142,7 @@ function isSearchIssuesOutput(value: unknown): value is SearchIssuesOutput {
   );
 }
 
-function isSubscriptionList(
-  value: unknown,
-): value is SubscriptionItem[] {
+function isSubscriptionList(value: unknown): value is SubscriptionItem[] {
   return Array.isArray(value) && value.every(isSubscriptionItem);
 }
 

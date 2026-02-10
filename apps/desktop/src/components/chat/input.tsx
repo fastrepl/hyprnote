@@ -1,7 +1,4 @@
-import {
-  SendIcon,
-  SquareIcon,
-} from "lucide-react";
+import { SendIcon, SquareIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -30,7 +27,10 @@ export function ChatMessageInput({
   isStreaming,
   onStop,
 }: {
-  onSendMessage: (content: string, parts: Array<{ type: "text"; text: string }>) => void;
+  onSendMessage: (
+    content: string,
+    parts: Array<{ type: "text"; text: string }>,
+  ) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
   attachedSession?: { id: string; title?: string };
   isStreaming?: boolean;
@@ -145,26 +145,26 @@ export function ChatMessageInput({
         </div>
 
         <div className="flex items-center justify-end">
-            {isStreaming ? (
-              <Button
-                onClick={onStop}
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8"
-              >
-                <SquareIcon size={16} className="fill-current" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={disabled}
-                size="icon"
-                variant="ghost"
-                className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-              >
-                <SendIcon size={16} />
-              </Button>
-            )}
+          {isStreaming ? (
+            <Button
+              onClick={onStop}
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+            >
+              <SquareIcon size={16} className="fill-current" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={disabled}
+              size="icon"
+              variant="ghost"
+              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
+            >
+              <SendIcon size={16} />
+            </Button>
+          )}
         </div>
       </div>
       {hasContent && (

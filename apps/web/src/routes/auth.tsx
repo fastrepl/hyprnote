@@ -154,14 +154,14 @@ function Header() {
       >
         <Image
           src="/api/images/hyprnote/icon.png"
-          alt="Hyprnote"
+          alt="Char"
           width={96}
           height={96}
           className={cn(["size-24", "rounded-3xl border border-neutral-200"])}
         />
       </div>
       <h1 className="text-3xl font-serif text-stone-800 mb-2">
-        Welcome to Hyprnote
+        Welcome to Char
       </h1>
     </div>
   );
@@ -172,14 +172,14 @@ function LegalText() {
     <p className="text-xs text-neutral-500 mt-4 text-center">
       By signing up, you agree to our{" "}
       <a
-        href="https://hyprnote.com/legal/terms"
+        href="https://char.com/legal/terms"
         className="underline hover:text-neutral-700"
       >
         Terms of Service
       </a>{" "}
       and{" "}
       <a
-        href="https://hyprnote.com/legal/privacy"
+        href="https://char.com/legal/privacy"
         className="underline hover:text-neutral-700"
       >
         Privacy Policy

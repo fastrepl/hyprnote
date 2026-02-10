@@ -222,7 +222,7 @@ function LeftNav({
         to="/why-hyprnote/"
         className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
       >
-        Why Hyprnote
+        Why Char
       </Link>
       <ProductDropdown
         isProductOpen={isProductOpen}
@@ -307,7 +307,7 @@ function Logo() {
       to="/"
       className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
     >
-      <img src="/api/images/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
+      <img src="/api/images/hyprnote/logo.svg" alt="Char" className="h-6" />
     </Link>
   );
 }
@@ -634,7 +634,7 @@ function MobileMenuLinks({
         onClick={() => setIsMenuOpen(false)}
         className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
       >
-        Why Hyprnote
+        Why Char
       </Link>
       <MobileProductSection
         isProductOpen={isProductOpen}

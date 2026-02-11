@@ -64,6 +64,13 @@ impl SttFileImpl {
         ctx: &WorkflowContext<'_>,
         input: &SttFileInput,
     ) -> Result<SttFileOutput, HandlerError> {
+        if input.file_id.is_empty() {
+            return Err(TerminalError::new("file_id cannot be empty").into());
+        }
+        if input.user_id.is_empty() {
+            return Err(TerminalError::new("user_id cannot be empty").into());
+        }
+
         ctx.set("status", Json("QUEUED".to_string()));
         ctx.set("fileId", Json(input.file_id.clone()));
 
@@ -127,7 +134,16 @@ impl SttFileImpl {
 
         ctx.set("providerRequestId", Json(request_id));
 
-        let transcription_id: String = ctx.promise("transcription_id").await?;
+        let callback_timeout = ctx.sleep(Duration::from_secs(600));
+        let promise = ctx.promise::<String>("transcription_id");
+
+        let transcription_id: String = tokio::select! {
+            result = promise => result?,
+            result = callback_timeout => {
+                result?;
+                return Err(TerminalError::new("Timed out waiting for Soniox callback").into());
+            }
+        };
 
         let client = self.client.clone();
         let api_key = self.env.soniox_api_key.clone();
@@ -164,12 +180,17 @@ impl SttFile for SttFileImpl {
         input: Json<SttFileInput>,
     ) -> Result<Json<SttFileOutput>, HandlerError> {
         let input = input.into_inner();
+        tracing::info!(file_id = %input.file_id, user_id = %input.user_id, "stt workflow started");
+
         let file_id = input.file_id.clone();
         let result = self.run_inner(&ctx, &input).await;
 
         if let Err(ref e) = result {
+            tracing::error!(file_id = %file_id, error = ?e, "stt workflow failed");
             ctx.set("status", Json("ERROR".to_string()));
             ctx.set("error", Json(format!("{:?}", e)));
+        } else {
+            tracing::info!(file_id = %file_id, "stt workflow completed");
         }
 
         let env = self.env;

@@ -5,7 +5,6 @@ const SONIOX_API_HOST: &str = "https://api.soniox.com";
 #[derive(Debug)]
 pub struct SonioxError {
     pub message: String,
-    pub status_code: u16,
     pub is_retryable: bool,
 }
 
@@ -18,7 +17,7 @@ impl std::fmt::Display for SonioxError {
 impl std::error::Error for SonioxError {}
 
 fn is_retryable_status(status: u16) -> bool {
-    status == 429 || status >= 500
+    matches!(status, 429 | 500..)
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -64,7 +63,6 @@ pub async fn transcribe_with_callback(
         .await
         .map_err(|e| SonioxError {
             message: format!("Soniox request failed: {e}"),
-            status_code: 0,
             is_retryable: true,
         })?;
 
@@ -73,21 +71,18 @@ pub async fn transcribe_with_callback(
         let error_text = response.text().await.unwrap_or_default();
         return Err(SonioxError {
             message: format!("Soniox: {status} - {error_text}"),
-            status_code: status,
             is_retryable: is_retryable_status(status),
         });
     }
 
     let result: CreateTranscriptionResponse = response.json().await.map_err(|e| SonioxError {
         message: format!("Soniox: failed to parse response: {e}"),
-        status_code: 0,
         is_retryable: false,
     })?;
 
     if result.id.is_empty() {
         return Err(SonioxError {
             message: "Soniox: missing transcription id".to_string(),
-            status_code: 0,
             is_retryable: false,
         });
     }
@@ -109,7 +104,6 @@ pub async fn fetch_transcript(
         .await
         .map_err(|e| SonioxError {
             message: format!("Soniox fetch transcript failed: {e}"),
-            status_code: 0,
             is_retryable: true,
         })?;
 
@@ -118,14 +112,12 @@ pub async fn fetch_transcript(
         let error_text = response.text().await.unwrap_or_default();
         return Err(SonioxError {
             message: format!("Soniox fetch transcript: {status} - {error_text}"),
-            status_code: status,
             is_retryable: is_retryable_status(status),
         });
     }
 
     let result: SonioxTranscriptResponse = response.json().await.map_err(|e| SonioxError {
         message: format!("Soniox: failed to parse transcript response: {e}"),
-        status_code: 0,
         is_retryable: false,
     })?;
 

@@ -3,6 +3,8 @@ import {
   BookOpen,
   Building2,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
   FileText,
   History,
@@ -20,6 +22,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@hypr/utils";
 
 import { SearchTrigger } from "@/components/search";
+import { useBlogToc } from "@/hooks/use-blog-toc";
 import { useDocsDrawer } from "@/hooks/use-docs-drawer";
 import { useHandbookDrawer } from "@/hooks/use-handbook-drawer";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
@@ -88,8 +91,12 @@ export function Header() {
   const isDocsPage = router.location.pathname.startsWith("/docs");
   const isHandbookPage =
     router.location.pathname.startsWith("/company-handbook");
+  const isBlogArticlePage =
+    router.location.pathname.startsWith("/blog/") &&
+    router.location.pathname !== "/blog/";
   const docsDrawer = useDocsDrawer();
   const handbookDrawer = useHandbookDrawer();
+  const blogToc = useBlogToc();
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -161,6 +168,9 @@ export function Header() {
             <SearchTrigger variant="mobile" />
           </div>
         )}
+        {isBlogArticlePage && blogToc && blogToc.toc.length > 0 && (
+          <BlogTocSubBar blogToc={blogToc} maxWidthClass={maxWidthClass} />
+        )}
       </header>
 
       {/* Spacer to account for fixed header */}
@@ -168,7 +178,9 @@ export function Header() {
         className={
           isDocsPage || isHandbookPage
             ? "h-17.25 md:h-17.25 max-md:h-[calc(69px+52px)]"
-            : "h-17.25"
+            : isBlogArticlePage && blogToc && blogToc.toc.length > 0
+              ? "h-[calc(69px+44px)] sm:h-17.25"
+              : "h-17.25"
         }
       />
 
@@ -220,7 +232,7 @@ function LeftNav({
       <Logo />
       <Link
         to="/why-hyprnote/"
-        className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+        className="hidden md:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
       >
         Why Hyprnote
       </Link>
@@ -783,6 +795,71 @@ function MobileSolutionsList({
             {link.label}
           </Link>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function BlogTocSubBar({
+  blogToc,
+  maxWidthClass,
+}: {
+  blogToc: NonNullable<ReturnType<typeof useBlogToc>>;
+  maxWidthClass: string;
+}) {
+  const { toc, activeId, scrollToHeading } = blogToc;
+  const activeIndex = toc.findIndex((item) => item.id === activeId);
+  const activeItem = activeIndex >= 0 ? toc[activeIndex] : toc[0];
+
+  const goPrev = () => {
+    const prevIndex = Math.max(0, activeIndex - 1);
+    scrollToHeading(toc[prevIndex].id);
+  };
+
+  const goNext = () => {
+    const nextIndex = Math.min(toc.length - 1, activeIndex + 1);
+    scrollToHeading(toc[nextIndex].id);
+  };
+
+  return (
+    <div
+      className={`${maxWidthClass} mx-auto border-x border-neutral-100 border-t border-t-neutral-50 sm:hidden`}
+    >
+      <div className="flex items-center h-11 px-2">
+        <button
+          onClick={goPrev}
+          disabled={activeIndex <= 0}
+          className={cn([
+            "shrink-0 p-1.5 rounded-md transition-colors cursor-pointer",
+            activeIndex <= 0
+              ? "text-neutral-200"
+              : "text-neutral-500 hover:text-stone-700 hover:bg-stone-50",
+          ])}
+        >
+          <ChevronLeft size={14} />
+        </button>
+        <button
+          onClick={() => {
+            if (activeItem) scrollToHeading(activeItem.id);
+          }}
+          className="flex-1 min-w-0 px-2 cursor-pointer"
+        >
+          <p className="text-sm text-stone-700 font-medium truncate text-center">
+            {activeItem?.text}
+          </p>
+        </button>
+        <button
+          onClick={goNext}
+          disabled={activeIndex >= toc.length - 1}
+          className={cn([
+            "shrink-0 p-1.5 rounded-md transition-colors cursor-pointer",
+            activeIndex >= toc.length - 1
+              ? "text-neutral-200"
+              : "text-neutral-500 hover:text-stone-700 hover:bg-stone-50",
+          ])}
+        >
+          <ChevronRight size={14} />
+        </button>
       </div>
     </div>
   );

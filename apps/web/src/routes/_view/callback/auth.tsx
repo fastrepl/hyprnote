@@ -27,7 +27,9 @@ export const Route = createFileRoute("/_view/callback/auth")({
   }),
   beforeLoad: async ({ search }) => {
     if (search.flow === "web" && search.code) {
-      const result = await exchangeOAuthCode({ data: { code: search.code } });
+      const result = await exchangeOAuthCode({
+        data: { code: search.code, flow: "web" },
+      });
 
       if (result.success) {
         if (search.type === "recovery") {
@@ -40,7 +42,9 @@ export const Route = createFileRoute("/_view/callback/auth")({
     }
 
     if (search.flow === "desktop" && search.code) {
-      const result = await exchangeOAuthCode({ data: { code: search.code } });
+      const result = await exchangeOAuthCode({
+        data: { code: search.code, flow: "desktop" },
+      });
 
       if (result.success) {
         throw redirect({
@@ -63,6 +67,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
           data: {
             token_hash: search.token_hash,
             type: search.type,
+            flow: search.flow,
           },
         });
 
@@ -76,6 +81,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
           data: {
             token_hash: search.token_hash,
             type: search.type,
+            flow: search.flow,
           },
         });
 

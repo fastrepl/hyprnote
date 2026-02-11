@@ -28,6 +28,13 @@ export type CreateEventResponse = {
     event: unknown;
 };
 
+export type DeviceInfo = {
+    appVersion: string;
+    arch: string;
+    osVersion: string;
+    platform: string;
+};
+
 export type EventAttendee = {
     displayName?: string | null;
     email: string;
@@ -39,6 +46,21 @@ export type EventDateTime = {
     dateTime?: string | null;
     timeZone?: string | null;
 };
+
+export type FeedbackRequest = {
+    description: string;
+    deviceInfo: DeviceInfo;
+    logs?: string | null;
+    type: FeedbackType;
+};
+
+export type FeedbackResponse = {
+    error?: string | null;
+    issueUrl?: string | null;
+    success: boolean;
+};
+
+export type FeedbackType = 'bug' | 'feature';
 
 export type Interval = 'monthly' | 'yearly';
 
@@ -264,3 +286,32 @@ export type StartTrialResponses = {
 };
 
 export type StartTrialResponse2 = StartTrialResponses[keyof StartTrialResponses];
+
+export type SubmitData = {
+    body: FeedbackRequest;
+    path?: never;
+    query?: never;
+    url: '/feedback/submit';
+};
+
+export type SubmitErrors = {
+    /**
+     * Invalid request
+     */
+    400: FeedbackResponse;
+    /**
+     * Server error
+     */
+    500: FeedbackResponse;
+};
+
+export type SubmitError = SubmitErrors[keyof SubmitErrors];
+
+export type SubmitResponses = {
+    /**
+     * Feedback submitted successfully
+     */
+    200: FeedbackResponse;
+};
+
+export type SubmitResponse = SubmitResponses[keyof SubmitResponses];

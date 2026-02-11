@@ -14,13 +14,13 @@ import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Disclosure } from "../shared";
 import { ToolRenderer } from "../types";
+import { useToolState } from "./shared";
 
 type Renderer = ToolRenderer<"tool-search_sessions">;
 type Part = Parameters<Renderer>[0]["part"];
 
 export const ToolSearchSessions: Renderer = ({ part }) => {
-  const disabled =
-    part.state === "input-streaming" || part.state === "input-available";
+  const { running: disabled } = useToolState(part);
 
   return (
     <Disclosure

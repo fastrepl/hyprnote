@@ -1,29 +1,24 @@
-import {
-  FullscreenIcon,
-  MicIcon,
-  PaperclipIcon,
-  SendIcon,
-  SquareIcon,
-} from "lucide-react";
+import { SendIcon, SquareIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import type { SlashCommandConfig, TiptapEditor } from "@hypr/tiptap/chat";
+import type {
+  JSONContent,
+  SlashCommandConfig,
+  TiptapEditor,
+} from "@hypr/tiptap/chat";
 import ChatEditor from "@hypr/tiptap/chat";
 import {
   EMPTY_TIPTAP_DOC,
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../contexts/shell";
 import * as main from "../../store/tinybase/store/main";
+
+let _draft: JSONContent | undefined;
 
 export function ChatMessageInput({
   onSendMessage,
@@ -32,7 +27,10 @@ export function ChatMessageInput({
   isStreaming,
   onStop,
 }: {
-  onSendMessage: (content: string, parts: any[]) => void;
+  onSendMessage: (
+    content: string,
+    parts: Array<{ type: "text"; text: string }>,
+  ) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
   attachedSession?: { id: string; title?: string };
   isStreaming?: boolean;
@@ -40,7 +38,7 @@ export function ChatMessageInput({
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const [hasContent, setHasContent] = useState(false);
-  const { chat } = useShell();
+  const initialContent = useRef(_draft ?? EMPTY_TIPTAP_DOC);
   const chatShortcuts = main.UI.useResultTable(
     main.QUERIES.visibleChatShortcuts,
     main.STORE_ID,
@@ -64,8 +62,8 @@ export function ChatMessageInput({
     void analyticsCommands.event({ event: "message_sent" });
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
-    chat.setDraftMessage(undefined);
-  }, [disabled, onSendMessage, chat]);
+    _draft = undefined;
+  }, [disabled, onSendMessage]);
 
   useEffect(() => {
     const editor = editorRef.current?.editor;
@@ -78,42 +76,11 @@ export function ChatMessageInput({
     }
   }, [disabled]);
 
-  useEffect(() => {
-    let updateHandler: (() => void) | null = null;
-    const checkEditor = setInterval(() => {
-      const editor = editorRef.current?.editor;
-      if (editor && !editor.isDestroyed && editor.isInitialized) {
-        clearInterval(checkEditor);
-
-        if (chat.draftMessage) {
-          editor.commands.setContent(chat.draftMessage);
-        }
-
-        updateHandler = () => {
-          const json = editor.getJSON();
-          const text = tiptapJsonToText(json).trim();
-          setHasContent(text.length > 0);
-          chat.setDraftMessage(json);
-        };
-
-        editor.on("update", updateHandler);
-      }
-    }, 100);
-
-    return () => {
-      clearInterval(checkEditor);
-      const editor = editorRef.current?.editor;
-      if (editor && updateHandler) {
-        editor.off("update", updateHandler);
-      }
-    };
-  }, [chat]);
-
-  const handleAttachFile = useCallback(() => {}, []);
-
-  const handleTakeScreenshot = useCallback(() => {}, []);
-
-  const handleVoiceInput = useCallback(() => {}, []);
+  const handleEditorUpdate = useCallback((json: JSONContent) => {
+    const text = tiptapJsonToText(json).trim();
+    setHasContent(text.length > 0);
+    _draft = json;
+  }, []);
 
   const slashCommandConfig: SlashCommandConfig = useMemo(
     () => ({
@@ -127,14 +94,13 @@ export function ChatMessageInput({
         const lowerQuery = query.toLowerCase();
 
         Object.entries(chatShortcuts).forEach(([rowId, row]) => {
+          const title = row.title as string | undefined;
           const content = row.content as string | undefined;
-          if (content && content.toLowerCase().includes(lowerQuery)) {
-            const label =
-              content.length > 40 ? content.slice(0, 40) + "..." : content;
+          if (title && content && title.toLowerCase().includes(lowerQuery)) {
             results.push({
               id: rowId,
               type: "chat_shortcut",
-              label,
+              label: title,
               content,
             });
           }
@@ -169,91 +135,40 @@ export function ChatMessageInput({
           <ChatEditor
             ref={editorRef}
             editable={!disabled}
-            initialContent={EMPTY_TIPTAP_DOC}
+            initialContent={initialContent.current}
             placeholderComponent={ChatPlaceholder}
             slashCommandConfig={slashCommandConfig}
+            onUpdate={handleEditorUpdate}
+            onSubmit={handleSubmit}
           />
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleAttachFile}
-                  disabled={true}
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
-                >
-                  <PaperclipIcon size={16} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <span>Coming soon</span>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleTakeScreenshot}
-                  disabled={true}
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
-                >
-                  <FullscreenIcon size={16} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <span>Coming soon</span>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-
-          <div className="flex items-center">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleVoiceInput}
-                  disabled={true}
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
-                >
-                  <MicIcon size={16} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <span>Coming soon</span>
-              </TooltipContent>
-            </Tooltip>
-            {isStreaming ? (
-              <Button
-                onClick={onStop}
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8"
-              >
-                <SquareIcon size={16} className="fill-current" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={disabled}
-                size="icon"
-                variant="ghost"
-                className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-              >
-                <SendIcon size={16} />
-              </Button>
-            )}
-          </div>
+        <div className="flex items-center justify-end">
+          {isStreaming ? (
+            <Button
+              onClick={onStop}
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+            >
+              <SquareIcon size={16} className="fill-current" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={disabled}
+              size="icon"
+              variant="ghost"
+              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
+            >
+              <SendIcon size={16} />
+            </Button>
+          )}
         </div>
       </div>
       {hasContent && (
         <span className="absolute bottom-1.5 right-5 text-[8px] text-neutral-400">
-          Shift + Enter to add a new line
+          Enter to send, Shift + Enter for new line
         </span>
       )}
     </Container>
@@ -264,7 +179,12 @@ function Container({ children }: { children: React.ReactNode }) {
   const { chat } = useShell();
 
   return (
-    <div className={cn(["relative", chat.mode !== "RightPanelOpen" && "p-1"])}>
+    <div
+      className={cn([
+        "relative",
+        chat.mode !== "RightPanelOpen" && "px-1 pb-1",
+      ])}
+    >
       <div
         className={cn([
           "flex flex-col border border-neutral-200 rounded-xl",

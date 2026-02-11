@@ -85,12 +85,6 @@ common_event_derives! {
     }
 }
 
-common_event_derives! {
-    pub struct OpenFeedback {
-        pub feedback_type: String,
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;

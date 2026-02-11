@@ -8,6 +8,14 @@ where
     Ok(s.filter(|s| !s.is_empty()))
 }
 
+pub fn string_to_u64<'de, D>(deserializer: D) -> Result<u64, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    s.parse().map_err(serde::de::Error::custom)
+}
+
 #[derive(Clone, Deserialize)]
 pub struct SupabaseEnv {
     pub supabase_url: String,
@@ -24,4 +32,11 @@ pub struct NangoEnv {
 #[derive(Clone, Deserialize)]
 pub struct OpenRouterEnv {
     pub openrouter_api_key: String,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct StripeEnv {
+    pub stripe_secret_key: String,
+    pub stripe_monthly_price_id: String,
+    pub stripe_yearly_price_id: String,
 }

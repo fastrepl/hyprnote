@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CanStartTrialData, CanStartTrialErrors, CanStartTrialResponses, CreateConnectSessionData, CreateConnectSessionErrors, CreateConnectSessionResponses, CreateEventData, CreateEventErrors, CreateEventResponses, ListCalendarsData, ListCalendarsErrors, ListCalendarsResponses, ListEventsData, ListEventsErrors, ListEventsResponses, NangoWebhookData, NangoWebhookErrors, NangoWebhookResponses, StartTrialData, StartTrialErrors, StartTrialResponses } from './types.gen';
+import type { CanStartTrialData, CanStartTrialErrors, CanStartTrialResponses, CreateConnectSessionData, CreateConnectSessionErrors, CreateConnectSessionResponses, CreateEventData, CreateEventErrors, CreateEventResponses, ListCalendarsData, ListCalendarsErrors, ListCalendarsResponses, ListEventsData, ListEventsErrors, ListEventsResponses, NangoWebhookData, NangoWebhookErrors, NangoWebhookResponses, StartTrialData, StartTrialErrors, StartTrialResponses, SubmitData, SubmitErrors, SubmitResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -66,4 +66,13 @@ export const startTrial = <ThrowOnError extends boolean = false>(options?: Optio
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/subscription/start-trial',
     ...options
+});
+
+export const submit = <ThrowOnError extends boolean = false>(options: Options<SubmitData, ThrowOnError>) => (options.client ?? client).post<SubmitResponses, SubmitErrors, ThrowOnError>({
+    url: '/feedback/submit',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });

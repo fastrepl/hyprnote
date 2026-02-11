@@ -10,10 +10,11 @@ debug = false
 [workspace]
 resolver = "2"
 members = [
-  "apps/ai",
+  "apps/api",
   "apps/desktop/src-tauri",
   "apps/eval-cli",
   "apps/granola",
+  "apps/restate",
   "apps/tools",
   "crates/*",
   "plugins/*",
@@ -72,6 +73,7 @@ hypr-llm-interface = { path = "crates/llm-interface", package = "llm-interface" 
 hypr-llm-proxy = { path = "crates/llm-proxy", package = "llm-proxy" }
 hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-mac = { path = "crates/mac", package = "mac" }
+hypr-mcp = { path = "crates/mcp", package = "mcp" }
 hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-notch = { path = "crates/notch", package = "notch" }
@@ -81,6 +83,7 @@ hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openrouter = { path = "crates/openrouter", package = "openrouter" }
 hypr-openstatus = { path = "crates/openstatus", package = "openstatus" }
+hypr-porkbun = { path = "crates/porkbun", package = "porkbun" }
 hypr-posthog = { path = "crates/posthog", package = "posthog" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
@@ -130,9 +133,9 @@ tauri-plugin-prevent-default = "4"
 tauri-plugin-process = "2.3"
 tauri-plugin-sentry = "0.5"
 tauri-plugin-shell = "2.3"
-tauri-plugin-single-instance = "2.3"
+tauri-plugin-single-instance = "2.4"
 tauri-plugin-store = "2.4"
-tauri-plugin-updater = "2.9"
+tauri-plugin-updater = "2.10"
 tauri-plugin-window-state = "2.4"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
@@ -144,6 +147,7 @@ tauri-plugin-bedrock = { path = "plugins/bedrock" }
 tauri-plugin-db2 = { path = "plugins/db2" }
 tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }
 tauri-plugin-detect = { path = "plugins/detect" }
+tauri-plugin-dock = { path = "plugins/dock" }
 tauri-plugin-extensions = { path = "plugins/extensions" }
 tauri-plugin-flag = { path = "plugins/flag" }
 tauri-plugin-fs-db = { path = "plugins/fs-db" }
@@ -158,6 +162,7 @@ tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-listener2 = { path = "plugins/listener2" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }
 tauri-plugin-local-stt = { path = "plugins/local-stt" }
+tauri-plugin-mcp = { path = "plugins/mcp" }
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-network = { path = "plugins/network" }
 tauri-plugin-notification = { path = "plugins/notification" }
@@ -213,7 +218,7 @@ include_url_macro = "0.1.0"
 indoc = "2"
 isolang = "2.4"
 itertools = "0.14.0"
-jsonschema = "0.40"
+jsonschema = "0.41"
 lazy_static = "1.5.0"
 open = "5"
 regex = "1.12"
@@ -252,7 +257,9 @@ chrono = "0.4"
 chrono-tz = "0.10"
 
 async-openai = { git = "https://github.com/fastrepl/async-openai", rev = "6404d307f3f706e818ad91544dc82fac5c545aee", default-features = false }
-async-stripe = { version = "0.39.1", default-features = false }
+async-stripe = { version = "1.0.0-rc.0" }
+async-stripe-billing = { version = "1.0.0-rc.1", default-features = false }
+async-stripe-core = { version = "1.0.0-rc.1", default-features = false }
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
@@ -296,15 +303,15 @@ libsql = "0.9.24"
 
 block2 = "0.6"
 objc2 = "0.6"
-objc2-app-kit = "0.3"
-objc2-application-services = "0.3"
-objc2-av-foundation = "0.3"
-objc2-contacts = "0.3"
-objc2-core-foundation = "0.3"
-objc2-core-graphics = "0.3"
-objc2-event-kit = "0.3"
-objc2-foundation = "0.3"
-objc2-user-notifications = "0.3"
+objc2-app-kit = "0.3.2"
+objc2-application-services = "0.3.2"
+objc2-av-foundation = "0.3.2"
+objc2-contacts = "0.3.2"
+objc2-core-foundation = "0.3.2"
+objc2-core-graphics = "0.3.2"
+objc2-event-kit = "0.3.2"
+objc2-foundation = "0.3.2"
+objc2-user-notifications = "0.3.2"
 
 hmac = "0.12"
 sha2 = "0.10"
@@ -315,6 +322,7 @@ whichlang = "0.1"
 swift-rs = { git = "https://github.com/yujonglee/swift-rs", rev = "41a1605" }
 
 rmcp = "0.14"
+rustls = { version = "0.23", default-features = false }
 sqlx = { version = "0.8", default-features = false }
 sysinfo = "0.38"
 

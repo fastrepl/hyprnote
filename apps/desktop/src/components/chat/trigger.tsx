@@ -54,7 +54,7 @@ export function ChatTrigger({
         shouldHide
           ? "bottom-0 translate-y-[85%]"
           : showTimeline
-            ? "bottom-[62px]"
+            ? "bottom-[68px]"
             : "bottom-4",
       ])}
     >

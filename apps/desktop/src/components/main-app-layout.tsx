@@ -7,15 +7,12 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
-import { useProSettingsSync } from "../hooks/useProSettingsSync";
 import { useTabs } from "../store/zustand/tabs";
-import { FeedbackModal, useFeedbackModal } from "./feedback/feedback-modal";
 import { useNewNote } from "./main/shared";
 import { UndoDeleteKeyboardHandler } from "./main/sidebar/toast/undo-delete-toast";
 
 export default function MainAppLayout() {
   useNavigationEvents();
-  useFeedbackEvents();
 
   return (
     <AuthProvider>
@@ -29,12 +26,9 @@ export default function MainAppLayout() {
 }
 
 function MainAppContent() {
-  useProSettingsSync();
-
   return (
     <>
       <Outlet />
-      <FeedbackModal />
       <UndoDeleteKeyboardHandler />
     </>
   );
@@ -43,6 +37,7 @@ function MainAppContent() {
 const useNavigationEvents = () => {
   const navigate = useNavigate();
   const openNew = useTabs((state) => state.openNew);
+  const transitionChatMode = useTabs((state) => state.transitionChatMode);
   const openNewNote = useNewNote({ behavior: "new" });
 
   useEffect(() => {
@@ -87,11 +82,20 @@ const useNavigationEvents = () => {
     void windowsEvents
       .openTab(webview)
       .listen(({ payload }) => {
-        // TODO: Not very ideal
         if (payload.tab.type === "sessions" && payload.tab.id === "new") {
           openNewNote();
         } else {
           openNew(payload.tab);
+          if (payload.tab.type === "chat") {
+            if (payload.tab.state) {
+              const { tabs, updateChatTabState } = useTabs.getState();
+              const chatTab = tabs.find((t) => t.type === "chat");
+              if (chatTab) {
+                updateChatTabState(chatTab, payload.tab.state);
+              }
+            }
+            transitionChatMode({ type: "OPEN_TAB" });
+          }
         }
       })
       .then((fn) => {
@@ -102,28 +106,5 @@ const useNavigationEvents = () => {
       unlistenNavigate?.();
       unlistenOpenTab?.();
     };
-  }, [navigate, openNew, openNewNote]);
-};
-
-const useFeedbackEvents = () => {
-  const openFeedback = useFeedbackModal((state) => state.open);
-
-  useEffect(() => {
-    let unlistenOpenFeedback: (() => void) | undefined;
-
-    const webview = getCurrentWebviewWindow();
-
-    void windowsEvents
-      .openFeedback(webview)
-      .listen(() => {
-        openFeedback();
-      })
-      .then((fn) => {
-        unlistenOpenFeedback = fn;
-      });
-
-    return () => {
-      unlistenOpenFeedback?.();
-    };
-  }, [openFeedback]);
+  }, [navigate, openNew, openNewNote, transitionChatMode]);
 };

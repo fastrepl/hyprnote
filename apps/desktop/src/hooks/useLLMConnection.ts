@@ -199,6 +199,21 @@ const resolveLLMConnection = (params: {
   };
 };
 
+export const useFeedbackLanguageModel = (): LanguageModelV3 => {
+  const { session } = useAuth();
+  const apiKey = session?.access_token ?? "CANT_BE_EMPTY";
+
+  return useMemo(() => {
+    const baseUrl = new URL("/support/llm", env.VITE_AI_URL).toString();
+    const provider = createOpenRouter({
+      fetch: tauriFetch,
+      baseURL: baseUrl,
+      apiKey,
+    });
+    return wrapWithThinkingMiddleware(provider.chat("unused"));
+  }, [apiKey]);
+};
+
 const wrapWithThinkingMiddleware = (
   model: LanguageModelV3,
 ): LanguageModelV3 => {

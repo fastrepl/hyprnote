@@ -211,7 +211,11 @@ export const getDefaultState = (tab: TabInput): Tab => {
       return {
         ...base,
         type: "chat",
-        state: tab.state ?? { groupId: null },
+        state: tab.state ?? {
+          groupId: null,
+          initialMessage: null,
+          chatType: null,
+        },
       };
     default:
       const _exhaustive: never = tab;

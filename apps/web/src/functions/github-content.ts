@@ -1017,26 +1017,65 @@ export async function convertDraftToReady(prNumber: number): Promise<{
   const { token: githubToken } = credentials;
 
   try {
-    const response = await fetch(
+    const prResponse = await fetch(
       `https://api.github.com/repos/${GITHUB_REPO}/pulls/${prNumber}`,
       {
-        method: "PATCH",
         headers: {
           Authorization: `Bearer ${githubToken}`,
           Accept: "application/vnd.github.v3+json",
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          draft: false,
-        }),
       },
     );
 
-    if (!response.ok) {
-      const error = await response.json();
+    if (!prResponse.ok) {
+      const error = await prResponse.json();
       return {
         success: false,
-        error: error.message || `GitHub API error: ${response.status}`,
+        error: error.message || `GitHub API error: ${prResponse.status}`,
+      };
+    }
+
+    const prData = await prResponse.json();
+
+    if (!prData.draft) {
+      return { success: true };
+    }
+
+    const graphqlResponse = await fetch("https://api.github.com/graphql", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${githubToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: `
+          mutation MarkPullRequestReadyForReview($pullRequestId: ID!) {
+            markPullRequestReadyForReview(input: { pullRequestId: $pullRequestId }) {
+              pullRequest {
+                isDraft
+              }
+            }
+          }
+        `,
+        variables: {
+          pullRequestId: prData.node_id,
+        },
+      }),
+    });
+
+    if (!graphqlResponse.ok) {
+      const error = await graphqlResponse.json();
+      return {
+        success: false,
+        error: error.message || `GraphQL API error: ${graphqlResponse.status}`,
+      };
+    }
+
+    const graphqlData = await graphqlResponse.json();
+    if (graphqlData.errors?.length) {
+      return {
+        success: false,
+        error: graphqlData.errors[0].message,
       };
     }
 

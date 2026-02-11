@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import {
+  commands as localSttCommands,
+  type SupportedSttModel,
+} from "@hypr/plugin-local-stt";
 import type { AIProviderStorage } from "@hypr/store";
 
 import { useAuth } from "../auth";
@@ -44,6 +47,13 @@ export const useSTTConnection = () => {
         return null;
       }
 
+      const downloaded = await localSttCommands.isModelDownloaded(
+        current_stt_model as SupportedSttModel,
+      );
+      if (downloaded.status !== "ok" || !downloaded.data) {
+        return { status: "not_downloaded" as const, connection: null };
+      }
+
       const servers = await localSttCommands.getServers();
 
       if (servers.status !== "ok") {
@@ -57,7 +67,7 @@ export const useSTTConnection = () => {
 
       if (server?.status === "ready" && server.url) {
         return {
-          status: "ready",
+          status: "ready" as const,
           connection: {
             provider: current_stt_provider!,
             model: current_stt_model,

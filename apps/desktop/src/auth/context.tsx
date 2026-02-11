@@ -70,10 +70,9 @@ export function useAuth() {
 }
 
 async function clearInvalidSession(
-  client: SupabaseClient,
+  _client: SupabaseClient,
   setSession: (session: Session | null) => void,
 ): Promise<void> {
-  void client.auth.stopAutoRefresh();
   await clearAuthStorage();
   setSession(null);
 }
@@ -199,7 +198,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       subscription.unsubscribe();
-      void supabase?.auth.stopAutoRefresh();
     };
   }, []);
 

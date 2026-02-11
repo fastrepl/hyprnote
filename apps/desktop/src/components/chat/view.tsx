@@ -1,11 +1,13 @@
 import { useCallback, useMemo } from "react";
 
+import type { ContextItem } from "../../chat/context-item";
 import type { HyprUIMessage } from "../../chat/types";
 import { useShell } from "../../contexts/shell";
 import { useSession } from "../../hooks/tinybase";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
 import { useTabs } from "../../store/zustand/tabs";
 import { ChatBody } from "./body";
+import { ContextBar } from "./context-bar";
 import { ChatHeader } from "./header";
 import { ChatMessageInput } from "./input";
 import { ChatSession } from "./session";
@@ -46,10 +48,14 @@ export function ChatView() {
     const existingChatTab = tabs.find((t) => t.type === "chat");
     openNew({
       type: "chat",
-      state: { groupId: groupId ?? null },
+      state: { groupId: groupId ?? null, initialMessage: null, chatType: null },
     });
     if (existingChatTab) {
-      updateChatTabState(existingChatTab, { groupId: groupId ?? null });
+      updateChatTabState(existingChatTab, {
+        groupId: groupId ?? null,
+        initialMessage: null,
+        chatType: null,
+      });
     }
     chat.sendEvent({ type: "OPEN_TAB" });
   }, [openNew, tabs, updateChatTabState, groupId, chat]);
@@ -69,7 +75,15 @@ export function ChatView() {
         chatGroupId={groupId}
         attachedSessionId={attachedSessionId}
       >
-        {({ messages, sendMessage, regenerate, stop, status, error }) => (
+        {({
+          messages,
+          sendMessage,
+          regenerate,
+          stop,
+          status,
+          error,
+          contextItems,
+        }) => (
           <ChatViewContent
             messages={messages}
             sendMessage={sendMessage}
@@ -80,6 +94,7 @@ export function ChatView() {
             model={model}
             handleSendMessage={handleSendMessage}
             attachedSessionId={attachedSessionId}
+            contextItems={contextItems}
           />
         )}
       </ChatSession>
@@ -97,6 +112,7 @@ function ChatViewContent({
   model,
   handleSendMessage,
   attachedSessionId,
+  contextItems,
 }: {
   messages: HyprUIMessage[];
   sendMessage: (message: HyprUIMessage) => void;
@@ -111,6 +127,7 @@ function ChatViewContent({
     sendMessage: (message: HyprUIMessage) => void,
   ) => void;
   attachedSessionId?: string;
+  contextItems: ContextItem[];
 }) {
   const { title } = useSession(attachedSessionId ?? "");
 
@@ -128,6 +145,7 @@ function ChatViewContent({
         onReload={regenerate}
         isModelConfigured={!!model}
       />
+      <ContextBar items={contextItems} />
       <ChatMessageInput
         disabled={!model || status !== "ready"}
         onSendMessage={(content, parts) =>

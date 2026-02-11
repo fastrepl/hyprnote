@@ -4,7 +4,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import {
   AlertTriangleIcon,
-  CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   ClipboardIcon,
@@ -25,7 +24,6 @@ import {
   PinOffIcon,
   PlusIcon,
   RefreshCwIcon,
-  SaveIcon,
   ScissorsIcon,
   SearchIcon,
   SendHorizontalIcon,
@@ -294,8 +292,23 @@ function CollectionsPage() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       setEditingItem(null);
+      if (data.branch && variables.type === "file") {
+        const slug = variables.name.replace(/\.mdx$/, "");
+        queryClient.setQueryData(
+          ["draftArticles"],
+          (old: DraftArticle[] = []) => [
+            ...old,
+            {
+              name: variables.name,
+              path: `${variables.folder}/${variables.name}`,
+              slug,
+              branch: data.branch,
+            },
+          ],
+        );
+      }
       queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
     },
   });
@@ -1227,41 +1240,6 @@ function ContentPanel({
     },
   });
 
-  const { mutate: publishContent, isPending: isPublishing } = useMutation({
-    mutationFn: async (params: {
-      path: string;
-      content: string;
-      metadata: ArticleMetadata;
-      branch?: string;
-      action?: "publish" | "unpublish";
-    }) => {
-      if (!params.branch) {
-        throw new Error("Cannot publish: no branch specified");
-      }
-      const response = await fetch("/api/admin/content/publish", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          path: params.path,
-          content: params.content,
-          branch: params.branch,
-          metadata: params.metadata,
-          action: params.action || "publish",
-        }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to publish");
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.prUrl) {
-        window.open(data.prUrl, "_blank");
-      }
-    },
-  });
-
   const handleSave = useCallback(
     (options?: { isAutoSave?: boolean }) => {
       if (currentTab?.type === "file" && editorData) {
@@ -1276,30 +1254,6 @@ function ContentPanel({
     },
     [currentTab, editorData, saveContent],
   );
-
-  const handlePublish = useCallback(() => {
-    if (currentTab?.type === "file" && editorData) {
-      publishContent({
-        path: currentTab.path,
-        content: editorData.content,
-        metadata: editorData.metadata,
-        branch: currentTab.branch,
-        action: "publish",
-      });
-    }
-  }, [currentTab, editorData, publishContent]);
-
-  const handleUnpublish = useCallback(() => {
-    if (currentTab?.type === "file" && editorData) {
-      publishContent({
-        path: currentTab.path,
-        content: editorData.content,
-        metadata: editorData.metadata,
-        branch: currentTab.branch,
-        action: "unpublish",
-      });
-    }
-  }, [currentTab, editorData, publishContent]);
 
   const currentFileContent = useMemo(
     () =>
@@ -1424,11 +1378,7 @@ function ContentPanel({
             onReorderTabs={onReorderTabs}
             isPreviewMode={isPreviewMode}
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
-            onSave={handleSave}
             isSaving={isSaving}
-            onPublish={handlePublish}
-            onUnpublish={handleUnpublish}
-            isPublishing={isPublishing}
             isPublished={currentFileContent?.published}
             onSubmitForReview={handleSubmitForReview}
             isSubmittingForReview={isSubmittingForReview}
@@ -1480,11 +1430,7 @@ function EditorHeader({
   onReorderTabs,
   isPreviewMode,
   onTogglePreview,
-  onSave,
   isSaving,
-  onPublish: _onPublish,
-  onUnpublish,
-  isPublishing,
   isPublished,
   onSubmitForReview,
   isSubmittingForReview,
@@ -1503,11 +1449,7 @@ function EditorHeader({
   onReorderTabs: (tabs: Tab[]) => void;
   isPreviewMode: boolean;
   onTogglePreview: () => void;
-  onSave: () => void;
   isSaving: boolean;
-  onPublish: () => void;
-  onUnpublish: () => void;
-  isPublishing: boolean;
   isPublished?: boolean;
   onSubmitForReview?: () => void;
   isSubmittingForReview?: boolean;
@@ -1516,7 +1458,6 @@ function EditorHeader({
   hasUnsavedChanges?: boolean;
   autoSaveCountdown?: number | null;
 }) {
-  const [isHoveringPublish, setIsHoveringPublish] = useState(false);
   const [isEditingSlug, setIsEditingSlug] = useState(false);
   const [slugValue, setSlugValue] = useState("");
   const slugInputRef = useRef<HTMLInputElement>(null);
@@ -1583,11 +1524,22 @@ function EditorHeader({
                     className="text-neutral-700 font-medium bg-transparent outline-none"
                   />
                 ) : (
-                  <span
-                    onClick={handleSlugClick}
-                    className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
-                  >
-                    {crumb.replace(/\.mdx$/, "")}
+                  <span className="flex items-center gap-2">
+                    <span
+                      onClick={handleSlugClick}
+                      className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
+                    >
+                      {crumb.replace(/\.mdx$/, "")}
+                    </span>
+                    {isPublished ? (
+                      <span className="px-1.5 py-0.5 text-[10px] font-medium font-mono rounded bg-green-100 text-green-700">
+                        Published
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 text-[10px] font-medium font-mono rounded bg-neutral-100 text-neutral-500">
+                        Draft
+                      </span>
+                    )}
                   </span>
                 )
               ) : (
@@ -1629,34 +1581,25 @@ function EditorHeader({
                 </>
               )}
             </button>
-            <button
-              onClick={onSave}
-              disabled={isSaving || !hasUnsavedChanges}
-              className={cn([
-                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
-                "text-white bg-neutral-900 hover:bg-neutral-800",
-                "disabled:cursor-not-allowed disabled:opacity-50",
-              ])}
-              title="Save (⌘S)"
-            >
-              {isSaving ? (
-                <Spinner size={16} color="white" />
-              ) : (
-                <SaveIcon className="size-4" />
-              )}
-              Save
-              {autoSaveCountdown !== null &&
-                autoSaveCountdown !== undefined &&
-                hasUnsavedChanges && (
-                  <span className="text-neutral-400 ml-1">
-                    ({autoSaveCountdown}s)
-                  </span>
-                )}
-            </button>
+            {isSaving ? (
+              <span className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-mono text-neutral-500">
+                <Spinner size={14} color="currentColor" />
+                Saving...
+              </span>
+            ) : hasUnsavedChanges ? (
+              <span className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-mono text-neutral-400">
+                <span className="size-1.5 rounded-full bg-amber-400" />
+                Unsaved
+                {autoSaveCountdown !== null &&
+                  autoSaveCountdown !== undefined && (
+                    <span>· {autoSaveCountdown}s</span>
+                  )}
+              </span>
+            ) : null}
             {onSubmitForReview && (
               <button
                 onClick={onSubmitForReview}
-                disabled={isSubmittingForReview || !hasUnsavedChanges}
+                disabled={isSubmittingForReview}
                 className={cn([
                   "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
                   "text-white bg-blue-600 hover:bg-blue-700",
@@ -1671,44 +1614,6 @@ function EditorHeader({
                 )}
                 Submit for Review
               </button>
-            )}
-            {isPublished ? (
-              <button
-                type="button"
-                onClick={onUnpublish}
-                disabled={isPublishing}
-                onMouseEnter={() => setIsHoveringPublish(true)}
-                onMouseLeave={() => setIsHoveringPublish(false)}
-                className={cn([
-                  "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
-                  isHoveringPublish
-                    ? "text-white bg-red-600 hover:bg-red-700"
-                    : "text-white bg-green-600",
-                  "disabled:cursor-not-allowed",
-                ])}
-              >
-                {isPublishing ? (
-                  <>
-                    <Spinner size={14} color="white" />
-                    Unpublishing
-                  </>
-                ) : isHoveringPublish ? (
-                  <>
-                    <XIcon className="size-4" />
-                    Unpublish
-                  </>
-                ) : (
-                  <>
-                    <CheckIcon className="size-4" />
-                    Published
-                  </>
-                )}
-              </button>
-            ) : (
-              <span className="px-2 py-1.5 text-xs font-medium font-mono rounded-xs bg-neutral-100 text-neutral-400 flex items-center gap-1.5">
-                <XIcon className="size-4" />
-                Not Published
-              </span>
             )}
           </div>
         )}

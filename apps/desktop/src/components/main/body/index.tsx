@@ -25,6 +25,7 @@ import { cn } from "@hypr/utils";
 import { useListener } from "../../../contexts/listener";
 import { useNotifications } from "../../../contexts/notifications";
 import { useShell } from "../../../contexts/shell";
+import { useNativeContextMenu } from "../../../hooks/useNativeContextMenu";
 import {
   type Tab,
   uniqueIdfromTab,
@@ -141,10 +142,19 @@ function Header({ tabs }: { tabs: Tab[] }) {
 
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const handleNewEmptyTab = useNewEmptyTab();
+  const handleNewNote = useNewNote({ behavior: "new" });
+  const handleNewNoteAndListen = useNewNoteAndListen();
+  const showNewTabMenu = useNativeContextMenu([
+    { id: "empty-tab", text: "Open Empty Tab", action: handleNewEmptyTab },
+    { id: "new-note", text: "Create New Note", action: handleNewNote },
+    {
+      id: "new-note-listen",
+      text: "Create and Start Listening",
+      action: handleNewNoteAndListen,
+    },
+  ]);
   const [isSearchManuallyExpanded, setIsSearchManuallyExpanded] =
     useState(false);
-  const { ref: rightContainerRef, hasSpace: hasSpaceForSearch } =
-    useHasSpaceForSearch();
   const scrollState = useScrollState(
     tabsScrollContainerRef,
     regularTabs.length,
@@ -292,13 +302,13 @@ function Header({ tabs }: { tabs: Tab[] }) {
       </div>
 
       <div
-        ref={rightContainerRef}
         data-tauri-drag-region
         className="flex-1 flex h-full items-center justify-between"
       >
-        {!(isSearchManuallyExpanded && !hasSpaceForSearch) && (
+        {!isSearchManuallyExpanded && (
           <Button
             onClick={handleNewEmptyTab}
+            onContextMenu={showNewTabMenu}
             variant="ghost"
             size="icon"
             className="text-neutral-600"
@@ -309,10 +319,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
 
         <div className="flex items-center gap-1 h-full ml-auto">
           <Update />
-          <Search
-            hasSpace={hasSpaceForSearch}
-            onManualExpandChange={setIsSearchManuallyExpanded}
-          />
+          <Search onManualExpandChange={setIsSearchManuallyExpanded} />
         </div>
       </div>
     </div>
@@ -697,14 +704,6 @@ function StandardTabChatButton({
   );
 }
 
-function useHasSpaceForSearch() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { width = 0 } = useResizeObserver({
-    ref: ref as React.RefObject<HTMLDivElement>,
-  });
-  return { ref, hasSpace: width >= 220 };
-}
-
 function useScrollState(
   ref: React.RefObject<HTMLDivElement | null>,
   tabCount: number,
@@ -719,9 +718,10 @@ function useScrollState(
     if (!container) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
+    const hasOverflow = scrollWidth > clientWidth + 1;
     const newState = {
-      atStart: scrollLeft <= 1,
-      atEnd: scrollLeft + clientWidth >= scrollWidth - 1,
+      atStart: !hasOverflow || scrollLeft <= 1,
+      atEnd: !hasOverflow || scrollLeft + clientWidth >= scrollWidth - 1,
     };
     setScrollState((prev) => {
       if (prev.atStart === newState.atStart && prev.atEnd === newState.atEnd) {
@@ -741,6 +741,7 @@ function useScrollState(
     if (!container) return;
 
     updateScrollState();
+    requestAnimationFrame(updateScrollState);
     container.addEventListener("scroll", updateScrollState);
 
     return () => {

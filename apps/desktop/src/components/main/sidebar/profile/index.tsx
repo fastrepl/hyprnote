@@ -17,7 +17,6 @@ import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
-import { useFeedbackModal } from "../../../../components/feedback/feedback-modal";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
@@ -37,7 +36,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   const [mainViewHeight, setMainViewHeight] = useState<number | null>(null);
   const mainViewRef = useRef<HTMLDivElement | null>(null);
   const openNew = useTabs((state) => state.openNew);
-  const openFeedback = useFeedbackModal((state) => state.open);
+  const transitionChatMode = useTabs((state) => state.transitionChatMode);
   const auth = useAuth();
 
   const isAuthenticated = !!auth?.session;
@@ -127,9 +126,20 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   }, [openNew, closeMenu]);
 
   const handleClickHelp = useCallback(() => {
-    openFeedback();
+    const state = {
+      groupId: null,
+      initialMessage: "I need help.",
+      chatType: "support" as const,
+    };
+    openNew({ type: "chat", state });
+    const { tabs, updateChatTabState } = useTabs.getState();
+    const existingChatTab = tabs.find((t) => t.type === "chat");
+    if (existingChatTab) {
+      updateChatTabState(existingChatTab, state);
+    }
+    transitionChatMode({ type: "OPEN_TAB" });
     closeMenu();
-  }, [openFeedback, closeMenu]);
+  }, [openNew, transitionChatMode, closeMenu]);
 
   const handleClickAdvancedSearch = useCallback(() => {
     openNew({ type: "search" });

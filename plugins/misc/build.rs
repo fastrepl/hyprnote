@@ -13,7 +13,10 @@ const COMMANDS: &[&str] = &[
 ];
 
 fn main() {
-    let gitcl = vergen_gix::GixBuilder::all_git().unwrap();
+    let gitcl = vergen_gix::GixBuilder::default()
+        .sha(false)
+        .build()
+        .unwrap();
     vergen_gix::Emitter::default()
         .add_instructions(&gitcl)
         .unwrap()

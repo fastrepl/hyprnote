@@ -3,12 +3,10 @@ import {
   Outlet,
   useRouteContext,
 } from "@tanstack/react-router";
-import { usePrevious } from "@uidotdev/usehooks";
 import { useCallback, useEffect, useRef } from "react";
 
 import { buildChatTools } from "../../../chat/tools";
 import { AITaskProvider } from "../../../contexts/ai-task";
-import { useListener } from "../../../contexts/listener";
 import { NotificationProvider } from "../../../contexts/notifications";
 import { useSearchEngine } from "../../../contexts/search/engine";
 import { SearchEngineProvider } from "../../../contexts/search/engine";
@@ -43,9 +41,6 @@ function Component() {
     invalidateResource,
   } = useTabs();
   const hasOpenedInitialTab = useRef(false);
-  const liveSessionId = useListener((state) => state.live.sessionId);
-  const liveStatus = useListener((state) => state.live.status);
-  const prevLiveStatus = usePrevious(liveStatus);
   const store = main.UI.useStore(main.STORE_ID);
   const indexes = main.UI.useIndexes(main.STORE_ID);
 
@@ -77,20 +72,6 @@ function Component() {
     initializeTabs();
     registerOnEmpty(openDefaultEmptyTab);
   }, [openNew, pin, openDefaultEmptyTab, registerOnEmpty]);
-
-  useEffect(() => {
-    const justStartedListening =
-      prevLiveStatus !== "active" && liveStatus === "active";
-    if (justStartedListening && liveSessionId) {
-      const currentTabs = useTabs.getState().tabs;
-      const sessionTab = currentTabs.find(
-        (t) => t.type === "sessions" && t.id === liveSessionId,
-      );
-      if (sessionTab && !sessionTab.pinned) {
-        pin(sessionTab);
-      }
-    }
-  }, [liveStatus, prevLiveStatus, liveSessionId, pin]);
 
   useEffect(() => {
     registerCanClose(() => true);
@@ -136,7 +117,7 @@ function Component() {
 function ToolRegistration() {
   const { search } = useSearchEngine();
 
-  useRegisterTools("chat", () => buildChatTools({ search }), [search]);
+  useRegisterTools("chat-general", () => buildChatTools({ search }), [search]);
 
   return null;
 }

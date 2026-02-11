@@ -79,6 +79,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
       title={title || "Untitled"}
       selected={tab.active}
       active={isActive}
+      accent={isActive ? "red" : "neutral"}
       finalizing={showSpinner}
       pinned={tab.pinned}
       tabIndex={tabIndex}

@@ -53,13 +53,11 @@ async windowIsExists(window: AppWindow) : Promise<Result<boolean, string>> {
 
 export const events = __makeEvents__<{
 navigate: Navigate,
-openFeedback: OpenFeedback,
 openTab: OpenTab,
 visibilityEvent: VisibilityEvent,
 windowDestroyed: WindowDestroyed
 }>({
 navigate: "plugin:windows:navigate",
-openFeedback: "plugin:windows:open-feedback",
 openTab: "plugin:windows:open-tab",
 visibilityEvent: "plugin:windows:visibility-event",
 windowDestroyed: "plugin:windows:window-destroyed"
@@ -76,13 +74,13 @@ export type AiTab = "transcription" | "intelligence" | "templates" | "shortcuts"
 export type AppWindow = { type: "onboarding" } | { type: "main" } | { type: "control" }
 export type ChangelogState = { previous: string | null; current: string }
 export type ChatShortcutsState = { isWebMode: boolean | null; selectedMineId: string | null; selectedWebIndex: number | null }
-export type ChatState = { groupId: string | null }
+export type ChatState = { groupId: string | null; initialMessage: string | null; chatType: ChatType | null }
+export type ChatType = "regular" | "support"
 export type ContactsState = { selectedOrganization: string | null; selectedPerson: string | null }
 export type EditorView = { type: "raw" } | { type: "transcript" } | { type: "enhanced"; id: string } | { type: "attachments" }
 export type ExtensionsState = { selectedExtension: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type Navigate = { path: string; search: Partial<{ [key in string]: JsonValue }> | null }
-export type OpenFeedback = { feedback_type: string }
 export type OpenTab = { tab: TabInput }
 export type PromptsState = { selectedTask: string | null }
 export type SearchState = { selectedTypes: string[] | null; initialQuery: string | null }

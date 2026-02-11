@@ -160,7 +160,7 @@ jobs:
             }
 
       - name: Notify Slack (Regular)
-        if: steps.changed-files.outputs.has_files == 'true' && steps.unpublish-check.outputs.is_unpublish != 'true'
+        if: steps.changed-files.outputs.has_files == 'true' && steps.unpublish-check.outputs.is_unpublish != 'true' && steps.review-status.outputs.ready_for_review == 'true'
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
@@ -168,16 +168,26 @@ jobs:
           payload: |
             {
               "channel": "${{ secrets.SLACK_BLOG_CHANNEL_ID }}",
-              "text": "${{ steps.review-status.outputs.ready_for_review == 'true' && format('Article submitted for review: {0}', steps.article-info.outputs.title) || (steps.article-info.outputs.is_edit == 'true' && format('{0} made changes to {1}', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) || format('{0} is ready to publish: {1}', steps.article-info.outputs.slack_user, steps.article-info.outputs.title)) }}",
+              "text": "Article submitted for review: ${{ steps.article-info.outputs.title }}",
               "attachments": [
                 {
-                  "color": "${{ steps.review-status.outputs.ready_for_review == 'true' && '#3b82f6' || '#2eb886' }}",
+                  "color": "#3b82f6",
                   "blocks": [
                     {
                       "type": "section",
                       "text": {
                         "type": "mrkdwn",
-                        "text": "${{ steps.review-status.outputs.ready_for_review == 'true' && format('👀 *Article submitted for review*\n<@U08PVBSGL31> please review\n\n>*{0}*', steps.article-info.outputs.title) || (steps.article-info.outputs.is_edit == 'true' && format('✏️ {0} made changes to *{1}*', steps.article-info.outputs.slack_user, steps.article-info.outputs.title) || format('🚀 {0} is ready to publish a new article: *{1}*', steps.article-info.outputs.slack_user, steps.article-info.outputs.title)) }}"
+                        "text": "👀 *Article submitted for review*\n<@U0976J9CAKF> please review"
+                      }
+                    },
+                    {
+                      "type": "divider"
+                    },
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "*${{ steps.article-info.outputs.title }}*"
                       }
                     },
                     {
@@ -185,7 +195,7 @@ jobs:
                       "elements": [
                         {
                           "type": "mrkdwn",
-                          "text": "👤 ${{ steps.article-info.outputs.author }}${{ steps.article-info.outputs.date != '' && format(' • 📅 {0}', steps.article-info.outputs.date) || '' }}"
+                          "text": "✍️ ${{ steps.article-info.outputs.author }}${{ steps.article-info.outputs.date != '' && format('  •  📅 {0}', steps.article-info.outputs.date) || '' }}"
                         }
                       ]
                     },
@@ -209,17 +219,6 @@ jobs:
                             "emoji": true
                           },
                           "url": "${{ github.event.pull_request.html_url }}",
-                          "style": "primary"
-                        },
-                        {
-                          "type": "button",
-                          "text": {
-                            "type": "plain_text",
-                            "text": "Merge",
-                            "emoji": true
-                          },
-                          "action_id": "merge_pr",
-                          "value": "${{ github.event.pull_request.number }}",
                           "style": "primary"
                         }
                       ]

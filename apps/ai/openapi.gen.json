@@ -262,10 +262,10 @@
         ]
       }
     },
-    "/support/submit": {
+    "/feedback/submit": {
       "post": {
         "tags": [
-          "support"
+          "feedback"
         ],
         "operationId": "submit",
         "requestBody": {

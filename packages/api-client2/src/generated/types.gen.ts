@@ -291,7 +291,7 @@ export type SubmitData = {
     body: FeedbackRequest;
     path?: never;
     query?: never;
-    url: '/support/submit';
+    url: '/feedback/submit';
 };
 
 export type SubmitErrors = {

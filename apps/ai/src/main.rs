@@ -84,27 +84,15 @@ async fn app() -> Router {
             auth::require_auth,
         ));
 
-    let support_llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env.llm)
-        .with_models_default(vec![
-            "openai/gpt-oss-120b".into(),
-            "moonshotai/kimi-k2-0905".into(),
-        ])
-        .with_models_tool_calling(vec![
-            "anthropic/claude-haiku-4.5".into(),
-            "moonshotai/kimi-k2-0905:exacto".into(),
-        ]);
-
     let support_routes = Router::new()
-        .nest("/support", hypr_api_support::router(support_config).await)
-        .nest("/support/llm", hypr_llm_proxy::router(support_llm_config))
+        .merge(hypr_api_support::router(support_config).await)
         .layer(middleware::from_fn_with_state(
             auth_state_support.clone(),
             auth::optional_auth,
         ));
 
     Router::new()
-        .route("/health", axum::routing::get(|| async { "ok" }))
-        .route("/v", axum::routing::get(version))
+        .route("/health", axum::routing::get(version))
         .route("/openapi.json", axum::routing::get(openapi_json))
         .merge(support_routes)
         .merge(webhook_routes)

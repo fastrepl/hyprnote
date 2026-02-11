@@ -32,7 +32,7 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
     let calendar_doc = with_path_prefix(hypr_api_calendar::openapi(), "/calendar");
     let nango_doc = with_path_prefix(hypr_api_nango::openapi(), "/nango");
     let subscription_doc = with_path_prefix(hypr_api_subscription::openapi(), "/subscription");
-    let support_doc = with_path_prefix(hypr_api_support::openapi(), "/support");
+    let support_doc = hypr_api_support::openapi();
 
     doc.merge(stt_doc);
     doc.merge(llm_doc);

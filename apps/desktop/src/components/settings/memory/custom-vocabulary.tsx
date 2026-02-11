@@ -178,6 +178,7 @@ function VocabularyItem({
       if (text && text !== item.text) {
         onUpdate(item.rowId, text);
       }
+      // Always exit edit mode on submit
       onCancelEdit();
     },
     validators: {

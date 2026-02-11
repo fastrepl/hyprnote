@@ -151,19 +151,13 @@ impl PorkbunClient {
         &self,
         domain: &str,
         record_type: &str,
-        subdomain: Option<&str>,
+        subdomain: &str,
     ) -> Result<Vec<DnsRecord>, crate::Error> {
         let mut url = self.api_base.clone();
-        match subdomain {
-            Some(sub) => url.set_path(&format!(
-                "/api/json/v3/dns/retrieveByNameType/{}/{}/{}",
-                domain, record_type, sub
-            )),
-            None => url.set_path(&format!(
-                "/api/json/v3/dns/retrieveByNameType/{}/{}",
-                domain, record_type
-            )),
-        }
+        url.set_path(&format!(
+            "/api/json/v3/dns/retrieveByNameType/{}/{}/{}",
+            domain, record_type, subdomain
+        ));
 
         let response = self.client.post(url).json(&self.auth_body()).send().await?;
         let parsed: RetrieveRecordsResponse = parse_response(response).await?;

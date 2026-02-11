@@ -175,9 +175,9 @@ export const Route = createFileRoute("/api/admin/content/save")({
         const frontmatter = buildFrontmatter(metadata);
         const fullContent = `${frontmatter}\n${processedContent}`;
 
-        // If the article is published, create a PR to main (handles branch protection)
-        // Otherwise, save to the draft branch
-        const shouldCreatePR = metadata.published === true && !branch;
+        // If there's no branch, the article is on main, so create a PR (handles branch protection)
+        // Otherwise, save directly to the draft branch
+        const shouldCreatePR = !branch;
 
         if (shouldCreatePR) {
           const result = await savePublishedArticleWithPR(path, fullContent, {

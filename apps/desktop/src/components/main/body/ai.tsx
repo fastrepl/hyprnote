@@ -118,6 +118,11 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
       icon: <SparklesIcon size={14} />,
     },
     {
+      key: "memory",
+      label: "Memory",
+      icon: <Brain size={14} />,
+    },
+    {
       key: "templates",
       label: "Templates",
       icon: <BookText size={14} />,
@@ -132,11 +137,6 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
       label: "Prompts",
       icon: <SparklesIcon size={14} />,
       disabled: true,
-    },
-    {
-      key: "memory",
-      label: "Memory",
-      icon: <Brain size={14} />,
     },
   ];
 

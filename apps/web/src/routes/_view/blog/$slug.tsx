@@ -322,6 +322,25 @@ function TableOfContents({
   const headingElementsRef = useRef<Record<string, IntersectionObserverEntry>>(
     {},
   );
+  const isUserScrollingToc = useRef(false);
+  const userScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wheelAccumulator = useRef(0);
+
+  const scrollToHeading = useCallback((id: string) => {
+    isUserScrollingToc.current = true;
+    if (userScrollTimeout.current) {
+      clearTimeout(userScrollTimeout.current);
+    }
+    userScrollTimeout.current = setTimeout(() => {
+      isUserScrollingToc.current = false;
+    }, 1000);
+
+    setActiveId(id);
+    document.getElementById(id)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, []);
 
   const getActiveHeading = useCallback(() => {
     const visibleHeadings: IntersectionObserverEntry[] = [];
@@ -350,9 +369,11 @@ function TableOfContents({
         for (const entry of entries) {
           headingElementsRef.current[entry.target.id] = entry;
         }
-        const active = getActiveHeading();
-        if (active) {
-          setActiveId(active);
+        if (!isUserScrollingToc.current) {
+          const active = getActiveHeading();
+          if (active) {
+            setActiveId(active);
+          }
         }
       },
       { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
@@ -371,6 +392,32 @@ function TableOfContents({
     };
   }, [toc, getActiveHeading]);
 
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const THRESHOLD = 50;
+      wheelAccumulator.current += e.deltaY;
+
+      if (Math.abs(wheelAccumulator.current) < THRESHOLD) return;
+
+      const direction = wheelAccumulator.current > 0 ? 1 : -1;
+      wheelAccumulator.current = 0;
+
+      const currentIndex = toc.findIndex((item) => item.id === activeId);
+      const nextIndex = Math.max(
+        0,
+        Math.min(toc.length - 1, currentIndex + direction),
+      );
+
+      if (nextIndex !== currentIndex) {
+        scrollToHeading(toc[nextIndex].id);
+      }
+    },
+    [toc, activeId, scrollToHeading],
+  );
+
   if (toc.length === 0) {
     return null;
   }
@@ -386,8 +433,9 @@ function TableOfContents({
       ])}
     >
       <nav
-        className="relative w-full overflow-hidden"
+        className="relative w-full overflow-hidden cursor-ns-resize"
         style={{ height: ITEM_HEIGHT * 5 }}
+        onWheel={handleWheel}
       >
         <motion.div
           className="flex flex-col"
@@ -404,10 +452,7 @@ function TableOfContents({
                 href={`#${item.id}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById(item.id)?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                  });
+                  scrollToHeading(item.id);
                 }}
                 className={cn([
                   "flex items-center shrink-0 pl-6 pr-4 transition-colors duration-200",

@@ -30,6 +30,11 @@ fn run(name: &str) {
 }
 
 fn main() {
+    println!("cargo:rerun-if-changed=src/english_3/raw.json");
+    println!("cargo:rerun-if-changed=src/english_4/raw.json");
+    println!("cargo:rerun-if-changed=src/english_5/raw.json");
+    println!("cargo:rerun-if-changed=src/english_7/raw.json");
+
     run("english_3");
     run("english_4");
     run("english_5");

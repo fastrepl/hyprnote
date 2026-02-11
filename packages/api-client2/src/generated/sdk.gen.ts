@@ -69,7 +69,7 @@ export const startTrial = <ThrowOnError extends boolean = false>(options?: Optio
 });
 
 export const submit = <ThrowOnError extends boolean = false>(options: Options<SubmitData, ThrowOnError>) => (options.client ?? client).post<SubmitResponses, SubmitErrors, ThrowOnError>({
-    url: '/support/submit',
+    url: '/feedback/submit',
     ...options,
     headers: {
         'Content-Type': 'application/json',

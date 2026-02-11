@@ -638,6 +638,7 @@ dependencies = [
  "async-stripe-billing",
  "axum 0.8.8",
  "jsonwebtoken",
+ "llm-proxy",
  "mcp",
  "octocrab",
  "openrouter",

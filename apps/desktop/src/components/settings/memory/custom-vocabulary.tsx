@@ -34,8 +34,12 @@ export function CustomVocabularyView() {
       const text = value.search.trim();
       if (text) {
         const allTexts = vocabItems.map((item) => item.text.toLowerCase());
+    onSubmit: ({ value }) => {
+      const text = value.search.trim();
+      if (text) {
+        const allTexts = vocabItems.map((item) => item.text.toLowerCase());
         if (allTexts.includes(text.toLowerCase())) {
-          return;
+          return; // Prevent duplicate creation
         }
         mutations.create(text);
         form.reset();

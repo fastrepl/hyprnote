@@ -9,6 +9,7 @@ Default permissions for the plugin
 - `allow-is-model-downloading`
 - `allow-download-model`
 - `allow-cancel-download`
+- `allow-delete-model`
 - `allow-start-server`
 - `allow-stop-server`
 - `allow-get-servers`

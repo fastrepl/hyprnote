@@ -53,6 +53,32 @@ Denies the cancel_download command without any pre-configured scope.
 <tr>
 <td>
 
+`local-stt:allow-delete-model`
+
+</td>
+<td>
+
+Enables the delete_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-delete-model`
+
+</td>
+<td>
+
+Denies the delete_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `local-stt:allow-download-model`
 
 </td>

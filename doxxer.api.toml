@@ -1,4 +1,4 @@
-filter.tag = "^ai_v"
+filter.tag = "^api_v"
 
 [output]
 format = "plain"

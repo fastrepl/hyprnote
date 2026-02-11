@@ -7,10 +7,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libs
 RUN cargo install cargo-chef --locked
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
-RUN sed -i '/^members = \[/,/^\]/c\members = ["apps/ai", "crates/*"]' Cargo.toml
+RUN sed -i '/^members = \[/,/^\]/c\members = ["apps/api", "crates/*"]' Cargo.toml
 COPY crates crates
-COPY apps/ai/Cargo.toml apps/ai/Cargo.toml
-RUN mkdir -p apps/ai/src && echo "fn main() {}" > apps/ai/src/main.rs
+COPY apps/api/Cargo.toml apps/api/Cargo.toml
+RUN mkdir -p apps/api/src && echo "fn main() {}" > apps/api/src/main.rs
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM rust:${RUST_VERSION}-bookworm AS build
@@ -25,22 +25,22 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
     --mount=type=cache,target=$SCCACHE_DIR,sharing=locked \
-    cargo chef cook --release --recipe-path recipe.json -p ai
+    cargo chef cook --release --recipe-path recipe.json -p api
 COPY Cargo.toml Cargo.lock ./
-RUN sed -i '/^members = \[/,/^\]/c\members = ["apps/ai", "crates/*"]' Cargo.toml
+RUN sed -i '/^members = \[/,/^\]/c\members = ["apps/api", "crates/*"]' Cargo.toml
 COPY crates crates
-COPY apps/ai apps/ai
+COPY apps/api apps/api
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
     --mount=type=cache,target=$SCCACHE_DIR,sharing=locked \
-    cargo build --release -p ai
+    cargo build --release -p api
 
 FROM debian:bookworm-slim AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
 RUN groupadd -g 1001 appgroup && \
     useradd -u 1001 -g appgroup -d /nonexistent -s /usr/sbin/nologin -M appuser
-COPY --from=build --chown=appuser:appgroup /app/target/release/ai /usr/local/bin/ai
+COPY --from=build --chown=appuser:appgroup /app/target/release/api /usr/local/bin/api
 USER appuser
 WORKDIR /app
 EXPOSE 3001
-ENTRYPOINT ["/usr/local/bin/ai"]
+ENTRYPOINT ["/usr/local/bin/api"]

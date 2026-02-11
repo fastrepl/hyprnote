@@ -4,14 +4,14 @@ on:
     branches:
       - main
     paths:
-      - apps/ai/**
+      - apps/api/**
       - crates/llm-proxy/**
       - crates/transcribe-proxy/**
   pull_request:
     branches-ignore:
       - "**/graphite-base/**"
     paths:
-      - apps/ai/**
+      - apps/api/**
       - crates/llm-proxy/**
       - crates/transcribe-proxy/**
 jobs:
@@ -35,4 +35,4 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           platform: linux
-      - run: cargo check -p ai
+      - run: cargo check -p api

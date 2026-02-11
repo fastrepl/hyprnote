@@ -1267,7 +1267,7 @@ function ContentPanel({
     [currentTab?.type, currentTab?.path],
   );
 
-  const { data: pendingPRData } = useQuery({
+  useQuery({
     queryKey: ["pendingPR", currentTab?.path],
     queryFn: async () => {
       const params = new URLSearchParams({ path: currentTab!.path });

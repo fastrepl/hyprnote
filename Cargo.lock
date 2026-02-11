@@ -244,39 +244,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ai"
-version = "0.1.0"
-dependencies = [
- "analytics",
- "api-auth",
- "api-calendar",
- "api-env",
- "api-nango",
- "api-subscription",
- "api-support",
- "axum 0.8.8",
- "dotenvy",
- "envy",
- "jsonwebtoken",
- "llm-proxy",
- "owhisper-client",
- "reqwest 0.13.1",
- "rustls 0.23.36",
- "sentry",
- "serde",
- "serde_json",
- "tokio",
- "tower 0.5.3",
- "tower-http 0.6.8",
- "tracing",
- "tracing-subscriber",
- "transcribe-proxy",
- "url",
- "utoipa",
- "vergen-gix",
-]
-
-[[package]]
 name = "aligned"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -533,6 +500,39 @@ dependencies = [
  "cron",
  "futures",
  "tower 0.5.3",
+]
+
+[[package]]
+name = "api"
+version = "0.1.0"
+dependencies = [
+ "analytics",
+ "api-auth",
+ "api-calendar",
+ "api-env",
+ "api-nango",
+ "api-subscription",
+ "api-support",
+ "axum 0.8.8",
+ "dotenvy",
+ "envy",
+ "jsonwebtoken",
+ "llm-proxy",
+ "owhisper-client",
+ "reqwest 0.13.1",
+ "rustls 0.23.36",
+ "sentry",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http 0.6.8",
+ "tracing",
+ "tracing-subscriber",
+ "transcribe-proxy",
+ "url",
+ "utoipa",
+ "vergen-gix",
 ]
 
 [[package]]

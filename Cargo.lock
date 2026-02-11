@@ -13559,6 +13559,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "porkbun"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.13.1",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "port-killer"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

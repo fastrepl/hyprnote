@@ -3,8 +3,6 @@ dotenv: [".env"]
 includes:
   web:
     taskfile: ./apps/web
-  api:
-    taskfile: ./apps/api
 
 tasks:
   py:init: POETRY_VIRTUALENVS_IN_PROJECT=true poetry install --no-cache --no-interaction --all-extras

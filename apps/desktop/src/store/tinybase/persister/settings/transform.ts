@@ -115,8 +115,8 @@ function settingsToProviderRows(
           type: providerType,
           base_url: data.base_url ?? "",
           api_key: data.api_key ?? "",
-          custom_headers: data.custom_headers ?? "",
-        };
+          ...(data.custom_headers ? { custom_headers: data.custom_headers } : {}),
+        } as ProviderRow;
       }
     }
   }

@@ -232,7 +232,7 @@ export function NonHyprProviderCard({
                 </a>
               )}
               {config.links.models && (
-                <div className="inline-flex items-center gap-2">
+                <div className="inline-flex items-center gap-4">
                   <a
                     href={config.links.models.url}
                     target="_blank"
@@ -243,18 +243,15 @@ export function NonHyprProviderCard({
                     <ExternalLink size={12} />
                   </a>
                   {config.links.setup && (
-                    <>
-                      <span className="text-neutral-400">•</span>
-                      <a
-                        href={config.links.setup.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-0.5 text-neutral-600 hover:text-neutral-900 hover:underline"
-                      >
-                        {config.links.setup.label}
-                        <ExternalLink size={12} />
-                      </a>
-                    </>
+                    <a
+                      href={config.links.setup.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-0.5 text-neutral-600 hover:text-neutral-900 hover:underline"
+                    >
+                      {config.links.setup.label}
+                      <ExternalLink size={12} />
+                    </a>
                   )}
                 </div>
               )}

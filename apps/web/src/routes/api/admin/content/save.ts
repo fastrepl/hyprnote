@@ -18,7 +18,6 @@ interface ArticleMetadata {
   published?: boolean;
   featured?: boolean;
   category?: string;
-  ready_for_review?: boolean;
 }
 
 interface SaveRequest {
@@ -48,23 +47,20 @@ function buildFrontmatter(metadata: ArticleMetadata): string {
   if (metadata.author) {
     lines.push(`author: ${JSON.stringify(metadata.author)}`);
   }
+  if (metadata.coverImage) {
+    lines.push(`coverImage: ${JSON.stringify(metadata.coverImage)}`);
+  }
   if (metadata.featured !== undefined) {
     lines.push(`featured: ${metadata.featured}`);
   }
   if (metadata.published !== undefined) {
     lines.push(`published: ${metadata.published}`);
   }
-  if (metadata.ready_for_review !== undefined) {
-    lines.push(`ready_for_review: ${metadata.ready_for_review}`);
-  }
   if (metadata.category) {
     lines.push(`category: ${JSON.stringify(metadata.category)}`);
   }
   if (metadata.date) {
     lines.push(`date: ${JSON.stringify(metadata.date)}`);
-  }
-  if (metadata.coverImage) {
-    lines.push(`coverImage: ${JSON.stringify(metadata.coverImage)}`);
   }
 
   return `---\n${lines.join("\n")}\n---\n`;
@@ -179,9 +175,9 @@ export const Route = createFileRoute("/api/admin/content/save")({
         const frontmatter = buildFrontmatter(metadata);
         const fullContent = `${frontmatter}\n${processedContent}`;
 
-        // If the article is published, create a PR to main (handles branch protection)
-        // Otherwise, save to the draft branch
-        const shouldCreatePR = metadata.published === true && !branch;
+        // If there's no branch, the article is on main, so create a PR (handles branch protection)
+        // Otherwise, save directly to the draft branch
+        const shouldCreatePR = !branch;
 
         if (shouldCreatePR) {
           const result = await savePublishedArticleWithPR(path, fullContent, {

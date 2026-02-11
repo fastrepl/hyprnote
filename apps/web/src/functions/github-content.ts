@@ -1002,92 +1002,6 @@ export async function createPullRequest(
   }
 }
 
-export async function convertDraftToReady(prNumber: number): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  if (isDev()) {
-    return { success: true };
-  }
-
-  const credentials = await getGitHubCredentials();
-  if (!credentials) {
-    return { success: false, error: "GitHub token not configured" };
-  }
-  const { token: githubToken } = credentials;
-
-  try {
-    const prResponse = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPO}/pulls/${prNumber}`,
-      {
-        headers: {
-          Authorization: `Bearer ${githubToken}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      },
-    );
-
-    if (!prResponse.ok) {
-      const error = await prResponse.json();
-      return {
-        success: false,
-        error: error.message || `GitHub API error: ${prResponse.status}`,
-      };
-    }
-
-    const prData = await prResponse.json();
-
-    if (!prData.draft) {
-      return { success: true };
-    }
-
-    const graphqlResponse = await fetch("https://api.github.com/graphql", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${githubToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: `
-          mutation MarkPullRequestReadyForReview($pullRequestId: ID!) {
-            markPullRequestReadyForReview(input: { pullRequestId: $pullRequestId }) {
-              pullRequest {
-                isDraft
-              }
-            }
-          }
-        `,
-        variables: {
-          pullRequestId: prData.node_id,
-        },
-      }),
-    });
-
-    if (!graphqlResponse.ok) {
-      const error = await graphqlResponse.json();
-      return {
-        success: false,
-        error: error.message || `GraphQL API error: ${graphqlResponse.status}`,
-      };
-    }
-
-    const graphqlData = await graphqlResponse.json();
-    if (graphqlData.errors?.length) {
-      return {
-        success: false,
-        error: graphqlData.errors[0].message,
-      };
-    }
-
-    return { success: true };
-  } catch (error) {
-    return {
-      success: false,
-      error: `Failed to convert draft to ready: ${(error as Error).message}`,
-    };
-  }
-}
-
 export async function createContentFileOnBranch(
   folder: string,
   filename: string,
@@ -1511,8 +1425,28 @@ Auto-generated PR from admin panel.`;
       GITHUB_BRANCH,
       title,
       body,
-      { isDraft: options?.isDraft ?? true },
+      { isDraft: options?.isDraft ?? false },
     );
+
+    if (prResult.success && prResult.prNumber) {
+      try {
+        await fetch(
+          `https://api.github.com/repos/${GITHUB_REPO}/pulls/${prResult.prNumber}/requested_reviewers`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${githubToken}`,
+              Accept: "application/vnd.github.v3+json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              reviewers: ["harshikaalagh-netizen"],
+            }),
+          },
+        );
+      } catch {}
+    }
+
     return { ...prResult, branchName, isExistingPR: false };
   } catch (error) {
     return {

@@ -112,6 +112,10 @@ const useHandleDetectEvents = (store: ListenerStore) => {
         } else if (payload.type === "micMuted") {
           setMuted(payload.value);
         } else if (payload.type === "micProlongedUsage") {
+          if (!notificationDetectEnabledRef.current) {
+            return;
+          }
+
           if (!inMeetingReminderEnabledRef.current) {
             return;
           }

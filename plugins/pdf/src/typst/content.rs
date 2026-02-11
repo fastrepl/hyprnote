@@ -1,5 +1,6 @@
 use crate::PdfInput;
 
+use super::escape_typst_string;
 use super::markdown::markdown_to_typst;
 
 fn build_preamble() -> String {
@@ -125,21 +126,6 @@ fn build_cover_page(
     cover.push_str("]\n\n");
 
     cover
-}
-
-fn escape_typst_string(s: &str) -> String {
-    s.replace('\\', "\\\\")
-        .replace('#', "\\#")
-        .replace('$', "\\$")
-        .replace('[', "\\[")
-        .replace(']', "\\]")
-        .replace('{', "\\{")
-        .replace('}', "\\}")
-        .replace('<', "\\<")
-        .replace('>', "\\>")
-        .replace('@', "\\@")
-        .replace('*', "\\*")
-        .replace('_', "\\_")
 }
 
 pub fn build_typst_content(input: &PdfInput) -> String {

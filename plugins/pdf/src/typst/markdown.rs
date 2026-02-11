@@ -11,18 +11,7 @@ fn heading_level_to_equals(level: HeadingLevel) -> &'static str {
     }
 }
 
-fn escape_typst_text(s: &str) -> String {
-    s.replace('\\', "\\\\")
-        .replace('#', "\\#")
-        .replace('$', "\\$")
-        .replace('[', "\\[")
-        .replace(']', "\\]")
-        .replace('{', "\\{")
-        .replace('}', "\\}")
-        .replace('<', "\\<")
-        .replace('>', "\\>")
-        .replace('@', "\\@")
-}
+use super::escape_typst_string;
 
 pub fn markdown_to_typst(md: &str) -> String {
     let parser = Parser::new(md);
@@ -94,7 +83,7 @@ pub fn markdown_to_typst(md: &str) -> String {
             }
 
             Event::Text(text) => {
-                result.push_str(&escape_typst_text(&text));
+                result.push_str(&escape_typst_string(&text));
             }
 
             Event::SoftBreak => result.push('\n'),

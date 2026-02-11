@@ -97,7 +97,7 @@ export function ContextBar({ items }: { items: ContextItem[] }) {
   const overflow = items.slice(visibleCount);
 
   return (
-    <div className="mx-3 rounded-lg bg-neutral-100">
+    <div className="mx-3 rounded-t-lg bg-neutral-100">
       <div
         ref={innerRef}
         className="flex items-center gap-1.5 px-2.5 py-2 overflow-hidden"

@@ -179,7 +179,12 @@ function Container({ children }: { children: React.ReactNode }) {
   const { chat } = useShell();
 
   return (
-    <div className={cn(["relative", chat.mode !== "RightPanelOpen" && "p-1"])}>
+    <div
+      className={cn([
+        "relative",
+        chat.mode !== "RightPanelOpen" && "px-1 pb-1",
+      ])}
+    >
       <div
         className={cn([
           "flex flex-col border border-neutral-200 rounded-xl",

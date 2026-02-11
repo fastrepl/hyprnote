@@ -15,3 +15,11 @@ The app itself is about 200MB. Recording storage depends on your usage - a 1-hou
 ## Does Hyprnote work offline?
 
 Yes! Since Hyprnote uses local AI, it works completely offline. You don't need an internet connection to record, transcribe, or generate summaries. See [Local Models](/docs/developers/local-models) for available local STT models and [Local LLM Setup](/docs/faq/local-llm-setup) for configuring local AI.
+
+## How does Hyprnote route cloud LLM requests?
+
+When using cloud AI (Hyprnote Pro), LLM requests are routed through [OpenRouter](https://openrouter.ai). OpenRouter acts as a unified gateway to multiple model providers (OpenAI, Anthropic, Google, and others), so Hyprnote can switch between models without requiring separate API keys for each provider. A single `OPENROUTER_API_KEY` is all that's needed for cloud LLM access.
+
+## What is the support chat powered by?
+
+The in-app support chat uses the [Model Context Protocol (MCP)](https://modelcontextprotocol.io) to connect to Hyprnote's support server. The MCP server provides tools that can submit bug reports as GitHub issues, create feature requests as GitHub discussions, and query existing GitHub data (issues, pull requests, comments, tags) to help answer questions about known problems or planned features.

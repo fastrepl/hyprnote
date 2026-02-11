@@ -10,6 +10,7 @@ import { DownloadButton } from "@/components/download-button";
 import { Image } from "@/components/image";
 import { defaultMDXComponents } from "@/components/mdx";
 import { SlashSeparator } from "@/components/slash-separator";
+import { useBlogToc } from "@/hooks/use-blog-toc";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { AUTHOR_AVATARS } from "@/lib/team";
 
@@ -99,6 +100,7 @@ function Component() {
 
   return (
     <main
+      data-blog-article
       className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
@@ -112,7 +114,6 @@ function Component() {
         </div>
         <SlashSeparator />
         <CTASection />
-        <MobileCTA />
       </div>
     </main>
   );
@@ -250,72 +251,13 @@ function CTASection() {
   );
 }
 
-function MobileCTA() {
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setIsVisible(false);
-      } else if (currentScrollY < lastScrollY) {
-        setIsVisible(true);
-      }
-
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [lastScrollY]);
-
-  return (
-    <motion.div
-      className="sm:hidden fixed bottom-0 left-0 right-0 border-t border-neutral-200 bg-white/95 backdrop-blur-xs p-4 z-20"
-      initial={{ y: 0 }}
-      animate={{ y: isVisible ? 0 : "100%" }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-    >
-      <Link
-        to="/download/"
-        className={cn([
-          "group px-4 h-12 flex items-center justify-center text-base w-full",
-          "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
-          "hover:scale-[102%] active:scale-[98%]",
-          "transition-all",
-        ])}
-      >
-        Download for free
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          className="h-5 w-5 ml-2 group-hover:translate-y-0.5 transition-transform"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-          />
-        </svg>
-      </Link>
-    </motion.div>
-  );
-}
-
 function TableOfContents({
   toc,
 }: {
   toc: Array<{ id: string; text: string; level: number }>;
 }) {
-  const [activeId, setActiveId] = useState<string | null>(
+  const blogTocCtx = useBlogToc();
+  const [activeId, setActiveIdLocal] = useState<string | null>(
     toc.length > 0 ? toc[0].id : null,
   );
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -325,6 +267,22 @@ function TableOfContents({
   const isUserScrollingToc = useRef(false);
   const userScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wheelAccumulator = useRef(0);
+
+  const setActiveId = useCallback(
+    (id: string | null) => {
+      setActiveIdLocal(id);
+      blogTocCtx?.setActiveId(id);
+    },
+    [blogTocCtx],
+  );
+
+  useEffect(() => {
+    blogTocCtx?.setToc(toc);
+    return () => {
+      blogTocCtx?.setToc([]);
+      blogTocCtx?.setActiveId(null);
+    };
+  }, [toc]);
 
   const scrollToHeading = useCallback((id: string) => {
     isUserScrollingToc.current = true;

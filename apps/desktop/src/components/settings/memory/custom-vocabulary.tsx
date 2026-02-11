@@ -54,13 +54,7 @@ export function CustomVocabularyView() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-md font-semibold font-serif">Custom vocabulary</h3>
-        <p className="text-xs text-neutral-600">
-          Add jargons or industry/company-specific terms to improve
-          transcription accuracy
-        </p>
-      </div>
+      <h3 className="text-md font-semibold font-serif">Custom vocabulary</h3>
 
       <div className="rounded-xl border border-neutral-200 bg-white overflow-hidden">
         <form

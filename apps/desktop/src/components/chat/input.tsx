@@ -108,14 +108,13 @@ export function ChatMessageInput({
         const lowerQuery = query.toLowerCase();
 
         Object.entries(chatShortcuts).forEach(([rowId, row]) => {
+          const title = row.title as string | undefined;
           const content = row.content as string | undefined;
-          if (content && content.toLowerCase().includes(lowerQuery)) {
-            const label =
-              content.length > 40 ? content.slice(0, 40) + "..." : content;
+          if (title && content && title.toLowerCase().includes(lowerQuery)) {
             results.push({
               id: rowId,
               type: "chat_shortcut",
-              label,
+              label: title,
               content,
             });
           }

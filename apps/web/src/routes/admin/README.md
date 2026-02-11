@@ -60,10 +60,7 @@ Complete flow from editing to publication:
 
 **3. GitHub Actions Trigger**
 - `blog-grammar-check.yml` - Runs AI grammar check, posts suggestions as PR comment
-- `blog-slack-notify.yml` - Sends Slack notification (green border):
-  ```
-  ✏️ @user made changes to *Article Title*
-  ```
+- `blog-slack-notify.yml` - No notification sent (waiting for review submission)
 
 **4. User Continues Editing (Optional)**
 - Each "Save" updates the same PR branch
@@ -74,11 +71,13 @@ Complete flow from editing to publication:
 - Adds `ComputelessComputer` as PR reviewer
 
 **6. GitHub Actions Trigger Again**
-- Slack notification changes to (blue border):
+- Slack notification sent (blue border):
   ```
   👀 *Article submitted for review*
   @john please review
   ```
+  - Includes "Preview" and "View PR" buttons
+  - No "Merge" button (merge through GitHub interface)
 
 **7. Reviewer Merges PR**
 - Article goes live on the website
@@ -87,7 +86,7 @@ Complete flow from editing to publication:
 
 | Action | `ready_for_review` | Slack Message | Border |
 |--------|-------------------|---------------|--------|
-| Save | `false` | "✏️ made changes" | Green |
+| Save | `false` | No notification | - |
 | Submit for Review | `true` | "👀 submitted for review" @john | Blue |
 
 ## API Endpoints

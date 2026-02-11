@@ -24,7 +24,6 @@ import {
   PinOffIcon,
   PlusIcon,
   RefreshCwIcon,
-  SaveIcon,
   ScissorsIcon,
   SearchIcon,
   SendHorizontalIcon,
@@ -1379,7 +1378,6 @@ function ContentPanel({
             onReorderTabs={onReorderTabs}
             isPreviewMode={isPreviewMode}
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
-            onSave={handleSave}
             isSaving={isSaving}
             isPublished={currentFileContent?.published}
             onSubmitForReview={handleSubmitForReview}
@@ -1432,7 +1430,6 @@ function EditorHeader({
   onReorderTabs,
   isPreviewMode,
   onTogglePreview,
-  onSave,
   isSaving,
   isPublished,
   onSubmitForReview,
@@ -1452,7 +1449,6 @@ function EditorHeader({
   onReorderTabs: (tabs: Tab[]) => void;
   isPreviewMode: boolean;
   onTogglePreview: () => void;
-  onSave: () => void;
   isSaving: boolean;
   isPublished?: boolean;
   onSubmitForReview?: () => void;
@@ -1585,30 +1581,21 @@ function EditorHeader({
                 </>
               )}
             </button>
-            <button
-              onClick={onSave}
-              disabled={isSaving || !hasUnsavedChanges}
-              className={cn([
-                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
-                "text-white bg-neutral-900 hover:bg-neutral-800",
-                "disabled:cursor-not-allowed disabled:opacity-50",
-              ])}
-              title="Save (⌘S)"
-            >
-              {isSaving ? (
-                <Spinner size={16} color="white" />
-              ) : (
-                <SaveIcon className="size-4" />
-              )}
-              Save
-              {autoSaveCountdown !== null &&
-                autoSaveCountdown !== undefined &&
-                hasUnsavedChanges && (
-                  <span className="text-neutral-400 ml-1">
-                    ({autoSaveCountdown}s)
-                  </span>
-                )}
-            </button>
+            {isSaving ? (
+              <span className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-mono text-neutral-500">
+                <Spinner size={14} color="currentColor" />
+                Saving...
+              </span>
+            ) : hasUnsavedChanges ? (
+              <span className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-mono text-neutral-400">
+                <span className="size-1.5 rounded-full bg-amber-400" />
+                Unsaved
+                {autoSaveCountdown !== null &&
+                  autoSaveCountdown !== undefined && (
+                    <span>· {autoSaveCountdown}s</span>
+                  )}
+              </span>
+            ) : null}
             {onSubmitForReview && (
               <button
                 onClick={onSubmitForReview}

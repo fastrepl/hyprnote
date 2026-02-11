@@ -34,6 +34,9 @@ function buildFrontmatter(frontmatter: Record<string, unknown>): string {
   if (frontmatter.author) {
     lines.push(`author: ${JSON.stringify(frontmatter.author)}`);
   }
+  if (frontmatter.coverImage) {
+    lines.push(`coverImage: ${JSON.stringify(frontmatter.coverImage)}`);
+  }
   if (frontmatter.featured !== undefined) {
     lines.push(`featured: ${frontmatter.featured}`);
   }
@@ -44,9 +47,6 @@ function buildFrontmatter(frontmatter: Record<string, unknown>): string {
   }
   if (frontmatter.date) {
     lines.push(`date: ${JSON.stringify(frontmatter.date)}`);
-  }
-  if (frontmatter.coverImage) {
-    lines.push(`coverImage: ${JSON.stringify(frontmatter.coverImage)}`);
   }
 
   return `---\n${lines.join("\n")}\n---\n`;
@@ -165,7 +165,7 @@ export const Route = createFileRoute("/api/admin/content/submit-for-review")({
           if (credentials?.token) {
             const reviewerResult = await addReviewerToPR(
               prNumber,
-              "ComputelessComputer",
+              "harshikaalagh-netizen",
               credentials.token,
             );
 

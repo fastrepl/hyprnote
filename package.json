@@ -2,13 +2,14 @@
   "scripts": {
     "fmt:check": "echo 'TODO'",
     "fmt": "dprint fmt",
-    "lint": "pnpm exec oxlint --type-aware || pnpm exec eslint"
+    "lint": "oxlint --type-aware || eslint"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.52.0",
     "@prettier/plugin-oxc": "^0.1.3",
     "@tanstack/eslint-plugin-query": "^5.91.4",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "dprint": "^0.51.1",
     "eslint": "^9.39.2",
     "oxfmt": "^0.18.0",
     "oxlint": "^1.46.0",

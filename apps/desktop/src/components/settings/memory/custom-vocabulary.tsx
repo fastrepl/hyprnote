@@ -53,9 +53,9 @@ export function CustomVocabularyView() {
   const showAddButton = searchValue.trim() && !exactMatch;
 
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-sm font-medium mb-1">Custom vocabulary</h3>
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1">
+        <h3 className="text-md font-semibold font-serif">Custom vocabulary</h3>
         <p className="text-xs text-neutral-600">
           Add jargons or industry/company-specific terms to improve
           transcription accuracy

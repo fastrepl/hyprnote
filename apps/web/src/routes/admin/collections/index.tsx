@@ -39,6 +39,8 @@ import React, {
   useRef,
   useState,
 } from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import BlogEditor from "@hypr/tiptap/blog-editor";
 import "@hypr/tiptap/styles.css";
@@ -3011,10 +3013,14 @@ const FileEditor = React.forwardRef<
       </header>
       <div className="max-w-3xl mx-auto px-6 pb-8">
         <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-xs prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-xs prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
-          <MDXContent
-            code={fileContent.mdx}
-            components={defaultMDXComponents}
-          />
+          {fileContent.mdx ? (
+            <MDXContent
+              code={fileContent.mdx}
+              components={defaultMDXComponents}
+            />
+          ) : (
+            <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
+          )}
         </article>
       </div>
     </div>

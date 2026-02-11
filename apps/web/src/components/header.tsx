@@ -232,7 +232,7 @@ function LeftNav({
       <Logo />
       <Link
         to="/why-hyprnote/"
-        className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+        className="hidden md:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
       >
         Why Hyprnote
       </Link>

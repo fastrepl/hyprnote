@@ -1,3 +1,6 @@
+use std::time::Duration;
+
+use restate_sdk::context::RunRetryPolicy;
 use restate_sdk::prelude::*;
 use restate_sdk::serde::Json;
 use serde::{Deserialize, Serialize};
@@ -85,12 +88,19 @@ impl SttFileImpl {
                         TerminalError::new(format!("Failed to create signed URL: {e}")).into()
                     })
             })
+            .name("create-signed-url")
             .await?;
 
         let ingress_url = self.env.restate_ingress_url.trim_end_matches('/');
         let key = ctx.key();
         let encoded_key = urlencoding::encode(&key);
         let callback_url = format!("{ingress_url}/SttFile/{encoded_key}/onTranscript");
+
+        let soniox_retry_policy = RunRetryPolicy::default()
+            .initial_delay(Duration::from_millis(500))
+            .exponentiation_factor(2.0)
+            .max_delay(Duration::from_secs(30))
+            .max_attempts(5);
 
         let client = self.client.clone();
         let api_key = self.env.soniox_api_key.clone();
@@ -111,11 +121,32 @@ impl SttFileImpl {
                     Err(e) => Err(e.into()),
                 }
             })
+            .name("submit-soniox-transcription")
+            .retry_policy(soniox_retry_policy.clone())
             .await?;
 
         ctx.set("providerRequestId", Json(request_id));
 
-        let transcript: String = ctx.promise("transcript").await?;
+        let transcription_id: String = ctx.promise("transcription_id").await?;
+
+        let client = self.client.clone();
+        let api_key = self.env.soniox_api_key.clone();
+        let transcript: String = ctx
+            .run(|| async move {
+                soniox::fetch_transcript(&client, &transcription_id, &api_key)
+                    .await
+                    .map_err(|e| {
+                        if e.is_retryable {
+                            e.into()
+                        } else {
+                            TerminalError::new(e.message).into()
+                        }
+                    })
+            })
+            .name("fetch-soniox-transcript")
+            .retry_policy(soniox_retry_policy)
+            .await?;
+
         ctx.set("transcript", Json(transcript.clone()));
         ctx.set("status", Json("DONE".to_string()));
 
@@ -150,6 +181,7 @@ impl SttFile for SttFileImpl {
                 }
                 Ok(())
             })
+            .name("delete-audio-file")
             .await;
 
         result.map(Json)
@@ -171,18 +203,13 @@ impl SttFile for SttFileImpl {
 
         if callback.status == "error" {
             ctx.reject_promise(
-                "transcript",
+                "transcription_id",
                 TerminalError::new("Soniox transcription failed"),
             );
             return Ok(());
         }
 
-        let transcript =
-            soniox::fetch_transcript(&self.client, &callback.id, &self.env.soniox_api_key)
-                .await
-                .map_err(|e| TerminalError::new(e.to_string()))?;
-
-        ctx.resolve_promise("transcript", transcript);
+        ctx.resolve_promise("transcription_id", callback.id);
         Ok(())
     }
 

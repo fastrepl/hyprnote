@@ -55,10 +55,15 @@ impl StorageCleanup for StorageCleanupImpl {
     ) -> Result<Json<CleanupResult>, HandlerError> {
         let input = input.into_inner();
         let cutoff_ms = input.cutoff_hours * 60 * 60 * 1000;
-        let now_ms = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u64;
+        let now_ms: u64 = ctx
+            .run(|| async {
+                Ok(std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis() as u64)
+            })
+            .name("get-current-time")
+            .await?;
         let cutoff_time = now_ms - cutoff_ms;
 
         let env = self.env;
@@ -70,6 +75,7 @@ impl StorageCleanup for StorageCleanupImpl {
                     .map(Json)
                     .map_err(|e| TerminalError::new(format!("Failed to list files: {e}")).into())
             })
+            .name("list-storage-files")
             .await?;
 
         let total_scanned = files.len() as u64;
@@ -93,6 +99,7 @@ impl StorageCleanup for StorageCleanupImpl {
                             .await
                             .map_err(|e| TerminalError::new(e.to_string()).into())
                     })
+                    .name("delete-old-file")
                     .await;
 
                 match delete_result {

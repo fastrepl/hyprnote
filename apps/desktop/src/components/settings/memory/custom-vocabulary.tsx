@@ -172,8 +172,8 @@ function VocabularyItem({
       const text = value.text.trim();
       if (text && text !== item.text) {
         onUpdate(item.rowId, text);
-        onCancelEdit();
       }
+      onCancelEdit();
     },
     validators: {
       onChange: ({ value }) => {
@@ -348,6 +348,7 @@ function useVocabMutations() {
 
   return {
     create: (text: string) => {
+      if (!user_id) return;
       createRow(text);
     },
     update: (rowId: string, text: string) => {

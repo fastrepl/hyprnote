@@ -18,7 +18,6 @@ interface ArticleMetadata {
   published?: boolean;
   featured?: boolean;
   category?: string;
-  ready_for_review?: boolean;
 }
 
 interface SaveRequest {
@@ -48,23 +47,20 @@ function buildFrontmatter(metadata: ArticleMetadata): string {
   if (metadata.author) {
     lines.push(`author: ${JSON.stringify(metadata.author)}`);
   }
+  if (metadata.coverImage) {
+    lines.push(`coverImage: ${JSON.stringify(metadata.coverImage)}`);
+  }
   if (metadata.featured !== undefined) {
     lines.push(`featured: ${metadata.featured}`);
   }
   if (metadata.published !== undefined) {
     lines.push(`published: ${metadata.published}`);
   }
-  if (metadata.ready_for_review !== undefined) {
-    lines.push(`ready_for_review: ${metadata.ready_for_review}`);
-  }
   if (metadata.category) {
     lines.push(`category: ${JSON.stringify(metadata.category)}`);
   }
   if (metadata.date) {
     lines.push(`date: ${JSON.stringify(metadata.date)}`);
-  }
-  if (metadata.coverImage) {
-    lines.push(`coverImage: ${JSON.stringify(metadata.coverImage)}`);
   }
 
   return `---\n${lines.join("\n")}\n---\n`;

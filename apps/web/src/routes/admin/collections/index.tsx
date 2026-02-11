@@ -24,9 +24,9 @@ import {
   PinOffIcon,
   PlusIcon,
   RefreshCwIcon,
+  SaveIcon,
   ScissorsIcon,
   SearchIcon,
-  SendHorizontalIcon,
   SquareArrowOutUpRightIcon,
   Trash2Icon,
   XIcon,
@@ -86,7 +86,6 @@ interface DraftArticle {
   author?: string;
   date?: string;
   published?: boolean;
-  ready_for_review?: boolean;
 }
 
 interface CollectionInfo {
@@ -136,7 +135,6 @@ interface FileContent {
   published?: boolean;
   featured?: boolean;
   category?: string;
-  ready_for_review?: boolean;
 }
 
 interface ArticleMetadata {
@@ -149,7 +147,6 @@ interface ArticleMetadata {
   published: boolean;
   featured: boolean;
   category: string;
-  ready_for_review?: boolean;
 }
 
 interface EditorData {
@@ -1240,6 +1237,13 @@ function ContentPanel({
       }
       return response.json();
     },
+    onSuccess: (data) => {
+      if (data.prNumber) {
+        queryClient.invalidateQueries({
+          queryKey: ["pendingPR", currentTab?.path],
+        });
+      }
+    },
   });
 
   const handleSave = useCallback(
@@ -1287,84 +1291,6 @@ function ContentPanel({
 
   const queryClient = useQueryClient();
 
-  const { mutate: submitForReview, isPending: isSubmittingForReview } =
-    useMutation({
-      mutationFn: async (params: {
-        path: string;
-        branch: string;
-        prNumber: number;
-        prUrl?: string;
-      }) => {
-        const response = await fetch("/api/admin/content/submit-for-review", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(params),
-        });
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "Failed to submit for review");
-        }
-        const data = await response.json();
-        return { ...data, prUrl: params.prUrl };
-      },
-      onSuccess: (data) => {
-        queryClient.invalidateQueries({
-          queryKey: ["branchFile", currentTab?.path],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["pendingPRFile", currentTab?.path],
-        });
-        if (data.prUrl) {
-          window.open(data.prUrl, "_blank");
-        }
-      },
-    });
-
-  const handleSubmitForReview = useCallback(async () => {
-    if (!currentTab || !editorData) return;
-
-    const saveFirst = async () => {
-      const response = await fetch("/api/admin/content/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          path: currentTab.path,
-          content: editorData.content,
-          metadata: editorData.metadata,
-          branch: currentTab.branch,
-        }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to save");
-      }
-      return response.json();
-    };
-
-    const saveResult = await saveFirst();
-
-    await queryClient.invalidateQueries({
-      queryKey: ["pendingPR", currentTab.path],
-    });
-
-    const prData = saveResult.prNumber
-      ? {
-          branchName: saveResult.branchName,
-          prNumber: saveResult.prNumber,
-          prUrl: saveResult.prUrl,
-        }
-      : pendingPRData;
-
-    if (prData?.branchName && prData?.prNumber) {
-      submitForReview({
-        path: `apps/web/content/${currentTab.path}`,
-        branch: prData.branchName,
-        prNumber: prData.prNumber,
-        prUrl: prData.prUrl,
-      });
-    }
-  }, [currentTab, editorData, pendingPRData, submitForReview, queryClient]);
-
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {currentTab ? (
@@ -1380,11 +1306,9 @@ function ContentPanel({
             onReorderTabs={onReorderTabs}
             isPreviewMode={isPreviewMode}
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
+            onSave={handleSave}
             isSaving={isSaving}
             isPublished={currentFileContent?.published}
-            onSubmitForReview={handleSubmitForReview}
-            isSubmittingForReview={isSubmittingForReview}
-            hasPendingPR={pendingPRData?.hasPendingPR}
             onRenameFile={(newSlug) => {
               const pathParts = currentTab.path.split("/");
               pathParts[pathParts.length - 1] = `${newSlug}.mdx`;
@@ -1432,11 +1356,9 @@ function EditorHeader({
   onReorderTabs,
   isPreviewMode,
   onTogglePreview,
+  onSave,
   isSaving,
   isPublished,
-  onSubmitForReview,
-  isSubmittingForReview,
-  hasPendingPR: _hasPendingPR,
   onRenameFile,
   hasUnsavedChanges,
   autoSaveCountdown,
@@ -1451,11 +1373,9 @@ function EditorHeader({
   onReorderTabs: (tabs: Tab[]) => void;
   isPreviewMode: boolean;
   onTogglePreview: () => void;
+  onSave: () => void;
   isSaving: boolean;
   isPublished?: boolean;
-  onSubmitForReview?: () => void;
-  isSubmittingForReview?: boolean;
-  hasPendingPR?: boolean;
   onRenameFile?: (newSlug: string) => void;
   hasUnsavedChanges?: boolean;
   autoSaveCountdown?: number | null;
@@ -1583,40 +1503,30 @@ function EditorHeader({
                 </>
               )}
             </button>
-            {isSaving ? (
-              <span className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-mono text-neutral-500">
-                <Spinner size={14} color="currentColor" />
-                Saving...
-              </span>
-            ) : hasUnsavedChanges ? (
-              <span className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-mono text-neutral-400">
-                <span className="size-1.5 rounded-full bg-amber-400" />
-                Unsaved
-                {autoSaveCountdown !== null &&
-                  autoSaveCountdown !== undefined && (
-                    <span>· {autoSaveCountdown}s</span>
-                  )}
-              </span>
-            ) : null}
-            {onSubmitForReview && (
-              <button
-                onClick={onSubmitForReview}
-                disabled={isSubmittingForReview}
-                className={cn([
-                  "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
-                  "text-white bg-blue-600 hover:bg-blue-700",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                ])}
-                title="Submit for Review"
-              >
-                {isSubmittingForReview ? (
-                  <Spinner size={16} color="white" />
-                ) : (
-                  <SendHorizontalIcon className="size-4" />
+            <button
+              onClick={onSave}
+              disabled={isSaving || !hasUnsavedChanges}
+              className={cn([
+                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
+                "text-white bg-neutral-900 hover:bg-neutral-800",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              ])}
+              title="Save (⌘S)"
+            >
+              {isSaving ? (
+                <Spinner size={16} color="white" />
+              ) : (
+                <SaveIcon className="size-4" />
+              )}
+              Save
+              {autoSaveCountdown !== null &&
+                autoSaveCountdown !== undefined &&
+                hasUnsavedChanges && (
+                  <span className="text-neutral-400 ml-1">
+                    ({autoSaveCountdown}s)
+                  </span>
                 )}
-                Submit for Review
-              </button>
-            )}
+            </button>
           </div>
         )}
       </div>
@@ -2187,6 +2097,16 @@ function MetadataPanel({
             />
           </div>
         </MetadataRow>
+        <MetadataRow label="Published">
+          <div className="flex-1 flex items-center px-2 py-2">
+            <input
+              type="checkbox"
+              checked={handlers.published}
+              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
+              className="rounded"
+            />
+          </div>
+        </MetadataRow>
         <MetadataRow label="Featured" noBorder>
           <div className="flex-1 flex items-center px-2 py-2">
             <input
@@ -2452,7 +2372,6 @@ interface BranchFileResponse {
     published?: boolean;
     featured?: boolean;
     category?: string;
-    ready_for_review?: boolean;
   };
   sha: string;
 }
@@ -2554,7 +2473,6 @@ const FileEditor = React.forwardRef<
         published: branchFileData.frontmatter.published,
         featured: branchFileData.frontmatter.featured,
         category: branchFileData.frontmatter.category,
-        ready_for_review: branchFileData.frontmatter.ready_for_review,
       };
     }
     if (pendingPRData?.hasPendingPR && pendingPRFileData) {
@@ -2572,7 +2490,6 @@ const FileEditor = React.forwardRef<
         published: pendingPRFileData.frontmatter.published,
         featured: pendingPRFileData.frontmatter.featured,
         category: pendingPRFileData.frontmatter.category,
-        ready_for_review: pendingPRFileData.frontmatter.ready_for_review,
       };
     }
     return publishedFileContent;

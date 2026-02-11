@@ -7,7 +7,6 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
-import { useProSettingsSync } from "../hooks/useProSettingsSync";
 import { useTabs } from "../store/zustand/tabs";
 import { useNewNote } from "./main/shared";
 import { UndoDeleteKeyboardHandler } from "./main/sidebar/toast/undo-delete-toast";
@@ -27,8 +26,6 @@ export default function MainAppLayout() {
 }
 
 function MainAppContent() {
-  useProSettingsSync();
-
   return (
     <>
       <Outlet />

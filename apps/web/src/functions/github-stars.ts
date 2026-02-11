@@ -8,6 +8,17 @@ function getSql() {
   });
 }
 
+function getGitHubHeaders(accept?: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    "User-Agent": "hyprnote-admin",
+    Accept: accept || "application/vnd.github.v3+json",
+  };
+  if (env.GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`;
+  }
+  return headers;
+}
+
 export interface StarLead {
   id: number;
   github_username: string;
@@ -83,10 +94,7 @@ export async function fetchGitHubStargazers(): Promise<{
     const response = await fetch(
       `https://api.github.com/repos/fastrepl/hyprnote/stargazers?per_page=${perPage}&page=${page}`,
       {
-        headers: {
-          Accept: "application/vnd.github.star+json",
-          "User-Agent": "hyprnote-admin",
-        },
+        headers: getGitHubHeaders("application/vnd.github.star+json"),
       },
     );
 
@@ -132,10 +140,7 @@ export async function fetchGitHubActivity(): Promise<{
   const response = await fetch(
     "https://api.github.com/orgs/fastrepl/events?per_page=100",
     {
-      headers: {
-        Accept: "application/vnd.github.v3+json",
-        "User-Agent": "hyprnote-admin",
-      },
+      headers: getGitHubHeaders(),
     },
   );
 
@@ -162,10 +167,7 @@ export async function fetchGitHubActivity(): Promise<{
     const userResponse = await fetch(
       `https://api.github.com/users/${event.actor.login}`,
       {
-        headers: {
-          Accept: "application/vnd.github.v3+json",
-          "User-Agent": "hyprnote-admin",
-        },
+        headers: getGitHubHeaders(),
       },
     );
 
@@ -253,10 +255,7 @@ export async function researchLead(
   const profileResponse = await fetch(
     `https://api.github.com/users/${username}`,
     {
-      headers: {
-        Accept: "application/vnd.github.v3+json",
-        "User-Agent": "hyprnote-admin",
-      },
+      headers: getGitHubHeaders(),
     },
   );
 
@@ -268,10 +267,7 @@ export async function researchLead(
   const reposResponse = await fetch(
     `https://api.github.com/users/${username}/repos?sort=stars&per_page=10`,
     {
-      headers: {
-        Accept: "application/vnd.github.v3+json",
-        "User-Agent": "hyprnote-admin",
-      },
+      headers: getGitHubHeaders(),
     },
   );
 

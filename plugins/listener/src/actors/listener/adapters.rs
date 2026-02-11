@@ -135,14 +135,18 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
 
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
 
-    let client = owhisper_client::ListenClient::builder()
+    let mut builder = owhisper_client::ListenClient::builder()
         .adapter::<A>()
         .api_base(args.base_url.clone())
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
-        .extra_header(DEVICE_FINGERPRINT_HEADER, hypr_host::fingerprint())
-        .build_single()
-        .await;
+        .extra_header(DEVICE_FINGERPRINT_HEADER, hypr_host::fingerprint());
+
+    for (name, value) in &args.custom_headers {
+        builder = builder.extra_header(name, value);
+    }
+
+    let client = builder.build_single().await;
 
     let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
 
@@ -207,14 +211,18 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
 
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
 
-    let client = owhisper_client::ListenClient::builder()
+    let mut builder = owhisper_client::ListenClient::builder()
         .adapter::<A>()
         .api_base(args.base_url.clone())
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
-        .extra_header(DEVICE_FINGERPRINT_HEADER, hypr_host::fingerprint())
-        .build_dual()
-        .await;
+        .extra_header(DEVICE_FINGERPRINT_HEADER, hypr_host::fingerprint());
+
+    for (name, value) in &args.custom_headers {
+        builder = builder.extra_header(name, value);
+    }
+
+    let client = builder.build_dual().await;
 
     let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
 

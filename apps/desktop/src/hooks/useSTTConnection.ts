@@ -86,6 +86,7 @@ export const useSTTConnection = () => {
 
   const baseUrl = providerConfig?.base_url?.trim();
   const apiKey = providerConfig?.api_key?.trim();
+  const customHeadersRaw = providerConfig?.custom_headers?.trim();
 
   const connection = useMemo(() => {
     if (!current_stt_provider || !current_stt_model) {
@@ -106,6 +107,7 @@ export const useSTTConnection = () => {
         model: current_stt_model,
         baseUrl: baseUrl ?? new URL("/stt", env.VITE_AI_URL).toString(),
         apiKey: auth.session.access_token,
+        customHeaders: customHeadersRaw,
       };
     }
 
@@ -118,6 +120,7 @@ export const useSTTConnection = () => {
       model: current_stt_model,
       baseUrl,
       apiKey,
+      customHeaders: customHeadersRaw,
     };
   }, [
     current_stt_provider,

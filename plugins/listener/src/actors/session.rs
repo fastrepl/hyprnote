@@ -23,6 +23,8 @@ pub struct SessionParams {
     pub base_url: String,
     pub api_key: String,
     pub keywords: Vec<String>,
+    #[serde(default)]
+    pub custom_headers: std::collections::HashMap<String, String>,
 }
 
 #[derive(Clone)]
@@ -110,6 +112,7 @@ pub async fn spawn_session_supervisor(
                         base_url: ctx.params.base_url.clone(),
                         api_key: ctx.params.api_key.clone(),
                         keywords: ctx.params.keywords.clone(),
+                        custom_headers: ctx.params.custom_headers.clone(),
                         mode,
                         session_started_at: ctx.started_at_instant,
                         session_started_at_unix: ctx.started_at_system,

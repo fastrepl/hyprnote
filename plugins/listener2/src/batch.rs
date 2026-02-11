@@ -78,6 +78,7 @@ pub struct BatchArgs {
     pub listen_params: owhisper_interface::ListenParams,
     pub start_notifier: BatchStartNotifier,
     pub session_id: String,
+    pub custom_headers: std::collections::HashMap<String, String>,
 }
 
 pub struct BatchState {
@@ -437,14 +438,18 @@ async fn spawn_batch_task_with_adapter<A: RealtimeSttAdapter>(
             sample_rate: metadata.sample_rate,
             ..args.listen_params.clone()
         };
-        let client = owhisper_client::ListenClient::builder()
+        let mut builder = owhisper_client::ListenClient::builder()
             .adapter::<A>()
             .api_base(args.base_url)
             .api_key(args.api_key)
             .params(listen_params)
-            .extra_header(DEVICE_FINGERPRINT_HEADER, hypr_host::fingerprint())
-            .build_with_channels(channel_count)
-            .await;
+            .extra_header(DEVICE_FINGERPRINT_HEADER, hypr_host::fingerprint());
+
+        for (name, value) in &args.custom_headers {
+            builder = builder.extra_header(name, value);
+        }
+
+        let client = builder.build_with_channels(channel_count).await;
 
         let chunk_count = chunked_audio.chunks.len();
         let chunk_interval = stream_config.chunk_interval();

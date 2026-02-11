@@ -164,6 +164,16 @@ export const useRunBatch = (sessionId: string) => {
           ]);
         });
 
+      const customHeadersObj = (() => {
+        try {
+          return conn.customHeaders
+            ? JSON.parse(conn.customHeaders)
+            : undefined;
+        } catch {
+          return undefined;
+        }
+      })();
+
       const params: BatchParams = {
         session_id: sessionId,
         provider,
@@ -173,6 +183,9 @@ export const useRunBatch = (sessionId: string) => {
         api_key: options?.apiKey ?? conn.apiKey,
         keywords: options?.keywords ?? keywords ?? [],
         languages: options?.languages ?? languages ?? [],
+        ...(customHeadersObj
+          ? { custom_headers: customHeadersObj as Record<string, string> }
+          : {}),
       };
 
       await runBatch(params, { handlePersist: persist, sessionId });

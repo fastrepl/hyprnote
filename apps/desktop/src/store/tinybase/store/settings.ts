@@ -80,6 +80,7 @@ export const SETTINGS_MAPPING = {
         type: { type: "string" },
         base_url: { type: "string" },
         api_key: { type: "string" },
+        custom_headers: { type: "string" },
       },
     },
   },
@@ -167,6 +168,7 @@ export const StoreComponent = () => {
           select("type");
           select("base_url");
           select("api_key");
+          select("custom_headers");
           where((getCell) => getCell("type") === "llm");
         },
       )
@@ -177,6 +179,7 @@ export const StoreComponent = () => {
           select("type");
           select("base_url");
           select("api_key");
+          select("custom_headers");
           where((getCell) => getCell("type") === "stt");
         },
       ),

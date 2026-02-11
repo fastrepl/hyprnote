@@ -118,6 +118,7 @@ export function NonHyprProviderCard({
         type: providerType,
         base_url: config.baseUrl ?? "",
         api_key: "",
+        custom_headers: "",
       } satisfies AIProvider),
     listeners: {
       onChange: ({ formApi }) => {
@@ -186,18 +187,26 @@ export function NonHyprProviderCard({
               )}
             </form.Field>
           )}
-          {!showBaseUrl && config.baseUrl && (
-            <details className="flex flex-col gap-4 pt-2">
-              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
-                Advanced
-              </summary>
-              <div className="mt-4">
+          <details className="flex flex-col gap-4 pt-2">
+            <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
+              Advanced
+            </summary>
+            <div className="mt-4 flex flex-col gap-4">
+              {!showBaseUrl && config.baseUrl && (
                 <form.Field name="base_url">
                   {(field) => <FormField field={field} label="Base URL" />}
                 </form.Field>
-              </div>
-            </details>
-          )}
+              )}
+              <form.Field name="custom_headers">
+                {(field) => (
+                  <CustomHeadersField
+                    value={String(field.state.value ?? "")}
+                    onChange={(v) => field.handleChange(v)}
+                  />
+                )}
+              </form.Field>
+            </div>
+          </details>
         </form>
       </AccordionContent>
     </AccordionItem>
@@ -257,6 +266,96 @@ function useProvider(id: string) {
 
   const { data } = aiProviderSchema.safeParse(providerRow);
   return [data, setProvider] as const;
+}
+
+function parseHeaders(value: string): Array<{ key: string; value: string }> {
+  if (!value.trim()) return [];
+  try {
+    const parsed = JSON.parse(value) as Record<string, string>;
+    return Object.entries(parsed).map(([k, v]) => ({ key: k, value: v }));
+  } catch {
+    return [];
+  }
+}
+
+function serializeHeaders(
+  headers: Array<{ key: string; value: string }>,
+): string {
+  const filtered = headers.filter((h) => h.key.trim());
+  if (filtered.length === 0) return "";
+  const obj: Record<string, string> = {};
+  for (const h of filtered) {
+    obj[h.key] = h.value;
+  }
+  return JSON.stringify(obj);
+}
+
+function CustomHeadersField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const headers = parseHeaders(value);
+
+  const update = (newHeaders: Array<{ key: string; value: string }>) => {
+    onChange(serializeHeaders(newHeaders));
+  };
+
+  const addHeader = () => {
+    update([...headers, { key: "", value: "" }]);
+  };
+
+  const removeHeader = (index: number) => {
+    update(headers.filter((_, i) => i !== index));
+  };
+
+  const updateHeader = (index: number, field: "key" | "value", val: string) => {
+    const updated = headers.map((h, i) =>
+      i === index ? { ...h, [field]: val } : h,
+    );
+    update(updated);
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="block text-xs font-medium">Custom Headers</label>
+      {headers.map((header, index) => (
+        <div key={index} className="flex gap-2 items-center">
+          <InputGroup className="bg-white flex-1">
+            <InputGroupInput
+              placeholder="Header name"
+              value={header.key}
+              onChange={(e) => updateHeader(index, "key", e.target.value)}
+            />
+          </InputGroup>
+          <InputGroup className="bg-white flex-1">
+            <InputGroupInput
+              placeholder="Header value"
+              value={header.value}
+              onChange={(e) => updateHeader(index, "value", e.target.value)}
+            />
+          </InputGroup>
+          <button
+            type="button"
+            onClick={() => removeHeader(index)}
+            className="text-neutral-400 hover:text-neutral-600 p-1"
+          >
+            <Icon icon="mdi:close" width={16} />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={addHeader}
+        className="text-xs text-neutral-500 hover:text-neutral-700 flex items-center gap-1 w-fit"
+      >
+        <Icon icon="mdi:plus" width={14} />
+        <span>Add header</span>
+      </button>
+    </div>
+  );
 }
 
 function FormField({

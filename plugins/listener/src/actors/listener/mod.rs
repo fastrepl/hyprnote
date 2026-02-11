@@ -39,6 +39,7 @@ pub struct ListenerArgs {
     pub base_url: String,
     pub api_key: String,
     pub keywords: Vec<String>,
+    pub custom_headers: std::collections::HashMap<String, String>,
     pub mode: crate::actors::ChannelMode,
     pub session_started_at: Instant,
     pub session_started_at_unix: SystemTime,

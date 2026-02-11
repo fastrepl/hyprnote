@@ -225,6 +225,7 @@ export const aiProviderSchema = z
     type: z.enum(["stt", "llm"]),
     base_url: z.url().min(1),
     api_key: z.string(),
+    custom_headers: z.string().optional(),
   })
   .refine(
     (data) => !data.base_url.startsWith("https:") || data.api_key.length > 0,

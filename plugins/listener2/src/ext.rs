@@ -34,6 +34,8 @@ pub struct BatchParams {
     pub languages: Vec<hypr_language::Language>,
     #[serde(default)]
     pub keywords: Vec<String>,
+    #[serde(default)]
+    pub custom_headers: std::collections::HashMap<String, String>,
 }
 
 pub struct Listener2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
@@ -225,6 +227,7 @@ async fn run_batch_am(
             listen_params: listen_params.clone(),
             start_notifier: start_notifier.clone(),
             session_id: params.session_id.clone(),
+            custom_headers: params.custom_headers.clone(),
         };
 
         match spawn_batch_actor(args).await {

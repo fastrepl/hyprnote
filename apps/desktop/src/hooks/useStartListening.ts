@@ -119,6 +119,14 @@ export function useStartListening(sessionId: string) {
       });
     };
 
+    const customHeadersObj = (() => {
+      try {
+        return conn.customHeaders ? JSON.parse(conn.customHeaders) : undefined;
+      } catch {
+        return undefined;
+      }
+    })();
+
     start(
       {
         session_id: sessionId,
@@ -129,6 +137,9 @@ export function useStartListening(sessionId: string) {
         base_url: conn.baseUrl,
         api_key: conn.apiKey,
         keywords,
+        ...(customHeadersObj
+          ? { custom_headers: customHeadersObj as Record<string, string> }
+          : {}),
       },
       {
         handlePersist,

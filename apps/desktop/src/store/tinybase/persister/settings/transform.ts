@@ -3,8 +3,17 @@ import type { Content } from "tinybase/with-schemas";
 import type { Schemas, Store } from "../../store/settings";
 import { SETTINGS_MAPPING } from "../../store/settings";
 
-type ProviderData = { base_url: string; api_key: string };
-type ProviderRow = { type: "llm" | "stt"; base_url: string; api_key: string };
+type ProviderData = {
+  base_url: string;
+  api_key: string;
+  custom_headers?: string;
+};
+type ProviderRow = {
+  type: "llm" | "stt";
+  base_url: string;
+  api_key: string;
+  custom_headers: string;
+};
 
 const JSON_ARRAY_FIELDS = new Set([
   "spoken_languages",
@@ -106,6 +115,7 @@ function settingsToProviderRows(
           type: providerType,
           base_url: data.base_url ?? "",
           api_key: data.api_key ?? "",
+          custom_headers: data.custom_headers ?? "",
         };
       }
     }
@@ -143,9 +153,13 @@ function providerRowsToSettings(rows: Record<string, ProviderRow>): {
   };
 
   for (const [rowId, row] of Object.entries(rows)) {
-    const { type, base_url, api_key } = row;
+    const { type, base_url, api_key, custom_headers } = row;
     if (type === "llm" || type === "stt") {
-      result[type][rowId] = { base_url, api_key };
+      result[type][rowId] = {
+        base_url,
+        api_key,
+        ...(custom_headers ? { custom_headers } : {}),
+      };
     }
   }
 

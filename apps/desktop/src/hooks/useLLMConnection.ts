@@ -30,6 +30,7 @@ type LLMConnectionInfo = {
   modelId: string;
   baseUrl: string;
   apiKey: string;
+  customHeaders: Record<string, string>;
 };
 
 export type LLMConnectionStatus =
@@ -142,6 +143,7 @@ const resolveLLMConnection = (params: {
     providerDefinition.baseUrl?.trim() ||
     "";
   const apiKey = providerConfig?.api_key?.trim() || "";
+  const customHeaders = parseCustomHeaders(providerConfig?.custom_headers);
 
   const context: ProviderEligibilityContext = {
     isAuthenticated: !!session,
@@ -188,13 +190,14 @@ const resolveLLMConnection = (params: {
         modelId,
         baseUrl: baseUrl ?? new URL("/llm", env.VITE_AI_URL).toString(),
         apiKey: session.access_token,
+        customHeaders,
       },
       status: { status: "success", providerId, isHosted: true },
     };
   }
 
   return {
-    conn: { providerId, modelId, baseUrl, apiKey },
+    conn: { providerId, modelId, baseUrl, apiKey, customHeaders },
     status: { status: "success", providerId, isHosted: false },
   };
 };
@@ -226,13 +229,26 @@ const wrapWithThinkingMiddleware = (
   });
 };
 
+function parseCustomHeaders(raw: string | undefined): Record<string, string> {
+  if (!raw?.trim()) return {};
+  try {
+    return JSON.parse(raw) as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
 const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
+  const h =
+    Object.keys(conn.customHeaders).length > 0 ? conn.customHeaders : undefined;
+
   switch (conn.providerId) {
     case "hyprnote": {
       const provider = createOpenRouter({
         fetch: tracedFetch,
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
+        headers: h,
       });
       return wrapWithThinkingMiddleware(provider.chat(conn.modelId));
     }
@@ -244,6 +260,7 @@ const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
         headers: {
           "anthropic-version": "2023-06-01",
           "anthropic-dangerous-direct-browser-access": "true",
+          ...conn.customHeaders,
         },
       });
       return wrapWithThinkingMiddleware(provider(conn.modelId));
@@ -254,6 +271,7 @@ const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
         fetch: tauriFetch,
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
+        headers: h,
       });
       return wrapWithThinkingMiddleware(provider(conn.modelId));
     }
@@ -262,6 +280,7 @@ const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
       const provider = createOpenRouter({
         fetch: tauriFetch,
         apiKey: conn.apiKey,
+        headers: h,
       });
       return wrapWithThinkingMiddleware(provider.chat(conn.modelId));
     }
@@ -271,6 +290,7 @@ const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
         fetch: tauriFetch,
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
+        headers: h,
       });
       return wrapWithThinkingMiddleware(provider(conn.modelId));
     }
@@ -280,6 +300,9 @@ const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
       const ollamaFetch: typeof fetch = async (input, init) => {
         const headers = new Headers(init?.headers);
         headers.set("Origin", ollamaOrigin);
+        for (const [k, v] of Object.entries(conn.customHeaders)) {
+          headers.set(k, v);
+        }
         return tauriFetch(input as RequestInfo | URL, {
           ...init,
           headers,
@@ -298,6 +321,7 @@ const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
         fetch: tauriFetch,
         name: conn.providerId,
         baseURL: conn.baseUrl,
+        headers: h,
       };
       if (conn.apiKey) {
         config.apiKey = conn.apiKey;

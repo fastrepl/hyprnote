@@ -12,10 +12,17 @@ jobs:
       contents: write
 
     steps:
+      - name: Generate bot token
+        id: bot-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GITHUB_BOT_APP_ID }}
+          private-key: ${{ secrets.GITHUB_BOT_PRIVATE_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.bot-token.outputs.token }}
 
       - name: Get changed MDX files
         id: changed-files
@@ -40,8 +47,8 @@ jobs:
       - name: Commit and push formatting changes
         if: steps.changed-files.outputs.has_files == 'true'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "hyper-charlie[bot]"
+          git config user.email "hyper-charlie[bot]@users.noreply.github.com"
           git add -A
           if git diff --staged --quiet; then
             echo "No formatting changes needed"

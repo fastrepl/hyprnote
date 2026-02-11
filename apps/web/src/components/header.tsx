@@ -179,7 +179,7 @@ export function Header() {
           isDocsPage || isHandbookPage
             ? "h-17.25 md:h-17.25 max-md:h-[calc(69px+52px)]"
             : isBlogArticlePage && blogToc && blogToc.toc.length > 0
-              ? "h-[calc(69px+44px)]"
+              ? "h-[calc(69px+44px)] sm:h-17.25"
               : "h-17.25"
         }
       />
@@ -823,7 +823,7 @@ function BlogTocSubBar({
 
   return (
     <div
-      className={`${maxWidthClass} mx-auto border-x border-neutral-100 border-t border-t-neutral-50`}
+      className={`${maxWidthClass} mx-auto border-x border-neutral-100 border-t border-t-neutral-50 sm:hidden`}
     >
       <div className="flex items-center h-11 px-2">
         <button

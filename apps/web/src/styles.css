@@ -125,8 +125,10 @@
     scroll-margin-top: 69px;
   }
 
-  [data-blog-article] [id] {
-    scroll-margin-top: 113px;
+  @media (max-width: 639px) {
+    [data-blog-article] [id] {
+      scroll-margin-top: 113px;
+    }
   }
 
   .prose code:not(pre code) {

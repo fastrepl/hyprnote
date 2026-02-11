@@ -87,11 +87,14 @@ pub async fn start_trial(
         Ok(v) => v,
         Err(e) => {
             tracing::error!(error = %e, "can_start_trial RPC failed in start-trial");
-            return Json(StartTrialResponse {
-                started: false,
-                reason: Some(StartTrialReason::Error),
-            })
-            .into_response();
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(StartTrialResponse {
+                    started: false,
+                    reason: Some(StartTrialReason::Error),
+                }),
+            )
+                .into_response();
         }
     };
 

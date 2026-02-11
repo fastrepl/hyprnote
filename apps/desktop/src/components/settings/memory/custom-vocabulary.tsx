@@ -1,5 +1,13 @@
 import { useForm } from "@tanstack/react-form";
-import { Check, MinusCircle, Pencil, Plus, Search, X } from "lucide-react";
+import {
+  Check,
+  CornerDownLeft,
+  MinusCircle,
+  Pencil,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -50,7 +58,7 @@ export function CustomVocabularyView() {
 
   const allTexts = vocabItems.map((item) => item.text.toLowerCase());
   const exactMatch = allTexts.includes(searchValue.toLowerCase());
-  const showAddButton = searchValue.trim() && !exactMatch;
+  const showAddEntry = searchValue.trim() && !exactMatch;
 
   return (
     <div className="flex flex-col gap-3">
@@ -63,7 +71,7 @@ export function CustomVocabularyView() {
             e.stopPropagation();
             form.handleSubmit();
           }}
-          className="flex items-center gap-2 pl-4 pr-2 h-12 border-b border-neutral-200 bg-stone-50"
+          className="flex items-center gap-2 px-3 h-9 border-b border-neutral-200 bg-stone-50"
         >
           <Search className="size-4 text-neutral-400" />
           <form.Field name="search">
@@ -80,20 +88,34 @@ export function CustomVocabularyView() {
               />
             )}
           </form.Field>
-          {showAddButton && (
-            <Button type="submit" size="sm">
-              <Plus className="size-4" />
-              Add
-            </Button>
-          )}
         </form>
 
         <div className="max-h-[300px] overflow-y-auto">
-          {filteredItems.length === 0 ? (
+          {showAddEntry && (
+            <button
+              type="button"
+              onClick={() => form.handleSubmit()}
+              className={cn([
+                "flex items-center justify-between w-full px-4 py-2.5",
+                "border-b border-neutral-100",
+                "hover:bg-neutral-50 transition-colors group",
+              ])}
+            >
+              <div className="flex items-center gap-2">
+                <Plus className="size-3.5 text-neutral-400" />
+                <span className="text-sm text-neutral-700">
+                  Add "<span className="font-medium">{searchValue.trim()}</span>
+                  "
+                </span>
+              </div>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <CornerDownLeft className="size-3.5 text-neutral-400" />
+              </span>
+            </button>
+          )}
+          {filteredItems.length === 0 && !showAddEntry ? (
             <div className="px-4 py-8 text-center text-sm text-neutral-400">
-              {searchValue.trim()
-                ? "No matching terms"
-                : "No custom vocabulary added"}
+              No custom vocabulary added
             </div>
           ) : (
             filteredItems.map((item: VocabItem) => (

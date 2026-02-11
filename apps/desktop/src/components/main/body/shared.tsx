@@ -296,7 +296,7 @@ export function TabItemBase({
         <PopoverContent
           side="bottom"
           align="start"
-          className="w-48 p-3 rounded-xl"
+          className="w-[240px] p-3 rounded-xl"
           sideOffset={2}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
@@ -307,8 +307,7 @@ export function TabItemBase({
             </p>
             <Button
               variant="destructive"
-              size="sm"
-              className="w-full rounded-lg flex items-center justify-center relative group"
+              className="w-full h-9 rounded-lg flex items-center justify-center relative group"
               onClick={(e) => {
                 e.stopPropagation();
                 handleConfirmClose();

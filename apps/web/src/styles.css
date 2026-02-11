@@ -125,6 +125,10 @@
     scroll-margin-top: 69px;
   }
 
+  [data-blog-article] [id] {
+    scroll-margin-top: 113px;
+  }
+
   .prose code:not(pre code) {
     overflow-wrap: break-word;
     word-break: break-all;

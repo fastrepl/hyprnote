@@ -57,11 +57,12 @@ export function useLocalProviderStatus(providerId: string): {
   }
 
   const status: LocalProviderStatus =
-    query.isLoading || query.isFetching
+    query.isLoading
       ? "checking"
       : query.data
         ? "connected"
         : "disconnected";
+
 
   return { status, refetch: () => void query.refetch() };
 }

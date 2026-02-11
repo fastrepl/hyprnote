@@ -79,11 +79,12 @@ function StarsPage() {
 
   const autoFetchedRef = useRef(false);
   useEffect(() => {
-    if (!autoFetchedRef.current && !isLoading && data && data.total === 0) {
+    if (!autoFetchedRef.current && !isLoading && data && data.total === 0 && filter === "all") {
       autoFetchedRef.current = true;
       fetchMutation.mutate("stargazers");
     }
-  }, [isLoading, data]);
+  }, [isLoading, data, filter]);
+
 
   const leads = data?.leads ?? [];
   const total = data?.total ?? 0;

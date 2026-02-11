@@ -48,6 +48,7 @@ type ProviderConfig = {
   links?: {
     download?: { label: string; url: string };
     models?: { label: string; url: string };
+    setup?: { label: string; url: string };
   };
 };
 
@@ -231,15 +232,31 @@ export function NonHyprProviderCard({
                 </a>
               )}
               {config.links.models && (
-                <a
-                  href={config.links.models.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-0.5 text-neutral-600 hover:text-neutral-900 hover:underline"
-                >
-                  {config.links.models.label}
-                  <ExternalLink size={12} />
-                </a>
+                <div className="inline-flex items-center gap-2">
+                  <a
+                    href={config.links.models.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 text-neutral-600 hover:text-neutral-900 hover:underline"
+                  >
+                    {config.links.models.label}
+                    <ExternalLink size={12} />
+                  </a>
+                  {config.links.setup && (
+                    <>
+                      <span className="text-neutral-400">•</span>
+                      <a
+                        href={config.links.setup.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-0.5 text-neutral-600 hover:text-neutral-900 hover:underline"
+                      >
+                        {config.links.setup.label}
+                        <ExternalLink size={12} />
+                      </a>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           )}

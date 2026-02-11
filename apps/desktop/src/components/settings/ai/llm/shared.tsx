@@ -27,6 +27,7 @@ type Provider = {
   links?: {
     download?: { label: string; url: string };
     models?: { label: string; url: string };
+    setup?: { label: string; url: string };
   };
 };
 
@@ -55,6 +56,10 @@ const _PROVIDERS = [
         url: "https://lmstudio.ai/download",
       },
       models: { label: "Available models", url: "https://lmstudio.ai/models" },
+      setup: {
+        label: "Setup guide",
+        url: "https://hyprnote.com/docs/faq/local-llm-setup/#lm-studio-setup",
+      },
     },
   },
   {
@@ -70,6 +75,10 @@ const _PROVIDERS = [
         url: "https://ollama.com/download",
       },
       models: { label: "Available models", url: "https://ollama.com/library" },
+      setup: {
+        label: "Setup guide",
+        url: "https://hyprnote.com/docs/faq/local-llm-setup/#ollama-setup",
+      },
     },
   },
   {

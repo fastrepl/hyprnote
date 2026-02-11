@@ -11,9 +11,9 @@ use crate::config::SupportConfig;
 pub(crate) struct AppState {
     pub(crate) config: SupportConfig,
     pub(crate) octocrab: Octocrab,
-    pub(crate) db_pool: PgPool,
+    pub(crate) _db_pool: PgPool,
     pub(crate) stripe: StripeClient,
-    pub(crate) auth: AuthState,
+    pub(crate) _auth: AuthState,
     pub(crate) http_client: HttpClient,
 }
 
@@ -46,9 +46,9 @@ impl AppState {
         Self {
             config,
             octocrab,
-            db_pool,
+            _db_pool: db_pool,
             stripe,
-            auth,
+            _auth: auth,
             http_client: HttpClient::new(),
         }
     }

@@ -107,14 +107,13 @@ pub async fn optional_auth(
         .headers()
         .get("Authorization")
         .and_then(|h| h.to_str().ok())
+        && let Some(token) = SupabaseAuth::extract_token(auth_header)
     {
-        if let Some(token) = SupabaseAuth::extract_token(auth_header) {
-            let token = token.to_owned();
-            if let Ok(claims) = state.inner.verify_token(&token).await {
-                request
-                    .extensions_mut()
-                    .insert(AuthContext { token, claims });
-            }
+        let token = token.to_owned();
+        if let Ok(claims) = state.inner.verify_token(&token).await {
+            request
+                .extensions_mut()
+                .insert(AuthContext { token, claims });
         }
     }
     next.run(request).await

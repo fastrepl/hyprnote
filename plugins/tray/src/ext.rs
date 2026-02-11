@@ -1,13 +1,13 @@
 use tauri::{
-    AppHandle, Result,
+    Result,
     image::Image,
     menu::{Menu, MenuItemKind, PredefinedMenuItem, Submenu},
     tray::TrayIconBuilder,
 };
 
 use crate::menu_items::{
-    AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, HyprMenuItem, MenuItemHandler,
-    TrayCheckUpdate, TrayOpen, TrayQuit, TraySettings, TrayStart,
+    AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, MenuItemHandler, TrayCheckUpdate, TrayOpen,
+    TrayQuit, TraySettings, TrayStart,
 };
 
 const TRAY_ID: &str = "hypr-tray";

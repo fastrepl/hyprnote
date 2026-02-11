@@ -229,7 +229,15 @@ export function useIgnoredEvents() {
       recurrenceSeriesId: string | null | undefined,
       day: string | null | undefined,
     ) => {
-      if (trackingId && day && ignoredEventMap.get(trackingId)?.has(day))
+      // should not consider day if not recurrent
+      if (!recurrenceSeriesId && trackingId && ignoredEventMap.has(trackingId))
+        return true;
+      if (
+        recurrenceSeriesId &&
+        trackingId &&
+        day &&
+        ignoredEventMap.get(trackingId)?.has(day)
+      )
         return true;
       if (recurrenceSeriesId && ignoredSeriesIds.has(recurrenceSeriesId))
         return true;

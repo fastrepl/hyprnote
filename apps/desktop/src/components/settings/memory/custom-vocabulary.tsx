@@ -57,8 +57,9 @@ export function CustomVocabularyView() {
   }, [vocabItems]);
 
   const allTexts = vocabItems.map((item) => item.text.toLowerCase());
-  const exactMatch = allTexts.includes(searchValue.toLowerCase());
+  const exactMatch = allTexts.includes(searchValue.trim().toLowerCase());
   const showAddEntry = searchValue.trim() && !exactMatch;
+
 
   return (
     <div className="flex flex-col gap-3">

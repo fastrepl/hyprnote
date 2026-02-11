@@ -3,6 +3,7 @@ name: devin_explore_issues
 on:
   issues:
     types: [opened]
+  workflow_dispatch:
 
 jobs:
   run:
@@ -49,7 +50,7 @@ jobs:
             - If the issue is unclear, note what additional information would be helpful
           vars: |
             {
-              "title": "${{ github.event.issue.title }}",
+              "title": ${{ toJSON(github.event.issue.title) }},
               "number": "${{ github.event.issue.number }}",
               "url": "${{ github.event.issue.html_url }}",
               "body": ${{ toJSON(github.event.issue.body) }}

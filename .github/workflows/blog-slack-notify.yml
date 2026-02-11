@@ -177,7 +177,17 @@ jobs:
                       "type": "section",
                       "text": {
                         "type": "mrkdwn",
-                        "text": "👀 *Article submitted for review*\n<@U08PVBSGL31> please review\n\n>*${{ steps.article-info.outputs.title }}*"
+                        "text": "👀 *Article submitted for review*\n<@U0976J9CAKF> please review"
+                      }
+                    },
+                    {
+                      "type": "divider"
+                    },
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "*${{ steps.article-info.outputs.title }}*"
                       }
                     },
                     {
@@ -185,7 +195,7 @@ jobs:
                       "elements": [
                         {
                           "type": "mrkdwn",
-                          "text": "👤 ${{ steps.article-info.outputs.author }}${{ steps.article-info.outputs.date != '' && format(' • 📅 {0}', steps.article-info.outputs.date) || '' }}"
+                          "text": "✍️ ${{ steps.article-info.outputs.author }}${{ steps.article-info.outputs.date != '' && format('  •  📅 {0}', steps.article-info.outputs.date) || '' }}"
                         }
                       ]
                     },

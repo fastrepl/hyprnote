@@ -11,7 +11,7 @@ fn heading_level_to_equals(level: HeadingLevel) -> &'static str {
     }
 }
 
-use super::escape_typst_string;
+use super::utils::escape_typst_string;
 
 pub fn markdown_to_typst(md: &str) -> String {
     let parser = Parser::new(md);

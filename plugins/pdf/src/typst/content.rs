@@ -1,7 +1,7 @@
 use crate::PdfInput;
 
-use super::escape_typst_string;
 use super::markdown::markdown_to_typst;
+use super::utils::escape_typst_string;
 
 fn build_preamble() -> String {
     r##"

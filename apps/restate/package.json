@@ -23,10 +23,10 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260131.0",
+    "@cloudflare/workers-types": "^4.20260210.0",
     "@dotenvx/dotenvx": "^1.52.0",
-    "@restatedev/restate": "^1.6.0",
+    "@restatedev/restate": "^1.6.1",
     "typescript": "^5.9.3",
-    "wrangler": "^4.61.1"
+    "wrangler": "^4.64.0"
   }
 }

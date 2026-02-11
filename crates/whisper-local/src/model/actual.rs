@@ -231,17 +231,48 @@ impl Whisper {
     fn filter_segments(segments: Vec<Segment>) -> Vec<Segment> {
         segments
             .into_iter()
-            .filter(|s| {
-                let t = s.text.trim().to_lowercase();
-
-                !(s.confidence < 0.005
-                    || t == "you"
-                    || t == "thank you"
-                    || t == "you."
-                    || t == "thank you."
-                    || t == "♪")
-            })
+            .filter(|s| !Self::is_hallucination(s))
             .collect()
+    }
+
+    fn is_hallucination(s: &Segment) -> bool {
+        if s.confidence < 0.005 {
+            return true;
+        }
+
+        let t = s.text.trim().to_lowercase();
+        let stripped = t.trim_matches(|c: char| c.is_ascii_punctuation());
+
+        if matches!(
+            stripped,
+            "" | "you"
+                | "the"
+                | "thanks"
+                | "thank you"
+                | "bye"
+                | "goodbye"
+                | "bye bye"
+                | "so"
+                | "oh"
+                | "uh"
+                | "hmm"
+                | "ah"
+                | "music"
+        ) {
+            return true;
+        }
+
+        if t.contains('♪') || t.contains('🎵') {
+            return true;
+        }
+
+        stripped.starts_with("thank you")
+            || stripped.starts_with("thanks for watching")
+            || stripped.starts_with("thanks for listening")
+            || stripped.starts_with("please subscribe")
+            || stripped.starts_with("like and subscribe")
+            || stripped.starts_with("subtitles by")
+            || stripped.starts_with("subscribe to")
     }
 
     unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperTokenId) {

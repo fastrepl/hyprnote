@@ -2,7 +2,7 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -102,17 +102,13 @@ function Component() {
       className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
+      <TableOfContents toc={article.toc} />
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection article={article} />
         <SlashSeparator />
         <div className="max-w-200 mx-auto px-4 py-8">
-          <div className="flex gap-8">
-            <TableOfContents toc={article.toc} />
-            <div className="flex-1 min-w-0">
-              <ArticleContent article={article} />
-              <RelatedArticlesSection relatedArticles={relatedArticles} />
-            </div>
-          </div>
+          <ArticleContent article={article} />
+          <RelatedArticlesSection relatedArticles={relatedArticles} />
         </div>
         <SlashSeparator />
         <CTASection />
@@ -319,33 +315,125 @@ function TableOfContents({
 }: {
   toc: Array<{ id: string; text: string; level: number }>;
 }) {
+  const [activeId, setActiveId] = useState<string | null>(
+    toc.length > 0 ? toc[0].id : null,
+  );
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const headingElementsRef = useRef<Record<string, IntersectionObserverEntry>>(
+    {},
+  );
+
+  const getActiveHeading = useCallback(() => {
+    const visibleHeadings: IntersectionObserverEntry[] = [];
+    for (const entry of Object.values(headingElementsRef.current)) {
+      if (entry.isIntersecting) {
+        visibleHeadings.push(entry);
+      }
+    }
+
+    if (visibleHeadings.length > 0) {
+      const sorted = visibleHeadings.sort(
+        (a, b) =>
+          (a.target as HTMLElement).getBoundingClientRect().top -
+          (b.target as HTMLElement).getBoundingClientRect().top,
+      );
+      return sorted[0].target.id;
+    }
+    return null;
+  }, []);
+
+  useEffect(() => {
+    if (toc.length === 0) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          headingElementsRef.current[entry.target.id] = entry;
+        }
+        const active = getActiveHeading();
+        if (active) {
+          setActiveId(active);
+        }
+      },
+      { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+    );
+
+    const headingIds = toc.map((item) => item.id);
+    for (const id of headingIds) {
+      const el = document.getElementById(id);
+      if (el) {
+        observerRef.current.observe(el);
+      }
+    }
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, [toc, getActiveHeading]);
+
   if (toc.length === 0) {
     return null;
   }
 
+  const activeIndex = toc.findIndex((item) => item.id === activeId);
+  const ITEM_HEIGHT = 40;
+
   return (
-    <aside className="hidden lg:block w-56 shrink-0">
-      <nav className="sticky top-21.25">
-        <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3">
-          On this page
-        </p>
-        <div className="flex flex-col gap-1">
-          {toc.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className={cn([
-                "block text-sm py-1 transition-colors border-l-2",
-                item.level === 4 && "pl-6",
-                item.level === 3 && "pl-4",
-                item.level === 2 && "pl-2",
-                "border-transparent text-neutral-600 hover:text-stone-600 hover:border-neutral-300",
-              ])}
-            >
-              {item.text}
-            </a>
-          ))}
-        </div>
+    <aside
+      className={cn([
+        "hidden xl:flex fixed left-0 top-0 h-screen z-10",
+        "w-64 items-center",
+      ])}
+    >
+      <nav
+        className="relative w-full overflow-hidden"
+        style={{ height: ITEM_HEIGHT * 5 }}
+      >
+        <motion.div
+          className="flex flex-col"
+          animate={{ y: -activeIndex * ITEM_HEIGHT + ITEM_HEIGHT * 2 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
+          {toc.map((item, index) => {
+            const distance = Math.abs(index - activeIndex);
+            const isActive = index === activeIndex;
+
+            return (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById(item.id)?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }}
+                className={cn([
+                  "flex items-center shrink-0 pl-6 pr-4 transition-colors duration-200",
+                  isActive
+                    ? "text-stone-800 font-medium"
+                    : "text-neutral-400 hover:text-neutral-600",
+                  item.level === 3 && "pl-9",
+                  item.level === 4 && "pl-12",
+                ])}
+                style={{
+                  height: ITEM_HEIGHT,
+                  opacity: isActive
+                    ? 1
+                    : distance === 1
+                      ? 0.45
+                      : distance === 2
+                        ? 0.2
+                        : 0.08,
+                  fontSize: isActive ? 14 : 13,
+                }}
+              >
+                <span className="line-clamp-1">{item.text}</span>
+              </a>
+            );
+          })}
+        </motion.div>
       </nav>
     </aside>
   );

@@ -79,6 +79,12 @@ impl StorageCleanup for StorageCleanupImpl {
             .await?;
 
         let total_scanned = files.len() as u64;
+        tracing::info!(
+            total_files = total_scanned,
+            cutoff_hours = input.cutoff_hours,
+            "starting storage cleanup"
+        );
+
         let mut deleted_count = 0u64;
         let mut failed_count = 0u64;
         let mut errors = Vec::new();
@@ -115,6 +121,13 @@ impl StorageCleanup for StorageCleanupImpl {
                 }
             }
         }
+
+        tracing::info!(
+            deleted = deleted_count,
+            failed = failed_count,
+            total = total_scanned,
+            "storage cleanup completed"
+        );
 
         Ok(Json(CleanupResult {
             deleted_count,

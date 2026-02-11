@@ -39,6 +39,7 @@ impl RateLimiter for RateLimiterImpl {
                     .unwrap()
                     .as_millis() as u64)
             })
+            .name("get-current-time")
             .await?;
 
         let state: RateLimitState = ctx

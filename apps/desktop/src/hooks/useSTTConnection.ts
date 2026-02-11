@@ -73,6 +73,7 @@ export const useSTTConnection = () => {
             model: current_stt_model,
             baseUrl: server.url,
             apiKey: "",
+            customHeaders: undefined as string | undefined,
           },
         };
       }

@@ -8,11 +8,9 @@ use hypr_api_auth::AuthContext;
 
 #[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
-#[allow(dead_code)]
 pub enum CanStartTrialReason {
     Eligible,
-    HasActiveSubscription,
-    HadRecentTrial,
+    NotEligible,
     Error,
 }
 
@@ -51,7 +49,7 @@ pub async fn can_start_trial(
         }),
         Ok(false) => Json(CanStartTrialResponse {
             can_start_trial: false,
-            reason: Some(CanStartTrialReason::HasActiveSubscription),
+            reason: Some(CanStartTrialReason::NotEligible),
         }),
         Err(e) => {
             tracing::error!(error = %e, "can_start_trial RPC failed");

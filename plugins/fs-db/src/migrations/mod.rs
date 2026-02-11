@@ -42,4 +42,5 @@ migrations! {
     v1_0_2_nightly_6_rename_transcript,
     v1_0_2_nightly_14_extract_from_sqlite,
     v1_0_4_nightly_2_repair_transcripts,
+    v1_0_6_nightly_2_events_sync,
 }

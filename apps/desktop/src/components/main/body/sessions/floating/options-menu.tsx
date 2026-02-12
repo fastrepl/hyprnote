@@ -378,9 +378,9 @@ export function OptionsMenu({
               action={
                 onConfigure
                   ? {
-                    label: "Configure",
-                    handleClick: onConfigure,
-                  }
+                      label: "Configure",
+                      handleClick: onConfigure,
+                    }
                   : undefined
               }
             />

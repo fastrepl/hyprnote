@@ -275,6 +275,18 @@ function CollectionsPage() {
   const [deleteConfirmation, setDeleteConfirmation] =
     useState<DeleteConfirmation | null>(null);
 
+  const draftSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleDraftSync = useCallback(() => {
+    if (draftSyncTimerRef.current) {
+      clearTimeout(draftSyncTimerRef.current);
+    }
+    draftSyncTimerRef.current = setTimeout(() => {
+      draftSyncTimerRef.current = null;
+      queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
+    }, 5000);
+  }, [queryClient]);
+
   const createMutation = useMutation({
     mutationFn: async (params: {
       folder: string;
@@ -308,6 +320,7 @@ function CollectionsPage() {
             },
           ],
         );
+        scheduleDraftSync();
       } else {
         queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
       }

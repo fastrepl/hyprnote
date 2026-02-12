@@ -111,7 +111,8 @@ export type Tab =
   | (BaseTab & {
       type: "chat";
       state: ChatState;
-    });
+    })
+  | (BaseTab & { type: "onboarding" });
 
 export const getDefaultState = (tab: TabInput): Tab => {
   const base = { active: false, slotId: "", pinned: false };
@@ -217,6 +218,8 @@ export const getDefaultState = (tab: TabInput): Tab => {
           chatType: null,
         },
       };
+    case "onboarding":
+      return { ...base, type: "onboarding" };
     default:
       const _exhaustive: never = tab;
       return _exhaustive;
@@ -259,6 +262,8 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `search`;
     case "chat":
       return `chat`;
+    case "onboarding":
+      return `onboarding`;
   }
 };
 

@@ -15,10 +15,6 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
                 if w == AppWindow::Main && w.hide(app).is_ok() {
                     api.prevent_close();
                 }
-                if w == AppWindow::Onboarding {
-                    use tauri_plugin_sfx::SfxPluginExt;
-                    app.sfx().stop(tauri_plugin_sfx::AppSounds::BGM);
-                }
             }
         }
     }

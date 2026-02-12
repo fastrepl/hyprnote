@@ -1294,22 +1294,20 @@ export async function getExistingEditPRForArticle(filePath: string): Promise<{
   return { success: true, hasPendingPR: false };
 }
 
-export async function savePublishedArticleWithPR(
+export async function savePublishedArticleToBranch(
   filePath: string,
   content: string,
-  metadata: {
+  _metadata: {
     meta_title?: string;
     display_title?: string;
     author?: string;
   },
-  options?: { isDraft?: boolean },
 ): Promise<{
   success: boolean;
   prNumber?: number;
   prUrl?: string;
   branchName?: string;
   isExistingPR?: boolean;
-  isDraft?: boolean;
   error?: string;
 }> {
   const slug = filePath.replace(/\.mdx$/, "").replace(/^articles\//, "");
@@ -1400,54 +1398,13 @@ export async function savePublishedArticleWithPR(
       };
     }
 
-    if (isExistingPR) {
-      return {
-        success: true,
-        prNumber: existingPR.prNumber,
-        prUrl: existingPR.prUrl,
-        branchName,
-        isExistingPR: true,
-      };
-    }
-
-    const title = `Update: ${metadata.display_title || metadata.meta_title || slug}`;
-    const body = `## Article Update
-
-**Title:** ${metadata.display_title || metadata.meta_title || "Untitled"}
-**Author:** ${metadata.author || "Unknown"}
-**File:** apps/web/content/${filePath}
-
----
-Auto-generated PR from admin panel.`;
-
-    const prResult = await createPullRequest(
+    return {
+      success: true,
       branchName,
-      GITHUB_BRANCH,
-      title,
-      body,
-      { isDraft: options?.isDraft ?? false },
-    );
-
-    if (prResult.success && prResult.prNumber) {
-      try {
-        await fetch(
-          `https://api.github.com/repos/${GITHUB_REPO}/pulls/${prResult.prNumber}/requested_reviewers`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${githubToken}`,
-              Accept: "application/vnd.github.v3+json",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              reviewers: ["harshikaalagh-netizen"],
-            }),
-          },
-        );
-      } catch {}
-    }
-
-    return { ...prResult, branchName, isExistingPR: false };
+      isExistingPR,
+      prNumber: existingPR.prNumber,
+      prUrl: existingPR.prUrl,
+    };
   } catch (error) {
     return {
       success: false,
@@ -1489,7 +1446,36 @@ export async function publishArticle(
 ---
 Auto-generated PR from admin panel.`;
 
-  return createPullRequest(branchName, GITHUB_BRANCH, title, body);
+  const prResult = await createPullRequest(
+    branchName,
+    GITHUB_BRANCH,
+    title,
+    body,
+  );
+
+  if (prResult.success && prResult.prNumber) {
+    const credentials = await getGitHubCredentials();
+    if (credentials?.token) {
+      try {
+        await fetch(
+          `https://api.github.com/repos/${GITHUB_REPO}/pulls/${prResult.prNumber}/requested_reviewers`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${credentials.token}`,
+              Accept: "application/vnd.github.v3+json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              reviewers: ["harshikaalagh-netizen"],
+            }),
+          },
+        );
+      } catch {}
+    }
+  }
+
+  return prResult;
 }
 
 export async function listBlogBranches(): Promise<{

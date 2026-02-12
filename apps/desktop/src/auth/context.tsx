@@ -215,10 +215,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    const client = supabase;
+
     // startAutoRefresh() removes the SDK's visibilitychange listener and
     // runs the refresh ticker continuously (checks storage every 30s,
     // only makes a network call when the token is near expiry).
-    void supabase.auth.startAutoRefresh();
+    void client.auth.startAutoRefresh();
 
     let unlisten: (() => void) | undefined;
     void getCurrentWindow()
@@ -226,7 +228,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (focused) {
           // Restart the ticker on window focus to trigger an immediate refresh
           // check, recovering stale sessions after sleep/hibernate.
-          void supabase.auth.startAutoRefresh();
+          void client.auth.startAutoRefresh();
         }
       })
       .then((fn) => {
@@ -235,7 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       unlisten?.();
-      void supabase.auth.stopAutoRefresh();
+      void client.auth.stopAutoRefresh();
     };
   }, []);
 

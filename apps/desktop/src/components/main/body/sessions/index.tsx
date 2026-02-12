@@ -204,6 +204,8 @@ function TabContentNoteInner({
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const prevSessionMode = useRef<string | null>(sessionMode);
 
+  useAutoFocusTitle({ sessionId, titleInputRef });
+
   useEffect(() => {
     const justStartedListening =
       prevSessionMode.current !== "active" && sessionMode === "active";
@@ -338,4 +340,26 @@ function StatusBanner({
     </AnimatePresence>,
     document.body,
   );
+}
+
+function useAutoFocusTitle({
+  sessionId,
+  titleInputRef,
+}: {
+  sessionId: string;
+  titleInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  // Prevent re-focusing when the user intentionally leaves the title empty.
+  const didAutoFocus = useRef(false);
+
+  const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
+
+  useEffect(() => {
+    if (didAutoFocus.current) return;
+
+    if (!title) {
+      titleInputRef.current?.focus();
+      didAutoFocus.current = true;
+    }
+  }, [sessionId, title]);
 }

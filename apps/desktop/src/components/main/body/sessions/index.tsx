@@ -198,11 +198,23 @@ function TabContentNoteInner({
   const hasTranscript = useHasTranscript(tab.id);
 
   const sessionId = tab.id;
+  const title = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "title",
+    main.STORE_ID,
+  ) as string | undefined;
   const { skipReason } = useAutoEnhance(tab);
   const [showConsentBanner, setShowConsentBanner] = useState(false);
 
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const prevSessionMode = useRef<string | null>(sessionMode);
+
+  useEffect(() => {
+    if (!title) {
+      titleInputRef.current?.focus();
+    }
+  }, []);
 
   useEffect(() => {
     const justStartedListening =

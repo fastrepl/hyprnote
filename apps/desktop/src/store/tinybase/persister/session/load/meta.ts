@@ -38,7 +38,7 @@ export function processMetaFile(
       created_at: meta.created_at ?? "",
       title: meta.title ?? "",
       folder_id: folderPath,
-      eventJson: eventValue,
+      event_json: eventValue,
       raw_md: "",
     };
 

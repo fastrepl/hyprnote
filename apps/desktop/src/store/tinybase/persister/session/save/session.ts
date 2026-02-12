@@ -51,7 +51,7 @@ export function tablesToSessionMetaMap(
         user_id: session.user_id ?? "",
         created_at: session.created_at ?? "",
         title: session.title ?? "",
-        event: tryParseJson(session.eventJson),
+        event: tryParseJson(session.event_json),
         participants: participantsBySession.get(session.id) ?? [],
         tags: tagsBySession.get(session.id),
       },
@@ -91,7 +91,7 @@ function collectSessionMetas(ctx: BuildContext): MetaItem[] {
         user_id: session.user_id ?? "",
         created_at: session.created_at ?? "",
         title: session.title ?? "",
-        event: tryParseJson(session.eventJson),
+        event: tryParseJson(session.event_json),
         participants: participantsBySession.get(session.id) ?? [],
         tags: tagsBySession.get(session.id),
       };

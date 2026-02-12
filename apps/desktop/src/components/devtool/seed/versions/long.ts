@@ -54,7 +54,7 @@ const buildLongData = (): Tables<Schemas[0]> => {
         created_at: session.data.created_at ?? "",
         title: session.data.title ?? "",
         raw_md: session.data.raw_md ?? "",
-        eventJson: session.data.eventJson,
+        event_json: session.data.event_json,
         folder_id: session.data.folder_id,
       },
     },

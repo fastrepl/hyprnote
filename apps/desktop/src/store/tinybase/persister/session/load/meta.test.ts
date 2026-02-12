@@ -144,7 +144,7 @@ describe("processMetaFile", () => {
       created_at: "2024-01-01T00:00:00Z",
       title: "Test Session",
       folder_id: "/data/sessions",
-      eventJson: "event-1",
+      event_json: "event-1",
       raw_md: "",
     });
   });

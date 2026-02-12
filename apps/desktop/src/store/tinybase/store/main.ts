@@ -107,7 +107,7 @@ export const StoreComponent = () => {
           ({ select }) => {
             select("title");
             select("created_at");
-            select("eventJson");
+            select("event_json");
             select("folder_id");
           },
         )
@@ -251,7 +251,7 @@ export const StoreComponent = () => {
         INDEXES.sessionByDateWithoutEvent,
         "sessions",
         (getCell) => {
-          if (getCell("eventJson")) {
+          if (getCell("event_json")) {
             return "";
           }
 
@@ -275,9 +275,9 @@ export const StoreComponent = () => {
         INDEXES.sessionsByEventTrackingId,
         "sessions",
         (getCell) => {
-          const eventJson = getCell("eventJson") as string | undefined;
+          const eventJson = getCell("event_json") as string | undefined;
           if (!eventJson) return "";
-          return getSessionEvent({ eventJson })?.tracking_id || "";
+          return getSessionEvent({ event_json: eventJson })?.tracking_id || "";
         },
       )
       .setIndexDefinition(
@@ -399,7 +399,7 @@ interface _QueryResultRows {
   timelineSessions: {
     title: string;
     created_at: string;
-    eventJson: string;
+    event_json: string;
     folder_id: string;
   };
   visibleHumans: {

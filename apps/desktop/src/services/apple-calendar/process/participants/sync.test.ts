@@ -5,7 +5,7 @@ import { syncParticipants } from "./sync";
 
 type MockStoreData = {
   humans: Record<string, { email?: string; name?: string }>;
-  sessions: Record<string, { eventJson?: string }>;
+  sessions: Record<string, { event_json?: string }>;
   mapping_session_participant: Record<
     string,
     { session_id: string; human_id: string; source?: string }
@@ -81,7 +81,7 @@ describe("syncParticipants", () => {
       humans: {},
       sessions: {
         "session-1": {
-          eventJson: JSON.stringify({ tracking_id: "tracking-1" }),
+          event_json: JSON.stringify({ tracking_id: "tracking-1" }),
         },
       },
       mapping_session_participant: {},
@@ -105,7 +105,7 @@ describe("syncParticipants", () => {
       humans: { "human-1": { email: "existing@example.com" } },
       sessions: {
         "session-1": {
-          eventJson: JSON.stringify({ tracking_id: "tracking-1" }),
+          event_json: JSON.stringify({ tracking_id: "tracking-1" }),
         },
       },
       mapping_session_participant: {},
@@ -129,7 +129,7 @@ describe("syncParticipants", () => {
       humans: { "human-1": { email: "removed@example.com" } },
       sessions: {
         "session-1": {
-          eventJson: JSON.stringify({ tracking_id: "tracking-1" }),
+          event_json: JSON.stringify({ tracking_id: "tracking-1" }),
         },
       },
       mapping_session_participant: {
@@ -155,7 +155,7 @@ describe("syncParticipants", () => {
       humans: { "human-1": { email: "excluded@example.com" } },
       sessions: {
         "session-1": {
-          eventJson: JSON.stringify({ tracking_id: "tracking-1" }),
+          event_json: JSON.stringify({ tracking_id: "tracking-1" }),
         },
       },
       mapping_session_participant: {

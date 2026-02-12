@@ -26,7 +26,7 @@ export function useSession(sessionId: string) {
   const eventJson = main.UI.useCell(
     "sessions",
     sessionId,
-    "eventJson",
+    "event_json",
     main.STORE_ID,
   );
   const folderId = main.UI.useCell(
@@ -36,7 +36,7 @@ export function useSession(sessionId: string) {
     main.STORE_ID,
   );
 
-  const event = useMemo(() => getSessionEvent({ eventJson }), [eventJson]);
+  const event = useMemo(() => getSessionEvent({ event_json: eventJson }), [eventJson]);
 
   return useMemo(
     () => ({ title, rawMd, createdAt, event, folderId }),
@@ -48,10 +48,10 @@ export function useSessionEvent(sessionId: string): SessionEvent | null {
   const eventJson = main.UI.useCell(
     "sessions",
     sessionId,
-    "eventJson",
+    "event_json",
     main.STORE_ID,
   );
-  return useMemo(() => getSessionEvent({ eventJson }), [eventJson]);
+  return useMemo(() => getSessionEvent({ event_json: eventJson }), [eventJson]);
 }
 
 export function useSetSessionTitle() {

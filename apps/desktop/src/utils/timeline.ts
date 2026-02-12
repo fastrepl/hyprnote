@@ -33,7 +33,7 @@ export type TimelineEventRow = {
 export type TimelineSessionRow = {
   title?: string | null;
   created_at?: string | null;
-  eventJson?: string | null;
+  event_json?: string | null;
   folder_id?: string | null;
 };
 

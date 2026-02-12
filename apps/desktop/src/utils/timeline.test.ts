@@ -62,7 +62,7 @@ describe("timeline utils", () => {
       "session-1": {
         title: "Linked Session",
         created_at: "2024-01-10T12:00:00.000Z",
-        eventJson: JSON.stringify({
+        event_json: JSON.stringify({
           tracking_id: "event-1",
           started_at: "2024-01-18T12:00:00.000Z",
         }),
@@ -113,7 +113,7 @@ describe("timeline utils", () => {
       "session-past": {
         title: "Follow-up Session",
         created_at: "2024-01-10T12:00:00.000Z",
-        eventJson: JSON.stringify({
+        event_json: JSON.stringify({
           tracking_id: "event-past",
           started_at: "2024-01-10T10:00:00.000Z",
         }),
@@ -147,7 +147,7 @@ describe("timeline utils", () => {
       "session-future": {
         title: "Future Session",
         created_at: "2024-01-10T12:00:00.000Z",
-        eventJson: JSON.stringify({ started_at: "2024-01-16T09:00:00.000Z" }),
+        event_json: JSON.stringify({ started_at: "2024-01-16T09:00:00.000Z" }),
       },
       "session-past": {
         title: "Past Session",
@@ -215,7 +215,7 @@ describe("timeline utils", () => {
       "session-jan18": {
         title: "Weekly Standup",
         created_at: "2024-01-18T09:00:00.000Z",
-        eventJson: JSON.stringify({
+        event_json: JSON.stringify({
           tracking_id: "recurring-1",
           started_at: "2024-01-18T09:00:00.000Z",
           has_recurrence_rules: true,
@@ -280,17 +280,17 @@ describe("timeline utils", () => {
     const timelineSessionsTable: TimelineSessionsTable = {
       "session-2weeks": {
         title: "In 2 weeks",
-        eventJson: JSON.stringify({ started_at: "2024-01-29T09:00:00.000Z" }), // 14 days -> "in 2 weeks"
+        event_json: JSON.stringify({ started_at: "2024-01-29T09:00:00.000Z" }), // 14 days -> "in 2 weeks"
         created_at: "2024-01-10T12:00:00.000Z",
       },
       "session-4weeks": {
         title: "In 4 weeks",
-        eventJson: JSON.stringify({ started_at: "2024-02-11T09:00:00.000Z" }), // 27 days -> "in 4 weeks"
+        event_json: JSON.stringify({ started_at: "2024-02-11T09:00:00.000Z" }), // 27 days -> "in 4 weeks"
         created_at: "2024-01-10T12:00:00.000Z",
       },
       "session-nextmonth": {
         title: "Next month",
-        eventJson: JSON.stringify({ started_at: "2024-02-13T09:00:00.000Z" }), // 29 days -> "next month"
+        event_json: JSON.stringify({ started_at: "2024-02-13T09:00:00.000Z" }), // 29 days -> "next month"
         created_at: "2024-01-10T12:00:00.000Z",
       },
     };

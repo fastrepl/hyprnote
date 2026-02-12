@@ -129,7 +129,7 @@ export function syncSessionEmbeddedEvents(
       };
 
       ctx.store.setPartialRow("sessions", sessionId, {
-        eventJson: JSON.stringify(updated),
+        event_json: JSON.stringify(updated),
       });
     });
   });

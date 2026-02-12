@@ -98,7 +98,7 @@ describe("syncSessionEmbeddedEvents", () => {
     const storeData: MockStoreData = {
       sessions: {
         "session-1": {
-          eventJson: JSON.stringify(makeSessionEvent()),
+          event_json: JSON.stringify(makeSessionEvent()),
         },
       },
       events: {},
@@ -111,7 +111,7 @@ describe("syncSessionEmbeddedEvents", () => {
     ]);
 
     const updated = JSON.parse(
-      storeData.sessions["session-1"].eventJson as string,
+      storeData.sessions["session-1"].event_json as string,
     );
     expect(updated.title).toBe("Updated Title");
     expect(updated.tracking_id).toBe("track-1");
@@ -121,7 +121,7 @@ describe("syncSessionEmbeddedEvents", () => {
     const storeData: MockStoreData = {
       sessions: {
         "session-jan15": {
-          eventJson: JSON.stringify(
+          event_json: JSON.stringify(
             makeSessionEvent({
               tracking_id: "recurring-1",
               has_recurrence_rules: true,
@@ -130,7 +130,7 @@ describe("syncSessionEmbeddedEvents", () => {
           ),
         },
         "session-jan22": {
-          eventJson: JSON.stringify(
+          event_json: JSON.stringify(
             makeSessionEvent({
               tracking_id: "recurring-1",
               has_recurrence_rules: true,
@@ -154,12 +154,12 @@ describe("syncSessionEmbeddedEvents", () => {
     ]);
 
     const jan15 = JSON.parse(
-      storeData.sessions["session-jan15"].eventJson as string,
+      storeData.sessions["session-jan15"].event_json as string,
     );
     expect(jan15.title).toBe("Updated Jan 15");
 
     const jan22 = JSON.parse(
-      storeData.sessions["session-jan22"].eventJson as string,
+      storeData.sessions["session-jan22"].event_json as string,
     );
     expect(jan22.title).toBe("Old Title");
   });
@@ -168,7 +168,7 @@ describe("syncSessionEmbeddedEvents", () => {
     const storeData: MockStoreData = {
       sessions: {
         "session-1": {
-          eventJson: JSON.stringify(
+          event_json: JSON.stringify(
             makeSessionEvent({
               tracking_id: "recurring-1",
               has_recurrence_rules: true,
@@ -192,7 +192,7 @@ describe("syncSessionEmbeddedEvents", () => {
     ]);
 
     const result = JSON.parse(
-      storeData.sessions["session-1"].eventJson as string,
+      storeData.sessions["session-1"].event_json as string,
     );
     expect(result.title).toBe("Old Title");
   });
@@ -209,7 +209,7 @@ describe("syncSessionEmbeddedEvents", () => {
 
     syncSessionEmbeddedEvents(ctx, [makeIncomingEvent()]);
 
-    expect(storeData.sessions["session-1"].eventJson).toBeUndefined();
+    expect(storeData.sessions["session-1"].event_json).toBeUndefined();
   });
 
   test("does nothing when incoming events is empty", () => {
@@ -217,7 +217,7 @@ describe("syncSessionEmbeddedEvents", () => {
     const storeData: MockStoreData = {
       sessions: {
         "session-1": {
-          eventJson: JSON.stringify(original),
+          event_json: JSON.stringify(original),
         },
       },
       events: {},
@@ -228,7 +228,7 @@ describe("syncSessionEmbeddedEvents", () => {
     syncSessionEmbeddedEvents(ctx, []);
 
     const result = JSON.parse(
-      storeData.sessions["session-1"].eventJson as string,
+      storeData.sessions["session-1"].event_json as string,
     );
     expect(result.title).toBe("Old Title");
   });
@@ -237,7 +237,7 @@ describe("syncSessionEmbeddedEvents", () => {
     const storeData: MockStoreData = {
       sessions: {
         "session-1": {
-          eventJson: JSON.stringify(
+          event_json: JSON.stringify(
             makeSessionEvent({ calendar_id: "old-cal" }),
           ),
         },
@@ -254,7 +254,7 @@ describe("syncSessionEmbeddedEvents", () => {
     ]);
 
     const result = JSON.parse(
-      storeData.sessions["session-1"].eventJson as string,
+      storeData.sessions["session-1"].event_json as string,
     );
     expect(result.calendar_id).toBe("cal-new");
   });

@@ -163,7 +163,7 @@ function useCalendarData(): CalendarData {
 
     if (sessionsTable) {
       for (const [sessionId, row] of Object.entries(sessionsTable)) {
-        if (row.eventJson || !row.title) continue;
+        if (row.event_json || !row.title) continue;
         const raw = safeParseDate(row.created_at);
         if (!raw) continue;
         const key = format(toTz(raw, tz), "yyyy-MM-dd");

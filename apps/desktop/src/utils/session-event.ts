@@ -6,9 +6,9 @@ import type * as main from "../store/tinybase/store/main";
 type Store = NonNullable<ReturnType<typeof main.UI.useStore>>;
 
 export function getSessionEvent(session: {
-  eventJson?: string | null;
+  event_json?: string | null;
 }): SessionEvent | null {
-  const eventJson = session.eventJson;
+  const eventJson = session.event_json;
   if (!eventJson) return null;
   try {
     return JSON.parse(eventJson) as SessionEvent;

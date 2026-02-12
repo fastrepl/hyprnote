@@ -223,6 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void client.auth.startAutoRefresh();
 
     let unlisten: (() => void) | undefined;
+    let cancelled = false;
     void getCurrentWindow()
       .onFocusChanged(({ payload: focused }) => {
         if (focused) {
@@ -232,10 +233,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .then((fn) => {
-        unlisten = fn;
+        if (cancelled) {
+          fn();
+        } else {
+          unlisten = fn;
+        }
       });
 
     return () => {
+      cancelled = true;
       unlisten?.();
       void client.auth.stopAutoRefresh();
     };

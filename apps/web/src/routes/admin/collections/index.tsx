@@ -1238,10 +1238,10 @@ function ContentPanel({
       }
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       if (data.branchName) {
         queryClient.invalidateQueries({
-          queryKey: ["pendingPR", currentTab?.path],
+          queryKey: ["pendingPR", variables.path],
         });
       }
     },
@@ -1319,7 +1319,23 @@ function ContentPanel({
         return { prUrl: saveResult.prUrl as string };
       }
 
-      const branchName = saveResult.branchName || params.branch;
+      let branchName = saveResult.branchName || params.branch;
+
+      if (!branchName) {
+        const prParams = new URLSearchParams({ path: params.path });
+        const prResponse = await fetch(
+          `/api/admin/content/pending-pr?${prParams}`,
+        );
+        if (prResponse.ok) {
+          const prData = await prResponse.json();
+          if (prData.hasPendingPR && prData.prUrl) {
+            return { prUrl: prData.prUrl as string };
+          }
+          if (prData.branchName) {
+            branchName = prData.branchName;
+          }
+        }
+      }
 
       if (!branchName) {
         throw new Error("No branch available for publishing");

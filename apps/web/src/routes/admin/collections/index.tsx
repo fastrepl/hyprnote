@@ -60,6 +60,7 @@ import {
   useScrollFade,
 } from "@hypr/ui/components/ui/scroll-fade";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { sonnerToast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/utils";
 
 import { MediaSelectorModal } from "@/components/admin/media-selector-modal";
@@ -1291,23 +1292,21 @@ function ContentPanel({
 
   const queryClient = useQueryClient();
 
-  const [isPublishing, setIsPublishing] = useState(false);
-
-  const handlePublish = useCallback(async () => {
-    if (!currentTab || !editorData) return;
-
-    const prTab = window.open("", "_blank");
-    setIsPublishing(true);
-
-    try {
+  const { mutate: publish, isPending: isPublishing } = useMutation({
+    mutationFn: async (params: {
+      path: string;
+      content: string;
+      metadata: ArticleMetadata;
+      branch?: string;
+    }) => {
       const saveResponse = await fetch("/api/admin/content/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          path: currentTab.path,
-          content: editorData.content,
-          metadata: editorData.metadata,
-          branch: currentTab.branch,
+          path: params.path,
+          content: params.content,
+          metadata: params.metadata,
+          branch: params.branch,
         }),
       });
       if (!saveResponse.ok) {
@@ -1316,39 +1315,66 @@ function ContentPanel({
       }
       const saveResult = await saveResponse.json();
 
-      const branchName =
-        saveResult.branchName || pendingPRData?.branchName || currentTab.branch;
-
-      if (pendingPRData?.hasPendingPR && pendingPRData?.prUrl) {
-        if (prTab) prTab.location.href = pendingPRData.prUrl;
-      } else if (branchName) {
-        const publishResponse = await fetch("/api/admin/content/publish", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            path: currentTab.path,
-            branch: branchName,
-            metadata: editorData.metadata,
-          }),
-        });
-        if (!publishResponse.ok) {
-          const error = await publishResponse.json();
-          throw new Error(error.error || "Failed to publish");
-        }
-        const publishResult = await publishResponse.json();
-        if (publishResult.prUrl && prTab) {
-          prTab.location.href = publishResult.prUrl;
-        }
-        queryClient.invalidateQueries({
-          queryKey: ["pendingPR", currentTab.path],
-        });
+      if (saveResult.prUrl) {
+        return { prUrl: saveResult.prUrl as string };
       }
-    } catch {
-      if (prTab) prTab.close();
-    } finally {
-      setIsPublishing(false);
-    }
-  }, [currentTab, editorData, pendingPRData, queryClient]);
+
+      const branchName = saveResult.branchName || params.branch;
+
+      if (!branchName) {
+        throw new Error("No branch available for publishing");
+      }
+
+      const publishResponse = await fetch("/api/admin/content/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          path: params.path,
+          branch: branchName,
+          metadata: params.metadata,
+        }),
+      });
+      if (!publishResponse.ok) {
+        const error = await publishResponse.json();
+        throw new Error(error.error || "Failed to publish");
+      }
+      const publishResult = await publishResponse.json();
+      return { prUrl: publishResult.prUrl as string | undefined };
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["pendingPR", variables.path],
+      });
+
+      if (data.prUrl) {
+        const opened = window.open(data.prUrl, "_blank");
+        if (!opened) {
+          sonnerToast.success("PR created", {
+            description: "Pop-up was blocked by your browser.",
+            action: {
+              label: "Open PR",
+              onClick: () => window.open(data.prUrl, "_blank"),
+            },
+          });
+        }
+      }
+    },
+    onError: (error) => {
+      sonnerToast.error("Publish failed", {
+        description: error.message,
+      });
+    },
+  });
+
+  const handlePublish = useCallback(() => {
+    if (!currentTab || !editorData) return;
+    publish({
+      path: currentTab.path,
+      content: editorData.content,
+      metadata: editorData.metadata,
+      branch: currentTab.branch,
+    });
+  }, [currentTab, editorData, publish]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -2333,98 +2359,109 @@ function MetadataSidePanel({
   const [isCoverImageSelectorOpen, setIsCoverImageSelectorOpen] =
     useState(false);
 
+  const [isTitleExpanded, setIsTitleExpanded] = useState(false);
+
   return (
     <div className="text-sm" key={filePath}>
-      <div className="p-4 flex flex-col gap-4">
-        <div>
-          <label className="block text-neutral-500 mb-1">
-            <span className="text-red-400">*</span> Title
-          </label>
-          <input
-            type="text"
-            value={handlers.metaTitle}
-            onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
-            placeholder="SEO meta title"
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+      <div className="flex border-b border-neutral-200">
+        <button
+          onClick={() => setIsTitleExpanded(!isTitleExpanded)}
+          className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
+        >
+          <span className="absolute left-1 text-red-400">*</span>
+          Title
+          <ChevronRightIcon
+            className={cn([
+              "size-3 transition-transform",
+              isTitleExpanded && "rotate-90",
+            ])}
           />
-        </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">Display Title</label>
+        </button>
+        <input
+          type="text"
+          value={handlers.metaTitle}
+          onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
+          placeholder="SEO meta title"
+          className="flex-1 min-w-0 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
+        />
+      </div>
+      {isTitleExpanded && (
+        <div className="flex border-b border-neutral-200 bg-neutral-50">
+          <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
+            <span className="text-neutral-300">└</span>
+            Display
+          </span>
           <input
             type="text"
             value={handlers.displayTitle}
             onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
             placeholder={handlers.metaTitle || "Display title (optional)"}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+            className="flex-1 min-w-0 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
           />
         </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">
-            <span className="text-red-400">*</span> Author
-          </label>
+      )}
+      <MetadataRow label="Author" required>
+        <div className="flex-1 min-w-0 px-2 py-2">
           <AuthorSelect
             value={handlers.author}
             onChange={handlers.onAuthorChange}
-            withBorder
           />
         </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">
-            <span className="text-red-400">*</span> Date
-          </label>
-          <input
-            type="date"
-            value={handlers.date}
-            onChange={(e) => handlers.onDateChange(e.target.value)}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 focus:border-neutral-400"
-          />
-        </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">
-            <span className="text-red-400">*</span> Description
-          </label>
-          <textarea
-            value={handlers.metaDescription}
-            onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
-            placeholder="Meta description for SEO"
-            rows={3}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 resize-none focus:border-neutral-400"
-          />
-        </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">Category</label>
+      </MetadataRow>
+      <MetadataRow label="Date" required>
+        <input
+          type="date"
+          value={handlers.date}
+          onChange={(e) => handlers.onDateChange(e.target.value)}
+          className="flex-1 min-w-0 -ml-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900"
+        />
+      </MetadataRow>
+      <MetadataRow label="Description" required>
+        <textarea
+          ref={(el) => {
+            if (el) {
+              el.style.height = "auto";
+              el.style.height = `${el.scrollHeight}px`;
+            }
+          }}
+          value={handlers.metaDescription}
+          onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
+          placeholder="Meta description for SEO"
+          rows={1}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = "auto";
+            target.style.height = `${target.scrollHeight}px`;
+          }}
+          className="flex-1 min-w-0 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 resize-none"
+        />
+      </MetadataRow>
+      <MetadataRow label="Category">
+        <div className="flex-1 min-w-0 px-2 py-2">
           <CategorySelect
             value={handlers.category}
             onChange={handlers.onCategoryChange}
-            withBorder
           />
         </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">Cover Image</label>
-          <button
-            type="button"
-            onClick={() => setIsCoverImageSelectorOpen(true)}
-            className="cursor-pointer w-full px-2 py-1.5 border border-neutral-200 rounded text-left text-neutral-900 hover:bg-neutral-50 transition-colors flex items-center gap-2"
-          >
-            {handlers.coverImage ? (
-              <span className="truncate flex-1">{handlers.coverImage}</span>
-            ) : (
-              <span className="text-neutral-400 flex-1">
-                Select cover image
-              </span>
-            )}
-            <ImageIcon className="size-4 text-neutral-400 shrink-0" />
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-neutral-500">Is this featured?</span>
+      </MetadataRow>
+      <MetadataRow label="Cover">
+        <button
+          type="button"
+          onClick={() => setIsCoverImageSelectorOpen(true)}
+          className="flex-1 min-w-0 flex items-center gap-2 px-2 py-2 cursor-pointer text-left hover:bg-neutral-50 transition-colors"
+        >
+          {handlers.coverImage ? (
+            <span className="truncate flex-1 text-neutral-900">
+              {handlers.coverImage}
+            </span>
+          ) : (
+            <span className="text-neutral-300 flex-1">Select cover image</span>
+          )}
+          <ImageIcon className="size-4 text-neutral-400 shrink-0" />
+        </button>
+      </MetadataRow>
+      <MetadataRow label="Featured">
+        <div className="flex-1 flex items-center px-2 py-2">
           <input
             type="checkbox"
             checked={handlers.featured}
@@ -2432,7 +2469,17 @@ function MetadataSidePanel({
             className="rounded"
           />
         </div>
-      </div>
+      </MetadataRow>
+      <MetadataRow label="Published" noBorder>
+        <div className="flex-1 flex items-center px-2 py-2">
+          <input
+            type="checkbox"
+            checked={handlers.published}
+            onChange={(e) => handlers.onPublishedChange(e.target.checked)}
+            className="rounded"
+          />
+        </div>
+      </MetadataRow>
 
       <GitHistory filePath={filePath} />
 

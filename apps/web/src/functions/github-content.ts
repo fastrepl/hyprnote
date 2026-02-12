@@ -1297,7 +1297,7 @@ export async function getExistingEditPRForArticle(filePath: string): Promise<{
 export async function savePublishedArticleToBranch(
   filePath: string,
   content: string,
-  metadata: {
+  _metadata: {
     meta_title?: string;
     display_title?: string;
     author?: string;

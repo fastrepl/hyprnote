@@ -26,24 +26,27 @@ export function DissolvingContainer({
   variant = "sidebar",
 }: DissolvingContainerProps) {
   const store = main.UI.useStore(main.STORE_ID);
-  const { deletedSession, clear, pause, resume, isPaused } = useUndoDelete();
+  const pending = useUndoDelete((state) => state.pendingDeletions[sessionId]);
+  const pauseDeletion = useUndoDelete((state) => state.pause);
+  const resumeDeletion = useUndoDelete((state) => state.resume);
+  const clearDeletion = useUndoDelete((state) => state.clearDeletion);
   const openCurrent = useTabs((state) => state.openCurrent);
   const { isDissolving, progress } = useDissolvingProgress(sessionId);
 
   const handleMouseEnter = useCallback(() => {
-    pause();
-  }, [pause]);
+    pauseDeletion(sessionId);
+  }, [pauseDeletion, sessionId]);
 
   const handleMouseLeave = useCallback(() => {
-    resume();
-  }, [resume]);
+    resumeDeletion(sessionId);
+  }, [resumeDeletion, sessionId]);
 
   const handleRestore = useCallback(() => {
-    if (!store || !deletedSession) return;
-    restoreSessionData(store, deletedSession);
-    openCurrent({ type: "sessions", id: deletedSession.session.id });
-    clear();
-  }, [store, deletedSession, openCurrent, clear]);
+    if (!store || !pending) return;
+    restoreSessionData(store, pending.data);
+    openCurrent({ type: "sessions", id: sessionId });
+    clearDeletion(sessionId);
+  }, [store, pending, sessionId, openCurrent, clearDeletion]);
 
   if (!isDissolving) {
     return <>{children}</>;
@@ -80,7 +83,7 @@ export function DissolvingContainer({
             "pointer-events-none",
           ])}
         >
-          {isPaused ? (
+          {pending?.isPaused ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -128,13 +131,13 @@ export function DissolvingContainer({
         {children}
       </motion.div>
 
-      {!isPaused && (
+      {!pending?.isPaused && (
         <span className="text-xs text-neutral-400 tabular-nums mr-2">
           {remainingSeconds}
         </span>
       )}
 
-      {isPaused && (
+      {pending?.isPaused && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

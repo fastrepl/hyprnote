@@ -12,8 +12,13 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
         match window.label().parse::<AppWindow>() {
             Err(e) => tracing::warn!("window_parse_error: {:?}", e),
             Ok(w) => {
-                if w == AppWindow::Main && w.hide(app).is_ok() {
-                    api.prevent_close();
+                if w == AppWindow::Main {
+                    if window.is_fullscreen().unwrap_or(false) {
+                        let _ = window.set_fullscreen(false);
+                    }
+                    if w.hide(app).is_ok() {
+                        api.prevent_close();
+                    }
                 }
             }
         }

@@ -37,6 +37,7 @@ specta = { workspace = true, features = ["serde_json"] }
 glob = "0.3"
 rayon = { workspace = true }
 rodio = { workspace = true, features = ["symphonia-all"] }
+hypr-afconvert = { workspace = true }
 
 chrono = { workspace = true }
 thiserror = { workspace = true }

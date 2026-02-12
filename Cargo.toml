@@ -22,6 +22,7 @@ members = [
 exclude = ["plugins/cli2", "plugins/db", "plugins/export"]
 
 [workspace.dependencies]
+hypr-afconvert = { path = "crates/afconvert", package = "afconvert" }
 hypr-aec = { path = "crates/aec", package = "aec" }
 hypr-agc = { path = "crates/agc", package = "agc" }
 hypr-am = { path = "crates/am", package = "am" }

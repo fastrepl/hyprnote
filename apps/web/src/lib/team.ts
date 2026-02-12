@@ -62,6 +62,16 @@ export function getAuthorAvatar(author: string, absolute = false): string {
   return absolute ? `https://hyprnote.com${avatar}` : avatar;
 }
 
+export const ADMIN_EMAILS = [
+  "yujonglee@hyprnote.com",
+  "yujonglee.dev@gmail.com",
+  "john@hyprnote.com",
+  "marketing@hyprnote.com",
+  "harshika.alagh@gmail.com",
+  "yunhyungjo@yonsei.ac.kr",
+  "goranmoomin@daum.net",
+];
+
 export const TEAM_PHOTOS = [
   { id: "john-1", name: "john-1.jpg", url: "/api/images/team/john-1.jpg" },
   { id: "john-2", name: "john-2.jpg", url: "/api/images/team/john-2.jpg" },

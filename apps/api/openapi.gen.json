@@ -132,6 +132,56 @@
         ]
       }
     },
+    "/feedback/submit": {
+      "post": {
+        "tags": [
+          "feedback"
+        ],
+        "operationId": "submit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Feedback submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/nango/connect-session": {
       "post": {
         "tags": [
@@ -261,60 +311,18 @@
           }
         ]
       }
-    },
-    "/feedback/submit": {
-      "post": {
-        "tags": [
-          "feedback"
-        ],
-        "operationId": "submit",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FeedbackRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Feedback submitted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FeedbackResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FeedbackResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FeedbackResponse"
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
     "schemas": {
+      "CanStartTrialReason": {
+        "type": "string",
+        "enum": [
+          "eligible",
+          "not_eligible",
+          "error"
+        ]
+      },
       "CanStartTrialResponse": {
         "type": "object",
         "required": [
@@ -324,6 +332,16 @@
           "canStartTrial": {
             "type": "boolean",
             "example": true
+          },
+          "reason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CanStartTrialReason"
+              }
+            ]
           }
         }
       },
@@ -471,7 +489,6 @@
       "FeedbackRequest": {
         "type": "object",
         "required": [
-          "type",
           "description",
           "deviceInfo"
         ],
@@ -624,12 +641,30 @@
           }
         }
       },
+      "StartTrialReason": {
+        "type": "string",
+        "enum": [
+          "started",
+          "not_eligible",
+          "error"
+        ]
+      },
       "StartTrialResponse": {
         "type": "object",
         "required": [
           "started"
         ],
         "properties": {
+          "reason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StartTrialReason"
+              }
+            ]
+          },
           "started": {
             "type": "boolean",
             "example": true

@@ -386,6 +386,18 @@ function CreateOtherFormatButton({
           enhancedNoteId: pendingNote.id,
           templateId: pendingNote.templateId,
         },
+        onComplete: (text) => {
+          if (text && store) {
+            try {
+              const jsonContent = md2json(text);
+              store.setPartialRow("enhanced_notes", pendingNote.id, {
+                content: JSON.stringify(jsonContent),
+              });
+            } catch (error) {
+              console.error("Failed to convert markdown to JSON:", error);
+            }
+          }
+        },
       });
     }
   }, [pendingNote, model, sessionId, enhanceTask.start]);
@@ -712,6 +724,18 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
           sessionId,
           enhancedNoteId,
           templateId: templateId ?? undefined,
+        },
+        onComplete: (text) => {
+          if (text && store) {
+            try {
+              const jsonContent = md2json(text);
+              store.setPartialRow("enhanced_notes", enhancedNoteId, {
+                content: JSON.stringify(jsonContent),
+              });
+            } catch (error) {
+              console.error("Failed to convert markdown to JSON:", error);
+            }
+          }
         },
       });
     },

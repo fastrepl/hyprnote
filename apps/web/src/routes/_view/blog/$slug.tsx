@@ -2,7 +2,7 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -10,6 +10,7 @@ import { DownloadButton } from "@/components/download-button";
 import { Image } from "@/components/image";
 import { defaultMDXComponents } from "@/components/mdx";
 import { SlashSeparator } from "@/components/slash-separator";
+import { useBlogToc } from "@/hooks/use-blog-toc";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { AUTHOR_AVATARS } from "@/lib/team";
 
@@ -99,9 +100,11 @@ function Component() {
 
   return (
     <main
+      data-blog-article
       className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
+      <TableOfContents toc={article.toc} />
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection article={article} />
         <SlashSeparator />
@@ -111,7 +114,6 @@ function Component() {
         </div>
         <SlashSeparator />
         <CTASection />
-        <MobileCTA />
       </div>
     </main>
   );
@@ -249,63 +251,194 @@ function CTASection() {
   );
 }
 
-function MobileCTA() {
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+function TableOfContents({
+  toc,
+}: {
+  toc: Array<{ id: string; text: string; level: number }>;
+}) {
+  const blogTocCtx = useBlogToc();
+  const [activeId, setActiveIdLocal] = useState<string | null>(
+    toc.length > 0 ? toc[0].id : null,
+  );
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const headingElementsRef = useRef<Record<string, IntersectionObserverEntry>>(
+    {},
+  );
+  const isUserScrollingToc = useRef(false);
+  const userScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wheelAccumulator = useRef(0);
+
+  const setActiveId = useCallback(
+    (id: string | null) => {
+      setActiveIdLocal(id);
+      blogTocCtx?.setActiveId(id);
+    },
+    [blogTocCtx],
+  );
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setIsVisible(false);
-      } else if (currentScrollY < lastScrollY) {
-        setIsVisible(true);
-      }
-
-      setLastScrollY(currentScrollY);
+    blogTocCtx?.setToc(toc);
+    return () => {
+      blogTocCtx?.setToc([]);
+      blogTocCtx?.setActiveId(null);
     };
+  }, [toc]);
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+  const scrollToHeading = useCallback((id: string) => {
+    isUserScrollingToc.current = true;
+    if (userScrollTimeout.current) {
+      clearTimeout(userScrollTimeout.current);
+    }
+    userScrollTimeout.current = setTimeout(() => {
+      isUserScrollingToc.current = false;
+    }, 1000);
+
+    setActiveId(id);
+    document.getElementById(id)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, []);
+
+  const getActiveHeading = useCallback(() => {
+    const visibleHeadings: IntersectionObserverEntry[] = [];
+    for (const entry of Object.values(headingElementsRef.current)) {
+      if (entry.isIntersecting) {
+        visibleHeadings.push(entry);
+      }
+    }
+
+    if (visibleHeadings.length > 0) {
+      const sorted = visibleHeadings.sort(
+        (a, b) =>
+          (a.target as HTMLElement).getBoundingClientRect().top -
+          (b.target as HTMLElement).getBoundingClientRect().top,
+      );
+      return sorted[0].target.id;
+    }
+    return null;
+  }, []);
+
+  useEffect(() => {
+    if (toc.length === 0) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          headingElementsRef.current[entry.target.id] = entry;
+        }
+        if (!isUserScrollingToc.current) {
+          const active = getActiveHeading();
+          if (active) {
+            setActiveId(active);
+          }
+        }
+      },
+      { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+    );
+
+    const headingIds = toc.map((item) => item.id);
+    for (const id of headingIds) {
+      const el = document.getElementById(id);
+      if (el) {
+        observerRef.current.observe(el);
+      }
+    }
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      observerRef.current?.disconnect();
     };
-  }, [lastScrollY]);
+  }, [toc, getActiveHeading]);
+
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const THRESHOLD = 50;
+      wheelAccumulator.current += e.deltaY;
+
+      if (Math.abs(wheelAccumulator.current) < THRESHOLD) return;
+
+      const direction = wheelAccumulator.current > 0 ? 1 : -1;
+      wheelAccumulator.current = 0;
+
+      const currentIndex = toc.findIndex((item) => item.id === activeId);
+      const nextIndex = Math.max(
+        0,
+        Math.min(toc.length - 1, currentIndex + direction),
+      );
+
+      if (nextIndex !== currentIndex) {
+        scrollToHeading(toc[nextIndex].id);
+      }
+    },
+    [toc, activeId, scrollToHeading],
+  );
+
+  if (toc.length === 0) {
+    return null;
+  }
+
+  const activeIndex = toc.findIndex((item) => item.id === activeId);
+  const ITEM_HEIGHT = 40;
 
   return (
-    <motion.div
-      className="sm:hidden fixed bottom-0 left-0 right-0 border-t border-neutral-200 bg-white/95 backdrop-blur-xs p-4 z-20"
-      initial={{ y: 0 }}
-      animate={{ y: isVisible ? 0 : "100%" }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
+    <aside
+      className={cn([
+        "hidden xl:flex fixed left-0 top-0 h-screen z-10",
+        "w-64 items-center",
+      ])}
     >
-      <Link
-        to="/download/"
-        className={cn([
-          "group px-4 h-12 flex items-center justify-center text-base w-full",
-          "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
-          "hover:scale-[102%] active:scale-[98%]",
-          "transition-all",
-        ])}
+      <nav
+        className="relative w-full overflow-hidden cursor-ns-resize"
+        style={{ height: ITEM_HEIGHT * 5 }}
+        onWheel={handleWheel}
       >
-        Download for free
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          className="h-5 w-5 ml-2 group-hover:translate-y-0.5 transition-transform"
+        <motion.div
+          className="flex flex-col"
+          animate={{ y: -activeIndex * ITEM_HEIGHT + ITEM_HEIGHT * 2 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-          />
-        </svg>
-      </Link>
-    </motion.div>
+          {toc.map((item, index) => {
+            const distance = Math.abs(index - activeIndex);
+            const isActive = index === activeIndex;
+
+            return (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToHeading(item.id);
+                }}
+                className={cn([
+                  "flex items-center shrink-0 pl-6 pr-4 transition-colors duration-200",
+                  isActive
+                    ? "text-stone-800 font-medium"
+                    : "text-neutral-400 hover:text-neutral-600",
+                  item.level === 3 && "pl-9",
+                  item.level === 4 && "pl-12",
+                ])}
+                style={{
+                  height: ITEM_HEIGHT,
+                  opacity: isActive
+                    ? 1
+                    : distance === 1
+                      ? 0.45
+                      : distance === 2
+                        ? 0.2
+                        : 0.08,
+                  fontSize: isActive ? 14 : 13,
+                }}
+              >
+                <span className="line-clamp-1">{item.text}</span>
+              </a>
+            );
+          })}
+        </motion.div>
+      </nav>
+    </aside>
   );
 }
 

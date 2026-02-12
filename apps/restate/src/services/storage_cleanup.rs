@@ -66,11 +66,17 @@ impl StorageCleanup for StorageCleanupImpl {
             .await?;
         let cutoff_time = now_ms - cutoff_ms;
 
+        let sort_by = supabase::SortBy {
+            column: "created_at".to_string(),
+            order: "asc".to_string(),
+        };
+
         let env = self.env;
         let client = self.client.clone();
+        let sort = sort_by.clone();
         let Json(files): Json<Vec<supabase::StorageFile>> = ctx
             .run(|| async move {
-                supabase::list_all_files(&client, env)
+                supabase::list_all_files(&client, env, Some(&sort))
                     .await
                     .map(Json)
                     .map_err(|e| TerminalError::new(format!("Failed to list files: {e}")).into())
@@ -89,34 +95,41 @@ impl StorageCleanup for StorageCleanupImpl {
         let mut failed_count = 0u64;
         let mut errors = Vec::new();
 
+        let mut to_delete: Vec<String> = Vec::new();
         for file in &files {
             let file_time = chrono::DateTime::parse_from_rfc3339(&file.created_at)
                 .map(|dt| dt.timestamp_millis() as u64)
                 .unwrap_or(0);
 
-            if file_time < cutoff_time {
-                let file_path = file.name.clone();
-                let env = self.env;
-                let client = self.client.clone();
-                let fp = file_path.clone();
-                let delete_result: Result<(), TerminalError> = ctx
-                    .run(|| async move {
-                        supabase::delete_file(&client, env, &fp)
-                            .await
-                            .map_err(|e| TerminalError::new(e.to_string()).into())
-                    })
-                    .name("delete-old-file")
-                    .await;
+            if file_time >= cutoff_time {
+                break;
+            }
 
-                match delete_result {
-                    Ok(()) => deleted_count += 1,
-                    Err(err) => {
-                        failed_count += 1;
-                        errors.push(format!("Failed to delete {file_path}: {err}"));
-                        if errors.len() >= 10 {
-                            errors.push("... (truncated, too many errors)".to_string());
-                            break;
-                        }
+            to_delete.push(file.name.clone());
+        }
+
+        for batch in to_delete.chunks(100) {
+            let paths = batch.to_vec();
+            let env = self.env;
+            let client = self.client.clone();
+            let batch_paths = paths.clone();
+            let delete_result: Result<(), TerminalError> = ctx
+                .run(|| async move {
+                    supabase::delete_files(&client, env, &batch_paths)
+                        .await
+                        .map_err(|e| TerminalError::new(e.to_string()).into())
+                })
+                .name("delete-old-files-batch")
+                .await;
+
+            match delete_result {
+                Ok(()) => deleted_count += paths.len() as u64,
+                Err(err) => {
+                    failed_count += paths.len() as u64;
+                    errors.push(format!("Failed to delete batch of {}: {err}", paths.len()));
+                    if errors.len() >= 10 {
+                        errors.push("... (truncated, too many errors)".to_string());
+                        break;
                     }
                 }
             }

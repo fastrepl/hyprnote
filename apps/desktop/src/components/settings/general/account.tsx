@@ -9,7 +9,10 @@ import {
 } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
-import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
+import {
+  canStartTrial as canStartTrialApi,
+  startTrial,
+} from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { type SubscriptionStatus } from "@hypr/plugin-auth";
@@ -308,7 +311,7 @@ function BillingButton() {
         return false;
       }
       const client = createClient({ baseUrl: env.VITE_API_URL, headers });
-      const { data, error } = await getRpcCanStartTrial({ client });
+      const { data, error } = await canStartTrialApi({ client });
       if (error) {
         throw error;
       }
@@ -324,7 +327,7 @@ function BillingButton() {
         throw new Error("Not authenticated");
       }
       const client = createClient({ baseUrl: env.VITE_API_URL, headers });
-      const { error } = await postBillingStartTrial({
+      const { error } = await startTrial({
         client,
         query: { interval: "monthly" },
       });

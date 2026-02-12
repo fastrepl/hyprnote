@@ -31,16 +31,10 @@ pnpm -F web dev
 ## API (apps/api)
 
 ```bash
-pnpm -F api dev
+cargo run -p api
 ```
 
-## AI Server (apps/ai)
-
-```bash
-cargo run -p ai
-```
-
-The AI server handles LLM proxying (via OpenRouter), STT proxying, calendar integration, subscriptions, and the in-app support chat MCP server. See [Environment Variables](/docs/developers/env) for required configuration.
+The API server handles LLM proxying (via OpenRouter), STT proxying, calendar integration, subscriptions, and the in-app support chat MCP server. See [Environment Variables](/docs/developers/env) for required configuration.
 
 # Supabase
 

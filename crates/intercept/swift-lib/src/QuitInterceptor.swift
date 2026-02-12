@@ -6,13 +6,18 @@ final class QuitInterceptor {
   enum State {
     case idle
     case awaiting
+    case pressed
     case holding
   }
 
   var keyMonitor: Any?
   var panel: NSPanel?
+  var progressLayer: CALayer?
+  var pressLabel: NSTextField?
+  var holdLabel: NSTextField?
   var state: State = .idle
   var dismissTimer: DispatchWorkItem?
+  var holdThresholdTimer: DispatchWorkItem?
   var quitTimer: DispatchWorkItem?
 
   // MARK: - Setup
@@ -40,6 +45,8 @@ final class QuitInterceptor {
   // MARK: - Actions
 
   func performQuit() {
+    resetProgress()
+    setDefaultAppearance()
     rustSetForceQuit()
     hidePanel()
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
@@ -66,13 +73,19 @@ final class QuitInterceptor {
       }
 
     case .awaiting:
-      state = .holding
+      state = .pressed
       cancelTimer(&dismissTimer)
-      scheduleTimer(&quitTimer, delay: QuitOverlay.holdDuration) { [weak self] in
-        self?.performQuit()
+      scheduleTimer(&holdThresholdTimer, delay: QuitOverlay.holdThreshold) { [weak self] in
+        guard let self, self.state == .pressed else { return }
+        self.state = .holding
+        self.setHoldingAppearance()
+        self.startProgressAnimation()
+        self.scheduleTimer(&self.quitTimer, delay: QuitOverlay.holdDuration) { [weak self] in
+          self?.performQuit()
+        }
       }
 
-    case .holding:
+    case .pressed, .holding:
       break
     }
   }
@@ -82,11 +95,58 @@ final class QuitInterceptor {
     case .idle, .awaiting:
       break
 
-    case .holding:
+    case .pressed:
       state = .idle
-      cancelTimer(&quitTimer)
+      cancelTimer(&holdThresholdTimer)
       performClose()
+
+    case .holding:
+      state = .awaiting
+      cancelTimer(&quitTimer)
+      resetProgress()
+      setDefaultAppearance()
+      scheduleTimer(&dismissTimer, delay: QuitOverlay.overlayDuration) { [weak self] in
+        guard let self, self.state == .awaiting else { return }
+        self.state = .idle
+        self.hidePanel()
+      }
     }
+  }
+
+  // MARK: - Label Emphasis
+
+  func setHoldingAppearance() {
+    pressLabel?.textColor = QuitOverlay.secondaryTextColor
+    holdLabel?.textColor = QuitOverlay.primaryTextColor
+  }
+
+  func setDefaultAppearance() {
+    pressLabel?.textColor = QuitOverlay.primaryTextColor
+    holdLabel?.textColor = QuitOverlay.secondaryTextColor
+  }
+
+  // MARK: - Progress Bar
+
+  func startProgressAnimation() {
+    guard let progressLayer else { return }
+
+    progressLayer.removeAllAnimations()
+
+    let animation = CABasicAnimation(keyPath: "bounds.size.width")
+    animation.fromValue = 0
+    animation.toValue = QuitOverlay.size.width
+    animation.duration = QuitOverlay.holdDuration
+    animation.timingFunction = CAMediaTimingFunction(name: .linear)
+    animation.fillMode = .forwards
+    animation.isRemovedOnCompletion = false
+
+    progressLayer.add(animation, forKey: "progress")
+  }
+
+  func resetProgress() {
+    guard let progressLayer else { return }
+    progressLayer.removeAllAnimations()
+    progressLayer.frame.size.width = 0
   }
 
   // MARK: - Timer Helpers

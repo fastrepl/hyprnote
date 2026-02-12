@@ -13,6 +13,10 @@ enum QuitOverlay {
   static let secondaryTextColor = NSColor(white: 1.0, alpha: 0.5)
 
   static let animationDuration: TimeInterval = 0.15
+  static let holdThreshold: TimeInterval = 0.2
   static let holdDuration: TimeInterval = 1.0
   static let overlayDuration: TimeInterval = 1.5
+
+  static let progressBarHeight: CGFloat = 4
+  static let progressBarColor = NSColor(white: 1.0, alpha: 0.6)
 }

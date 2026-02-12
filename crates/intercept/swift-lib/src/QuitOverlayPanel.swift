@@ -45,6 +45,8 @@ extension QuitInterceptor {
 
     let pressLabel = makeLabel(QuitOverlay.pressText, color: QuitOverlay.primaryTextColor)
     let holdLabel = makeLabel(QuitOverlay.holdText, color: QuitOverlay.secondaryTextColor)
+    self.pressLabel = pressLabel
+    self.holdLabel = holdLabel
 
     let prefixDelta =
       NSAttributedString(
@@ -74,6 +76,19 @@ extension QuitInterceptor {
 
     container.addSubview(pressLabel)
     container.addSubview(holdLabel)
+
+    let progress = CALayer()
+    progress.anchorPoint = CGPoint(x: 0, y: 0)
+    progress.frame = NSRect(
+      x: 0,
+      y: 0,
+      width: 0,
+      height: QuitOverlay.progressBarHeight
+    )
+    progress.backgroundColor = QuitOverlay.progressBarColor.cgColor
+    container.layer?.addSublayer(progress)
+    progressLayer = progress
+
     return container
   }
 

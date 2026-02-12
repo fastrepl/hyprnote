@@ -17,3 +17,13 @@ public func _showQuitOverlay() {
     QuitInterceptor.shared.showOverlay()
   }
 }
+
+@_cdecl("_demo_quit_progress")
+public func _demoQuitProgress() {
+  DispatchQueue.main.async {
+    let interceptor = QuitInterceptor.shared
+    interceptor.showOverlay()
+    interceptor.setHoldingAppearance()
+    interceptor.startProgressAnimation()
+  }
+}

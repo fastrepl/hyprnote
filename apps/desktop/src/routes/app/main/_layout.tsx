@@ -23,6 +23,7 @@ import {
   restoreRecentlyOpenedToStore,
   useTabs,
 } from "../../../store/zustand/tabs";
+import { commands } from "../../../types/tauri.gen";
 
 export const Route = createFileRoute("/app/main/_layout")({
   component: Component,
@@ -64,7 +65,12 @@ function Component() {
         });
         const currentTabs = useTabs.getState().tabs;
         if (currentTabs.length === 0) {
-          openDefaultEmptyTab();
+          const result = await commands.getOnboardingNeeded();
+          if (result.status === "ok" && result.data) {
+            openNew({ type: "onboarding" });
+          } else {
+            openDefaultEmptyTab();
+          }
         }
       }
     };

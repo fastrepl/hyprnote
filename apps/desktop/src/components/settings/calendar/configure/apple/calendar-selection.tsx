@@ -51,7 +51,7 @@ export function AppleCalendarSelection() {
   );
 }
 
-function useAppleCalendarSelection() {
+export function useAppleCalendarSelection() {
   const { scheduleSync, scheduleDebouncedSync, cancelDebouncedSync } =
     useSync();
 

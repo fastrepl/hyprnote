@@ -24,6 +24,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const prevSessionModeRef = useRef(sessionMode);
   const prevTranscriptCountRef = useRef(transcriptIds?.length ?? 0);
+  const isInitialRenderRef = useRef(true);
 
   useEffect(() => {
     if (justStopped) {
@@ -37,6 +38,13 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   }, [justStopped, reset]);
 
   useEffect(() => {
+    if (isInitialRenderRef.current) {
+      isInitialRenderRef.current = false;
+      prevSessionModeRef.current = sessionMode;
+      prevTranscriptCountRef.current = transcriptIds?.length ?? 0;
+      return;
+    }
+
     const prevMode = prevSessionModeRef.current;
     const prevCount = prevTranscriptCountRef.current;
     const currentCount = transcriptIds?.length ?? 0;

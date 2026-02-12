@@ -187,7 +187,10 @@ const EventItem = memo(
       useTimelineSelection.getState().setAnchor(itemKey);
       openEvent(false);
     }, [openEvent, itemKey]);
-    const handleCmdClick = useCallback(() => openEvent(true), [openEvent]);
+
+    const handleCmdClick = useCallback(() => {
+      useTimelineSelection.getState().toggleSelect(itemKey);
+    }, [itemKey]);
 
     const handleShiftClick = useCallback(() => {
       useTimelineSelection.getState().selectRange(flatItemKeys, itemKey);
@@ -387,6 +390,10 @@ const SessionItem = memo(
       useTimelineSelection.getState().selectRange(flatItemKeys, itemKey);
     }, [flatItemKeys, itemKey]);
 
+    const handleOpenNewTab = useCallback(() => {
+      openNew({ id: sessionId, type: "sessions" });
+    }, [sessionId, openNew]);
+
     const handleDelete = useCallback(() => {
       if (!store) {
         return;
@@ -415,7 +422,7 @@ const SessionItem = memo(
         {
           id: "open-new-tab",
           text: "Open in New Tab",
-          action: handleCmdClick,
+          action: handleOpenNewTab,
         },
         {
           id: "reveal",
@@ -428,7 +435,7 @@ const SessionItem = memo(
           action: handleDelete,
         },
       ],
-      [handleCmdClick, handleRevealInFinder, handleDelete, hasEvent],
+      [handleOpenNewTab, handleRevealInFinder, handleDelete, hasEvent],
     );
 
     return (

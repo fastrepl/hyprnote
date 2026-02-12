@@ -16,7 +16,10 @@ export function TranscriptionProgress({ sessionId }: { sessionId: string }) {
 
   const statusLabel = useMemo(() => {
     if (!progressRaw || progressRaw.percentage === 0) {
-      return "Importing audio...";
+      if (progressRaw?.phase === "importing") {
+        return "Importing audio...";
+      }
+      return "Processing...";
     }
 
     const percent = Math.round(progressRaw.percentage * 100);

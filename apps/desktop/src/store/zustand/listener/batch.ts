@@ -10,6 +10,8 @@ import {
 import type { HandlePersistCallback } from "./transcript";
 import { transformWordEntries } from "./utils";
 
+export type BatchPhase = "importing" | "transcribing";
+
 export type BatchState = {
   batch: Record<
     string,
@@ -17,12 +19,13 @@ export type BatchState = {
       percentage: number;
       isComplete?: boolean;
       error?: string;
+      phase?: BatchPhase;
     }
   >;
 };
 
 export type BatchActions = {
-  handleBatchStarted: (sessionId: string) => void;
+  handleBatchStarted: (sessionId: string, phase?: BatchPhase) => void;
   handleBatchResponse: (sessionId: string, response: BatchResponse) => void;
   handleBatchResponseStreamed: (
     sessionId: string,
@@ -44,12 +47,16 @@ export const createBatchSlice = <
 ): BatchState & BatchActions => ({
   batch: {},
 
-  handleBatchStarted: (sessionId) => {
+  handleBatchStarted: (sessionId, phase) => {
     set((state) => ({
       ...state,
       batch: {
         ...state.batch,
-        [sessionId]: { percentage: 0, isComplete: false },
+        [sessionId]: {
+          percentage: 0,
+          isComplete: false,
+          phase: phase ?? "transcribing",
+        },
       },
     }));
   },
@@ -88,7 +95,11 @@ export const createBatchSlice = <
       ...state,
       batch: {
         ...state.batch,
-        [sessionId]: { percentage, isComplete: isComplete || false },
+        [sessionId]: {
+          percentage,
+          isComplete: isComplete || false,
+          phase: "transcribing",
+        },
       },
     }));
   },

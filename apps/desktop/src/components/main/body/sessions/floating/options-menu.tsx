@@ -54,7 +54,6 @@ export function OptionsMenu({
   const queryClient = useQueryClient();
   const handleBatchStarted = useListener((state) => state.handleBatchStarted);
   const handleBatchFailed = useListener((state) => state.handleBatchFailed);
-  const clearBatchSession = useListener((state) => state.clearBatchSession);
 
   const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
   const indexes = main.UI.useIndexes(main.STORE_ID);
@@ -63,6 +62,7 @@ export function OptionsMenu({
   const createEnhancedNote = useCreateEnhancedNote();
   const model = useLanguageModel();
   const generate = useAITask((state) => state.generate);
+  const getAITaskState = useAITask((state) => state.getState);
   const sessionTab = useTabs((state) => {
     const found = state.tabs.find(
       (tab): tab is Extract<Tab, { type: "sessions" }> =>
@@ -94,6 +94,14 @@ export function OptionsMenu({
     }
 
     const enhanceTaskId = createTaskId(enhancedNoteId, "enhance");
+    const existingTask = getAITaskState(enhanceTaskId);
+    if (
+      existingTask?.status === "generating" ||
+      existingTask?.status === "success"
+    ) {
+      return;
+    }
+
     void generate(enhanceTaskId, {
       model,
       taskType: "enhance",
@@ -142,6 +150,7 @@ export function OptionsMenu({
     sessionTab,
     updateSessionTabState,
     generate,
+    getAITaskState,
   ]);
 
   const handleFilePath = useCallback(
@@ -235,7 +244,7 @@ export function OptionsMenu({
               view: { type: "transcript" },
             });
           }
-          handleBatchStarted(sessionId);
+          handleBatchStarted(sessionId, "importing");
         }),
         Effect.flatMap(() =>
           fromResult(fsSyncCommands.audioImport(sessionId, path)),
@@ -254,8 +263,13 @@ export function OptionsMenu({
             });
           }),
         ),
-        Effect.tap(() => Effect.sync(() => clearBatchSession(sessionId))),
-        Effect.flatMap(() => Effect.promise(() => runBatch(path))),
+        Effect.flatMap(() =>
+          Effect.tryPromise({
+            try: () => runBatch(path),
+            catch: (error) =>
+              error instanceof Error ? error : new Error(String(error)),
+          }),
+        ),
         Effect.tap(() => Effect.sync(() => triggerEnhance())),
         Effect.catchAll((error: unknown) =>
           Effect.sync(() => {
@@ -266,7 +280,6 @@ export function OptionsMenu({
       );
     },
     [
-      clearBatchSession,
       handleBatchFailed,
       handleBatchStarted,
       queryClient,

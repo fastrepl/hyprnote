@@ -13,12 +13,49 @@ import {
   TranscriptDisplay,
 } from "@/components/transcription/transcript-display";
 import { UploadArea } from "@/components/transcription/upload-area";
-import {
-  getAudioPipelineStatus,
-  startAudioPipeline,
-  type StatusStateType,
-} from "@/functions/transcription";
 import { uploadAudioFile } from "@/functions/upload";
+
+type PipelineStatusType =
+  | "QUEUED"
+  | "TRANSCRIBING"
+  | "TRANSCRIBED"
+  | "LLM_RUNNING"
+  | "DONE"
+  | "ERROR";
+
+type StatusStateType = {
+  status: PipelineStatusType;
+  transcript?: string;
+  llmResult?: string;
+  error?: string;
+};
+
+// TODO: re-implement when file-transcription pipeline endpoints are added to the Rust API server
+type StartPipelineResult =
+  | { error: true; message: string }
+  | { success: true; pipelineId: string; invocationId?: string };
+
+async function startAudioPipeline(_opts: {
+  data: { fileId: string };
+}): Promise<StartPipelineResult> {
+  return {
+    error: true,
+    message: "File transcription pipeline is not yet available",
+  };
+}
+
+type PipelineStatusResult =
+  | { error: true; message: string }
+  | { success: true; status: StatusStateType };
+
+async function getAudioPipelineStatus(_opts: {
+  data: { pipelineId: string };
+}): Promise<PipelineStatusResult> {
+  return {
+    error: true,
+    message: "File transcription pipeline is not yet available",
+  };
+}
 
 export const Route = createFileRoute("/_view/app/file-transcription")({
   component: Component,

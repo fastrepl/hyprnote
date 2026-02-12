@@ -2,7 +2,10 @@ import * as Sentry from "@sentry/react";
 import { CheckCircle2Icon, Loader2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
+import {
+  canStartTrial as canStartTrialApi,
+  startTrial,
+} from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
@@ -108,29 +111,21 @@ async function tryStartTrial(
   store: Parameters<typeof configureProSettings>[0] | undefined,
 ) {
   const client = createClient({ baseUrl: env.VITE_API_URL, headers });
-  const { data } = await getRpcCanStartTrial({ client });
+  const { data } = await canStartTrialApi({ client });
 
   if (!data?.canStartTrial) {
-    console.warn("Trial not started:", data?.reason ?? "unknown");
-    if (data?.reason === "error") {
-      Sentry.captureMessage("Trial eligibility check failed", {
-        level: "warning",
-        extra: { reason: data.reason },
-      });
-    }
     return false;
   }
 
-  const { data: startData, error } = await postBillingStartTrial({
+  const { data: startData, error } = await startTrial({
     client,
     query: { interval: "monthly" },
   });
 
   if (error || !startData?.started) {
-    console.warn("Trial start failed:", startData?.reason ?? error);
     Sentry.captureMessage("Trial start failed", {
       level: "warning",
-      extra: { reason: startData?.reason, error },
+      extra: { error },
     });
     return false;
   }

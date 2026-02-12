@@ -1,6 +1,7 @@
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn, startOfDay } from "@hypr/utils";
 
@@ -141,10 +142,14 @@ export function TimelineView() {
       const capturedData = captureSessionData(store, indexes, sessionId);
 
       invalidateResource("sessions", sessionId);
-      void deleteSessionCascade(store, indexes, sessionId);
+      void deleteSessionCascade(store, indexes, sessionId, {
+        skipAudio: true,
+      });
 
       if (capturedData) {
-        addDeletion(capturedData);
+        addDeletion(capturedData, () => {
+          void fsSyncCommands.audioDelete(sessionId);
+        });
       }
     }
 

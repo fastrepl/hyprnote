@@ -404,10 +404,14 @@ const SessionItem = memo(
       const capturedData = captureSessionData(store, indexes, sessionId);
 
       invalidateResource("sessions", sessionId);
-      void deleteSessionCascade(store, indexes, sessionId);
+      void deleteSessionCascade(store, indexes, sessionId, {
+        skipAudio: true,
+      });
 
       if (capturedData) {
-        addDeletion(capturedData);
+        addDeletion(capturedData, () => {
+          void fsSyncCommands.audioDelete(sessionId);
+        });
       }
     }, [store, indexes, sessionId, invalidateResource, addDeletion]);
 

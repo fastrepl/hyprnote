@@ -117,7 +117,9 @@ export const exchangeOAuthCode = createServerFn({ method: "POST" })
       return { success: false, error: error?.message || "Unknown error" };
     }
 
-    if (authData.session.provider_token) {
+    const isGitHub = authData.session.user.app_metadata?.provider === "github";
+
+    if (isGitHub && authData.session.provider_token) {
       const { data: admin } = await supabase
         .from("admins")
         .select("id")

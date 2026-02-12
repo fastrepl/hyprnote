@@ -63,7 +63,6 @@ export function OptionsMenu({
   const createEnhancedNote = useCreateEnhancedNote();
   const model = useLanguageModel();
   const generate = useAITask((state) => state.generate);
-  const getAITaskState = useAITask((state) => state.getState);
   const sessionTab = useTabs((state) => {
     const found = state.tabs.find(
       (tab): tab is Extract<Tab, { type: "sessions" }> =>

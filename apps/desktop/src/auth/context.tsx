@@ -193,6 +193,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(
+        `[auth] onAuthStateChange: ${event}`,
+        session ? `expires_at=${session.expires_at}` : "no session",
+      );
       void trackAuthEvent(event, session);
       setSession(session);
     });
@@ -220,15 +224,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // startAutoRefresh() removes the SDK's visibilitychange listener and
     // runs the refresh ticker continuously (checks storage every 30s,
     // only makes a network call when the token is near expiry).
+    console.log("[auth] startAutoRefresh: mounting continuous ticker");
     void client.auth.startAutoRefresh();
 
     let unlisten: (() => void) | undefined;
     let cancelled = false;
     void getCurrentWindow()
       .onFocusChanged(({ payload: focused }) => {
+        console.log(`[auth] onFocusChanged: focused=${focused}`);
         if (focused) {
           // Restart the ticker on window focus to trigger an immediate refresh
           // check, recovering stale sessions after sleep/hibernate.
+          console.log("[auth] startAutoRefresh: window regained focus");
           void client.auth.startAutoRefresh();
         }
       })
@@ -241,6 +248,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
     return () => {
+      console.log("[auth] stopAutoRefresh: unmounting");
       cancelled = true;
       unlisten?.();
       void client.auth.stopAutoRefresh();

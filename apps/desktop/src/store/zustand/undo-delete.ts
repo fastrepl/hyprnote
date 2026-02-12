@@ -65,7 +65,6 @@ export type PendingDeletion = {
   batchId: string | null;
   paused: boolean;
   pausedAt: number | null;
-  remainingMs: number;
 };
 
 interface UndoDeleteState {
@@ -111,7 +110,6 @@ export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
           batchId: batchId ?? null,
           paused: false,
           pausedAt: null,
-          remainingMs: UNDO_TIMEOUT_MS,
         },
       },
     }));
@@ -166,18 +164,6 @@ export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
     if (pending.timeoutId) {
       clearTimeout(pending.timeoutId);
     }
-
-    const elapsed = Date.now() - pending.data.deletedAt;
-    const remaining = Math.max(
-      0,
-      pending.remainingMs -
-        elapsed +
-        (pending.pausedAt ? pending.pausedAt - pending.data.deletedAt : 0),
-    );
-    const actualRemaining = Math.max(
-      0,
-      UNDO_TIMEOUT_MS - (Date.now() - pending.addedAt),
-    );
 
     set((state) => {
       const current = state.pendingDeletions[sessionId];

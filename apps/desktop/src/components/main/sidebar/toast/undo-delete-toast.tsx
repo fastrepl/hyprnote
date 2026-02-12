@@ -134,16 +134,35 @@ function useGroupCountdown(group: ToastGroup) {
   const pendingDeletions = useUndoDelete((state) => state.pendingDeletions);
   const [remaining, setRemaining] = useState(UNDO_TIMEOUT_MS);
 
-  const earliest = useMemo(() => {
+  const { earliest, isPaused, frozenRemaining } = useMemo(() => {
     let min = Infinity;
+    let paused = false;
+    let frozen = 0;
+
     for (const id of group.sessionIds) {
       const p = pendingDeletions[id];
-      if (p) min = Math.min(min, p.data.deletedAt);
+      if (!p) continue;
+      min = Math.min(min, p.data.deletedAt);
+      if (p.paused && p.pausedAt) {
+        paused = true;
+        const elapsed = p.pausedAt - p.data.deletedAt;
+        frozen = Math.max(0, UNDO_TIMEOUT_MS - elapsed);
+      }
     }
-    return min === Infinity ? Date.now() : min;
+
+    return {
+      earliest: min === Infinity ? Date.now() : min,
+      isPaused: paused,
+      frozenRemaining: frozen,
+    };
   }, [group.sessionIds, pendingDeletions]);
 
   useEffect(() => {
+    if (isPaused) {
+      setRemaining(frozenRemaining);
+      return;
+    }
+
     const update = () => {
       const elapsed = Date.now() - earliest;
       setRemaining(Math.max(0, UNDO_TIMEOUT_MS - elapsed));
@@ -151,7 +170,7 @@ function useGroupCountdown(group: ToastGroup) {
     update();
     const id = setInterval(update, 100);
     return () => clearInterval(id);
-  }, [earliest]);
+  }, [earliest, isPaused, frozenRemaining]);
 
   return Math.ceil(remaining / 1000);
 }

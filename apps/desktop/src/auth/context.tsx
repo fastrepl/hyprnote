@@ -7,6 +7,7 @@ import {
 } from "@supabase/supabase-js";
 import { useMutation } from "@tanstack/react-query";
 import { getVersion } from "@tauri-apps/api/app";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { version as osVersion, platform } from "@tauri-apps/plugin-os";
 import {
   createContext,
@@ -198,6 +199,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       subscription.unsubscribe();
+    };
+  }, []);
+
+  // Tauri's visibilitychange event is broken (always reports "visible" on Windows,
+  // only fires on minimize/maximize on macOS — not when hidden behind other windows).
+  // The Supabase SDK relies on visibilitychange to start/stop its auto-refresh ticker,
+  // which can cause sessions to expire during inactivity when the window is hidden.
+  // We bypass this by running the ticker continuously and using Tauri's native
+  // onFocusChanged for immediate recovery after sleep/hibernate.
+  // See: https://supabase.com/docs/guides/auth/sessions
+  // See: https://github.com/tauri-apps/tauri/issues/10592
+  useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
+    // startAutoRefresh() removes the SDK's visibilitychange listener and
+    // runs the refresh ticker continuously (checks storage every 30s,
+    // only makes a network call when the token is near expiry).
+    void supabase.auth.startAutoRefresh();
+
+    let unlisten: (() => void) | undefined;
+    void getCurrentWindow()
+      .onFocusChanged(({ payload: focused }) => {
+        if (focused) {
+          // Restart the ticker on window focus to trigger an immediate refresh
+          // check, recovering stale sessions after sleep/hibernate.
+          void supabase.auth.startAutoRefresh();
+        }
+      })
+      .then((fn) => {
+        unlisten = fn;
+      });
+
+    return () => {
+      unlisten?.();
+      void supabase.auth.stopAutoRefresh();
     };
   }, []);
 

@@ -100,7 +100,7 @@ impl SttFileImpl {
 
         let ingress_url = self.env.restate_ingress_url.trim_end_matches('/');
         let key = ctx.key();
-        let encoded_key = urlencoding::encode(&key);
+        let encoded_key = urlencoding::encode(key);
         let callback_url = format!("{ingress_url}/SttFile/{encoded_key}/onTranscript");
 
         let soniox_retry_policy = RunRetryPolicy::default()

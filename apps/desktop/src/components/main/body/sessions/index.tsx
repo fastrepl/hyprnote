@@ -206,17 +206,24 @@ function TabContentNoteInner({
   const prevSessionMode = useRef<string | null>(sessionMode);
 
   const didAutoFocus = useRef(false);
+  const title = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "title",
+    main.STORE_ID,
+  ) as string | undefined;
   useEffect(() => {
     if (didAutoFocus.current) return;
-    didAutoFocus.current = true;
+    if (!store) return;
 
-    const currentTitle = store?.getCell("sessions", sessionId, "title") as
-      | string
-      | undefined;
-    if (!currentTitle) {
+    const row = store.getRow("sessions", sessionId);
+    if (!row || Object.keys(row).length === 0) return;
+
+    didAutoFocus.current = true;
+    if (!title) {
       titleInputRef.current?.focus();
     }
-  }, [store, sessionId]);
+  }, [store, sessionId, title]);
 
   useEffect(() => {
     const justStartedListening =

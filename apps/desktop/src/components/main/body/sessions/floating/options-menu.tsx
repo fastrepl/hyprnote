@@ -8,6 +8,7 @@ import { useCallback, useState } from "react";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { commands as listener2Commands } from "@hypr/plugin-listener2";
+import { md2json } from "@hypr/tiptap/shared";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Popover,
@@ -20,10 +21,15 @@ import {
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
 
+import { useAITask } from "../../../../../contexts/ai-task";
 import { useListener } from "../../../../../contexts/listener";
 import { fromResult } from "../../../../../effect";
+import { getEligibility } from "../../../../../hooks/autoEnhance/eligibility";
+import { useCreateEnhancedNote } from "../../../../../hooks/useEnhancedNotes";
+import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import { useRunBatch } from "../../../../../hooks/useRunBatch";
 import * as main from "../../../../../store/tinybase/store/main";
+import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { ChannelProfile } from "../../../../../utils/segment";
 import { ActionableTooltipContent } from "./shared";
@@ -50,9 +56,13 @@ export function OptionsMenu({
   const handleBatchFailed = useListener((state) => state.handleBatchFailed);
   const clearBatchSession = useListener((state) => state.clearBatchSession);
 
-  const store = main.UI.useStore(main.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
+  const indexes = main.UI.useIndexes(main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
+  const createEnhancedNote = useCreateEnhancedNote();
+  const model = useLanguageModel();
+  const generate = useAITask((state) => state.generate);
   const sessionTab = useTabs((state) => {
     const found = state.tabs.find(
       (tab): tab is Extract<Tab, { type: "sessions" }> =>
@@ -60,6 +70,79 @@ export function OptionsMenu({
     );
     return found ?? null;
   });
+
+  const triggerEnhance = useCallback(() => {
+    if (!store || !indexes || !model) return;
+
+    const transcriptIds = indexes.getSliceRowIds(
+      main.INDEXES.transcriptBySession,
+      sessionId,
+    );
+    const hasTranscript = transcriptIds.length > 0;
+    const eligibility = getEligibility(hasTranscript, transcriptIds, store);
+
+    if (!eligibility.eligible) return;
+
+    const enhancedNoteId = createEnhancedNote(sessionId);
+    if (!enhancedNoteId) return;
+
+    if (sessionTab) {
+      updateSessionTabState(sessionTab, {
+        ...sessionTab.state,
+        view: { type: "enhanced", id: enhancedNoteId },
+      });
+    }
+
+    const enhanceTaskId = createTaskId(enhancedNoteId, "enhance");
+    void generate(enhanceTaskId, {
+      model,
+      taskType: "enhance",
+      args: { sessionId, enhancedNoteId },
+      onComplete: (text) => {
+        if (!text || !store) return;
+        try {
+          const jsonContent = md2json(text);
+          store.setPartialRow("enhanced_notes", enhancedNoteId, {
+            content: JSON.stringify(jsonContent),
+          });
+
+          const currentTitle = store.getCell("sessions", sessionId, "title");
+          const trimmedTitle =
+            typeof currentTitle === "string" ? currentTitle.trim() : "";
+
+          if (!trimmedTitle && model) {
+            const titleTaskId = createTaskId(sessionId, "title");
+            void generate(titleTaskId, {
+              model,
+              taskType: "title",
+              args: { sessionId },
+              onComplete: (titleText) => {
+                if (titleText && store) {
+                  const trimmed = titleText.trim();
+                  if (trimmed && trimmed !== "<EMPTY>") {
+                    store.setPartialRow("sessions", sessionId, {
+                      title: trimmed,
+                    });
+                  }
+                }
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Failed to convert markdown to JSON:", error);
+        }
+      },
+    });
+  }, [
+    store,
+    indexes,
+    model,
+    sessionId,
+    createEnhancedNote,
+    sessionTab,
+    updateSessionTabState,
+    generate,
+  ]);
 
   const handleFilePath = useCallback(
     (selection: FileSelection, kind: "audio" | "transcript") => {
@@ -126,6 +209,8 @@ export function OptionsMenu({
                 file_type: "transcript",
                 token_count: subtitle.tokens.length,
               });
+
+              triggerEnhance();
             }),
           ),
         );
@@ -171,6 +256,7 @@ export function OptionsMenu({
         ),
         Effect.tap(() => Effect.sync(() => clearBatchSession(sessionId))),
         Effect.flatMap(() => Effect.promise(() => runBatch(path))),
+        Effect.tap(() => Effect.sync(() => triggerEnhance())),
         Effect.catchAll((error: unknown) =>
           Effect.sync(() => {
             const msg = error instanceof Error ? error.message : String(error);
@@ -188,6 +274,7 @@ export function OptionsMenu({
       sessionId,
       sessionTab,
       store,
+      triggerEnhance,
       updateSessionTabState,
       user_id,
     ],

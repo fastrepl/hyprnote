@@ -473,10 +473,8 @@ export const createGeneralSlice = <
       return;
     }
 
-    const shouldResetPersist = Boolean(options?.handlePersist);
-
     if (options?.handlePersist) {
-      get().setTranscriptPersist(options.handlePersist);
+      get().setBatchPersist(sessionId, options.handlePersist);
     }
 
     get().handleBatchStarted(sessionId);
@@ -489,9 +487,7 @@ export const createGeneralSlice = <
         unlisten = undefined;
       }
 
-      if (shouldResetPersist) {
-        get().setTranscriptPersist(undefined);
-      }
+      get().clearBatchPersist(sessionId);
 
       if (clearSession) {
         get().clearBatchSession(sessionId);

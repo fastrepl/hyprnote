@@ -18,6 +18,7 @@ import { useDeeplinkHandler } from "../../../hooks/useDeeplinkHandler";
 import { deleteSessionCascade } from "../../../store/tinybase/store/deleteSession";
 import * as main from "../../../store/tinybase/store/main";
 import { isSessionEmpty } from "../../../store/tinybase/store/sessions";
+import { listenerStore } from "../../../store/zustand/listener/instance";
 import {
   restorePinnedTabsToStore,
   restoreRecentlyOpenedToStore,
@@ -84,7 +85,10 @@ function Component() {
     registerOnClose((tab) => {
       if (tab.type === "sessions") {
         const sessionId = tab.id;
-        if (isSessionEmpty(store, sessionId)) {
+        const isBatchRunning =
+          listenerStore.getState().getSessionMode(sessionId) ===
+          "running_batch";
+        if (!isBatchRunning && isSessionEmpty(store, sessionId)) {
           invalidateResource("sessions", sessionId);
           void deleteSessionCascade(store, indexes, sessionId);
         }

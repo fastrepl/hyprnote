@@ -13,6 +13,7 @@ import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../contexts/listener";
 import { useRunBatch } from "../../../../../../hooks/useRunBatch";
+import { useSTTConnection } from "../../../../../../hooks/useSTTConnection";
 import * as main from "../../../../../../store/tinybase/store/main";
 
 export function EditingControls({
@@ -25,6 +26,7 @@ export function EditingControls({
   setIsEditing: (isEditing: boolean) => void;
 }) {
   const { audioExists } = useAudioPlayer();
+  const { isLocalModel } = useSTTConnection();
   const isBatchProcessing = useListener(
     (state) => state.getSessionMode(sessionId) === "running_batch",
   );
@@ -95,7 +97,9 @@ export function EditingControls({
     void handleRedoTranscript();
   }, [handleRedoTranscript]);
 
-  const viewModeControls = audioExists ? (
+  const canRerunTranscription = audioExists && !isLocalModel;
+
+  const viewModeControls = canRerunTranscription ? (
     <div className="relative flex items-center">
       <button
         onClick={handleEdit}

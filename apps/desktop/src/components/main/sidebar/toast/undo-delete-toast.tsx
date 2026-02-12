@@ -285,28 +285,28 @@ function ToastBubble({
       <div
         className={cn([
           "bg-white rounded-2xl rounded-br-sm",
-          "shadow-xl px-4 py-3 w-[260px]",
+          "shadow-xl px-5 py-4 w-[300px]",
           "border border-neutral-200",
         ])}
       >
-        <p className="text-sm text-neutral-700 leading-snug">
+        <p className="text-[15px] text-neutral-700 leading-relaxed">
           {group.isBatch ? (
             `Delete ${count} notes?`
           ) : (
             <>
               Delete{" "}
-              <span className="font-medium text-neutral-900 truncate inline-block max-w-[140px] align-bottom">
+              <span className="font-medium text-neutral-900 truncate inline-block max-w-[180px] align-bottom">
                 {title}
               </span>
               ?
             </>
           )}
         </p>
-        <div className="flex items-center gap-2 mt-2.5">
+        <div className="flex items-stretch gap-2 mt-3">
           <button
             onClick={() => restoreGroup(group)}
             className={cn([
-              "text-xs font-medium px-3 py-1 rounded-xl",
+              "flex-1 text-sm font-medium py-2 rounded-xl",
               "bg-primary text-primary-foreground",
               "hover:bg-primary/90 active:bg-primary/80",
               "transition-colors",
@@ -317,7 +317,7 @@ function ToastBubble({
           <button
             onClick={() => confirmGroup(group)}
             className={cn([
-              "text-xs font-medium px-3 py-1 rounded-xl",
+              "flex-1 text-sm font-medium py-2 rounded-xl",
               "bg-neutral-100 text-neutral-600",
               "hover:bg-red-100 hover:text-red-700",
               "transition-colors",

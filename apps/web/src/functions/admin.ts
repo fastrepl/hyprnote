@@ -1,25 +1,27 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { getSupabaseServerClient } from "@/functions/supabase";
+import { ADMIN_EMAILS } from "@/lib/team";
+
+export const isAdminEmail = (email: string): boolean => {
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+};
 
 export const fetchAdminUser = createServerFn({ method: "GET" }).handler(
   async () => {
     const supabase = getSupabaseServerClient();
     const { data, error: _error } = await supabase.auth.getUser();
 
-    if (!data.user?.id || !data.user?.email) {
+    if (!data.user?.email) {
       return null;
     }
 
-    const { data: admin } = await supabase
-      .from("admins")
-      .select("id")
-      .eq("id", data.user.id)
-      .single();
+    const email = data.user.email;
+    const isAdmin = isAdminEmail(email);
 
     return {
-      email: data.user.email,
-      isAdmin: !!admin,
+      email,
+      isAdmin,
     };
   },
 );

@@ -214,7 +214,7 @@ function TabContentNoteInner({
     if (!title) {
       titleInputRef.current?.focus();
     }
-  }, []);
+  }, [title]);
 
   useEffect(() => {
     const justStartedListening =

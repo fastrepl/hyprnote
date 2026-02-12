@@ -64,16 +64,11 @@ export function TabContentOnboarding({
   const [isMuted, setIsMuted] = useState(false);
   const [currentStep, setCurrentStep] = useState(getInitialStep);
 
-  const {
-    micPermissionStatus,
-    systemAudioPermissionStatus,
-    accessibilityPermissionStatus,
-  } = usePermissions();
+  const { micPermissionStatus, systemAudioPermissionStatus } = usePermissions();
 
   const allPermissionsGranted =
     micPermissionStatus.data === "authorized" &&
-    systemAudioPermissionStatus.data === "authorized" &&
-    accessibilityPermissionStatus.data === "authorized";
+    systemAudioPermissionStatus.data === "authorized";
 
   useEffect(() => {
     if (currentStep === "permissions" && allPermissionsGranted) {

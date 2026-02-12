@@ -8,7 +8,6 @@ import { createPortal } from "react-dom";
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { cn } from "@hypr/utils";
 
-import { DissolvingContainer } from "../../../../components/ui/dissolving-container";
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
 import { useShell } from "../../../../contexts/shell";
@@ -230,38 +229,36 @@ function TabContentNoteInner({
 
   return (
     <>
-      <DissolvingContainer sessionId={sessionId} variant="content">
-        <StandardTabWrapper
-          afterBorder={showTimeline && <AudioPlayer.Timeline />}
-          floatingButton={<FloatingActionButton tab={tab} />}
-          showTimeline={showTimeline}
-        >
-          <div className="flex flex-col h-full">
-            <div className="pl-2 pr-1">
-              {showSearchBar ? (
-                <SearchBar />
-              ) : (
-                <OuterHeader sessionId={tab.id} currentView={currentView} />
-              )}
-            </div>
-            <div className="mt-2 px-3 shrink-0">
-              <TitleInput
-                ref={titleInputRef}
-                tab={tab}
-                onNavigateToEditor={focusEditor}
-                onGenerateTitle={hasTranscript ? generateTitle : undefined}
-              />
-            </div>
-            <div className="mt-2 px-2 flex-1 min-h-0">
-              <NoteInput
-                ref={noteInputRef}
-                tab={tab}
-                onNavigateToTitle={focusTitle}
-              />
-            </div>
+      <StandardTabWrapper
+        afterBorder={showTimeline && <AudioPlayer.Timeline />}
+        floatingButton={<FloatingActionButton tab={tab} />}
+        showTimeline={showTimeline}
+      >
+        <div className="flex flex-col h-full">
+          <div className="pl-2 pr-1">
+            {showSearchBar ? (
+              <SearchBar />
+            ) : (
+              <OuterHeader sessionId={tab.id} currentView={currentView} />
+            )}
           </div>
-        </StandardTabWrapper>
-      </DissolvingContainer>
+          <div className="mt-2 px-3 shrink-0">
+            <TitleInput
+              ref={titleInputRef}
+              tab={tab}
+              onNavigateToEditor={focusEditor}
+              onGenerateTitle={hasTranscript ? generateTitle : undefined}
+            />
+          </div>
+          <div className="mt-2 px-2 flex-1 min-h-0">
+            <NoteInput
+              ref={noteInputRef}
+              tab={tab}
+              onNavigateToTitle={focusTitle}
+            />
+          </div>
+        </div>
+      </StandardTabWrapper>
       <StatusBanner
         skipReason={skipReason}
         showConsentBanner={showConsentBanner}

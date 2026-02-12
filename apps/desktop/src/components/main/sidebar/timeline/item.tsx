@@ -29,7 +29,6 @@ import {
   TimelinePrecision,
 } from "../../../../utils/timeline";
 import { InteractiveButton } from "../../../interactive-button";
-import { DissolvingContainer } from "../../../ui/dissolving-container";
 
 export const TimelineItemComponent = memo(
   ({
@@ -445,20 +444,18 @@ const SessionItem = memo(
     );
 
     return (
-      <DissolvingContainer sessionId={sessionId} variant="sidebar">
-        <ItemBase
-          title={title}
-          displayTime={displayTime}
-          calendarId={calendarId}
-          showSpinner={showSpinner}
-          selected={selected}
-          multiSelected={multiSelected}
-          onClick={handleClick}
-          onCmdClick={handleCmdClick}
-          onShiftClick={handleShiftClick}
-          contextMenu={contextMenu}
-        />
-      </DissolvingContainer>
+      <ItemBase
+        title={title}
+        displayTime={displayTime}
+        calendarId={calendarId}
+        showSpinner={showSpinner}
+        selected={selected}
+        multiSelected={multiSelected}
+        onClick={handleClick}
+        onCmdClick={handleCmdClick}
+        onShiftClick={handleShiftClick}
+        contextMenu={contextMenu}
+      />
     );
   },
 );

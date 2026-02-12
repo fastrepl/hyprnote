@@ -2097,22 +2097,22 @@ function MetadataPanel({
             />
           </div>
         </MetadataRow>
-        <MetadataRow label="Published">
-          <div className="flex-1 flex items-center px-2 py-2">
-            <input
-              type="checkbox"
-              checked={handlers.published}
-              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
-              className="rounded"
-            />
-          </div>
-        </MetadataRow>
-        <MetadataRow label="Featured" noBorder>
+        <MetadataRow label="Featured">
           <div className="flex-1 flex items-center px-2 py-2">
             <input
               type="checkbox"
               checked={handlers.featured}
               onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
+              className="rounded"
+            />
+          </div>
+        </MetadataRow>
+        <MetadataRow label="Published" noBorder>
+          <div className="flex-1 flex items-center px-2 py-2">
+            <input
+              type="checkbox"
+              checked={handlers.published}
+              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
               className="rounded"
             />
           </div>

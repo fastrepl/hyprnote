@@ -1272,13 +1272,7 @@ function ContentPanel({
     [currentTab, editorData, saveContent],
   );
 
-  const currentFileContent = useMemo(
-    () =>
-      currentTab?.type === "file" ? getFileContent(currentTab.path) : undefined,
-    [currentTab?.type, currentTab?.path],
-  );
-
-  const { data: pendingPRData } = useQuery({
+  const { data: pendingPRData }= useQuery({
     queryKey: ["pendingPR", currentTab?.path],
     queryFn: async () => {
       const params = new URLSearchParams({ path: currentTab!.path });

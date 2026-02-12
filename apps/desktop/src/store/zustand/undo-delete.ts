@@ -57,87 +57,125 @@ export type DeletedSessionData = {
 
 export const UNDO_TIMEOUT_MS = 5000;
 
-interface UndoDeleteState {
-  deletedSession: DeletedSessionData | null;
+export type PendingDeletion = {
+  data: DeletedSessionData;
   timeoutId: ReturnType<typeof setTimeout> | null;
   isPaused: boolean;
   remainingTime: number;
   onDeleteConfirm: (() => void) | null;
-  setDeletedSession: (
-    data: DeletedSessionData | null,
-    onConfirm?: () => void,
-  ) => void;
-  setTimeoutId: (id: ReturnType<typeof setTimeout> | null) => void;
-  pause: () => void;
-  resume: () => void;
-  clear: () => void;
-  confirmDelete: () => void;
+  addedAt: number;
+};
+
+interface UndoDeleteState {
+  pendingDeletions: Record<string, PendingDeletion>;
+  addDeletion: (data: DeletedSessionData, onConfirm?: () => void) => void;
+  pause: (sessionId: string) => void;
+  resume: (sessionId: string) => void;
+  clearDeletion: (sessionId: string) => void;
+  confirmDeletion: (sessionId: string) => void;
 }
 
 export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
-  deletedSession: null,
-  timeoutId: null,
-  isPaused: false,
-  remainingTime: UNDO_TIMEOUT_MS,
-  onDeleteConfirm: null,
-  setDeletedSession: (data, onConfirm) =>
-    set({
-      deletedSession: data,
-      remainingTime: UNDO_TIMEOUT_MS,
-      onDeleteConfirm: onConfirm ?? null,
-    }),
-  setTimeoutId: (id) => {
-    const currentId = get().timeoutId;
-    if (currentId) {
-      clearTimeout(currentId);
-    }
-    set({ timeoutId: id });
-  },
-  pause: () => {
-    const { timeoutId, deletedSession, isPaused } = get();
-    if (isPaused || !deletedSession) return;
+  pendingDeletions: {},
 
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-
-    const elapsed = Date.now() - deletedSession.deletedAt;
-    const remaining = Math.max(0, UNDO_TIMEOUT_MS - elapsed);
-    set({ isPaused: true, remainingTime: remaining, timeoutId: null });
-  },
-  resume: () => {
-    const { isPaused, remainingTime, deletedSession, confirmDelete } = get();
-    if (!isPaused || !deletedSession) return;
-
-    const newDeletedAt = Date.now() - (UNDO_TIMEOUT_MS - remainingTime);
-    set({
-      isPaused: false,
-      deletedSession: { ...deletedSession, deletedAt: newDeletedAt },
-    });
+  addDeletion: (data, onConfirm) => {
+    const sessionId = data.session.id;
 
     const timeoutId = setTimeout(() => {
-      confirmDelete();
-    }, remainingTime);
-    set({ timeoutId });
+      get().confirmDeletion(sessionId);
+    }, UNDO_TIMEOUT_MS);
+
+    set((state) => ({
+      pendingDeletions: {
+        ...state.pendingDeletions,
+        [sessionId]: {
+          data,
+          timeoutId,
+          isPaused: false,
+          remainingTime: UNDO_TIMEOUT_MS,
+          onDeleteConfirm: onConfirm ?? null,
+          addedAt: Date.now(),
+        },
+      },
+    }));
   },
-  clear: () => {
-    const currentId = get().timeoutId;
-    if (currentId) {
-      clearTimeout(currentId);
+
+  pause: (sessionId) => {
+    const pending = get().pendingDeletions[sessionId];
+    if (!pending || pending.isPaused) return;
+
+    if (pending.timeoutId) {
+      clearTimeout(pending.timeoutId);
     }
-    set({
-      deletedSession: null,
-      timeoutId: null,
-      isPaused: false,
-      remainingTime: UNDO_TIMEOUT_MS,
-      onDeleteConfirm: null,
+
+    const elapsed = Date.now() - pending.data.deletedAt;
+    const remaining = Math.max(0, UNDO_TIMEOUT_MS - elapsed);
+
+    set((state) => {
+      const current = state.pendingDeletions[sessionId];
+      if (!current) return state;
+      return {
+        pendingDeletions: {
+          ...state.pendingDeletions,
+          [sessionId]: {
+            ...current,
+            isPaused: true,
+            remainingTime: remaining,
+            timeoutId: null,
+          },
+        },
+      };
     });
   },
-  confirmDelete: () => {
-    const { onDeleteConfirm, clear } = get();
-    if (onDeleteConfirm) {
-      onDeleteConfirm();
+
+  resume: (sessionId) => {
+    const pending = get().pendingDeletions[sessionId];
+    if (!pending || !pending.isPaused) return;
+
+    const newDeletedAt = Date.now() - (UNDO_TIMEOUT_MS - pending.remainingTime);
+
+    const timeoutId = setTimeout(() => {
+      get().confirmDeletion(sessionId);
+    }, pending.remainingTime);
+
+    set((state) => {
+      const current = state.pendingDeletions[sessionId];
+      if (!current) return state;
+      return {
+        pendingDeletions: {
+          ...state.pendingDeletions,
+          [sessionId]: {
+            ...current,
+            isPaused: false,
+            data: { ...current.data, deletedAt: newDeletedAt },
+            timeoutId,
+          },
+        },
+      };
+    });
+  },
+
+  clearDeletion: (sessionId) => {
+    const pending = get().pendingDeletions[sessionId];
+    if (!pending) return;
+
+    if (pending.timeoutId) {
+      clearTimeout(pending.timeoutId);
     }
-    clear();
+
+    set((state) => {
+      const { [sessionId]: _, ...rest } = state.pendingDeletions;
+      return { pendingDeletions: rest };
+    });
+  },
+
+  confirmDeletion: (sessionId) => {
+    const pending = get().pendingDeletions[sessionId];
+    if (!pending) return;
+
+    if (pending.onDeleteConfirm) {
+      pending.onDeleteConfirm();
+    }
+    get().clearDeletion(sessionId);
   },
 }));

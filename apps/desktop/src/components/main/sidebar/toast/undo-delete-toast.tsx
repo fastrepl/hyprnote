@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { restoreSessionData } from "../../../../store/tinybase/store/deleteSession";
@@ -11,21 +11,36 @@ import {
 
 export function useUndoDeleteHandler() {
   const store = main.UI.useStore(main.STORE_ID);
-  const { deletedSession, clear } = useUndoDelete();
+  const pendingDeletions = useUndoDelete((state) => state.pendingDeletions);
+  const clearDeletion = useUndoDelete((state) => state.clearDeletion);
   const openCurrent = useTabs((state) => state.openCurrent);
 
-  const handleUndo = useCallback(() => {
-    if (!store || !deletedSession) return;
+  const latestSessionId = useMemo(() => {
+    let latest: string | null = null;
+    let latestTime = 0;
+    for (const [sessionId, pending] of Object.entries(pendingDeletions)) {
+      if (pending.addedAt > latestTime) {
+        latestTime = pending.addedAt;
+        latest = sessionId;
+      }
+    }
+    return latest;
+  }, [pendingDeletions]);
 
-    restoreSessionData(store, deletedSession);
-    openCurrent({ type: "sessions", id: deletedSession.session.id });
-    clear();
-  }, [store, deletedSession, openCurrent, clear]);
+  const handleUndo = useCallback(() => {
+    if (!store || !latestSessionId) return;
+    const pending = pendingDeletions[latestSessionId];
+    if (!pending) return;
+
+    restoreSessionData(store, pending.data);
+    openCurrent({ type: "sessions", id: latestSessionId });
+    clearDeletion(latestSessionId);
+  }, [store, latestSessionId, pendingDeletions, openCurrent, clearDeletion]);
 
   useHotkeys(
     "mod+z",
     () => {
-      if (deletedSession) {
+      if (latestSessionId) {
         handleUndo();
       }
     },
@@ -34,10 +49,10 @@ export function useUndoDeleteHandler() {
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [deletedSession, handleUndo],
+    [latestSessionId, handleUndo],
   );
 
-  return { handleUndo, deletedSession };
+  return { handleUndo, hasPendingDeletion: latestSessionId !== null };
 }
 
 export function UndoDeleteKeyboardHandler() {
@@ -46,24 +61,25 @@ export function UndoDeleteKeyboardHandler() {
 }
 
 export function useDissolvingProgress(sessionId: string | null) {
-  const { deletedSession, isPaused, remainingTime } = useUndoDelete();
+  const pending = useUndoDelete((state) =>
+    sessionId ? state.pendingDeletions[sessionId] : undefined,
+  );
   const [progress, setProgress] = useState(100);
 
-  const isDissolving =
-    deletedSession !== null && deletedSession.session.id === sessionId;
+  const isDissolving = pending !== undefined;
 
   useEffect(() => {
-    if (!isDissolving || !deletedSession) {
+    if (!isDissolving || !pending) {
       setProgress(100);
       return;
     }
 
-    if (isPaused) {
-      setProgress((remainingTime / UNDO_TIMEOUT_MS) * 100);
+    if (pending.isPaused) {
+      setProgress((pending.remainingTime / UNDO_TIMEOUT_MS) * 100);
       return;
     }
 
-    const startTime = deletedSession.deletedAt;
+    const startTime = pending.data.deletedAt;
     const endTime = startTime + UNDO_TIMEOUT_MS;
 
     const updateProgress = () => {
@@ -83,7 +99,7 @@ export function useDissolvingProgress(sessionId: string | null) {
         cancelAnimationFrame(animationIdRef.current);
       }
     };
-  }, [isDissolving, deletedSession, isPaused, remainingTime]);
+  }, [isDissolving, pending]);
 
   return { isDissolving, progress };
 }

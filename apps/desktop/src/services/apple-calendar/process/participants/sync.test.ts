@@ -6,6 +6,7 @@ import { syncParticipants } from "./sync";
 type MockStoreData = {
   humans: Record<string, { email?: string; name?: string }>;
   sessions: Record<string, { event_json?: string }>;
+  events: Record<string, { tracking_id_event?: string }>;
   mapping_session_participant: Record<
     string,
     { session_id: string; human_id: string; source?: string }
@@ -15,6 +16,7 @@ type MockStoreData = {
 function createMockStore(data: MockStoreData) {
   return {
     getRow: (table: keyof MockStoreData, id: string) => data[table]?.[id] ?? {},
+    hasRow: (table: keyof MockStoreData, id: string) => !!data[table]?.[id],
     forEachRow: (
       table: keyof MockStoreData,
       callback: (id: string, forEachCell: unknown) => void,
@@ -43,6 +45,7 @@ describe("syncParticipants", () => {
     const store = createMockStore({
       humans: {},
       sessions: {},
+      events: {},
       mapping_session_participant: {},
     });
     const ctx = createMockCtx(store);
@@ -61,6 +64,7 @@ describe("syncParticipants", () => {
     const store = createMockStore({
       humans: {},
       sessions: {},
+      events: {},
       mapping_session_participant: {},
     });
     const ctx = createMockCtx(store);
@@ -84,6 +88,7 @@ describe("syncParticipants", () => {
           event_json: JSON.stringify({ tracking_id: "tracking-1" }),
         },
       },
+      events: { "event-1": { tracking_id_event: "tracking-1" } },
       mapping_session_participant: {},
     });
     const ctx = createMockCtx(store);
@@ -108,6 +113,7 @@ describe("syncParticipants", () => {
           event_json: JSON.stringify({ tracking_id: "tracking-1" }),
         },
       },
+      events: { "event-1": { tracking_id_event: "tracking-1" } },
       mapping_session_participant: {},
     });
     const ctx = createMockCtx(store);
@@ -132,6 +138,7 @@ describe("syncParticipants", () => {
           event_json: JSON.stringify({ tracking_id: "tracking-1" }),
         },
       },
+      events: { "event-1": { tracking_id_event: "tracking-1" } },
       mapping_session_participant: {
         "mapping-1": {
           session_id: "session-1",
@@ -158,6 +165,7 @@ describe("syncParticipants", () => {
           event_json: JSON.stringify({ tracking_id: "tracking-1" }),
         },
       },
+      events: {},
       mapping_session_participant: {
         "mapping-1": {
           session_id: "session-1",

@@ -36,7 +36,10 @@ export function useSession(sessionId: string) {
     main.STORE_ID,
   );
 
-  const event = useMemo(() => getSessionEvent({ event_json: eventJson }), [eventJson]);
+  const event = useMemo(
+    () => getSessionEvent({ event_json: eventJson }),
+    [eventJson],
+  );
 
   return useMemo(
     () => ({ title, rawMd, createdAt, event, folderId }),

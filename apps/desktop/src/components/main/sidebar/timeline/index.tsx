@@ -6,17 +6,16 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn, format, safeParseDate, startOfDay, TZDate } from "@hypr/utils";
 
 import { useConfigValue } from "../../../../config/use-config";
+import { useIgnoredEvents } from "../../../../hooks/tinybase";
+import { useNativeContextMenu } from "../../../../hooks/useNativeContextMenu";
 import {
   captureSessionData,
   deleteSessionCascade,
 } from "../../../../store/tinybase/store/deleteSession";
-import { useIgnoredEvents } from "../../../../hooks/tinybase";
-import { useNativeContextMenu } from "../../../../hooks/useNativeContextMenu";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { useTimelineSelection } from "../../../../store/zustand/timeline-selection";
 import { useUndoDelete } from "../../../../store/zustand/undo-delete";
-import { getSessionEventById } from "../../../../utils/session-event";
 import {
   buildTimelineBuckets,
   calculateIndicatorIndex,
@@ -79,13 +78,6 @@ export function TimelineView() {
   }, [currentTab]);
 
   const store = main.UI.useStore(main.STORE_ID);
-
-  const selectedEventTrackingId = useMemo(() => {
-    if (!selectedSessionId || !store) {
-      return undefined;
-    }
-    return getSessionEventById(store, selectedSessionId)?.tracking_id ?? undefined;
-  }, [selectedSessionId, store]);
 
   const selectedIds = useTimelineSelection((s) => s.selectedIds);
   const clearSelection = useTimelineSelection((s) => s.clear);

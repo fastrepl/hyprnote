@@ -86,7 +86,6 @@ interface DraftArticle {
   meta_title?: string;
   author?: string;
   date?: string;
-  published?: boolean;
 }
 
 interface CollectionInfo {
@@ -133,7 +132,6 @@ interface FileContent {
   author?: string;
   date?: string;
   coverImage?: string;
-  published?: boolean;
   featured?: boolean;
   category?: string;
 }
@@ -145,7 +143,6 @@ interface ArticleMetadata {
   author: string;
   date: string;
   coverImage: string;
-  published: boolean;
   featured: boolean;
   category: string;
 }
@@ -176,7 +173,6 @@ function getFileContent(path: string): FileContent | undefined {
     author: a.author,
     date: a.date,
     coverImage: a.coverImage,
-    published: a.published,
     featured: a.featured,
     category: a.category,
   };
@@ -1423,7 +1419,6 @@ function ContentPanel({
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
             onSave={handleSave}
             isSaving={isSaving}
-            isPublished={currentFileContent?.published}
             onPublish={handlePublish}
             isPublishing={isPublishing}
             hasPendingPR={pendingPRData?.hasPendingPR}
@@ -1476,7 +1471,6 @@ function EditorHeader({
   onTogglePreview,
   onSave,
   isSaving,
-  isPublished,
   onPublish,
   isPublishing,
   hasPendingPR,
@@ -1496,7 +1490,6 @@ function EditorHeader({
   onTogglePreview: () => void;
   onSave: () => void;
   isSaving: boolean;
-  isPublished?: boolean;
   onPublish?: () => void;
   isPublishing?: boolean;
   hasPendingPR?: boolean;
@@ -1570,22 +1563,11 @@ function EditorHeader({
                     className="text-neutral-700 font-medium bg-transparent outline-none"
                   />
                 ) : (
-                  <span className="flex items-center gap-2">
-                    <span
-                      onClick={handleSlugClick}
-                      className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
-                    >
-                      {crumb.replace(/\.mdx$/, "")}
-                    </span>
-                    {isPublished ? (
-                      <span className="px-1.5 py-0.5 text-[10px] font-medium font-mono rounded bg-green-100 text-green-700">
-                        Published
-                      </span>
-                    ) : (
-                      <span className="px-1.5 py-0.5 text-[10px] font-medium font-mono rounded bg-neutral-100 text-neutral-500">
-                        Draft
-                      </span>
-                    )}
+                  <span
+                    onClick={handleSlugClick}
+                    className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
+                  >
+                    {crumb.replace(/\.mdx$/, "")}
                   </span>
                 )
               ) : (
@@ -1651,7 +1633,7 @@ function EditorHeader({
                   </span>
                 )}
             </button>
-            {onPublish && isPublished && (
+            {onPublish && (
               <button
                 onClick={onPublish}
                 disabled={isPublishing}
@@ -2110,8 +2092,6 @@ interface MetadataHandlers {
   onDateChange: (value: string) => void;
   coverImage: string;
   onCoverImageChange: (value: string) => void;
-  published: boolean;
-  onPublishedChange: (value: boolean) => void;
   featured: boolean;
   onFeaturedChange: (value: boolean) => void;
   category: string;
@@ -2242,22 +2222,12 @@ function MetadataPanel({
             />
           </div>
         </MetadataRow>
-        <MetadataRow label="Featured">
+        <MetadataRow label="Featured" noBorder>
           <div className="flex-1 flex items-center px-2 py-2">
             <input
               type="checkbox"
               checked={handlers.featured}
               onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
-              className="rounded"
-            />
-          </div>
-        </MetadataRow>
-        <MetadataRow label="Published" noBorder>
-          <div className="flex-1 flex items-center px-2 py-2">
-            <input
-              type="checkbox"
-              checked={handlers.published}
-              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
               className="rounded"
             />
           </div>
@@ -2490,22 +2460,12 @@ function MetadataSidePanel({
           <ImageIcon className="size-4 text-neutral-400 shrink-0" />
         </button>
       </MetadataRow>
-      <MetadataRow label="Featured">
+      <MetadataRow label="Featured" noBorder>
         <div className="flex-1 flex items-center px-2 py-2">
           <input
             type="checkbox"
             checked={handlers.featured}
             onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
-            className="rounded"
-          />
-        </div>
-      </MetadataRow>
-      <MetadataRow label="Published" noBorder>
-        <div className="flex-1 flex items-center px-2 py-2">
-          <input
-            type="checkbox"
-            checked={handlers.published}
-            onChange={(e) => handlers.onPublishedChange(e.target.checked)}
             className="rounded"
           />
         </div>
@@ -2535,7 +2495,6 @@ interface BranchFileResponse {
     author?: string;
     date?: string;
     coverImage?: string;
-    published?: boolean;
     featured?: boolean;
     category?: string;
   };
@@ -2636,7 +2595,6 @@ const FileEditor = React.forwardRef<
         author: branchFileData.frontmatter.author,
         date: branchFileData.frontmatter.date,
         coverImage: branchFileData.frontmatter.coverImage,
-        published: branchFileData.frontmatter.published,
         featured: branchFileData.frontmatter.featured,
         category: branchFileData.frontmatter.category,
       };
@@ -2653,7 +2611,6 @@ const FileEditor = React.forwardRef<
         author: pendingPRFileData.frontmatter.author,
         date: pendingPRFileData.frontmatter.date,
         coverImage: pendingPRFileData.frontmatter.coverImage,
-        published: pendingPRFileData.frontmatter.published,
         featured: pendingPRFileData.frontmatter.featured,
         category: pendingPRFileData.frontmatter.category,
       };
@@ -2679,7 +2636,6 @@ const FileEditor = React.forwardRef<
   const [author, setAuthor] = useState(fileContent?.author || "");
   const [date, setDate] = useState(fileContent?.date || "");
   const [coverImage, setCoverImage] = useState(fileContent?.coverImage || "");
-  const [published, setPublished] = useState(fileContent?.published || false);
   const [featured, setFeatured] = useState(fileContent?.featured || false);
   const [category, setCategory] = useState(fileContent?.category || "");
 
@@ -2697,7 +2653,6 @@ const FileEditor = React.forwardRef<
     author: fileContent?.author || "",
     date: fileContent?.date || "",
     coverImage: fileContent?.coverImage || "",
-    published: fileContent?.published || false,
     featured: fileContent?.featured || false,
     category: fileContent?.category || "",
   });
@@ -2809,7 +2764,6 @@ const FileEditor = React.forwardRef<
       author,
       date,
       coverImage,
-      published,
       featured,
       category,
     }),
@@ -2820,7 +2774,6 @@ const FileEditor = React.forwardRef<
       author,
       date,
       coverImage,
-      published,
       featured,
       category,
     ],
@@ -2834,7 +2787,6 @@ const FileEditor = React.forwardRef<
     setAuthor(fileContent?.author || "");
     setDate(fileContent?.date || "");
     setCoverImage(fileContent?.coverImage || "");
-    setPublished(fileContent?.published || false);
     setFeatured(fileContent?.featured || false);
     setCategory(fileContent?.category || "");
     lastSavedContentRef.current = fileContent?.content || "";
@@ -2845,7 +2797,6 @@ const FileEditor = React.forwardRef<
       author: fileContent?.author || "",
       date: fileContent?.date || "",
       coverImage: fileContent?.coverImage || "",
-      published: fileContent?.published || false,
       featured: fileContent?.featured || false,
       category: fileContent?.category || "",
     };
@@ -2867,7 +2818,6 @@ const FileEditor = React.forwardRef<
     author,
     date,
     coverImage,
-    published,
     featured,
     category,
     onDataChange,
@@ -2885,7 +2835,6 @@ const FileEditor = React.forwardRef<
       currentMetadata.author !== saved.author ||
       currentMetadata.date !== saved.date ||
       currentMetadata.coverImage !== saved.coverImage ||
-      currentMetadata.published !== saved.published ||
       currentMetadata.featured !== saved.featured ||
       currentMetadata.category !== saved.category
     );
@@ -2914,7 +2863,6 @@ const FileEditor = React.forwardRef<
     author,
     date,
     coverImage,
-    published,
     featured,
     category,
     getMetadata,
@@ -3058,8 +3006,6 @@ const FileEditor = React.forwardRef<
     onDateChange: setDate,
     coverImage,
     onCoverImageChange: setCoverImage,
-    published,
-    onPublishedChange: setPublished,
     featured,
     onFeaturedChange: setFeatured,
     category,
@@ -3278,7 +3224,6 @@ interface ImportResult {
     author: string;
     coverImage: string;
     featured: boolean;
-    published: boolean;
     date: string;
   };
   error?: string;

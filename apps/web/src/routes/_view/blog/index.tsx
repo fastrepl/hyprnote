@@ -48,10 +48,7 @@ function Component() {
   const navigate = useNavigate({ from: Route.fullPath });
   const search = Route.useSearch();
 
-  const publishedArticles = allArticles.filter(
-    (a) => import.meta.env.DEV || a.published === true,
-  );
-  const sortedArticles = [...publishedArticles].sort((a, b) => {
+  const sortedArticles = [...allArticles].sort((a, b) => {
     const aDate = a.date;
     const bDate = b.date;
     return new Date(bDate).getTime() - new Date(aDate).getTime();

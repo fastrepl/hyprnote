@@ -15,7 +15,6 @@ interface ArticleMetadata {
   author?: string;
   date?: string;
   coverImage?: string;
-  published?: boolean;
   featured?: boolean;
   category?: string;
 }
@@ -52,9 +51,6 @@ function buildFrontmatter(metadata: ArticleMetadata): string {
   }
   if (metadata.featured !== undefined) {
     lines.push(`featured: ${metadata.featured}`);
-  }
-  if (metadata.published !== undefined) {
-    lines.push(`published: ${metadata.published}`);
   }
   if (metadata.category) {
     lines.push(`category: ${JSON.stringify(metadata.category)}`);

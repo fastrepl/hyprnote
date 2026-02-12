@@ -1718,8 +1718,7 @@ function ManifestoSection() {
 }
 
 function BlogSection() {
-  const sortedArticles = allArticles
-    .filter((a) => import.meta.env.DEV || a.published !== false)
+  const sortedArticles = [...allArticles]
     .sort((a, b) => {
       const aDate = a.date;
       const bDate = b.date;

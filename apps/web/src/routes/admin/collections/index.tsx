@@ -1238,7 +1238,7 @@ function ContentPanel({
       return response.json();
     },
     onSuccess: (data) => {
-      if (data.prNumber) {
+      if (data.branchName) {
         queryClient.invalidateQueries({
           queryKey: ["pendingPR", currentTab?.path],
         });
@@ -1267,7 +1267,7 @@ function ContentPanel({
     [currentTab?.type, currentTab?.path],
   );
 
-  useQuery({
+  const { data: pendingPRData } = useQuery({
     queryKey: ["pendingPR", currentTab?.path],
     queryFn: async () => {
       const params = new URLSearchParams({ path: currentTab!.path });
@@ -1291,6 +1291,65 @@ function ContentPanel({
 
   const queryClient = useQueryClient();
 
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handlePublish = useCallback(async () => {
+    if (!currentTab || !editorData) return;
+
+    const prTab = window.open("", "_blank");
+    setIsPublishing(true);
+
+    try {
+      const saveResponse = await fetch("/api/admin/content/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          path: currentTab.path,
+          content: editorData.content,
+          metadata: editorData.metadata,
+          branch: currentTab.branch,
+        }),
+      });
+      if (!saveResponse.ok) {
+        const error = await saveResponse.json();
+        throw new Error(error.error || "Failed to save");
+      }
+      const saveResult = await saveResponse.json();
+
+      const branchName =
+        saveResult.branchName || pendingPRData?.branchName || currentTab.branch;
+
+      if (pendingPRData?.hasPendingPR && pendingPRData?.prUrl) {
+        if (prTab) prTab.location.href = pendingPRData.prUrl;
+      } else if (branchName) {
+        const publishResponse = await fetch("/api/admin/content/publish", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            path: currentTab.path,
+            branch: branchName,
+            metadata: editorData.metadata,
+          }),
+        });
+        if (!publishResponse.ok) {
+          const error = await publishResponse.json();
+          throw new Error(error.error || "Failed to publish");
+        }
+        const publishResult = await publishResponse.json();
+        if (publishResult.prUrl && prTab) {
+          prTab.location.href = publishResult.prUrl;
+        }
+        queryClient.invalidateQueries({
+          queryKey: ["pendingPR", currentTab.path],
+        });
+      }
+    } catch {
+      if (prTab) prTab.close();
+    } finally {
+      setIsPublishing(false);
+    }
+  }, [currentTab, editorData, pendingPRData, queryClient]);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {currentTab ? (
@@ -1309,6 +1368,9 @@ function ContentPanel({
             onSave={handleSave}
             isSaving={isSaving}
             isPublished={currentFileContent?.published}
+            onPublish={handlePublish}
+            isPublishing={isPublishing}
+            hasPendingPR={pendingPRData?.hasPendingPR}
             onRenameFile={(newSlug) => {
               const pathParts = currentTab.path.split("/");
               pathParts[pathParts.length - 1] = `${newSlug}.mdx`;
@@ -1359,6 +1421,9 @@ function EditorHeader({
   onSave,
   isSaving,
   isPublished,
+  onPublish,
+  isPublishing,
+  hasPendingPR,
   onRenameFile,
   hasUnsavedChanges,
   autoSaveCountdown,
@@ -1376,6 +1441,9 @@ function EditorHeader({
   onSave: () => void;
   isSaving: boolean;
   isPublished?: boolean;
+  onPublish?: () => void;
+  isPublishing?: boolean;
+  hasPendingPR?: boolean;
   onRenameFile?: (newSlug: string) => void;
   hasUnsavedChanges?: boolean;
   autoSaveCountdown?: number | null;
@@ -1527,6 +1595,27 @@ function EditorHeader({
                   </span>
                 )}
             </button>
+            {onPublish && isPublished && (
+              <button
+                onClick={onPublish}
+                disabled={isPublishing}
+                className={cn([
+                  "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
+                  hasPendingPR
+                    ? "text-white bg-amber-600 hover:bg-amber-700"
+                    : "text-white bg-blue-600 hover:bg-blue-700",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                ])}
+                title={hasPendingPR ? "View existing PR" : "Create PR"}
+              >
+                {isPublishing ? (
+                  <Spinner size={16} color="white" />
+                ) : (
+                  <SquareArrowOutUpRightIcon className="size-4" />
+                )}
+                {hasPendingPR ? "View PR" : "Publish"}
+              </button>
+            )}
           </div>
         )}
       </div>

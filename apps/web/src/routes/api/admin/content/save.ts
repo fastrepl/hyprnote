@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
 import {
-  savePublishedArticleWithPR,
+  savePublishedArticleToBranch,
   updateContentFileOnBranch,
 } from "@/functions/github-content";
 import { getSupabaseServerClient } from "@/functions/supabase";
@@ -180,7 +180,7 @@ export const Route = createFileRoute("/api/admin/content/save")({
         const shouldCreatePR = !branch;
 
         if (shouldCreatePR) {
-          const result = await savePublishedArticleWithPR(path, fullContent, {
+          const result = await savePublishedArticleToBranch(path, fullContent, {
             meta_title: metadata.meta_title,
             display_title: metadata.display_title,
             author: metadata.author,

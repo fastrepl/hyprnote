@@ -14,8 +14,11 @@ pub fn to_wav(source_path: &Path) -> Result<PathBuf, Error> {
         .file_stem()
         .unwrap_or_default()
         .to_string_lossy();
-    let wav_path =
-        std::env::temp_dir().join(format!("{}_afconvert_{}.wav", file_stem, std::process::id()));
+    let wav_path = std::env::temp_dir().join(format!(
+        "{}_afconvert_{}.wav",
+        file_stem,
+        std::process::id()
+    ));
 
     let output = Command::new("afconvert")
         .arg("-f")

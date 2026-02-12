@@ -35,9 +35,9 @@ serde_yaml = { workspace = true }
 specta = { workspace = true, features = ["serde_json"] }
 
 glob = "0.3"
+hypr-afconvert = { workspace = true }
 rayon = { workspace = true }
 rodio = { workspace = true, features = ["symphonia-all"] }
-hypr-afconvert = { workspace = true }
 
 chrono = { workspace = true }
 thiserror = { workspace = true }

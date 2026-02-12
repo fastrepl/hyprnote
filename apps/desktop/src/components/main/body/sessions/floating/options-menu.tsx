@@ -171,7 +171,7 @@ export function OptionsMenu({
         ),
         Effect.tap(() => Effect.sync(() => clearBatchSession(sessionId))),
         Effect.flatMap(() => Effect.promise(() => runBatch(path))),
-        Effect.catchAll((error) =>
+        Effect.catchAll((error: unknown) =>
           Effect.sync(() => {
             const msg = error instanceof Error ? error.message : String(error);
             handleBatchFailed(sessionId, msg);

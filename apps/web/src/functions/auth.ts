@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { env } from "@/env";
-import { isAdminEmail } from "@/functions/admin";
 import {
   getSupabaseAdminClient,
   getSupabaseDesktopFlowClient,
@@ -118,17 +117,26 @@ export const exchangeOAuthCode = createServerFn({ method: "POST" })
       return { success: false, error: error?.message || "Unknown error" };
     }
 
-    const email = authData.session.user.email;
-    if (authData.session.provider_token && email && isAdminEmail(email)) {
-      const githubUsername =
-        authData.session.user.user_metadata?.user_name ||
-        authData.session.user.user_metadata?.preferred_username;
-      await supabase.from("admins").upsert({
-        id: authData.session.user.id,
-        github_token: authData.session.provider_token,
-        github_username: githubUsername,
-        updated_at: new Date().toISOString(),
-      });
+    if (authData.session.provider_token) {
+      const { data: admin } = await supabase
+        .from("admins")
+        .select("id")
+        .eq("id", authData.session.user.id)
+        .single();
+
+      if (admin) {
+        const githubUsername =
+          authData.session.user.user_metadata?.user_name ||
+          authData.session.user.user_metadata?.preferred_username;
+        await supabase
+          .from("admins")
+          .update({
+            github_token: authData.session.provider_token,
+            github_username: githubUsername,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", authData.session.user.id);
+      }
     }
 
     return {

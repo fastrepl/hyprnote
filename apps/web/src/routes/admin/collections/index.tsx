@@ -1293,19 +1293,20 @@ function ContentPanel({
   const queryClient = useQueryClient();
 
   const { mutate: publish, isPending: isPublishing } = useMutation({
-    mutationFn: async () => {
-      if (!currentTab || !editorData) {
-        throw new Error("No active tab or editor data");
-      }
-
+    mutationFn: async (params: {
+      path: string;
+      content: string;
+      metadata: ArticleMetadata;
+      branch?: string;
+    }) => {
       const saveResponse = await fetch("/api/admin/content/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          path: currentTab.path,
-          content: editorData.content,
-          metadata: editorData.metadata,
-          branch: currentTab.branch,
+          path: params.path,
+          content: params.content,
+          metadata: params.metadata,
+          branch: params.branch,
         }),
       });
       if (!saveResponse.ok) {
@@ -1318,7 +1319,7 @@ function ContentPanel({
         return { prUrl: saveResult.prUrl as string };
       }
 
-      const branchName = saveResult.branchName || currentTab.branch;
+      const branchName = saveResult.branchName || params.branch;
 
       if (!branchName) {
         throw new Error("No branch available for publishing");
@@ -1328,9 +1329,9 @@ function ContentPanel({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          path: currentTab.path,
+          path: params.path,
           branch: branchName,
-          metadata: editorData.metadata,
+          metadata: params.metadata,
         }),
       });
       if (!publishResponse.ok) {
@@ -1340,9 +1341,9 @@ function ContentPanel({
       const publishResult = await publishResponse.json();
       return { prUrl: publishResult.prUrl as string | undefined };
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["pendingPR", currentTab?.path],
+        queryKey: ["pendingPR", variables.path],
       });
 
       if (data.prUrl) {
@@ -1367,7 +1368,12 @@ function ContentPanel({
 
   const handlePublish = useCallback(() => {
     if (!currentTab || !editorData) return;
-    publish();
+    publish({
+      path: currentTab.path,
+      content: editorData.content,
+      metadata: editorData.metadata,
+      branch: currentTab.branch,
+    });
   }, [currentTab, editorData, publish]);
 
   return (

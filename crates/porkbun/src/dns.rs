@@ -94,6 +94,7 @@ impl PorkbunClient {
         Ok(parsed.id)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn dns_edit(
         &self,
         domain: &str,

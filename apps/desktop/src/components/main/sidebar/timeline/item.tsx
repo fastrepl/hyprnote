@@ -97,15 +97,17 @@ function ItemBase({
   onShiftClick: () => void;
   contextMenu: Array<{ id: string; text: string; action: () => void }>;
 }) {
+  const hasSelection = useTimelineSelection((s) => s.selectedIds.length > 0);
+
   return (
     <InteractiveButton
       onClick={onClick}
       onCmdClick={onCmdClick}
       onShiftClick={onShiftClick}
-      contextMenu={multiSelected ? undefined : contextMenu}
+      contextMenu={hasSelection ? undefined : contextMenu}
       className={cn([
         "cursor-pointer w-full text-left px-3 py-2 rounded-lg",
-        multiSelected && "bg-blue-100",
+        multiSelected && "bg-neutral-200",
         !multiSelected && selected && "bg-neutral-200",
         !multiSelected && !selected && "hover:bg-neutral-100",
         ignored && "opacity-40",

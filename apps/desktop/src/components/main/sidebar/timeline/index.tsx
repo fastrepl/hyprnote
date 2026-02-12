@@ -165,7 +165,7 @@ export function TimelineView() {
 
   const contextMenuItems = useMemo(
     () =>
-      selectedIds.length > 1
+      selectedIds.length > 0
         ? [
             {
               id: "delete-selected",

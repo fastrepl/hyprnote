@@ -335,7 +335,7 @@ function ProfileButton({
           />
         ) : (
           <img
-            src={profile.data}
+            src={profile.data!}
             alt="Profile"
             className="h-full w-full rounded-full"
             onError={() => setImgError(true)}

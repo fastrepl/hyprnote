@@ -132,6 +132,8 @@ function useTranscriptSearchHighlights(word: SegmentWord) {
   const query = search?.query?.trim() ?? "";
   const isVisible = Boolean(search?.isVisible);
   const activeMatchId = search?.activeMatchId ?? null;
+  const caseSensitive = search?.caseSensitive ?? false;
+  const wholeWord = search?.wholeWord ?? false;
 
   const segments = useMemo(() => {
     const text = word.text ?? "";
@@ -144,35 +146,51 @@ function useTranscriptSearchHighlights(word: SegmentWord) {
       return [{ text, isMatch: false }];
     }
 
-    return createSegments(text, query);
-  }, [isVisible, query, word.text]);
+    return createSegments(text, query, caseSensitive, wholeWord);
+  }, [isVisible, query, word.text, caseSensitive, wholeWord]);
 
   const isActive = word.id === activeMatchId;
 
   return { segments, isActive };
 }
 
-function createSegments(rawText: string, query: string): HighlightSegment[] {
-  const text = rawText.normalize("NFC");
-  const lowerText = text.toLowerCase();
+function isWordBoundaryChar(text: string, index: number): boolean {
+  if (index < 0 || index >= text.length) return true;
+  return !/\w/.test(text[index]);
+}
 
-  // Tokenize query to handle multi-word searches
+function createSegments(
+  rawText: string,
+  query: string,
+  caseSensitive: boolean,
+  wholeWord: boolean,
+): HighlightSegment[] {
+  const text = rawText.normalize("NFC");
+  const searchText = caseSensitive ? text : text.toLowerCase();
+
   const tokens = query
     .normalize("NFC")
-    .toLowerCase()
     .split(/\s+/)
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((t) => (caseSensitive ? t : t.toLowerCase()));
   if (tokens.length === 0) return [{ text, isMatch: false }];
 
-  // Collect all match ranges from all tokens
   const ranges: { start: number; end: number }[] = [];
   for (const token of tokens) {
     let cursor = 0;
-    let index = lowerText.indexOf(token, cursor);
+    let index = searchText.indexOf(token, cursor);
     while (index !== -1) {
-      ranges.push({ start: index, end: index + token.length });
+      if (wholeWord) {
+        const beforeOk = isWordBoundaryChar(searchText, index - 1);
+        const afterOk = isWordBoundaryChar(searchText, index + token.length);
+        if (beforeOk && afterOk) {
+          ranges.push({ start: index, end: index + token.length });
+        }
+      } else {
+        ranges.push({ start: index, end: index + token.length });
+      }
       cursor = index + 1;
-      index = lowerText.indexOf(token, cursor);
+      index = searchText.indexOf(token, cursor);
     }
   }
 
@@ -180,7 +198,6 @@ function createSegments(rawText: string, query: string): HighlightSegment[] {
     return [{ text, isMatch: false }];
   }
 
-  // Sort and merge overlapping ranges
   ranges.sort((a, b) => a.start - b.start);
   const merged: { start: number; end: number }[] = [{ ...ranges[0] }];
   for (let i = 1; i < ranges.length; i++) {
@@ -192,7 +209,6 @@ function createSegments(rawText: string, query: string): HighlightSegment[] {
     }
   }
 
-  // Build segments
   const segments: HighlightSegment[] = [];
   let cursor = 0;
   for (const range of merged) {

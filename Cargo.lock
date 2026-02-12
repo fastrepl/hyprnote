@@ -12903,6 +12903,7 @@ dependencies = [
  "rodio",
  "serde",
  "serde_json",
+ "soniox",
  "strum 0.27.2",
  "thiserror 2.0.18",
  "tokio",
@@ -15030,6 +15031,7 @@ dependencies = [
  "restate-stt-types",
  "serde",
  "serde_json",
+ "soniox",
  "tokio",
  "tracing",
  "urlencoding",
@@ -16826,6 +16828,16 @@ dependencies = [
  "wasm-bindgen",
  "web-sys",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "soniox"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.13.2",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -20760,6 +20772,7 @@ name = "transcribe-proxy"
 version = "0.1.0"
 dependencies = [
  "analytics",
+ "api-auth",
  "audio-utils",
  "axum 0.8.8",
  "backon",

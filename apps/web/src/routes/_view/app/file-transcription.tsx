@@ -3,6 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Play } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import type { SttStatusResponse } from "@hypr/api-client";
+import { uploadAudio } from "@hypr/supabase/storage";
 import NoteEditor, { type JSONContent } from "@hypr/tiptap/editor";
 import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
 import "@hypr/tiptap/styles.css";
@@ -13,48 +15,52 @@ import {
   TranscriptDisplay,
 } from "@/components/transcription/transcript-display";
 import { UploadArea } from "@/components/transcription/upload-area";
-import { uploadAudioFile } from "@/functions/upload";
+import { env } from "@/env";
+import { getSupabaseBrowserClient } from "@/functions/supabase";
 
-type PipelineStatusType =
-  | "QUEUED"
-  | "TRANSCRIBING"
-  | "TRANSCRIBED"
-  | "LLM_RUNNING"
-  | "DONE"
-  | "ERROR";
+const API_URL = env.VITE_API_URL;
 
-type StatusStateType = {
-  status: PipelineStatusType;
-  transcript?: string;
-  llmResult?: string;
-  error?: string;
-};
+async function startPipeline(
+  fileId: string,
+  accessToken: string,
+): Promise<string> {
+  const resp = await fetch(`${API_URL}/stt/start`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ fileId }),
+  });
 
-// TODO: re-implement when file-transcription pipeline endpoints are added to the Rust API server
-type StartPipelineResult =
-  | { error: true; message: string }
-  | { success: true; pipelineId: string; invocationId?: string };
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text || `Failed to start pipeline (${resp.status})`);
+  }
 
-async function startAudioPipeline(_opts: {
-  data: { fileId: string };
-}): Promise<StartPipelineResult> {
-  return {
-    error: true,
-    message: "File transcription pipeline is not yet available",
-  };
+  const data: { id: string } = await resp.json();
+  return data.id;
 }
 
-type PipelineStatusResult =
-  | { error: true; message: string }
-  | { success: true; status: StatusStateType };
+async function fetchPipelineStatus(
+  pipelineId: string,
+  accessToken: string,
+): Promise<SttStatusResponse> {
+  const resp = await fetch(
+    `${API_URL}/stt/status/${encodeURIComponent(pipelineId)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
 
-async function getAudioPipelineStatus(_opts: {
-  data: { pipelineId: string };
-}): Promise<PipelineStatusResult> {
-  return {
-    error: true,
-    message: "File transcription pipeline is not yet available",
-  };
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text || `Failed to get status (${resp.status})`);
+  }
+
+  return resp.json();
 }
 
 export const Route = createFileRoute("/_view/app/file-transcription")({
@@ -65,9 +71,11 @@ export const Route = createFileRoute("/_view/app/file-transcription")({
 });
 
 function Component() {
+  const { id: searchId } = Route.useSearch();
+
   const [file, setFile] = useState<File | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
-  const [pipelineId, setPipelineId] = useState<string | null>(null);
+  const [pipelineId, setPipelineId] = useState<string | null>(searchId ?? null);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [noteContent, setNoteContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
   const [isMounted, setIsMounted] = useState(false);
@@ -76,38 +84,30 @@ function Component() {
     setIsMounted(true);
   }, []);
 
+  const getAccessToken = async () => {
+    const supabase = getSupabaseBrowserClient();
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData?.session;
+    if (!session) {
+      throw new Error("Not authenticated");
+    }
+    return session;
+  };
+
   const uploadMutation = useMutation({
     mutationFn: async (selectedFile: File) => {
-      const base64Data = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result?.toString().split(",")[1];
-          if (!result) {
-            reject(new Error("Failed to read file"));
-          } else {
-            resolve(result);
-          }
-        };
-        reader.onerror = () => reject(new Error("Failed to read file"));
-        reader.readAsDataURL(selectedFile);
+      const session = await getAccessToken();
+
+      const { promise } = uploadAudio({
+        file: selectedFile,
+        fileName: selectedFile.name,
+        contentType: selectedFile.type,
+        supabaseUrl: env.VITE_SUPABASE_URL!,
+        accessToken: session.access_token,
+        userId: session.user.id,
       });
 
-      const uploadResult = await uploadAudioFile({
-        data: {
-          fileName: selectedFile.name,
-          fileType: selectedFile.type,
-          fileData: base64Data,
-        },
-      });
-
-      if ("error" in uploadResult && uploadResult.error) {
-        throw new Error(uploadResult.message || "Failed to upload file");
-      }
-      if (!("fileId" in uploadResult)) {
-        throw new Error("Failed to get file ID");
-      }
-
-      return uploadResult.fileId;
+      return promise;
     },
     onSuccess: (newFileId) => {
       setFileId(newFileId);
@@ -116,42 +116,25 @@ function Component() {
 
   const startPipelineMutation = useMutation({
     mutationFn: async (fileIdArg: string) => {
-      const pipelineResult = await startAudioPipeline({
-        data: { fileId: fileIdArg },
-      });
-
-      if ("error" in pipelineResult && pipelineResult.error) {
-        throw new Error(pipelineResult.message || "Failed to start pipeline");
-      }
-      if (!("pipelineId" in pipelineResult)) {
-        throw new Error("Failed to get pipeline ID");
-      }
-
-      return pipelineResult.pipelineId;
+      const session = await getAccessToken();
+      return startPipeline(fileIdArg, session.access_token);
     },
     onSuccess: (newPipelineId) => {
       setPipelineId(newPipelineId);
+      const url = new URL(window.location.href);
+      url.searchParams.set("id", newPipelineId);
+      window.history.replaceState({}, "", url.toString());
     },
   });
 
   const pipelineStatusQuery = useQuery({
     queryKey: ["audioPipelineStatus", pipelineId],
-    queryFn: async (): Promise<StatusStateType> => {
+    queryFn: async (): Promise<SttStatusResponse> => {
       if (!pipelineId) {
         throw new Error("Missing pipelineId");
       }
-      const res = (await getAudioPipelineStatus({
-        data: { pipelineId },
-      })) as
-        | { success: true; status: StatusStateType }
-        | { error: true; message?: string };
-      if ("error" in res && res.error) {
-        throw new Error(res.message ?? "Failed to get pipeline status");
-      }
-      if (!("status" in res) || !res.status) {
-        throw new Error("Invalid response from pipeline status");
-      }
-      return res.status;
+      const session = await getAccessToken();
+      return fetchPipelineStatus(pipelineId, session.access_token);
     },
     enabled: !!pipelineId,
     refetchInterval: (query) => {
@@ -181,12 +164,6 @@ function Component() {
     }
     if (pipelineStatusQuery.data?.status === "DONE" || transcript) {
       return "done" as const;
-    }
-    if (pipelineStatus === "LLM_RUNNING") {
-      return "summarizing" as const;
-    }
-    if (pipelineStatus === "TRANSCRIBED") {
-      return "summarizing" as const;
     }
     if (pipelineStatus === "TRANSCRIBING") {
       return "transcribing" as const;

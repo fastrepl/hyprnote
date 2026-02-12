@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 hypr-analytics = { workspace = true }
+hypr-api-auth = { workspace = true }
 hypr-language = { workspace = true }
 hypr-restate-stt-types = { workspace = true, features = ["utoipa"] }
 owhisper-client = { workspace = true }

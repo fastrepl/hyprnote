@@ -135,5 +135,6 @@ export const useSTTConnection = () => {
     conn: connection,
     local,
     isLocalModel,
+    isCloudModel,
   };
 };

@@ -9,7 +9,7 @@ use crate::config::Config;
 use crate::soniox;
 use crate::supabase;
 use hypr_restate_rate_limit::{AllowRequest, RateLimiterClient};
-pub use hypr_restate_stt_types::{PipelineStatus, SttStatusResponse};
+pub use hypr_restate_stt_types::{PipelineStatus, SttStatusResponse, TranscriptToken};
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -139,10 +139,11 @@ impl SttFileImpl {
 
         let client = self.client.clone();
         let api_key = self.config.soniox_api_key.clone();
-        let transcript: String = ctx
+        let result: Json<soniox::TranscriptResult> = ctx
             .run(|| async move {
                 soniox::fetch_transcript(&client, &transcription_id, &api_key)
                     .await
+                    .map(Json)
                     .map_err(|e| {
                         if e.is_retryable {
                             e.into()
@@ -154,13 +155,15 @@ impl SttFileImpl {
             .name("fetch-soniox-transcript")
             .retry_policy(soniox_retry_policy)
             .await?;
+        let result = result.into_inner();
 
-        ctx.set("transcript", Json(transcript.clone()));
+        ctx.set("transcript", Json(result.text.clone()));
+        ctx.set("tokens", Json(result.tokens));
         ctx.set("status", Json(PipelineStatus::Done));
 
         Ok(SttFileOutput {
             status: PipelineStatus::Done,
-            transcript,
+            transcript: result.text,
         })
     }
 }
@@ -239,6 +242,10 @@ impl SttFile for SttFileImpl {
             .get::<Json<String>>("transcript")
             .await?
             .map(|j| j.into_inner());
+        let tokens = ctx
+            .get::<Json<Vec<TranscriptToken>>>("tokens")
+            .await?
+            .map(|j| j.into_inner());
         let error = ctx
             .get::<Json<String>>("error")
             .await?
@@ -247,6 +254,7 @@ impl SttFile for SttFileImpl {
         Ok(Json(SttStatusResponse {
             status,
             transcript,
+            tokens,
             error,
         }))
     }

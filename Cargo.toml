@@ -121,6 +121,7 @@ hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 owhisper-client = { path = "crates/owhisper-client", package = "owhisper-client" }
 owhisper-config = { path = "crates/owhisper-config", package = "owhisper-config" }
 owhisper-interface = { path = "crates/owhisper-interface", package = "owhisper-interface" }
+soniox = { path = "crates/soniox", package = "soniox" }
 
 tauri = "2.10"
 tauri-build = "2.5"

@@ -8,7 +8,7 @@ const GITHUB_OWNER: &str = "fastrepl";
 const GITHUB_REPO: &str = "hyprnote";
 
 #[derive(Template)]
-#[template(path = "bug_report.md.jinja")]
+#[template(path = "bug_report.md.jinja", escape = "none")]
 struct BugReportBody<'a> {
     description: &'a str,
     platform: &'a str,
@@ -19,7 +19,7 @@ struct BugReportBody<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "feature_request.md.jinja")]
+#[template(path = "feature_request.md.jinja", escape = "none")]
 struct FeatureRequestBody<'a> {
     description: &'a str,
     platform: &'a str,
@@ -30,7 +30,7 @@ struct FeatureRequestBody<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "log_analysis.md.jinja")]
+#[template(path = "log_analysis.md.jinja", escape = "none")]
 struct LogAnalysisComment<'a> {
     summary_section: &'a str,
     tail: &'a str,

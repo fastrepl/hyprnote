@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::env::Env;
+use crate::config::Config;
 
 #[derive(Deserialize)]
 struct SignedUrlResponse {
@@ -22,17 +22,17 @@ pub struct SortBy {
     pub order: String,
 }
 
-fn base_url(env: &Env) -> String {
-    env.supabase_url.trim_end_matches('/').to_string()
+fn base_url(config: &Config) -> String {
+    config.supabase_url.trim_end_matches('/').to_string()
 }
 
 pub async fn create_signed_url(
     client: &reqwest::Client,
-    env: &Env,
+    config: &Config,
     object_path: &str,
     expires_in_seconds: u64,
 ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-    let url = base_url(env);
+    let url = base_url(config);
     let encoded = urlencoding::encode(object_path);
 
     let response = client
@@ -41,9 +41,9 @@ pub async fn create_signed_url(
         ))
         .header(
             "Authorization",
-            format!("Bearer {}", env.supabase_service_role_key),
+            format!("Bearer {}", config.supabase_service_role_key),
         )
-        .header("apikey", &env.supabase_service_role_key)
+        .header("apikey", &config.supabase_service_role_key)
         .json(&serde_json::json!({ "expiresIn": expires_in_seconds }))
         .send()
         .await?;
@@ -68,19 +68,19 @@ pub async fn create_signed_url(
 
 pub async fn delete_file(
     client: &reqwest::Client,
-    env: &Env,
+    config: &Config,
     object_path: &str,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let url = base_url(env);
+    let url = base_url(config);
     let encoded = urlencoding::encode(object_path);
 
     let response = client
         .delete(format!("{url}/storage/v1/object/audio-files/{encoded}"))
         .header(
             "Authorization",
-            format!("Bearer {}", env.supabase_service_role_key),
+            format!("Bearer {}", config.supabase_service_role_key),
         )
-        .header("apikey", &env.supabase_service_role_key)
+        .header("apikey", &config.supabase_service_role_key)
         .send()
         .await?;
 
@@ -95,22 +95,22 @@ pub async fn delete_file(
 
 pub async fn delete_files(
     client: &reqwest::Client,
-    env: &Env,
+    config: &Config,
     object_paths: &[String],
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if object_paths.is_empty() {
         return Ok(());
     }
 
-    let url = base_url(env);
+    let url = base_url(config);
 
     let response = client
         .delete(format!("{url}/storage/v1/object/audio-files"))
         .header(
             "Authorization",
-            format!("Bearer {}", env.supabase_service_role_key),
+            format!("Bearer {}", config.supabase_service_role_key),
         )
-        .header("apikey", &env.supabase_service_role_key)
+        .header("apikey", &config.supabase_service_role_key)
         .json(&serde_json::json!({ "prefixes": object_paths }))
         .send()
         .await?;
@@ -126,13 +126,13 @@ pub async fn delete_files(
 
 pub async fn list_files(
     client: &reqwest::Client,
-    env: &Env,
+    config: &Config,
     prefix: &str,
     limit: u64,
     offset: u64,
     sort_by: Option<&SortBy>,
 ) -> Result<Vec<StorageFile>, Box<dyn std::error::Error + Send + Sync>> {
-    let url = base_url(env);
+    let url = base_url(config);
 
     let mut body = serde_json::json!({
         "prefix": prefix,
@@ -151,9 +151,9 @@ pub async fn list_files(
         .post(format!("{url}/storage/v1/object/list/audio-files"))
         .header(
             "Authorization",
-            format!("Bearer {}", env.supabase_service_role_key),
+            format!("Bearer {}", config.supabase_service_role_key),
         )
-        .header("apikey", &env.supabase_service_role_key)
+        .header("apikey", &config.supabase_service_role_key)
         .json(&body)
         .send()
         .await?;
@@ -170,7 +170,7 @@ pub async fn list_files(
 
 pub async fn list_all_files(
     client: &reqwest::Client,
-    env: &Env,
+    config: &Config,
     sort_by: Option<&SortBy>,
 ) -> Result<Vec<StorageFile>, Box<dyn std::error::Error + Send + Sync>> {
     let mut all_files = Vec::new();
@@ -178,7 +178,7 @@ pub async fn list_all_files(
     let limit = 100u64;
 
     loop {
-        let files = list_files(client, env, "", limit, offset, sort_by).await?;
+        let files = list_files(client, config, "", limit, offset, sort_by).await?;
         if files.is_empty() {
             break;
         }

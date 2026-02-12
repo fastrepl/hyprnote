@@ -1,4 +1,5 @@
 mod batch;
+pub mod status;
 pub mod streaming;
 
 use std::sync::Arc;
@@ -138,6 +139,7 @@ pub fn router(config: SttProxyConfig) -> Router {
             .route("/", post(batch::handler))
             .route("/listen", get(streaming::handler))
             .route("/listen", post(batch::handler))
+            .route("/status/{pipeline_id}", get(status::handler))
             .with_state(state),
     )
 }

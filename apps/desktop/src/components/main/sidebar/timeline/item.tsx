@@ -20,6 +20,7 @@ import * as main from "../../../../store/tinybase/store/main";
 import { save } from "../../../../store/tinybase/store/save";
 import { getOrCreateSessionForEventId } from "../../../../store/tinybase/store/sessions";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
+import { useTimelineSelection } from "../../../../store/zustand/timeline-selection";
 import { useUndoDelete } from "../../../../store/zustand/undo-delete";
 import {
   type EventTimelineItem,
@@ -36,11 +37,15 @@ export const TimelineItemComponent = memo(
     precision,
     selected,
     timezone,
+    multiSelected,
+    flatItemKeys,
   }: {
     item: TimelineItem;
     precision: TimelinePrecision;
     selected: boolean;
     timezone?: string;
+    multiSelected: boolean;
+    flatItemKeys: string[];
   }) => {
     if (item.type === "event") {
       return (
@@ -49,6 +54,8 @@ export const TimelineItemComponent = memo(
           precision={precision}
           selected={selected}
           timezone={timezone}
+          multiSelected={multiSelected}
+          flatItemKeys={flatItemKeys}
         />
       );
     }
@@ -58,6 +65,8 @@ export const TimelineItemComponent = memo(
         precision={precision}
         selected={selected}
         timezone={timezone}
+        multiSelected={multiSelected}
+        flatItemKeys={flatItemKeys}
       />
     );
   },
@@ -70,8 +79,10 @@ function ItemBase({
   showSpinner,
   selected,
   ignored,
+  multiSelected,
   onClick,
   onCmdClick,
+  onShiftClick,
   contextMenu,
 }: {
   title: string;
@@ -80,19 +91,23 @@ function ItemBase({
   showSpinner?: boolean;
   selected: boolean;
   ignored?: boolean;
+  multiSelected: boolean;
   onClick: () => void;
   onCmdClick: () => void;
+  onShiftClick: () => void;
   contextMenu: Array<{ id: string; text: string; action: () => void }>;
 }) {
   return (
     <InteractiveButton
       onClick={onClick}
       onCmdClick={onCmdClick}
-      contextMenu={contextMenu}
+      onShiftClick={onShiftClick}
+      contextMenu={multiSelected ? undefined : contextMenu}
       className={cn([
         "cursor-pointer w-full text-left px-3 py-2 rounded-lg",
-        selected && "bg-neutral-200",
-        !selected && "hover:bg-neutral-100",
+        multiSelected && "bg-blue-100",
+        !multiSelected && selected && "bg-neutral-200",
+        !multiSelected && !selected && "hover:bg-neutral-100",
         ignored && "opacity-40",
       ])}
     >
@@ -127,11 +142,15 @@ const EventItem = memo(
     precision,
     selected,
     timezone,
+    multiSelected,
+    flatItemKeys,
   }: {
     item: EventTimelineItem;
     precision: TimelinePrecision;
     selected: boolean;
     timezone?: string;
+    multiSelected: boolean;
+    flatItemKeys: string[];
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
     const indexes = main.UI.useIndexes(main.STORE_ID);
@@ -162,8 +181,17 @@ const EventItem = memo(
       [eventId, store, title, openCurrent, openNew],
     );
 
-    const handleClick = useCallback(() => openEvent(false), [openEvent]);
+    const itemKey = `event-${item.id}`;
+
+    const handleClick = useCallback(() => {
+      useTimelineSelection.getState().setAnchor(itemKey);
+      openEvent(false);
+    }, [openEvent, itemKey]);
     const handleCmdClick = useCallback(() => openEvent(true), [openEvent]);
+
+    const handleShiftClick = useCallback(() => {
+      useTimelineSelection.getState().selectRange(flatItemKeys, itemKey);
+    }, [flatItemKeys, itemKey]);
 
     const handleIgnore = useCallback(() => {
       if (!store) {
@@ -273,8 +301,10 @@ const EventItem = memo(
         calendarId={calendarId}
         selected={selected}
         ignored={ignored}
+        multiSelected={multiSelected}
         onClick={handleClick}
         onCmdClick={handleCmdClick}
+        onShiftClick={handleShiftClick}
         contextMenu={contextMenu}
       />
     );
@@ -287,18 +317,22 @@ const SessionItem = memo(
     precision,
     selected,
     timezone,
+    multiSelected,
+    flatItemKeys,
   }: {
     item: SessionTimelineItem;
     precision: TimelinePrecision;
     selected: boolean;
     timezone?: string;
+    multiSelected: boolean;
+    flatItemKeys: string[];
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
     const indexes = main.UI.useIndexes(main.STORE_ID);
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
     const invalidateResource = useTabs((state) => state.invalidateResource);
-    const { setDeletedSession, setTimeoutId } = useUndoDelete();
+    const addDeletion = useUndoDelete((state) => state.addDeletion);
 
     const sessionId = item.id;
     const title =
@@ -336,13 +370,20 @@ const SessionItem = memo(
       [eventStartedAt, item.data.created_at, precision, timezone],
     );
 
+    const itemKey = `session-${item.id}`;
+
     const handleClick = useCallback(() => {
+      useTimelineSelection.getState().setAnchor(itemKey);
       openCurrent({ id: sessionId, type: "sessions" });
-    }, [sessionId, openCurrent]);
+    }, [sessionId, openCurrent, itemKey]);
 
     const handleCmdClick = useCallback(() => {
       openNew({ id: sessionId, type: "sessions" });
     }, [sessionId, openNew]);
+
+    const handleShiftClick = useCallback(() => {
+      useTimelineSelection.getState().selectRange(flatItemKeys, itemKey);
+    }, [flatItemKeys, itemKey]);
 
     const handleDelete = useCallback(() => {
       if (!store) {
@@ -357,20 +398,9 @@ const SessionItem = memo(
           void deleteSessionCascade(store, indexes, sessionId);
         };
 
-        setDeletedSession(capturedData, performDelete);
-        const timeoutId = setTimeout(() => {
-          useUndoDelete.getState().confirmDelete();
-        }, 5000);
-        setTimeoutId(timeoutId);
+        addDeletion(capturedData, performDelete);
       }
-    }, [
-      store,
-      indexes,
-      sessionId,
-      invalidateResource,
-      setDeletedSession,
-      setTimeoutId,
-    ]);
+    }, [store, indexes, sessionId, invalidateResource, addDeletion]);
 
     const handleRevealInFinder = useCallback(async () => {
       await save();
@@ -409,8 +439,10 @@ const SessionItem = memo(
           calendarId={calendarId}
           showSpinner={showSpinner}
           selected={selected}
+          multiSelected={multiSelected}
           onClick={handleClick}
           onCmdClick={handleCmdClick}
+          onShiftClick={handleShiftClick}
           contextMenu={contextMenu}
         />
       </DissolvingContainer>

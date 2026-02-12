@@ -6,8 +6,14 @@ import { cn, startOfDay } from "@hypr/utils";
 
 import { useConfigValue } from "../../../../config/use-config";
 import { useNativeContextMenu } from "../../../../hooks/useNativeContextMenu";
+import {
+  captureSessionData,
+  deleteSessionCascade,
+} from "../../../../store/tinybase/store/deleteSession";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
+import { useTimelineSelection } from "../../../../store/zustand/timeline-selection";
+import { useUndoDelete } from "../../../../store/zustand/undo-delete";
 import {
   buildTimelineBuckets,
   calculateIndicatorIndex,
@@ -63,6 +69,22 @@ export function TimelineView() {
     return session?.event_id ? String(session.event_id) : undefined;
   }, [selectedSessionId, store]);
 
+  const selectedIds = useTimelineSelection((s) => s.selectedIds);
+  const clearSelection = useTimelineSelection((s) => s.clear);
+  const indexes = main.UI.useIndexes(main.STORE_ID);
+  const invalidateResource = useTabs((state) => state.invalidateResource);
+  const addDeletion = useUndoDelete((state) => state.addDeletion);
+
+  const flatItemKeys = useMemo(() => {
+    const keys: string[] = [];
+    for (const bucket of buckets) {
+      for (const item of bucket.items) {
+        keys.push(`${item.type}-${item.id}`);
+      }
+    }
+    return keys;
+  }, [buckets]);
+
   const {
     containerRef,
     isAnchorVisible: isTodayVisible,
@@ -106,15 +128,66 @@ export function TimelineView() {
     setShowIgnored((prev) => !prev);
   }, []);
 
+  const handleDeleteSelected = useCallback(() => {
+    if (!store || !indexes) {
+      return;
+    }
+
+    const sessionIds = selectedIds
+      .filter((key) => key.startsWith("session-"))
+      .map((key) => key.replace("session-", ""));
+
+    for (const sessionId of sessionIds) {
+      const capturedData = captureSessionData(store, indexes, sessionId);
+      if (capturedData) {
+        const performDelete = () => {
+          invalidateResource("sessions", sessionId);
+          void deleteSessionCascade(store, indexes, sessionId);
+        };
+        addDeletion(capturedData, performDelete);
+      }
+    }
+
+    clearSelection();
+  }, [
+    store,
+    indexes,
+    selectedIds,
+    invalidateResource,
+    addDeletion,
+    clearSelection,
+  ]);
+
+  const sessionCount = useMemo(
+    () => selectedIds.filter((key) => key.startsWith("session-")).length,
+    [selectedIds],
+  );
+
   const contextMenuItems = useMemo(
-    () => [
-      {
-        id: "toggle-ignored",
-        text: showIgnored ? "Hide Ignored Events" : "Show Ignored Events",
-        action: toggleShowIgnored,
-      },
+    () =>
+      selectedIds.length > 1
+        ? [
+            {
+              id: "delete-selected",
+              text: `Delete Selected (${sessionCount})`,
+              action: handleDeleteSelected,
+              disabled: sessionCount === 0,
+            },
+          ]
+        : [
+            {
+              id: "toggle-ignored",
+              text: showIgnored ? "Hide Ignored Events" : "Show Ignored Events",
+              action: toggleShowIgnored,
+            },
+          ],
+    [
+      selectedIds,
+      sessionCount,
+      handleDeleteSelected,
+      showIgnored,
+      toggleShowIgnored,
     ],
-    [showIgnored, toggleShowIgnored],
   );
 
   const showContextMenu = useNativeContextMenu(contextMenuItems);
@@ -157,20 +230,25 @@ export function TimelineView() {
                   selectedSessionId={selectedSessionId}
                   selectedEventId={selectedEventId}
                   timezone={timezone}
+                  selectedIds={selectedIds}
+                  flatItemKeys={flatItemKeys}
                 />
               ) : (
                 bucket.items.map((item) => {
+                  const itemKey = `${item.type}-${item.id}`;
                   const selected =
                     item.type === "session"
                       ? item.id === selectedSessionId
                       : item.id === selectedEventId;
                   return (
                     <TimelineItemComponent
-                      key={`${item.type}-${item.id}`}
+                      key={itemKey}
                       item={item}
                       precision={bucket.precision}
                       selected={selected}
                       timezone={timezone}
+                      multiSelected={selectedIds.includes(itemKey)}
+                      flatItemKeys={flatItemKeys}
                     />
                   );
                 })
@@ -217,6 +295,8 @@ function TodayBucket({
   selectedSessionId,
   selectedEventId,
   timezone,
+  selectedIds,
+  flatItemKeys,
 }: {
   items: TimelineItem[];
   precision: TimelinePrecision;
@@ -224,6 +304,8 @@ function TodayBucket({
   selectedSessionId: string | undefined;
   selectedEventId: string | undefined;
   timezone?: string;
+  selectedIds: string[];
+  flatItemKeys: string[];
 }) {
   const currentTimeMs = useCurrentTimeMs();
 
@@ -267,6 +349,7 @@ function TodayBucket({
         );
       }
 
+      const itemKey = `${entry.item.type}-${entry.item.id}`;
       const selected =
         entry.item.type === "session"
           ? entry.item.id === selectedSessionId
@@ -274,11 +357,13 @@ function TodayBucket({
 
       nodes.push(
         <TimelineItemComponent
-          key={`${entry.item.type}-${entry.item.id}`}
+          key={itemKey}
           item={entry.item}
           precision={precision}
           selected={selected}
           timezone={timezone}
+          multiSelected={selectedIds.includes(itemKey)}
+          flatItemKeys={flatItemKeys}
         />,
       );
     });
@@ -301,6 +386,8 @@ function TodayBucket({
     selectedSessionId,
     selectedEventId,
     timezone,
+    selectedIds,
+    flatItemKeys,
   ]);
 
   return renderedEntries;

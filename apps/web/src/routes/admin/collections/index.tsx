@@ -308,8 +308,9 @@ function CollectionsPage() {
             },
           ],
         );
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
       }
-      queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
     },
   });
 

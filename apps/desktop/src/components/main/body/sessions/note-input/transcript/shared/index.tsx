@@ -126,7 +126,9 @@ export function TranscriptContainer({
 
   // TOOD: this can't handle words=[]
   if (transcriptIds.length === 0) {
-    return <TranscriptEmptyState />;
+    return (
+      <TranscriptEmptyState isBatching={sessionMode === "running_batch"} />
+    );
   }
 
   const handleSelectionAction = (action: string, selectedText: string) => {

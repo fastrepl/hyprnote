@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
 
+import { useListener } from "../../../../../contexts/listener";
 import { fromResult } from "../../../../../effect";
 import { useRunBatch } from "../../../../../hooks/useRunBatch";
 import * as main from "../../../../../store/tinybase/store/main";
@@ -45,6 +46,9 @@ export function OptionsMenu({
   const [open, setOpen] = useState(false);
   const runBatch = useRunBatch(sessionId);
   const queryClient = useQueryClient();
+  const handleBatchStarted = useListener((state) => state.handleBatchStarted);
+  const handleBatchFailed = useListener((state) => state.handleBatchFailed);
+  const clearBatchSession = useListener((state) => state.clearBatchSession);
 
   const store = main.UI.useStore(main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -139,7 +143,18 @@ export function OptionsMenu({
       }
 
       return pipe(
-        fromResult(fsSyncCommands.audioImport(sessionId, path)),
+        Effect.sync(() => {
+          if (sessionTab) {
+            updateSessionTabState(sessionTab, {
+              ...sessionTab.state,
+              view: { type: "transcript" },
+            });
+          }
+          handleBatchStarted(sessionId);
+        }),
+        Effect.flatMap(() =>
+          fromResult(fsSyncCommands.audioImport(sessionId, path)),
+        ),
         Effect.tap(() =>
           Effect.sync(() => {
             void analyticsCommands.event({
@@ -154,10 +169,20 @@ export function OptionsMenu({
             });
           }),
         ),
+        Effect.tap(() => Effect.sync(() => clearBatchSession(sessionId))),
         Effect.flatMap(() => Effect.promise(() => runBatch(path))),
+        Effect.catchAll((error: unknown) =>
+          Effect.sync(() => {
+            const msg = error instanceof Error ? error.message : String(error);
+            handleBatchFailed(sessionId, msg);
+          }),
+        ),
       );
     },
     [
+      clearBatchSession,
+      handleBatchFailed,
+      handleBatchStarted,
       queryClient,
       runBatch,
       sessionId,

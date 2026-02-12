@@ -191,6 +191,7 @@ export function deleteSessionCascade(
   store: Store,
   indexes: ReturnType<typeof main.UI.useIndexes>,
   sessionId: string,
+  options?: { skipAudio?: boolean },
 ): void {
   if (!indexes) {
     store.delRow("sessions", sessionId);
@@ -231,5 +232,7 @@ export function deleteSessionCascade(
     });
   }
 
-  void fsSyncCommands.audioDelete(sessionId);
+  if (!options?.skipAudio) {
+    void fsSyncCommands.audioDelete(sessionId);
+  }
 }

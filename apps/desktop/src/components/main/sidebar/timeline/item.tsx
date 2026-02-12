@@ -298,7 +298,7 @@ const SessionItem = memo(
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
     const invalidateResource = useTabs((state) => state.invalidateResource);
-    const { setDeletedSession, setTimeoutId } = useUndoDelete();
+    const addDeletion = useUndoDelete((state) => state.addDeletion);
 
     const sessionId = item.id;
     const title =
@@ -357,20 +357,9 @@ const SessionItem = memo(
           void deleteSessionCascade(store, indexes, sessionId);
         };
 
-        setDeletedSession(capturedData, performDelete);
-        const timeoutId = setTimeout(() => {
-          useUndoDelete.getState().confirmDelete();
-        }, 5000);
-        setTimeoutId(timeoutId);
+        addDeletion(capturedData, performDelete);
       }
-    }, [
-      store,
-      indexes,
-      sessionId,
-      invalidateResource,
-      setDeletedSession,
-      setTimeoutId,
-    ]);
+    }, [store, indexes, sessionId, invalidateResource, addDeletion]);
 
     const handleRevealInFinder = useCallback(async () => {
       await save();

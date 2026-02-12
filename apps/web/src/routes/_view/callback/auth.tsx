@@ -172,7 +172,7 @@ function Component() {
   };
 
   useEffect(() => {
-    if (search.flow === "web") {
+    if (search.flow === "web" && !search.error) {
       navigate({ to: search.redirect || "/app/account/" });
     }
   }, [search, navigate]);

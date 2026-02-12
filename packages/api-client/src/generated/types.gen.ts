@@ -91,11 +91,19 @@ export type ListEventsResponse = {
     next_page_token?: string | null;
 };
 
+export type PipelineStatus = 'QUEUED' | 'TRANSCRIBING' | 'DONE' | 'ERROR';
+
 export type StartTrialReason = 'started' | 'not_eligible' | 'error';
 
 export type StartTrialResponse = {
     reason?: null | StartTrialReason;
     started: boolean;
+};
+
+export type SttStatusResponse = {
+    error?: string | null;
+    status: PipelineStatus;
+    transcript?: string | null;
 };
 
 export type WebhookResponse = {
@@ -265,6 +273,34 @@ export type NangoWebhookResponses = {
 };
 
 export type NangoWebhookResponse = NangoWebhookResponses[keyof NangoWebhookResponses];
+
+export type HandlerData = {
+    body?: never;
+    path: {
+        /**
+         * Pipeline ID (Restate workflow key)
+         */
+        pipeline_id: string;
+    };
+    query?: never;
+    url: '/stt/status/{pipeline_id}';
+};
+
+export type HandlerErrors = {
+    /**
+     * Restate service unavailable
+     */
+    502: unknown;
+};
+
+export type HandlerResponses = {
+    /**
+     * Pipeline status
+     */
+    200: SttStatusResponse;
+};
+
+export type HandlerResponse = HandlerResponses[keyof HandlerResponses];
 
 export type CanStartTrialData = {
     body?: never;

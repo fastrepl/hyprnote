@@ -19,6 +19,8 @@ pub struct Env {
     pub gladia_api_key: Option<String>,
     #[serde(default)]
     pub elevenlabs_api_key: Option<String>,
+    #[serde(default)]
+    pub restate_ingress_url: Option<String>,
 }
 
 pub struct ApiKeys(pub HashMap<Provider, String>);

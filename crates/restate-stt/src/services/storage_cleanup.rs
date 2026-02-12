@@ -2,7 +2,7 @@ use restate_sdk::prelude::*;
 use restate_sdk::serde::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::env::Env;
+use crate::config::Config;
 use crate::supabase;
 
 #[derive(Serialize, Deserialize)]
@@ -34,14 +34,14 @@ pub trait StorageCleanup {
 }
 
 pub struct StorageCleanupImpl {
-    env: &'static Env,
+    config: &'static Config,
     client: reqwest::Client,
 }
 
 impl StorageCleanupImpl {
-    pub fn new(env: &'static Env) -> Self {
+    pub fn new(config: &'static Config) -> Self {
         Self {
-            env,
+            config,
             client: reqwest::Client::new(),
         }
     }
@@ -71,12 +71,12 @@ impl StorageCleanup for StorageCleanupImpl {
             order: "asc".to_string(),
         };
 
-        let env = self.env;
+        let config = self.config;
         let client = self.client.clone();
         let sort = sort_by.clone();
         let Json(files): Json<Vec<supabase::StorageFile>> = ctx
             .run(|| async move {
-                supabase::list_all_files(&client, env, Some(&sort))
+                supabase::list_all_files(&client, config, Some(&sort))
                     .await
                     .map(Json)
                     .map_err(|e| TerminalError::new(format!("Failed to list files: {e}")).into())
@@ -110,12 +110,12 @@ impl StorageCleanup for StorageCleanupImpl {
 
         for batch in to_delete.chunks(100) {
             let paths = batch.to_vec();
-            let env = self.env;
+            let config = self.config;
             let client = self.client.clone();
             let batch_paths = paths.clone();
             let delete_result: Result<(), TerminalError> = ctx
                 .run(|| async move {
-                    supabase::delete_files(&client, env, &batch_paths)
+                    supabase::delete_files(&client, config, &batch_paths)
                         .await
                         .map_err(|e| TerminalError::new(e.to_string()).into())
                 })

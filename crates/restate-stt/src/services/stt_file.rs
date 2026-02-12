@@ -5,10 +5,11 @@ use restate_sdk::prelude::*;
 use restate_sdk::serde::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::env::Env;
-use crate::services::rate_limit::{RateLimitConfig, RateLimiterClient};
+use crate::config::Config;
 use crate::soniox;
 use crate::supabase;
+use hypr_restate_rate_limit::{AllowRequest, RateLimiterClient};
+pub use hypr_restate_stt_types::{PipelineStatus, SttStatusResponse};
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -19,18 +20,8 @@ pub struct SttFileInput {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SttFileOutput {
-    pub status: String,
+    pub status: PipelineStatus,
     pub transcript: String,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct SttStatusResponse {
-    pub status: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub transcript: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
 }
 
 #[restate_sdk::workflow]
@@ -47,14 +38,14 @@ pub trait SttFile {
 }
 
 pub struct SttFileImpl {
-    env: &'static Env,
+    config: &'static Config,
     client: reqwest::Client,
 }
 
 impl SttFileImpl {
-    pub fn new(env: &'static Env) -> Self {
+    pub fn new(config: &'static Config) -> Self {
         Self {
-            env,
+            config,
             client: reqwest::Client::new(),
         }
     }
@@ -71,25 +62,26 @@ impl SttFileImpl {
             return Err(TerminalError::new("user_id cannot be empty").into());
         }
 
-        ctx.set("status", Json("QUEUED".to_string()));
+        ctx.set("status", Json(PipelineStatus::Queued));
         ctx.set("fileId", Json(input.file_id.clone()));
 
         ctx.object_client::<RateLimiterClient>(&input.user_id)
-            .check_and_consume(Json(RateLimitConfig {
-                window_ms: 60_000,
-                max_in_window: 5,
+            .allow(Json(AllowRequest {
+                n: 1,
+                limit: 5.0 / 60.0,
+                burst: 5,
             }))
             .call()
             .await?;
 
-        ctx.set("status", Json("TRANSCRIBING".to_string()));
+        ctx.set("status", Json(PipelineStatus::Transcribing));
 
-        let env = self.env;
+        let config = self.config;
         let client = self.client.clone();
         let file_id = input.file_id.clone();
         let audio_url: String = ctx
             .run(|| async move {
-                supabase::create_signed_url(&client, env, &file_id, 3600)
+                supabase::create_signed_url(&client, config, &file_id, 3600)
                     .await
                     .map_err(|e| {
                         TerminalError::new(format!("Failed to create signed URL: {e}")).into()
@@ -98,7 +90,7 @@ impl SttFileImpl {
             .name("create-signed-url")
             .await?;
 
-        let ingress_url = self.env.restate_ingress_url.trim_end_matches('/');
+        let ingress_url = self.config.restate_ingress_url.trim_end_matches('/');
         let key = ctx.key();
         let encoded_key = urlencoding::encode(key);
         let callback_url = format!("{ingress_url}/SttFile/{encoded_key}/onTranscript");
@@ -110,7 +102,7 @@ impl SttFileImpl {
             .max_attempts(5);
 
         let client = self.client.clone();
-        let api_key = self.env.soniox_api_key.clone();
+        let api_key = self.config.soniox_api_key.clone();
         let audio_url_clone = audio_url.clone();
         let callback_url_clone = callback_url.clone();
         let request_id: String = ctx
@@ -146,7 +138,7 @@ impl SttFileImpl {
         };
 
         let client = self.client.clone();
-        let api_key = self.env.soniox_api_key.clone();
+        let api_key = self.config.soniox_api_key.clone();
         let transcript: String = ctx
             .run(|| async move {
                 soniox::fetch_transcript(&client, &transcription_id, &api_key)
@@ -164,10 +156,10 @@ impl SttFileImpl {
             .await?;
 
         ctx.set("transcript", Json(transcript.clone()));
-        ctx.set("status", Json("DONE".to_string()));
+        ctx.set("status", Json(PipelineStatus::Done));
 
         Ok(SttFileOutput {
-            status: "DONE".to_string(),
+            status: PipelineStatus::Done,
             transcript,
         })
     }
@@ -187,17 +179,17 @@ impl SttFile for SttFileImpl {
 
         if let Err(ref e) = result {
             tracing::error!(file_id = %file_id, error = ?e, "stt workflow failed");
-            ctx.set("status", Json("ERROR".to_string()));
+            ctx.set("status", Json(PipelineStatus::Error));
             ctx.set("error", Json(format!("{:?}", e)));
         } else {
             tracing::info!(file_id = %file_id, "stt workflow completed");
         }
 
-        let env = self.env;
+        let config = self.config;
         let client = self.client.clone();
         let _ = ctx
             .run(|| async move {
-                if let Err(e) = supabase::delete_file(&client, env, &file_id).await {
+                if let Err(e) = supabase::delete_file(&client, config, &file_id).await {
                     tracing::error!(file_id = %file_id, error = %e, "failed to delete audio file");
                 }
                 Ok(())
@@ -239,10 +231,10 @@ impl SttFile for SttFileImpl {
         ctx: SharedWorkflowContext<'_>,
     ) -> Result<Json<SttStatusResponse>, HandlerError> {
         let status = ctx
-            .get::<Json<String>>("status")
+            .get::<Json<PipelineStatus>>("status")
             .await?
             .map(|j| j.into_inner())
-            .unwrap_or_else(|| "QUEUED".to_string());
+            .unwrap_or(PipelineStatus::Queued);
         let transcript = ctx
             .get::<Json<String>>("transcript")
             .await?

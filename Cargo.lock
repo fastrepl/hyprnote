@@ -14935,17 +14935,24 @@ dependencies = [
 name = "restate"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "dotenvy",
  "envy",
- "reqwest 0.13.2",
+ "restate-rate-limit",
  "restate-sdk",
+ "restate-stt",
  "serde",
- "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",
- "urlencoding",
+]
+
+[[package]]
+name = "restate-rate-limit"
+version = "0.1.0"
+dependencies = [
+ "restate-sdk",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -15010,6 +15017,30 @@ dependencies = [
  "strum 0.27.2",
  "thiserror 2.0.18",
  "tracing",
+]
+
+[[package]]
+name = "restate-stt"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "reqwest 0.13.2",
+ "restate-rate-limit",
+ "restate-sdk",
+ "restate-stt-types",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "urlencoding",
+]
+
+[[package]]
+name = "restate-stt-types"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "utoipa",
 ]
 
 [[package]]
@@ -20741,6 +20772,7 @@ dependencies = [
  "owhisper-interface",
  "reqwest 0.13.2",
  "reqwest-middleware",
+ "restate-stt-types",
  "rodio",
  "sentry",
  "serde",
@@ -20755,6 +20787,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "url",
+ "urlencoding",
  "utoipa",
  "uuid",
 ]

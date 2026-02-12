@@ -239,6 +239,40 @@
         }
       }
     },
+    "/stt/status/{pipeline_id}": {
+      "get": {
+        "tags": [
+          "stt"
+        ],
+        "operationId": "handler",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "description": "Pipeline ID (Restate workflow key)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SttStatusResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Restate service unavailable"
+          }
+        }
+      }
+    },
     "/subscription/can-start-trial": {
       "get": {
         "tags": [
@@ -641,6 +675,15 @@
           }
         }
       },
+      "PipelineStatus": {
+        "type": "string",
+        "enum": [
+          "QUEUED",
+          "TRANSCRIBING",
+          "DONE",
+          "ERROR"
+        ]
+      },
       "StartTrialReason": {
         "type": "string",
         "enum": [
@@ -668,6 +711,29 @@
           "started": {
             "type": "boolean",
             "example": true
+          }
+        }
+      },
+      "SttStatusResponse": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/PipelineStatus"
+          },
+          "transcript": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -720,7 +786,7 @@
       "description": "Subscription and trial management"
     },
     {
-      "name": "transcribe",
+      "name": "stt",
       "description": "Speech-to-text transcription proxy"
     },
     {

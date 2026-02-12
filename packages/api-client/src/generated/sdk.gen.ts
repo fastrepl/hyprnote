@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CanStartTrialData, CanStartTrialErrors, CanStartTrialResponses, CreateConnectSessionData, CreateConnectSessionErrors, CreateConnectSessionResponses, CreateEventData, CreateEventErrors, CreateEventResponses, ListCalendarsData, ListCalendarsErrors, ListCalendarsResponses, ListEventsData, ListEventsErrors, ListEventsResponses, NangoWebhookData, NangoWebhookErrors, NangoWebhookResponses, StartTrialData, StartTrialErrors, StartTrialResponses, SubmitData, SubmitErrors, SubmitResponses } from './types.gen';
+import type { CanStartTrialData, CanStartTrialErrors, CanStartTrialResponses, CreateConnectSessionData, CreateConnectSessionErrors, CreateConnectSessionResponses, CreateEventData, CreateEventErrors, CreateEventResponses, HandlerData, HandlerErrors, HandlerResponses, ListCalendarsData, ListCalendarsErrors, ListCalendarsResponses, ListEventsData, ListEventsErrors, ListEventsResponses, NangoWebhookData, NangoWebhookErrors, NangoWebhookResponses, StartTrialData, StartTrialErrors, StartTrialResponses, SubmitData, SubmitErrors, SubmitResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -64,6 +64,8 @@ export const createConnectSession = <ThrowOnError extends boolean = false>(optio
 });
 
 export const nangoWebhook = <ThrowOnError extends boolean = false>(options?: Options<NangoWebhookData, ThrowOnError>) => (options?.client ?? client).post<NangoWebhookResponses, NangoWebhookErrors, ThrowOnError>({ url: '/nango/webhook', ...options });
+
+export const handler = <ThrowOnError extends boolean = false>(options: Options<HandlerData, ThrowOnError>) => (options.client ?? client).get<HandlerResponses, HandlerErrors, ThrowOnError>({ url: '/stt/status/{pipeline_id}', ...options });
 
 export const canStartTrial = <ThrowOnError extends boolean = false>(options?: Options<CanStartTrialData, ThrowOnError>) => (options?.client ?? client).get<CanStartTrialResponses, CanStartTrialErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

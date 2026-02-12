@@ -19,6 +19,7 @@ pub struct SttProxyConfig {
     pub analytics: Option<Arc<dyn SttAnalyticsReporter>>,
     pub upstream_urls: HashMap<Provider, String>,
     pub hyprnote_routing: Option<HyprnoteRoutingConfig>,
+    pub restate_ingress_url: Option<String>,
 }
 
 impl SttProxyConfig {
@@ -30,6 +31,7 @@ impl SttProxyConfig {
             analytics: None,
             upstream_urls: HashMap::new(),
             hyprnote_routing: None,
+            restate_ingress_url: env.restate_ingress_url.clone(),
         }
     }
 

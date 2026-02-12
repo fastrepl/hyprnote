@@ -24,11 +24,12 @@ impl super::Migration for Migrate {
 
 async fn run_inner(base_dir: &Path) -> Result<()> {
     let events = load_events(base_dir);
+    let timezone = load_timezone(base_dir);
     let mut ops = Vec::new();
 
     migrate_session_metas(base_dir, &events, &mut ops);
     let ignored_series = load_ignored_recurring_series_ids(base_dir);
-    let ignored = collect_ignored_events(&events, &ignored_series);
+    let ignored = collect_ignored_events(&events, &ignored_series, timezone.as_deref());
     clean_events_json(base_dir, &mut ops);
     migrate_store_values(base_dir, &ignored, &mut ops);
 
@@ -48,6 +49,37 @@ fn load_events(base_dir: &Path) -> HashMap<String, Value> {
         Ok(map) => map,
         Err(_) => HashMap::new(),
     }
+}
+
+fn load_timezone(base_dir: &Path) -> Option<String> {
+    let settings_path = base_dir.join("settings.json");
+    let content = std::fs::read_to_string(&settings_path).ok()?;
+    let settings: Value = serde_json::from_str(&content).ok()?;
+    settings
+        .get("general")?
+        .get("timezone")?
+        .as_str()
+        .map(|s| s.to_string())
+}
+
+fn day_from_started_at(started_at: &str, timezone: Option<&str>) -> String {
+    let dt = match chrono::DateTime::parse_from_rfc3339(started_at) {
+        Ok(dt) => dt,
+        Err(_) => {
+            if started_at.len() >= 10 {
+                return started_at[..10].to_string();
+            }
+            return "1970-01-01".to_string();
+        }
+    };
+
+    if let Some(tz_str) = timezone {
+        if let Ok(tz) = tz_str.parse::<chrono_tz::Tz>() {
+            return dt.with_timezone(&tz).format("%Y-%m-%d").to_string();
+        }
+    }
+
+    dt.format("%Y-%m-%d").to_string()
 }
 
 fn load_ignored_recurring_series_ids(base_dir: &Path) -> HashSet<String> {
@@ -99,6 +131,7 @@ fn load_ignored_recurring_series_ids(base_dir: &Path) -> HashSet<String> {
 fn collect_ignored_events(
     events: &HashMap<String, Value>,
     ignored_series: &HashSet<String>,
+    timezone: Option<&str>,
 ) -> Vec<Value> {
     let now = chrono::Utc::now().to_rfc3339();
     let mut result = Vec::new();
@@ -133,11 +166,7 @@ fn collect_ignored_events(
                 .get("started_at")
                 .and_then(|v| v.as_str())
                 .unwrap_or("");
-            let day = if started_at.len() >= 10 {
-                &started_at[..10]
-            } else {
-                "1970-01-01"
-            };
+            let day = day_from_started_at(started_at, timezone);
             result.push(serde_json::json!({
                 "tracking_id": tracking_id,
                 "is_recurrent": true,
@@ -764,6 +793,91 @@ mod tests {
         assert!(result.get("event").is_none());
     }
 
+    // day_from_started_at tests
+
+    #[test]
+    fn test_day_from_started_at_utc() {
+        assert_eq!(
+            day_from_started_at("2024-01-15T10:00:00Z", None),
+            "2024-01-15"
+        );
+    }
+
+    #[test]
+    fn test_day_from_started_at_with_timezone_same_day() {
+        assert_eq!(
+            day_from_started_at("2024-01-15T10:00:00Z", Some("America/New_York")),
+            "2024-01-15"
+        );
+    }
+
+    #[test]
+    fn test_day_from_started_at_with_timezone_crosses_day() {
+        assert_eq!(
+            day_from_started_at("2024-01-15T02:00:00Z", Some("America/New_York")),
+            "2024-01-14"
+        );
+    }
+
+    #[test]
+    fn test_day_from_started_at_with_timezone_crosses_day_forward() {
+        assert_eq!(
+            day_from_started_at("2024-01-14T23:00:00Z", Some("Asia/Tokyo")),
+            "2024-01-15"
+        );
+    }
+
+    #[test]
+    fn test_day_from_started_at_invalid_timezone_falls_back() {
+        assert_eq!(
+            day_from_started_at("2024-01-15T10:00:00Z", Some("Invalid/Timezone")),
+            "2024-01-15"
+        );
+    }
+
+    #[test]
+    fn test_day_from_started_at_invalid_date() {
+        assert_eq!(day_from_started_at("", None), "1970-01-01");
+    }
+
+    #[test]
+    fn test_day_from_started_at_non_rfc3339_with_date_prefix() {
+        assert_eq!(
+            day_from_started_at("2024-01-15 bad", None),
+            "2024-01-15"
+        );
+    }
+
+    // load_timezone tests
+
+    #[test]
+    fn test_load_timezone_from_settings() {
+        let tmp = tempdir().unwrap();
+        let base = tmp.path();
+
+        let settings = serde_json::json!({
+            "general": { "timezone": "America/New_York" }
+        });
+        write_json(&base.join("settings.json"), &settings);
+
+        assert_eq!(load_timezone(base), Some("America/New_York".to_string()));
+    }
+
+    #[test]
+    fn test_load_timezone_missing_file() {
+        let tmp = tempdir().unwrap();
+        assert_eq!(load_timezone(tmp.path()), None);
+    }
+
+    #[test]
+    fn test_load_timezone_missing_key() {
+        let tmp = tempdir().unwrap();
+        let base = tmp.path();
+
+        write_json(&base.join("settings.json"), &serde_json::json!({"general": {}}));
+        assert_eq!(load_timezone(base), None);
+    }
+
     // collect_ignored_events tests
 
     #[test]
@@ -775,7 +889,7 @@ mod tests {
         }))
         .unwrap();
 
-        let result = collect_ignored_events(&events, &HashSet::new());
+        let result = collect_ignored_events(&events, &HashSet::new(), None);
         assert_eq!(result.len(), 2);
 
         let tids: Vec<&str> = result
@@ -798,9 +912,21 @@ mod tests {
         }))
         .unwrap();
 
-        let result = collect_ignored_events(&events, &HashSet::new());
+        let result = collect_ignored_events(&events, &HashSet::new(), None);
         assert_eq!(result[0]["is_recurrent"], true);
         assert_eq!(result[0]["day"], "2024-01-15");
+    }
+
+    #[test]
+    fn test_collect_ignored_events_recurrent_with_timezone() {
+        let events: HashMap<String, Value> = serde_json::from_value(serde_json::json!({
+            "e1": {"tracking_id_event": "track-1", "started_at": "2024-01-15T02:00:00Z", "ignored": true, "has_recurrence_rules": true},
+        }))
+        .unwrap();
+
+        let result = collect_ignored_events(&events, &HashSet::new(), Some("America/New_York"));
+        assert_eq!(result[0]["is_recurrent"], true);
+        assert_eq!(result[0]["day"], "2024-01-14");
     }
 
     #[test]
@@ -810,7 +936,7 @@ mod tests {
         }))
         .unwrap();
 
-        let result = collect_ignored_events(&events, &HashSet::new());
+        let result = collect_ignored_events(&events, &HashSet::new(), None);
         assert_eq!(result[0]["is_recurrent"], true);
         assert_eq!(result[0]["day"], "1970-01-01");
     }
@@ -822,7 +948,7 @@ mod tests {
         }))
         .unwrap();
 
-        let result = collect_ignored_events(&events, &HashSet::new());
+        let result = collect_ignored_events(&events, &HashSet::new(), None);
         assert_eq!(result[0]["is_recurrent"], false);
         assert!(result[0].get("day").is_none());
     }
@@ -837,7 +963,7 @@ mod tests {
         .unwrap();
 
         let ignored_series: HashSet<String> = ["series-1".to_string()].into();
-        let result = collect_ignored_events(&events, &ignored_series);
+        let result = collect_ignored_events(&events, &ignored_series, None);
         assert_eq!(result.len(), 2);
 
         let tids: Vec<&str> = result

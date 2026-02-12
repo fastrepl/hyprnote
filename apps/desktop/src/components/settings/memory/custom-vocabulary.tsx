@@ -34,12 +34,8 @@ export function CustomVocabularyView() {
       const text = value.search.trim();
       if (text) {
         const allTexts = vocabItems.map((item) => item.text.toLowerCase());
-    onSubmit: ({ value }) => {
-      const text = value.search.trim();
-      if (text) {
-        const allTexts = vocabItems.map((item) => item.text.toLowerCase());
         if (allTexts.includes(text.toLowerCase())) {
-          return; // Prevent duplicate creation
+          return;
         }
         mutations.create(text);
         form.reset();
@@ -63,7 +59,6 @@ export function CustomVocabularyView() {
   const allTexts = vocabItems.map((item) => item.text.toLowerCase());
   const exactMatch = allTexts.includes(searchValue.trim().toLowerCase());
   const showAddEntry = searchValue.trim() && !exactMatch;
-
 
   return (
     <div className="flex flex-col gap-3">
@@ -178,7 +173,6 @@ function VocabularyItem({
       if (text && text !== item.text) {
         onUpdate(item.rowId, text);
       }
-      // Always exit edit mode on submit
       onCancelEdit();
     },
     validators: {

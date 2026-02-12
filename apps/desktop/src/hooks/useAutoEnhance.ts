@@ -42,6 +42,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       isInitialRenderRef.current = false;
       prevSessionModeRef.current = sessionMode;
       prevTranscriptCountRef.current = transcriptIds?.length ?? 0;
+
       return;
     }
 

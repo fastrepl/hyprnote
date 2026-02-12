@@ -20,10 +20,17 @@ import {
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
 
+import { useAITask } from "../../../../../contexts/ai-task";
 import { useListener } from "../../../../../contexts/listener";
 import { fromResult } from "../../../../../effect";
+import { useCreateEnhancedNote } from "../../../../../hooks/useEnhancedNotes";
+import {
+  useLanguageModel,
+  useLLMConnection,
+} from "../../../../../hooks/useLLMConnection";
 import { useRunBatch } from "../../../../../hooks/useRunBatch";
 import * as main from "../../../../../store/tinybase/store/main";
+import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { ChannelProfile } from "../../../../../utils/segment";
 import { ActionableTooltipContent } from "./shared";
@@ -50,9 +57,14 @@ export function OptionsMenu({
   const handleBatchFailed = useListener((state) => state.handleBatchFailed);
   const clearBatchSession = useListener((state) => state.clearBatchSession);
 
-  const store = main.UI.useStore(main.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
+  const indexes = main.UI.useIndexes(main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
+  const createEnhancedNote = useCreateEnhancedNote();
+  const model = useLanguageModel();
+  const { conn: llmConn } = useLLMConnection();
+  const generate = useAITask((state) => state.generate);
   const sessionTab = useTabs((state) => {
     const found = state.tabs.find(
       (tab): tab is Extract<Tab, { type: "sessions" }> =>

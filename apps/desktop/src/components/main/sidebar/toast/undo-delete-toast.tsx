@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -11,6 +12,7 @@ import {
 
 export function useUndoDeleteHandler() {
   const store = main.UI.useStore(main.STORE_ID);
+  const queryClient = useQueryClient();
   const pendingDeletions = useUndoDelete((state) => state.pendingDeletions);
   const clearDeletion = useUndoDelete((state) => state.clearDeletion);
   const openCurrent = useTabs((state) => state.openCurrent);
@@ -35,7 +37,20 @@ export function useUndoDeleteHandler() {
     restoreSessionData(store, pending.data);
     openCurrent({ type: "sessions", id: latestSessionId });
     clearDeletion(latestSessionId);
-  }, [store, latestSessionId, pendingDeletions, openCurrent, clearDeletion]);
+    void queryClient.invalidateQueries({
+      predicate: (query) =>
+        query.queryKey.length >= 2 &&
+        query.queryKey[0] === "audio" &&
+        query.queryKey[1] === latestSessionId,
+    });
+  }, [
+    store,
+    latestSessionId,
+    pendingDeletions,
+    openCurrent,
+    clearDeletion,
+    queryClient,
+  ]);
 
   useHotkeys(
     "mod+z",

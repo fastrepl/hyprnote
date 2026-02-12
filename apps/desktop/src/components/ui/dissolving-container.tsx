@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useCallback } from "react";
 
@@ -26,6 +27,7 @@ export function DissolvingContainer({
   variant = "sidebar",
 }: DissolvingContainerProps) {
   const store = main.UI.useStore(main.STORE_ID);
+  const queryClient = useQueryClient();
   const pending = useUndoDelete((state) => state.pendingDeletions[sessionId]);
   const pauseDeletion = useUndoDelete((state) => state.pause);
   const resumeDeletion = useUndoDelete((state) => state.resume);
@@ -46,7 +48,13 @@ export function DissolvingContainer({
     restoreSessionData(store, pending.data);
     openCurrent({ type: "sessions", id: sessionId });
     clearDeletion(sessionId);
-  }, [store, pending, sessionId, openCurrent, clearDeletion]);
+    void queryClient.invalidateQueries({
+      predicate: (query) =>
+        query.queryKey.length >= 2 &&
+        query.queryKey[0] === "audio" &&
+        query.queryKey[1] === sessionId,
+    });
+  }, [store, pending, sessionId, openCurrent, clearDeletion, queryClient]);
 
   if (!isDissolving) {
     return <>{children}</>;

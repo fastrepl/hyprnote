@@ -112,7 +112,6 @@ display_title: ""
 meta_description: ""
 author: "John Jeong"
 featured: false
-published: false
 category: ""
 date: "${today}"
 ---

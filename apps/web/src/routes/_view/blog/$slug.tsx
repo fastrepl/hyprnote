@@ -18,20 +18,12 @@ export const Route = createFileRoute("/_view/blog/$slug")({
   component: Component,
   loader: async ({ params }) => {
     const article = allArticles.find((article) => article.slug === params.slug);
-    if (!article || (!import.meta.env.DEV && article.published !== true)) {
-      throw notFound();
-    }
-
-    if (!import.meta.env.DEV && article.published === false) {
+    if (!article) {
       throw notFound();
     }
 
     const relatedArticles = allArticles
-      .filter(
-        (a) =>
-          a.slug !== article.slug &&
-          (import.meta.env.DEV || a.published === true),
-      )
+      .filter((a) => a.slug !== article.slug)
       .sort((a, b) => {
         const aScore = a.author === article.author ? 1 : 0;
         const bScore = b.author === article.author ? 1 : 0;

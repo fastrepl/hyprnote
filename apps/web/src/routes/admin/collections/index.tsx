@@ -308,6 +308,9 @@ function CollectionsPage() {
             },
           ],
         );
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
+        }, 5000);
       } else {
         queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
       }

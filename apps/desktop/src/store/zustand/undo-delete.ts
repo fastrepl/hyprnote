@@ -80,12 +80,22 @@ export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
   isPaused: false,
   remainingTime: UNDO_TIMEOUT_MS,
   onDeleteConfirm: null,
-  setDeletedSession: (data, onConfirm) =>
+  setDeletedSession: (data, onConfirm) => {
+    const { onDeleteConfirm, timeoutId } = get();
+    if (onDeleteConfirm) {
+      onDeleteConfirm();
+    }
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
     set({
       deletedSession: data,
       remainingTime: UNDO_TIMEOUT_MS,
       onDeleteConfirm: onConfirm ?? null,
-    }),
+      timeoutId: null,
+      isPaused: false,
+    });
+  },
   setTimeoutId: (id) => {
     const currentId = get().timeoutId;
     if (currentId) {

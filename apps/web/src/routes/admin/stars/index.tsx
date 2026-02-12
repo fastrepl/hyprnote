@@ -10,7 +10,7 @@ import {
   SparklesIcon,
   StarIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
@@ -76,6 +76,20 @@ function StarsPage() {
       queryClient.invalidateQueries({ queryKey: ["starLeads"] });
     },
   });
+
+  const autoFetchedRef = useRef(false);
+  useEffect(() => {
+    if (
+      !autoFetchedRef.current &&
+      !isLoading &&
+      data &&
+      data.total === 0 &&
+      filter === "all"
+    ) {
+      autoFetchedRef.current = true;
+      fetchMutation.mutate("stargazers");
+    }
+  }, [isLoading, data, filter]);
 
   const leads = data?.leads ?? [];
   const total = data?.total ?? 0;

@@ -7,12 +7,14 @@ import {
   commands as templateCommands,
   type Transcript,
 } from "@hypr/plugin-template";
-import type { ChatMessage, ChatMessageStorage } from "@hypr/store";
 
+import type { ContextItem, ContextSource } from "../../chat/context-item";
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
 import { useSession } from "../../hooks/tinybase";
+import { useContextCollection } from "../../hooks/useContextCollection";
+import { useCreateChatMessage } from "../../hooks/useCreateChatMessage";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
 import * as main from "../../store/tinybase/store/main";
 import { id } from "../../utils";
@@ -37,6 +39,7 @@ interface ChatSessionProps {
     stop: () => void;
     status: ChatStatus;
     error?: Error;
+    contextItems: ContextItem[];
   }) => ReactNode;
 }
 
@@ -50,33 +53,24 @@ export function ChatSession({
   systemPromptOverride,
   children,
 }: ChatSessionProps) {
-  const transport = useTransport(
-    chatType,
+  const { transport, sessionTitle, sessionDate, wordCount, notePreview } =
+    useTransport(
+      chatType,
+      attachedSessionId,
+      modelOverride,
+      extraTools,
+      systemPromptOverride,
+    );
+
+  const contextItems = useSessionContextItems(
     attachedSessionId,
-    modelOverride,
-    extraTools,
-    systemPromptOverride,
+    sessionTitle,
+    sessionDate,
+    wordCount,
+    notePreview,
   );
   const store = main.UI.useStore(main.STORE_ID);
-
-  const { user_id } = main.UI.useValues(main.STORE_ID);
-
-  const createChatMessage = main.UI.useSetRowCallback(
-    "chat_messages",
-    (p: Omit<ChatMessage, "user_id" | "created_at"> & { id: string }) => p.id,
-    (p: Omit<ChatMessage, "user_id" | "created_at"> & { id: string }) =>
-      ({
-        user_id,
-        chat_group_id: p.chat_group_id,
-        content: p.content,
-        created_at: new Date().toISOString(),
-        role: p.role,
-        metadata: JSON.stringify(p.metadata),
-        parts: JSON.stringify(p.parts),
-      }) satisfies ChatMessageStorage,
-    [user_id],
-    main.STORE_ID,
-  );
+  const createChatMessage = useCreateChatMessage();
 
   const messageIds = main.UI.useSliceRowIds(
     main.INDEXES.chatMessagesByGroup,
@@ -93,11 +87,19 @@ export function ChatSession({
     for (const messageId of messageIds) {
       const row = store.getRow("chat_messages", messageId);
       if (row) {
+        let parsedParts: HyprUIMessage["parts"] = [];
+        let parsedMetadata: Record<string, unknown> = {};
+        try {
+          parsedParts = JSON.parse(row.parts ?? "[]");
+        } catch {}
+        try {
+          parsedMetadata = JSON.parse(row.metadata ?? "{}");
+        } catch {}
         loaded.push({
           id: messageId as string,
           role: row.role as "user" | "assistant",
-          parts: JSON.parse(row.parts ?? "[]"),
-          metadata: JSON.parse(row.metadata ?? "{}"),
+          parts: parsedParts,
+          metadata: parsedMetadata,
         });
       }
     }
@@ -189,9 +191,39 @@ export function ChatSession({
         stop,
         status,
         error,
+        contextItems,
       })}
     </div>
   );
+}
+
+function useSessionContextItems(
+  attachedSessionId?: string,
+  sessionTitle?: string | null,
+  sessionDate?: string | null,
+  wordCount?: number,
+  notePreview?: string | null,
+): ContextItem[] {
+  const sources = useMemo(() => {
+    if (!attachedSessionId) return [];
+    const s: ContextSource[] = [];
+    if (sessionTitle || sessionDate) {
+      s.push({
+        type: "session",
+        title: sessionTitle ?? undefined,
+        date: sessionDate ?? undefined,
+      });
+    }
+    if (wordCount && wordCount > 0) {
+      s.push({ type: "transcript", wordCount });
+    }
+    if (notePreview) {
+      s.push({ type: "note", preview: notePreview });
+    }
+    return s;
+  }, [attachedSessionId, sessionTitle, sessionDate, wordCount, notePreview]);
+
+  return useContextCollection(sources);
 }
 
 function useTransport(
@@ -339,5 +371,15 @@ function useTransport(
     );
   }, [registry, model, chatType, effectiveSystemPrompt, extraTools]);
 
-  return transport;
+  const sessionTitle = (title as string) || null;
+  const sessionDate = (createdAt as string) || null;
+  const notePreview = (enhancedContent as string) || null;
+
+  return {
+    transport,
+    sessionTitle,
+    sessionDate,
+    wordCount: words.length,
+    notePreview,
+  };
 }

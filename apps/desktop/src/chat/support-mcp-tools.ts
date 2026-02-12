@@ -90,48 +90,29 @@ function isSearchIssueItem(value: unknown): value is SearchIssueItem {
   );
 }
 
-export function parseCreateIssueOutput(
+function parseToolOutput<T>(
   output: unknown,
-): CreateIssueOutput | null {
+  guard: (value: unknown) => value is T,
+): T | null {
   const value = readJsonText(output);
-  if (
+  return guard(value) ? value : null;
+}
+
+function isCreateIssueOutput(value: unknown): value is CreateIssueOutput {
+  return (
     isRecord(value) &&
     typeof value.success === "boolean" &&
     typeof value.issue_url === "string" &&
     typeof value.issue_number === "number"
-  ) {
-    return value as CreateIssueOutput;
-  }
-  return null;
+  );
 }
 
-export function parseAddCommentOutput(
-  output: unknown,
-): AddCommentOutput | null {
-  const value = readJsonText(output);
-  if (
+function isAddCommentOutput(value: unknown): value is AddCommentOutput {
+  return (
     isRecord(value) &&
     typeof value.success === "boolean" &&
     typeof value.comment_url === "string"
-  ) {
-    return value as AddCommentOutput;
-  }
-  return null;
-}
-
-export function parseSearchIssuesOutput(
-  output: unknown,
-): SearchIssuesOutput | null {
-  const value = readJsonText(output);
-  if (
-    isRecord(value) &&
-    typeof value.total_results === "number" &&
-    Array.isArray(value.issues) &&
-    value.issues.every(isSearchIssueItem)
-  ) {
-    return value as SearchIssuesOutput;
-  }
-  return null;
+  );
 }
 
 function isNullableNumber(value: unknown): value is number | null {
@@ -152,22 +133,51 @@ function isSubscriptionItem(value: unknown): value is SubscriptionItem {
   );
 }
 
+function isSearchIssuesOutput(value: unknown): value is SearchIssuesOutput {
+  return (
+    isRecord(value) &&
+    typeof value.total_results === "number" &&
+    Array.isArray(value.issues) &&
+    value.issues.every(isSearchIssueItem)
+  );
+}
+
+function isSubscriptionList(value: unknown): value is SubscriptionItem[] {
+  return Array.isArray(value) && value.every(isSubscriptionItem);
+}
+
+function isBillingPortalOutput(
+  value: unknown,
+): value is CreateBillingPortalSessionOutput {
+  return isRecord(value) && typeof value.url === "string";
+}
+
+export function parseCreateIssueOutput(
+  output: unknown,
+): CreateIssueOutput | null {
+  return parseToolOutput(output, isCreateIssueOutput);
+}
+
+export function parseAddCommentOutput(
+  output: unknown,
+): AddCommentOutput | null {
+  return parseToolOutput(output, isAddCommentOutput);
+}
+
+export function parseSearchIssuesOutput(
+  output: unknown,
+): SearchIssuesOutput | null {
+  return parseToolOutput(output, isSearchIssuesOutput);
+}
+
 export function parseListSubscriptionsOutput(
   output: unknown,
 ): SubscriptionItem[] | null {
-  const value = readJsonText(output);
-  if (Array.isArray(value) && value.every(isSubscriptionItem)) {
-    return value;
-  }
-  return null;
+  return parseToolOutput(output, isSubscriptionList);
 }
 
 export function parseCreateBillingPortalSessionOutput(
   output: unknown,
 ): CreateBillingPortalSessionOutput | null {
-  const value = readJsonText(output);
-  if (isRecord(value) && typeof value.url === "string") {
-    return value as CreateBillingPortalSessionOutput;
-  }
-  return null;
+  return parseToolOutput(output, isBillingPortalOutput);
 }

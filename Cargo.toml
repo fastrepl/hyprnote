@@ -10,10 +10,11 @@ debug = false
 [workspace]
 resolver = "2"
 members = [
-  "apps/ai",
+  "apps/api",
   "apps/desktop/src-tauri",
   "apps/eval-cli",
   "apps/granola",
+  "apps/restate",
   "apps/tools",
   "crates/*",
   "plugins/*",
@@ -82,6 +83,7 @@ hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openrouter = { path = "crates/openrouter", package = "openrouter" }
 hypr-openstatus = { path = "crates/openstatus", package = "openstatus" }
+hypr-porkbun = { path = "crates/porkbun", package = "porkbun" }
 hypr-posthog = { path = "crates/posthog", package = "posthog" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
@@ -131,9 +133,9 @@ tauri-plugin-prevent-default = "4"
 tauri-plugin-process = "2.3"
 tauri-plugin-sentry = "0.5"
 tauri-plugin-shell = "2.3"
-tauri-plugin-single-instance = "2.3"
+tauri-plugin-single-instance = "2.4"
 tauri-plugin-store = "2.4"
-tauri-plugin-updater = "2.9"
+tauri-plugin-updater = "2.10"
 tauri-plugin-window-state = "2.4"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
@@ -216,7 +218,7 @@ include_url_macro = "0.1.0"
 indoc = "2"
 isolang = "2.4"
 itertools = "0.14.0"
-jsonschema = "0.40"
+jsonschema = "0.41"
 lazy_static = "1.5.0"
 open = "5"
 regex = "1.12"
@@ -301,15 +303,15 @@ libsql = "0.9.24"
 
 block2 = "0.6"
 objc2 = "0.6"
-objc2-app-kit = "0.3"
-objc2-application-services = "0.3"
-objc2-av-foundation = "0.3"
-objc2-contacts = "0.3"
-objc2-core-foundation = "0.3"
-objc2-core-graphics = "0.3"
-objc2-event-kit = "0.3"
-objc2-foundation = "0.3"
-objc2-user-notifications = "0.3"
+objc2-app-kit = "0.3.2"
+objc2-application-services = "0.3.2"
+objc2-av-foundation = "0.3.2"
+objc2-contacts = "0.3.2"
+objc2-core-foundation = "0.3.2"
+objc2-core-graphics = "0.3.2"
+objc2-event-kit = "0.3.2"
+objc2-foundation = "0.3.2"
+objc2-user-notifications = "0.3.2"
 
 hmac = "0.12"
 sha2 = "0.10"

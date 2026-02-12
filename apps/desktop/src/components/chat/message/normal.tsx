@@ -86,7 +86,7 @@ function Part({ part }: { part: Part }) {
     return null;
   }
 
-  return <Tool part={part as unknown as Record<string, unknown>} />;
+  return <Tool part={part} />;
 }
 
 function Reasoning({ part }: { part: Extract<Part, { type: "reasoning" }> }) {

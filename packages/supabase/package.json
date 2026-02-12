@@ -5,11 +5,11 @@
     "./middleware": "./src/middleware.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.93.3",
+    "@supabase/supabase-js": "^2.95.3",
     "jose": "^6.1.3"
   },
   "devDependencies": {
-    "@types/node": "^22.19.7"
+    "@types/node": "^22.19.11"
   },
   "peerDependencies": {
     "hono": "^4.0.0"

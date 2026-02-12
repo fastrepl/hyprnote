@@ -6,7 +6,7 @@ import {
 
 import type * as main from "../../store/tinybase/store/main";
 import type * as settings from "../../store/tinybase/store/settings";
-import { getSessionEventById } from "../../utils/session-event";
+import { findSessionByEventId } from "../../utils/session-event";
 
 export const EVENT_NOTIFICATION_TASK_ID = "eventNotification";
 export const EVENT_NOTIFICATION_INTERVAL = 30 * 1000; // 30 sec
@@ -15,19 +15,6 @@ const NOTIFY_WINDOW_MS = 5 * 60 * 1000; // 5 minutes before
 const NOTIFIED_EVENTS_TTL_MS = 10 * 60 * 1000; // 10 minutes TTL for cleanup
 
 export type NotifiedEventsMap = Map<string, number>;
-
-function getSessionIdForEvent(
-  store: main.Store,
-  trackingId: string,
-): string | null {
-  let sessionId: string | null = null;
-  store.forEachRow("sessions", (rowId, _forEachCell) => {
-    if (getSessionEventById(store, rowId)?.tracking_id === trackingId) {
-      sessionId = rowId;
-    }
-  });
-  return sessionId;
-}
 
 function getParticipantsForSession(
   store: main.Store,
@@ -99,12 +86,10 @@ export function checkEventNotifications(
       };
 
       let participants: Participant[] | null = null;
-      const trackingId = event.tracking_id_event
-        ? String(event.tracking_id_event)
-        : null;
-      const sessionId = trackingId
-        ? getSessionIdForEvent(store, trackingId)
-        : null;
+      const timezone = settingsStore?.getValue("timezone") as
+        | string
+        | undefined;
+      const sessionId = findSessionByEventId(store, eventId, timezone);
       if (sessionId) {
         const sessionParticipants = getParticipantsForSession(store, sessionId);
         if (sessionParticipants.length > 0) {

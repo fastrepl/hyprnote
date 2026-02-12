@@ -1,7 +1,6 @@
 import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
-  formatDate,
   isPast,
   safeParseDate,
   startOfDay,
@@ -9,7 +8,11 @@ import {
   TZDate,
 } from "@hypr/utils";
 
-import { getSessionEvent } from "./session-event";
+import {
+  eventMatchingKey,
+  getSessionEvent,
+  sessionEventMatchingKey,
+} from "./session-event";
 
 function toTZ(date: Date, timezone?: string): Date {
   return timezone ? new TZDate(date, timezone) : date;
@@ -195,26 +198,14 @@ export function getItemTimestamp(item: TimelineItem): Date | null {
   );
 }
 
-// TODO: eww! keey sync between apple-calendar
-
-function getEventKey(row: TimelineEventRow): string {
-  const startedAt = safeParseDate(row.started_at);
-  if (row.has_recurrence_rules) {
-    const day = startedAt ? formatDate(startedAt, "yyyy-MM-dd") : "1970-01-01";
-    return `${row.tracking_id_event}:${day}`;
-  }
-  return row.tracking_id_event ?? "";
+function getEventKey(row: TimelineEventRow, timezone?: string): string {
+  return eventMatchingKey(row, timezone);
 }
 
-function getSessionKey(row: TimelineSessionRow): string {
+function getSessionKey(row: TimelineSessionRow, timezone?: string): string {
   const event = getSessionEvent(row);
   if (!event) return "";
-  const startedAt = safeParseDate(event.started_at);
-  if (event.has_recurrence_rules) {
-    const day = startedAt ? formatDate(startedAt, "yyyy-MM-dd") : "1970-01-01";
-    return `${event.tracking_id}:${day}`;
-  }
-  return event.tracking_id;
+  return sessionEventMatchingKey(event, timezone);
 }
 
 export function buildTimelineBuckets({
@@ -245,7 +236,7 @@ export function buildTimelineBuckets({
         id: sessionId,
         data: row,
       });
-      const key = getSessionKey(row);
+      const key = getSessionKey(row, timezone);
       if (key) {
         seenEventKeys.add(key);
       }
@@ -254,7 +245,7 @@ export function buildTimelineBuckets({
 
   if (timelineEventsTable) {
     Object.entries(timelineEventsTable).forEach(([eventId, row]) => {
-      const key = getEventKey(row);
+      const key = getEventKey(row, timezone);
       if (key && seenEventKeys.has(key)) {
         return;
       }

@@ -1,11 +1,10 @@
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { Event, SessionEvent } from "@hypr/store";
 import { json2md } from "@hypr/tiptap/shared";
-import { formatDate } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../../utils";
 import { id } from "../../../utils";
-import { getSessionEvent } from "../../../utils/session-event";
+import { findSessionByEventId } from "../../../utils/session-event";
 import * as main from "./main";
 
 type Store = NonNullable<ReturnType<typeof main.UI.useStore>>;
@@ -25,56 +24,25 @@ export function createSession(store: Store, title?: string): string {
   return sessionId;
 }
 
-// EWW!!!
-
-function getKey(event: Event): string {
-  const startedAt = event.started_at ? new Date(event.started_at) : null;
-  if (event.has_recurrence_rules) {
-    const day = startedAt ? formatDate(startedAt, "yyyy-MM-dd") : "1970-01-01";
-    return `${event.tracking_id_event}:${day}`;
-  }
-  return event.tracking_id_event;
-}
-
-function getSessionEventKey(event: SessionEvent): string {
-  const startedAt = event.started_at ? new Date(event.started_at) : null;
-  if (event.has_recurrence_rules) {
-    const day = startedAt ? formatDate(startedAt, "yyyy-MM-dd") : "1970-01-01";
-    return `${event.tracking_id}:${day}`;
-  }
-  return event.tracking_id;
-}
-
 export function getOrCreateSessionForEventId(
   store: Store,
   eventId: string,
   title?: string,
+  timezone?: string,
 ): string {
-  let existingSessionId: string | null = null;
-  let hasEvent = store.hasRow("events", eventId);
-  if (!hasEvent) {
+  if (!store.hasRow("events", eventId)) {
     console.trace(
       `[getOrCreateSessionForEventId] event that corresponds to the provided eventId ${eventId} does not exist`,
     );
     return createSession(store, title);
   }
-  const event = store.getRow("events", eventId) as Event;
-  const eventKey = getKey(event); // TODO
 
-  store.forEachRow("sessions", (rowId, _forEachCell) => {
-    if (existingSessionId) return;
-    const session = store.getRow("sessions", rowId);
-    const sessionEvent = getSessionEvent(session);
-    if (!sessionEvent) return;
-    const sessionKey = getSessionEventKey(sessionEvent);
-    if (sessionKey === eventKey) {
-      existingSessionId = rowId;
-    }
-  });
-
+  const existingSessionId = findSessionByEventId(store, eventId, timezone);
   if (existingSessionId) {
     return existingSessionId;
   }
+
+  const event = store.getRow("events", eventId) as Event;
 
   let sessionEvent: SessionEvent = {
     tracking_id: event.tracking_id_event,

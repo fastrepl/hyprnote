@@ -194,11 +194,11 @@ const EventItem = memo(
           return;
         }
 
-        const sessionId = getOrCreateSessionForEventId(store, eventId, title);
+        const sessionId = getOrCreateSessionForEventId(store, eventId, title, timezone);
         const tab: TabInput = { id: sessionId, type: "sessions" };
         openInNewTab ? openNew(tab) : openCurrent(tab);
       },
-      [eventId, store, title, openCurrent, openNew],
+      [eventId, store, title, openCurrent, openNew, timezone],
     );
 
     const itemKey = `event-${item.id}`;

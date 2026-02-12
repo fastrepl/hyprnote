@@ -18,7 +18,6 @@ impl super::Migration for Migrate {
     }
 
     fn run<'a>(&self, base_dir: &'a Path) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>> {
-        println!("hi");
         Box::pin(run_inner(base_dir))
     }
 }

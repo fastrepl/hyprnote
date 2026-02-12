@@ -24,23 +24,30 @@ export interface CalendarGroup {
 interface CalendarSelectionProps {
   groups: CalendarGroup[];
   onToggle: (calendar: CalendarItem, enabled: boolean) => void;
+  className?: string;
 }
 
 export function CalendarSelection({
   groups,
   onToggle,
+  className,
 }: CalendarSelectionProps) {
   const defaultOpen = useMemo(
     () =>
       groups
         .filter((g) => g.calendars.some((c) => c.enabled))
         .map((g) => g.sourceName),
-    [],
+    [groups],
   );
 
   if (groups.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-6 px-4 border border-dashed border-neutral-200 rounded-lg bg-neutral-50/50">
+      <div
+        className={cn([
+          "flex flex-col items-center justify-center py-6 px-4",
+          className,
+        ])}
+      >
         <CalendarOffIcon className="size-6 text-neutral-300 mb-2" />
         <p className="text-xs text-neutral-500">No calendars found</p>
       </div>
@@ -51,7 +58,7 @@ export function CalendarSelection({
     <Accordion
       type="multiple"
       defaultValue={defaultOpen}
-      className="border rounded-lg divide-y"
+      className={cn(["divide-y", className])}
     >
       {groups.map((group) => {
         const enabledCount = group.calendars.filter((c) => c.enabled).length;

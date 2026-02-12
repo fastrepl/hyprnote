@@ -64,8 +64,6 @@ export function TabContentOnboarding({
   const [isMuted, setIsMuted] = useState(false);
   const [currentStep, setCurrentStep] = useState(getInitialStep);
 
-  const isMacOS = platform() === "macos";
-
   const {
     micPermissionStatus,
     systemAudioPermissionStatus,
@@ -115,7 +113,7 @@ export function TabContentOnboarding({
     sfxCommands.setVolume("BGM", isMuted ? 0 : 0.2).catch(console.error);
   }, [isMuted]);
 
-  const onFinish = useCallback(() => {
+  const handleFinish = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ["onboarding-needed"] });
     if (currentTab) {
       close(currentTab);
@@ -142,38 +140,35 @@ export function TabContentOnboarding({
             Welcome to Hyprnote
           </h1>
 
-          {isMacOS && (
-            <OnboardingSection
-              title="Permissions"
-              description="Required for best experience"
-              status={getStepStatus("permissions", currentStep)}
-              onNext={goNext}
-            >
-              <PermissionsSection />
-            </OnboardingSection>
-          )}
+          <OnboardingSection
+            title="Permissions"
+            description="Required for best experience"
+            status={getStepStatus("permissions", currentStep)}
+            onBack={goBack}
+            onNext={goNext}
+          >
+            <PermissionsSection />
+          </OnboardingSection>
 
           <OnboardingSection
             title="Account"
             description="Sign in to sync and unlock Pro features"
             status={getStepStatus("login", currentStep)}
-            onBack={isMacOS ? goBack : undefined}
+            onBack={goBack}
             onNext={goNext}
           >
-            <LoginSection onComplete={goNext} />
+            <LoginSection onContinue={goNext} />
           </OnboardingSection>
 
-          {isMacOS && (
-            <OnboardingSection
-              title="Calendar"
-              description="Select calendars to sync"
-              status={getStepStatus("calendar", currentStep)}
-              onBack={goBack}
-              onNext={goNext}
-            >
-              <CalendarSection onContinue={goNext} />
-            </OnboardingSection>
-          )}
+          <OnboardingSection
+            title="Calendar"
+            description="Select calendars to sync"
+            status={getStepStatus("calendar", currentStep)}
+            onBack={goBack}
+            onNext={goNext}
+          >
+            <CalendarSection onContinue={goNext} />
+          </OnboardingSection>
 
           <OnboardingSection
             title="Storage"
@@ -189,9 +184,9 @@ export function TabContentOnboarding({
             title="Ready to go"
             status={getStepStatus("final", currentStep)}
             onBack={goBack}
-            onNext={() => void finishOnboarding(onFinish)}
+            onNext={() => void finishOnboarding(handleFinish)}
           >
-            <FinalSection onFinish={onFinish} />
+            <FinalSection onContinue={handleFinish} />
           </OnboardingSection>
         </div>
       </div>

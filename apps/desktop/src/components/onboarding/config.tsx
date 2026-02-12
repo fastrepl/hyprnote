@@ -13,10 +13,9 @@ const STEPS_MACOS: OnboardingStep[] = [
   "permissions",
   "login",
   "calendar",
-  "folder-location",
   "final",
 ];
-const STEPS_OTHER: OnboardingStep[] = ["login", "folder-location", "final"];
+const STEPS_OTHER: OnboardingStep[] = ["login", "final"];
 
 export function getOnboardingSteps(): OnboardingStep[] {
   return platform() === "macos" ? STEPS_MACOS : STEPS_OTHER;
@@ -45,9 +44,10 @@ export function getPrevStep(
 export function getStepStatus(
   step: OnboardingStep,
   currentStep: OnboardingStep,
-): SectionStatus {
+): SectionStatus | null {
   const steps = getOnboardingSteps();
   const stepIdx = steps.indexOf(step);
+  if (stepIdx === -1) return null;
   const currentIdx = steps.indexOf(currentStep);
   if (stepIdx < currentIdx) return "completed";
   if (stepIdx === currentIdx) return "active";

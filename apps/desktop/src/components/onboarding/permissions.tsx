@@ -2,7 +2,7 @@ import { AlertCircleIcon, CheckIcon } from "lucide-react";
 
 import { cn } from "@hypr/utils";
 
-import { usePermissions } from "../../hooks/usePermissions";
+import { usePermission } from "../../hooks/usePermissions";
 
 function PermissionBlock({
   name,
@@ -68,51 +68,39 @@ function PermissionBlock({
 }
 
 export function PermissionsSection() {
-  const {
-    micPermissionStatus,
-    systemAudioPermissionStatus,
-    accessibilityPermissionStatus,
-    micPermission,
-    systemAudioPermission,
-    accessibilityPermission,
-    handleMicPermissionAction,
-    handleSystemAudioPermissionAction,
-    handleAccessibilityPermissionAction,
-  } = usePermissions();
+  const mic = usePermission("microphone");
+  const systemAudio = usePermission("systemAudio");
+
+  const handleAction = (perm: ReturnType<typeof usePermission>) => {
+    if (perm.status === "denied") {
+      perm.open();
+    } else {
+      perm.request();
+    }
+  };
 
   return (
     <div className="@container flex items-stretch gap-3">
       <PermissionBlock
-        name="Accessibility"
-        status={accessibilityPermissionStatus.data}
-        description={{
-          authorized: "Good to go :)",
-          unauthorized: "To sync mic inputs & mute from meetings",
-        }}
-        isPending={accessibilityPermission.isPending}
-        onAction={handleAccessibilityPermissionAction}
-      />
-
-      <PermissionBlock
         name="Microphone"
-        status={micPermissionStatus.data}
+        status={mic.status}
         description={{
           authorized: "Good to go :)",
           unauthorized: "To capture your voice",
         }}
-        isPending={micPermission.isPending}
-        onAction={handleMicPermissionAction}
+        isPending={mic.isPending}
+        onAction={() => handleAction(mic)}
       />
 
       <PermissionBlock
         name="System audio"
-        status={systemAudioPermissionStatus.data}
+        status={systemAudio.status}
         description={{
           authorized: "Good to go :)",
           unauthorized: "To capture what other people are saying",
         }}
-        isPending={systemAudioPermission.isPending}
-        onAction={handleSystemAudioPermissionAction}
+        isPending={systemAudio.isPending}
+        onAction={() => handleAction(systemAudio)}
       />
     </div>
   );

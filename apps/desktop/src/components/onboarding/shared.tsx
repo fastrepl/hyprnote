@@ -16,11 +16,13 @@ export function OnboardingSection({
 }: {
   title: string;
   description?: string;
-  status: SectionStatus;
+  status: SectionStatus | null;
   onBack?: () => void;
   onNext?: () => void;
   children: ReactNode;
 }) {
+  if (!status) return null;
+
   const isActive = status === "active";
   const isCompleted = status === "completed";
 
@@ -85,6 +87,17 @@ export function OnboardingSection({
         )}
       </AnimatePresence>
     </section>
+  );
+}
+
+export function OnboardingButton(
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>,
+) {
+  return (
+    <button
+      {...props}
+      className="w-full py-3 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
+    />
   );
 }
 

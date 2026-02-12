@@ -11,7 +11,7 @@ import { useBillingAccess } from "../../billing";
 import { env } from "../../env";
 import * as settings from "../../store/tinybase/store/settings";
 import { configureProSettings } from "../../utils";
-import { Divider } from "./shared";
+import { Divider, OnboardingButton } from "./shared";
 
 type TrialPhase =
   | { step: "checking" }
@@ -51,7 +51,7 @@ function StepRow({
   );
 }
 
-export function LoginSection({ onComplete }: { onComplete: () => void }) {
+export function LoginSection({ onContinue }: { onContinue: () => void }) {
   const auth = useAuth();
   const billing = useBillingAccess();
   const store = settings.UI.useStore(settings.STORE_ID);
@@ -73,27 +73,27 @@ export function LoginSection({ onComplete }: { onComplete: () => void }) {
     if (billing.isPro && !billing.isTrialing) {
       if (store) configureProSettings(store);
       setTrialPhase({ step: "done", result: "already-pro" });
-      setTimeout(onComplete, 1500);
+      setTimeout(onContinue, 1500);
       return;
     }
 
     if (billing.isTrialing) {
       if (store) configureProSettings(store);
       setTrialPhase({ step: "done", result: "already-trialing" });
-      setTimeout(onComplete, 1500);
+      setTimeout(onContinue, 1500);
       return;
     }
 
     if (!billing.canStartTrial.data) {
       setTrialPhase({ step: "done", result: "not-eligible" });
-      onComplete();
+      onContinue();
       return;
     }
 
     const handle = async () => {
       const headers = auth.getHeaders();
       if (!headers) {
-        onComplete();
+        onContinue();
         return;
       }
 
@@ -114,7 +114,7 @@ export function LoginSection({ onComplete }: { onComplete: () => void }) {
           setTrialPhase({ step: "done", result: "failed" });
           await auth.refreshSession();
           await new Promise((r) => setTimeout(r, 1500));
-          onComplete();
+          onContinue();
           return;
         }
 
@@ -137,11 +137,11 @@ export function LoginSection({ onComplete }: { onComplete: () => void }) {
         await new Promise((r) => setTimeout(r, 1500));
       }
 
-      onComplete();
+      onContinue();
     };
 
     void handle();
-  }, [auth, billing, store, onComplete]);
+  }, [auth, billing, store, onContinue]);
 
   if (trialPhase) {
     return (
@@ -196,12 +196,9 @@ export function LoginSection({ onComplete }: { onComplete: () => void }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <button
-        onClick={() => auth?.signIn()}
-        className="w-full py-3 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
-      >
+      <OnboardingButton onClick={() => auth?.signIn()}>
         Sign in
-      </button>
+      </OnboardingButton>
 
       <Divider text="or paste callback URL" />
 
@@ -223,7 +220,7 @@ export function LoginSection({ onComplete }: { onComplete: () => void }) {
       </div>
 
       <button
-        onClick={onComplete}
+        onClick={onContinue}
         className="text-sm text-neutral-400 transition-opacity duration-150 hover:opacity-70"
       >
         proceed without account

@@ -1,53 +1,30 @@
-import { Icon } from "@iconify-icon/react";
-import type { ReactNode } from "react";
 import { useState } from "react";
 
-import { OutlookIcon } from "@hypr/ui/components/icons/outlook";
 import { cn } from "@hypr/utils";
 
-import { usePermission } from "../../hooks/usePermissions";
 import { useAppleCalendarSelection } from "../settings/calendar/configure/apple/calendar-selection";
 import { SyncProvider } from "../settings/calendar/configure/apple/context";
-import { AccessPermissionRow } from "../settings/calendar/configure/apple/permission";
+import { ApplePermissions } from "../settings/calendar/configure/apple/permission";
 import { CalendarSelection } from "../settings/calendar/configure/shared";
+import {
+  type CalendarProviderId,
+  PROVIDERS,
+} from "../settings/calendar/shared";
+import { OnboardingButton } from "./shared";
 
-const PROVIDERS = [
-  {
-    id: "apple",
-    label: "Apple",
-    icon: <Icon icon="logos:apple" width={16} height={16} />,
-    disabled: false,
-  },
-  {
-    id: "google",
-    label: "Google",
-    icon: <Icon icon="logos:google-calendar" width={16} height={16} />,
-    disabled: true,
-  },
-  {
-    id: "outlook",
-    label: "Outlook",
-    icon: <OutlookIcon size={16} />,
-    disabled: true,
-  },
-] as const satisfies readonly {
-  id: string;
-  label: string;
-  icon: ReactNode;
-  disabled: boolean;
-}[];
-
-type ProviderId = (typeof PROVIDERS)[number]["id"];
-
-function BareAppleCalendarSelection() {
+function AppleCalendarList() {
   const { groups, handleToggle } = useAppleCalendarSelection();
-  return <CalendarSelection groups={groups} onToggle={handleToggle} />;
+  return (
+    <CalendarSelection
+      groups={groups}
+      onToggle={handleToggle}
+      className="border rounded-lg"
+    />
+  );
 }
 
 export function CalendarSection({ onContinue }: { onContinue: () => void }) {
-  const [provider, setProvider] = useState<ProviderId>("apple");
-  const calendar = usePermission("calendar");
-  const contacts = usePermission("contacts");
+  const [provider, setProvider] = useState<CalendarProviderId>("apple");
 
   return (
     <div className="flex flex-col gap-4">
@@ -68,7 +45,7 @@ export function CalendarSection({ onContinue }: { onContinue: () => void }) {
             ])}
           >
             {p.icon}
-            <span>{p.label}</span>
+            <span>{p.displayName}</span>
             {p.disabled && (
               <span className="text-[10px] text-neutral-400">(soon)</span>
             )}
@@ -78,37 +55,15 @@ export function CalendarSection({ onContinue }: { onContinue: () => void }) {
 
       {provider === "apple" && (
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <AccessPermissionRow
-              title="Calendar"
-              status={calendar.status}
-              isPending={calendar.isPending}
-              onOpen={calendar.open}
-              onRequest={calendar.request}
-              onReset={calendar.reset}
-            />
-            <AccessPermissionRow
-              title="Contacts"
-              status={contacts.status}
-              isPending={contacts.isPending}
-              onOpen={contacts.open}
-              onRequest={contacts.request}
-              onReset={contacts.reset}
-            />
-          </div>
+          <ApplePermissions />
 
           <SyncProvider>
-            <BareAppleCalendarSelection />
+            <AppleCalendarList />
           </SyncProvider>
         </div>
       )}
 
-      <button
-        onClick={onContinue}
-        className="w-full py-3 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
-      >
-        Continue
-      </button>
+      <OnboardingButton onClick={onContinue}>Continue</OnboardingButton>
     </div>
   );
 }

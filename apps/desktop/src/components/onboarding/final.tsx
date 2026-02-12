@@ -3,6 +3,7 @@ import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 
 import { commands } from "../../types/tauri.gen";
+import { OnboardingButton } from "./shared";
 
 const SOCIALS = [
   { label: "Discord", url: "https://discord.gg/CX8gTH2tj9" },
@@ -10,7 +11,7 @@ const SOCIALS = [
   { label: "X", url: "https://x.com/tryhyprnote" },
 ] as const;
 
-export function FinalSection({ onFinish }: { onFinish: () => void }) {
+export function FinalSection({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
@@ -30,21 +31,18 @@ export function FinalSection({ onFinish }: { onFinish: () => void }) {
         </div>
       </div>
 
-      <button
-        onClick={() => void finishOnboarding(onFinish)}
-        className="w-full py-3 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
-      >
+      <OnboardingButton onClick={() => void finishOnboarding(onContinue)}>
         Get Started
-      </button>
+      </OnboardingButton>
     </div>
   );
 }
 
-export async function finishOnboarding(onFinish?: () => void) {
+export async function finishOnboarding(onContinue?: () => void) {
   await sfxCommands.stop("BGM").catch(console.error);
   await new Promise((resolve) => setTimeout(resolve, 100));
   await commands.setOnboardingNeeded(false).catch(console.error);
   await new Promise((resolve) => setTimeout(resolve, 100));
   await analyticsCommands.event({ event: "onboarding_completed" });
-  onFinish?.();
+  onContinue?.();
 }

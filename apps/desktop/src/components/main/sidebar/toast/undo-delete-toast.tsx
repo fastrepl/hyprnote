@@ -134,16 +134,35 @@ function useGroupCountdown(group: ToastGroup) {
   const pendingDeletions = useUndoDelete((state) => state.pendingDeletions);
   const [remaining, setRemaining] = useState(UNDO_TIMEOUT_MS);
 
-  const earliest = useMemo(() => {
+  const { earliest, isPaused, frozenRemaining } = useMemo(() => {
     let min = Infinity;
+    let paused = false;
+    let frozen = 0;
+
     for (const id of group.sessionIds) {
       const p = pendingDeletions[id];
-      if (p) min = Math.min(min, p.data.deletedAt);
+      if (!p) continue;
+      min = Math.min(min, p.data.deletedAt);
+      if (p.paused && p.pausedAt) {
+        paused = true;
+        const elapsed = p.pausedAt - p.data.deletedAt;
+        frozen = Math.max(0, UNDO_TIMEOUT_MS - elapsed);
+      }
     }
-    return min === Infinity ? Date.now() : min;
+
+    return {
+      earliest: min === Infinity ? Date.now() : min,
+      isPaused: paused,
+      frozenRemaining: frozen,
+    };
   }, [group.sessionIds, pendingDeletions]);
 
   useEffect(() => {
+    if (isPaused) {
+      setRemaining(frozenRemaining);
+      return;
+    }
+
     const update = () => {
       const elapsed = Date.now() - earliest;
       setRemaining(Math.max(0, UNDO_TIMEOUT_MS - elapsed));
@@ -151,7 +170,7 @@ function useGroupCountdown(group: ToastGroup) {
     update();
     const id = setInterval(update, 100);
     return () => clearInterval(id);
-  }, [earliest]);
+  }, [earliest, isPaused, frozenRemaining]);
 
   return Math.ceil(remaining / 1000);
 }
@@ -248,6 +267,16 @@ function ToastBubble({
   const confirmGroup = useConfirmGroup();
   const seconds = useGroupCountdown(group);
   const pendingDeletions = useUndoDelete((state) => state.pendingDeletions);
+  const pauseGroup = useUndoDelete((state) => state.pauseGroup);
+  const resumeGroup = useUndoDelete((state) => state.resumeGroup);
+
+  const handleMouseEnter = useCallback(() => {
+    pauseGroup(group.sessionIds);
+  }, [pauseGroup, group.sessionIds]);
+
+  const handleMouseLeave = useCallback(() => {
+    resumeGroup(group.sessionIds);
+  }, [resumeGroup, group.sessionIds]);
 
   const title = useMemo(() => {
     if (group.isBatch) return null;
@@ -281,32 +310,34 @@ function ToastBubble({
         pointerEvents: isTop ? "auto" : "none",
       }}
       className="fixed"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div
         className={cn([
           "bg-white rounded-2xl rounded-br-sm",
-          "shadow-xl px-4 py-3 w-[260px]",
+          "shadow-xl px-5 py-4 w-[300px]",
           "border border-neutral-200",
         ])}
       >
-        <p className="text-sm text-neutral-700 leading-snug">
+        <p className="text-sm text-neutral-700 leading-relaxed">
           {group.isBatch ? (
             `Delete ${count} notes?`
           ) : (
             <>
               Delete{" "}
-              <span className="font-medium text-neutral-900 truncate inline-block max-w-[140px] align-bottom">
+              <span className="font-medium text-neutral-900 truncate inline-block max-w-[180px] align-bottom">
                 {title}
               </span>
               ?
             </>
           )}
         </p>
-        <div className="flex items-center gap-2 mt-2.5">
+        <div className="flex items-stretch gap-2 mt-3">
           <button
             onClick={() => restoreGroup(group)}
             className={cn([
-              "text-xs font-medium px-3 py-1 rounded-xl",
+              "flex-1 text-sm font-medium py-2 rounded-xl",
               "bg-primary text-primary-foreground",
               "hover:bg-primary/90 active:bg-primary/80",
               "transition-colors",
@@ -317,7 +348,7 @@ function ToastBubble({
           <button
             onClick={() => confirmGroup(group)}
             className={cn([
-              "text-xs font-medium px-3 py-1 rounded-xl",
+              "flex-1 text-sm font-medium py-2 rounded-xl",
               "bg-neutral-100 text-neutral-600",
               "hover:bg-red-100 hover:text-red-700",
               "transition-colors",

@@ -138,6 +138,8 @@ export function TimelineView() {
       .filter((key) => key.startsWith("session-"))
       .map((key) => key.replace("session-", ""));
 
+    const batchId = sessionIds.length > 1 ? crypto.randomUUID() : undefined;
+
     for (const sessionId of sessionIds) {
       const capturedData = captureSessionData(store, indexes, sessionId);
 
@@ -147,9 +149,13 @@ export function TimelineView() {
       });
 
       if (capturedData) {
-        addDeletion(capturedData, () => {
-          void fsSyncCommands.audioDelete(sessionId);
-        });
+        addDeletion(
+          capturedData,
+          () => {
+            void fsSyncCommands.audioDelete(sessionId);
+          },
+          batchId,
+        );
       }
     }
 

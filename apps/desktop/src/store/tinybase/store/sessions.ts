@@ -5,10 +5,7 @@ import { formatDate } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../../utils";
 import { id } from "../../../utils";
-import {
-  buildSessionEventJson,
-  getSessionEvent,
-} from "../../../utils/session-event";
+import { getSessionEvent } from "../../../utils/session-event";
 import * as main from "./main";
 
 type Store = NonNullable<ReturnType<typeof main.UI.useStore>>;
@@ -54,8 +51,15 @@ export function getOrCreateSessionForEventId(
   title?: string,
 ): string {
   let existingSessionId: string | null = null;
-  const event = store.getRow("events", eventId);
-  const eventKey = getKey(event as Event); // TODO
+  let hasEvent = store.hasRow("events", eventId);
+  if (!hasEvent) {
+    console.trace(
+      `[getOrCreateSessionForEventId] event that corresponds to the provided eventId ${eventId} does not exist`,
+    );
+    return createSession(store, title);
+  }
+  const event = store.getRow("events", eventId) as Event;
+  const eventKey = getKey(event); // TODO
 
   store.forEachRow("sessions", (rowId, _forEachCell) => {
     if (existingSessionId) return;
@@ -72,31 +76,24 @@ export function getOrCreateSessionForEventId(
     return existingSessionId;
   }
 
-  let eventRow = store.getRow("events", eventId) as Event;
-
-  let sessionEvent: SessionEvent | undefined;
-  if (eventRow) {
-    sessionEvent = {
-      tracking_id: eventRow.tracking_id_event,
-      calendar_id: eventRow.calendar_id,
-      title: eventRow.title,
-      started_at: eventRow.started_at,
-      ended_at: eventRow.ended_at,
-      // TODO: fix this
-      is_all_day: !!eventRow.is_all_day,
-      has_recurrence_rules: !!eventRow.has_recurrence_rules,
-      location: eventRow.location,
-      meeting_link: eventRow.meeting_link,
-      description: eventRow.description,
-      recurrence_series_id: eventRow.recurrence_series_id,
-    };
-  } else {
-    sessionEvent = undefined;
-  }
+  let sessionEvent: SessionEvent = {
+    tracking_id: event.tracking_id_event,
+    calendar_id: event.calendar_id,
+    title: event.title,
+    started_at: event.started_at,
+    ended_at: event.ended_at,
+    // TODO: fix this
+    is_all_day: !!event.is_all_day,
+    has_recurrence_rules: !!event.has_recurrence_rules,
+    location: event.location,
+    meeting_link: event.meeting_link,
+    description: event.description,
+    recurrence_series_id: event.recurrence_series_id,
+  };
 
   const sessionId = id();
   store.setRow("sessions", sessionId, {
-    eventJson: sessionEvent ? buildSessionEventJson(sessionEvent) : undefined,
+    eventJson: JSON.stringify(sessionEvent),
     title: title ?? "",
     created_at: new Date().toISOString(),
     raw_md: "",

@@ -146,10 +146,10 @@ function useCalendarData(): CalendarData {
         if (!row.title) continue;
         const raw = safeParseDate(row.started_at);
         if (!raw) continue;
-        const key = format(toTz(raw, tz), "yyyy-MM-dd");
-        if (isIgnored(row.tracking_id_event, row.recurrence_series_id, key))
+        const day = format(toTz(raw, tz), "yyyy-MM-dd");
+        if (isIgnored(row.tracking_id_event, row.recurrence_series_id, day))
           continue;
-        (eventIdsByDate[key] ??= []).push(eventId);
+        (eventIdsByDate[day] ??= []).push(eventId);
       }
 
       for (const ids of Object.values(eventIdsByDate)) {

@@ -175,9 +175,10 @@ const EventItem = memo(
     } = useIgnoredEvents();
 
     const day = useMemo(() => {
-      const date = safeParseDate(item.data.started_at);
-      if (!date) return undefined;
-      return format(date, "yyyy-MM-dd");
+      const parsed = safeParseDate(item.data.started_at);
+      return parsed
+        ? format(timezone ? new TZDate(parsed, timezone) : parsed, "yyyy-MM-dd")
+        : undefined;
     }, [item.data.started_at]);
 
     const ignored = isIgnored(trackingIdEvent, recurrenceSeriesId, day);

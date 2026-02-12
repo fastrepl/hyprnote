@@ -2,10 +2,7 @@ import type { EventStorage, SessionEvent } from "@hypr/store";
 import { formatDate } from "@hypr/utils";
 
 import { id } from "../../../../utils";
-import {
-  buildSessionEventJson,
-  getSessionEventById,
-} from "../../../../utils/session-event";
+import { getSessionEventById } from "../../../../utils/session-event";
 import type { Ctx } from "../../ctx";
 import type { IncomingEvent } from "../../fetch/types";
 import type { EventsSyncOutput } from "./types";
@@ -137,7 +134,7 @@ export function syncSessionEmbeddedEvents(
       };
 
       ctx.store.setPartialRow("sessions", sessionId, {
-        eventJson: buildSessionEventJson(updated),
+        eventJson: JSON.stringify(updated),
       });
     });
   });

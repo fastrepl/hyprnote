@@ -27,7 +27,3 @@ export function getSessionEventById(
   if (!row) return null;
   return getSessionEvent(row as SessionLike);
 }
-
-export function buildSessionEventJson(event: SessionEvent): string {
-  return JSON.stringify(event);
-}

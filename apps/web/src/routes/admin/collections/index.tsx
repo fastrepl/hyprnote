@@ -1314,12 +1314,11 @@ function ContentPanel({
       }
       const saveResult = await saveResponse.json();
 
-      if (pendingPRData?.hasPendingPR && pendingPRData?.prUrl) {
-        return { prUrl: pendingPRData.prUrl };
+      if (saveResult.prUrl) {
+        return { prUrl: saveResult.prUrl as string };
       }
 
-      const branchName =
-        saveResult.branchName || pendingPRData?.branchName || currentTab.branch;
+      const branchName = saveResult.branchName || currentTab.branch;
 
       if (!branchName) {
         throw new Error("No branch available for publishing");

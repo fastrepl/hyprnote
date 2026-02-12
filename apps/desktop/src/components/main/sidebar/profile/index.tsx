@@ -11,7 +11,7 @@ import {
   UsersIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useResizeObserver } from "usehooks-ts";
 
 import { Kbd } from "@hypr/ui/components/ui/kbd";
@@ -289,6 +289,7 @@ function ProfileButton({
 }) {
   const auth = useAuth();
   const name = useMyName(auth?.session?.user.email);
+  const [imgError, setImgError] = useState(false);
 
   const profile = useQuery({
     queryKey: ["profile"],
@@ -297,6 +298,13 @@ function ProfileButton({
       return avatarUrl;
     },
   });
+
+  const facehashName = useMemo(
+    () => auth?.session?.user.email || name || "user",
+    [auth?.session?.user.email, name],
+  );
+
+  const showFacehash = !profile.data || imgError;
 
   return (
     <button
@@ -318,18 +326,19 @@ function ProfileButton({
           "transition-transform duration-300",
         ])}
       >
-        {profile.data ? (
+        {showFacehash ? (
+          <Facehash
+            name={facehashName}
+            size={32}
+            interactive={false}
+            showInitial={false}
+          />
+        ) : (
           <img
             src={profile.data}
             alt="Profile"
             className="h-full w-full rounded-full"
-          />
-        ) : (
-          <Facehash
-            name={auth?.session?.user.email || name || "user"}
-            size={32}
-            interactive={false}
-            showInitial={false}
+            onError={() => setImgError(true)}
           />
         )}
       </div>

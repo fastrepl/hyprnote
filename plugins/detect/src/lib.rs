@@ -1,4 +1,5 @@
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use tauri::Manager;
 
@@ -27,6 +28,7 @@ pub(crate) type ProcessorState = Arc<Mutex<Processor>>;
 pub(crate) struct Processor {
     pub(crate) policy: policy::MicNotificationPolicy,
     pub(crate) mic_usage_tracker: mic_usage_tracker::MicUsageTracker,
+    pub(crate) mic_detection_delay: Duration,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -40,6 +42,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::list_default_ignored_bundle_ids::<tauri::Wry>,
             commands::get_preferred_languages::<tauri::Wry>,
             commands::get_current_locale_identifier::<tauri::Wry>,
+            commands::set_mic_detection_delay::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![DetectEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)

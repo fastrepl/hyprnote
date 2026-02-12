@@ -3,9 +3,12 @@ use std::time::Duration;
 
 use tokio_util::sync::CancellationToken;
 
-use crate::{DetectEvent, ProcessorState, env::Env};
+use crate::{
+    DetectEvent, ProcessorState,
+    env::Env,
+    policy::{MicEventType, PolicyContext, PolicyResult},
+};
 
-pub(crate) const MIC_ACTIVE_THRESHOLD: Duration = Duration::from_secs(3 * 60);
 pub(crate) const COOLDOWN_DURATION: Duration = Duration::from_secs(60 * 60);
 
 struct TimerEntry {
@@ -56,6 +59,11 @@ impl MicUsageTracker {
         generation
     }
 
+    pub fn set_cooldown(&mut self, app_id: &str) {
+        self.cooldowns
+            .insert(app_id.to_string(), tokio::time::Instant::now());
+    }
+
     pub fn cancel_app(&mut self, app_id: &str) {
         if let Some(entry) = self.timers.remove(app_id) {
             entry.token.cancel();
@@ -79,17 +87,12 @@ impl MicUsageTracker {
     }
 }
 
-pub(crate) fn on_timer_fired<E: Env>(env: &E, app: &hypr_detect::InstalledApp, duration_secs: u64) {
-    tracing::info!(
-        app_id = %app.id,
-        duration_secs,
-        "mic_prolonged_usage"
-    );
+pub(crate) fn on_timer_fired<E: Env>(env: &E, result: &PolicyResult, duration_secs: u64) {
+    tracing::info!(duration_secs, "mic_detection_fired");
 
-    let key = uuid::Uuid::new_v4().to_string();
-    env.emit(DetectEvent::MicProlongedUsage {
-        key,
-        app: app.clone(),
+    env.emit(DetectEvent::MicDetected {
+        key: result.dedup_key.clone(),
+        apps: result.filtered_apps.clone(),
         duration_secs,
     });
 }
@@ -100,13 +103,14 @@ pub(crate) fn spawn_timer<E: Env>(
     app: hypr_detect::InstalledApp,
     generation: u64,
     token: CancellationToken,
+    delay: Duration,
 ) {
-    let duration_secs = MIC_ACTIVE_THRESHOLD.as_secs();
+    let duration_secs = delay.as_secs();
     let app_id = app.id.clone();
 
     tokio::spawn(async move {
         tokio::select! {
-            _ = tokio::time::sleep(MIC_ACTIVE_THRESHOLD) => {}
+            _ = tokio::time::sleep(delay) => {}
             _ = token.cancelled() => { return; }
         }
 
@@ -116,7 +120,21 @@ pub(crate) fn spawn_timer<E: Env>(
         };
 
         if claimed {
-            on_timer_fired(&env, &app, duration_secs);
+            let is_dnd = env.is_do_not_disturb();
+            let policy_result = {
+                let guard = state.lock().unwrap_or_else(|e| e.into_inner());
+                let ctx = PolicyContext {
+                    apps: &[app],
+                    is_dnd,
+                    event_type: MicEventType::Started,
+                };
+                guard.policy.evaluate(&ctx)
+            };
+
+            match policy_result {
+                Ok(result) => on_timer_fired(&env, &result, duration_secs),
+                Err(reason) => tracing::info!(?reason, "skip_delayed_notification"),
+            }
         }
     });
 }

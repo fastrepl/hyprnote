@@ -69,9 +69,21 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["general", "week_start"],
     },
-    notification_in_meeting_reminder: {
-      type: "boolean",
-      path: ["notification", "in_meeting_reminder"],
+    event_notify_before_minutes: {
+      type: "number",
+      path: ["notification", "event_notify_before_minutes"],
+    },
+    event_notification_timeout_secs: {
+      type: "number",
+      path: ["notification", "event_notification_timeout_secs"],
+    },
+    mic_detection_delay_secs: {
+      type: "number",
+      path: ["notification", "mic_detection_delay_secs"],
+    },
+    mic_notification_timeout_secs: {
+      type: "number",
+      path: ["notification", "mic_notification_timeout_secs"],
     },
   },
   tables: {

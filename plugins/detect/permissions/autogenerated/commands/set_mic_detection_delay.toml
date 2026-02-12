@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-mic-detection-delay"
+description = "Enables the set_mic_detection_delay command without any pre-configured scope."
+commands.allow = ["set_mic_detection_delay"]
+
+[[permission]]
+identifier = "deny-set-mic-detection-delay"
+description = "Denies the set_mic_detection_delay command without any pre-configured scope."
+commands.deny = ["set_mic_detection_delay"]

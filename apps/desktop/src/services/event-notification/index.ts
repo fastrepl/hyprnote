@@ -4,13 +4,13 @@ import {
   type Participant,
 } from "@hypr/plugin-notification";
 
+import { CONFIG_REGISTRY } from "../../config/registry";
 import type * as main from "../../store/tinybase/store/main";
 import type * as settings from "../../store/tinybase/store/settings";
 
 export const EVENT_NOTIFICATION_TASK_ID = "eventNotification";
 export const EVENT_NOTIFICATION_INTERVAL = 30 * 1000; // 30 sec
 
-const NOTIFY_WINDOW_MS = 5 * 60 * 1000; // 5 minutes before
 const NOTIFIED_EVENTS_TTL_MS = 10 * 60 * 1000; // 10 minutes TTL for cleanup
 
 export type NotifiedEventsMap = Map<string, number>;
@@ -65,6 +65,16 @@ export function checkEventNotifications(
     return;
   }
 
+  const notifyBeforeMinutes =
+    (settingsStore?.getValue("event_notify_before_minutes") as
+      | number
+      | undefined) ?? CONFIG_REGISTRY.event_notify_before_minutes.default;
+  const notificationTimeoutSecs =
+    (settingsStore?.getValue("event_notification_timeout_secs") as
+      | number
+      | undefined) ?? CONFIG_REGISTRY.event_notification_timeout_secs.default;
+  const notifyWindowMs = notifyBeforeMinutes * 60 * 1000;
+
   const now = Date.now();
 
   for (const [key, timestamp] of notifiedEvents) {
@@ -81,7 +91,7 @@ export function checkEventNotifications(
     const timeUntilStart = startTime.getTime() - now;
     const notificationKey = `event-${eventId}-${startTime.getTime()}`;
 
-    if (timeUntilStart > 0 && timeUntilStart <= NOTIFY_WINDOW_MS) {
+    if (timeUntilStart > 0 && timeUntilStart <= notifyWindowMs) {
       if (notifiedEvents.has(notificationKey)) {
         return;
       }
@@ -111,7 +121,7 @@ export function checkEventNotifications(
         key: notificationKey,
         title: title,
         message: `Starting in ${minutesUntil} minute${minutesUntil !== 1 ? "s" : ""}`,
-        timeout: { secs: 30, nanos: 0 },
+        timeout: { secs: notificationTimeoutSecs, nanos: 0 },
         event_id: eventId,
         start_time: Math.floor(startTime.getTime() / 1000),
         participants: participants,

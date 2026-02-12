@@ -58,11 +58,46 @@ fn handle_mic_started<E: Env>(
     state: &ProcessorState,
     apps: Vec<hypr_detect::InstalledApp>,
 ) {
-    let is_dnd = env.is_do_not_disturb();
+    let mut guard = state.lock().unwrap_or_else(|e| e.into_inner());
+    let delay = guard.mic_detection_delay;
 
-    let policy_result = {
-        let mut guard = state.lock().unwrap_or_else(|e| e.into_inner());
+    if delay.is_zero() {
+        let is_dnd = env.is_do_not_disturb();
+        let ctx = PolicyContext {
+            apps: &apps,
+            is_dnd,
+            event_type: MicEventType::Started,
+        };
+        let policy_result = guard.policy.evaluate(&ctx);
 
+        match policy_result {
+            Ok(result) => {
+                let uncooled: Vec<_> = result
+                    .filtered_apps
+                    .iter()
+                    .filter(|app| !guard.mic_usage_tracker.is_in_cooldown(&app.id))
+                    .cloned()
+                    .collect();
+                if uncooled.is_empty() {
+                    drop(guard);
+                    return;
+                }
+                for app in &uncooled {
+                    guard.mic_usage_tracker.set_cooldown(&app.id);
+                }
+                drop(guard);
+                env.emit(DetectEvent::MicDetected {
+                    key: result.dedup_key,
+                    apps: uncooled,
+                    duration_secs: 0,
+                });
+            }
+            Err(reason) => {
+                drop(guard);
+                tracing::info!(?reason, "skip_notification");
+            }
+        }
+    } else {
         let to_track: Vec<_> = apps
             .iter()
             .filter(|app| {
@@ -84,27 +119,10 @@ fn handle_mic_started<E: Env>(
                 app.clone(),
                 generation,
                 token,
+                delay,
             );
         }
-
-        let ctx = PolicyContext {
-            apps: &apps,
-            is_dnd,
-            event_type: MicEventType::Started,
-        };
-        guard.policy.evaluate(&ctx)
-    };
-
-    match policy_result {
-        Ok(result) => {
-            env.emit(DetectEvent::MicStarted {
-                key: result.dedup_key,
-                apps: result.filtered_apps,
-            });
-        }
-        Err(reason) => {
-            tracing::info!(?reason, "skip_notification");
-        }
+        drop(guard);
     }
 }
 
@@ -182,6 +200,15 @@ mod tests {
             }
         }
 
+        fn with_delay(delay_secs: u64) -> Self {
+            let h = Self::new();
+            {
+                let mut guard = h.state.lock().unwrap();
+                guard.mic_detection_delay = Duration::from_secs(delay_secs);
+            }
+            h
+        }
+
         fn mic_started(&self, app: hypr_detect::InstalledApp) {
             handle_detect_event(
                 &self.env,
@@ -216,19 +243,20 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
-    async fn test_mic_started_emits_event() {
+    async fn test_mic_detected_emits_event() {
         let h = Harness::new();
 
         h.mic_started(zoom());
 
         let events = h.take_events();
-        assert_eq!(events.len(), 1, "expected one MicStarted event for zoom");
+        assert_eq!(events.len(), 1, "expected one MicDetected event for zoom");
         assert!(
             matches!(
                 &events[0],
-                DetectEvent::MicStarted { apps, .. } if apps[0].id == "us.zoom.xos"
+                DetectEvent::MicDetected { apps, duration_secs, .. }
+                    if apps[0].id == "us.zoom.xos" && *duration_secs == 0
             ),
-            "expected MicStarted with zoom app"
+            "expected MicDetected with zoom app and duration_secs=0"
         );
     }
 
@@ -240,37 +268,86 @@ mod tests {
 
         assert!(
             h.take_events().is_empty(),
-            "categorized app should not emit MicStarted"
+            "categorized app should not emit MicDetected"
         );
     }
 
     #[tokio::test(start_paused = true)]
-    async fn test_mic_prolonged_usage_timer() {
-        let h = Harness::new();
+    async fn test_delayed_mic_detection_timer() {
+        let h = Harness::with_delay(3 * 60);
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(
+            h.take_events().is_empty(),
+            "delay>0 should not emit MicDetected immediately"
+        );
 
         h.advance_secs(3 * 60).await;
 
         let events = h.take_events();
-        assert_eq!(events.len(), 1, "expected MicProlongedUsage event");
+        assert_eq!(events.len(), 1, "expected delayed MicDetected event");
         assert!(
             matches!(
                 &events[0],
-                DetectEvent::MicProlongedUsage { app, duration_secs, .. }
-                    if app.id == "us.zoom.xos" && *duration_secs == 180
+                DetectEvent::MicDetected { apps, duration_secs, .. }
+                    if apps[0].id == "us.zoom.xos" && *duration_secs == 180
             ),
-            "expected timer event for zoom after 3 minutes"
+            "expected MicDetected with zoom app and duration_secs=180"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_zero_delay_emits_immediately() {
+        let h = Harness::new();
+
+        h.mic_started(zoom());
+
+        let events = h.take_events();
+        assert_eq!(events.len(), 1, "zero delay should emit immediately");
+        assert!(matches!(
+            &events[0],
+            DetectEvent::MicDetected { duration_secs, .. } if *duration_secs == 0
+        ),);
+
+        h.advance_secs(3 * 60).await;
+        assert!(
+            h.take_events().is_empty(),
+            "zero delay should not spawn any timer"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_zero_delay_cooldown_suppresses_repeat() {
+        let h = Harness::new();
+
+        h.mic_started(zoom());
+        assert_eq!(h.take_events().len(), 1, "first notification should fire");
+
+        h.mic_started(zoom());
+        assert!(
+            h.take_events().is_empty(),
+            "second immediate notification suppressed by cooldown"
+        );
+
+        h.advance_secs(60 * 60).await;
+
+        h.mic_started(zoom());
+        assert_eq!(
+            h.take_events().len(),
+            1,
+            "notification fires again after cooldown expires"
         );
     }
 
     #[tokio::test(start_paused = true)]
     async fn test_cancel_before_timer() {
-        let h = Harness::new();
+        let h = Harness::with_delay(3 * 60);
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(
+            h.take_events().is_empty(),
+            "delay>0 should not emit immediately"
+        );
 
         h.advance_secs(60).await;
         h.mic_stopped(zoom());
@@ -286,7 +363,7 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn test_user_ignored_app_no_timer() {
-        let h = Harness::new();
+        let h = Harness::with_delay(3 * 60);
 
         {
             let mut guard = h.state.lock().unwrap();
@@ -299,7 +376,7 @@ mod tests {
         h.mic_started(zoom());
         assert!(
             h.take_events().is_empty(),
-            "user-ignored app should not emit MicStarted"
+            "user-ignored app should not emit MicDetected"
         );
 
         h.advance_secs(3 * 60).await;
@@ -314,7 +391,12 @@ mod tests {
         let h = Harness::new();
 
         h.mic_started(zoom());
-        assert_eq!(h.take_events().len(), 1, "zoom should emit MicStarted");
+        let events = h.take_events();
+        assert_eq!(events.len(), 1, "zoom should emit MicDetected");
+        assert!(matches!(
+            &events[0],
+            DetectEvent::MicDetected { duration_secs, .. } if *duration_secs == 0
+        ));
 
         h.mic_started(aqua_voice());
         assert!(
@@ -335,19 +417,44 @@ mod tests {
     #[test]
     fn test_on_timer_fired_emits() {
         let env = TestEnv::new();
-        let app = zoom();
-        mic_usage_tracker::on_timer_fired(&env, &app, 180);
+        let result = crate::policy::PolicyResult {
+            filtered_apps: vec![zoom()],
+            dedup_key: "test-key".to_string(),
+        };
+        mic_usage_tracker::on_timer_fired(&env, &result, 180);
 
         let events = std::mem::take(&mut *env.events.lock().unwrap());
         assert_eq!(events.len(), 1);
         assert!(matches!(
             &events[0],
-            DetectEvent::MicProlongedUsage { duration_secs, .. } if *duration_secs == 180
+            DetectEvent::MicDetected { duration_secs, .. } if *duration_secs == 180
         ));
     }
 
     #[tokio::test(start_paused = true)]
-    async fn test_dnd_skips_mic_started_but_timer_still_fires() {
+    async fn test_dnd_suppresses_delayed_notification() {
+        let h = Harness::with_delay(3 * 60);
+        h.env.set_dnd(true);
+        {
+            let mut guard = h.state.lock().unwrap();
+            guard.policy.respect_dnd = true;
+        }
+
+        h.mic_started(zoom());
+        assert!(
+            h.take_events().is_empty(),
+            "delay>0 should not emit immediately"
+        );
+
+        h.advance_secs(3 * 60).await;
+        assert!(
+            h.take_events().is_empty(),
+            "DnD should suppress delayed notification"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_dnd_suppresses_zero_delay() {
         let h = Harness::new();
         h.env.set_dnd(true);
         {
@@ -356,31 +463,25 @@ mod tests {
         }
 
         h.mic_started(zoom());
-        assert!(h.take_events().is_empty(), "DnD should suppress MicStarted");
-
-        h.advance_secs(3 * 60).await;
-        let events = h.take_events();
-        assert_eq!(
-            events.len(),
-            1,
-            "timer fires regardless of DnD (separate concern)"
+        assert!(
+            h.take_events().is_empty(),
+            "DnD should suppress immediate notification"
         );
-        assert!(matches!(&events[0], DetectEvent::MicProlongedUsage { .. }));
     }
 
     #[tokio::test(start_paused = true)]
     async fn test_stop_and_restart_creates_new_timer() {
-        let h = Harness::new();
+        let h = Harness::with_delay(3 * 60);
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.advance_secs(60).await;
         h.mic_stopped(zoom());
         h.take_events();
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.advance_secs(2 * 60).await;
         assert!(
@@ -393,20 +494,20 @@ mod tests {
         assert_eq!(events.len(), 1, "timer should fire 3 min after restart");
         assert!(matches!(
             &events[0],
-            DetectEvent::MicProlongedUsage { app, .. } if app.id == "us.zoom.xos"
+            DetectEvent::MicDetected { apps, .. } if apps[0].id == "us.zoom.xos"
         ));
     }
 
     #[tokio::test(start_paused = true)]
     async fn test_duplicate_mic_started_no_timer_reset() {
-        let h = Harness::new();
+        let h = Harness::with_delay(3 * 60);
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.advance_secs(60).await;
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.advance_secs(2 * 60).await;
         let events = h.take_events();
@@ -415,19 +516,22 @@ mod tests {
             1,
             "timer fires 3 min from original start, not from duplicate"
         );
-        assert!(matches!(&events[0], DetectEvent::MicProlongedUsage { .. }));
+        assert!(matches!(
+            &events[0],
+            DetectEvent::MicDetected { duration_secs, .. } if *duration_secs == 180
+        ));
     }
 
     #[tokio::test(start_paused = true)]
     async fn test_multiple_apps_independent_timers() {
-        let h = Harness::new();
+        let h = Harness::with_delay(3 * 60);
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.advance_secs(60).await;
         h.mic_started(slack());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.mic_stopped(zoom());
         h.take_events();
@@ -443,17 +547,17 @@ mod tests {
         assert_eq!(events.len(), 1, "only slack timer should fire");
         assert!(matches!(
             &events[0],
-            DetectEvent::MicProlongedUsage { app, .. }
-                if app.id == "com.tinyspeck.slackmacgap"
+            DetectEvent::MicDetected { apps, .. }
+                if apps[0].id == "com.tinyspeck.slackmacgap"
         ),);
     }
 
     #[tokio::test(start_paused = true)]
     async fn test_ignore_during_active_tracking_cancels_timer() {
-        let h = Harness::new();
+        let h = Harness::with_delay(3 * 60);
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.advance_secs(60).await;
 
@@ -475,10 +579,10 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn test_cooldown_suppresses_repeated_notifications() {
-        let h = Harness::new();
+        let h = Harness::with_delay(3 * 60);
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.advance_secs(3 * 60).await;
         assert_eq!(h.take_events().len(), 1, "first notification should fire");
@@ -486,7 +590,7 @@ mod tests {
         h.mic_stopped(zoom());
         h.take_events();
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.advance_secs(3 * 60).await;
         assert!(
@@ -497,10 +601,10 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn test_cooldown_expires_after_one_hour() {
-        let h = Harness::new();
+        let h = Harness::with_delay(3 * 60);
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.advance_secs(3 * 60).await;
         assert_eq!(h.take_events().len(), 1, "first notification fires");
@@ -511,7 +615,7 @@ mod tests {
         h.advance_secs(60 * 60).await;
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
 
         h.advance_secs(3 * 60).await;
         let events = h.take_events();
@@ -524,15 +628,15 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn test_cooldown_is_per_app() {
-        let h = Harness::new();
+        let h = Harness::with_delay(3 * 60);
 
         h.mic_started(zoom());
-        h.take_events();
+        assert!(h.take_events().is_empty());
         h.advance_secs(3 * 60).await;
         assert_eq!(h.take_events().len(), 1, "zoom notification fires");
 
         h.mic_started(slack());
-        h.take_events();
+        assert!(h.take_events().is_empty());
         h.advance_secs(3 * 60).await;
         let events = h.take_events();
         assert_eq!(
@@ -542,8 +646,8 @@ mod tests {
         );
         assert!(matches!(
             &events[0],
-            DetectEvent::MicProlongedUsage { app, .. }
-                if app.id == "com.tinyspeck.slackmacgap"
+            DetectEvent::MicDetected { apps, .. }
+                if apps[0].id == "com.tinyspeck.slackmacgap"
         ));
     }
 }

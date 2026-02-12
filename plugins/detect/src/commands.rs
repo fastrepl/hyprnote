@@ -44,6 +44,16 @@ pub(crate) async fn set_respect_do_not_disturb<R: tauri::Runtime>(
     Ok(())
 }
 
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn set_mic_detection_delay<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    secs: u64,
+) -> Result<(), String> {
+    app.detect().set_mic_detection_delay(secs);
+    Ok(())
+}
+
 #[cfg(target_os = "macos")]
 #[tauri::command]
 #[specta::specta]

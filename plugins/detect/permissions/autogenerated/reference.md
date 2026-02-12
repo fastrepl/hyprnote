@@ -11,6 +11,7 @@ Default permissions for the plugin
 - `allow-list-default-ignored-bundle-ids`
 - `allow-get-preferred-languages`
 - `allow-get-current-locale-identifier`
+- `allow-set-mic-detection-delay`
 
 ## Permission Table
 
@@ -199,6 +200,32 @@ Enables the set_ignored_bundle_ids command without any pre-configured scope.
 <td>
 
 Denies the set_ignored_bundle_ids command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:allow-set-mic-detection-delay`
+
+</td>
+<td>
+
+Enables the set_mic_detection_delay command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:deny-set-mic-detection-delay`
+
+</td>
+<td>
+
+Denies the set_mic_detection_delay command without any pre-configured scope.
 
 </td>
 </tr>

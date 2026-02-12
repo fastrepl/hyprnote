@@ -22,7 +22,10 @@ export type ConfigKey =
   | "current_llm_model"
   | "timezone"
   | "week_start"
-  | "notification_in_meeting_reminder";
+  | "event_notify_before_minutes"
+  | "event_notification_timeout_secs"
+  | "mic_detection_delay_secs"
+  | "mic_notification_timeout_secs";
 
 type ConfigValueType<K extends ConfigKey> =
   (typeof CONFIG_REGISTRY)[K]["default"];
@@ -153,8 +156,26 @@ export const CONFIG_REGISTRY = {
     default: undefined as "sunday" | "monday" | undefined,
   },
 
-  notification_in_meeting_reminder: {
-    key: "notification_in_meeting_reminder",
-    default: true,
+  event_notify_before_minutes: {
+    key: "event_notify_before_minutes",
+    default: 5,
+  },
+
+  event_notification_timeout_secs: {
+    key: "event_notification_timeout_secs",
+    default: 30,
+  },
+
+  mic_detection_delay_secs: {
+    key: "mic_detection_delay_secs",
+    default: 0,
+    sideEffect: async (value: number, _) => {
+      await detectCommands.setMicDetectionDelay(value);
+    },
+  },
+
+  mic_notification_timeout_secs: {
+    key: "mic_notification_timeout_secs",
+    default: 8,
   },
 } satisfies Record<ConfigKey, ConfigDefinition>;

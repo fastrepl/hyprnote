@@ -11,6 +11,7 @@ import {
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Input } from "@hypr/ui/components/ui/input";
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
 
@@ -29,6 +30,10 @@ export function NotificationSettingsView() {
     "notification_detect",
     "respect_dnd",
     "ignored_platforms",
+    "event_notify_before_minutes",
+    "event_notification_timeout_secs",
+    "mic_detection_delay_secs",
+    "mic_notification_timeout_secs",
   ] as const);
 
   useEffect(() => {
@@ -101,12 +106,44 @@ export function NotificationSettingsView() {
     settings.STORE_ID,
   );
 
+  const handleSetEventNotifyBeforeMinutes = settings.UI.useSetValueCallback(
+    "event_notify_before_minutes",
+    (value: number) => value,
+    [],
+    settings.STORE_ID,
+  );
+
+  const handleSetEventNotificationTimeoutSecs = settings.UI.useSetValueCallback(
+    "event_notification_timeout_secs",
+    (value: number) => value,
+    [],
+    settings.STORE_ID,
+  );
+
+  const handleSetMicDetectionDelaySecs = settings.UI.useSetValueCallback(
+    "mic_detection_delay_secs",
+    (value: number) => value,
+    [],
+    settings.STORE_ID,
+  );
+
+  const handleSetMicNotificationTimeoutSecs = settings.UI.useSetValueCallback(
+    "mic_notification_timeout_secs",
+    (value: number) => value,
+    [],
+    settings.STORE_ID,
+  );
+
   const form = useForm({
     defaultValues: {
       notification_event: configs.notification_event,
       notification_detect: configs.notification_detect,
       respect_dnd: configs.respect_dnd,
       ignored_platforms: configs.ignored_platforms.map(bundleIdToName),
+      event_notify_before_minutes: configs.event_notify_before_minutes,
+      event_notification_timeout_secs: configs.event_notification_timeout_secs,
+      mic_detection_delay_secs: configs.mic_detection_delay_secs,
+      mic_notification_timeout_secs: configs.mic_notification_timeout_secs,
     },
     listeners: {
       onChange: async ({ formApi }) => {
@@ -120,6 +157,12 @@ export function NotificationSettingsView() {
       handleSetIgnoredPlatforms(
         JSON.stringify(value.ignored_platforms.map(nameToBundleId)),
       );
+      handleSetEventNotifyBeforeMinutes(value.event_notify_before_minutes);
+      handleSetEventNotificationTimeoutSecs(
+        value.event_notification_timeout_secs,
+      );
+      handleSetMicDetectionDelaySecs(value.mic_detection_delay_secs);
+      handleSetMicNotificationTimeoutSecs(value.mic_notification_timeout_secs);
     },
   });
 
@@ -220,17 +263,68 @@ export function NotificationSettingsView() {
     <div className="flex flex-col gap-6">
       <form.Field name="notification_event">
         {(field) => (
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <h3 className="mb-1 text-sm font-medium">Event notifications</h3>
-              <p className="text-xs text-neutral-600">
-                Get notified 5 minutes before calendar events start
-              </p>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="mb-1 text-sm font-medium">
+                  Event notifications
+                </h3>
+                <p className="text-xs text-neutral-600">
+                  Get notified before calendar events start
+                </p>
+              </div>
+              <Switch
+                checked={field.state.value}
+                onCheckedChange={field.handleChange}
+              />
             </div>
-            <Switch
-              checked={field.state.value}
-              onCheckedChange={field.handleChange}
-            />
+
+            {field.state.value && (
+              <div
+                className={cn([
+                  "ml-6 border-l-2 border-muted pl-6 flex flex-col gap-3",
+                ])}
+              >
+                <form.Field name="event_notify_before_minutes">
+                  {(subField) => (
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-xs text-neutral-600">
+                        Minutes before event
+                      </span>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={60}
+                        className="w-20 h-7 text-xs"
+                        value={subField.state.value}
+                        onChange={(e) =>
+                          subField.handleChange(Number(e.target.value))
+                        }
+                      />
+                    </div>
+                  )}
+                </form.Field>
+                <form.Field name="event_notification_timeout_secs">
+                  {(subField) => (
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-xs text-neutral-600">
+                        Auto-dismiss after (seconds)
+                      </span>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={300}
+                        className="w-20 h-7 text-xs"
+                        value={subField.state.value}
+                        onChange={(e) =>
+                          subField.handleChange(Number(e.target.value))
+                        }
+                      />
+                    </div>
+                  )}
+                </form.Field>
+              </div>
+            )}
           </div>
         )}
       </form.Field>
@@ -255,7 +349,51 @@ export function NotificationSettingsView() {
             </div>
 
             {field.state.value && (
-              <div className={cn(["ml-6 border-l-2 border-muted pl-6 pt-2"])}>
+              <div
+                className={cn([
+                  "ml-6 border-l-2 border-muted pl-6 pt-2 flex flex-col gap-4",
+                ])}
+              >
+                <div className="flex flex-col gap-3">
+                  <form.Field name="mic_detection_delay_secs">
+                    {(subField) => (
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-xs text-neutral-600">
+                          Detection delay (seconds)
+                        </span>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={600}
+                          className="w-20 h-7 text-xs"
+                          value={subField.state.value}
+                          onChange={(e) =>
+                            subField.handleChange(Number(e.target.value))
+                          }
+                        />
+                      </div>
+                    )}
+                  </form.Field>
+                  <form.Field name="mic_notification_timeout_secs">
+                    {(subField) => (
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-xs text-neutral-600">
+                          Auto-dismiss after (seconds)
+                        </span>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={300}
+                          className="w-20 h-7 text-xs"
+                          value={subField.state.value}
+                          onChange={(e) =>
+                            subField.handleChange(Number(e.target.value))
+                          }
+                        />
+                      </div>
+                    )}
+                  </form.Field>
+                </div>
                 <div className="mb-3 flex flex-col gap-1">
                   <h4 className="text-sm font-medium">
                     Exclude apps from detection

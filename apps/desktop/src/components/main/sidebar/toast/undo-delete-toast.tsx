@@ -248,6 +248,16 @@ function ToastBubble({
   const confirmGroup = useConfirmGroup();
   const seconds = useGroupCountdown(group);
   const pendingDeletions = useUndoDelete((state) => state.pendingDeletions);
+  const pauseGroup = useUndoDelete((state) => state.pauseGroup);
+  const resumeGroup = useUndoDelete((state) => state.resumeGroup);
+
+  const handleMouseEnter = useCallback(() => {
+    pauseGroup(group.sessionIds);
+  }, [pauseGroup, group.sessionIds]);
+
+  const handleMouseLeave = useCallback(() => {
+    resumeGroup(group.sessionIds);
+  }, [resumeGroup, group.sessionIds]);
 
   const title = useMemo(() => {
     if (group.isBatch) return null;
@@ -281,6 +291,8 @@ function ToastBubble({
         pointerEvents: isTop ? "auto" : "none",
       }}
       className="fixed"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div
         className={cn([
@@ -289,7 +301,7 @@ function ToastBubble({
           "border border-neutral-200",
         ])}
       >
-        <p className="text-[15px] text-neutral-700 leading-relaxed">
+        <p className="text-sm text-neutral-700 leading-relaxed">
           {group.isBatch ? (
             `Delete ${count} notes?`
           ) : (

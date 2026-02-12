@@ -63,6 +63,9 @@ export type PendingDeletion = {
   onDeleteConfirm: (() => void) | null;
   addedAt: number;
   batchId: string | null;
+  paused: boolean;
+  pausedAt: number | null;
+  remainingMs: number;
 };
 
 interface UndoDeleteState {
@@ -76,6 +79,10 @@ interface UndoDeleteState {
   confirmDeletion: (sessionId: string) => void;
   clearBatch: (batchId: string) => void;
   confirmBatch: (batchId: string) => void;
+  pauseSession: (sessionId: string) => void;
+  resumeSession: (sessionId: string) => void;
+  pauseGroup: (sessionIds: string[]) => void;
+  resumeGroup: (sessionIds: string[]) => void;
 }
 
 export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
@@ -97,6 +104,9 @@ export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
           onDeleteConfirm: onConfirm ?? null,
           addedAt: Date.now(),
           batchId: batchId ?? null,
+          paused: false,
+          pausedAt: null,
+          remainingMs: UNDO_TIMEOUT_MS,
         },
       },
     }));
@@ -141,6 +151,86 @@ export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
     );
     for (const [sessionId] of entries) {
       get().confirmDeletion(sessionId);
+    }
+  },
+
+  pauseSession: (sessionId) => {
+    const pending = get().pendingDeletions[sessionId];
+    if (!pending || pending.paused) return;
+
+    if (pending.timeoutId) {
+      clearTimeout(pending.timeoutId);
+    }
+
+    const elapsed = Date.now() - pending.data.deletedAt;
+    const remaining = Math.max(
+      0,
+      pending.remainingMs -
+        elapsed +
+        (pending.pausedAt ? pending.pausedAt - pending.data.deletedAt : 0),
+    );
+    const actualRemaining = Math.max(
+      0,
+      UNDO_TIMEOUT_MS - (Date.now() - pending.addedAt),
+    );
+
+    set((state) => {
+      const current = state.pendingDeletions[sessionId];
+      if (!current) return state;
+      return {
+        pendingDeletions: {
+          ...state.pendingDeletions,
+          [sessionId]: {
+            ...current,
+            timeoutId: null,
+            paused: true,
+            pausedAt: Date.now(),
+          },
+        },
+      };
+    });
+  },
+
+  resumeSession: (sessionId) => {
+    const pending = get().pendingDeletions[sessionId];
+    if (!pending || !pending.paused || !pending.pausedAt) return;
+
+    const pauseDuration = Date.now() - pending.pausedAt;
+    const newDeletedAt = pending.data.deletedAt + pauseDuration;
+    const elapsed = Date.now() - newDeletedAt;
+    const remaining = Math.max(0, UNDO_TIMEOUT_MS - elapsed);
+
+    const timeoutId = setTimeout(() => {
+      get().confirmDeletion(sessionId);
+    }, remaining);
+
+    set((state) => {
+      const current = state.pendingDeletions[sessionId];
+      if (!current) return state;
+      return {
+        pendingDeletions: {
+          ...state.pendingDeletions,
+          [sessionId]: {
+            ...current,
+            timeoutId,
+            paused: false,
+            pausedAt: null,
+            data: { ...current.data, deletedAt: newDeletedAt },
+          },
+        },
+      };
+    });
+  },
+
+  pauseGroup: (sessionIds) => {
+    for (const id of sessionIds) {
+      get().pauseSession(id);
+    }
+  },
+
+  resumeGroup: (sessionIds) => {
+    for (const id of sessionIds) {
+      get().resumeSession(id);
     }
   },
 }));

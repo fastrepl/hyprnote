@@ -122,21 +122,35 @@ fn collect_ignored_events(
             .get("tracking_id_event")
             .and_then(|v| v.as_str())
             .unwrap_or("");
-        let started_at = event
-            .get("started_at")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
-        let day = if started_at.len() >= 10 {
-            &started_at[..10]
-        } else {
-            "1970-01-01"
-        };
 
-        result.push(serde_json::json!({
-            "tracking_id": tracking_id,
-            "day": day,
-            "last_seen": now,
-        }));
+        let has_recurrence_rules = event
+            .get("has_recurrence_rules")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+
+        if has_recurrence_rules {
+            let started_at = event
+                .get("started_at")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let day = if started_at.len() >= 10 {
+                &started_at[..10]
+            } else {
+                "1970-01-01"
+            };
+            result.push(serde_json::json!({
+                "tracking_id": tracking_id,
+                "is_recurrent": true,
+                "day": day,
+                "last_seen": now,
+            }));
+        } else {
+            result.push(serde_json::json!({
+                "tracking_id": tracking_id,
+                "is_recurrent": false,
+                "last_seen": now,
+            }));
+        }
     }
 
     result
@@ -369,19 +383,36 @@ fn merge_ignored_events(
         .iter()
         .filter_map(|e| {
             let tid = e.get("tracking_id")?.as_str()?;
-            let day = e.get("day")?.as_str()?;
-            Some(format!("{tid}:{day}"))
+            let is_recurrent = e
+                .get("is_recurrent")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            if is_recurrent {
+                let day = e.get("day")?.as_str()?;
+                Some(format!("{tid}:{day}"))
+            } else {
+                Some(tid.to_string())
+            }
         })
         .collect();
 
     let mut added = false;
     for entry in new_entries {
-        let key = match (
-            entry.get("tracking_id").and_then(|v| v.as_str()),
-            entry.get("day").and_then(|v| v.as_str()),
-        ) {
-            (Some(tid), Some(day)) => format!("{tid}:{day}"),
-            _ => continue,
+        let tid = match entry.get("tracking_id").and_then(|v| v.as_str()) {
+            Some(t) => t,
+            None => continue,
+        };
+        let is_recurrent = entry
+            .get("is_recurrent")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let key = if is_recurrent {
+            match entry.get("day").and_then(|v| v.as_str()) {
+                Some(day) => format!("{tid}:{day}"),
+                None => continue,
+            }
+        } else {
+            tid.to_string()
         };
         if !existing_keys.contains(&key) {
             existing.push(entry.clone());
@@ -753,28 +784,47 @@ mod tests {
             .collect();
         assert!(tids.contains(&"track-1"));
         assert!(tids.contains(&"track-3"));
+
+        for entry in &result {
+            assert_eq!(entry["is_recurrent"], false);
+            assert!(entry.get("day").is_none());
+        }
     }
 
     #[test]
-    fn test_collect_ignored_events_extracts_day() {
+    fn test_collect_ignored_events_recurrent_extracts_day() {
+        let events: HashMap<String, Value> = serde_json::from_value(serde_json::json!({
+            "e1": {"tracking_id_event": "track-1", "started_at": "2024-01-15T10:00:00Z", "ignored": true, "has_recurrence_rules": true},
+        }))
+        .unwrap();
+
+        let result = collect_ignored_events(&events, &HashSet::new());
+        assert_eq!(result[0]["is_recurrent"], true);
+        assert_eq!(result[0]["day"], "2024-01-15");
+    }
+
+    #[test]
+    fn test_collect_ignored_events_recurrent_fallback_day() {
+        let events: HashMap<String, Value> = serde_json::from_value(serde_json::json!({
+            "e1": {"tracking_id_event": "track-1", "ignored": true, "has_recurrence_rules": true},
+        }))
+        .unwrap();
+
+        let result = collect_ignored_events(&events, &HashSet::new());
+        assert_eq!(result[0]["is_recurrent"], true);
+        assert_eq!(result[0]["day"], "1970-01-01");
+    }
+
+    #[test]
+    fn test_collect_ignored_events_non_recurrent_no_day() {
         let events: HashMap<String, Value> = serde_json::from_value(serde_json::json!({
             "e1": {"tracking_id_event": "track-1", "started_at": "2024-01-15T10:00:00Z", "ignored": true},
         }))
         .unwrap();
 
         let result = collect_ignored_events(&events, &HashSet::new());
-        assert_eq!(result[0]["day"], "2024-01-15");
-    }
-
-    #[test]
-    fn test_collect_ignored_events_fallback_day() {
-        let events: HashMap<String, Value> = serde_json::from_value(serde_json::json!({
-            "e1": {"tracking_id_event": "track-1", "ignored": true},
-        }))
-        .unwrap();
-
-        let result = collect_ignored_events(&events, &HashSet::new());
-        assert_eq!(result[0]["day"], "1970-01-01");
+        assert_eq!(result[0]["is_recurrent"], false);
+        assert!(result[0].get("day").is_none());
     }
 
     #[test]
@@ -810,7 +860,7 @@ mod tests {
         write_json(&base.join("store.json"), &make_store(&tb_values));
 
         let ignored = vec![serde_json::json!({
-            "tracking_id": "track-1", "day": "2024-01-15", "last_seen": "2024-01-20T00:00:00Z"
+            "tracking_id": "track-1", "is_recurrent": false, "last_seen": "2024-01-20T00:00:00Z"
         })];
 
         let mut ops = Vec::new();
@@ -823,6 +873,7 @@ mod tests {
         let parsed: Vec<Value> = serde_json::from_str(ignored_str).unwrap();
         assert_eq!(parsed.len(), 1);
         assert_eq!(parsed[0]["tracking_id"], "track-1");
+        assert_eq!(parsed[0]["is_recurrent"], false);
     }
 
     #[test]
@@ -831,7 +882,7 @@ mod tests {
         let base = tmp.path();
 
         let existing = serde_json::json!([
-            {"tracking_id": "track-1", "day": "2024-01-15", "last_seen": "old"}
+            {"tracking_id": "track-1", "is_recurrent": false, "last_seen": "old"}
         ]);
         let tb_values = serde_json::json!({
             "user_id": "user-1",
@@ -840,8 +891,8 @@ mod tests {
         write_json(&base.join("store.json"), &make_store(&tb_values));
 
         let ignored = vec![
-            serde_json::json!({"tracking_id": "track-1", "day": "2024-01-15", "last_seen": "new"}),
-            serde_json::json!({"tracking_id": "track-2", "day": "2024-02-01", "last_seen": "new"}),
+            serde_json::json!({"tracking_id": "track-1", "is_recurrent": false, "last_seen": "new"}),
+            serde_json::json!({"tracking_id": "track-2", "is_recurrent": true, "day": "2024-02-01", "last_seen": "new"}),
         ];
 
         let mut ops = Vec::new();
@@ -855,6 +906,8 @@ mod tests {
         assert_eq!(parsed.len(), 2);
         assert_eq!(parsed[0]["last_seen"], "old");
         assert_eq!(parsed[1]["tracking_id"], "track-2");
+        assert_eq!(parsed[1]["is_recurrent"], true);
+        assert_eq!(parsed[1]["day"], "2024-02-01");
     }
 
     // store.json / ignored_recurring_series tests

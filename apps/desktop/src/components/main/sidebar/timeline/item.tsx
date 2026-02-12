@@ -164,6 +164,7 @@ const EventItem = memo(
     const title = item.data.title || "Untitled";
     const calendarId = item.data.calendar_id ?? null;
     const recurrenceSeriesId = item.data.recurrence_series_id;
+    const isRecurrent = item.data.has_recurrence_rules;
 
     const {
       isIgnored,
@@ -196,7 +197,7 @@ const EventItem = memo(
         const tab: TabInput = { id: sessionId, type: "sessions" };
         openInNewTab ? openNew(tab) : openCurrent(tab);
       },
-      [trackingIdEvent, store, title, openCurrent, openNew],
+      [eventId, store, title, openCurrent, openNew],
     );
 
     const itemKey = `event-${item.id}`;
@@ -215,14 +216,15 @@ const EventItem = memo(
     }, [flatItemKeys, itemKey]);
 
     const handleIgnore = useCallback(() => {
-      if (!trackingIdEvent || !day) return;
-      ignoreEvent(trackingIdEvent, day);
-    }, [trackingIdEvent, day, ignoreEvent]);
+      if (!trackingIdEvent) return;
+      if (isRecurrent && !day) return;
+      ignoreEvent(trackingIdEvent, isRecurrent, day);
+    }, [trackingIdEvent, isRecurrent, day, ignoreEvent]);
 
     const handleUnignore = useCallback(() => {
-      if (!trackingIdEvent || !day) return;
-      unignoreEvent(trackingIdEvent, day);
-    }, [trackingIdEvent, day, unignoreEvent]);
+      if (!trackingIdEvent) return;
+      unignoreEvent(trackingIdEvent, isRecurrent, day);
+    }, [trackingIdEvent, isRecurrent, day, unignoreEvent]);
 
     const handleUnignoreSeries = useCallback(() => {
       if (!recurrenceSeriesId) return;

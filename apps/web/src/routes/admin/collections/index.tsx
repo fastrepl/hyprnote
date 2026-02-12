@@ -60,6 +60,7 @@ import {
   useScrollFade,
 } from "@hypr/ui/components/ui/scroll-fade";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { sonnerToast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/utils";
 
 import { MediaSelectorModal } from "@/components/admin/media-selector-modal";
@@ -1291,15 +1292,12 @@ function ContentPanel({
 
   const queryClient = useQueryClient();
 
-  const [isPublishing, setIsPublishing] = useState(false);
+  const { mutate: publish, isPending: isPublishing } = useMutation({
+    mutationFn: async () => {
+      if (!currentTab || !editorData) {
+        throw new Error("No active tab or editor data");
+      }
 
-  const handlePublish = useCallback(async () => {
-    if (!currentTab || !editorData) return;
-
-    const prTab = window.open("", "_blank");
-    setIsPublishing(true);
-
-    try {
       const saveResponse = await fetch("/api/admin/content/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1316,39 +1314,62 @@ function ContentPanel({
       }
       const saveResult = await saveResponse.json();
 
+      if (pendingPRData?.hasPendingPR && pendingPRData?.prUrl) {
+        return { prUrl: pendingPRData.prUrl };
+      }
+
       const branchName =
         saveResult.branchName || pendingPRData?.branchName || currentTab.branch;
 
-      if (pendingPRData?.hasPendingPR && pendingPRData?.prUrl) {
-        if (prTab) prTab.location.href = pendingPRData.prUrl;
-      } else if (branchName) {
-        const publishResponse = await fetch("/api/admin/content/publish", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            path: currentTab.path,
-            branch: branchName,
-            metadata: editorData.metadata,
-          }),
-        });
-        if (!publishResponse.ok) {
-          const error = await publishResponse.json();
-          throw new Error(error.error || "Failed to publish");
-        }
-        const publishResult = await publishResponse.json();
-        if (publishResult.prUrl && prTab) {
-          prTab.location.href = publishResult.prUrl;
-        }
-        queryClient.invalidateQueries({
-          queryKey: ["pendingPR", currentTab.path],
-        });
+      if (!branchName) {
+        throw new Error("No branch available for publishing");
       }
-    } catch {
-      if (prTab) prTab.close();
-    } finally {
-      setIsPublishing(false);
-    }
-  }, [currentTab, editorData, pendingPRData, queryClient]);
+
+      const publishResponse = await fetch("/api/admin/content/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          path: currentTab.path,
+          branch: branchName,
+          metadata: editorData.metadata,
+        }),
+      });
+      if (!publishResponse.ok) {
+        const error = await publishResponse.json();
+        throw new Error(error.error || "Failed to publish");
+      }
+      const publishResult = await publishResponse.json();
+      return { prUrl: publishResult.prUrl as string | undefined };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["pendingPR", currentTab?.path],
+      });
+
+      if (data.prUrl) {
+        const opened = window.open(data.prUrl, "_blank");
+        if (!opened) {
+          sonnerToast.success("PR created", {
+            description: "Pop-up was blocked by your browser.",
+            action: {
+              label: "Open PR",
+              onClick: () => window.open(data.prUrl, "_blank"),
+            },
+          });
+        }
+      }
+    },
+    onError: (error) => {
+      sonnerToast.error("Publish failed", {
+        description: error.message,
+      });
+    },
+  });
+
+  const handlePublish = useCallback(() => {
+    if (!currentTab || !editorData) return;
+    publish();
+  }, [currentTab, editorData, publish]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">

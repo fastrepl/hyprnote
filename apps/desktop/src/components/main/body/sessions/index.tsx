@@ -198,32 +198,13 @@ function TabContentNoteInner({
   const hasTranscript = useHasTranscript(tab.id);
 
   const sessionId = tab.id;
-  const store = main.UI.useStore(main.STORE_ID);
   const { skipReason } = useAutoEnhance(tab);
   const [showConsentBanner, setShowConsentBanner] = useState(false);
 
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const prevSessionMode = useRef<string | null>(sessionMode);
 
-  const didAutoFocus = useRef(false);
-  const title = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "title",
-    main.STORE_ID,
-  ) as string | undefined;
-  useEffect(() => {
-    if (didAutoFocus.current) return;
-    if (!store) return;
-
-    const row = store.getRow("sessions", sessionId);
-    if (!row || Object.keys(row).length === 0) return;
-
-    didAutoFocus.current = true;
-    if (!title) {
-      titleInputRef.current?.focus();
-    }
-  }, [store, sessionId, title]);
+  useAutoFocusTitle({ sessionId, titleInputRef });
 
   useEffect(() => {
     const justStartedListening =
@@ -359,4 +340,26 @@ function StatusBanner({
     </AnimatePresence>,
     document.body,
   );
+}
+
+function useAutoFocusTitle({
+  sessionId,
+  titleInputRef,
+}: {
+  sessionId: string;
+  titleInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  // Prevent re-focusing when the user intentionally leaves the title empty.
+  const didAutoFocus = useRef(false);
+
+  const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
+
+  useEffect(() => {
+    if (didAutoFocus.current) return;
+
+    if (!title) {
+      titleInputRef.current?.focus();
+      didAutoFocus.current = true;
+    }
+  }, [sessionId, title]);
 }

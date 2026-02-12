@@ -8,10 +8,11 @@ import {
 } from "../../../../utils/session-event";
 import type { Ctx } from "../../ctx";
 import type { IncomingEvent } from "../../fetch/types";
+import { getEventKey } from "./sync";
 import type { EventsSyncOutput } from "./types";
 
 export type EventsSyncResult = {
-  trackingIdToEventId: Map<string, string>;
+  eventKeyToEventId: Map<string, string>;
 };
 
 export function executeForEventsSync(
@@ -24,7 +25,7 @@ export function executeForEventsSync(
   }
 
   const now = new Date().toISOString();
-  const trackingIdToEventId = new Map<string, string>();
+  const eventKeyToEventId = new Map<string, string>();
 
   ctx.store.transaction(() => {
     for (const eventId of out.toDelete) {
@@ -45,7 +46,12 @@ export function executeForEventsSync(
         has_recurrence_rules: event.has_recurrence_rules,
         is_all_day: event.is_all_day,
       });
-      trackingIdToEventId.set(event.tracking_id_event!, event.id);
+      const key = getEventKey(
+        event.tracking_id_event!,
+        event.started_at,
+        event.has_recurrence_rules ?? false,
+      );
+      eventKeyToEventId.set(key, event.id);
     }
 
     for (const incomingEvent of out.toAdd) {
@@ -57,7 +63,12 @@ export function executeForEventsSync(
       }
 
       const eventId = id();
-      trackingIdToEventId.set(incomingEvent.tracking_id_event, eventId);
+      const key = getEventKey(
+        incomingEvent.tracking_id_event,
+        incomingEvent.started_at,
+        incomingEvent.has_recurrence_rules,
+      );
+      eventKeyToEventId.set(key, eventId);
 
       ctx.store.setRow("events", eventId, {
         user_id: userId,
@@ -77,7 +88,7 @@ export function executeForEventsSync(
     }
   });
 
-  return { trackingIdToEventId };
+  return { eventKeyToEventId };
 }
 
 export function syncSessionEmbeddedEvents(

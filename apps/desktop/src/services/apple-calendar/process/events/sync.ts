@@ -2,7 +2,7 @@ import type { Ctx } from "../../ctx";
 import type { IncomingEvent } from "../../fetch/types";
 import type { EventsSyncInput, EventsSyncOutput } from "./types";
 
-function getEventKey(
+export function getEventKey(
   trackingId: string,
   startedAt: string | undefined,
   hasRecurrenceRules: boolean,

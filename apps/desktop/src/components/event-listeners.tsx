@@ -96,7 +96,12 @@ function useNotificationEvents() {
           }
           const eventId = payload.event_id;
           const sessionId = eventId
-            ? getOrCreateSessionForEventId(currentStore, eventId, undefined, timezoneRef.current)
+            ? getOrCreateSessionForEventId(
+                currentStore,
+                eventId,
+                undefined,
+                timezoneRef.current,
+              )
             : createSession(currentStore);
           openNewRef.current({
             type: "sessions",

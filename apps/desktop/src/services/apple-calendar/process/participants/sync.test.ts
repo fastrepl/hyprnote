@@ -49,7 +49,7 @@ describe("syncParticipants", () => {
 
     const result = syncParticipants(ctx, {
       incomingParticipants: new Map(),
-      trackingIdToEventId: new Map(),
+      eventKeyToEventId: new Map(),
     });
 
     expect(result.toAdd).toHaveLength(0);
@@ -69,7 +69,7 @@ describe("syncParticipants", () => {
       incomingParticipants: new Map([
         ["tracking-1", [{ email: "test@example.com", name: "Test" }]],
       ]),
-      trackingIdToEventId: new Map([["tracking-1", "event-1"]]),
+      eventKeyToEventId: new Map([["tracking-1", "event-1"]]),
     });
 
     expect(result.toAdd).toHaveLength(0);
@@ -92,7 +92,7 @@ describe("syncParticipants", () => {
       incomingParticipants: new Map([
         ["tracking-1", [{ email: "new@example.com", name: "New Person" }]],
       ]),
-      trackingIdToEventId: new Map([["tracking-1", "event-1"]]),
+      eventKeyToEventId: new Map([["tracking-1", "event-1"]]),
     });
 
     expect(result.humansToCreate).toHaveLength(1);
@@ -116,7 +116,7 @@ describe("syncParticipants", () => {
       incomingParticipants: new Map([
         ["tracking-1", [{ email: "existing@example.com", name: "Existing" }]],
       ]),
-      trackingIdToEventId: new Map([["tracking-1", "event-1"]]),
+      eventKeyToEventId: new Map([["tracking-1", "event-1"]]),
     });
 
     expect(result.humansToCreate).toHaveLength(0);
@@ -144,7 +144,7 @@ describe("syncParticipants", () => {
 
     const result = syncParticipants(ctx, {
       incomingParticipants: new Map([["tracking-1", []]]),
-      trackingIdToEventId: new Map([["tracking-1", "event-1"]]),
+      eventKeyToEventId: new Map([["tracking-1", "event-1"]]),
     });
 
     expect(result.toDelete).toContain("mapping-1");
@@ -170,7 +170,7 @@ describe("syncParticipants", () => {
 
     const result = syncParticipants(ctx, {
       incomingParticipants: new Map([["tracking-1", []]]),
-      trackingIdToEventId: new Map([["tracking-1", "event-1"]]),
+      eventKeyToEventId: new Map([["tracking-1", "event-1"]]),
     });
 
     expect(result.toDelete).not.toContain("mapping-1");

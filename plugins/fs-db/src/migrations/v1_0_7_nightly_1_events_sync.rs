@@ -842,10 +842,7 @@ mod tests {
 
     #[test]
     fn test_day_from_started_at_non_rfc3339_with_date_prefix() {
-        assert_eq!(
-            day_from_started_at("2024-01-15 bad", None),
-            "2024-01-15"
-        );
+        assert_eq!(day_from_started_at("2024-01-15 bad", None), "2024-01-15");
     }
 
     // load_timezone tests
@@ -874,7 +871,10 @@ mod tests {
         let tmp = tempdir().unwrap();
         let base = tmp.path();
 
-        write_json(&base.join("settings.json"), &serde_json::json!({"general": {}}));
+        write_json(
+            &base.join("settings.json"),
+            &serde_json::json!({"general": {}}),
+        );
         assert_eq!(load_timezone(base), None);
     }
 

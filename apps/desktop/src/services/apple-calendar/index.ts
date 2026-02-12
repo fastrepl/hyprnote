@@ -61,13 +61,14 @@ async function run(
   const existing = fetchExistingEvents(ctx);
 
   const eventsOut = syncEvents(ctx, { incoming, existing });
-  const { trackingIdToEventId } = executeForEventsSync(ctx, eventsOut);
+  const { eventKeyToEventId } = executeForEventsSync(ctx, eventsOut);
 
   syncSessionEmbeddedEvents(ctx, incoming, timezone);
 
   const participantsOut = syncParticipants(ctx, {
     incomingParticipants,
-    trackingIdToEventId,
+    eventKeyToEventId,
+    timezone,
   });
   executeForParticipantsSync(ctx, participantsOut);
 }

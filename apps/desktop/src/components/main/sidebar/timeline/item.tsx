@@ -179,7 +179,7 @@ const EventItem = memo(
       return parsed
         ? format(timezone ? new TZDate(parsed, timezone) : parsed, "yyyy-MM-dd")
         : undefined;
-    }, [item.data.started_at]);
+    }, [item.data.started_at, timezone]);
 
     const ignored = isIgnored(trackingIdEvent, recurrenceSeriesId, day);
 
@@ -194,7 +194,12 @@ const EventItem = memo(
           return;
         }
 
-        const sessionId = getOrCreateSessionForEventId(store, eventId, title, timezone);
+        const sessionId = getOrCreateSessionForEventId(
+          store,
+          eventId,
+          title,
+          timezone,
+        );
         const tab: TabInput = { id: sessionId, type: "sessions" };
         openInNewTab ? openNew(tab) : openCurrent(tab);
       },

@@ -91,6 +91,11 @@ export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
   addDeletion: (data, onConfirm, batchId) => {
     const sessionId = data.session.id;
 
+    const existing = get().pendingDeletions[sessionId];
+    if (existing?.timeoutId) {
+      clearTimeout(existing.timeoutId);
+    }
+
     const timeoutId = setTimeout(() => {
       get().confirmDeletion(sessionId);
     }, UNDO_TIMEOUT_MS);

@@ -203,23 +203,19 @@ private final class QuitInterceptor {
   private func onCmdQPressed() {
     switch state {
     case .idle:
-      state = .awaiting
-      showOverlay()
-      scheduleTimer(&dismissTimer, delay: QuitOverlay.overlayDuration) { [weak self] in
-        guard let self, self.state == .awaiting else { return }
-        self.state = .idle
-        self.hidePanel()
-      }
-
-    case .awaiting:
       state = .holding
-      cancelTimer(&dismissTimer)
+      showOverlay()
       scheduleTimer(&quitTimer, delay: QuitOverlay.holdDuration) { [weak self] in
         self?.performQuit()
       }
 
     case .holding:
       break
+
+    case .awaiting:
+      state = .idle
+      cancelTimer(&dismissTimer)
+      performClose()
     }
   }
 
@@ -229,9 +225,13 @@ private final class QuitInterceptor {
       break
 
     case .holding:
-      state = .idle
+      state = .awaiting
       cancelTimer(&quitTimer)
-      performClose()
+      scheduleTimer(&dismissTimer, delay: QuitOverlay.overlayDuration) { [weak self] in
+        guard let self, self.state == .awaiting else { return }
+        self.state = .idle
+        self.hidePanel()
+      }
     }
   }
 

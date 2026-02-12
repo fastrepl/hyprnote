@@ -343,7 +343,9 @@ const SessionItem = memo(
     const sessionMode = useListener((state) => state.getSessionMode(sessionId));
     const isEnhancing = useIsSessionEnhancing(sessionId);
     const isFinalizing = sessionMode === "finalizing";
-    const showSpinner = !selected && (isFinalizing || isEnhancing);
+    const isBatching = sessionMode === "running_batch";
+    const showSpinner =
+      !selected && (isFinalizing || isEnhancing || isBatching);
 
     const calendarId =
       main.UI.useCell(
@@ -378,8 +380,8 @@ const SessionItem = memo(
     }, [sessionId, openCurrent, itemKey]);
 
     const handleCmdClick = useCallback(() => {
-      openNew({ id: sessionId, type: "sessions" });
-    }, [sessionId, openNew]);
+      useTimelineSelection.getState().toggleSelect(itemKey);
+    }, [itemKey]);
 
     const handleShiftClick = useCallback(() => {
       useTimelineSelection.getState().selectRange(flatItemKeys, itemKey);
@@ -392,13 +394,11 @@ const SessionItem = memo(
 
       const capturedData = captureSessionData(store, indexes, sessionId);
 
-      if (capturedData) {
-        const performDelete = () => {
-          invalidateResource("sessions", sessionId);
-          void deleteSessionCascade(store, indexes, sessionId);
-        };
+      invalidateResource("sessions", sessionId);
+      void deleteSessionCascade(store, indexes, sessionId);
 
-        addDeletion(capturedData, performDelete);
+      if (capturedData) {
+        addDeletion(capturedData);
       }
     }, [store, indexes, sessionId, invalidateResource, addDeletion]);
 

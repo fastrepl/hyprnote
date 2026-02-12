@@ -54,7 +54,9 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   const isEnhancing = useIsSessionEnhancing(tab.id);
   const isActive = sessionMode === "active" || sessionMode === "finalizing";
   const isFinalizing = sessionMode === "finalizing";
-  const showSpinner = !tab.active && (isFinalizing || isEnhancing);
+  const isBatching = sessionMode === "running_batch";
+  const showSpinner =
+    !tab.active && (isFinalizing || isEnhancing || isBatching);
 
   const showCloseConfirmation =
     pendingCloseConfirmationTab?.type === "sessions" &&
@@ -101,10 +103,23 @@ export function TabContentNote({
   tab: Extract<Tab, { type: "sessions" }>;
 }) {
   const listenerStatus = useListener((state) => state.live.status);
+  const sessionMode = useListener((state) => state.getSessionMode(tab.id));
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const { conn } = useSTTConnection();
   const startListening = useStartListening(tab.id);
   const hasAttemptedAutoStart = useRef(false);
+
+  useEffect(() => {
+    if (
+      sessionMode === "running_batch" &&
+      tab.state.view?.type !== "transcript"
+    ) {
+      updateSessionTabState(tab, {
+        ...tab.state,
+        view: { type: "transcript" },
+      });
+    }
+  }, [sessionMode, tab, updateSessionTabState]);
 
   useEffect(() => {
     if (!tab.state.autoStart) {

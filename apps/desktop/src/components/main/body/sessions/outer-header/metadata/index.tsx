@@ -87,7 +87,7 @@ function ContentInner({ sessionId }: { sessionId: string }) {
   const event = useEvent(eventId);
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4 overflow-y-auto">
       {event && <EventDisplay event={event} />}
       {!event && <DateDisplay sessionId={sessionId} />}
       <ParticipantsDisplay sessionId={sessionId} />
@@ -211,6 +211,15 @@ export function EventDisplay({
 
       {event.startedAt && (
         <div className="text-sm text-neutral-700">{formatEventDateTime()}</div>
+      )}
+
+      {event.description && (
+        <>
+          <div className="h-px bg-neutral-200" />
+          <div className="text-sm text-neutral-700 whitespace-pre-wrap break-words">
+            {event.description}
+          </div>
+        </>
       )}
     </div>
   );

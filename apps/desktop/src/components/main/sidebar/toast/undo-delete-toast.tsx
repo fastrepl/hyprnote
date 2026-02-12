@@ -152,39 +152,29 @@ export function UndoDeleteToast() {
         >
           <div
             className={cn([
-              "relative bg-white rounded-2xl shadow-lg border border-neutral-200",
-              "px-4 py-3 max-w-[260px]",
+              "relative bg-white rounded-2xl rounded-br-sm",
+              "shadow-xl px-5 py-4 max-w-[280px]",
+              "border border-neutral-200",
             ])}
           >
-            <div
-              className={cn([
-                "absolute -bottom-[6px] right-2",
-                "w-3 h-3 bg-white border-b border-r border-neutral-200",
-                "rotate-45",
-              ])}
-            />
-
-            <p className="text-sm text-neutral-700">
-              <span className="font-medium truncate inline-block max-w-[160px] align-bottom">
+            <p className="text-sm text-neutral-700 leading-relaxed">
+              <span className="font-medium truncate inline-block max-w-[180px] align-bottom text-neutral-900">
                 {title}
               </span>{" "}
               deleted.
             </p>
-            <div className="flex items-center justify-between mt-2">
+            <div className="mt-3">
               <button
                 onClick={() => restore(latestSessionId)}
                 className={cn([
-                  "text-xs font-medium px-3 py-1 rounded-lg",
-                  "bg-neutral-900 text-white",
-                  "hover:bg-neutral-800 active:bg-neutral-700",
+                  "text-xs font-medium px-3 py-1 rounded-xl",
+                  "bg-primary text-primary-foreground",
+                  "hover:bg-primary/90 active:bg-primary/80",
                   "transition-colors",
                 ])}
               >
-                Undo
+                Undo · {seconds}s
               </button>
-              <span className="text-xs text-neutral-400 tabular-nums">
-                {seconds}s
-              </span>
             </div>
           </div>
         </motion.div>

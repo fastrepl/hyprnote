@@ -209,6 +209,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "afconvert"
+version = "0.1.0"
+dependencies = [
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "agc"
 version = "0.1.0"
 dependencies = [
@@ -18661,6 +18668,7 @@ dependencies = [
 name = "tauri-plugin-fs-sync"
 version = "0.1.0"
 dependencies = [
+ "afconvert",
  "assert_fs",
  "audio-utils",
  "chrono",

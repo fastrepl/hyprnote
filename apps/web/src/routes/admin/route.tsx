@@ -10,10 +10,11 @@ import { fetchAdminUser } from "@/functions/admin";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Char Admin - Char" },
+      { title: "Admin - Char" },
       {
         name: "description",
-        content: "Char admin for Hyprnote.",
+        content: "Char admin dashboard.",
+
       },
       { name: "robots", content: "noindex, nofollow" },
     ],

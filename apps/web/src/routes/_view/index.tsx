@@ -462,17 +462,17 @@ function TestimonialsMobileGrid() {
         platform="reddit"
         author="spilledcarryout"
         subreddit="macapps"
-        body="Dear Char Team,
+        body="Dear Hyprnote Team,
 
-I wanted to take a moment to commend you on the impressive work you've done with Char. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Char a standout solution, especially for those of us in compliance-sensitive environments.
+I wanted to take a moment to commend you on the impressive work you've done with Hyprnote. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Hyprnote a standout solution, especially for those of us in compliance-sensitive environments.
 
 The live transcription is key for me. It saves a landmark step to transcribe each note myself using macwhisper. Much more handy they way you all do this. The Calendar function is cool too.
 
 I am a telephysician and my notes are much more quickly done. Seeing 6-8 patients daily and tested it yesteday. So yes, my job is session heavy. Add to that being in psychiatry where document making sessions become voluminous, my flow is AI dependent to make reports stand out. Accuracy is key for patient care.
 
-Char is now part of that process.
+Hyprnote is now part of that process.
 
-Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Char continue to evolve
+Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Hyprnote continue to evolve
 
 Cheers!"
         url="https://www.reddit.com/r/macapps/comments/1lo24b9/comment/n15dr0t/"
@@ -484,7 +484,7 @@ Cheers!"
         author="Flavius Catalin Miron"
         role="Product Engineer"
         company="Waveful"
-        body="Guys at Char (YC S25) are wild.
+        body="Guys at Hyprnote (YC S25) are wild.
 
 Had a call with John Jeong about their product (privacy-first AI notepad).
 
@@ -496,7 +496,7 @@ As Product Engineer at Waveful, where we also prioritize rapid execution, I deep
 
 The ability to ship this fast while maintaining quality, is what separates great teams from the rest 🔥
 
-Btw give an eye to Char:
+Btw give an eye to Hyprnote:
 100% local AI processing
 Zero cloud dependency
 Real privacy
@@ -540,17 +540,17 @@ function TestimonialsDesktopGrid() {
           platform="reddit"
           author="spilledcarryout"
           subreddit="macapps"
-          body="Dear Char Team,
+          body="Dear Hyprnote Team,
 
-I wanted to take a moment to commend you on the impressive work you've done with Char. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Char a standout solution, especially for those of us in compliance-sensitive environments.
+I wanted to take a moment to commend you on the impressive work you've done with Hyprnote. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Hyprnote a standout solution, especially for those of us in compliance-sensitive environments.
 
 The live transcription is key for me. It saves a landmark step to transcribe each note myself using macwhisper. Much more handy they way you all do this. The Calendar function is cool too.
 
 I am a telephysician and my notes are much more quickly done. Seeing 6-8 patients daily and tested it yesteday. So yes, my job is session heavy. Add to that being in psychiatry where document making sessions become voluminous, my flow is AI dependent to make reports stand out. Accuracy is key for patient care.
 
-Char is now part of that process.
+Hyprnote is now part of that process.
 
-Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Char continue to evolve
+Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Hyprnote continue to evolve
 
 Cheers!"
           url="https://www.reddit.com/r/macapps/comments/1lo24b9/comment/n15dr0t/"
@@ -564,7 +564,7 @@ Cheers!"
           author="Flavius Catalin Miron"
           role="Product Engineer"
           company="Waveful"
-          body="Guys at Char (YC S25) are wild.
+          body="Guys at Hyprnote (YC S25) are wild.
 
 Had a call with John Jeong about their product (privacy-first AI notepad).
 
@@ -576,7 +576,7 @@ As Product Engineer at Waveful, where we also prioritize rapid execution, I deep
 
 The ability to ship this fast while maintaining quality, is what separates great teams from the rest 🔥
 
-Btw give an eye to Char:
+Btw give an eye to Hyprnote:
 100% local AI processing
 Zero cloud dependency
 Real privacy

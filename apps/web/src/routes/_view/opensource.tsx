@@ -827,7 +827,7 @@ const contributions = [
     title: "Join Community",
     description: "Connect with other users and contributors",
     icon: "mdi:forum",
-    link: "https://discord.gg/Char",
+    link: "https://discord.gg/Hyprnote",
     linkText: "Join Discord",
   },
 ];

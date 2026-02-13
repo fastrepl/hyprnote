@@ -18,8 +18,20 @@ remote_images = [
 ]
 
 # Domain migration: hyprnote.com -> char.com (301 for SEO)
-# Exclude /admin, /app, /api, /webhook, /callback, /auth from redirects.
-# These paths stay on hyprnote.com without redirect.
+# Exclude /admin, /app, /api, /webhook from redirects.
+# Auth paths MUST redirect so PKCE cookies stay on one domain.
+
+[[redirects]]
+from = "https://hyprnote.com/auth"
+to = "https://char.com/auth"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://hyprnote.com/callback/*"
+to = "https://char.com/callback/:splat"
+status = 301
+force = true
 
 [[redirects]]
 from = "https://hyprnote.com/blog/*"

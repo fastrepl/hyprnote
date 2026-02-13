@@ -44,7 +44,7 @@ async renderSupport(tpl: SupportTemplate) : Promise<Result<string, string>> {
 
 export type AccountInfo = { userId: string; email: string | null; fullName: string | null; avatarUrl: string | null; stripeCustomerId: string | null }
 export type BugReport = { description: string; platform: string; arch: string; osVersion: string; appVersion: string; source: string }
-export type ChatSystem = { language: string | null; context: SessionContext | null; relatedSessions: SessionContext[] }
+export type ChatSystem = { language: string | null; context: SessionContext | null }
 export type DeviceInfo = { platform: string; arch: string; osVersion: string; appVersion: string; buildHash?: string | null; locale?: string | null }
 export type EnhanceSystem = { language: string | null }
 export type EnhanceTemplate = { title: string; description: string | null; sections: TemplateSection[] }
@@ -58,8 +58,8 @@ export type Participant = { name: string; jobTitle: string | null }
 export type Segment = { text: string; speaker: string }
 export type Session = { title: string | null; startedAt: string | null; endedAt: string | null; event: Event | null }
 export type SessionContext = { title: string | null; date: string | null; rawContent: string | null; enhancedContent: string | null; transcript: Transcript | null; participants: Participant[]; event: Event | null }
-export type SupportSystem = { account: AccountInfo | null; device: DeviceInfo }
-export type SupportTemplate = { supportSystem: SupportSystem } | { bugReport: BugReport } | { featureRequest: FeatureRequest } | { logAnalysis: LogAnalysis }
+export type SupportContext = { account: AccountInfo | null; device: DeviceInfo }
+export type SupportTemplate = { supportContext: SupportContext } | { bugReport: BugReport } | { featureRequest: FeatureRequest } | { logAnalysis: LogAnalysis }
 export type Template = { enhanceSystem: EnhanceSystem } | { enhanceUser: EnhanceUser } | { titleSystem: TitleSystem } | { titleUser: TitleUser } | { chatSystem: ChatSystem }
 export type TemplateSection = { title: string; description: string | null }
 export type TitleSystem = { language: string | null }

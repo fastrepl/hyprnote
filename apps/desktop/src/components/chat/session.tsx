@@ -218,8 +218,8 @@ export function ChatSession({
   const persistedEntities = persistedCtx?.contextEntities ?? [];
 
   const contextEntities = useMemo(() => {
-    return composeContextEntities([persistedEntities, ephemeralEntities]);
-  }, [persistedEntities, ephemeralEntities]);
+    return composeContextEntities([ephemeralEntities, persistedEntities]);
+  }, [ephemeralEntities, persistedEntities]);
 
   const contextEntitiesRef = useRef(contextEntities);
   contextEntitiesRef.current = contextEntities;
@@ -293,7 +293,7 @@ function useTransport(
       ? [sessionEntity]
       : [];
     return filterForPrompt(
-      composeContextEntities([persistedEntities, sessionEntities]),
+      composeContextEntities([sessionEntities, persistedEntities]),
     );
   }, [persistedEntities, sessionEntity]);
 

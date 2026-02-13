@@ -8,7 +8,6 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { z } from "zod";
 
-import { AUTHOR_NAMES } from "@/lib/team";
 import { VersionPlatform } from "@/scripts/versioning";
 
 async function embedGithubCode(content: string): Promise<string> {

@@ -1,40 +1,9 @@
-use askama::Template;
-
 use crate::error::{Result, SupportError};
 use crate::logs;
 use crate::state::AppState;
 
 const GITHUB_OWNER: &str = "fastrepl";
 const GITHUB_REPO: &str = "hyprnote";
-
-#[derive(Template)]
-#[template(path = "bug_report.md.jinja")]
-struct BugReportBody<'a> {
-    description: &'a str,
-    platform: &'a str,
-    arch: &'a str,
-    os_version: &'a str,
-    app_version: &'a str,
-    source: &'a str,
-}
-
-#[derive(Template)]
-#[template(path = "feature_request.md.jinja")]
-struct FeatureRequestBody<'a> {
-    description: &'a str,
-    platform: &'a str,
-    arch: &'a str,
-    os_version: &'a str,
-    app_version: &'a str,
-    source: &'a str,
-}
-
-#[derive(Template)]
-#[template(path = "log_analysis.md.jinja")]
-struct LogAnalysisComment<'a> {
-    summary_section: &'a str,
-    tail: &'a str,
-}
 
 pub(crate) struct BugReportInput<'a> {
     pub description: &'a str,
@@ -61,15 +30,16 @@ pub(crate) async fn submit_bug_report(
 ) -> Result<String> {
     let (description, title) = make_title(input.description, "Bug Report");
 
-    let body = BugReportBody {
-        description: &description,
-        platform: input.platform,
-        arch: input.arch,
-        os_version: input.os_version,
-        app_version: input.app_version,
-        source: input.source,
-    }
-    .render()
+    let body = hypr_template_support::render_bug_report(
+        hypr_template_support::SupportIssueTemplateInput {
+            description: &description,
+            platform: input.platform,
+            arch: input.arch,
+            os_version: input.os_version,
+            app_version: input.app_version,
+            source: input.source,
+        },
+    )
     .map_err(|e| SupportError::Internal(e.to_string()))?;
 
     let labels = vec!["product/desktop".to_string()];
@@ -88,15 +58,16 @@ pub(crate) async fn submit_feature_request(
 ) -> Result<String> {
     let (description, title) = make_title(input.description, "Feature Request");
 
-    let body = FeatureRequestBody {
-        description: &description,
-        platform: input.platform,
-        arch: input.arch,
-        os_version: input.os_version,
-        app_version: input.app_version,
-        source: input.source,
-    }
-    .render()
+    let body = hypr_template_support::render_feature_request(
+        hypr_template_support::SupportIssueTemplateInput {
+            description: &description,
+            platform: input.platform,
+            arch: input.arch,
+            os_version: input.os_version,
+            app_version: input.app_version,
+            source: input.source,
+        },
+    )
     .map_err(|e| SupportError::Internal(e.to_string()))?;
 
     let category_id = &state.config.github.github_discussion_category_id;
@@ -136,11 +107,8 @@ async fn attach_log_analysis(state: &AppState, issue_number: u64, log_text: &str
     };
 
     let tail = logs::safe_tail(log_text, 10000);
-    let comment = LogAnalysisComment {
-        summary_section: &summary_section,
-        tail,
-    };
-    let log_comment = comment.render().unwrap_or_default();
+    let log_comment =
+        hypr_template_support::render_log_analysis(&summary_section, tail).unwrap_or_default();
 
     let _ = add_issue_comment(state, issue_number, &log_comment).await;
 }

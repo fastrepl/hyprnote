@@ -34,6 +34,8 @@ export type CreateEventResponse = {
 export type DeviceInfo = {
     appVersion: string;
     arch: string;
+    buildHash?: string | null;
+    locale?: string | null;
     osVersion: string;
     platform: string;
 };
@@ -103,7 +105,15 @@ export type StartTrialResponse = {
 export type SttStatusResponse = {
     error?: string | null;
     status: PipelineStatus;
+    tokens?: Array<TranscriptToken> | null;
     transcript?: string | null;
+};
+
+export type TranscriptToken = {
+    endMs: number;
+    speaker?: number | null;
+    startMs: number;
+    text: string;
 };
 
 export type WebhookResponse = {

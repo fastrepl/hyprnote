@@ -10981,6 +10981,7 @@ dependencies = [
  "backon",
  "bytes",
  "futures-util",
+ "openrouter",
  "reqwest 0.13.2",
  "sentry",
  "serde",

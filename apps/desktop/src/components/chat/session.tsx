@@ -15,6 +15,7 @@ import {
   commands as templateCommands,
   type Transcript,
 } from "@hypr/plugin-template";
+import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 
 import {
   type ContextEntity,
@@ -275,6 +276,25 @@ export function ChatSession({
   );
 }
 
+function tiptapJsonToMarkdown(
+  tiptapJson: string | undefined,
+): string | undefined {
+  if (typeof tiptapJson !== "string" || !tiptapJson.trim()) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(tiptapJson);
+    if (!isValidTiptapContent(parsed)) {
+      return undefined;
+    }
+    const md = json2md(parsed);
+    return md.trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function useTransport(
   attachedSessionId?: string,
   modelOverride?: LanguageModel,
@@ -297,6 +317,31 @@ function useTransport(
     attachedSessionId ?? "",
     main.STORE_ID,
   );
+
+  const enhancedNoteIds = main.UI.useSliceRowIds(
+    main.INDEXES.enhancedNotesBySession,
+    attachedSessionId ?? "",
+    main.STORE_ID,
+  );
+
+  const enhancedContent = useMemo((): string | undefined => {
+    if (!store || !enhancedNoteIds || enhancedNoteIds.length === 0) {
+      return undefined;
+    }
+
+    const parts: string[] = [];
+    for (const noteId of enhancedNoteIds) {
+      const content = store.getCell("enhanced_notes", noteId, "content") as
+        | string
+        | undefined;
+      const md = tiptapJsonToMarkdown(content);
+      if (md) {
+        parts.push(md);
+      }
+    }
+
+    return parts.length > 0 ? parts.join("\n\n---\n\n") : undefined;
+  }, [store, enhancedNoteIds]);
 
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -357,6 +402,11 @@ function useTransport(
     };
   }, [words, store]);
 
+  const rawContentMd = useMemo(
+    () => tiptapJsonToMarkdown(rawMd as string | undefined),
+    [rawMd],
+  );
+
   const sessionEntity = useMemo((): Extract<
     ContextEntity,
     { kind: "session" }
@@ -367,12 +417,11 @@ function useTransport(
 
     const titleStr = (title as string) || undefined;
     const dateStr = (createdAt as string) || undefined;
-    const rawContentStr = (rawMd as string) || undefined;
     const chatContext: ChatContext = {
       title: titleStr ?? null,
       date: dateStr ?? null,
-      rawContent: rawContentStr ?? null,
-      enhancedContent: null,
+      rawContent: rawContentMd ?? null,
+      enhancedContent: enhancedContent ?? null,
       transcript: transcript ?? null,
     };
 
@@ -380,7 +429,8 @@ function useTransport(
       !titleStr &&
       !dateStr &&
       words.length === 0 &&
-      !rawContentStr &&
+      !rawContentMd &&
+      !enhancedContent &&
       participantIds.length === 0 &&
       !event?.title
     ) {
@@ -392,7 +442,7 @@ function useTransport(
       key: "session:info",
       chatContext,
       wordCount: words.length > 0 ? words.length : undefined,
-      rawNotePreview: rawContentStr,
+      rawNotePreview: rawContentMd,
       participantCount: participantIds.length,
       eventTitle: event?.title ?? undefined,
     };
@@ -400,7 +450,8 @@ function useTransport(
     attachedSessionId,
     title,
     createdAt,
-    rawMd,
+    rawContentMd,
+    enhancedContent,
     words.length,
     participantIds.length,
     event,

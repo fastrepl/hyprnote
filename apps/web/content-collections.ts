@@ -11,6 +11,8 @@ import { z } from "zod";
 import { AUTHOR_NAMES } from "@/lib/team";
 import { VersionPlatform } from "@/scripts/versioning";
 
+const authorNames = AUTHOR_NAMES;
+
 async function embedGithubCode(content: string): Promise<string> {
   const githubCodeRegex = /<GithubCode\s+url="([^"]+)"\s*\/>/g;
   let result = content;
@@ -87,7 +89,7 @@ const articles = defineCollection({
     display_title: z.string().optional(),
     meta_title: z.string(),
     meta_description: z.string(),
-    author: z.enum(AUTHOR_NAMES as [string, ...string[]]),
+    author: z.enum(authorNames as [string, ...string[]]),
     date: z.string(),
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),

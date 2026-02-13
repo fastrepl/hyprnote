@@ -20,7 +20,6 @@ common_derives! {
     pub struct ChatSystem {
         pub language: Option<String>,
         pub context: Option<SessionContext>,
-        pub related_sessions: Vec<SessionContext>,
     }
 }
 
@@ -71,7 +70,6 @@ mod tests {
                     name: "Weekly Team Sync".to_string(),
                 }),
             }),
-            related_sessions: vec![],
         },
         |v| v.contains("English"),
         fixed_date = "2025-01-01",

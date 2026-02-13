@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import type { ContextEntity } from "../../chat/context-item";
+import { composeContextEntities } from "../../chat/context/composer";
 
 type PerGroupContext = {
   attachedSessionId: string | null;
@@ -30,21 +31,7 @@ export const useChatContext = create<ChatContextState & ChatContextActions>(
     persistContext: (groupId, attachedSessionId, entities) => {
       const prev = get().contexts[groupId];
       const prevEntities = prev?.contextEntities ?? [];
-
-      const seen = new Set<string>();
-      const merged: ContextEntity[] = [];
-      for (const e of prevEntities) {
-        if (!seen.has(e.key)) {
-          seen.add(e.key);
-          merged.push(e);
-        }
-      }
-      for (const e of entities) {
-        if (!seen.has(e.key)) {
-          seen.add(e.key);
-          merged.push(e);
-        }
-      }
+      const merged = composeContextEntities([prevEntities, entities]);
 
       set({
         contexts: {

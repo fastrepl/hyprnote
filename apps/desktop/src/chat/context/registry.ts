@@ -1,7 +1,5 @@
 import { CalendarIcon, MonitorIcon, UserIcon } from "lucide-react";
 
-import type { ChatContext } from "@hypr/plugin-template";
-
 import type { ContextEntity, ContextEntityKind } from "../context-item";
 
 export type ContextChipProps = {
@@ -15,7 +13,6 @@ export type ContextChipProps = {
 type EntityRenderer<E extends ContextEntity> = {
   toChip: (entity: E) => ContextChipProps | null;
   toPromptBlock: (entity: E) => string | null;
-  toTemplateContext: (entity: E) => ChatContext | null;
 };
 
 type ExtractEntity<K extends ContextEntityKind> = Extract<
@@ -35,7 +32,7 @@ const renderers: RendererMap = {
         !chatContext.title &&
         !chatContext.date &&
         !entity.wordCount &&
-        !entity.rawNotePreview &&
+        !chatContext.rawContent &&
         entity.participantCount === undefined &&
         !entity.eventTitle
       ) {
@@ -53,11 +50,11 @@ const renderers: RendererMap = {
       if (entity.eventTitle) {
         lines.push(`Event: ${entity.eventTitle}`);
       }
-      if (entity.rawNotePreview) {
+      if (chatContext.rawContent) {
         const truncated =
-          entity.rawNotePreview.length > 120
-            ? `${entity.rawNotePreview.slice(0, 120)}...`
-            : entity.rawNotePreview;
+          chatContext.rawContent.length > 120
+            ? `${chatContext.rawContent.slice(0, 120)}...`
+            : chatContext.rawContent;
         lines.push(`Raw note: ${truncated}`);
       }
       return {
@@ -69,7 +66,6 @@ const renderers: RendererMap = {
       };
     },
     toPromptBlock: () => null,
-    toTemplateContext: (entity) => entity.chatContext,
   },
 
   account: {
@@ -91,7 +87,6 @@ const renderers: RendererMap = {
       if (entity.userId) lines.push(`- User ID: ${entity.userId}`);
       return lines.length > 0 ? lines.join("\n") : null;
     },
-    toTemplateContext: () => null,
   },
 
   device: {
@@ -120,7 +115,6 @@ const renderers: RendererMap = {
       if (entity.locale) lines.push(`- Locale: ${entity.locale}`);
       return lines.length > 0 ? lines.join("\n") : null;
     },
-    toTemplateContext: () => null,
   },
 } satisfies RendererMap;
 
@@ -132,11 +126,4 @@ export function renderChip(entity: ContextEntity): ContextChipProps | null {
 export function renderPromptBlock(entity: ContextEntity): string | null {
   const renderer = renderers[entity.kind] as EntityRenderer<typeof entity>;
   return renderer.toPromptBlock(entity);
-}
-
-export function renderTemplateContext(
-  entity: ContextEntity,
-): ChatContext | null {
-  const renderer = renderers[entity.kind] as EntityRenderer<typeof entity>;
-  return renderer.toTemplateContext(entity);
 }

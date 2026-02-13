@@ -12,6 +12,7 @@ import {
 
 import {
   type ChatContext,
+  type Participant,
   commands as templateCommands,
   type Transcript,
 } from "@hypr/plugin-template";
@@ -22,7 +23,6 @@ import {
   extractToolContextEntities,
 } from "../../chat/context-item";
 import { composeContextEntities } from "../../chat/context/composer";
-import { renderTemplateContext } from "../../chat/context/registry";
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
@@ -407,6 +407,45 @@ function useTransport(
     [rawMd],
   );
 
+  const participants = useMemo((): Participant[] => {
+    if (!store || participantIds.length === 0) {
+      return [];
+    }
+
+    const seen = new Set<string>();
+    const result: Participant[] = [];
+
+    for (const mappingId of participantIds) {
+      const humanId = store.getCell(
+        "mapping_session_participant",
+        mappingId,
+        "human_id",
+      ) as string | undefined;
+      if (!humanId || seen.has(humanId)) {
+        continue;
+      }
+
+      seen.add(humanId);
+      const name = store.getCell("humans", humanId, "name") as
+        | string
+        | undefined;
+      if (!name) {
+        continue;
+      }
+
+      const jobTitle = store.getCell("humans", humanId, "job_title") as
+        | string
+        | undefined;
+
+      result.push({
+        name,
+        jobTitle: jobTitle || null,
+      });
+    }
+
+    return result;
+  }, [store, participantIds]);
+
   const sessionEntity = useMemo((): Extract<
     ContextEntity,
     { kind: "session" }
@@ -423,6 +462,8 @@ function useTransport(
       rawContent: rawContentMd ?? null,
       enhancedContent: enhancedContent ?? null,
       transcript: transcript ?? null,
+      participants,
+      event: event?.title ? { name: event.title } : null,
     };
 
     if (
@@ -442,8 +483,7 @@ function useTransport(
       key: "session:info",
       chatContext,
       wordCount: words.length > 0 ? words.length : undefined,
-      rawNotePreview: rawContentMd,
-      participantCount: participantIds.length,
+      participantCount: participants.length,
       eventTitle: event?.title ?? undefined,
     };
   }, [
@@ -453,17 +493,12 @@ function useTransport(
     rawContentMd,
     enhancedContent,
     words.length,
-    participantIds.length,
+    participants,
     event,
     transcript,
   ]);
 
-  const chatContext = useMemo(() => {
-    if (!sessionEntity) {
-      return null;
-    }
-    return renderTemplateContext(sessionEntity);
-  }, [sessionEntity]);
+  const chatContext = sessionEntity?.chatContext ?? null;
 
   useEffect(() => {
     if (systemPromptOverride) {

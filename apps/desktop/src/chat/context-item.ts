@@ -11,7 +11,6 @@ export type ContextEntity =
       key: string;
       chatContext: ChatContext;
       wordCount?: number;
-      rawNotePreview?: string;
       participantCount?: number;
       eventTitle?: string;
       removable?: boolean;
@@ -67,8 +66,9 @@ function parseSearchSessionsOutput(output: unknown): ContextEntity[] {
           rawContent: content,
           enhancedContent: null,
           transcript: null,
+          participants: [],
+          event: null,
         },
-        rawNotePreview: content?.slice(0, 120) ?? undefined,
         removable: true,
       },
     ];

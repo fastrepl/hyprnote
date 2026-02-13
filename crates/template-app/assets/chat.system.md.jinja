@@ -27,6 +27,14 @@ Title: {{ title }}
 
 Date: {{ date }}
 {%- endif -%}
+{%- if let Some(event) = ctx.event %}
+
+Event: {{ event.name }}
+{%- endif -%}
+{%- if !ctx.participants.is_empty() %}
+
+Participants:{{ macros::participants(participants=ctx.participants) }}
+{%- endif -%}
 {%- if let Some(enhanced_content) = ctx.enhanced_content %}
 
 Enhanced Meeting Summary:

@@ -1,4 +1,4 @@
-use crate::{Transcript, common_derives, filters};
+use crate::{Event, Participant, Transcript, common_derives, filters};
 
 common_derives! {
     pub struct ChatContext {
@@ -7,6 +7,8 @@ common_derives! {
         pub raw_content: Option<String>,
         pub enhanced_content: Option<String>,
         pub transcript: Option<Transcript>,
+        pub participants: Vec<Participant>,
+        pub event: Option<Event>,
     }
 }
 
@@ -15,7 +17,6 @@ common_derives! {
     #[template(path = "chat.system.md.jinja")]
     pub struct ChatSystem {
         pub language: Option<String>,
-        pub current_date: Option<String>,
         pub context: Option<ChatContext>,
     }
 }
@@ -30,7 +31,6 @@ mod tests {
         test_chat_system_with_context, 
         ChatSystem {
             language: None,
-            current_date: None,
             context: Some(ChatContext {
                 title: Some("Weekly Standup".to_string()),
                 date: Some("2025-01-15".to_string()),
@@ -53,6 +53,19 @@ mod tests {
                     ],
                     started_at: Some(1715702400),
                     ended_at: Some(1715705400),
+                }),
+                participants: vec![
+                    Participant {
+                        name: "Alice".to_string(),
+                        job_title: Some("PM".to_string()),
+                    },
+                    Participant {
+                        name: "Bob".to_string(),
+                        job_title: None,
+                    },
+                ],
+                event: Some(Event {
+                    name: "Weekly Team Sync".to_string(),
                 }),
             }),
         }, 
@@ -79,6 +92,14 @@ mod tests {
     Title: Weekly Standup
 
     Date: 2025-01-15
+
+    Event: Weekly Team Sync
+
+    Participants:
+
+    - Alice (PM)
+
+    - Bob
 
     Enhanced Meeting Summary:
     Meeting summary here

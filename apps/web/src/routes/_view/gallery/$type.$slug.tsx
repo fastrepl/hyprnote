@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_view/gallery/$type/$slug")({
 
     return {
       meta: [
-        { title: `${item.title} - ${typeLabel} - Hyprnote` },
+        { title: `${item.title} - ${typeLabel} - Char` },
         { name: "description", content: item.description },
         {
           property: "og:title",

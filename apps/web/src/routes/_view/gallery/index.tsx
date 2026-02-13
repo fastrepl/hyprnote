@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_view/gallery/")({
   },
   head: () => ({
     meta: [
-      { title: "Templates & Shortcuts Gallery - Hyprnote" },
+      { title: "Templates & Shortcuts Gallery - Char" },
       {
         name: "description",
         content:
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/_view/gallery/")({
       },
       {
         property: "og:title",
-        content: "Templates & Shortcuts Gallery - Hyprnote",
+        content: "Templates & Shortcuts Gallery - Char",
       },
       {
         property: "og:description",

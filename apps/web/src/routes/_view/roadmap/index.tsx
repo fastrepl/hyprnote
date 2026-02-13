@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_view/roadmap/")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Roadmap - Hyprnote" },
+      { title: "Roadmap - Char" },
       {
         name: "description",
         content:

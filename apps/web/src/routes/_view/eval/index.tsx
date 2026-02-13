@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_view/eval/")({
   loader: () => EVAL_DATA,
   head: () => ({
     meta: [
-      { title: "LLM Model Evaluation for Meeting Notes - Hyprnote" },
+      { title: "LLM Model Evaluation for Meeting Notes - Char" },
       {
         name: "description",
         content:
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_view/eval/")({
       },
       {
         property: "og:title",
-        content: "LLM Model Evaluation for Meeting Notes - Hyprnote",
+        content: "LLM Model Evaluation for Meeting Notes - Char",
       },
       {
         property: "og:description",

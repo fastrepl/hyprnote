@@ -24,13 +24,13 @@ export const Route = createFileRoute("/_view/shortcuts/")({
   },
   head: () => ({
     meta: [
-      { title: "AI Shortcuts - Hyprnote" },
+      { title: "AI Shortcuts - Char" },
       {
         name: "description",
         content:
           "Discover our library of AI shortcuts for meeting conversations. Extract action items, draft follow-up emails, get meeting insights, and more with quick chat commands.",
       },
-      { property: "og:title", content: "AI Shortcuts - Hyprnote" },
+      { property: "og:title", content: "AI Shortcuts - Char" },
       {
         property: "og:description",
         content:

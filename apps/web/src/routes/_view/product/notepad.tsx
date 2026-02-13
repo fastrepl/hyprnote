@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_view/product/notepad")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Notepad - Hyprnote" },
+      { title: "Notepad - Char" },
       {
         name: "description",
         content:

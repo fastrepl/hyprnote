@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_view/file-transcription")({
   },
   head: () => ({
     meta: [
-      { title: "Free Audio Transcription Tool - Hyprnote" },
+      { title: "Free Audio Transcription Tool - Char" },
       {
         name: "description",
         content:
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_view/file-transcription")({
       },
       {
         property: "og:title",
-        content: "Free Audio Transcription Tool - Hyprnote",
+        content: "Free Audio Transcription Tool - Char",
       },
       {
         property: "og:description",

@@ -4,7 +4,7 @@ import { cn } from "@hypr/utils";
 
 import { MockWindow } from "@/components/mock-window";
 
-const TITLE = "Press Kit - Hyprnote";
+const TITLE = "Press Kit - Char";
 const DESCRIPTION =
   "Download Hyprnote press materials, logos, screenshots, and brand assets.";
 

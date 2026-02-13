@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_view/product/ai-assistant")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "AI Chat - Hyprnote" },
+      { title: "AI Chat - Char" },
       {
         name: "description",
         content:

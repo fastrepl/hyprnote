@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_view/product/integrations")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Integrations & Workflows - Hyprnote" },
+      { title: "Integrations & Workflows - Char" },
       {
         name: "description",
         content:

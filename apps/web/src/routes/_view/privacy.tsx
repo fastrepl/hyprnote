@@ -9,13 +9,13 @@ export const Route = createFileRoute("/_view/privacy")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Privacy - Hyprnote" },
+      { title: "Privacy - Char" },
       {
         name: "description",
         content:
           "Your privacy is not just a feature at Hyprnote—it's our foundation. Learn how we protect your meeting data with local-first architecture and zero data collection.",
       },
-      { property: "og:title", content: "Privacy - Hyprnote" },
+      { property: "og:title", content: "Privacy - Char" },
       {
         property: "og:description",
         content:
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_view/privacy")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://hyprnote.com/privacy" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Privacy - Hyprnote" },
+      { name: "twitter:title", content: "Privacy - Char" },
       {
         name: "twitter:description",
         content:

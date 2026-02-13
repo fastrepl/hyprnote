@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_view/jobs/")({
   component: JobsPage,
   head: () => ({
     meta: [
-      { title: "Jobs - Hyprnote" },
+      { title: "Jobs - Char" },
       {
         name: "description",
         content: "Join the Hyprnote team. View open positions and apply.",

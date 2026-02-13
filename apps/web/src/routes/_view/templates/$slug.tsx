@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_view/templates/$slug")({
 
     return {
       meta: [
-        { title: `${template.title} - Hyprnote Templates` },
+        { title: `${template.title} - Char Templates` },
         { name: "description", content: template.description },
         { name: "robots", content: "noindex, nofollow" },
         {

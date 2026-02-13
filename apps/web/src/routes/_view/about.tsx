@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_view/about")({
   },
   head: () => ({
     meta: [
-      { title: "Team - Hyprnote Press Kit" },
+      { title: "Team - Char Press Kit" },
       {
         name: "description",
         content: "Meet the Hyprnote team and download team photos.",

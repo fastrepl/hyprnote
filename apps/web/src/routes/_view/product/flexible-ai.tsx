@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_view/product/flexible-ai")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Flexible AI - Hyprnote" },
+      { title: "Flexible AI - Char" },
       {
         name: "description",
         content:

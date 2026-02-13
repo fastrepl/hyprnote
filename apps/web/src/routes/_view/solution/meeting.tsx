@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_view/solution/meeting")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "All Your Meeting Notes in One Place - Hyprnote" },
+      { title: "All Your Meeting Notes in One Place - Char" },
       {
         name: "description",
         content:
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_view/solution/meeting")({
       { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
-        content: "All Your Meeting Notes in One Place - Hyprnote",
+        content: "All Your Meeting Notes in One Place - Char",
       },
       {
         property: "og:description",

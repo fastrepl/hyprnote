@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_view/solution/customer-success")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "AI Meeting Notes for Customer Success - Hyprnote" },
+      { title: "AI Meeting Notes for Customer Success - Char" },
       {
         name: "description",
         content:
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_view/solution/customer-success")({
       { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
-        content: "AI Meeting Notes for Customer Success - Hyprnote",
+        content: "AI Meeting Notes for Customer Success - Char",
       },
       {
         property: "og:description",

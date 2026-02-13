@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_view/brand")({
   },
   head: () => ({
     meta: [
-      { title: "Brand - Hyprnote Press Kit" },
+      { title: "Brand - Char Press Kit" },
       {
         name: "description",
         content:

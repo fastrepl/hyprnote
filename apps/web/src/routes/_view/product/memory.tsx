@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_view/product/memory")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Memory - Hyprnote" },
+      { title: "Memory - Char" },
       {
         name: "description",
         content:

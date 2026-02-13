@@ -51,12 +51,12 @@ export const Route = createFileRoute("/_view/blog/$slug")({
 
     return {
       meta: [
-        { title: `${article.title} - Hyprnote Blog` },
+        { title: `${article.title} - Char Blog` },
         { name: "description", content: article.meta_description },
         { tag: "link", attrs: { rel: "canonical", href: url } },
         {
           property: "og:title",
-          content: `${article.title} - Hyprnote Blog`,
+          content: `${article.title} - Char Blog`,
         },
         {
           property: "og:description",
@@ -68,7 +68,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
         { name: "twitter:card", content: "summary_large_image" },
         {
           name: "twitter:title",
-          content: `${article.title} - Hyprnote Blog`,
+          content: `${article.title} - Char Blog`,
         },
         {
           name: "twitter:description",

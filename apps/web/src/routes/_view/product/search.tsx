@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_view/product/search")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Search - Hyprnote" },
+      { title: "Search - Char" },
       {
         name: "description",
         content:

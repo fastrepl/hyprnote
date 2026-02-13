@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_view/product/api")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "API - Hyprnote" },
+      { title: "API - Char" },
       {
         name: "description",
         content: "Hyprnote API for developers. Coming soon.",

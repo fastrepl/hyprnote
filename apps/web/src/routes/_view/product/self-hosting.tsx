@@ -12,14 +12,14 @@ export const Route = createFileRoute("/_view/product/self-hosting")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Self-Hosting - Hyprnote" },
+      { title: "Self-Hosting - Char" },
       {
         name: "description",
         content:
           "Deploy Hyprnote on your own infrastructure. Complete control over your meeting data with on-premises deployment, air-gapped environments, and full data sovereignty.",
       },
       { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: "Self-Hosting - Hyprnote" },
+      { property: "og:title", content: "Self-Hosting - Char" },
       {
         property: "og:description",
         content:

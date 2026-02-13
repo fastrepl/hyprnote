@@ -15,14 +15,14 @@ export const Route = createFileRoute("/_view/product/ai-notetaking")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "AI Notetaking - Hyprnote" },
+      { title: "AI Notetaking - Char" },
       {
         name: "description",
         content:
           "Complete AI-powered notetaking solution. Record meetings, transcribe audio, and get intelligent summaries with customizable templates. Works with any video conferencing tool.",
       },
       { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: "AI Notetaking - Hyprnote" },
+      { property: "og:title", content: "AI Notetaking - Char" },
       {
         property: "og:description",
         content:

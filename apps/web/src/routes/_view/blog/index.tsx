@@ -28,12 +28,12 @@ export const Route = createFileRoute("/_view/blog/")({
   },
   head: () => ({
     meta: [
-      { title: "Blog - Hyprnote Blog" },
+      { title: "Blog - Char Blog" },
       {
         name: "description",
         content: "Insights, updates, and stories from the Hyprnote team",
       },
-      { property: "og:title", content: "Blog - Hyprnote Blog" },
+      { property: "og:title", content: "Blog - Char Blog" },
       {
         property: "og:description",
         content: "Insights, updates, and stories from the Hyprnote team",

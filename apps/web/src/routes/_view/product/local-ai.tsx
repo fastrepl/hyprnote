@@ -11,14 +11,14 @@ export const Route = createFileRoute("/_view/product/local-ai")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Local AI - Hyprnote" },
+      { title: "Local AI - Char" },
       {
         name: "description",
         content:
           "Powerful AI processing that runs entirely on your device. Private, fast, and offline-capable meeting transcription and summarization with local Whisper and LLM models.",
       },
       { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: "Local AI - Hyprnote" },
+      { property: "og:title", content: "Local AI - Char" },
       {
         property: "og:description",
         content:

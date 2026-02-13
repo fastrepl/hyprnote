@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_view/templates/")({
   },
   head: () => ({
     meta: [
-      { title: "Meeting Templates - Hyprnote Templates" },
+      { title: "Meeting Templates - Char Templates" },
       {
         name: "description",
         content:
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_view/templates/")({
       },
       {
         property: "og:title",
-        content: "Meeting Templates - Hyprnote Templates",
+        content: "Meeting Templates - Char Templates",
       },
       {
         property: "og:description",

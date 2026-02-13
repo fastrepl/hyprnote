@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
     const currentVersion = semver.parse(changelog.version);
     const isNightly = currentVersion && currentVersion.prerelease.length > 0;
 
-    const title = `Version ${changelog.version} - Hyprnote Changelog`;
+    const title = `Version ${changelog.version} - Char Changelog`;
     const description = `Explore what's new in Hyprnote version ${changelog.version}${isNightly ? " (Nightly)" : ""}.`;
     const url = `https://hyprnote.com/changelog/${changelog.slug}`;
     const ogImageUrl = `https://hyprnote.com/og?type=changelog&version=${encodeURIComponent(changelog.version)}&v=1`;

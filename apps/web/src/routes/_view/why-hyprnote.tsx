@@ -10,13 +10,13 @@ export const Route = createFileRoute("/_view/why-hyprnote")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Why Hyprnote - AI Meeting Notes You Actually Own" },
+      { title: "Why Char - AI Meeting Notes You Actually Own" },
       {
         name: "description",
         content:
           "Your meeting notes should be files on your computer, not rows in someone else's database. Plain Markdown files, AI providers you can switch, no bots, no lock-in.",
       },
-      { property: "og:title", content: "Why Hyprnote" },
+      { property: "og:title", content: "Why Char" },
       {
         property: "og:description",
         content:
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_view/why-hyprnote")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://hyprnote.com/why-hyprnote" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Why Hyprnote" },
+      { name: "twitter:title", content: "Why Char" },
       {
         name: "twitter:description",
         content:

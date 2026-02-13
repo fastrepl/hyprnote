@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_view/product/mini-apps")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Mini Apps - Hyprnote" },
+      { title: "Mini Apps - Char" },
       {
         name: "description",
         content:

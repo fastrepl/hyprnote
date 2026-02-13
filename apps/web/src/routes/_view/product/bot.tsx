@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_view/product/bot")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Bot - Hyprnote" },
+      { title: "Bot - Char" },
       {
         name: "description",
         content: "Hyprnote Bot for meeting platforms. Coming soon.",

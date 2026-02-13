@@ -21,13 +21,13 @@ export const Route = createFileRoute("/_view/opensource")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Open Source - Hyprnote" },
+      { title: "Open Source - Char" },
       {
         name: "description",
         content:
           "Hyprnote is fully open source under GPL-3.0. Inspect every line of code, contribute to development, and build on a transparent foundation. No black boxes, no hidden data collection.",
       },
-      { property: "og:title", content: "Open Source - Hyprnote" },
+      { property: "og:title", content: "Open Source - Char" },
       {
         property: "og:description",
         content:
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_view/opensource")({
         content: "https://hyprnote.com/opensource",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Open Source - Hyprnote" },
+      { name: "twitter:title", content: "Open Source - Char" },
       {
         name: "twitter:description",
         content:

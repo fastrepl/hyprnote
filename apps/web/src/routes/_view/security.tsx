@@ -9,13 +9,13 @@ export const Route = createFileRoute("/_view/security")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Security - Hyprnote" },
+      { title: "Security - Char" },
       {
         name: "description",
         content:
           "Hyprnote is built with security at its core. Local-first architecture, end-to-end encryption, and open source transparency ensure your meeting data stays protected.",
       },
-      { property: "og:title", content: "Security - Hyprnote" },
+      { property: "og:title", content: "Security - Char" },
       {
         property: "og:description",
         content:
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_view/security")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://hyprnote.com/security" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Security - Hyprnote" },
+      { name: "twitter:title", content: "Security - Char" },
       {
         name: "twitter:description",
         content:

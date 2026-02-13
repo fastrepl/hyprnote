@@ -40,14 +40,14 @@ export const Route = createFileRoute("/_view/jobs/$slug")({
 
     return {
       meta: [
-        { title: `${job.title} - Hyprnote` },
+        { title: `${job.title} - Char` },
         { name: "description", content: job.description },
-        { property: "og:title", content: `${job.title} - Hyprnote` },
+        { property: "og:title", content: `${job.title} - Char` },
         { property: "og:description", content: job.description },
         { property: "og:image", content: ogImageUrl },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: `${job.title} - Hyprnote` },
+        { name: "twitter:title", content: `${job.title} - Char` },
         { name: "twitter:description", content: job.description },
         { name: "twitter:image", content: ogImageUrl },
       ],

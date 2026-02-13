@@ -12,14 +12,9 @@ import type {
   SubscriptionItem,
 } from "@hypr/plugin-mcp";
 
+import type { McpTextContentOutput } from "./mcp-utils";
+import { parseMcpToolOutput } from "./mcp-utils";
 import { isRecord } from "./utils";
-
-export type McpTextContentOutput = {
-  content: Array<{
-    type: string;
-    text?: string;
-  }>;
-};
 
 export type SupportMcpTools = {
   create_issue: { input: CreateIssueParams; output: McpTextContentOutput };
@@ -34,56 +29,6 @@ export type SupportMcpTools = {
     output: McpTextContentOutput;
   };
 };
-
-export function extractMcpOutputText(output: unknown): string | null {
-  if (!isRecord(output) || !Array.isArray(output.content)) {
-    return null;
-  }
-
-  const text = output.content
-    .filter(
-      (item): item is { type: string; text: string } =>
-        isRecord(item) && item.type === "text" && typeof item.text === "string",
-    )
-    .map((item) => item.text)
-    .join("\n");
-
-  return text || null;
-}
-
-function readJsonText(output: unknown): unknown {
-  const text = extractMcpOutputText(output);
-  if (!text) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
-}
-
-function isSearchIssueItem(value: unknown): value is SearchIssueItem {
-  return (
-    isRecord(value) &&
-    typeof value.number === "number" &&
-    typeof value.title === "string" &&
-    typeof value.state === "string" &&
-    typeof value.url === "string" &&
-    typeof value.created_at === "string" &&
-    Array.isArray(value.labels) &&
-    value.labels.every((label) => typeof label === "string")
-  );
-}
-
-function parseToolOutput<T>(
-  output: unknown,
-  guard: (value: unknown) => value is T,
-): T | null {
-  const value = readJsonText(output);
-  return guard(value) ? value : null;
-}
 
 function isCreateIssueOutput(value: unknown): value is CreateIssueOutput {
   return (
@@ -120,6 +65,19 @@ function isSubscriptionItem(value: unknown): value is SubscriptionItem {
   );
 }
 
+function isSearchIssueItem(value: unknown): value is SearchIssueItem {
+  return (
+    isRecord(value) &&
+    typeof value.number === "number" &&
+    typeof value.title === "string" &&
+    typeof value.state === "string" &&
+    typeof value.url === "string" &&
+    typeof value.created_at === "string" &&
+    Array.isArray(value.labels) &&
+    value.labels.every((label) => typeof label === "string")
+  );
+}
+
 function isSearchIssuesOutput(value: unknown): value is SearchIssuesOutput {
   return (
     isRecord(value) &&
@@ -142,29 +100,29 @@ function isBillingPortalOutput(
 export function parseCreateIssueOutput(
   output: unknown,
 ): CreateIssueOutput | null {
-  return parseToolOutput(output, isCreateIssueOutput);
+  return parseMcpToolOutput(output, isCreateIssueOutput);
 }
 
 export function parseAddCommentOutput(
   output: unknown,
 ): AddCommentOutput | null {
-  return parseToolOutput(output, isAddCommentOutput);
+  return parseMcpToolOutput(output, isAddCommentOutput);
 }
 
 export function parseSearchIssuesOutput(
   output: unknown,
 ): SearchIssuesOutput | null {
-  return parseToolOutput(output, isSearchIssuesOutput);
+  return parseMcpToolOutput(output, isSearchIssuesOutput);
 }
 
 export function parseListSubscriptionsOutput(
   output: unknown,
 ): SubscriptionItem[] | null {
-  return parseToolOutput(output, isSubscriptionList);
+  return parseMcpToolOutput(output, isSubscriptionList);
 }
 
 export function parseCreateBillingPortalSessionOutput(
   output: unknown,
 ): CreateBillingPortalSessionOutput | null {
-  return parseToolOutput(output, isBillingPortalOutput);
+  return parseMcpToolOutput(output, isBillingPortalOutput);
 }

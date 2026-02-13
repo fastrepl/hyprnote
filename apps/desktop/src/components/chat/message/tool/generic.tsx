@@ -1,6 +1,6 @@
 import { WrenchIcon } from "lucide-react";
 
-import { extractMcpOutputText } from "../../../../chat/support-mcp-tools";
+import { extractMcpOutputText } from "../../../../chat/mcp-utils";
 import { Disclosure } from "../shared";
 import {
   ToolCard,

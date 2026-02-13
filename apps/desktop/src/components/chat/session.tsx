@@ -457,8 +457,20 @@ function useTransport(
     typeof systemPromptOverride === "string" || systemPrompt !== undefined;
 
   const tools = useMemo(() => {
+    const localTools = registry.getTools("chat-general");
+
+    if (extraTools && import.meta.env.DEV) {
+      for (const key of Object.keys(extraTools)) {
+        if (key in localTools) {
+          console.warn(
+            `[ChatSession] Tool name collision: "${key}" exists in both local registry and extraTools. extraTools will take precedence.`,
+          );
+        }
+      }
+    }
+
     return {
-      ...registry.getTools("chat-general"),
+      ...localTools,
       ...extraTools,
     };
   }, [registry, extraTools]);

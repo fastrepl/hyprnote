@@ -439,10 +439,10 @@
           "markdownDescription": "Denies the reveal_session_in_finder command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-get-device-info`\n- `allow-get-support-device-context`\n- `allow-opinionated-md-to-html`\n- `allow-parse-meeting-link`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-get-device-info`\n- `allow-opinionated-md-to-html`\n- `allow-parse-meeting-link`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-get-device-info`\n- `allow-get-support-device-context`\n- `allow-opinionated-md-to-html`\n- `allow-parse-meeting-link`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-get-device-info`\n- `allow-opinionated-md-to-html`\n- `allow-parse-meeting-link`"
         }
       ]
     }

@@ -8,12 +8,8 @@ import type { ContextEntity } from "../../../../chat/context-item";
 import { composeContextEntities } from "../../../../chat/context/composer";
 import type { HyprUIMessage } from "../../../../chat/types";
 import { ElicitationProvider } from "../../../../contexts/elicitation";
-import {
-  useFeedbackLanguageModel,
-  useLanguageModel,
-} from "../../../../hooks/useLLMConnection";
+import { useFeedbackLanguageModel } from "../../../../hooks/useLLMConnection";
 import { useSupportMCP } from "../../../../hooks/useSupportMCPTools";
-import { useChatContext } from "../../../../store/zustand/chat-context";
 import type { Tab } from "../../../../store/zustand/tabs";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { ChatBody } from "../../../chat/body";
@@ -28,70 +24,24 @@ import { StandardTabWrapper } from "../index";
 export function TabContentChat({
   tab,
 }: {
-  tab: Extract<Tab, { type: "chat" }>;
+  tab: Extract<Tab, { type: "chat_support" }>;
 }) {
-  const isSupport = tab.state.chatType === "support";
-
   return (
     <StandardTabWrapper>
-      {isSupport ? (
-        <SupportChatTabView tab={tab} />
-      ) : (
-        <GeneralChatTabView tab={tab} />
-      )}
+      <SupportChatTabView tab={tab} />
     </StandardTabWrapper>
   );
 }
 
-function GeneralChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
+function SupportChatTabView({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "chat_support" }>;
+}) {
   const groupId = tab.state.groupId ?? undefined;
-  const updateChatTabState = useTabs((state) => state.updateChatTabState);
-  const stableSessionId = useStableSessionId(groupId);
-  const model = useLanguageModel();
-
-  const persistedCtx = useChatContext((s) =>
-    groupId ? s.contexts[groupId] : undefined,
+  const updateChatSupportTabState = useTabs(
+    (state) => state.updateChatSupportTabState,
   );
-  const attachedSessionId = persistedCtx?.attachedSessionId ?? undefined;
-
-  const onGroupCreated = useCallback(
-    (newGroupId: string) =>
-      updateChatTabState(tab, {
-        ...tab.state,
-        groupId: newGroupId,
-        initialMessage: null,
-      }),
-    [updateChatTabState, tab],
-  );
-
-  const { handleSendMessage } = useChatActions({
-    groupId,
-    onGroupCreated,
-  });
-
-  return (
-    <div className="flex flex-col h-full">
-      <ChatSession
-        key={stableSessionId}
-        sessionId={stableSessionId}
-        chatGroupId={groupId}
-        attachedSessionId={attachedSessionId}
-      >
-        {(sessionProps) => (
-          <ChatContent
-            {...sessionProps}
-            model={model}
-            handleSendMessage={handleSendMessage}
-          />
-        )}
-      </ChatSession>
-    </div>
-  );
-}
-
-function SupportChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
-  const groupId = tab.state.groupId ?? undefined;
-  const updateChatTabState = useTabs((state) => state.updateChatTabState);
   const { session } = useAuth();
 
   const stableSessionId = useStableSessionId(groupId);
@@ -109,12 +59,12 @@ function SupportChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
 
   const onGroupCreated = useCallback(
     (newGroupId: string) =>
-      updateChatTabState(tab, {
+      updateChatSupportTabState(tab, {
         ...tab.state,
         groupId: newGroupId,
         initialMessage: null,
       }),
-    [updateChatTabState, tab],
+    [updateChatSupportTabState, tab],
   );
 
   const { handleSendMessage } = useChatActions({
@@ -151,7 +101,7 @@ function SupportChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
             sessionProps={sessionProps}
             feedbackModel={feedbackModel}
             handleSendMessage={handleSendMessage}
-            updateChatTabState={updateChatTabState}
+            updateChatSupportTabState={updateChatSupportTabState}
             supportContextEntities={supportContextEntities}
             pendingElicitation={pendingElicitation}
             respondToElicitation={respondToElicitation}
@@ -167,12 +117,12 @@ function SupportChatTabInner({
   sessionProps,
   feedbackModel,
   handleSendMessage,
-  updateChatTabState,
+  updateChatSupportTabState,
   supportContextEntities,
   pendingElicitation,
   respondToElicitation,
 }: {
-  tab: Extract<Tab, { type: "chat" }>;
+  tab: Extract<Tab, { type: "chat_support" }>;
   sessionProps: {
     sessionId: string;
     messages: HyprUIMessage[];
@@ -191,9 +141,9 @@ function SupportChatTabInner({
     parts: HyprUIMessage["parts"],
     sendMessage: (message: HyprUIMessage) => void,
   ) => void;
-  updateChatTabState: (
-    tab: Extract<Tab, { type: "chat" }>,
-    state: Extract<Tab, { type: "chat" }>["state"],
+  updateChatSupportTabState: (
+    tab: Extract<Tab, { type: "chat_support" }>,
+    state: Extract<Tab, { type: "chat_support" }>["state"],
   ) => void;
   supportContextEntities: ContextEntity[];
   pendingElicitation?: { message: string } | null;
@@ -230,7 +180,7 @@ function SupportChatTabInner({
       [{ type: "text", text: initialMessage }],
       sendMessage,
     );
-    updateChatTabState(tab, {
+    updateChatSupportTabState(tab, {
       ...tab.state,
       initialMessage: null,
     });
@@ -241,7 +191,7 @@ function SupportChatTabInner({
     isSystemPromptReady,
     handleSendMessage,
     sendMessage,
-    updateChatTabState,
+    updateChatSupportTabState,
   ]);
 
   const mergedContextEntities = composeContextEntities([
@@ -263,6 +213,7 @@ function SupportChatTabInner({
       contextEntities={mergedContextEntities}
       onRemoveContextEntity={onRemoveContextEntity}
       isSystemPromptReady={isSystemPromptReady}
+      mcpIndicator={{ type: "support" }}
     >
       <ElicitationProvider
         pending={pendingElicitation ?? null}

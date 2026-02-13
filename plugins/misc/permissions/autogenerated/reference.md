@@ -7,7 +7,6 @@ Default permissions for the plugin
 - `allow-get-git-hash`
 - `allow-get-fingerprint`
 - `allow-get-device-info`
-- `allow-get-support-device-context`
 - `allow-opinionated-md-to-html`
 - `allow-parse-meeting-link`
 

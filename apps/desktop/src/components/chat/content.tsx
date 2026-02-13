@@ -5,7 +5,7 @@ import type { HyprUIMessage } from "../../chat/types";
 import type { useLanguageModel } from "../../hooks/useLLMConnection";
 import { ChatBody } from "./body";
 import { ContextBar } from "./context-bar";
-import { ChatMessageInput } from "./input";
+import { ChatMessageInput, type McpIndicator } from "./input";
 
 export function ChatContent({
   sessionId,
@@ -20,6 +20,7 @@ export function ChatContent({
   contextEntities,
   onRemoveContextEntity,
   isSystemPromptReady,
+  mcpIndicator,
   children,
 }: {
   sessionId: string;
@@ -38,6 +39,7 @@ export function ChatContent({
   contextEntities: ContextEntity[];
   onRemoveContextEntity?: (key: string) => void;
   isSystemPromptReady: boolean;
+  mcpIndicator?: McpIndicator;
   children?: React.ReactNode;
 }) {
   const disabled =
@@ -68,6 +70,7 @@ export function ChatContent({
         }
         isStreaming={status === "streaming" || status === "submitted"}
         onStop={stop}
+        mcpIndicator={mcpIndicator}
       />
     </>
   );

@@ -27,7 +27,6 @@ import {
   SaveIcon,
   ScissorsIcon,
   SearchIcon,
-  SendHorizontalIcon,
   SquareArrowOutUpRightIcon,
   Trash2Icon,
   XIcon,
@@ -40,6 +39,8 @@ import React, {
   useRef,
   useState,
 } from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import BlogEditor from "@hypr/tiptap/blog-editor";
 import "@hypr/tiptap/styles.css";
@@ -59,6 +60,7 @@ import {
   useScrollFade,
 } from "@hypr/ui/components/ui/scroll-fade";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { sonnerToast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/utils";
 
 import { MediaSelectorModal } from "@/components/admin/media-selector-modal";
@@ -84,8 +86,6 @@ interface DraftArticle {
   meta_title?: string;
   author?: string;
   date?: string;
-  published?: boolean;
-  ready_for_review?: boolean;
 }
 
 interface CollectionInfo {
@@ -132,10 +132,8 @@ interface FileContent {
   author?: string;
   date?: string;
   coverImage?: string;
-  published?: boolean;
   featured?: boolean;
   category?: string;
-  ready_for_review?: boolean;
 }
 
 interface ArticleMetadata {
@@ -145,10 +143,8 @@ interface ArticleMetadata {
   author: string;
   date: string;
   coverImage: string;
-  published: boolean;
   featured: boolean;
   category: string;
-  ready_for_review?: boolean;
 }
 
 interface EditorData {
@@ -177,7 +173,6 @@ function getFileContent(path: string): FileContent | undefined {
     author: a.author,
     date: a.date,
     coverImage: a.coverImage,
-    published: a.published,
     featured: a.featured,
     category: a.category,
   };
@@ -276,6 +271,18 @@ function CollectionsPage() {
   const [deleteConfirmation, setDeleteConfirmation] =
     useState<DeleteConfirmation | null>(null);
 
+  const draftSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleDraftSync = useCallback(() => {
+    if (draftSyncTimerRef.current) {
+      clearTimeout(draftSyncTimerRef.current);
+    }
+    draftSyncTimerRef.current = setTimeout(() => {
+      draftSyncTimerRef.current = null;
+      queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
+    }, 5000);
+  }, [queryClient]);
+
   const createMutation = useMutation({
     mutationFn: async (params: {
       folder: string;
@@ -309,8 +316,10 @@ function CollectionsPage() {
             },
           ],
         );
+        scheduleDraftSync();
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
       }
-      queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
     },
   });
 
@@ -1239,6 +1248,13 @@ function ContentPanel({
       }
       return response.json();
     },
+    onSuccess: (data, variables) => {
+      if (data.branchName) {
+        queryClient.invalidateQueries({
+          queryKey: ["pendingPR", variables.path],
+        });
+      }
+    },
   });
 
   const handleSave = useCallback(
@@ -1254,12 +1270,6 @@ function ContentPanel({
       }
     },
     [currentTab, editorData, saveContent],
-  );
-
-  const currentFileContent = useMemo(
-    () =>
-      currentTab?.type === "file" ? getFileContent(currentTab.path) : undefined,
-    [currentTab?.type, currentTab?.path],
   );
 
   const { data: pendingPRData } = useQuery({
@@ -1286,83 +1296,105 @@ function ContentPanel({
 
   const queryClient = useQueryClient();
 
-  const { mutate: submitForReview, isPending: isSubmittingForReview } =
-    useMutation({
-      mutationFn: async (params: {
-        path: string;
-        branch: string;
-        prNumber: number;
-        prUrl?: string;
-      }) => {
-        const response = await fetch("/api/admin/content/submit-for-review", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(params),
-        });
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "Failed to submit for review");
-        }
-        const data = await response.json();
-        return { ...data, prUrl: params.prUrl };
-      },
-      onSuccess: (data) => {
-        queryClient.invalidateQueries({
-          queryKey: ["branchFile", currentTab?.path],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["pendingPRFile", currentTab?.path],
-        });
-        if (data.prUrl) {
-          window.open(data.prUrl, "_blank");
-        }
-      },
-    });
-
-  const handleSubmitForReview = useCallback(async () => {
-    if (!currentTab || !editorData) return;
-
-    const saveFirst = async () => {
-      const response = await fetch("/api/admin/content/save", {
+  const { mutate: publish, isPending: isPublishing } = useMutation({
+    mutationFn: async (params: {
+      path: string;
+      content: string;
+      metadata: ArticleMetadata;
+      branch?: string;
+    }) => {
+      const saveResponse = await fetch("/api/admin/content/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          path: currentTab.path,
-          content: editorData.content,
-          metadata: editorData.metadata,
-          branch: currentTab.branch,
+          path: params.path,
+          content: params.content,
+          metadata: params.metadata,
+          branch: params.branch,
         }),
       });
-      if (!response.ok) {
-        const error = await response.json();
+      if (!saveResponse.ok) {
+        const error = await saveResponse.json();
         throw new Error(error.error || "Failed to save");
       }
-      return response.json();
-    };
+      const saveResult = await saveResponse.json();
 
-    const saveResult = await saveFirst();
+      if (saveResult.prUrl) {
+        return { prUrl: saveResult.prUrl as string };
+      }
 
-    await queryClient.invalidateQueries({
-      queryKey: ["pendingPR", currentTab.path],
-    });
+      let branchName = saveResult.branchName || params.branch;
 
-    const prData = saveResult.prNumber
-      ? {
-          branchName: saveResult.branchName,
-          prNumber: saveResult.prNumber,
-          prUrl: saveResult.prUrl,
+      if (!branchName) {
+        const prParams = new URLSearchParams({ path: params.path });
+        const prResponse = await fetch(
+          `/api/admin/content/pending-pr?${prParams}`,
+        );
+        if (prResponse.ok) {
+          const prData = await prResponse.json();
+          if (prData.hasPendingPR && prData.prUrl) {
+            return { prUrl: prData.prUrl as string };
+          }
+          if (prData.branchName) {
+            branchName = prData.branchName;
+          }
         }
-      : pendingPRData;
+      }
 
-    if (prData?.branchName && prData?.prNumber) {
-      submitForReview({
-        path: `apps/web/content/${currentTab.path}`,
-        branch: prData.branchName,
-        prNumber: prData.prNumber,
-        prUrl: prData.prUrl,
+      if (!branchName) {
+        throw new Error("No branch available for publishing");
+      }
+
+      const publishResponse = await fetch("/api/admin/content/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          path: params.path,
+          branch: branchName,
+          metadata: params.metadata,
+        }),
       });
-    }
-  }, [currentTab, editorData, pendingPRData, submitForReview, queryClient]);
+      if (!publishResponse.ok) {
+        const error = await publishResponse.json();
+        throw new Error(error.error || "Failed to publish");
+      }
+      const publishResult = await publishResponse.json();
+      return { prUrl: publishResult.prUrl as string | undefined };
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["pendingPR", variables.path],
+      });
+
+      if (data.prUrl) {
+        const opened = window.open(data.prUrl, "_blank");
+        if (!opened) {
+          sonnerToast.success("PR created", {
+            description: "Pop-up was blocked by your browser.",
+            action: {
+              label: "Open PR",
+              onClick: () => window.open(data.prUrl, "_blank"),
+            },
+          });
+        }
+      }
+    },
+    onError: (error) => {
+      sonnerToast.error("Publish failed", {
+        description: error.message,
+      });
+    },
+  });
+
+  const handlePublish = useCallback(() => {
+    if (!currentTab || !editorData) return;
+    publish({
+      path: currentTab.path,
+      content: editorData.content,
+      metadata: editorData.metadata,
+      branch: currentTab.branch,
+    });
+  }, [currentTab, editorData, publish]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -1381,9 +1413,8 @@ function ContentPanel({
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
             onSave={handleSave}
             isSaving={isSaving}
-            isPublished={currentFileContent?.published}
-            onSubmitForReview={handleSubmitForReview}
-            isSubmittingForReview={isSubmittingForReview}
+            onPublish={handlePublish}
+            isPublishing={isPublishing}
             hasPendingPR={pendingPRData?.hasPendingPR}
             onRenameFile={(newSlug) => {
               const pathParts = currentTab.path.split("/");
@@ -1434,10 +1465,9 @@ function EditorHeader({
   onTogglePreview,
   onSave,
   isSaving,
-  isPublished,
-  onSubmitForReview,
-  isSubmittingForReview,
-  hasPendingPR: _hasPendingPR,
+  onPublish,
+  isPublishing,
+  hasPendingPR,
   onRenameFile,
   hasUnsavedChanges,
   autoSaveCountdown,
@@ -1454,9 +1484,8 @@ function EditorHeader({
   onTogglePreview: () => void;
   onSave: () => void;
   isSaving: boolean;
-  isPublished?: boolean;
-  onSubmitForReview?: () => void;
-  isSubmittingForReview?: boolean;
+  onPublish?: () => void;
+  isPublishing?: boolean;
   hasPendingPR?: boolean;
   onRenameFile?: (newSlug: string) => void;
   hasUnsavedChanges?: boolean;
@@ -1528,22 +1557,11 @@ function EditorHeader({
                     className="text-neutral-700 font-medium bg-transparent outline-none"
                   />
                 ) : (
-                  <span className="flex items-center gap-2">
-                    <span
-                      onClick={handleSlugClick}
-                      className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
-                    >
-                      {crumb.replace(/\.mdx$/, "")}
-                    </span>
-                    {isPublished ? (
-                      <span className="px-1.5 py-0.5 text-[10px] font-medium font-mono rounded bg-green-100 text-green-700">
-                        Published
-                      </span>
-                    ) : (
-                      <span className="px-1.5 py-0.5 text-[10px] font-medium font-mono rounded bg-neutral-100 text-neutral-500">
-                        Draft
-                      </span>
-                    )}
+                  <span
+                    onClick={handleSlugClick}
+                    className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
+                  >
+                    {crumb.replace(/\.mdx$/, "")}
                   </span>
                 )
               ) : (
@@ -1609,23 +1627,25 @@ function EditorHeader({
                   </span>
                 )}
             </button>
-            {onSubmitForReview && (
+            {onPublish && (
               <button
-                onClick={onSubmitForReview}
-                disabled={isSubmittingForReview}
+                onClick={onPublish}
+                disabled={isPublishing}
                 className={cn([
                   "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
-                  "text-white bg-blue-600 hover:bg-blue-700",
+                  hasPendingPR
+                    ? "text-white bg-amber-600 hover:bg-amber-700"
+                    : "text-white bg-blue-600 hover:bg-blue-700",
                   "disabled:cursor-not-allowed disabled:opacity-50",
                 ])}
-                title="Submit for Review"
+                title={hasPendingPR ? "View existing PR" : "Create PR"}
               >
-                {isSubmittingForReview ? (
+                {isPublishing ? (
                   <Spinner size={16} color="white" />
                 ) : (
-                  <SendHorizontalIcon className="size-4" />
+                  <SquareArrowOutUpRightIcon className="size-4" />
                 )}
-                Submit for Review
+                {hasPendingPR ? "View PR" : "Publish"}
               </button>
             )}
           </div>
@@ -2066,8 +2086,6 @@ interface MetadataHandlers {
   onDateChange: (value: string) => void;
   coverImage: string;
   onCoverImageChange: (value: string) => void;
-  published: boolean;
-  onPublishedChange: (value: boolean) => void;
   featured: boolean;
   onFeaturedChange: (value: boolean) => void;
   category: string;
@@ -2335,98 +2353,109 @@ function MetadataSidePanel({
   const [isCoverImageSelectorOpen, setIsCoverImageSelectorOpen] =
     useState(false);
 
+  const [isTitleExpanded, setIsTitleExpanded] = useState(false);
+
   return (
     <div className="text-sm" key={filePath}>
-      <div className="p-4 flex flex-col gap-4">
-        <div>
-          <label className="block text-neutral-500 mb-1">
-            <span className="text-red-400">*</span> Title
-          </label>
-          <input
-            type="text"
-            value={handlers.metaTitle}
-            onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
-            placeholder="SEO meta title"
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+      <div className="flex border-b border-neutral-200">
+        <button
+          onClick={() => setIsTitleExpanded(!isTitleExpanded)}
+          className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
+        >
+          <span className="absolute left-1 text-red-400">*</span>
+          Title
+          <ChevronRightIcon
+            className={cn([
+              "size-3 transition-transform",
+              isTitleExpanded && "rotate-90",
+            ])}
           />
-        </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">Display Title</label>
+        </button>
+        <input
+          type="text"
+          value={handlers.metaTitle}
+          onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
+          placeholder="SEO meta title"
+          className="flex-1 min-w-0 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
+        />
+      </div>
+      {isTitleExpanded && (
+        <div className="flex border-b border-neutral-200 bg-neutral-50">
+          <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
+            <span className="text-neutral-300">└</span>
+            Display
+          </span>
           <input
             type="text"
             value={handlers.displayTitle}
             onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
             placeholder={handlers.metaTitle || "Display title (optional)"}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+            className="flex-1 min-w-0 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
           />
         </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">
-            <span className="text-red-400">*</span> Author
-          </label>
+      )}
+      <MetadataRow label="Author" required>
+        <div className="flex-1 min-w-0 px-2 py-2">
           <AuthorSelect
             value={handlers.author}
             onChange={handlers.onAuthorChange}
-            withBorder
           />
         </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">
-            <span className="text-red-400">*</span> Date
-          </label>
-          <input
-            type="date"
-            value={handlers.date}
-            onChange={(e) => handlers.onDateChange(e.target.value)}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 focus:border-neutral-400"
-          />
-        </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">
-            <span className="text-red-400">*</span> Description
-          </label>
-          <textarea
-            value={handlers.metaDescription}
-            onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
-            placeholder="Meta description for SEO"
-            rows={3}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 resize-none focus:border-neutral-400"
-          />
-        </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">Category</label>
+      </MetadataRow>
+      <MetadataRow label="Date" required>
+        <input
+          type="date"
+          value={handlers.date}
+          onChange={(e) => handlers.onDateChange(e.target.value)}
+          className="flex-1 min-w-0 -ml-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900"
+        />
+      </MetadataRow>
+      <MetadataRow label="Description" required>
+        <textarea
+          ref={(el) => {
+            if (el) {
+              el.style.height = "auto";
+              el.style.height = `${el.scrollHeight}px`;
+            }
+          }}
+          value={handlers.metaDescription}
+          onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
+          placeholder="Meta description for SEO"
+          rows={1}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = "auto";
+            target.style.height = `${target.scrollHeight}px`;
+          }}
+          className="flex-1 min-w-0 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 resize-none"
+        />
+      </MetadataRow>
+      <MetadataRow label="Category">
+        <div className="flex-1 min-w-0 px-2 py-2">
           <CategorySelect
             value={handlers.category}
             onChange={handlers.onCategoryChange}
-            withBorder
           />
         </div>
-
-        <div>
-          <label className="block text-neutral-500 mb-1">Cover Image</label>
-          <button
-            type="button"
-            onClick={() => setIsCoverImageSelectorOpen(true)}
-            className="cursor-pointer w-full px-2 py-1.5 border border-neutral-200 rounded text-left text-neutral-900 hover:bg-neutral-50 transition-colors flex items-center gap-2"
-          >
-            {handlers.coverImage ? (
-              <span className="truncate flex-1">{handlers.coverImage}</span>
-            ) : (
-              <span className="text-neutral-400 flex-1">
-                Select cover image
-              </span>
-            )}
-            <ImageIcon className="size-4 text-neutral-400 shrink-0" />
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-neutral-500">Is this featured?</span>
+      </MetadataRow>
+      <MetadataRow label="Cover">
+        <button
+          type="button"
+          onClick={() => setIsCoverImageSelectorOpen(true)}
+          className="flex-1 min-w-0 flex items-center gap-2 px-2 py-2 cursor-pointer text-left hover:bg-neutral-50 transition-colors"
+        >
+          {handlers.coverImage ? (
+            <span className="truncate flex-1 text-neutral-900">
+              {handlers.coverImage}
+            </span>
+          ) : (
+            <span className="text-neutral-300 flex-1">Select cover image</span>
+          )}
+          <ImageIcon className="size-4 text-neutral-400 shrink-0" />
+        </button>
+      </MetadataRow>
+      <MetadataRow label="Featured" noBorder>
+        <div className="flex-1 flex items-center px-2 py-2">
           <input
             type="checkbox"
             checked={handlers.featured}
@@ -2434,7 +2463,7 @@ function MetadataSidePanel({
             className="rounded"
           />
         </div>
-      </div>
+      </MetadataRow>
 
       <GitHistory filePath={filePath} />
 
@@ -2460,10 +2489,8 @@ interface BranchFileResponse {
     author?: string;
     date?: string;
     coverImage?: string;
-    published?: boolean;
     featured?: boolean;
     category?: string;
-    ready_for_review?: boolean;
   };
   sha: string;
 }
@@ -2562,10 +2589,8 @@ const FileEditor = React.forwardRef<
         author: branchFileData.frontmatter.author,
         date: branchFileData.frontmatter.date,
         coverImage: branchFileData.frontmatter.coverImage,
-        published: branchFileData.frontmatter.published,
         featured: branchFileData.frontmatter.featured,
         category: branchFileData.frontmatter.category,
-        ready_for_review: branchFileData.frontmatter.ready_for_review,
       };
     }
     if (pendingPRData?.hasPendingPR && pendingPRFileData) {
@@ -2580,10 +2605,8 @@ const FileEditor = React.forwardRef<
         author: pendingPRFileData.frontmatter.author,
         date: pendingPRFileData.frontmatter.date,
         coverImage: pendingPRFileData.frontmatter.coverImage,
-        published: pendingPRFileData.frontmatter.published,
         featured: pendingPRFileData.frontmatter.featured,
         category: pendingPRFileData.frontmatter.category,
-        ready_for_review: pendingPRFileData.frontmatter.ready_for_review,
       };
     }
     return publishedFileContent;
@@ -2607,7 +2630,6 @@ const FileEditor = React.forwardRef<
   const [author, setAuthor] = useState(fileContent?.author || "");
   const [date, setDate] = useState(fileContent?.date || "");
   const [coverImage, setCoverImage] = useState(fileContent?.coverImage || "");
-  const [published, setPublished] = useState(fileContent?.published || false);
   const [featured, setFeatured] = useState(fileContent?.featured || false);
   const [category, setCategory] = useState(fileContent?.category || "");
 
@@ -2625,7 +2647,6 @@ const FileEditor = React.forwardRef<
     author: fileContent?.author || "",
     date: fileContent?.date || "",
     coverImage: fileContent?.coverImage || "",
-    published: fileContent?.published || false,
     featured: fileContent?.featured || false,
     category: fileContent?.category || "",
   });
@@ -2737,7 +2758,6 @@ const FileEditor = React.forwardRef<
       author,
       date,
       coverImage,
-      published,
       featured,
       category,
     }),
@@ -2748,7 +2768,6 @@ const FileEditor = React.forwardRef<
       author,
       date,
       coverImage,
-      published,
       featured,
       category,
     ],
@@ -2762,7 +2781,6 @@ const FileEditor = React.forwardRef<
     setAuthor(fileContent?.author || "");
     setDate(fileContent?.date || "");
     setCoverImage(fileContent?.coverImage || "");
-    setPublished(fileContent?.published || false);
     setFeatured(fileContent?.featured || false);
     setCategory(fileContent?.category || "");
     lastSavedContentRef.current = fileContent?.content || "";
@@ -2773,7 +2791,6 @@ const FileEditor = React.forwardRef<
       author: fileContent?.author || "",
       date: fileContent?.date || "",
       coverImage: fileContent?.coverImage || "",
-      published: fileContent?.published || false,
       featured: fileContent?.featured || false,
       category: fileContent?.category || "",
     };
@@ -2795,7 +2812,6 @@ const FileEditor = React.forwardRef<
     author,
     date,
     coverImage,
-    published,
     featured,
     category,
     onDataChange,
@@ -2813,7 +2829,6 @@ const FileEditor = React.forwardRef<
       currentMetadata.author !== saved.author ||
       currentMetadata.date !== saved.date ||
       currentMetadata.coverImage !== saved.coverImage ||
-      currentMetadata.published !== saved.published ||
       currentMetadata.featured !== saved.featured ||
       currentMetadata.category !== saved.category
     );
@@ -2842,7 +2857,6 @@ const FileEditor = React.forwardRef<
     author,
     date,
     coverImage,
-    published,
     featured,
     category,
     getMetadata,
@@ -2986,8 +3000,6 @@ const FileEditor = React.forwardRef<
     onDateChange: setDate,
     coverImage,
     onCoverImageChange: setCoverImage,
-    published,
-    onPublishedChange: setPublished,
     featured,
     onFeaturedChange: setFeatured,
     category,
@@ -3024,10 +3036,14 @@ const FileEditor = React.forwardRef<
       </header>
       <div className="max-w-3xl mx-auto px-6 pb-8">
         <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-xs prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-xs prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
-          <MDXContent
-            code={fileContent.mdx}
-            components={defaultMDXComponents}
-          />
+          {fileContent.mdx ? (
+            <MDXContent
+              code={fileContent.mdx}
+              components={defaultMDXComponents}
+            />
+          ) : (
+            <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
+          )}
         </article>
       </div>
     </div>
@@ -3202,7 +3218,6 @@ interface ImportResult {
     author: string;
     coverImage: string;
     featured: boolean;
-    published: boolean;
     date: string;
   };
   error?: string;

@@ -9,7 +9,10 @@ import {
 } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
-import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
+import {
+  canStartTrial as canStartTrialApi,
+  startTrial,
+} from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { type SubscriptionStatus } from "@hypr/plugin-auth";
@@ -22,6 +25,8 @@ import { cn } from "@hypr/utils";
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
 import { env } from "../../../env";
+import * as settings from "../../../store/tinybase/store/settings";
+import { configureProSettings } from "../../../utils";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
@@ -206,7 +211,7 @@ export function AccountSettings() {
 
         <button
           onClick={handleSignIn}
-          className="px-6 h-[42px] rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-mono text-center transition-opacity duration-150 hover:opacity-90"
+          className="px-6 h-10 rounded-full bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white text-sm font-medium border-2 border-stone-600 shadow-[0_4px_14px_rgba(87,83,78,0.4)] transition-all duration-200"
         >
           Get Started
         </button>
@@ -298,6 +303,7 @@ export function AccountSettings() {
 function BillingButton() {
   const auth = useAuth();
   const { isPro } = useBillingAccess();
+  const store = settings.UI.useStore(settings.STORE_ID);
 
   const canTrialQuery = useQuery({
     enabled: !!auth?.session && !isPro,
@@ -308,7 +314,7 @@ function BillingButton() {
         return false;
       }
       const client = createClient({ baseUrl: env.VITE_API_URL, headers });
-      const { data, error } = await getRpcCanStartTrial({ client });
+      const { data, error } = await canStartTrialApi({ client });
       if (error) {
         throw error;
       }
@@ -324,7 +330,7 @@ function BillingButton() {
         throw new Error("Not authenticated");
       }
       const client = createClient({ baseUrl: env.VITE_API_URL, headers });
-      const { error } = await postBillingStartTrial({
+      const { error } = await startTrial({
         client,
         query: { interval: "monthly" },
       });
@@ -349,6 +355,9 @@ function BillingButton() {
           trial_end_date: trialEndDate.toISOString(),
         },
       });
+      if (store) {
+        configureProSettings(store);
+      }
       await auth?.refreshSession();
     },
   });

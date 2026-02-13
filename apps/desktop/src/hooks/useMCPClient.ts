@@ -32,7 +32,7 @@ export function useMCPClient(
 
     const init = async () => {
       try {
-        const mcpUrl = new URL("/support/mcp", env.VITE_AI_URL).toString();
+        const mcpUrl = new URL("/support/mcp", env.VITE_API_URL).toString();
 
         const headers: Record<string, string> = {};
         if (accessToken) {

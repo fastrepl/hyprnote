@@ -9,7 +9,10 @@ import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
 import { useTabs } from "../store/zustand/tabs";
 import { useNewNote } from "./main/shared";
-import { UndoDeleteKeyboardHandler } from "./main/sidebar/toast/undo-delete-toast";
+import {
+  UndoDeleteKeyboardHandler,
+  UndoDeleteToast,
+} from "./main/sidebar/toast/undo-delete-toast";
 
 export default function MainAppLayout() {
   useNavigationEvents();
@@ -30,6 +33,7 @@ function MainAppContent() {
     <>
       <Outlet />
       <UndoDeleteKeyboardHandler />
+      <UndoDeleteToast />
     </>
   );
 }

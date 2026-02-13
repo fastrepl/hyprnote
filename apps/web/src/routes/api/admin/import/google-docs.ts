@@ -245,7 +245,6 @@ meta_description: "${options.description}"
 author: "${options.author}"
 coverImage: "${options.coverImage}"
 featured: false
-published: false
 date: "${today}"
 ---`;
 
@@ -468,7 +467,6 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
             author: finalAuthor,
             coverImage: coverImage || "",
             featured: false,
-            published: false,
             date: today,
           };
 

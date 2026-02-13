@@ -200,7 +200,7 @@ fn main() -> std::io::Result<()> {
 
     let _guard = sentry::init(sentry::ClientOptions {
         dsn: env.sentry_dsn.as_ref().and_then(|s| s.parse().ok()),
-        release: option_env!("APP_VERSION").map(|v| format!("hyprnote-ai@{}", v).into()),
+        release: option_env!("APP_VERSION").map(|v| format!("hyprnote-api@{}", v).into()),
         environment: Some(
             if cfg!(debug_assertions) {
                 "development"
@@ -220,7 +220,7 @@ fn main() -> std::io::Result<()> {
     });
 
     sentry::configure_scope(|scope| {
-        scope.set_tag("service", "hyprnote-ai");
+        scope.set_tag("service", "hyprnote-api");
     });
 
     tracing_subscriber::registry()

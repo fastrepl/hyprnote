@@ -41,6 +41,8 @@ pub enum AudioProcessingError {
     EmptyInput,
     #[error("audio_import_invalid_target_rate")]
     InvalidTargetSampleRate,
+    #[error("audio_import_afconvert_failed: {0}")]
+    AfconvertFailed(String),
 }
 
 #[derive(Debug, thiserror::Error)]

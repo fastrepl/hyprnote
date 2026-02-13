@@ -91,13 +91,12 @@ const articles = defineCollection({
     date: z.string(),
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),
-    published: z.boolean().default(false),
     ready_for_review: z.boolean().default(false),
     category: z
       .enum([
         "Case Study",
         "Products In-depth",
-        "Hyprnote Weekly",
+        "Char Weekly",
         "Productivity Hack",
         "Engineering",
       ])
@@ -124,7 +123,7 @@ const articles = defineCollection({
 
     const slug = document._meta.path.replace(/\.mdx$/, "");
 
-    const author = document.author || "Hyprnote Team";
+    const author = document.author || "Char Team";
     const title = document.display_title || document.meta_title;
 
     return {

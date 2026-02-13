@@ -1,24 +1,26 @@
+use hypr_restate_rate_limit::{RateLimiter, RateLimiterImpl};
+use hypr_restate_stt::{Config, StorageCleanup, StorageCleanupImpl, SttFile, SttFileImpl};
 use restate_sdk::endpoint::Endpoint;
 use restate_sdk::http_server::HttpServer;
 
 mod env;
-mod services;
-mod soniox;
-mod supabase;
-
-use services::rate_limit::RateLimiter;
-use services::storage_cleanup::StorageCleanup;
-use services::stt_file::SttFile;
 
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
     let env = env::env();
 
+    let config: &'static Config = Box::leak(Box::new(Config {
+        restate_ingress_url: env.restate_ingress_url.clone(),
+        soniox_api_key: env.soniox_api_key.clone(),
+        supabase_url: env.supabase_url.clone(),
+        supabase_service_role_key: env.supabase_service_role_key.clone(),
+    }));
+
     let mut builder = Endpoint::builder()
-        .bind(services::SttFileImpl::new(env).serve())
-        .bind(services::RateLimiterImpl.serve())
-        .bind(services::StorageCleanupImpl::new(env).serve());
+        .bind(SttFileImpl::new(config).serve())
+        .bind(RateLimiterImpl.serve())
+        .bind(StorageCleanupImpl::new(config).serve());
 
     if let Some(key) = &env.restate_identity_key {
         builder = builder.identity_key(key).expect("invalid identity key");

@@ -23,6 +23,7 @@ exclude = ["plugins/cli2", "plugins/db", "plugins/export"]
 
 [workspace.dependencies]
 hypr-aec = { path = "crates/aec", package = "aec" }
+hypr-afconvert = { path = "crates/afconvert", package = "afconvert" }
 hypr-agc = { path = "crates/agc", package = "agc" }
 hypr-am = { path = "crates/am", package = "am" }
 hypr-am2 = { path = "crates/am2", package = "am2" }
@@ -87,6 +88,9 @@ hypr-porkbun = { path = "crates/porkbun", package = "porkbun" }
 hypr-posthog = { path = "crates/posthog", package = "posthog" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
+hypr-restate-rate-limit = { path = "crates/restate-rate-limit", package = "restate-rate-limit" }
+hypr-restate-stt = { path = "crates/restate-stt", package = "restate-stt" }
+hypr-restate-stt-types = { path = "crates/restate-stt-types", package = "restate-stt-types" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-supabase-auth = { path = "crates/supabase-auth", package = "supabase-auth" }
@@ -118,6 +122,7 @@ hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 owhisper-client = { path = "crates/owhisper-client", package = "owhisper-client" }
 owhisper-config = { path = "crates/owhisper-config", package = "owhisper-config" }
 owhisper-interface = { path = "crates/owhisper-interface", package = "owhisper-interface" }
+soniox = { path = "crates/soniox", package = "soniox" }
 
 tauri = "2.10"
 tauri-build = "2.5"

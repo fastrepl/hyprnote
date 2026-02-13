@@ -1,14 +1,14 @@
 mod chat;
 mod enhance;
-mod filters;
 mod title;
 mod types;
+mod validate;
 
 pub use chat::*;
 pub use enhance::*;
-pub use filters::*;
 pub use title::*;
 pub use types::*;
+pub use validate::*;
 
 #[macro_export]
 macro_rules! common_derives {
@@ -33,6 +33,10 @@ common_derives! {
 pub enum Error {
     #[error(transparent)]
     AskamaError(#[from] askama::Error),
+    #[error("parse error: {0}")]
+    ParseError(String),
+    #[error("validation error: {0}")]
+    ValidationError(ValidationError),
 }
 
 pub fn render(t: Template) -> Result<String, Error> {

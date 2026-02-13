@@ -45,22 +45,24 @@ export const Route = createFileRoute("/_view/blog/$slug")({
     const { article } = loaderData;
     const url = `https://hyprnote.com/blog/${article.slug}`;
 
+    const title = article.title ?? "";
+    const metaDescription = article.meta_description ?? "";
     const ogImage =
       article.coverImage ||
-      `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
+      `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
 
     return {
       meta: [
-        { title: `${article.title} - Char Blog` },
-        { name: "description", content: article.meta_description },
+        { title: `${title} - Char Blog` },
+        { name: "description", content: metaDescription },
         { tag: "link", attrs: { rel: "canonical", href: url } },
         {
           property: "og:title",
-          content: `${article.title} - Char Blog`,
+          content: `${title} - Char Blog`,
         },
         {
           property: "og:description",
-          content: article.meta_description,
+          content: metaDescription,
         },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
@@ -68,11 +70,11 @@ export const Route = createFileRoute("/_view/blog/$slug")({
         { name: "twitter:card", content: "summary_large_image" },
         {
           name: "twitter:title",
-          content: `${article.title} - Char Blog`,
+          content: `${title} - Char Blog`,
         },
         {
           name: "twitter:description",
-          content: article.meta_description,
+          content: metaDescription,
         },
         { name: "twitter:image", content: ogImage },
         ...(article.author
@@ -435,9 +437,10 @@ function TableOfContents({
 }
 
 function RelatedArticleCard({ article }: { article: any }) {
+  const title = article.title ?? "";
   const ogImage =
     article.coverImage ||
-    `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
+    `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
 
   return (
     <Link
@@ -448,13 +451,13 @@ function RelatedArticleCard({ article }: { article: any }) {
       <div className="aspect-40/21 overflow-hidden">
         <img
           src={ogImage}
-          alt={article.title}
+          alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
       </div>
       <div className="p-4">
         <h4 className="font-serif text-sm text-stone-600 group-hover:text-stone-800 transition-colors line-clamp-2 mb-2">
-          {article.title}
+          {title}
         </h4>
         <p className="text-xs text-neutral-500 line-clamp-2 mb-2">
           {article.summary}

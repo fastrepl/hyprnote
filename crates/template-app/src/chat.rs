@@ -1,12 +1,16 @@
-use crate::{Transcript, common_derives, filters};
+use crate::{Event, Participant, Transcript, common_derives};
+#[allow(unused_imports)]
+use hypr_askama_utils::filters;
 
 common_derives! {
-    pub struct ChatContext {
+    pub struct SessionContext {
         pub title: Option<String>,
         pub date: Option<String>,
         pub raw_content: Option<String>,
         pub enhanced_content: Option<String>,
         pub transcript: Option<Transcript>,
+        pub participants: Vec<Participant>,
+        pub event: Option<Event>,
     }
 }
 
@@ -15,8 +19,8 @@ common_derives! {
     #[template(path = "chat.system.md.jinja")]
     pub struct ChatSystem {
         pub language: Option<String>,
-        pub current_date: Option<String>,
-        pub context: Option<ChatContext>,
+        pub context: Option<SessionContext>,
+        pub related_sessions: Vec<SessionContext>,
     }
 }
 
@@ -27,11 +31,10 @@ mod tests {
     use hypr_askama_utils::tpl_snapshot_with_assert;
 
     tpl_snapshot_with_assert!(
-        test_chat_system_with_context, 
+        test_chat_system_with_context,
         ChatSystem {
             language: None,
-            current_date: None,
-            context: Some(ChatContext {
+            context: Some(SessionContext {
                 title: Some("Weekly Standup".to_string()),
                 date: Some("2025-01-15".to_string()),
                 raw_content: None,
@@ -54,9 +57,24 @@ mod tests {
                     started_at: Some(1715702400),
                     ended_at: Some(1715705400),
                 }),
+                participants: vec![
+                    Participant {
+                        name: "Alice".to_string(),
+                        job_title: Some("PM".to_string()),
+                    },
+                    Participant {
+                        name: "Bob".to_string(),
+                        job_title: None,
+                    },
+                ],
+                event: Some(Event {
+                    name: "Weekly Team Sync".to_string(),
+                }),
             }),
-        }, 
+            related_sessions: vec![],
+        },
         |v| v.contains("English"),
+        fixed_date = "2025-01-01",
         @r#"
     # General Instructions
 
@@ -79,6 +97,14 @@ mod tests {
     Title: Weekly Standup
 
     Date: 2025-01-15
+
+    Event: Weekly Team Sync
+
+    Participants:
+
+    - Alice (PM)
+
+    - Bob
 
     Enhanced Meeting Summary:
     Meeting summary here

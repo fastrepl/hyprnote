@@ -112,7 +112,7 @@ display_title: ""
 meta_description: ""
 author: "John Jeong"
 featured: false
-category: ""
+category: "Case Study"
 date: "${today}"
 ---
 

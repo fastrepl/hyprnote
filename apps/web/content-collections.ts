@@ -8,7 +8,6 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { z } from "zod";
 
-import { AUTHOR_NAMES } from "@/lib/team";
 import { VersionPlatform } from "@/scripts/versioning";
 
 async function embedGithubCode(content: string): Promise<string> {
@@ -85,9 +84,9 @@ const articles = defineCollection({
   exclude: "AGENTS.md",
   schema: z.object({
     display_title: z.string().optional(),
-    meta_title: z.string(),
-    meta_description: z.string(),
-    author: z.enum(AUTHOR_NAMES as [string, ...string[]]),
+    meta_title: z.string().optional(),
+    meta_description: z.string().optional(),
+    author: z.string(),
     date: z.string(),
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),

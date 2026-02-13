@@ -1,4 +1,14 @@
+use std::cell::RefCell;
+
 use isolang::Language;
+
+thread_local! {
+    static CURRENT_DATE_OVERRIDE: RefCell<Option<String>> = RefCell::new(None);
+}
+
+pub fn set_current_date_override(date: Option<String>) {
+    CURRENT_DATE_OVERRIDE.with(|v| *v.borrow_mut() = date);
+}
 
 fn extract_iso639(code: &str) -> &str {
     code.split(['-', '_']).next().unwrap_or(code)
@@ -6,14 +16,12 @@ fn extract_iso639(code: &str) -> &str {
 
 #[askama::filter_fn]
 pub fn current_date<T: ?Sized>(_value: &T, _env: &dyn askama::Values) -> askama::Result<String> {
-    #[cfg(test)]
-    {
-        Ok("2025-01-01".to_string())
-    }
-    #[cfg(not(test))]
-    {
+    CURRENT_DATE_OVERRIDE.with(|v| {
+        if let Some(ref date) = *v.borrow() {
+            return Ok(date.clone());
+        }
         Ok(chrono::Utc::now().format("%Y-%m-%d").to_string())
-    }
+    })
 }
 
 #[askama::filter_fn]
@@ -40,6 +48,8 @@ pub fn is_korean(value: &Option<String>, _env: &dyn askama::Values) -> askama::R
     Ok(matches!(lang, Some(Language::Kor)))
 }
 
+pub const TEMPLATE_FILTERS: &[&str] = &["current_date", "language", "is_english", "is_korean"];
+
 #[cfg(test)]
 mod tests {
     mod filters {
@@ -47,8 +57,8 @@ mod tests {
     }
 
     use super::*;
+    use crate::tpl_assert;
     use askama::Template;
-    use hypr_askama_utils::tpl_assert;
 
     #[test]
     fn test_isolang() {

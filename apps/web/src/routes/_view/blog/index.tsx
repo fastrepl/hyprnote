@@ -378,7 +378,7 @@ function MostRecentFeaturedCard({ article }: { article: Article }) {
         {hasCoverImage && (
           <ArticleImage
             src={article.coverImage}
-            alt={article.title}
+            alt={article.title ?? "Article"}
             isLoaded={coverImageLoaded}
             onLoad={() => setCoverImageLoaded(true)}
             onError={() => setCoverImageError(true)}
@@ -470,7 +470,7 @@ function OtherFeaturedCard({
           >
             <img
               src={article.coverImage}
-              alt={article.title}
+              alt={article.title ?? "Article"}
               className={cn([
                 "w-full h-full object-cover",
                 "group-hover:scale-105 transition-all duration-500",

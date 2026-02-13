@@ -466,6 +466,18 @@
           "arch": {
             "type": "string"
           },
+          "buildHash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "locale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "osVersion": {
             "type": "string"
           },
@@ -729,11 +741,51 @@
           "status": {
             "$ref": "#/components/schemas/PipelineStatus"
           },
+          "tokens": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TranscriptToken"
+            }
+          },
           "transcript": {
             "type": [
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "TranscriptToken": {
+        "type": "object",
+        "required": [
+          "text",
+          "startMs",
+          "endMs"
+        ],
+        "properties": {
+          "endMs": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "speaker": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "startMs": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "text": {
+            "type": "string"
           }
         }
       },

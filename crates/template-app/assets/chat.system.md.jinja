@@ -27,6 +27,14 @@ Title: {{ title }}
 
 Date: {{ date }}
 {%- endif -%}
+{%- if let Some(event) = ctx.event %}
+
+Event: {{ event.name }}
+{%- endif -%}
+{%- if !ctx.participants.is_empty() %}
+
+Participants:{{ macros::participants(participants=ctx.participants) }}
+{%- endif -%}
 {%- if let Some(enhanced_content) = ctx.enhanced_content %}
 
 Enhanced Meeting Summary:
@@ -41,6 +49,16 @@ User written note:
 Full Meeting Transcript:
 {{ macros::transcript(transcript) }}
 {%- endif -%}
+{%- endif %}
+{%- if !related_sessions.is_empty() %}
+
+Related Sessions:
+{%- for rs in related_sessions %}
+
+---
+
+{{ macros::session_context_brief(ctx=rs) }}
+{%- endfor -%}
 {%- endif %}
 
 If there is no meeting transcript (blank after the "Full Meeting Transcript:"), it means that the meeting did not happen yet. In this case, you should understand that the user is asking for general information, ideas, or suggestions about preparing for the meeting.

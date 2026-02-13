@@ -2656,12 +2656,21 @@ const FileEditor = React.forwardRef<
   const contentRef = useRef(content);
   const metadataRef = useRef<ArticleMetadata>(lastSavedMetadataRef.current);
 
+  const slug = filePath.replace(/\.mdx$/, "").replace(/^articles\//, "");
+
   const { mutate: importFromDocs, isPending: isImporting } = useMutation({
-    mutationFn: async (url: string) => {
+    mutationFn: async (params: {
+      url: string;
+      title?: string;
+      author?: string;
+      description?: string;
+      coverImage?: string;
+      slug?: string;
+    }) => {
       const response = await fetch("/api/admin/import/google-docs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify(params),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -2694,9 +2703,16 @@ const FileEditor = React.forwardRef<
 
   const handleGoogleDocsImport = useCallback(
     (url: string) => {
-      importFromDocs(url);
+      importFromDocs({
+        url,
+        slug,
+        title: metaTitle,
+        author,
+        description: metaDescription,
+        coverImage,
+      });
     },
-    [importFromDocs],
+    [importFromDocs, slug, metaTitle, author, metaDescription, coverImage],
   );
 
   const handleImageUpload = useCallback(

@@ -274,6 +274,7 @@ sentry = "=0.42.0"
 vergen-gix = "1"
 
 askama = "0.15"
+askama_parser = "0.15"
 markdown = "1"
 mdast_util_to_markdown = "0.0.2"
 minijinja = "2.7.0"

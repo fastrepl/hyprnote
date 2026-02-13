@@ -68,7 +68,7 @@ interface Base64Image {
   base64Data: string;
 }
 
-function extractBase64Images(markdown: string): Base64Image[] {
+export function extractBase64Images(markdown: string): Base64Image[] {
   const regex = /!\[[^\]]*\]\((data:image\/([^;]+);base64,([^)]+))\)/g;
   const images: Base64Image[] = [];
   let match;
@@ -84,7 +84,7 @@ function extractBase64Images(markdown: string): Base64Image[] {
   return images;
 }
 
-function getExtensionFromMimeType(mimeType: string): string {
+export function getExtensionFromMimeType(mimeType: string): string {
   const extensionMap: Record<string, string> = {
     jpeg: "jpg",
     jpg: "jpg",

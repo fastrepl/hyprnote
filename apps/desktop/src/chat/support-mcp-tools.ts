@@ -12,6 +12,8 @@ import type {
   SubscriptionItem,
 } from "@hypr/plugin-mcp";
 
+import { isRecord } from "./utils";
+
 export type McpTextContentOutput = {
   content: Array<{
     type: string;
@@ -33,34 +35,6 @@ export type SupportMcpTools = {
   };
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function readJsonText(output: unknown): unknown {
-  if (!isRecord(output) || !Array.isArray(output.content)) {
-    return null;
-  }
-
-  const texts = output.content
-    .filter(
-      (item): item is { type: string; text: string } =>
-        isRecord(item) && item.type === "text" && typeof item.text === "string",
-    )
-    .map((item) => item.text)
-    .join("\n");
-
-  if (!texts) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(texts);
-  } catch {
-    return null;
-  }
-}
-
 export function extractMcpOutputText(output: unknown): string | null {
   if (!isRecord(output) || !Array.isArray(output.content)) {
     return null;
@@ -75,6 +49,19 @@ export function extractMcpOutputText(output: unknown): string | null {
     .join("\n");
 
   return text || null;
+}
+
+function readJsonText(output: unknown): unknown {
+  const text = extractMcpOutputText(output);
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 function isSearchIssueItem(value: unknown): value is SearchIssueItem {

@@ -18,124 +18,48 @@ import { cn } from "@hypr/utils";
 import { useShell } from "../../contexts/shell";
 import * as main from "../../store/tinybase/store/main";
 
-let _draft: JSONContent | undefined;
+const draftsByKey = new Map<string, JSONContent>();
 
 export function ChatMessageInput({
+  draftKey,
   onSendMessage,
   disabled: disabledProp,
-  attachedSession,
   isStreaming,
   onStop,
 }: {
+  draftKey: string;
   onSendMessage: (
     content: string,
     parts: Array<{ type: "text"; text: string }>,
   ) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
-  attachedSession?: { id: string; title?: string };
   isStreaming?: boolean;
   onStop?: () => void;
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
-  const [hasContent, setHasContent] = useState(false);
-  const initialContent = useRef(_draft ?? EMPTY_TIPTAP_DOC);
-  const chatShortcuts = main.UI.useResultTable(
-    main.QUERIES.visibleChatShortcuts,
-    main.STORE_ID,
-  );
-  const sessions = main.UI.useResultTable(
-    main.QUERIES.timelineSessions,
-    main.STORE_ID,
-  );
-
   const disabled =
     typeof disabledProp === "object" ? disabledProp.disabled : disabledProp;
 
-  const handleSubmit = useCallback(() => {
-    const json = editorRef.current?.editor?.getJSON();
-    const text = tiptapJsonToText(json).trim();
-
-    if (!text || disabled) {
-      return;
-    }
-
-    void analyticsCommands.event({ event: "message_sent" });
-    onSendMessage(text, [{ type: "text", text }]);
-    editorRef.current?.editor?.commands.clearContent();
-    _draft = undefined;
-  }, [disabled, onSendMessage]);
-
-  useEffect(() => {
-    const editor = editorRef.current?.editor;
-    if (!editor || editor.isDestroyed || !editor.isInitialized) {
-      return;
-    }
-
-    if (!disabled) {
-      editor.commands.focus();
-    }
-  }, [disabled]);
-
-  const handleEditorUpdate = useCallback((json: JSONContent) => {
-    const text = tiptapJsonToText(json).trim();
-    setHasContent(text.length > 0);
-    _draft = json;
-  }, []);
-
-  const slashCommandConfig: SlashCommandConfig = useMemo(
-    () => ({
-      handleSearch: async (query: string) => {
-        const results: {
-          id: string;
-          type: string;
-          label: string;
-          content?: string;
-        }[] = [];
-        const lowerQuery = query.toLowerCase();
-
-        Object.entries(chatShortcuts).forEach(([rowId, row]) => {
-          const title = row.title as string | undefined;
-          const content = row.content as string | undefined;
-          if (title && content && title.toLowerCase().includes(lowerQuery)) {
-            results.push({
-              id: rowId,
-              type: "chat_shortcut",
-              label: title,
-              content,
-            });
-          }
-        });
-
-        Object.entries(sessions).forEach(([rowId, row]) => {
-          const title = row.title as string | undefined;
-          if (title && title.toLowerCase().includes(lowerQuery)) {
-            results.push({
-              id: rowId,
-              type: "session",
-              label: title,
-            });
-          }
-        });
-
-        return results.slice(0, 5);
-      },
-    }),
-    [chatShortcuts, sessions],
-  );
+  const { hasContent, initialContent, handleEditorUpdate } = useDraftState({
+    draftKey,
+  });
+  const handleSubmit = useSubmit({
+    draftKey,
+    editorRef,
+    disabled,
+    onSendMessage,
+  });
+  useAutoFocusEditor({ editorRef, disabled });
+  const slashCommandConfig = useSlashCommandConfig();
 
   return (
     <Container>
-      {attachedSession && (
-        <div className="px-3 pt-2 text-xs text-neutral-500 truncate">
-          Attached: {attachedSession.title || "Untitled"}
-        </div>
-      )}
       <div className="flex flex-col p-2">
         <div className="flex-1 mb-2">
           <ChatEditor
             ref={editorRef}
             editable={!disabled}
-            initialContent={initialContent.current}
+            initialContent={initialContent}
             placeholderComponent={ChatPlaceholder}
             slashCommandConfig={slashCommandConfig}
             onUpdate={handleEditorUpdate}
@@ -208,6 +132,149 @@ const ChatPlaceholder: PlaceholderFunction = ({ node, pos }) => {
   }
   return "";
 };
+
+function useDraftState({ draftKey }: { draftKey: string }) {
+  const [hasContent, setHasContent] = useState(false);
+  const initialContent = useRef(draftsByKey.get(draftKey) ?? EMPTY_TIPTAP_DOC);
+
+  const handleEditorUpdate = useCallback(
+    (json: JSONContent) => {
+      const text = tiptapJsonToText(json).trim();
+      setHasContent(text.length > 0);
+      draftsByKey.set(draftKey, json);
+    },
+    [draftKey],
+  );
+
+  return {
+    hasContent,
+    initialContent: initialContent.current,
+    handleEditorUpdate,
+  };
+}
+
+function useSubmit({
+  draftKey,
+  editorRef,
+  disabled,
+  onSendMessage,
+}: {
+  draftKey: string;
+  editorRef: React.RefObject<{ editor: TiptapEditor | null } | null>;
+  disabled?: boolean;
+  onSendMessage: (
+    content: string,
+    parts: Array<{ type: "text"; text: string }>,
+  ) => void;
+}) {
+  return useCallback(() => {
+    const json = editorRef.current?.editor?.getJSON();
+    const text = tiptapJsonToText(json).trim();
+
+    if (!text || disabled) {
+      return;
+    }
+
+    void analyticsCommands.event({ event: "message_sent" });
+    onSendMessage(text, [{ type: "text", text }]);
+    editorRef.current?.editor?.commands.clearContent();
+    draftsByKey.delete(draftKey);
+  }, [draftKey, editorRef, disabled, onSendMessage]);
+}
+
+function useAutoFocusEditor({
+  editorRef,
+  disabled,
+}: {
+  editorRef: React.RefObject<{ editor: TiptapEditor | null } | null>;
+  disabled?: boolean;
+}) {
+  useEffect(() => {
+    if (disabled) {
+      return;
+    }
+
+    let rafId: number | null = null;
+    let attempts = 0;
+    const maxAttempts = 20;
+
+    const focusWhenReady = () => {
+      const editor = editorRef.current?.editor;
+
+      if (editor && !editor.isDestroyed && editor.isInitialized) {
+        editor.commands.focus();
+        return;
+      }
+
+      if (attempts >= maxAttempts) {
+        return;
+      }
+
+      attempts += 1;
+      rafId = window.requestAnimationFrame(focusWhenReady);
+    };
+
+    focusWhenReady();
+
+    return () => {
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, [editorRef, disabled]);
+}
+
+function useSlashCommandConfig(): SlashCommandConfig {
+  const chatShortcuts = main.UI.useResultTable(
+    main.QUERIES.visibleChatShortcuts,
+    main.STORE_ID,
+  );
+  const sessions = main.UI.useResultTable(
+    main.QUERIES.timelineSessions,
+    main.STORE_ID,
+  );
+
+  return useMemo(
+    () => ({
+      handleSearch: async (query: string) => {
+        const results: {
+          id: string;
+          type: string;
+          label: string;
+          content?: string;
+        }[] = [];
+        const lowerQuery = query.toLowerCase();
+
+        Object.entries(chatShortcuts).forEach(([rowId, row]) => {
+          const title = row.title as string | undefined;
+          const content = row.content as string | undefined;
+          if (title && content && title.toLowerCase().includes(lowerQuery)) {
+            results.push({
+              id: rowId,
+              type: "chat_shortcut",
+              label: title,
+              content,
+            });
+          }
+        });
+
+        Object.entries(sessions).forEach(([rowId, row]) => {
+          const title = row.title as string | undefined;
+          if (title && title.toLowerCase().includes(lowerQuery)) {
+            results.push({
+              id: rowId,
+              type: "session",
+              label: title,
+            });
+          }
+        });
+
+        return results.slice(0, 5);
+      },
+    }),
+    [chatShortcuts, sessions],
+  );
+}
 
 function tiptapJsonToText(json: any): string {
   if (!json || typeof json !== "object") {

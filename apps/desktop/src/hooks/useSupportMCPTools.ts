@@ -1,32 +1,26 @@
+import type { ToolSet } from "ai";
 import { useEffect, useState } from "react";
 
-import { useAuth } from "../auth";
-import type { ContextItem } from "../chat/context-item";
-import { collectSupportContextBlock } from "./useContextCollection";
+import type { ContextEntity } from "../chat/context-item";
+import { collectSupportContextBlock } from "../chat/context/support-block";
 import { useMCPClient } from "./useMCPClient";
 import { useMCPElicitation } from "./useMCPElicitation";
 
-export type { ContextItem };
-
 export function useSupportMCP(enabled: boolean, accessToken?: string | null) {
-  const { session } = useAuth();
-  const email = session?.user?.email;
-  const userId = session?.user?.id;
-
   const { client, isConnected } = useMCPClient(enabled, accessToken);
   const { pendingElicitation, respondToElicitation } =
     useMCPElicitation(client);
 
-  const [tools, setTools] = useState<Record<string, any>>({});
+  const [tools, setTools] = useState<ToolSet>({});
   const [systemPrompt, setSystemPrompt] = useState<string | undefined>();
-  const [contextItems, setContextItems] = useState<ContextItem[]>([]);
+  const [contextEntities, setContextEntities] = useState<ContextEntity[]>([]);
   const [isReady, setIsReady] = useState(!enabled);
 
   useEffect(() => {
     if (!enabled) {
       setTools({});
       setSystemPrompt(undefined);
-      setContextItems([]);
+      setContextEntities([]);
       setIsReady(true);
       return;
     }
@@ -40,8 +34,8 @@ export function useSupportMCP(enabled: boolean, accessToken?: string | null) {
 
     const load = async () => {
       try {
-        const [{ items, block }, fetchedTools, prompt] = await Promise.all([
-          collectSupportContextBlock(email, userId),
+        const [{ entities, block }, fetchedTools, prompt] = await Promise.all([
+          collectSupportContextBlock(),
           client.tools(),
           client
             .experimental_getPrompt({ name: "support_chat" })
@@ -50,8 +44,8 @@ export function useSupportMCP(enabled: boolean, accessToken?: string | null) {
 
         if (cancelled) return;
 
-        setContextItems(items);
-        setTools(fetchedTools);
+        setContextEntities(entities);
+        setTools(fetchedTools as ToolSet);
 
         let mcpPrompt: string | undefined;
         if (prompt?.messages) {
@@ -71,7 +65,11 @@ export function useSupportMCP(enabled: boolean, accessToken?: string | null) {
         setIsReady(true);
       } catch (error) {
         console.error("Failed to load MCP resources:", error);
-        if (!cancelled) setIsReady(true);
+        if (cancelled) return;
+        setTools({});
+        setSystemPrompt(undefined);
+        setContextEntities([]);
+        setIsReady(false);
       }
     };
 
@@ -80,12 +78,12 @@ export function useSupportMCP(enabled: boolean, accessToken?: string | null) {
     return () => {
       cancelled = true;
     };
-  }, [enabled, client, isConnected, email, userId]);
+  }, [enabled, client, isConnected]);
 
   return {
     tools,
     systemPrompt,
-    contextItems,
+    contextEntities,
     pendingElicitation,
     respondToElicitation,
     isReady,

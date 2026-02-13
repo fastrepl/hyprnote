@@ -640,7 +640,6 @@ version = "0.1.0"
 dependencies = [
  "api-auth",
  "api-env",
- "askama",
  "async-stripe",
  "async-stripe-billing",
  "axum 0.8.8",
@@ -655,6 +654,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
+ "template-support",
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
@@ -18396,6 +18396,7 @@ dependencies = [
 name = "tauri-plugin-auth"
 version = "0.1.0"
 dependencies = [
+ "dirs 6.0.0",
  "serde",
  "serde_json",
  "specta",
@@ -18407,6 +18408,7 @@ dependencies = [
  "tauri-plugin-store",
  "tauri-plugin-store2",
  "tauri-specta",
+ "template-support",
  "thiserror 2.0.18",
  "tokio",
 ]
@@ -19026,9 +19028,11 @@ dependencies = [
  "regex",
  "specta",
  "specta-typescript",
+ "sysinfo",
  "tauri",
  "tauri-plugin",
  "tauri-specta",
+ "template-support",
  "vergen-gix",
 ]
 
@@ -19784,6 +19788,16 @@ dependencies = [
  "serde",
  "specta",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "template-support"
+version = "0.1.0"
+dependencies = [
+ "askama",
+ "serde",
+ "specta",
+ "utoipa",
 ]
 
 [[package]]

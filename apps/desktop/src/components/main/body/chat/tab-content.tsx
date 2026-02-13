@@ -1,10 +1,11 @@
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
-import type { ContextItem } from "../../../../chat/context-item";
+import type { ContextEntity } from "../../../../chat/context-item";
+import { composeContextEntities } from "../../../../chat/context/composer";
 import type { HyprUIMessage } from "../../../../chat/types";
 import { ElicitationProvider } from "../../../../contexts/elicitation";
 import {
@@ -12,11 +13,11 @@ import {
   useLanguageModel,
 } from "../../../../hooks/useLLMConnection";
 import { useSupportMCP } from "../../../../hooks/useSupportMCPTools";
+import { useChatContext } from "../../../../store/zustand/chat-context";
 import type { Tab } from "../../../../store/zustand/tabs";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { ChatBody } from "../../../chat/body";
-import { ContextBar } from "../../../chat/context-bar";
-import { ChatMessageInput } from "../../../chat/input";
+import { ChatContent } from "../../../chat/content";
 import { ChatSession } from "../../../chat/session";
 import {
   useChatActions,
@@ -29,31 +30,80 @@ export function TabContentChat({
 }: {
   tab: Extract<Tab, { type: "chat" }>;
 }) {
+  const isSupport = tab.state.chatType === "support";
+
   return (
     <StandardTabWrapper>
-      <ChatTabView tab={tab} />
+      {isSupport ? (
+        <SupportChatTabView tab={tab} />
+      ) : (
+        <GeneralChatTabView tab={tab} />
+      )}
     </StandardTabWrapper>
   );
 }
 
-function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
+function GeneralChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
   const groupId = tab.state.groupId ?? undefined;
-  const isSupport = tab.state.chatType === "support";
+  const updateChatTabState = useTabs((state) => state.updateChatTabState);
+  const stableSessionId = useStableSessionId(groupId);
+  const model = useLanguageModel();
+
+  const persistedCtx = useChatContext((s) =>
+    groupId ? s.contexts[groupId] : undefined,
+  );
+  const attachedSessionId = persistedCtx?.attachedSessionId ?? undefined;
+
+  const onGroupCreated = useCallback(
+    (newGroupId: string) =>
+      updateChatTabState(tab, {
+        ...tab.state,
+        groupId: newGroupId,
+        initialMessage: null,
+      }),
+    [updateChatTabState, tab],
+  );
+
+  const { handleSendMessage } = useChatActions({
+    groupId,
+    onGroupCreated,
+  });
+
+  return (
+    <div className="flex flex-col h-full">
+      <ChatSession
+        key={stableSessionId}
+        sessionId={stableSessionId}
+        chatGroupId={groupId}
+        attachedSessionId={attachedSessionId}
+      >
+        {(sessionProps) => (
+          <ChatContent
+            {...sessionProps}
+            model={model}
+            handleSendMessage={handleSendMessage}
+          />
+        )}
+      </ChatSession>
+    </div>
+  );
+}
+
+function SupportChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
+  const groupId = tab.state.groupId ?? undefined;
   const updateChatTabState = useTabs((state) => state.updateChatTabState);
   const { session } = useAuth();
 
   const stableSessionId = useStableSessionId(groupId);
-  const userModel = useLanguageModel();
   const feedbackModel = useFeedbackLanguageModel();
-  const model = isSupport ? feedbackModel : userModel;
   const {
     tools: mcpTools,
     systemPrompt,
-    contextItems: supportContextItems,
+    contextEntities: supportContextEntities,
     pendingElicitation,
     respondToElicitation,
     isReady,
-  } = useSupportMCP(isSupport, session?.access_token);
+  } = useSupportMCP(true, session?.access_token);
 
   const mcpToolCount = Object.keys(mcpTools).length;
 
@@ -72,43 +122,37 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
     onGroupCreated,
   });
 
-  const waitingForMcp = isSupport && !isReady;
+  if (!isReady) {
+    return (
+      <div className="flex flex-col h-full bg-sky-50/40">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex items-center gap-2 text-sm text-neutral-500">
+            <Loader2 className="size-4 animate-spin" />
+            <span>Preparing support chat...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className={cn(["flex flex-col h-full", isSupport && "bg-sky-50/40"])}>
+    <div className={cn(["flex flex-col h-full", "bg-sky-50/40"])}>
       <ChatSession
         key={`${stableSessionId}-${mcpToolCount}`}
         sessionId={stableSessionId}
         chatGroupId={groupId}
-        chatType={isSupport ? "support" : "general"}
-        modelOverride={isSupport ? feedbackModel : undefined}
-        extraTools={isSupport ? mcpTools : undefined}
-        systemPromptOverride={isSupport ? systemPrompt : undefined}
+        modelOverride={feedbackModel}
+        extraTools={mcpTools}
+        systemPromptOverride={systemPrompt}
       >
-        {({
-          messages,
-          sendMessage,
-          regenerate,
-          stop,
-          status,
-          error,
-          contextItems: sessionContextItems,
-        }) => (
-          <ChatTabInner
+        {(sessionProps) => (
+          <SupportChatTabInner
             tab={tab}
-            messages={messages}
-            sendMessage={sendMessage}
-            regenerate={regenerate}
-            stop={stop}
-            status={status}
-            error={error}
-            model={model}
+            sessionProps={sessionProps}
+            feedbackModel={feedbackModel}
             handleSendMessage={handleSendMessage}
             updateChatTabState={updateChatTabState}
-            waitingForMcp={waitingForMcp}
-            isReady={isReady}
-            supportContextItems={isSupport ? supportContextItems : undefined}
-            sessionContextItems={sessionContextItems}
+            supportContextEntities={supportContextEntities}
             pendingElicitation={pendingElicitation}
             respondToElicitation={respondToElicitation}
           />
@@ -118,32 +162,30 @@ function ChatTabView({ tab }: { tab: Extract<Tab, { type: "chat" }> }) {
   );
 }
 
-function ChatTabInner({
+function SupportChatTabInner({
   tab,
-  messages,
-  sendMessage,
-  regenerate,
-  stop,
-  status,
-  error,
-  model,
+  sessionProps,
+  feedbackModel,
   handleSendMessage,
   updateChatTabState,
-  waitingForMcp,
-  isReady,
-  supportContextItems,
-  sessionContextItems,
+  supportContextEntities,
   pendingElicitation,
   respondToElicitation,
 }: {
   tab: Extract<Tab, { type: "chat" }>;
-  messages: HyprUIMessage[];
-  sendMessage: (message: HyprUIMessage) => void;
-  regenerate: () => void;
-  stop: () => void;
-  status: "submitted" | "streaming" | "ready" | "error";
-  error?: Error;
-  model: ReturnType<typeof useLanguageModel>;
+  sessionProps: {
+    sessionId: string;
+    messages: HyprUIMessage[];
+    sendMessage: (message: HyprUIMessage) => void;
+    regenerate: () => void;
+    stop: () => void;
+    status: "submitted" | "streaming" | "ready" | "error";
+    error?: Error;
+    contextEntities: ContextEntity[];
+    onRemoveContextEntity: (key: string) => void;
+    isSystemPromptReady: boolean;
+  };
+  feedbackModel: ReturnType<typeof useFeedbackLanguageModel>;
   handleSendMessage: (
     content: string,
     parts: HyprUIMessage["parts"],
@@ -153,13 +195,21 @@ function ChatTabInner({
     tab: Extract<Tab, { type: "chat" }>,
     state: Extract<Tab, { type: "chat" }>["state"],
   ) => void;
-  waitingForMcp: boolean;
-  isReady: boolean;
-  supportContextItems?: ContextItem[];
-  sessionContextItems: ContextItem[];
+  supportContextEntities: ContextEntity[];
   pendingElicitation?: { message: string } | null;
   respondToElicitation?: (approved: boolean) => void;
 }) {
+  const {
+    messages,
+    sendMessage,
+    regenerate,
+    stop,
+    status,
+    error,
+    contextEntities,
+    onRemoveContextEntity,
+    isSystemPromptReady,
+  } = sessionProps;
   const sentRef = useRef(false);
 
   useEffect(() => {
@@ -167,9 +217,9 @@ function ChatTabInner({
     if (
       !initialMessage ||
       sentRef.current ||
-      !model ||
+      !feedbackModel ||
       status !== "ready" ||
-      !isReady
+      !isSystemPromptReady
     ) {
       return;
     }
@@ -186,32 +236,34 @@ function ChatTabInner({
     });
   }, [
     tab,
-    model,
+    feedbackModel,
     status,
-    isReady,
+    isSystemPromptReady,
     handleSendMessage,
     sendMessage,
     updateChatTabState,
   ]);
 
-  const mergedContextItems = useMemo(
-    () => [...(supportContextItems ?? []), ...sessionContextItems],
-    [supportContextItems, sessionContextItems],
-  );
-
-  if (waitingForMcp) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="flex items-center gap-2 text-sm text-neutral-500">
-          <Loader2 className="size-4 animate-spin" />
-          <span>Preparing support chat...</span>
-        </div>
-      </div>
-    );
-  }
+  const mergedContextEntities = composeContextEntities([
+    contextEntities,
+    supportContextEntities,
+  ]);
 
   return (
-    <>
+    <ChatContent
+      sessionId={sessionProps.sessionId}
+      messages={messages}
+      sendMessage={sendMessage}
+      regenerate={regenerate}
+      stop={stop}
+      status={status}
+      error={error}
+      model={feedbackModel}
+      handleSendMessage={handleSendMessage}
+      contextEntities={mergedContextEntities}
+      onRemoveContextEntity={onRemoveContextEntity}
+      isSystemPromptReady={isSystemPromptReady}
+    >
       <ElicitationProvider
         pending={pendingElicitation ?? null}
         respond={respondToElicitation ?? null}
@@ -221,18 +273,9 @@ function ChatTabInner({
           status={status}
           error={error}
           onReload={regenerate}
-          isModelConfigured={!!model}
+          isModelConfigured={!!feedbackModel}
         />
       </ElicitationProvider>
-      <ContextBar items={mergedContextItems} />
-      <ChatMessageInput
-        disabled={!model || status !== "ready"}
-        onSendMessage={(content, parts) =>
-          handleSendMessage(content, parts, sendMessage)
-        }
-        isStreaming={status === "streaming" || status === "submitted"}
-        onStop={stop}
-      />
-    </>
+    </ChatContent>
   );
 }

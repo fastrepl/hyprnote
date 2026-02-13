@@ -13,7 +13,8 @@ export const Route = createFileRoute("/admin")({
       { title: "Char Admin - Char" },
       {
         name: "description",
-        content: "Char admin for Hyprnote.",
+        content: "Char admin dashboard.",
+
       },
       { name: "robots", content: "noindex, nofollow" },
     ],

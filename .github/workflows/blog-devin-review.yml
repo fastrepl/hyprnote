@@ -1,0 +1,84 @@
+name: Blog Devin Review
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/web/content/articles/**"
+
+jobs:
+  devin-review:
+    if: startsWith(github.head_ref, 'blog/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'apps/web/content/articles/*.mdx' | tr '\n' ' ')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+          if [ -z "$FILES" ]; then
+            echo "has_files=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_files=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger Devin review
+        if: steps.changed-files.outputs.has_files == 'true'
+        uses: ./.github/actions/devin
+        with:
+          api_key: ${{ secrets.DEVIN_API_KEY }}
+          prompt: |
+            You are tasked with reviewing a blog article PR for Hyprnote.
+
+            ## Context
+            Hyprnote is a privacy-first AI notetaking application for meetings.
+            Repository: fastrepl/hyprnote
+            PR: #${{ github.event.pull_request.number }}
+            Branch: ${{ github.head_ref }}
+            Changed files: ${{ steps.changed-files.outputs.files }}
+
+            ## Your Task
+            1. **Check out the PR branch**
+               - Clone the repo and check out the PR branch: `${{ github.head_ref }}`
+
+            2. **Read the article content**
+               - Read each changed MDX file listed above
+               - Understand the article's topic, structure, and target audience
+
+            3. **Review the article and leave PR comments**
+               Use the GitHub API to leave a review on PR #${{ github.event.pull_request.number }} in `fastrepl/hyprnote` with inline comments on specific lines. Focus on:
+
+               - **Factual accuracy**: Flag any technical claims that seem incorrect
+               - **Clarity**: Identify confusing or ambiguous sentences
+               - **Structure**: Suggest improvements to article flow and organization
+               - **Missing context**: Note where additional explanation would help readers
+               - **Frontmatter**: Check that meta_title, display_title, meta_description, author, category, and date are all filled in properly
+               - **Links**: Check that any links referenced in the article are valid
+
+               For each suggestion, leave an inline PR review comment on the specific line with:
+               - A clear description of the issue
+               - A concrete suggestion for improvement
+
+            4. **Post a summary comment**
+               After reviewing, leave a top-level PR comment with:
+               - Overall assessment of the article quality
+               - Key suggestions summarized
+               - Any missing elements (images, links, metadata)
+
+            ## Important Notes
+            - Be constructive and specific in feedback
+            - Do not make changes to the code or create new commits
+            - Only leave review comments on the PR
+            - If the article looks good, still leave a brief positive review
+            - Focus on content quality, not formatting (dprint handles formatting separately)
+          title: ${{ github.run_id }}-blog-review
+          tags: '["blog_review"]'

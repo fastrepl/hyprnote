@@ -319,7 +319,7 @@ function Logo() {
       to="/"
       className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
     >
-      <img src="/api/images/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
+      Char
     </Link>
   );
 }

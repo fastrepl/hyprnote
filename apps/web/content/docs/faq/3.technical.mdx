@@ -26,4 +26,4 @@ Hyprnote uses [Tantivy](https://github.com/quickwit-oss/tantivy), a Rust full-te
 
 ## What is the support chat powered by?
 
-The in-app support chat uses the [Model Context Protocol (MCP)](https://modelcontextprotocol.io) to connect to Hyprnote's support server. The MCP server provides tools that can submit bug reports as GitHub issues, create feature requests as GitHub discussions, and query existing GitHub data (issues, pull requests, comments, tags) to help answer questions about known problems or planned features.
+The in-app support chat uses the [Model Context Protocol (MCP)](https://modelcontextprotocol.io) to connect to Hyprnote's support server. The MCP server provides tools for GitHub issue management (`search_issues`, `create_issue`, `add_comment`) and Stripe billing operations (`list_subscriptions`, `create_billing_portal_session`). It also serves MCP prompts that guide the chat's behavior. Destructive actions like creating issues require user confirmation before executing.

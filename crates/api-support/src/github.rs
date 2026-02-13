@@ -8,7 +8,7 @@ const GITHUB_OWNER: &str = "fastrepl";
 const GITHUB_REPO: &str = "hyprnote";
 
 #[derive(Template)]
-#[template(path = "bug_report.md.jinja")]
+#[template(path = "bug_report.md.jinja", escape = "none")]
 struct BugReportBody<'a> {
     description: &'a str,
     platform: &'a str,
@@ -19,7 +19,7 @@ struct BugReportBody<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "feature_request.md.jinja")]
+#[template(path = "feature_request.md.jinja", escape = "none")]
 struct FeatureRequestBody<'a> {
     description: &'a str,
     platform: &'a str,
@@ -30,7 +30,7 @@ struct FeatureRequestBody<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "log_analysis.md.jinja")]
+#[template(path = "log_analysis.md.jinja", escape = "none")]
 struct LogAnalysisComment<'a> {
     summary_section: &'a str,
     tail: &'a str,
@@ -127,15 +127,17 @@ fn make_title(description: &str, fallback: &str) -> (String, String) {
 }
 
 async fn attach_log_analysis(state: &AppState, issue_number: u64, log_text: &str) {
+    let clean_logs = logs::strip_ansi_escapes(log_text);
+
     let log_summary =
-        logs::analyze_logs(&state.config.openrouter.openrouter_api_key, log_text).await;
+        logs::analyze_logs(&state.config.openrouter.openrouter_api_key, &clean_logs).await;
 
     let summary_section = match log_summary.as_deref() {
         Some(s) if !s.trim().is_empty() => format!("### Summary\n```\n{s}\n```"),
         _ => "_No errors or warnings found._".to_string(),
     };
 
-    let tail = logs::safe_tail(log_text, 10000);
+    let tail = logs::safe_tail(&clean_logs, 10000);
     let comment = LogAnalysisComment {
         summary_section: &summary_section,
         tail,

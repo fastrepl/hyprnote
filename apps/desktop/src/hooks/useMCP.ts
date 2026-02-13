@@ -95,7 +95,7 @@ export function useMCP(config: MCPConfig) {
         setTools({});
         setSystemPrompt(undefined);
         setContextEntities([]);
-        setIsReady(false);
+        setIsReady(true);
       }
     };
 

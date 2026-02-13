@@ -127,7 +127,7 @@ export function ContextBar({
   if (chips.length === 0) return null;
 
   const hasOverflow = visibleCount < chips.length;
-  const displayChips = expanded ? chips : chips.slice(0, visibleCount);
+  const displayChips = chips.slice(0, visibleCount);
 
   return (
     <div className="relative mx-3 rounded-t-lg bg-neutral-100">

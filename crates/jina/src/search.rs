@@ -1,6 +1,6 @@
 use crate::client::{JinaClient, check_response};
 use crate::common_derives;
-use crate::types::{ResponseEnvelope, SearchEngine, SearchType};
+use crate::types::{SearchEngine, SearchResponseEnvelope, SearchResultItem, SearchType};
 
 common_derives! {
     #[serde(rename_all = "camelCase")]
@@ -42,15 +42,15 @@ common_derives! {
 }
 
 impl JinaClient {
-    pub async fn search(&self, req: SearchRequest) -> Result<String, crate::Error> {
+    pub async fn search(&self, req: SearchRequest) -> Result<Vec<SearchResultItem>, crate::Error> {
         let response = self
             .client
-            .post("https://s.jina.ai/search")
+            .post("https://s.jina.ai/")
             .json(&req)
             .send()
             .await?;
         let response = check_response(response).await?;
-        let envelope: ResponseEnvelope = response.json().await?;
+        let envelope: SearchResponseEnvelope = response.json().await?;
         Ok(envelope.data)
     }
 }

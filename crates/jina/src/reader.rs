@@ -1,6 +1,6 @@
 use crate::client::{JinaClient, check_response};
 use crate::common_derives;
-use crate::types::{RespondWith, ResponseEnvelope, RetainImages};
+use crate::types::{ReaderResponseEnvelope, RespondWith, RetainImages};
 
 common_derives! {
     #[serde(rename_all = "camelCase")]
@@ -58,7 +58,7 @@ impl JinaClient {
             .send()
             .await?;
         let response = check_response(response).await?;
-        let envelope: ResponseEnvelope = response.json().await?;
-        Ok(envelope.data)
+        let envelope: ReaderResponseEnvelope = response.json().await?;
+        Ok(envelope.data.content)
     }
 }

@@ -2,11 +2,47 @@ use crate::common_derives;
 
 common_derives! {
     #[serde(rename_all = "camelCase")]
-    pub struct ResponseEnvelope {
+    pub struct ReaderResponseEnvelope {
         pub code: u16,
         pub status: u32,
+        pub data: ReaderData,
+    }
+}
+
+common_derives! {
+    #[serde(rename_all = "camelCase")]
+    pub struct ReaderData {
         #[serde(default)]
-        pub data: String,
+        pub title: String,
+        #[serde(default)]
+        pub url: String,
+        #[serde(default)]
+        pub content: String,
+        #[serde(default)]
+        pub description: String,
+    }
+}
+
+common_derives! {
+    #[serde(rename_all = "camelCase")]
+    pub struct SearchResponseEnvelope {
+        pub code: u16,
+        pub status: u32,
+        pub data: Vec<SearchResultItem>,
+    }
+}
+
+common_derives! {
+    #[serde(rename_all = "camelCase")]
+    pub struct SearchResultItem {
+        #[serde(default)]
+        pub title: String,
+        #[serde(default)]
+        pub url: String,
+        #[serde(default)]
+        pub content: String,
+        #[serde(default)]
+        pub description: String,
     }
 }
 

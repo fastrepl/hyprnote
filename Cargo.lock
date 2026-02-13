@@ -803,6 +803,7 @@ name = "askama-utils"
 version = "0.1.0"
 dependencies = [
  "askama",
+ "askama_parser",
  "insta",
 ]
 

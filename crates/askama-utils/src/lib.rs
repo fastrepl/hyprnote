@@ -1,3 +1,6 @@
+mod validate;
+pub use validate::{TemplateUsage, extract};
+
 #[macro_export]
 macro_rules! tpl_snapshot {
     ($name:ident, $input:expr, @$($expected:tt)*) => {

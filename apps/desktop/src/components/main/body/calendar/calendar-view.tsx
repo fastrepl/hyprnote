@@ -687,7 +687,6 @@ function SessionPopoverContent({ sessionId }: { sessionId: string }) {
 function CalendarSidebarContent() {
   const isMacos = platform() === "macos";
   const calendar = usePermission("calendar");
-  const contacts = usePermission("contacts");
 
   const visibleProviders = PROVIDERS.filter(
     (p) => p.platform === "all" || (p.platform === "macos" && isMacos),
@@ -731,29 +730,16 @@ function CalendarSidebarContent() {
             <AccordionContent className="pb-2">
               {provider.id === "apple" && (
                 <div className="flex flex-col gap-3">
-                  {(calendar.status !== "authorized" ||
-                    contacts.status !== "authorized") && (
+                  {calendar.status !== "authorized" && (
                     <div className="flex flex-col gap-1">
-                      {calendar.status !== "authorized" && (
-                        <AccessPermissionRow
-                          title="Calendar"
-                          status={calendar.status}
-                          isPending={calendar.isPending}
-                          onOpen={calendar.open}
-                          onRequest={calendar.request}
-                          onReset={calendar.reset}
-                        />
-                      )}
-                      {contacts.status !== "authorized" && (
-                        <AccessPermissionRow
-                          title="Contacts"
-                          status={contacts.status}
-                          isPending={contacts.isPending}
-                          onOpen={contacts.open}
-                          onRequest={contacts.request}
-                          onReset={contacts.reset}
-                        />
-                      )}
+                      <AccessPermissionRow
+                        title="Calendar"
+                        status={calendar.status}
+                        isPending={calendar.isPending}
+                        onOpen={calendar.open}
+                        onRequest={calendar.request}
+                        onReset={calendar.reset}
+                      />
                     </div>
                   )}
                   {calendar.status === "authorized" && (

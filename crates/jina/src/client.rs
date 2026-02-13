@@ -33,7 +33,11 @@ impl JinaClientBuilder {
         headers.insert(reqwest::header::AUTHORIZATION, auth_value);
         headers.insert(
             reqwest::header::ACCEPT,
-            reqwest::header::HeaderValue::from_static("text/plain"),
+            reqwest::header::HeaderValue::from_static("application/json"),
+        );
+        headers.insert(
+            reqwest::header::CONTENT_TYPE,
+            reqwest::header::HeaderValue::from_static("application/json"),
         );
 
         let client = reqwest::Client::builder()

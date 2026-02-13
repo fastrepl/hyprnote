@@ -46,7 +46,7 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
     const isNightly = currentVersion && currentVersion.prerelease.length > 0;
 
     const title = `Version ${changelog.version} - Char Changelog`;
-    const description = `Explore what's new in Hyprnote version ${changelog.version}${isNightly ? " (Nightly)" : ""}.`;
+    const description = `Explore what's new in Char version ${changelog.version}${isNightly ? " (Nightly)" : ""}.`;
     const url = `https://hyprnote.com/changelog/${changelog.slug}`;
     const ogImageUrl = `https://hyprnote.com/og?type=changelog&version=${encodeURIComponent(changelog.version)}&v=1`;
 
@@ -96,7 +96,7 @@ function Component() {
                     ? "/api/images/icons/nightly-icon.png"
                     : "/api/images/icons/stable-icon.png"
                 }
-                alt="Hyprnote"
+                alt="Char"
                 className="size-32 rounded-2xl"
               />
               <div className="flex flex-col items-center gap-2">
@@ -127,7 +127,7 @@ function Component() {
                     ? "/api/images/icons/nightly-icon.png"
                     : "/api/images/icons/stable-icon.png"
                 }
-                alt="Hyprnote"
+                alt="Char"
                 className="size-16 rounded-2xl"
               />
               <div className="flex flex-col items-center gap-2">
@@ -321,7 +321,7 @@ function RelatedReleases({
         <h2 className="text-3xl font-serif text-stone-600 mb-2">
           Other Releases
         </h2>
-        <p className="text-neutral-600">Explore more versions of Hyprnote</p>
+        <p className="text-neutral-600">Explore more versions of Char</p>
       </div>
 
       <div className="grid gap-4 grid-cols-5">
@@ -356,7 +356,7 @@ function RelatedReleases({
                       ? "/api/images/icons/nightly-icon.png"
                       : "/api/images/icons/stable-icon.png"
                   }
-                  alt="Hyprnote"
+                  alt="Char"
                   className={cn([
                     "size-12 rounded-xl transition-all duration-300",
                     !isCurrent && "group-hover:scale-110",

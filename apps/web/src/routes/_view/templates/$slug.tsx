@@ -256,8 +256,7 @@ function RightSidebar() {
             Use this template
           </h3>
           <p className="text-sm text-neutral-600 mb-6">
-            Download Hyprnote to use this template and get AI-powered meeting
-            notes.
+            Download Char to use this template and get AI-powered meeting notes.
           </p>
           <DownloadButton />
           <p className="text-xs text-neutral-500 mt-4">

@@ -274,7 +274,7 @@ function ResourcesLinks() {
               "text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted",
               "inline-flex items-center gap-1",
             )}
-            aria-label={`Hyprnote for ${currentUseCase.label}`}
+            aria-label={`Char for ${currentUseCase.label}`}
           >
             👍 for{" "}
             <span
@@ -299,7 +299,7 @@ function ResourcesLinks() {
           >
             <img
               src="/api/images/hyprnote/icon.png"
-              alt="Hyprnote"
+              alt="Char"
               width={12}
               height={12}
               className="size-4 rounded border border-neutral-100 inline"

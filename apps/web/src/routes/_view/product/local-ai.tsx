@@ -71,9 +71,9 @@ function HeroSection() {
             on your device
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 max-w-3xl mx-auto">
-            Hyprnote uses powerful local AI models to process your meetings
-            entirely on your device. No cloud uploads, complete privacy, and
-            works offline.
+            Char uses powerful local AI models to process your meetings entirely
+            on your device. No cloud uploads, complete privacy, and works
+            offline.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 pt-6">
@@ -235,9 +235,7 @@ function ComparisonSection() {
         <div className="p-8 bg-green-50/50">
           <div className="flex items-center gap-2 mb-6">
             <Icon icon="mdi:laptop" className="text-2xl text-green-600" />
-            <h3 className="font-serif text-lg text-green-900">
-              Hyprnote Local AI
-            </h3>
+            <h3 className="font-serif text-lg text-green-900">Char Local AI</h3>
           </div>
           <ul className="flex flex-col gap-4 text-green-900">
             <li className="flex items-start gap-3">

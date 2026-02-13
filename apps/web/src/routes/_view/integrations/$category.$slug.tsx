@@ -134,7 +134,7 @@ function HeroSection({
           <div className="size-32 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[36px] bg-white">
             <img
               src="/api/images/hyprnote/icon.png"
-              alt="Hyprnote"
+              alt="Char"
               className="size-24 rounded-[28px]"
             />
           </div>
@@ -169,7 +169,7 @@ function HeroSection({
               "hover:scale-105 active:scale-95 transition-transform",
             ])}
           >
-            Download Hyprnote for free
+            Download Char for free
           </Link>
         </div>
       </header>

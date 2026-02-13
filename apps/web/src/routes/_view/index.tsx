@@ -52,7 +52,7 @@ const mainFeatures = [
     icon: "mdi:text-box-outline",
     title: "Real-time transcription",
     description:
-      "While you take notes, Hyprnote listens and generates a live transcript",
+      "While you take notes, Char listens and generates a live transcript",
     image: "/api/images/hyprnote/transcript.jpg",
     muxPlaybackId: "rbkYuZpGJGLHx023foq9DCSt3pY1RegJU5PvMCkRE3rE",
     link: "/product/ai-notetaking/#transcription",
@@ -61,7 +61,7 @@ const mainFeatures = [
     icon: "mdi:file-document-outline",
     title: "AI summary",
     description:
-      "Hyprnote combines your notes and the transcript to create a perfect summary",
+      "Char combines your notes and the transcript to create a perfect summary",
     image: "/api/images/hyprnote/summary.jpg",
     muxPlaybackId: "lKr5l1fWGNnRqOehiz15mV79VHtFOCiuO9urmgqs6V8",
     link: "/product/ai-notetaking/#summaries",
@@ -462,17 +462,17 @@ function TestimonialsMobileGrid() {
         platform="reddit"
         author="spilledcarryout"
         subreddit="macapps"
-        body="Dear Hyprnote Team,
+        body="Dear Char Team,
 
-I wanted to take a moment to commend you on the impressive work you've done with Hyprnote. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Hyprnote a standout solution, especially for those of us in compliance-sensitive environments.
+I wanted to take a moment to commend you on the impressive work you've done with Char. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Char a standout solution, especially for those of us in compliance-sensitive environments.
 
 The live transcription is key for me. It saves a landmark step to transcribe each note myself using macwhisper. Much more handy they way you all do this. The Calendar function is cool too.
 
 I am a telephysician and my notes are much more quickly done. Seeing 6-8 patients daily and tested it yesteday. So yes, my job is session heavy. Add to that being in psychiatry where document making sessions become voluminous, my flow is AI dependent to make reports stand out. Accuracy is key for patient care.
 
-Hyprnote is now part of that process.
+Char is now part of that process.
 
-Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Hyprnote continue to evolve
+Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Char continue to evolve
 
 Cheers!"
         url="https://www.reddit.com/r/macapps/comments/1lo24b9/comment/n15dr0t/"
@@ -484,7 +484,7 @@ Cheers!"
         author="Flavius Catalin Miron"
         role="Product Engineer"
         company="Waveful"
-        body="Guys at Hyprnote (YC S25) are wild.
+        body="Guys at Char (YC S25) are wild.
 
 Had a call with John Jeong about their product (privacy-first AI notepad).
 
@@ -496,7 +496,7 @@ As Product Engineer at Waveful, where we also prioritize rapid execution, I deep
 
 The ability to ship this fast while maintaining quality, is what separates great teams from the rest 🔥
 
-Btw give an eye to Hyprnote:
+Btw give an eye to Char:
 100% local AI processing
 Zero cloud dependency
 Real privacy
@@ -540,17 +540,17 @@ function TestimonialsDesktopGrid() {
           platform="reddit"
           author="spilledcarryout"
           subreddit="macapps"
-          body="Dear Hyprnote Team,
+          body="Dear Char Team,
 
-I wanted to take a moment to commend you on the impressive work you've done with Hyprnote. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Hyprnote a standout solution, especially for those of us in compliance-sensitive environments.
+I wanted to take a moment to commend you on the impressive work you've done with Char. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Char a standout solution, especially for those of us in compliance-sensitive environments.
 
 The live transcription is key for me. It saves a landmark step to transcribe each note myself using macwhisper. Much more handy they way you all do this. The Calendar function is cool too.
 
 I am a telephysician and my notes are much more quickly done. Seeing 6-8 patients daily and tested it yesteday. So yes, my job is session heavy. Add to that being in psychiatry where document making sessions become voluminous, my flow is AI dependent to make reports stand out. Accuracy is key for patient care.
 
-Hyprnote is now part of that process.
+Char is now part of that process.
 
-Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Hyprnote continue to evolve
+Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Char continue to evolve
 
 Cheers!"
           url="https://www.reddit.com/r/macapps/comments/1lo24b9/comment/n15dr0t/"
@@ -564,7 +564,7 @@ Cheers!"
           author="Flavius Catalin Miron"
           role="Product Engineer"
           company="Waveful"
-          body="Guys at Hyprnote (YC S25) are wild.
+          body="Guys at Char (YC S25) are wild.
 
 Had a call with John Jeong about their product (privacy-first AI notepad).
 
@@ -576,7 +576,7 @@ As Product Engineer at Waveful, where we also prioritize rapid execution, I deep
 
 The ability to ship this fast while maintaining quality, is what separates great teams from the rest 🔥
 
-Btw give an eye to Hyprnote:
+Btw give an eye to Char:
 100% local AI processing
 Zero cloud dependency
 Real privacy
@@ -791,9 +791,9 @@ export function HowItWorksSection() {
         <div className="border-r border-neutral-100 flex flex-col overflow-clip">
           <div className="p-8 flex flex-col gap-4">
             <p className="text-lg font-serif text-neutral-600 leading-relaxed">
-              <span className="font-semibold">While you take notes,</span>{" "}
-              Hyprnote listens and keeps track of everything that happens during
-              the meeting.
+              <span className="font-semibold">While you take notes,</span> Char
+              listens and keeps track of everything that happens during the
+              meeting.
             </p>
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -824,7 +824,7 @@ export function HowItWorksSection() {
           <div className="p-8 flex flex-col gap-4">
             <p className="text-lg font-serif text-neutral-600 leading-relaxed">
               <span className="font-semibold">After the meeting is over,</span>{" "}
-              Hyprnote combines your notes with transcripts to create a perfect
+              Char combines your notes with transcripts to create a perfect
               summary.
             </p>
           </div>
@@ -913,9 +913,9 @@ export function HowItWorksSection() {
         <div className="border-b border-neutral-100">
           <div className="p-6 pb-2">
             <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
-              <span className="font-semibold">While you take notes,</span>{" "}
-              Hyprnote listens and keeps track of everything that happens during
-              the meeting.
+              <span className="font-semibold">While you take notes,</span> Char
+              listens and keeps track of everything that happens during the
+              meeting.
             </p>
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
@@ -949,7 +949,7 @@ export function HowItWorksSection() {
           <div className="p-6 pb-2">
             <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
               <span className="font-semibold">After the meeting is over,</span>{" "}
-              Hyprnote combines your notes with transcripts to create a perfect
+              Char combines your notes with transcripts to create a perfect
               summary.
             </p>
           </div>
@@ -1129,7 +1129,7 @@ export function MainFeaturesSection({
         <div className="mb-6 mx-auto size-28 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
           <Image
             src="/api/images/hyprnote/icon.png"
-            alt="Hyprnote"
+            alt="Char"
             width={96}
             height={96}
             className="size-24 rounded-3xl border border-neutral-100"
@@ -1487,7 +1487,7 @@ export function TemplatesSection() {
           A template for every meeting
         </h2>
         <p className="text-neutral-600">
-          Hyprnote adapts to how you work with customizable templates for any
+          Char adapts to how you work with customizable templates for any
           meeting type
         </p>
       </div>
@@ -1599,7 +1599,7 @@ function FAQSection() {
         </div>
 
         <FAQ>
-          <FAQItem question="What languages does Hyprnote support?">
+          <FAQItem question="What languages does Char support?">
             45+ languages including English, Spanish, French, German, Japanese,
             Mandarin, and more.
           </FAQItem>
@@ -1609,20 +1609,20 @@ function FAQSection() {
             summarized notes.
           </FAQItem>
 
-          <FAQItem question="Does Hyprnote train AI models on my data?">
-            No. Hyprnote does not use your recordings, transcripts, or notes to
+          <FAQItem question="Does Char train AI models on my data?">
+            No. Char does not use your recordings, transcripts, or notes to
             train AI models. When using cloud providers, your data is processed
-            according to their privacy policies, but Hyprnote itself never
-            collects or uses your data for training.
+            according to their privacy policies, but Char itself never collects
+            or uses your data for training.
           </FAQItem>
 
-          <FAQItem question="Is Hyprnote safe?">
-            Hyprnote doesn't store your conversations. Every meeting audio,
+          <FAQItem question="Is Char safe?">
+            Char doesn't store your conversations. Every meeting audio,
             transcript, and note is a file on your computer. You decide if your
             data ever leaves your device.
           </FAQItem>
 
-          <FAQItem question="How is Hyprnote different from other AI note-takers?">
+          <FAQItem question="How is Char different from other AI note-takers?">
             Plain markdown files instead of proprietary databases. System audio
             capture instead of meeting bots. Your choice of AI provider instead
             of vendor lock-in. Open source instead of a black box.
@@ -1661,10 +1661,10 @@ function ManifestoSection() {
                 you and your team.
               </p>
               <p>
-                Hyprnote exists to preserve what makes us human: conversations
-                that spark ideas, collaborations that move work forward. We
-                build tools that amplify human agency, not replace it. No ghost
-                bots. No silent note lurkers. Just people, thinking together.
+                Char exists to preserve what makes us human: conversations that
+                spark ideas, collaborations that move work forward. We build
+                tools that amplify human agency, not replace it. No ghost bots.
+                No silent note lurkers. Just people, thinking together.
               </p>
               <p>
                 We stand with those who value real connection and purposeful
@@ -1692,7 +1692,7 @@ function ManifestoSection() {
             <div className="flex flex-col gap-4">
               <div>
                 <p className="text-base text-neutral-600 font-medium italic font-serif">
-                  Hyprnote
+                  Char
                 </p>
                 <p className="text-sm text-neutral-500">
                   John Jeong, Yujong Lee
@@ -1702,7 +1702,7 @@ function ManifestoSection() {
               <div>
                 <Image
                   src="/api/images/hyprnote/signature-dark.svg"
-                  alt="Hyprnote Signature"
+                  alt="Char Signature"
                   width={124}
                   height={60}
                   layout="constrained"
@@ -1737,7 +1737,7 @@ function BlogSection() {
           Latest from our blog
         </h2>
         <p className="text-neutral-600 max-w-lg mx-auto">
-          Insights, updates, and stories from the Hyprnote team
+          Insights, updates, and stories from the Char team
         </p>
       </div>
 
@@ -1863,7 +1863,7 @@ export function CTASection({
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <Image
             src="/api/images/hyprnote/icon.png"
-            alt="Hyprnote"
+            alt="Char"
             width={144}
             height={144}
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"

@@ -94,7 +94,7 @@ function Component() {
               "hover:scale-105 active:scale-95 transition-transform",
             ])}
           >
-            Try Hyprnote Free
+            Try Char Free
           </Link>
         </div>
 
@@ -141,10 +141,10 @@ function Component() {
               relevance of outputs.
             </p>
             <p className="text-neutral-600 leading-relaxed">
-              Hyprnote supports multiple AI providers, allowing you to choose
-              the model that best fits your needs. Whether you prioritize
-              accuracy, speed, or privacy with local models, our flexible
-              architecture adapts to your workflow.
+              Char supports multiple AI providers, allowing you to choose the
+              model that best fits your needs. Whether you prioritize accuracy,
+              speed, or privacy with local models, our flexible architecture
+              adapts to your workflow.
             </p>
           </div>
         </div>

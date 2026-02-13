@@ -9,14 +9,12 @@ export const Route = createFileRoute("/_view/legal/")({
       { title: "Legal - Char" },
       {
         name: "description",
-        content:
-          "Terms, privacy policy, and other legal documents for Hyprnote",
+        content: "Terms, privacy policy, and other legal documents for Char",
       },
       { property: "og:title", content: "Legal - Char" },
       {
         property: "og:description",
-        content:
-          "Terms, privacy policy, and other legal documents for Hyprnote",
+        content: "Terms, privacy policy, and other legal documents for Char",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://hyprnote.com/legal" },
@@ -24,8 +22,7 @@ export const Route = createFileRoute("/_view/legal/")({
       { name: "twitter:title", content: "Legal - Char" },
       {
         name: "twitter:description",
-        content:
-          "Terms, privacy policy, and other legal documents for Hyprnote",
+        content: "Terms, privacy policy, and other legal documents for Char",
       },
     ],
   }),

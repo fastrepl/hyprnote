@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_view/oss-friends")({
       {
         name: "description",
         content:
-          "Discover amazing open source projects and tools built by our friends in the community. Hyprnote is proud to be part of the open source ecosystem.",
+          "Discover amazing open source projects and tools built by our friends in the community. Char is proud to be part of the open source ecosystem.",
       },
       { property: "og:title", content: "OSS Friends - Char" },
       {

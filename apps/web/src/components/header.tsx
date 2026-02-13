@@ -234,7 +234,7 @@ function LeftNav({
         to="/why-hyprnote/"
         className="hidden md:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
       >
-        Why Hyprnote
+        Why Char
       </Link>
       <ProductDropdown
         isProductOpen={isProductOpen}
@@ -646,7 +646,7 @@ function MobileMenuLinks({
         onClick={() => setIsMenuOpen(false)}
         className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
       >
-        Why Hyprnote
+        Why Char
       </Link>
       <MobileProductSection
         isProductOpen={isProductOpen}

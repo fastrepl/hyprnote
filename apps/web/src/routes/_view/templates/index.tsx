@@ -219,7 +219,7 @@ function QuoteSection() {
   return (
     <div className="py-4 px-4 text-center border-y border-neutral-100 bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <p className="text-base text-stone-600 font-serif italic">
-        "Curated by Hyprnote and the community"
+        "Curated by Char and the community"
       </p>
     </div>
   );
@@ -466,7 +466,7 @@ function CTASection() {
           Ready to transform your meetings?
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Hyprnote and start using these templates to capture perfect
+          Download Char and start using these templates to capture perfect
           meeting notes with AI.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
@@ -572,7 +572,7 @@ function TemplateModal({
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <DownloadButton />
                   <p className="text-sm text-neutral-500 text-center sm:text-left">
-                    Download Hyprnote to use this template
+                    Download Char to use this template
                   </p>
                 </div>
               </div>

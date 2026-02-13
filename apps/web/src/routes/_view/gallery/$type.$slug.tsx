@@ -356,8 +356,8 @@ function RightSidebar({
             Use this {isTemplate ? "template" : "shortcut"}
           </h3>
           <p className="text-sm text-neutral-600 mb-6">
-            Download Hyprnote to use this {isTemplate ? "template" : "shortcut"}{" "}
-            and get AI-powered meeting notes.
+            Download Char to use this {isTemplate ? "template" : "shortcut"} and
+            get AI-powered meeting notes.
           </p>
           <DownloadButton />
           <p className="text-xs text-neutral-500 mt-4">

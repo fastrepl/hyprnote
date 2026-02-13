@@ -1,4 +1,4 @@
-import { CalendarIcon, MonitorIcon, UserIcon } from "lucide-react";
+import { CalendarIcon, MonitorIcon, SearchIcon, UserIcon } from "lucide-react";
 
 import type { ContextEntity, ContextEntityKind } from "../context-item";
 
@@ -12,7 +12,6 @@ export type ContextChipProps = {
 
 type EntityRenderer<E extends ContextEntity> = {
   toChip: (entity: E) => ContextChipProps | null;
-  toPromptBlock: (entity: E) => string | null;
 };
 
 type ExtractEntity<K extends ContextEntityKind> = Extract<
@@ -65,15 +64,17 @@ const renderers: RendererMap = {
             : sessionContext.rawContent;
         lines.push(`Raw note: ${truncated}`);
       }
+      const isFromTool = entity.source === "tool";
       return {
         key: entity.key,
-        icon: CalendarIcon,
-        label: sessionContext.title || "Session",
+        icon: isFromTool ? SearchIcon : CalendarIcon,
+        label: isFromTool
+          ? `Search: ${sessionContext.title || "Session"}`
+          : sessionContext.title || "Session",
         tooltip: lines.join("\n"),
         removable: entity.removable,
       };
     },
-    toPromptBlock: () => null,
   },
 
   account: {
@@ -88,12 +89,6 @@ const renderers: RendererMap = {
         label: "Account",
         tooltip: lines.join("\n"),
       };
-    },
-    toPromptBlock: (entity) => {
-      const lines: string[] = [];
-      if (entity.email) lines.push(`- Email: ${entity.email}`);
-      if (entity.userId) lines.push(`- User ID: ${entity.userId}`);
-      return lines.length > 0 ? lines.join("\n") : null;
     },
   },
 
@@ -113,25 +108,10 @@ const renderers: RendererMap = {
         tooltip: lines.join("\n"),
       };
     },
-    toPromptBlock: (entity) => {
-      const lines: string[] = [];
-      if (entity.platform) lines.push(`- Platform: ${entity.platform}`);
-      if (entity.arch) lines.push(`- Architecture: ${entity.arch}`);
-      if (entity.osVersion) lines.push(`- OS Version: ${entity.osVersion}`);
-      if (entity.appVersion) lines.push(`- App: ${entity.appVersion}`);
-      if (entity.buildHash) lines.push(`- Build: ${entity.buildHash}`);
-      if (entity.locale) lines.push(`- Locale: ${entity.locale}`);
-      return lines.length > 0 ? lines.join("\n") : null;
-    },
   },
 } satisfies RendererMap;
 
 export function renderChip(entity: ContextEntity): ContextChipProps | null {
   const renderer = renderers[entity.kind] as EntityRenderer<typeof entity>;
   return renderer.toChip(entity);
-}
-
-export function renderPromptBlock(entity: ContextEntity): string | null {
-  const renderer = renderers[entity.kind] as EntityRenderer<typeof entity>;
-  return renderer.toPromptBlock(entity);
 }

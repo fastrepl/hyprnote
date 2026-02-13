@@ -19456,6 +19456,7 @@ dependencies = [
  "tauri-specta",
  "template-app",
  "template-app-legacy",
+ "template-support",
  "tracing",
 ]
 

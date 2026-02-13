@@ -5,17 +5,25 @@ import type { SessionContext } from "@hypr/plugin-template";
 import type { HyprUIMessage } from "./types";
 import { isRecord } from "./utils";
 
+export type ContextEntitySource = "tool";
+
 export type ContextEntity =
   | {
       kind: "session";
       key: string;
+      source?: ContextEntitySource;
       sessionContext: SessionContext;
       removable?: boolean;
     }
-  | ({ kind: "account"; key: string } & Partial<AccountInfo>)
+  | ({
+      kind: "account";
+      key: string;
+      source?: ContextEntitySource;
+    } & Partial<AccountInfo>)
   | ({
       kind: "device";
       key: string;
+      source?: ContextEntitySource;
     } & Partial<DeviceInfo>);
 
 export type ContextEntityKind = ContextEntity["kind"];
@@ -57,6 +65,7 @@ function parseSearchSessionsOutput(output: unknown): ContextEntity[] {
       {
         kind: "session",
         key: `session:search:${item.id}`,
+        source: "tool",
         sessionContext: {
           title,
           date: null,

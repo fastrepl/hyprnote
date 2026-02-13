@@ -1,24 +1,31 @@
+import type { AccountInfo } from "@hypr/plugin-auth";
 import { commands as authCommands } from "@hypr/plugin-auth";
+import type { DeviceInfo } from "@hypr/plugin-misc";
+import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as templateCommands } from "@hypr/plugin-template";
 
 import type { ContextEntity } from "../context-item";
-import { collectDeviceEntity } from "./device-info";
-import { renderPromptBlock } from "./registry";
 
-async function collectAccountEntity(): Promise<Extract<
-  ContextEntity,
-  { kind: "account" }
-> | null> {
+async function getAccountInfo(): Promise<AccountInfo | null> {
   try {
     const result = await authCommands.getAccountInfo();
     if (result.status === "ok" && result.data) {
-      return {
-        kind: "account",
-        key: "support:account",
-        ...result.data,
-      };
+      return result.data;
     }
   } catch (error) {
     console.error("Failed to collect account info:", error);
+  }
+  return null;
+}
+
+async function getDeviceInfo(): Promise<DeviceInfo | null> {
+  try {
+    const result = await miscCommands.getDeviceInfo(navigator.language || "en");
+    if (result.status === "ok") {
+      return result.data;
+    }
+  } catch (error) {
+    console.error("Failed to collect device info:", error);
   }
   return null;
 }
@@ -27,28 +34,31 @@ export async function collectSupportContextBlock(): Promise<{
   entities: ContextEntity[];
   block: string | null;
 }> {
+  const [accountInfo, deviceInfo] = await Promise.all([
+    getAccountInfo(),
+    getDeviceInfo(),
+  ]);
+
   const entities: ContextEntity[] = [];
 
-  const accountEntity = await collectAccountEntity();
-  if (accountEntity) {
-    entities.push(accountEntity);
+  if (accountInfo) {
+    entities.push({ kind: "account", key: "support:account", ...accountInfo });
   }
 
-  const deviceEntity = await collectDeviceEntity();
-  entities.push(deviceEntity);
+  if (deviceInfo) {
+    entities.push({ kind: "device", key: "support:device", ...deviceInfo });
+  }
 
-  const blockLines = entities
-    .map(renderPromptBlock)
-    .filter((line): line is string => line !== null);
-
-  if (blockLines.length === 0) {
+  if (!deviceInfo) {
     return { entities, block: null };
   }
 
+  const result = await templateCommands.renderSupport({
+    supportSystem: { account: accountInfo, device: deviceInfo },
+  });
+
   return {
     entities,
-    block:
-      "---\nThe following is automatically collected context about the current user and their environment. Use it when filing issues or diagnosing problems.\n\n" +
-      blockLines.join("\n"),
+    block: result.status === "ok" ? result.data : null,
   };
 }

@@ -21,23 +21,6 @@ pub struct DeviceInfo {
     pub locale: Option<String>,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, utoipa::ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct AccountContext {
-    pub email: Option<String>,
-    pub full_name: Option<String>,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, utoipa::ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct DeviceContext {
-    pub platform: String,
-    pub arch: String,
-    pub os_version: String,
-    pub app_version: String,
-    pub locale: Option<String>,
-}
-
 #[derive(askama::Template)]
 #[template(path = "bug_report.md.jinja")]
 struct BugReportBody<'a> {
@@ -71,44 +54,85 @@ struct LogAnalysisComment<'a> {
 #[template(path = "support_chat.md.jinja")]
 struct SupportChatPrompt;
 
-pub struct SupportIssueTemplateInput<'a> {
-    pub description: &'a str,
-    pub platform: &'a str,
-    pub arch: &'a str,
-    pub os_version: &'a str,
-    pub app_version: &'a str,
-    pub source: &'a str,
+#[derive(askama::Template)]
+#[template(path = "support_context.md.jinja")]
+struct SupportContextBlock<'a> {
+    account: Option<&'a AccountInfo>,
+    device: &'a DeviceInfo,
 }
 
-pub fn render_bug_report(input: SupportIssueTemplateInput<'_>) -> Result<String, askama::Error> {
-    askama::Template::render(&BugReportBody {
-        description: input.description,
-        platform: input.platform,
-        arch: input.arch,
-        os_version: input.os_version,
-        app_version: input.app_version,
-        source: input.source,
-    })
+#[derive(Clone, serde::Deserialize, serde::Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub enum SupportTemplate {
+    SupportSystem(SupportSystem),
+    BugReport(BugReport),
+    FeatureRequest(FeatureRequest),
+    LogAnalysis(LogAnalysis),
 }
 
-pub fn render_feature_request(
-    input: SupportIssueTemplateInput<'_>,
-) -> Result<String, askama::Error> {
-    askama::Template::render(&FeatureRequestBody {
-        description: input.description,
-        platform: input.platform,
-        arch: input.arch,
-        os_version: input.os_version,
-        app_version: input.app_version,
-        source: input.source,
-    })
+#[derive(Clone, serde::Deserialize, serde::Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct SupportSystem {
+    pub account: Option<AccountInfo>,
+    pub device: DeviceInfo,
 }
 
-pub fn render_log_analysis(summary_section: &str, tail: &str) -> Result<String, askama::Error> {
-    askama::Template::render(&LogAnalysisComment {
-        summary_section,
-        tail,
-    })
+#[derive(Clone, serde::Deserialize, serde::Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct BugReport {
+    pub description: String,
+    pub platform: String,
+    pub arch: String,
+    pub os_version: String,
+    pub app_version: String,
+    pub source: String,
+}
+
+#[derive(Clone, serde::Deserialize, serde::Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct FeatureRequest {
+    pub description: String,
+    pub platform: String,
+    pub arch: String,
+    pub os_version: String,
+    pub app_version: String,
+    pub source: String,
+}
+
+#[derive(Clone, serde::Deserialize, serde::Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct LogAnalysis {
+    pub summary_section: String,
+    pub tail: String,
+}
+
+pub fn render(t: SupportTemplate) -> Result<String, askama::Error> {
+    match t {
+        SupportTemplate::SupportSystem(t) => askama::Template::render(&SupportContextBlock {
+            account: t.account.as_ref(),
+            device: &t.device,
+        }),
+        SupportTemplate::BugReport(t) => askama::Template::render(&BugReportBody {
+            description: &t.description,
+            platform: &t.platform,
+            arch: &t.arch,
+            os_version: &t.os_version,
+            app_version: &t.app_version,
+            source: &t.source,
+        }),
+        SupportTemplate::FeatureRequest(t) => askama::Template::render(&FeatureRequestBody {
+            description: &t.description,
+            platform: &t.platform,
+            arch: &t.arch,
+            os_version: &t.os_version,
+            app_version: &t.app_version,
+            source: &t.source,
+        }),
+        SupportTemplate::LogAnalysis(t) => askama::Template::render(&LogAnalysisComment {
+            summary_section: &t.summary_section,
+            tail: &t.tail,
+        }),
+    }
 }
 
 pub fn render_support_chat() -> Result<String, askama::Error> {

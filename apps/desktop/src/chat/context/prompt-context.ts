@@ -9,6 +9,13 @@ export type ChatSystemContext = {
   relatedSessions: SessionContext[];
 };
 
+// Tool-derived entities (e.g. search_sessions results) are already visible to
+// the model through message history.  Excluding them from the system prompt
+// avoids duplicate/competing context and keeps the prompt focused.
+export function filterForPrompt(entities: ContextEntity[]): ContextEntity[] {
+  return entities.filter((e) => e.source !== "tool");
+}
+
 function toSessionContext(entity: SessionEntity): SessionContext {
   const { sessionContext } = entity;
   return {

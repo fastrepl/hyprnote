@@ -30,16 +30,16 @@ pub(crate) async fn submit_bug_report(
 ) -> Result<String> {
     let (description, title) = make_title(input.description, "Bug Report");
 
-    let body = hypr_template_support::render_bug_report(
-        hypr_template_support::SupportIssueTemplateInput {
-            description: &description,
-            platform: input.platform,
-            arch: input.arch,
-            os_version: input.os_version,
-            app_version: input.app_version,
-            source: input.source,
+    let body = hypr_template_support::render(hypr_template_support::SupportTemplate::BugReport(
+        hypr_template_support::BugReport {
+            description,
+            platform: input.platform.to_string(),
+            arch: input.arch.to_string(),
+            os_version: input.os_version.to_string(),
+            app_version: input.app_version.to_string(),
+            source: input.source.to_string(),
         },
-    )
+    ))
     .map_err(|e| SupportError::Internal(e.to_string()))?;
 
     let labels = vec!["product/desktop".to_string()];
@@ -58,17 +58,18 @@ pub(crate) async fn submit_feature_request(
 ) -> Result<String> {
     let (description, title) = make_title(input.description, "Feature Request");
 
-    let body = hypr_template_support::render_feature_request(
-        hypr_template_support::SupportIssueTemplateInput {
-            description: &description,
-            platform: input.platform,
-            arch: input.arch,
-            os_version: input.os_version,
-            app_version: input.app_version,
-            source: input.source,
-        },
-    )
-    .map_err(|e| SupportError::Internal(e.to_string()))?;
+    let body =
+        hypr_template_support::render(hypr_template_support::SupportTemplate::FeatureRequest(
+            hypr_template_support::FeatureRequest {
+                description,
+                platform: input.platform.to_string(),
+                arch: input.arch.to_string(),
+                os_version: input.os_version.to_string(),
+                app_version: input.app_version.to_string(),
+                source: input.source.to_string(),
+            },
+        ))
+        .map_err(|e| SupportError::Internal(e.to_string()))?;
 
     let category_id = &state.config.github.github_discussion_category_id;
     if category_id.is_empty() {
@@ -107,8 +108,13 @@ async fn attach_log_analysis(state: &AppState, issue_number: u64, log_text: &str
     };
 
     let tail = logs::safe_tail(log_text, 10000);
-    let log_comment =
-        hypr_template_support::render_log_analysis(&summary_section, tail).unwrap_or_default();
+    let log_comment = hypr_template_support::render(
+        hypr_template_support::SupportTemplate::LogAnalysis(hypr_template_support::LogAnalysis {
+            summary_section,
+            tail: tail.to_string(),
+        }),
+    )
+    .unwrap_or_default();
 
     let _ = add_issue_comment(state, issue_number, &log_comment).await;
 }

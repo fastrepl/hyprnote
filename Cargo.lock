@@ -803,6 +803,7 @@ name = "askama-utils"
 version = "0.1.0"
 dependencies = [
  "askama",
+ "askama_parser",
  "insta",
 ]
 
@@ -10981,6 +10982,7 @@ dependencies = [
  "backon",
  "bytes",
  "futures-util",
+ "openrouter",
  "reqwest 0.13.2",
  "sentry",
  "serde",

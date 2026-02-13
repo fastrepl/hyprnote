@@ -1,4 +1,5 @@
-use crate::{EnhanceTemplate, Participant, Session, Transcript, common_derives, filters};
+use crate::{EnhanceTemplate, Participant, Session, Transcript, common_derives};
+use hypr_askama_utils::filters;
 
 common_derives! {
     #[derive(askama::Template)]
@@ -36,6 +37,7 @@ mod tests {
     tpl_snapshot!(
         test_enhance_system_formatting,
         EnhanceSystem { language: None },
+        fixed_date = "2025-01-01",
         @r#"
     # General Instructions
 

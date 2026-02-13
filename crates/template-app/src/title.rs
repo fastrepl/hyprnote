@@ -1,4 +1,5 @@
-use crate::{common_derives, filters};
+use crate::common_derives;
+use hypr_askama_utils::filters;
 
 common_derives! {
     #[derive(askama::Template)]
@@ -32,6 +33,7 @@ mod tests {
     tpl_snapshot!(
         test_title_system,
         TitleSystem { language: None },
+        fixed_date = "2025-01-01",
         @r#"
     # General Instructions
 

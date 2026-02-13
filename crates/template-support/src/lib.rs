@@ -21,6 +21,23 @@ pub struct DeviceInfo {
     pub locale: Option<String>,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, utoipa::ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountContext {
+    pub email: Option<String>,
+    pub full_name: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, utoipa::ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DeviceContext {
+    pub platform: String,
+    pub arch: String,
+    pub os_version: String,
+    pub app_version: String,
+    pub locale: Option<String>,
+}
+
 #[derive(askama::Template)]
 #[template(path = "bug_report.md.jinja")]
 struct BugReportBody<'a> {

@@ -27,40 +27,48 @@ type RendererMap = {
 const renderers: RendererMap = {
   session: {
     toChip: (entity) => {
-      const { chatContext } = entity;
+      const { sessionContext } = entity;
+      const wordCount =
+        sessionContext.transcript?.segments.reduce(
+          (sum, s) => sum + s.text.split(/\s+/).filter(Boolean).length,
+          0,
+        ) ?? 0;
+      const participantCount = sessionContext.participants.length;
+      const eventTitle = sessionContext.event?.name ?? null;
+
       if (
-        !chatContext.title &&
-        !chatContext.date &&
-        !entity.wordCount &&
-        !chatContext.rawContent &&
-        entity.participantCount === undefined &&
-        !entity.eventTitle
+        !sessionContext.title &&
+        !sessionContext.date &&
+        !wordCount &&
+        !sessionContext.rawContent &&
+        participantCount === 0 &&
+        !eventTitle
       ) {
         return null;
       }
       const lines: string[] = [];
-      if (chatContext.title) lines.push(chatContext.title);
-      if (chatContext.date) lines.push(chatContext.date);
-      if (entity.wordCount && entity.wordCount > 0) {
-        lines.push(`Transcript: ${entity.wordCount.toLocaleString()} words`);
+      if (sessionContext.title) lines.push(sessionContext.title);
+      if (sessionContext.date) lines.push(sessionContext.date);
+      if (wordCount > 0) {
+        lines.push(`Transcript: ${wordCount.toLocaleString()} words`);
       }
-      if (entity.participantCount !== undefined) {
-        lines.push(`Participants: ${entity.participantCount}`);
+      if (participantCount > 0) {
+        lines.push(`Participants: ${participantCount}`);
       }
-      if (entity.eventTitle) {
-        lines.push(`Event: ${entity.eventTitle}`);
+      if (eventTitle) {
+        lines.push(`Event: ${eventTitle}`);
       }
-      if (chatContext.rawContent) {
+      if (sessionContext.rawContent) {
         const truncated =
-          chatContext.rawContent.length > 120
-            ? `${chatContext.rawContent.slice(0, 120)}...`
-            : chatContext.rawContent;
+          sessionContext.rawContent.length > 120
+            ? `${sessionContext.rawContent.slice(0, 120)}...`
+            : sessionContext.rawContent;
         lines.push(`Raw note: ${truncated}`);
       }
       return {
         key: entity.key,
         icon: CalendarIcon,
-        label: chatContext.title || "Session",
+        label: sessionContext.title || "Session",
         tooltip: lines.join("\n"),
         removable: entity.removable,
       };

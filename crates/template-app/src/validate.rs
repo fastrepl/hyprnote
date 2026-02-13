@@ -1,10 +1,8 @@
 use std::collections::HashSet;
 
-use hypr_askama_utils::{TemplateUsage, extract};
+use hypr_askama_utils::{TEMPLATE_FILTERS, TemplateUsage, extract};
 
 use crate::Error;
-
-const CUSTOM_FILTERS: &[&str] = &["current_date", "language", "is_english", "is_korean"];
 
 #[derive(Debug)]
 pub struct ValidationError {
@@ -35,7 +33,7 @@ pub fn validate(src: &str, allowed_variables: &[&str]) -> Result<TemplateUsage, 
     let usage = extract(src).map_err(|e| Error::ParseError(e.to_string()))?;
 
     let allowed_vars: HashSet<&str> = allowed_variables.iter().copied().collect();
-    let allowed_filters: HashSet<&str> = CUSTOM_FILTERS.iter().copied().collect();
+    let allowed_filters: HashSet<&str> = TEMPLATE_FILTERS.iter().copied().collect();
 
     let unknown_variables: Vec<String> = usage
         .variables

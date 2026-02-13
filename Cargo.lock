@@ -806,7 +806,9 @@ version = "0.1.0"
 dependencies = [
  "askama",
  "askama_parser",
+ "chrono",
  "insta",
+ "isolang",
 ]
 
 [[package]]
@@ -19767,9 +19769,7 @@ version = "0.1.0"
 dependencies = [
  "askama",
  "askama-utils",
- "chrono",
  "insta",
- "isolang",
  "serde",
  "specta",
  "thiserror 2.0.18",

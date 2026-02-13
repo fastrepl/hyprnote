@@ -67,6 +67,28 @@ Session: {{ title }}
 {%- endif -%}
 {%- endmacro -%}
 
+{%- macro session_context_brief(ctx) -%}
+{%- if let Some(title) = ctx.title %}
+
+- {{ title }}
+  {%- endif -%}
+  {%- if let Some(enhanced_content) = ctx.enhanced_content %}
+  {{ enhanced_content }}
+  {%- else if let Some(raw_content) = ctx.raw_content %}
+  {{ raw_content }}
+  {%- endif -%}
+  {%- if !ctx.participants.is_empty() -%}
+  {%- for p in ctx.participants %}
+- {{ p.name }}{%- match p.job_title -%}{%- when Some with (job_title) %} ({{ job_title }}){%- when None -%}{%- endmatch -%}
+  {%- endfor -%}
+  {%- endif -%}
+  {%- if let Some(transcript) = ctx.transcript -%}
+  {%- for segment in transcript.segments %}
+  {{ segment.speaker }}: {{ segment.text }}
+  {%- endfor -%}
+  {%- endif -%}
+  {%- endmacro -%}
+
 {%- macro template_context(template) -%}
 {%- match template -%}
 {%- when Some with (tpl) %}

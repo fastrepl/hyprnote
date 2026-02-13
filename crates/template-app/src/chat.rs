@@ -1,7 +1,9 @@
-use crate::{Event, Participant, Transcript, common_derives, filters};
+use crate::{Event, Participant, Transcript, common_derives};
+#[allow(unused_imports)]
+use hypr_askama_utils::filters;
 
 common_derives! {
-    pub struct ChatContext {
+    pub struct SessionContext {
         pub title: Option<String>,
         pub date: Option<String>,
         pub raw_content: Option<String>,
@@ -17,7 +19,8 @@ common_derives! {
     #[template(path = "chat.system.md.jinja")]
     pub struct ChatSystem {
         pub language: Option<String>,
-        pub context: Option<ChatContext>,
+        pub context: Option<SessionContext>,
+        pub related_sessions: Vec<SessionContext>,
     }
 }
 
@@ -28,10 +31,10 @@ mod tests {
     use hypr_askama_utils::tpl_snapshot_with_assert;
 
     tpl_snapshot_with_assert!(
-        test_chat_system_with_context, 
+        test_chat_system_with_context,
         ChatSystem {
             language: None,
-            context: Some(ChatContext {
+            context: Some(SessionContext {
                 title: Some("Weekly Standup".to_string()),
                 date: Some("2025-01-15".to_string()),
                 raw_content: None,
@@ -68,8 +71,10 @@ mod tests {
                     name: "Weekly Team Sync".to_string(),
                 }),
             }),
-        }, 
+            related_sessions: vec![],
+        },
         |v| v.contains("English"),
+        fixed_date = "2025-01-01",
         @r#"
     # General Instructions
 

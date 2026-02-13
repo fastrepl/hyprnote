@@ -1,13 +1,11 @@
 mod chat;
 mod enhance;
-mod filters;
 mod title;
 mod types;
 mod validate;
 
 pub use chat::*;
 pub use enhance::*;
-pub use filters::*;
 pub use title::*;
 pub use types::*;
 pub use validate::*;

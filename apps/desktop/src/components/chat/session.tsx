@@ -11,8 +11,8 @@ import {
 } from "react";
 
 import {
-  type ChatContext,
   type Participant,
+  type SessionContext,
   commands as templateCommands,
   type Transcript,
 } from "@hypr/plugin-template";
@@ -23,6 +23,7 @@ import {
   extractToolContextEntities,
 } from "../../chat/context-item";
 import { composeContextEntities } from "../../chat/context/composer";
+import { buildChatSystemContext } from "../../chat/context/prompt-context";
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
@@ -69,6 +70,7 @@ export function ChatSession({
   children,
 }: ChatSessionProps) {
   const { transport, sessionEntity, isSystemPromptReady } = useTransport(
+    chatGroupId,
     attachedSessionId,
     modelOverride,
     extraTools,
@@ -296,6 +298,7 @@ function tiptapJsonToMarkdown(
 }
 
 function useTransport(
+  chatGroupId?: string,
   attachedSessionId?: string,
   modelOverride?: LanguageModel,
   extraTools?: ToolSet,
@@ -307,6 +310,9 @@ function useTransport(
   const store = main.UI.useStore(main.STORE_ID);
   const language = main.UI.useValue("ai_language", main.STORE_ID) ?? "en";
   const [systemPrompt, setSystemPrompt] = useState<string | undefined>();
+  const persistedCtx = useChatContext((s) =>
+    chatGroupId ? s.contexts[chatGroupId] : undefined,
+  );
 
   const { title, rawMd, createdAt, event } = useSession(
     attachedSessionId ?? "",
@@ -456,7 +462,7 @@ function useTransport(
 
     const titleStr = (title as string) || undefined;
     const dateStr = (createdAt as string) || undefined;
-    const chatContext: ChatContext = {
+    const sc: SessionContext = {
       title: titleStr ?? null,
       date: dateStr ?? null,
       rawContent: rawContentMd ?? null,
@@ -481,10 +487,7 @@ function useTransport(
     return {
       kind: "session",
       key: "session:info",
-      chatContext,
-      wordCount: words.length > 0 ? words.length : undefined,
-      participantCount: participants.length,
-      eventTitle: event?.title ?? undefined,
+      sessionContext: sc,
     };
   }, [
     attachedSessionId,
@@ -498,7 +501,18 @@ function useTransport(
     transcript,
   ]);
 
-  const chatContext = sessionEntity?.chatContext ?? null;
+  const persistedEntities = persistedCtx?.contextEntities ?? [];
+  const promptContextEntities = useMemo(() => {
+    const sessionEntities: ContextEntity[] = sessionEntity
+      ? [sessionEntity]
+      : [];
+    return composeContextEntities([persistedEntities, sessionEntities]);
+  }, [persistedEntities, sessionEntity]);
+
+  const chatSystemContext = useMemo(
+    () => buildChatSystemContext(promptContextEntities),
+    [promptContextEntities],
+  );
 
   useEffect(() => {
     if (systemPromptOverride) {
@@ -512,7 +526,7 @@ function useTransport(
       .render({
         chatSystem: {
           language,
-          context: chatContext,
+          ...chatSystemContext,
         },
       })
       .then((result) => {
@@ -536,7 +550,7 @@ function useTransport(
     return () => {
       stale = true;
     };
-  }, [language, chatContext, systemPromptOverride]);
+  }, [language, chatSystemContext, systemPromptOverride]);
 
   const effectiveSystemPrompt = systemPromptOverride ?? systemPrompt;
   const isSystemPromptReady =

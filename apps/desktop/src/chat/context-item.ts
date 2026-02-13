@@ -1,6 +1,6 @@
 import type { AccountInfo } from "@hypr/plugin-auth";
 import type { DeviceInfo } from "@hypr/plugin-misc";
-import type { ChatContext } from "@hypr/plugin-template";
+import type { SessionContext } from "@hypr/plugin-template";
 
 import type { HyprUIMessage } from "./types";
 import { isRecord } from "./utils";
@@ -9,10 +9,7 @@ export type ContextEntity =
   | {
       kind: "session";
       key: string;
-      chatContext: ChatContext;
-      wordCount?: number;
-      participantCount?: number;
-      eventTitle?: string;
+      sessionContext: SessionContext;
       removable?: boolean;
     }
   | ({ kind: "account"; key: string } & Partial<AccountInfo>)
@@ -60,7 +57,7 @@ function parseSearchSessionsOutput(output: unknown): ContextEntity[] {
       {
         kind: "session",
         key: `session:search:${item.id}`,
-        chatContext: {
+        sessionContext: {
           title,
           date: null,
           rawContent: content,

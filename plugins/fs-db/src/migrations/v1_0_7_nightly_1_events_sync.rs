@@ -45,10 +45,7 @@ fn load_events(base_dir: &Path) -> HashMap<String, Value> {
         Ok(c) => c,
         Err(_) => return HashMap::new(),
     };
-    match serde_json::from_str(&content) {
-        Ok(map) => map,
-        Err(_) => HashMap::new(),
-    }
+    serde_json::from_str(&content).unwrap_or_default()
 }
 
 fn load_timezone(base_dir: &Path) -> Option<String> {
@@ -73,10 +70,10 @@ fn day_from_started_at(started_at: &str, timezone: Option<&str>) -> String {
         }
     };
 
-    if let Some(tz_str) = timezone {
-        if let Ok(tz) = tz_str.parse::<chrono_tz::Tz>() {
-            return dt.with_timezone(&tz).format("%Y-%m-%d").to_string();
-        }
+    if let Some(tz_str) = timezone
+        && let Ok(tz) = tz_str.parse::<chrono_tz::Tz>()
+    {
+        return dt.with_timezone(&tz).format("%Y-%m-%d").to_string();
     }
 
     dt.format("%Y-%m-%d").to_string()
@@ -145,10 +142,10 @@ fn collect_ignored_events(
             continue;
         }
 
-        if let Some(series_id) = event.get("recurrence_series_id").and_then(|v| v.as_str()) {
-            if ignored_series.contains(series_id) {
-                continue;
-            }
+        if let Some(series_id) = event.get("recurrence_series_id").and_then(|v| v.as_str())
+            && ignored_series.contains(series_id)
+        {
+            continue;
         }
 
         let tracking_id = event
@@ -207,10 +204,10 @@ fn clean_events_json(base_dir: &Path, ops: &mut Vec<FileOp>) {
 
     let mut changed = false;
     for event in map.values_mut() {
-        if let Some(obj) = event.as_object_mut() {
-            if obj.remove("ignored").is_some() {
-                changed = true;
-            }
+        if let Some(obj) = event.as_object_mut()
+            && obj.remove("ignored").is_some()
+        {
+            changed = true;
         }
     }
 
@@ -282,9 +279,8 @@ fn migrate_session_metas(base_dir: &Path, events: &HashMap<String, Value>, ops: 
         if !meta_path.exists() {
             continue;
         }
-        match try_migrate_meta(&meta_path, events) {
-            Ok(Some(op)) => ops.push(op),
-            Ok(None) | Err(_) => {}
+        if let Ok(Some(op)) = try_migrate_meta(&meta_path, events) {
+            ops.push(op)
         }
     }
 }

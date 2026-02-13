@@ -54,6 +54,10 @@ async fn app() -> Router {
         &env.supabase,
         auth_state_support.clone(),
     );
+    let research_config = hypr_api_research::ResearchConfig {
+        exa_api_key: env.exa_api_key.clone(),
+        jina_api_key: env.jina_api_key.clone(),
+    };
 
     let webhook_routes = Router::new().nest(
         "/nango",
@@ -63,6 +67,7 @@ async fn app() -> Router {
     let pro_routes = Router::new()
         .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
         .merge(hypr_llm_proxy::chat_completions_router(llm_config.clone()))
+        .merge(hypr_api_research::router(research_config))
         .nest("/stt", hypr_transcribe_proxy::router(stt_config))
         .nest("/llm", hypr_llm_proxy::router(llm_config))
         .nest("/calendar", hypr_api_calendar::router(calendar_config))

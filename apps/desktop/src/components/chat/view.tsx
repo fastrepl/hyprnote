@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { useShell } from "../../contexts/shell";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
 import { useTabs } from "../../store/zustand/tabs";
+import { ChatBody } from "./body";
 import { ChatContent } from "./content";
 import { ChatHeader } from "./header";
 import { ChatSession } from "./session";
@@ -54,8 +55,15 @@ export function ChatView() {
             {...sessionProps}
             model={model}
             handleSendMessage={handleSendMessage}
-            mcpIndicator={{ type: "pro", enabled: false }}
-          />
+          >
+            <ChatBody
+              messages={sessionProps.messages}
+              status={sessionProps.status}
+              error={sessionProps.error}
+              onReload={sessionProps.regenerate}
+              isModelConfigured={!!model}
+            />
+          </ChatContent>
         )}
       </ChatSession>
     </div>

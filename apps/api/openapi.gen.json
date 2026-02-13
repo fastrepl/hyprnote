@@ -466,6 +466,18 @@
           "arch": {
             "type": "string"
           },
+          "buildHash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "locale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "osVersion": {
             "type": "string"
           },

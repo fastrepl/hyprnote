@@ -18,7 +18,11 @@ export interface MCPConfig extends MCPClientConfig {
 
 export function useMCP(config: MCPConfig) {
   const { enabled, accessToken, promptName, collectContext } = config;
-  const { client, isConnected } = useMCPClient(enabled, config, accessToken);
+  const { client, isConnected, error } = useMCPClient(
+    enabled,
+    config,
+    accessToken,
+  );
   const { pendingElicitation, respondToElicitation } =
     useMCPElicitation(client);
 
@@ -29,6 +33,14 @@ export function useMCP(config: MCPConfig) {
 
   useEffect(() => {
     if (!enabled) {
+      setTools({});
+      setSystemPrompt(undefined);
+      setContextEntities([]);
+      setIsReady(true);
+      return;
+    }
+
+    if (isConnected && !client && error) {
       setTools({});
       setSystemPrompt(undefined);
       setContextEntities([]);
@@ -92,7 +104,7 @@ export function useMCP(config: MCPConfig) {
     return () => {
       cancelled = true;
     };
-  }, [enabled, client, isConnected, promptName, collectContext]);
+  }, [enabled, client, isConnected, error, promptName, collectContext]);
 
   return {
     tools,

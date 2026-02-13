@@ -9,7 +9,7 @@ import { composeContextEntities } from "../../../../chat/context/composer";
 import type { HyprUIMessage } from "../../../../chat/types";
 import { ElicitationProvider } from "../../../../contexts/elicitation";
 import { useFeedbackLanguageModel } from "../../../../hooks/useLLMConnection";
-import { useSupportMCP } from "../../../../hooks/useSupportMCPTools";
+import { useSupportMCP } from "../../../../hooks/useSupportMCP";
 import type { Tab } from "../../../../store/zustand/tabs";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { ChatBody } from "../../../chat/body";

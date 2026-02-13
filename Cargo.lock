@@ -518,6 +518,7 @@ dependencies = [
  "api-calendar",
  "api-env",
  "api-nango",
+ "api-research",
  "api-subscription",
  "api-support",
  "axum 0.8.8",
@@ -603,6 +604,7 @@ dependencies = [
  "askama",
  "axum 0.8.8",
  "exa",
+ "jina",
  "mcp",
  "rmcp",
  "serde",
@@ -10098,6 +10100,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "875a5a69ac2bab1a891711cf5eccbec1ce0341ea805560dcd90b7a2e925132e8"
 dependencies = [
  "jiff-tzdb",
+]
+
+[[package]]
+name = "jina"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.13.2",
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "specta",
+ "thiserror 2.0.18",
+ "tokio",
+ "url",
 ]
 
 [[package]]

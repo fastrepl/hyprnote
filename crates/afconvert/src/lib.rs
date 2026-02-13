@@ -30,6 +30,7 @@ pub fn to_wav(source_path: &Path) -> Result<PathBuf, Error> {
         .output()?;
 
     if !output.status.success() {
+        let _ = std::fs::remove_file(&wav_path);
         let stderr = String::from_utf8_lossy(&output.stderr);
         return Err(Error::Failed(stderr.into_owned()));
     }

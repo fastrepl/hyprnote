@@ -24,13 +24,13 @@ export const Route = createFileRoute("/_view/shortcuts/")({
   },
   head: () => ({
     meta: [
-      { title: "AI Shortcuts - Hyprnote" },
+      { title: "AI Shortcuts - Char" },
       {
         name: "description",
         content:
           "Discover our library of AI shortcuts for meeting conversations. Extract action items, draft follow-up emails, get meeting insights, and more with quick chat commands.",
       },
-      { property: "og:title", content: "AI Shortcuts - Hyprnote" },
+      { property: "og:title", content: "AI Shortcuts - Char" },
       {
         property: "og:description",
         content:
@@ -216,7 +216,7 @@ function QuoteSection() {
   return (
     <div className="py-4 px-4 text-center border-y border-neutral-100 bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <p className="text-base text-stone-600 font-serif italic">
-        "Curated by Hyprnote and the community"
+        "Curated by Char and the community"
       </p>
     </div>
   );
@@ -455,8 +455,8 @@ function CTASection() {
           Ready to transform your meetings?
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Hyprnote and start using these shortcuts to get instant
-          insights from your meeting conversations.
+          Download Char and start using these shortcuts to get instant insights
+          from your meeting conversations.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
           <DownloadButton />
@@ -529,7 +529,7 @@ function ShortcutModal({
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <DownloadButton />
                   <p className="text-sm text-neutral-500 text-center sm:text-left">
-                    Download Hyprnote to use this shortcut
+                    Download Char to use this shortcut
                   </p>
                 </div>
               </div>

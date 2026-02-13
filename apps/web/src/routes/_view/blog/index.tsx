@@ -9,7 +9,7 @@ import { AUTHOR_AVATARS } from "@/lib/team";
 
 const CATEGORIES = [
   "Case Study",
-  "Hyprnote Weekly",
+  "Char Weekly",
   "Productivity Hack",
   "Engineering",
 ] as const;
@@ -28,15 +28,15 @@ export const Route = createFileRoute("/_view/blog/")({
   },
   head: () => ({
     meta: [
-      { title: "Blog - Hyprnote Blog" },
+      { title: "Blog - Char Blog" },
       {
         name: "description",
-        content: "Insights, updates, and stories from the Hyprnote team",
+        content: "Insights, updates, and stories from the Char team",
       },
-      { property: "og:title", content: "Blog - Hyprnote Blog" },
+      { property: "og:title", content: "Blog - Char Blog" },
       {
         property: "og:description",
-        content: "Insights, updates, and stories from the Hyprnote team",
+        content: "Insights, updates, and stories from the Char team",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://hyprnote.com/blog" },
@@ -139,7 +139,7 @@ function Header() {
         Blog
       </h1>
       <p className="text-lg text-neutral-600 max-w-2xl mx-auto px-4">
-        Insights, updates, and stories from the Hyprnote team
+        Insights, updates, and stories from the Char team
       </p>
     </header>
   );

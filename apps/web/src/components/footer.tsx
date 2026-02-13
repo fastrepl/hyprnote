@@ -4,8 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
-import { Image } from "@/components/image";
-
 const vsList = [
   { slug: "otter", name: "Otter.ai" },
   { slug: "granola", name: "Granola" },
@@ -52,12 +50,11 @@ export function Footer() {
 function BrandSection({ currentYear }: { currentYear: number }) {
   return (
     <div className="lg:flex-1">
-      <Link to="/" className="inline-block mb-4">
-        <Image
-          src="/api/images/hyprnote/logo.svg"
-          alt="Hyprnote"
-          className="h-6"
-        />
+      <Link
+        to="/"
+        className="inline-block mb-4 font-semibold text-2xl font-serif"
+      >
+        Char
       </Link>
       <p className="text-sm text-neutral-500 mb-4">Fastrepl © {currentYear}</p>
       <p className="text-sm text-neutral-600 mb-3">
@@ -277,7 +274,7 @@ function ResourcesLinks() {
               "text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted",
               "inline-flex items-center gap-1",
             )}
-            aria-label={`Hyprnote for ${currentUseCase.label}`}
+            aria-label={`Char for ${currentUseCase.label}`}
           >
             👍 for{" "}
             <span
@@ -302,7 +299,7 @@ function ResourcesLinks() {
           >
             <img
               src="/api/images/hyprnote/icon.png"
-              alt="Hyprnote"
+              alt="Char"
               width={12}
               height={12}
               className="size-4 rounded border border-neutral-100 inline"

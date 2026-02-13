@@ -53,12 +53,12 @@ export const Route = createFileRoute("/_view/blog/$slug")({
 
     return {
       meta: [
-        { title: `${title} - Hyprnote Blog` },
+        { title: `${title} - Char Blog` },
         { name: "description", content: metaDescription },
         { tag: "link", attrs: { rel: "canonical", href: url } },
         {
           property: "og:title",
-          content: `${title} - Hyprnote Blog`,
+          content: `${title} - Char Blog`,
         },
         {
           property: "og:description",
@@ -70,7 +70,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
         { name: "twitter:card", content: "summary_large_image" },
         {
           name: "twitter:title",
-          content: `${title} - Hyprnote Blog`,
+          content: `${title} - Char Blog`,
         },
         {
           name: "twitter:description",
@@ -210,14 +210,14 @@ function CTASection() {
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <Image
             src="/api/images/hyprnote/icon.png"
-            alt="Hyprnote"
+            alt="Char"
             width={144}
             height={144}
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>
         <h2 className="text-2xl sm:text-3xl font-serif">
-          Try Hyprnote for yourself
+          Try Char for yourself
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
           The AI notepad for people in back-to-back meetings. Local-first,

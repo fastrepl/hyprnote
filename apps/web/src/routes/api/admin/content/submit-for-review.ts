@@ -9,7 +9,7 @@ import {
   updateContentFileOnBranch,
 } from "@/functions/github-content";
 
-const GITHUB_REPO = "fastrepl/hyprnote";
+const GITHUB_REPO = "fastrepl/char";
 
 interface SubmitForReviewRequest {
   path: string;

@@ -164,7 +164,7 @@ const changelog = defineCollection({
     });
 
     const version = document._meta.path.replace(/\.mdx$/, "");
-    const baseUrl = `https://github.com/fastrepl/hyprnote/releases/download/desktop_v${version}`;
+    const baseUrl = `https://github.com/fastrepl/char/releases/download/desktop_v${version}`;
     const downloads: Record<VersionPlatform, string> = {
       "dmg-aarch64": `${baseUrl}/hyprnote-macos-aarch64.dmg`,
       "appimage-x86_64": `${baseUrl}/hyprnote-linux-x86_64.AppImage`,

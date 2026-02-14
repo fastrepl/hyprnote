@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
     const beforeVersion = changelog.beforeVersion;
     const diffUrl =
       beforeVersion != null
-        ? `https://github.com/fastrepl/hyprnote/compare/desktop_v${beforeVersion}...desktop_v${changelog.version}`
+        ? `https://github.com/fastrepl/char/compare/desktop_v${beforeVersion}...desktop_v${changelog.version}`
         : null;
 
     return {

@@ -3260,7 +3260,7 @@ function FileItem({
         </span>
       </div>
       <a
-        href={`https://github.com/fastrepl/hyprnote/blob/main/apps/web/content/${item.path}`}
+        href={`https://github.com/fastrepl/char/blob/main/apps/web/content/${item.path}`}
         target="_blank"
         rel="noopener noreferrer"
         className="text-xs text-neutral-500 hover:text-neutral-700"

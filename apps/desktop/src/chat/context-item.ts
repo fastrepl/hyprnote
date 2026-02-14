@@ -5,6 +5,8 @@ import type { SessionContext } from "@hypr/plugin-template";
 import type { HyprUIMessage } from "./types";
 import { isRecord } from "./utils";
 
+export const CURRENT_SESSION_CONTEXT_KEY = "session:current";
+
 export type ContextEntitySource = "tool";
 
 export type ContextEntity =

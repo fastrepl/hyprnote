@@ -14,7 +14,7 @@ export function ChatView() {
   const { groupId, setGroupId } = chat;
   const { currentTab } = useTabs();
 
-  const attachedSessionId =
+  const currentSessionId =
     currentTab?.type === "sessions" ? currentTab.id : undefined;
 
   const stableSessionId = useStableSessionId(groupId);
@@ -48,7 +48,7 @@ export function ChatView() {
         key={stableSessionId}
         sessionId={stableSessionId}
         chatGroupId={groupId}
-        attachedSessionId={attachedSessionId}
+        currentSessionId={currentSessionId}
       >
         {(sessionProps) => (
           <ChatContent

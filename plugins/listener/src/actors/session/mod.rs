@@ -4,11 +4,12 @@ use std::path::PathBuf;
 use std::time::{Instant, SystemTime};
 
 use ractor::concurrency::Duration;
-use ractor::{Actor, ActorCell, ActorProcessingErr};
-use ractor_supervisor::SupervisorStrategy;
-use ractor_supervisor::core::{ChildBackoffFn, ChildSpec, Restart, SpawnFn};
-use ractor_supervisor::supervisor::{Supervisor, SupervisorArguments, SupervisorOptions};
+use ractor::{Actor, ActorCell, ActorProcessingErr, ActorRef, SupervisionEvent};
+use tauri_specta::Event;
+use tracing::Instrument;
 
+use crate::DegradedError;
+use crate::SessionLifecycleEvent;
 use crate::actors::{
     ChannelMode, ListenerActor, ListenerArgs, RecArgs, RecorderActor, SourceActor, SourceArgs,
 };
@@ -45,23 +46,350 @@ pub fn session_supervisor_name(session_id: &str) -> String {
     format!("{}{}", SESSION_SUPERVISOR_PREFIX, session_id)
 }
 
-fn make_supervisor_options() -> SupervisorOptions {
-    SupervisorOptions {
-        strategy: SupervisorStrategy::RestForOne,
-        max_restarts: 3,
-        max_window: Duration::from_secs(15),
-        reset_after: Some(Duration::from_secs(30)),
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ChildKind {
+    Source,
+    Listener,
+    Recorder,
+}
+
+struct RestartTracker {
+    count: u32,
+    window_start: Instant,
+}
+
+impl RestartTracker {
+    fn new() -> Self {
+        Self {
+            count: 0,
+            window_start: Instant::now(),
+        }
+    }
+
+    fn record_restart(&mut self, max_restarts: u32, max_window: Duration) -> bool {
+        let now = Instant::now();
+        if now.duration_since(self.window_start) > max_window {
+            self.count = 0;
+            self.window_start = now;
+        }
+        self.count += 1;
+        self.count <= max_restarts
+    }
+
+    fn maybe_reset(&mut self, reset_after: Duration) {
+        let now = Instant::now();
+        if now.duration_since(self.window_start) > reset_after {
+            self.count = 0;
+            self.window_start = now;
+        }
     }
 }
 
-fn make_listener_backoff() -> ChildBackoffFn {
-    ChildBackoffFn::new(|_id, count, _, _| {
-        if count == 0 {
-            None
-        } else {
-            Some(Duration::from_millis(500))
+pub struct SessionState {
+    ctx: SessionContext,
+    source_cell: Option<ActorCell>,
+    listener_cell: Option<ActorCell>,
+    recorder_cell: Option<ActorCell>,
+    listener_degraded: Option<DegradedError>,
+    source_restarts: RestartTracker,
+    recorder_restarts: RestartTracker,
+}
+
+pub struct SessionActor;
+
+impl SessionActor {
+    const MAX_RESTARTS: u32 = 3;
+    const MAX_WINDOW: Duration = Duration::from_secs(15);
+    const RESET_AFTER: Duration = Duration::from_secs(30);
+}
+
+pub enum SessionMsg {}
+
+#[ractor::async_trait]
+impl Actor for SessionActor {
+    type Msg = SessionMsg;
+    type State = SessionState;
+    type Arguments = SessionContext;
+
+    async fn pre_start(
+        &self,
+        myself: ActorRef<Self::Msg>,
+        ctx: Self::Arguments,
+    ) -> Result<Self::State, ActorProcessingErr> {
+        let session_id = ctx.params.session_id.clone();
+        let span = session_span(&session_id);
+
+        async {
+            let (source_ref, _) = Actor::spawn_linked(
+                Some(SourceActor::name()),
+                SourceActor,
+                SourceArgs {
+                    mic_device: None,
+                    onboarding: ctx.params.onboarding,
+                    app: ctx.app.clone(),
+                    session_id: ctx.params.session_id.clone(),
+                },
+                myself.get_cell(),
+            )
+            .await?;
+
+            let mode = ChannelMode::determine(ctx.params.onboarding);
+            let (listener_ref, _) = Actor::spawn_linked(
+                Some(ListenerActor::name()),
+                ListenerActor,
+                ListenerArgs {
+                    app: ctx.app.clone(),
+                    languages: ctx.params.languages.clone(),
+                    onboarding: ctx.params.onboarding,
+                    model: ctx.params.model.clone(),
+                    base_url: ctx.params.base_url.clone(),
+                    api_key: ctx.params.api_key.clone(),
+                    keywords: ctx.params.keywords.clone(),
+                    mode,
+                    session_started_at: ctx.started_at_instant,
+                    session_started_at_unix: ctx.started_at_system,
+                    session_id: ctx.params.session_id.clone(),
+                },
+                myself.get_cell(),
+            )
+            .await?;
+
+            let recorder_cell = if ctx.params.record_enabled {
+                let (recorder_ref, _) = Actor::spawn_linked(
+                    Some(RecorderActor::name()),
+                    RecorderActor,
+                    RecArgs {
+                        app_dir: ctx.app_dir.clone(),
+                        session_id: ctx.params.session_id.clone(),
+                    },
+                    myself.get_cell(),
+                )
+                .await?;
+                Some(recorder_ref.get_cell())
+            } else {
+                None
+            };
+
+            Ok(SessionState {
+                ctx,
+                source_cell: Some(source_ref.get_cell()),
+                listener_cell: Some(listener_ref.get_cell()),
+                recorder_cell,
+                listener_degraded: None,
+                source_restarts: RestartTracker::new(),
+                recorder_restarts: RestartTracker::new(),
+            })
         }
-    })
+        .instrument(span)
+        .await
+    }
+
+    async fn handle(
+        &self,
+        _myself: ActorRef<Self::Msg>,
+        _message: Self::Msg,
+        _state: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        Ok(())
+    }
+
+    async fn handle_supervisor_evt(
+        &self,
+        myself: ActorRef<Self::Msg>,
+        message: SupervisionEvent,
+        state: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        let span = session_span(&state.ctx.params.session_id);
+        let _guard = span.enter();
+
+        state.source_restarts.maybe_reset(Self::RESET_AFTER);
+        state.recorder_restarts.maybe_reset(Self::RESET_AFTER);
+
+        match message {
+            SupervisionEvent::ActorStarted(_) | SupervisionEvent::ProcessGroupChanged(_) => {}
+
+            SupervisionEvent::ActorTerminated(cell, _, reason) => {
+                match identify_child(state, &cell) {
+                    Some(ChildKind::Listener) => {
+                        tracing::info!(?reason, "listener_terminated_entering_degraded_mode");
+                        let degraded = reason
+                            .as_ref()
+                            .and_then(|r| serde_json::from_str::<DegradedError>(r).ok());
+                        state.listener_degraded = degraded.clone();
+                        state.listener_cell = None;
+
+                        let _ = (SessionLifecycleEvent::Active {
+                            session_id: state.ctx.params.session_id.clone(),
+                            error: degraded,
+                        })
+                        .emit(&state.ctx.app);
+                    }
+                    Some(ChildKind::Source) => {
+                        tracing::info!(?reason, "source_terminated_attempting_restart");
+                        state.source_cell = None;
+                        if !try_restart_source(myself.get_cell(), state).await {
+                            tracing::error!("source_restart_limit_exceeded_meltdown");
+                            meltdown(myself, state).await;
+                        }
+                    }
+                    Some(ChildKind::Recorder) => {
+                        tracing::info!(?reason, "recorder_terminated_attempting_restart");
+                        state.recorder_cell = None;
+                        if !try_restart_recorder(myself.get_cell(), state).await {
+                            tracing::error!("recorder_restart_limit_exceeded_meltdown");
+                            meltdown(myself, state).await;
+                        }
+                    }
+                    None => {
+                        tracing::warn!("unknown_child_terminated");
+                    }
+                }
+            }
+
+            SupervisionEvent::ActorFailed(cell, error) => match identify_child(state, &cell) {
+                Some(ChildKind::Listener) => {
+                    tracing::info!(?error, "listener_failed_entering_degraded_mode");
+                    let degraded = DegradedError::StreamError {
+                        message: format!("{:?}", error),
+                    };
+                    state.listener_degraded = Some(degraded.clone());
+                    state.listener_cell = None;
+
+                    let _ = (SessionLifecycleEvent::Active {
+                        session_id: state.ctx.params.session_id.clone(),
+                        error: Some(degraded),
+                    })
+                    .emit(&state.ctx.app);
+                }
+                Some(ChildKind::Source) => {
+                    tracing::warn!(?error, "source_failed_attempting_restart");
+                    state.source_cell = None;
+                    if !try_restart_source(myself.get_cell(), state).await {
+                        tracing::error!("source_restart_limit_exceeded_meltdown");
+                        meltdown(myself, state).await;
+                    }
+                }
+                Some(ChildKind::Recorder) => {
+                    tracing::warn!(?error, "recorder_failed_attempting_restart");
+                    state.recorder_cell = None;
+                    if !try_restart_recorder(myself.get_cell(), state).await {
+                        tracing::error!("recorder_restart_limit_exceeded_meltdown");
+                        meltdown(myself, state).await;
+                    }
+                }
+                None => {
+                    tracing::warn!("unknown_child_failed");
+                }
+            },
+        }
+        Ok(())
+    }
+}
+
+fn identify_child(state: &SessionState, cell: &ActorCell) -> Option<ChildKind> {
+    if state
+        .source_cell
+        .as_ref()
+        .is_some_and(|c| c.get_id() == cell.get_id())
+    {
+        return Some(ChildKind::Source);
+    }
+    if state
+        .listener_cell
+        .as_ref()
+        .is_some_and(|c| c.get_id() == cell.get_id())
+    {
+        return Some(ChildKind::Listener);
+    }
+    if state
+        .recorder_cell
+        .as_ref()
+        .is_some_and(|c| c.get_id() == cell.get_id())
+    {
+        return Some(ChildKind::Recorder);
+    }
+    None
+}
+
+async fn try_restart_source(supervisor_cell: ActorCell, state: &mut SessionState) -> bool {
+    if !state
+        .source_restarts
+        .record_restart(SessionActor::MAX_RESTARTS, SessionActor::MAX_WINDOW)
+    {
+        return false;
+    }
+
+    match Actor::spawn_linked(
+        Some(SourceActor::name()),
+        SourceActor,
+        SourceArgs {
+            mic_device: None,
+            onboarding: state.ctx.params.onboarding,
+            app: state.ctx.app.clone(),
+            session_id: state.ctx.params.session_id.clone(),
+        },
+        supervisor_cell,
+    )
+    .await
+    {
+        Ok((actor_ref, _)) => {
+            state.source_cell = Some(actor_ref.get_cell());
+            tracing::info!("source_restarted");
+            true
+        }
+        Err(e) => {
+            tracing::error!(error = ?e, "source_restart_failed");
+            false
+        }
+    }
+}
+
+async fn try_restart_recorder(supervisor_cell: ActorCell, state: &mut SessionState) -> bool {
+    if !state.ctx.params.record_enabled {
+        return true;
+    }
+
+    if !state
+        .recorder_restarts
+        .record_restart(SessionActor::MAX_RESTARTS, SessionActor::MAX_WINDOW)
+    {
+        return false;
+    }
+
+    match Actor::spawn_linked(
+        Some(RecorderActor::name()),
+        RecorderActor,
+        RecArgs {
+            app_dir: state.ctx.app_dir.clone(),
+            session_id: state.ctx.params.session_id.clone(),
+        },
+        supervisor_cell,
+    )
+    .await
+    {
+        Ok((actor_ref, _)) => {
+            state.recorder_cell = Some(actor_ref.get_cell());
+            tracing::info!("recorder_restarted");
+            true
+        }
+        Err(e) => {
+            tracing::error!(error = ?e, "recorder_restart_failed");
+            false
+        }
+    }
+}
+
+async fn meltdown(myself: ActorRef<SessionMsg>, state: &mut SessionState) {
+    if let Some(cell) = state.source_cell.take() {
+        cell.stop(Some("meltdown".to_string()));
+    }
+    if let Some(cell) = state.listener_cell.take() {
+        cell.stop(Some("meltdown".to_string()));
+    }
+    if let Some(cell) = state.recorder_cell.take() {
+        cell.stop(Some("meltdown".to_string()));
+    }
+    myself.stop(Some("restart_limit_exceeded".to_string()));
 }
 
 pub async fn spawn_session_supervisor(
@@ -69,101 +397,7 @@ pub async fn spawn_session_supervisor(
 ) -> Result<(ActorCell, tokio::task::JoinHandle<()>), ActorProcessingErr> {
     let supervisor_name = session_supervisor_name(&ctx.params.session_id);
 
-    let mut child_specs = Vec::new();
+    let (actor_ref, handle) = Actor::spawn(Some(supervisor_name), SessionActor, ctx).await?;
 
-    let ctx_source = ctx.clone();
-    child_specs.push(ChildSpec {
-        id: SourceActor::name().to_string(),
-        restart: Restart::Permanent,
-        spawn_fn: SpawnFn::new(move |supervisor_cell, _id| {
-            let ctx = ctx_source.clone();
-            async move {
-                let (actor_ref, _) = Actor::spawn_linked(
-                    Some(SourceActor::name()),
-                    SourceActor,
-                    SourceArgs {
-                        mic_device: None,
-                        onboarding: ctx.params.onboarding,
-                        app: ctx.app.clone(),
-                        session_id: ctx.params.session_id.clone(),
-                    },
-                    supervisor_cell,
-                )
-                .await?;
-                Ok(actor_ref.get_cell())
-            }
-        }),
-        backoff_fn: None,
-        reset_after: Some(Duration::from_secs(30)),
-    });
-
-    let ctx_listener = ctx.clone();
-    child_specs.push(ChildSpec {
-        id: ListenerActor::name().to_string(),
-        restart: Restart::Permanent,
-        spawn_fn: SpawnFn::new(move |supervisor_cell, _id| {
-            let ctx = ctx_listener.clone();
-            async move {
-                let mode = ChannelMode::determine(ctx.params.onboarding);
-
-                let (actor_ref, _) = Actor::spawn_linked(
-                    Some(ListenerActor::name()),
-                    ListenerActor,
-                    ListenerArgs {
-                        app: ctx.app.clone(),
-                        languages: ctx.params.languages.clone(),
-                        onboarding: ctx.params.onboarding,
-                        model: ctx.params.model.clone(),
-                        base_url: ctx.params.base_url.clone(),
-                        api_key: ctx.params.api_key.clone(),
-                        keywords: ctx.params.keywords.clone(),
-                        mode,
-                        session_started_at: ctx.started_at_instant,
-                        session_started_at_unix: ctx.started_at_system,
-                        session_id: ctx.params.session_id.clone(),
-                    },
-                    supervisor_cell,
-                )
-                .await?;
-                Ok(actor_ref.get_cell())
-            }
-        }),
-        backoff_fn: Some(make_listener_backoff()),
-        reset_after: Some(Duration::from_secs(30)),
-    });
-
-    if ctx.params.record_enabled {
-        let ctx_recorder = ctx.clone();
-        child_specs.push(ChildSpec {
-            id: RecorderActor::name().to_string(),
-            restart: Restart::Transient,
-            spawn_fn: SpawnFn::new(move |supervisor_cell, _id| {
-                let ctx = ctx_recorder.clone();
-                async move {
-                    let (actor_ref, _) = Actor::spawn_linked(
-                        Some(RecorderActor::name()),
-                        RecorderActor,
-                        RecArgs {
-                            app_dir: ctx.app_dir.clone(),
-                            session_id: ctx.params.session_id.clone(),
-                        },
-                        supervisor_cell,
-                    )
-                    .await?;
-                    Ok(actor_ref.get_cell())
-                }
-            }),
-            backoff_fn: None,
-            reset_after: None,
-        });
-    }
-
-    let args = SupervisorArguments {
-        child_specs,
-        options: make_supervisor_options(),
-    };
-
-    let (supervisor_ref, handle) = Supervisor::spawn(supervisor_name, args).await?;
-
-    Ok((supervisor_ref.get_cell(), handle))
+    Ok((actor_ref.get_cell(), handle))
 }

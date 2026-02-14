@@ -171,6 +171,7 @@ async fn start_session_impl(
 
                 if let Err(error) = (SessionLifecycleEvent::Active {
                     session_id: params.session_id,
+                    error: None,
                 })
                 .emit(&state.app)
                 {

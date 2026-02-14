@@ -64,7 +64,6 @@ hound = { workspace = true }
 vorbis_rs = { workspace = true }
 
 ractor = { workspace = true }
-ractor-supervisor = { workspace = true }
 
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

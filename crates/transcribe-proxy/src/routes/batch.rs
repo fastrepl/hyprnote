@@ -293,7 +293,7 @@ async fn transcribe_with_provider(
                 .transcribe_file(file_path)
                 .await
         }
-        Provider::Fireworks => {
+        Provider::Fireworks | Provider::DashScope => {
             return Err(format!(
                 "{:?} does not support batch transcription",
                 provider

@@ -163,9 +163,7 @@ impl RealtimeSttAdapter for DashScopeAdapter {
                 Self::build_transcript_response(&transcript, true, true)
             }
             DashScopeEvent::ConversationItemInputAudioTranscriptionText {
-                item_id,
-                text,
-                ..
+                item_id, text, ..
             } => {
                 tracing::debug!(
                     item_id = %item_id,
@@ -175,7 +173,9 @@ impl RealtimeSttAdapter for DashScopeAdapter {
                 Self::build_transcript_response(&text, false, false)
             }
             DashScopeEvent::ConversationItemInputAudioTranscriptionFailed {
-                item_id, error, ..
+                item_id,
+                error,
+                ..
             } => {
                 tracing::error!(
                     item_id = %item_id,
@@ -385,9 +385,7 @@ mod tests {
         let client = ListenClient::builder()
             .adapter::<DashScopeAdapter>()
             .api_base("wss://dashscope-intl.aliyuncs.com")
-            .api_key(
-                std::env::var("DASHSCOPE_API_KEY").expect("DASHSCOPE_API_KEY not set"),
-            )
+            .api_key(std::env::var("DASHSCOPE_API_KEY").expect("DASHSCOPE_API_KEY not set"))
             .params(owhisper_interface::ListenParams {
                 model: Some("qwen3-asr-flash-realtime".to_string()),
                 languages: vec![hypr_language::ISO639::En.into()],
@@ -406,9 +404,7 @@ mod tests {
         let client = ListenClient::builder()
             .adapter::<DashScopeAdapter>()
             .api_base("wss://dashscope-intl.aliyuncs.com")
-            .api_key(
-                std::env::var("DASHSCOPE_API_KEY").expect("DASHSCOPE_API_KEY not set"),
-            )
+            .api_key(std::env::var("DASHSCOPE_API_KEY").expect("DASHSCOPE_API_KEY not set"))
             .params(owhisper_interface::ListenParams {
                 model: Some("qwen3-asr-flash-realtime".to_string()),
                 languages: vec![hypr_language::ISO639::En.into()],

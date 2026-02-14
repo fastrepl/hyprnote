@@ -220,22 +220,22 @@ impl Actor for ListenerActor {
             }
 
             ListenerMsg::StreamError(error) => {
-                tracing::warn!("listen_stream_error: {}", error);
+                tracing::info!("listen_stream_error: {}", error);
                 stop_with_degraded_error(&myself, DegradedError::StreamError { message: error });
             }
 
             ListenerMsg::StreamEnded => {
-                tracing::warn!("listen_stream_ended_unexpectedly");
+                tracing::info!("listen_stream_ended");
                 stop_with_degraded_error(
                     &myself,
                     DegradedError::UpstreamUnavailable {
-                        message: "stream ended unexpectedly".to_string(),
+                        message: "stream ended".to_string(),
                     },
                 );
             }
 
-            ListenerMsg::StreamTimeout(_elapsed) => {
-                tracing::warn!("listen_stream_timeout");
+            ListenerMsg::StreamTimeout(elapsed) => {
+                tracing::info!("listen_stream_timeout: {}", elapsed);
                 stop_with_degraded_error(&myself, DegradedError::ConnectionTimeout);
             }
         }

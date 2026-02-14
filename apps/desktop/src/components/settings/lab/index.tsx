@@ -18,14 +18,22 @@ export function SettingsLab() {
 
   return (
     <div className="flex flex-col gap-4 pt-3">
-      <div className="flex items-center justify-between gap-4">
+      <div
+        data-settings-item
+        className="flex items-center justify-between gap-4"
+      >
         <div className="flex-1">
           <h3 className="text-sm font-medium mb-1">Control Overlay</h3>
           <p className="text-xs text-neutral-600">
             Floating window for quick access to recording controls.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={handleOpenControlWindow}>
+        <Button
+          data-settings-activate
+          variant="outline"
+          size="sm"
+          onClick={handleOpenControlWindow}
+        >
           Open
         </Button>
       </div>
@@ -47,7 +55,7 @@ function MeetingReminderToggle() {
   );
 
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div data-settings-item className="flex items-center justify-between gap-4">
       <div className="flex-1">
         <h3 className="text-sm font-medium mb-1">In-Meeting Reminder</h3>
         <p className="text-xs text-neutral-600">
@@ -56,6 +64,7 @@ function MeetingReminderToggle() {
         </p>
       </div>
       <Switch
+        data-settings-activate
         checked={value}
         onCheckedChange={(checked) => setValue(checked)}
       />
@@ -112,6 +121,7 @@ function DownloadButtons() {
         return (
           <div
             key={channel}
+            data-settings-item
             className="flex items-center justify-between gap-4"
           >
             <div className="flex-1">

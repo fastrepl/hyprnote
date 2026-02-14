@@ -70,6 +70,7 @@ export const ADMIN_EMAILS = [
   "harshika.alagh@gmail.com",
   "yunhyungjo@yonsei.ac.kr",
   "goranmoomin@daum.net",
+  "artem@hyprnote.com",
 ];
 
 export const TEAM_PHOTOS = [

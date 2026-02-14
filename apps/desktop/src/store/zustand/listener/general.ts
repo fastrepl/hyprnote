@@ -165,6 +165,16 @@ export const createGeneralSlice = <
 
       if (payload.type === "active") {
         const currentState = get();
+
+        if (currentState.live.status === "active") {
+          set((state) =>
+            mutate(state, (draft) => {
+              draft.live.degraded = payload.error ?? null;
+            }),
+          );
+          return;
+        }
+
         if (currentState.live.intervalId) {
           clearInterval(currentState.live.intervalId);
         }

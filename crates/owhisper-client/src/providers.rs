@@ -80,10 +80,12 @@ pub enum Provider {
     Gladia,
     #[strum(serialize = "elevenlabs")]
     ElevenLabs,
+    #[strum(serialize = "mistral")]
+    Mistral,
 }
 
 impl Provider {
-    const ALL: [Provider; 7] = [
+    const ALL: [Provider; 8] = [
         Self::Deepgram,
         Self::AssemblyAI,
         Self::Soniox,
@@ -91,6 +93,7 @@ impl Provider {
         Self::OpenAI,
         Self::Gladia,
         Self::ElevenLabs,
+        Self::Mistral,
     ];
 
     pub fn from_host(host: &str) -> Option<Self> {
@@ -125,6 +128,10 @@ impl Provider {
                 name: "xi-api-key",
                 prefix: None,
             },
+            Self::Mistral => Auth::Header {
+                name: "Authorization",
+                prefix: Some("Bearer "),
+            },
         }
     }
 
@@ -145,6 +152,7 @@ impl Provider {
             Self::OpenAI => "api.openai.com",
             Self::Gladia => "api.gladia.io",
             Self::ElevenLabs => "api.elevenlabs.io",
+            Self::Mistral => "api.mistral.ai",
         }
     }
 
@@ -157,6 +165,7 @@ impl Provider {
             Self::OpenAI => "api.openai.com",
             Self::Gladia => "api.gladia.io",
             Self::ElevenLabs => "api.elevenlabs.io",
+            Self::Mistral => "api.mistral.ai",
         }
     }
 
@@ -169,6 +178,7 @@ impl Provider {
             Self::OpenAI => "/v1/realtime",
             Self::Gladia => "/v2/live",
             Self::ElevenLabs => "/v1/speech-to-text/realtime",
+            Self::Mistral => "/v1/audio/transcriptions/realtime",
         }
     }
 
@@ -181,6 +191,7 @@ impl Provider {
             Self::OpenAI => None,
             Self::Gladia => Some("https://api.gladia.io/v2/live"),
             Self::ElevenLabs => Some("https://api.elevenlabs.io/v1"),
+            Self::Mistral => None,
         }
     }
 
@@ -193,6 +204,7 @@ impl Provider {
             Self::OpenAI => "https://api.openai.com/v1",
             Self::Gladia => "https://api.gladia.io/v2",
             Self::ElevenLabs => "https://api.elevenlabs.io",
+            Self::Mistral => "https://api.mistral.ai/v1",
         }
     }
 
@@ -205,6 +217,7 @@ impl Provider {
             Self::OpenAI => "openai.com",
             Self::Gladia => "gladia.io",
             Self::ElevenLabs => "elevenlabs.io",
+            Self::Mistral => "mistral.ai",
         }
     }
 
@@ -235,6 +248,7 @@ impl Provider {
             Self::OpenAI => "OPENAI_API_KEY",
             Self::Gladia => "GLADIA_API_KEY",
             Self::ElevenLabs => "ELEVENLABS_API_KEY",
+            Self::Mistral => "MISTRAL_API_KEY",
         }
     }
 
@@ -247,13 +261,14 @@ impl Provider {
             Self::OpenAI => "gpt-4o-transcribe",
             Self::Gladia => "solaria-1",
             Self::ElevenLabs => "scribe_v2_realtime",
+            Self::Mistral => "voxtral-mini-transcribe-realtime-2602",
         }
     }
 
     pub fn default_live_sample_rate(&self) -> u32 {
         match self {
             Self::OpenAI => 24000,
-            Self::ElevenLabs => 16000,
+            Self::ElevenLabs | Self::Mistral => 16000,
             _ => 16000,
         }
     }
@@ -267,6 +282,7 @@ impl Provider {
             Self::OpenAI => "whisper-1",
             Self::Gladia => "solaria-1",
             Self::ElevenLabs => "scribe_v2",
+            Self::Mistral => "voxtral-mini-latest",
         }
     }
 
@@ -274,6 +290,7 @@ impl Provider {
         match self {
             Self::Deepgram => &[("model", "nova-3-general"), ("mip_opt_out", "false")],
             Self::OpenAI => &[("intent", "transcription")],
+            Self::Mistral => &[],
             _ => &[],
         }
     }
@@ -287,6 +304,7 @@ impl Provider {
             Self::OpenAI => &[],
             Self::Gladia => &[],
             Self::ElevenLabs => &["commit"],
+            Self::Mistral => &[],
         }
     }
 
@@ -305,6 +323,7 @@ impl Provider {
                     "words_accurate_timestamps": true
                 }
             })),
+            Self::Mistral => None,
             _ => None,
         }
     }
@@ -315,7 +334,7 @@ impl Provider {
             Self::Soniox => soniox::error::detect_error(data),
             Self::ElevenLabs => elevenlabs::error::detect_error(data),
             Self::AssemblyAI => assemblyai::error::detect_error(data),
-            Self::Fireworks | Self::OpenAI | Self::Gladia => None,
+            Self::Fireworks | Self::OpenAI | Self::Gladia | Self::Mistral => None,
         }
     }
 

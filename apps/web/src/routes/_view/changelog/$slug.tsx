@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
     const beforeVersion = changelog.beforeVersion;
     const diffUrl =
       beforeVersion != null
-        ? `https://github.com/fastrepl/hyprnote/compare/desktop_v${beforeVersion}...desktop_v${changelog.version}`
+        ? `https://github.com/fastrepl/char/compare/desktop_v${beforeVersion}...desktop_v${changelog.version}`
         : null;
 
     return {
@@ -62,8 +62,8 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:site", content: "@tryhyprnote" },
-        { name: "twitter:creator", content: "@tryhyprnote" },
+        { name: "twitter:site", content: "@getcharnotes" },
+        { name: "twitter:creator", content: "@getcharnotes" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
         { name: "twitter:url", content: url },

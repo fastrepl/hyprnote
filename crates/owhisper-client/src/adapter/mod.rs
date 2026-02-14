@@ -2,6 +2,7 @@ mod argmax;
 pub(crate) mod assemblyai;
 #[cfg(feature = "argmax")]
 pub mod audio;
+mod dashscope;
 pub mod deepgram;
 mod deepgram_compat;
 pub(crate) mod elevenlabs;
@@ -19,6 +20,7 @@ mod url_builder;
 
 pub use argmax::*;
 pub use assemblyai::*;
+pub use dashscope::*;
 pub use deepgram::*;
 pub use elevenlabs::*;
 pub use fireworks::*;
@@ -262,6 +264,8 @@ pub enum AdapterKind {
     Gladia,
     #[strum(serialize = "elevenlabs")]
     ElevenLabs,
+    #[strum(serialize = "dashscope")]
+    DashScope,
     #[strum(serialize = "mistral")]
     Mistral,
 }
@@ -307,6 +311,7 @@ impl AdapterKind {
             Self::OpenAI => OpenAIAdapter::language_support_live(languages),
             Self::Fireworks => FireworksAdapter::language_support_live(languages),
             Self::ElevenLabs => ElevenLabsAdapter::language_support_live(languages),
+            Self::DashScope => DashScopeAdapter::language_support_live(languages),
             Self::Argmax => ArgmaxAdapter::language_support_live(languages, model),
             Self::Mistral => MistralAdapter::language_support_live(languages),
         }
@@ -328,6 +333,7 @@ impl AdapterKind {
             Self::OpenAI => OpenAIAdapter::language_support_batch(languages),
             Self::Fireworks => FireworksAdapter::language_support_batch(languages),
             Self::ElevenLabs => ElevenLabsAdapter::language_support_batch(languages),
+            Self::DashScope => DashScopeAdapter::language_support_batch(languages),
             Self::Argmax => ArgmaxAdapter::language_support_batch(languages, model),
             Self::Mistral => MistralAdapter::language_support_batch(languages),
         }
@@ -371,6 +377,7 @@ impl From<crate::providers::Provider> for AdapterKind {
             Provider::OpenAI => Self::OpenAI,
             Provider::Gladia => Self::Gladia,
             Provider::ElevenLabs => Self::ElevenLabs,
+            Provider::DashScope => Self::DashScope,
             Provider::Mistral => Self::Mistral,
         }
     }

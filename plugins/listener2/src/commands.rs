@@ -78,6 +78,7 @@ pub async fn suggest_providers_for_languages_batch<R: tauri::Runtime>(
         AdapterKind::OpenAI,
         AdapterKind::Gladia,
         AdapterKind::ElevenLabs,
+        AdapterKind::DashScope,
         AdapterKind::Mistral,
     ];
 

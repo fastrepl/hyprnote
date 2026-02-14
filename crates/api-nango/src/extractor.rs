@@ -50,9 +50,11 @@ impl NangoConnectionState {
         user_id: &str,
         integration_id: &str,
     ) -> Result<String, NangoConnectionError> {
+        let encoded_user_id = urlencoding::encode(user_id);
+        let encoded_integration_id = urlencoding::encode(integration_id);
         let url = format!(
             "{}/rest/v1/nango_connections?select=connection_id&user_id=eq.{}&integration_id=eq.{}",
-            self.supabase_url, user_id, integration_id,
+            self.supabase_url, encoded_user_id, encoded_integration_id,
         );
 
         let response = self

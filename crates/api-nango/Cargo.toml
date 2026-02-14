@@ -9,6 +9,7 @@ hypr-api-env = { workspace = true }
 hypr-nango = { workspace = true }
 
 chrono = { workspace = true }
+urlencoding = { workspace = true }
 utoipa = { workspace = true }
 
 axum = { workspace = true }

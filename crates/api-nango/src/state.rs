@@ -93,11 +93,13 @@ impl AppState {
                 )
             })?;
 
+        let encoded_user_id = urlencoding::encode(user_id);
+        let encoded_integration_id = urlencoding::encode(integration_id);
         let url = format!(
             "{}/rest/v1/nango_connections?user_id=eq.{}&integration_id=eq.{}",
             self.config.supabase_url.trim_end_matches('/'),
-            user_id,
-            integration_id,
+            encoded_user_id,
+            encoded_integration_id,
         );
 
         let response = self

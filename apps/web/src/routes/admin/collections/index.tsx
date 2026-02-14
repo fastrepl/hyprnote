@@ -1975,10 +1975,12 @@ function AuthorSelect({
 }
 
 const CATEGORIES = [
-  "Case Study",
-  "Char Weekly",
-  "Productivity Hack",
+  "Product",
+  "Comparisons",
   "Engineering",
+  "Founders' notes",
+  "Guides",
+  "Char Weekly",
 ];
 
 function CategorySelect({

@@ -16,9 +16,7 @@ impl DashScopeAdapter {
     }
 
     pub fn language_support_batch(_languages: &[hypr_language::Language]) -> LanguageSupport {
-        LanguageSupport::Supported {
-            quality: LanguageQuality::NoData,
-        }
+        LanguageSupport::NotSupported
     }
 
     pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {

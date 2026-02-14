@@ -73,6 +73,10 @@ export const SETTINGS_MAPPING = {
       type: "boolean",
       path: ["notification", "in_meeting_reminder"],
     },
+    app_icon: {
+      type: "string",
+      path: ["general", "app_icon"],
+    },
   },
   tables: {
     ai_providers: {

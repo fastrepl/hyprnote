@@ -1,6 +1,7 @@
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import { commands as detectCommands } from "@hypr/plugin-detect";
+import { commands as iconCommands } from "@hypr/plugin-icon";
 import {
   commands as localSttCommands,
   type SupportedSttModel,
@@ -22,7 +23,8 @@ export type ConfigKey =
   | "current_llm_model"
   | "timezone"
   | "week_start"
-  | "notification_in_meeting_reminder";
+  | "notification_in_meeting_reminder"
+  | "app_icon";
 
 type ConfigValueType<K extends ConfigKey> =
   (typeof CONFIG_REGISTRY)[K]["default"];
@@ -156,5 +158,17 @@ export const CONFIG_REGISTRY = {
   notification_in_meeting_reminder: {
     key: "notification_in_meeting_reminder",
     default: true,
+  },
+
+  app_icon: {
+    key: "app_icon",
+    default: undefined as string | undefined,
+    sideEffect: async (value: string | undefined, _) => {
+      if (value) {
+        await iconCommands.setDockIcon(value);
+      } else {
+        await iconCommands.resetDockIcon();
+      }
+    },
   },
 } satisfies Record<ConfigKey, ConfigDefinition>;

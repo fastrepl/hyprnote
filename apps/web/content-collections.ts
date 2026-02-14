@@ -19,10 +19,10 @@ async function embedGithubCode(content: string): Promise<string> {
     const [fullMatch, url] = match;
 
     const repoMatch = url.match(
-      /github\.com\/fastrepl\/hyprnote\/blob\/[^/]+\/(.+)/,
+      /github\.com\/fastrepl\/(hyprnote|char)\/blob\/[^/]+\/(.+)/,
     );
     if (repoMatch) {
-      const filePath = repoMatch[1];
+      const filePath = repoMatch[2];
       const fileName = path.basename(filePath);
       const localPath = path.resolve(process.cwd(), "..", "..", filePath);
 

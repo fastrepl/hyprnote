@@ -1436,7 +1436,7 @@ export async function publishArticle(
   const body = `## Article ${statusText}
 
 **Title:** ${metadata.meta_title || "Untitled"}
-**Author:** ${Array.isArray(metadata.author) ? metadata.author.join(", ") : (metadata.author || "Unknown")}
+**Author:** ${Array.isArray(metadata.author) ? metadata.author.join(", ") : metadata.author || "Unknown"}
 **Date:** ${metadata.date || "Not set"}
 **Category:** ${metadata.category || "Uncategorized"}
 

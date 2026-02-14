@@ -2613,7 +2613,11 @@ const FileEditor = React.forwardRef<
         meta_title: branchFileData.frontmatter.meta_title,
         display_title: branchFileData.frontmatter.display_title,
         meta_description: branchFileData.frontmatter.meta_description,
-        author: Array.isArray(branchFileData.frontmatter.author) ? branchFileData.frontmatter.author : branchFileData.frontmatter.author ? [branchFileData.frontmatter.author] : undefined,
+        author: Array.isArray(branchFileData.frontmatter.author)
+          ? branchFileData.frontmatter.author
+          : branchFileData.frontmatter.author
+            ? [branchFileData.frontmatter.author]
+            : undefined,
         date: branchFileData.frontmatter.date,
         coverImage: branchFileData.frontmatter.coverImage,
         featured: branchFileData.frontmatter.featured,
@@ -2629,7 +2633,11 @@ const FileEditor = React.forwardRef<
         meta_title: pendingPRFileData.frontmatter.meta_title,
         display_title: pendingPRFileData.frontmatter.display_title,
         meta_description: pendingPRFileData.frontmatter.meta_description,
-        author: Array.isArray(pendingPRFileData.frontmatter.author) ? pendingPRFileData.frontmatter.author : pendingPRFileData.frontmatter.author ? [pendingPRFileData.frontmatter.author] : undefined,
+        author: Array.isArray(pendingPRFileData.frontmatter.author)
+          ? pendingPRFileData.frontmatter.author
+          : pendingPRFileData.frontmatter.author
+            ? [pendingPRFileData.frontmatter.author]
+            : undefined,
         date: pendingPRFileData.frontmatter.date,
         coverImage: pendingPRFileData.frontmatter.coverImage,
         featured: pendingPRFileData.frontmatter.featured,

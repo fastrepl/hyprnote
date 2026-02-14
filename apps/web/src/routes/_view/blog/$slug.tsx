@@ -25,8 +25,16 @@ export const Route = createFileRoute("/_view/blog/$slug")({
     const relatedArticles = allArticles
       .filter((a) => a.slug !== article.slug)
       .sort((a, b) => {
-        const aScore = a.author.some((name: string) => article.author.includes(name)) ? 1 : 0;
-        const bScore = b.author.some((name: string) => article.author.includes(name)) ? 1 : 0;
+        const aScore = a.author.some((name: string) =>
+          article.author.includes(name),
+        )
+          ? 1
+          : 0;
+        const bScore = b.author.some((name: string) =>
+          article.author.includes(name),
+        )
+          ? 1
+          : 0;
         if (aScore !== bScore) {
           return bScore - aScore;
         }

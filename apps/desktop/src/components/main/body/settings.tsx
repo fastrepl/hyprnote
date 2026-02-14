@@ -7,6 +7,7 @@ import {
   UserIcon,
 } from "lucide-react";
 import { useCallback, useRef } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -94,6 +95,38 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
       updateSettingsTabState(tab, { tab: newTab });
     },
     [updateSettingsTabState, tab],
+  );
+
+  const currentIndex = SECTIONS.findIndex((s) => s.id === activeTab);
+
+  useHotkeys(
+    "ctrl+alt+left",
+    () => {
+      if (currentIndex > 0) {
+        setActiveTab(SECTIONS[currentIndex - 1].id);
+      }
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [currentIndex, setActiveTab],
+  );
+
+  useHotkeys(
+    "ctrl+alt+right",
+    () => {
+      if (currentIndex < SECTIONS.length - 1) {
+        setActiveTab(SECTIONS[currentIndex + 1].id);
+      }
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [currentIndex, setActiveTab],
   );
 
   const renderContent = () => {

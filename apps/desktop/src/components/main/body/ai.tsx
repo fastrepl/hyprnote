@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import type { ChatShortcut } from "@hypr/store";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -95,6 +96,44 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
       updateAiTabState(tab, { tab: newTab });
     },
     [updateAiTabState, tab],
+  );
+
+  const enabledMenuKeys: AITabKey[] = [
+    "transcription",
+    "intelligence",
+    "templates",
+    "shortcuts",
+  ];
+  const currentIndex = enabledMenuKeys.indexOf(activeTab);
+
+  useHotkeys(
+    "ctrl+alt+left",
+    () => {
+      if (currentIndex > 0) {
+        setActiveTab(enabledMenuKeys[currentIndex - 1]);
+      }
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [currentIndex, setActiveTab],
+  );
+
+  useHotkeys(
+    "ctrl+alt+right",
+    () => {
+      if (currentIndex >= 0 && currentIndex < enabledMenuKeys.length - 1) {
+        setActiveTab(enabledMenuKeys[currentIndex + 1]);
+      }
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [currentIndex, setActiveTab],
   );
 
   const menuItems: Array<{

@@ -5,6 +5,7 @@ use tauri_plugin_settings::SettingsPluginExt;
 use tauri_specta::Event;
 use tracing::Instrument;
 
+use crate::DegradedError;
 use crate::SessionLifecycleEvent;
 use crate::actors::session::lifecycle::{
     clear_sentry_session_context, configure_sentry_session_context, emit_session_ended,
@@ -104,7 +105,13 @@ impl Actor for RootActor {
                     tracing::info!(?reason, "session_supervisor_terminated");
                     state.supervisor = None;
                     state.finalizing = false;
-                    emit_session_ended(&state.app, &session_id, None);
+
+                    let failure_reason = reason.and_then(|r| {
+                        serde_json::from_str::<DegradedError>(&r)
+                            .ok()
+                            .map(|d| format!("{:?}", d))
+                    });
+                    emit_session_ended(&state.app, &session_id, failure_reason);
                 }
             }
             SupervisionEvent::ActorFailed(cell, error) => {

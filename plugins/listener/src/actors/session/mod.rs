@@ -104,6 +104,7 @@ impl SessionActor {
     const RESET_AFTER: Duration = Duration::from_secs(30);
 }
 
+#[derive(Debug)]
 pub enum SessionMsg {
     Shutdown,
 }
@@ -339,6 +340,15 @@ fn identify_child(state: &SessionState, cell: &ActorCell) -> Option<ChildKind> {
 }
 
 async fn try_restart_source(supervisor_cell: ActorCell, state: &mut SessionState) -> bool {
+    if !state
+        .source_restarts
+        .record_restart(SessionActor::MAX_RESTARTS, SessionActor::MAX_WINDOW)
+    {
+        return false;
+    }
+
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+
     match Actor::spawn_linked(
         Some(SourceActor::name()),
         SourceActor,
@@ -353,12 +363,6 @@ async fn try_restart_source(supervisor_cell: ActorCell, state: &mut SessionState
     .await
     {
         Ok((actor_ref, _)) => {
-            if !state
-                .source_restarts
-                .record_restart(SessionActor::MAX_RESTARTS, SessionActor::MAX_WINDOW)
-            {
-                return false;
-            }
             state.source_cell = Some(actor_ref.get_cell());
             tracing::info!("source_restarted");
             true
@@ -375,6 +379,15 @@ async fn try_restart_recorder(supervisor_cell: ActorCell, state: &mut SessionSta
         return true;
     }
 
+    if !state
+        .recorder_restarts
+        .record_restart(SessionActor::MAX_RESTARTS, SessionActor::MAX_WINDOW)
+    {
+        return false;
+    }
+
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+
     match Actor::spawn_linked(
         Some(RecorderActor::name()),
         RecorderActor,
@@ -387,12 +400,6 @@ async fn try_restart_recorder(supervisor_cell: ActorCell, state: &mut SessionSta
     .await
     {
         Ok((actor_ref, _)) => {
-            if !state
-                .recorder_restarts
-                .record_restart(SessionActor::MAX_RESTARTS, SessionActor::MAX_WINDOW)
-            {
-                return false;
-            }
             state.recorder_cell = Some(actor_ref.get_cell());
             tracing::info!("recorder_restarted");
             true

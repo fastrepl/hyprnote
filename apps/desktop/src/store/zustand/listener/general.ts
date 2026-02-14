@@ -7,6 +7,7 @@ import { commands as detectCommands } from "@hypr/plugin-detect";
 import { commands as hooksCommands } from "@hypr/plugin-hooks";
 import { commands as iconCommands } from "@hypr/plugin-icon";
 import {
+  type DegradedError,
   commands as listenerCommands,
   events as listenerEvents,
   type SessionDataEvent,
@@ -51,6 +52,7 @@ export type GeneralState = {
     muted: boolean;
     lastError: string | null;
     device: string | null;
+    degraded: DegradedError | null;
   };
 };
 
@@ -79,6 +81,7 @@ const initialState: GeneralState = {
     muted: false,
     lastError: null,
     device: null,
+    degraded: null,
   },
 };
 
@@ -184,6 +187,7 @@ export const createGeneralSlice = <
             draft.live.seconds = 0;
             draft.live.intervalId = intervalId;
             draft.live.sessionId = targetSessionId;
+            draft.live.degraded = payload.error ?? null;
           }),
         );
       } else if (payload.type === "finalizing") {
@@ -214,6 +218,7 @@ export const createGeneralSlice = <
             draft.live.eventUnlisteners = undefined;
             draft.live.lastError = payload.error ?? null;
             draft.live.device = null;
+            draft.live.degraded = null;
           }),
         );
 
@@ -389,6 +394,7 @@ export const createGeneralSlice = <
               draft.live.muted = initialState.live.muted;
               draft.live.lastError = null;
               draft.live.device = null;
+              draft.live.degraded = null;
             }),
           );
         },

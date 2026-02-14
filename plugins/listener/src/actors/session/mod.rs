@@ -93,6 +93,7 @@ pub struct SessionState {
     listener_degraded: Option<DegradedError>,
     source_restarts: RestartTracker,
     recorder_restarts: RestartTracker,
+    shutting_down: bool,
 }
 
 pub struct SessionActor;
@@ -103,7 +104,9 @@ impl SessionActor {
     const RESET_AFTER: Duration = Duration::from_secs(30);
 }
 
-pub enum SessionMsg {}
+pub enum SessionMsg {
+    Shutdown,
+}
 
 #[ractor::async_trait]
 impl Actor for SessionActor {
@@ -178,6 +181,7 @@ impl Actor for SessionActor {
                 listener_degraded: None,
                 source_restarts: RestartTracker::new(),
                 recorder_restarts: RestartTracker::new(),
+                shutting_down: false,
             })
         }
         .instrument(span)
@@ -186,10 +190,29 @@ impl Actor for SessionActor {
 
     async fn handle(
         &self,
-        _myself: ActorRef<Self::Msg>,
-        _message: Self::Msg,
-        _state: &mut Self::State,
+        myself: ActorRef<Self::Msg>,
+        message: Self::Msg,
+        state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
+        match message {
+            SessionMsg::Shutdown => {
+                state.shutting_down = true;
+
+                if let Some(cell) = state.recorder_cell.take() {
+                    cell.stop(Some("session_stop".to_string()));
+                    lifecycle::wait_for_actor_shutdown(RecorderActor::name()).await;
+                }
+
+                if let Some(cell) = state.source_cell.take() {
+                    cell.stop(Some("session_stop".to_string()));
+                }
+                if let Some(cell) = state.listener_cell.take() {
+                    cell.stop(Some("session_stop".to_string()));
+                }
+
+                myself.stop(None);
+            }
+        }
         Ok(())
     }
 
@@ -204,6 +227,10 @@ impl Actor for SessionActor {
 
         state.source_restarts.maybe_reset(Self::RESET_AFTER);
         state.recorder_restarts.maybe_reset(Self::RESET_AFTER);
+
+        if state.shutting_down {
+            return Ok(());
+        }
 
         match message {
             SupervisionEvent::ActorStarted(_) | SupervisionEvent::ProcessGroupChanged(_) => {}
@@ -312,13 +339,6 @@ fn identify_child(state: &SessionState, cell: &ActorCell) -> Option<ChildKind> {
 }
 
 async fn try_restart_source(supervisor_cell: ActorCell, state: &mut SessionState) -> bool {
-    if !state
-        .source_restarts
-        .record_restart(SessionActor::MAX_RESTARTS, SessionActor::MAX_WINDOW)
-    {
-        return false;
-    }
-
     match Actor::spawn_linked(
         Some(SourceActor::name()),
         SourceActor,
@@ -333,6 +353,12 @@ async fn try_restart_source(supervisor_cell: ActorCell, state: &mut SessionState
     .await
     {
         Ok((actor_ref, _)) => {
+            if !state
+                .source_restarts
+                .record_restart(SessionActor::MAX_RESTARTS, SessionActor::MAX_WINDOW)
+            {
+                return false;
+            }
             state.source_cell = Some(actor_ref.get_cell());
             tracing::info!("source_restarted");
             true
@@ -349,13 +375,6 @@ async fn try_restart_recorder(supervisor_cell: ActorCell, state: &mut SessionSta
         return true;
     }
 
-    if !state
-        .recorder_restarts
-        .record_restart(SessionActor::MAX_RESTARTS, SessionActor::MAX_WINDOW)
-    {
-        return false;
-    }
-
     match Actor::spawn_linked(
         Some(RecorderActor::name()),
         RecorderActor,
@@ -368,6 +387,12 @@ async fn try_restart_recorder(supervisor_cell: ActorCell, state: &mut SessionSta
     .await
     {
         Ok((actor_ref, _)) => {
+            if !state
+                .recorder_restarts
+                .record_restart(SessionActor::MAX_RESTARTS, SessionActor::MAX_WINDOW)
+            {
+                return false;
+            }
             state.recorder_cell = Some(actor_ref.get_cell());
             tracing::info!("recorder_restarted");
             true

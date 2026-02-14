@@ -8,9 +8,10 @@ use tracing::Instrument;
 use crate::SessionLifecycleEvent;
 use crate::actors::session::lifecycle::{
     clear_sentry_session_context, configure_sentry_session_context, emit_session_ended,
-    stop_actor_by_name_and_wait,
 };
-use crate::actors::{SessionContext, SessionParams, session_span, spawn_session_supervisor};
+use crate::actors::{
+    SessionContext, SessionMsg, SessionParams, session_span, spawn_session_supervisor,
+};
 
 pub enum RootMsg {
     StartSession(SessionParams, RpcReplyPort<bool>),
@@ -213,9 +214,7 @@ async fn stop_session_impl(state: &mut RootState) {
             }
         }
 
-        // TO make sure post_stop is called.
-        stop_actor_by_name_and_wait(crate::actors::RecorderActor::name(), "session_stop").await;
-
-        supervisor.stop(None);
+        let session_ref: ActorRef<SessionMsg> = supervisor.clone().into();
+        let _ = session_ref.cast(SessionMsg::Shutdown);
     }
 }

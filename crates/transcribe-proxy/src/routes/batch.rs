@@ -299,6 +299,9 @@ async fn transcribe_with_provider(
                 provider
             ));
         }
+        Provider::Mistral => {
+            todo!()
+        }
     };
 
     result.map_err(|e| format!("{:?}", e))

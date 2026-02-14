@@ -76,9 +76,8 @@ mod tests {
 
     #[test]
     fn test_build_ws_url_from_base_intl() {
-        let (url, params) = DashScopeAdapter::build_ws_url_from_base(
-            "wss://dashscope-intl.aliyuncs.com",
-        );
+        let (url, params) =
+            DashScopeAdapter::build_ws_url_from_base("wss://dashscope-intl.aliyuncs.com");
         assert_eq!(
             url.as_str(),
             "wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime"

@@ -229,6 +229,7 @@ export const createGeneralSlice = <
             draft.live.lastError = payload.error ?? null;
             draft.live.device = null;
             draft.live.degraded = null;
+            draft.live.muted = initialState.live.muted;
           }),
         );
 

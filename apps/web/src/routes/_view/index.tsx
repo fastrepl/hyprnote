@@ -161,10 +161,8 @@ function Component() {
 
 function YCombinatorBanner() {
   return (
-    <a
-      href="https://www.ycombinator.com/companies/hyprnote"
-      target="_blank"
-      rel="noopener noreferrer"
+    <Link
+      to="/blog/hyprnote-is-now-char"
       className="group"
     >
       <div
@@ -176,17 +174,9 @@ function YCombinatorBanner() {
           "hover:bg-stone-50 transition-all",
         ])}
       >
-        <span className="group-hover:font-medium">Backed by</span>
-        <Image
-          src="/icons/yc_stone.svg"
-          alt="Y Combinator"
-          width={16}
-          height={16}
-          className="h-4 w-4 inline-block group-hover:scale-105"
-        />
-        <span className="group-hover:font-medium">Y Combinator</span>
+        <span className="group-hover:font-medium">Hyprnote is now Char.</span>
       </div>
-    </a>
+    </Link>
   );
 }
 

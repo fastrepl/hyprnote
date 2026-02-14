@@ -33,6 +33,7 @@ hypr-api-calendar = { path = "crates/api-calendar", package = "api-calendar" }
 hypr-api-env = { path = "crates/api-env", package = "api-env" }
 hypr-api-nango = { path = "crates/api-nango", package = "api-nango" }
 hypr-api-research = { path = "crates/api-research", package = "api-research" }
+hypr-api-storage = { path = "crates/api-storage", package = "api-storage" }
 hypr-api-subscription = { path = "crates/api-subscription", package = "api-subscription" }
 hypr-api-support = { path = "crates/api-support", package = "api-support" }
 hypr-api-sync = { path = "crates/api-sync", package = "api-sync" }
@@ -61,6 +62,7 @@ hypr-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-google-calendar = { path = "crates/google-calendar", package = "google-calendar" }
+hypr-google-drive = { path = "crates/google-drive", package = "google-drive" }
 hypr-granola = { path = "crates/granola", package = "granola" }
 hypr-host = { path = "crates/host", package = "host" }
 hypr-http = { path = "crates/http", package = "hypr-http-utils" }

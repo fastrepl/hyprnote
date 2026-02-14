@@ -57,7 +57,7 @@ fn build_upstream_url_with_adapter(
         Provider::Gladia => GladiaAdapter.build_ws_url(api_base, params, channels),
         Provider::ElevenLabs => ElevenLabsAdapter.build_ws_url(api_base, params, channels),
         Provider::DashScope => DashScopeAdapter.build_ws_url(api_base, params, channels),
-        Provider::Mistral => MistralAdapter.build_ws_url(api_base, params, channels),
+        Provider::Mistral => MistralAdapter::default().build_ws_url(api_base, params, channels),
     }
 }
 
@@ -76,7 +76,7 @@ fn build_initial_message_with_adapter(
         Provider::Gladia => GladiaAdapter.initial_message(api_key, params, channels),
         Provider::ElevenLabs => ElevenLabsAdapter.initial_message(api_key, params, channels),
         Provider::DashScope => DashScopeAdapter.initial_message(api_key, params, channels),
-        Provider::Mistral => MistralAdapter.initial_message(api_key, params, channels),
+        Provider::Mistral => MistralAdapter::default().initial_message(api_key, params, channels),
     };
 
     msg.and_then(|m| match m {
@@ -98,7 +98,7 @@ fn build_response_transformer(
             Provider::Gladia => GladiaAdapter.parse_response(raw),
             Provider::ElevenLabs => ElevenLabsAdapter.parse_response(raw),
             Provider::DashScope => DashScopeAdapter.parse_response(raw),
-            Provider::Mistral => MistralAdapter.parse_response(raw),
+            Provider::Mistral => MistralAdapter::default().parse_response(raw),
         };
 
         if responses.is_empty() {

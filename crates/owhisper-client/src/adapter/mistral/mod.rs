@@ -9,8 +9,18 @@ const SUPPORTED_LANGUAGES: &[&str] = &[
     "en", "zh", "hi", "es", "ar", "fr", "pt", "ru", "de", "ja", "ko", "it", "nl",
 ];
 
-#[derive(Clone, Default)]
-pub struct MistralAdapter;
+#[derive(Clone)]
+pub struct MistralAdapter {
+    word_counter: std::sync::Arc<std::sync::atomic::AtomicU64>,
+}
+
+impl Default for MistralAdapter {
+    fn default() -> Self {
+        Self {
+            word_counter: std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0)),
+        }
+    }
+}
 
 impl MistralAdapter {
     fn is_language_supported(lang: &hypr_language::Language) -> bool {

@@ -12,7 +12,7 @@ use super::MistralAdapter;
 use crate::providers::{Provider, is_meta_model};
 
 const DEFAULT_API_BASE: &str = "https://api.mistral.ai/v1";
-const TIMESTAMP_GRANULARITY: &str = "segment";
+const TIMESTAMP_GRANULARITY: &str = "word";
 
 impl BatchSttAdapter for MistralAdapter {
     fn is_supported_languages(

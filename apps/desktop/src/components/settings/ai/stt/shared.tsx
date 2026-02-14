@@ -1,5 +1,11 @@
 import { Icon } from "@iconify-icon/react";
-import { AssemblyAI, ElevenLabs, Fireworks, OpenAI } from "@lobehub/icons";
+import {
+  AssemblyAI,
+  ElevenLabs,
+  Fireworks,
+  Mistral,
+  OpenAI,
+} from "@lobehub/icons";
 import type { ReactNode } from "react";
 
 import type { AmModel, SupportedSttModel } from "@hypr/plugin-local-stt";
@@ -56,6 +62,10 @@ export const displayModelId = (model: string) => {
 
   if (model === "gpt-4o-mini-transcribe") {
     return "GPT-4o mini Transcribe";
+  }
+
+  if (model === "voxtral-mini-2602") {
+    return "Voxtral Mini Transcribe 2";
   }
 
   if (model.startsWith("am-")) {
@@ -174,6 +184,16 @@ const _PROVIDERS = [
     icon: <ElevenLabs size={16} />,
     baseUrl: "https://api.elevenlabs.io",
     models: ["scribe_v2"],
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+  },
+  {
+    disabled: false,
+    id: "mistral",
+    displayName: "Mistral",
+    badge: "Beta",
+    icon: <Mistral size={16} />,
+    baseUrl: "https://api.mistral.ai/v1",
+    models: ["voxtral-mini-2602"],
     requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {

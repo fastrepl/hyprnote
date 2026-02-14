@@ -12,7 +12,7 @@ use super::MistralAdapter;
 use crate::providers::{Provider, is_meta_model};
 
 const DEFAULT_API_BASE: &str = "https://api.mistral.ai/v1";
-const TIMESTAMP_GRANULARITY: &str = "segment";
+const TIMESTAMP_GRANULARITY: &str = "word";
 
 impl BatchSttAdapter for MistralAdapter {
     fn is_supported_languages(
@@ -44,11 +44,20 @@ struct MistralSegment {
 }
 
 #[derive(Debug, serde::Deserialize)]
+struct MistralWord {
+    word: String,
+    start: f64,
+    end: f64,
+}
+
+#[derive(Debug, serde::Deserialize)]
 struct MistralBatchResponse {
     #[allow(dead_code)]
     model: Option<String>,
     language: Option<String>,
     text: String,
+    #[serde(default)]
+    words: Vec<MistralWord>,
     #[serde(default)]
     segments: Vec<MistralSegment>,
 }
@@ -144,7 +153,27 @@ fn strip_punctuation(s: &str) -> String {
 }
 
 fn convert_response(response: MistralBatchResponse) -> BatchResponse {
-    let words: Vec<Word> = if !response.segments.is_empty() {
+    let words: Vec<Word> = if !response.words.is_empty() {
+        response
+            .words
+            .into_iter()
+            .map(|w| {
+                let normalized = strip_punctuation(&w.word);
+                Word {
+                    word: if normalized.is_empty() {
+                        w.word.clone()
+                    } else {
+                        normalized
+                    },
+                    start: w.start,
+                    end: w.end,
+                    confidence: 1.0,
+                    speaker: None,
+                    punctuated_word: Some(w.word),
+                }
+            })
+            .collect()
+    } else if !response.segments.is_empty() {
         response
             .segments
             .iter()

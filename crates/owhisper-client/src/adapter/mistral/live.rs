@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use hypr_ws_client::client::Message;
 use owhisper_interface::ListenParams;
 use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
@@ -5,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use super::MistralAdapter;
 use crate::adapter::RealtimeSttAdapter;
-use crate::adapter::parsing::{WordBuilder, calculate_time_span};
+use crate::adapter::parsing::WordBuilder;
 
 impl RealtimeSttAdapter for MistralAdapter {
     fn provider_name(&self) -> &'static str {
@@ -30,6 +32,7 @@ impl RealtimeSttAdapter for MistralAdapter {
         let default = crate::providers::Provider::Mistral.default_live_model();
         let model = match params.model.as_deref() {
             Some(m) if crate::providers::is_meta_model(m) => default,
+            Some("voxtral-mini-2602" | "voxtral-mini-latest") => default,
             Some(m) => m,
             None => default,
         };
@@ -105,6 +108,7 @@ impl RealtimeSttAdapter for MistralAdapter {
 
         match event {
             MistralEvent::SessionCreated { .. } => {
+                self.word_counter.store(0, Ordering::Relaxed);
                 tracing::debug!("mistral_session_created");
                 vec![]
             }
@@ -118,7 +122,7 @@ impl RealtimeSttAdapter for MistralAdapter {
             }
             MistralEvent::TranscriptionTextDelta { text } => {
                 tracing::debug!(text = %text, "mistral_transcription_text_delta");
-                Self::build_transcript_response(&text, false, false)
+                self.build_delta_response(&text)
             }
             MistralEvent::TranscriptionSegment {
                 text, start, end, ..
@@ -230,25 +234,33 @@ struct MistralError {
 }
 
 impl MistralAdapter {
-    fn build_transcript_response(
-        transcript: &str,
-        is_final: bool,
-        speech_final: bool,
-    ) -> Vec<StreamResponse> {
-        if transcript.is_empty() {
+    fn build_delta_response(&self, text: &str) -> Vec<StreamResponse> {
+        let words: Vec<_> = text
+            .split_whitespace()
+            .map(|word| {
+                let idx = self.word_counter.fetch_add(1, Ordering::Relaxed);
+                let start = idx as f64;
+                let end = (idx + 1) as f64;
+                WordBuilder::new(word)
+                    .start(start)
+                    .end(end)
+                    .confidence(1.0)
+                    .build()
+            })
+            .collect();
+
+        if words.is_empty() {
             return vec![];
         }
 
-        let words: Vec<_> = transcript
-            .split_whitespace()
-            .map(|word| WordBuilder::new(word).confidence(1.0).build())
-            .collect();
+        let transcript: String = text.split_whitespace().collect::<Vec<_>>().join(" ");
 
-        let (start, duration) = calculate_time_span(&words);
+        let start = words.first().map(|w| w.start).unwrap_or(0.0);
+        let end = words.last().map(|w| w.end).unwrap_or(0.0);
 
         let channel = Channel {
             alternatives: vec![Alternatives {
-                transcript: transcript.to_string(),
+                transcript,
                 words,
                 confidence: 1.0,
                 languages: vec![],
@@ -256,11 +268,11 @@ impl MistralAdapter {
         };
 
         vec![StreamResponse::TranscriptResponse {
-            is_final,
-            speech_final,
+            is_final: true,
+            speech_final: false,
             from_finalize: false,
             start,
-            duration,
+            duration: end - start,
             channel,
             metadata: Metadata::default(),
             channel_index: vec![0, 1],
@@ -382,7 +394,7 @@ mod tests {
 
     #[test]
     fn test_parse_session_created() {
-        let adapter = MistralAdapter;
+        let adapter = MistralAdapter::default();
         let raw = r#"{"type":"session.created","session":{"request_id":"abc123","model":"voxtral-mini-transcribe-realtime-2602","audio_format":{"encoding":"pcm_s16le","sample_rate":16000}}}"#;
         let responses = adapter.parse_response(raw);
         assert!(responses.is_empty());
@@ -390,16 +402,34 @@ mod tests {
 
     #[test]
     fn test_parse_text_delta() {
-        let adapter = MistralAdapter;
-        let raw = r#"{"type":"transcription.text.delta","text":"hello world"}"#;
-        let responses = adapter.parse_response(raw);
+        let adapter = MistralAdapter::default();
+
+        let responses =
+            adapter.parse_response(r#"{"type":"transcription.text.delta","text":" Maybe"}"#);
         assert_eq!(responses.len(), 1);
         match &responses[0] {
             StreamResponse::TranscriptResponse {
                 is_final, channel, ..
             } => {
-                assert!(!is_final);
-                assert_eq!(channel.alternatives[0].transcript, "hello world");
+                assert!(is_final);
+                assert_eq!(channel.alternatives[0].transcript, "Maybe");
+                let words = &channel.alternatives[0].words;
+                assert_eq!(words.len(), 1);
+                assert_eq!(words[0].start, 0.0);
+                assert_eq!(words[0].end, 1.0);
+            }
+            _ => panic!("expected TranscriptResponse"),
+        }
+
+        let responses =
+            adapter.parse_response(r#"{"type":"transcription.text.delta","text":" this"}"#);
+        assert_eq!(responses.len(), 1);
+        match &responses[0] {
+            StreamResponse::TranscriptResponse { channel, .. } => {
+                let words = &channel.alternatives[0].words;
+                assert_eq!(words.len(), 1);
+                assert_eq!(words[0].start, 1.0);
+                assert_eq!(words[0].end, 2.0);
             }
             _ => panic!("expected TranscriptResponse"),
         }
@@ -407,7 +437,7 @@ mod tests {
 
     #[test]
     fn test_parse_segment() {
-        let adapter = MistralAdapter;
+        let adapter = MistralAdapter::default();
         let raw = r#"{"type":"transcription.segment","text":"hello world","start":1.0,"end":2.5}"#;
         let responses = adapter.parse_response(raw);
         assert_eq!(responses.len(), 1);
@@ -431,7 +461,7 @@ mod tests {
 
     #[test]
     fn test_parse_error() {
-        let adapter = MistralAdapter;
+        let adapter = MistralAdapter::default();
         let raw = r#"{"type":"error","error":{"message":"invalid request","code":400}}"#;
         let responses = adapter.parse_response(raw);
         assert_eq!(responses.len(), 1);

@@ -298,7 +298,7 @@ impl Provider {
             Self::Gladia => "solaria-1",
             Self::ElevenLabs => "scribe_v2",
             Self::DashScope => "qwen3-asr-flash-filetrans",
-            Self::Mistral => "voxtral-mini-latest",
+            Self::Mistral => "voxtral-mini-2602",
         }
     }
 

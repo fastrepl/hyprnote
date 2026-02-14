@@ -13,7 +13,7 @@ use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
 
 use super::session::session_span;
-use crate::{DegradedError, SessionDataEvent, SessionProgressEvent};
+use crate::{DegradedError, SessionDataEvent, SessionErrorEvent, SessionProgressEvent};
 
 use adapters::spawn_rx_task;
 
@@ -175,6 +175,18 @@ impl Actor for ListenerActor {
                         %provider,
                         "stream_provider_error"
                     );
+                    let _ = (SessionErrorEvent::ConnectionError {
+                        session_id: state.args.session_id.clone(),
+                        error: format!(
+                            "[{}] {} (code: {})",
+                            provider,
+                            error_message,
+                            error_code
+                                .map(|c| c.to_string())
+                                .unwrap_or_else(|| "none".to_string())
+                        ),
+                    })
+                    .emit(&state.args.app);
                     stop_with_degraded_error(
                         &myself,
                         DegradedError::AuthenticationFailed {

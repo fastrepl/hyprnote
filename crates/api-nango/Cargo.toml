@@ -8,6 +8,7 @@ hypr-api-auth = { workspace = true }
 hypr-api-env = { workspace = true }
 hypr-nango = { workspace = true }
 
+chrono = { workspace = true }
 utoipa = { workspace = true }
 
 axum = { workspace = true }

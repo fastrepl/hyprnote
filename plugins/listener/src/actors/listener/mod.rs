@@ -187,12 +187,15 @@ impl Actor for ListenerActor {
                         ),
                     })
                     .emit(&state.args.app);
-                    stop_with_degraded_error(
-                        &myself,
-                        DegradedError::AuthenticationFailed {
+                    let degraded = match *error_code {
+                        Some(401) | Some(403) => DegradedError::AuthenticationFailed {
                             provider: provider.clone(),
                         },
-                    );
+                        _ => DegradedError::StreamError {
+                            message: format!("{}: {}", provider, error_message),
+                        },
+                    };
+                    stop_with_degraded_error(&myself, degraded);
                     return Ok(());
                 }
 

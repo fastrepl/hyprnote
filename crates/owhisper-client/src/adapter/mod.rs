@@ -11,6 +11,7 @@ mod gladia;
 pub mod http;
 mod hyprnote;
 mod language;
+mod mistral;
 mod openai;
 mod owhisper;
 pub mod parsing;
@@ -26,6 +27,7 @@ pub use fireworks::*;
 pub use gladia::*;
 pub use hyprnote::*;
 pub use language::{LanguageQuality, LanguageSupport};
+pub use mistral::*;
 pub use openai::*;
 pub use soniox::*;
 
@@ -264,6 +266,8 @@ pub enum AdapterKind {
     ElevenLabs,
     #[strum(serialize = "dashscope")]
     DashScope,
+    #[strum(serialize = "mistral")]
+    Mistral,
 }
 
 impl AdapterKind {
@@ -309,6 +313,7 @@ impl AdapterKind {
             Self::ElevenLabs => ElevenLabsAdapter::language_support_live(languages),
             Self::DashScope => DashScopeAdapter::language_support_live(languages),
             Self::Argmax => ArgmaxAdapter::language_support_live(languages, model),
+            Self::Mistral => MistralAdapter::language_support_live(languages),
         }
     }
 
@@ -330,6 +335,7 @@ impl AdapterKind {
             Self::ElevenLabs => ElevenLabsAdapter::language_support_batch(languages),
             Self::DashScope => DashScopeAdapter::language_support_batch(languages),
             Self::Argmax => ArgmaxAdapter::language_support_batch(languages, model),
+            Self::Mistral => MistralAdapter::language_support_batch(languages),
         }
     }
 
@@ -372,6 +378,7 @@ impl From<crate::providers::Provider> for AdapterKind {
             Provider::Gladia => Self::Gladia,
             Provider::ElevenLabs => Self::ElevenLabs,
             Provider::DashScope => Self::DashScope,
+            Provider::Mistral => Self::Mistral,
         }
     }
 }

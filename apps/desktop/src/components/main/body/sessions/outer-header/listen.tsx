@@ -1,7 +1,8 @@
 import { useHover } from "@uidotdev/usehooks";
-import { MicOff } from "lucide-react";
+import { MicOff, TriangleAlert } from "lucide-react";
 import { useCallback } from "react";
 
+import type { DegradedError } from "@hypr/plugin-listener";
 import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import {
   Tooltip,
@@ -86,14 +87,30 @@ function StartButton({ sessionId }: { sessionId: string }) {
   );
 }
 
+function degradedMessage(error: DegradedError): string {
+  switch (error.type) {
+    case "authentication_failed":
+      return `Authentication failed (${error.provider})`;
+    case "upstream_unavailable":
+      return "Transcription service unavailable";
+    case "connection_timeout":
+      return "Transcription connection timed out";
+    case "stream_error":
+      return "Transcription stream error";
+    case "channel_overflow":
+      return "Audio channel overflow";
+  }
+}
+
 function InMeetingIndicator({ sessionId }: { sessionId: string }) {
   const [ref, hovered] = useHover();
 
-  const { mode, stop, amplitude, muted } = useListener((state) => ({
+  const { mode, stop, amplitude, muted, degraded } = useListener((state) => ({
     mode: state.getSessionMode(sessionId),
     stop: state.stop,
     amplitude: state.live.amplitude,
     muted: state.live.muted,
+    degraded: state.live.degraded,
   }));
 
   const active = mode === "active" || mode === "finalizing";
@@ -132,6 +149,19 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
               hovered ? "hidden" : "flex",
             ])}
           >
+            {degraded !== null && (
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <TriangleAlert
+                    size={14}
+                    className="text-amber-500 shrink-0"
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p className="text-xs">{degradedMessage(degraded)}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
             {muted && <MicOff size={14} />}
             <DancingSticks
               amplitude={Math.min(

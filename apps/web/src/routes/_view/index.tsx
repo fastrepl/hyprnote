@@ -162,7 +162,8 @@ function Component() {
 function YCombinatorBanner() {
   return (
     <Link
-      to="/blog/hyprnote-is-now-char"
+      to="/blog/$slug/"
+      params={{ slug: "hyprnote-is-now-char" }}
       className="group"
     >
       <div

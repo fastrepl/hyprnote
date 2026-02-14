@@ -12,7 +12,7 @@ use tracing::Instrument;
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
 
-use super::root::session_span;
+use super::session::session_span;
 use crate::{SessionDataEvent, SessionErrorEvent, SessionProgressEvent};
 
 use adapters::spawn_rx_task;

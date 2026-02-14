@@ -20,6 +20,8 @@ pub struct Env {
     #[serde(default)]
     pub elevenlabs_api_key: Option<String>,
     #[serde(default)]
+    pub dashscope_api_key: Option<String>,
+    #[serde(default)]
     pub restate_ingress_url: Option<String>,
 }
 
@@ -64,6 +66,9 @@ impl From<&Env> for ApiKeys {
         }
         if let Some(key) = env.elevenlabs_api_key.as_ref().filter(|s| !s.is_empty()) {
             map.insert(Provider::ElevenLabs, key.clone());
+        }
+        if let Some(key) = env.dashscope_api_key.as_ref().filter(|s| !s.is_empty()) {
+            map.insert(Provider::DashScope, key.clone());
         }
         Self(map)
     }

@@ -77,6 +77,7 @@ pub fn env_with_provider(provider: Provider, api_key: String) -> transcribe_prox
         Provider::OpenAI => env.openai_api_key = Some(api_key),
         Provider::Gladia => env.gladia_api_key = Some(api_key),
         Provider::ElevenLabs => env.elevenlabs_api_key = Some(api_key),
+        Provider::DashScope => env.dashscope_api_key = Some(api_key),
     }
     env
 }

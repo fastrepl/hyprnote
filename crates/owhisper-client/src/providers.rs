@@ -324,7 +324,6 @@ impl Provider {
                     "words_accurate_timestamps": true
                 }
             })),
-            Self::DashScope => None,
             _ => None,
         }
     }

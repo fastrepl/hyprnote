@@ -88,6 +88,7 @@ fn build_initial_message_with_adapter(
 fn build_response_transformer(
     provider: Provider,
 ) -> impl Fn(&str) -> Option<String> + Send + Sync + 'static {
+    let mistral_adapter = MistralAdapter::default();
     move |raw: &str| {
         let responses: Vec<owhisper_interface::stream::StreamResponse> = match provider {
             Provider::Deepgram => DeepgramAdapter.parse_response(raw),
@@ -98,7 +99,7 @@ fn build_response_transformer(
             Provider::Gladia => GladiaAdapter.parse_response(raw),
             Provider::ElevenLabs => ElevenLabsAdapter.parse_response(raw),
             Provider::DashScope => DashScopeAdapter.parse_response(raw),
-            Provider::Mistral => MistralAdapter::default().parse_response(raw),
+            Provider::Mistral => mistral_adapter.parse_response(raw),
         };
 
         if responses.is_empty() {

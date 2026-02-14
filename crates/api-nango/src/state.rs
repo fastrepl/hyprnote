@@ -42,7 +42,7 @@ impl AppState {
             })?;
 
         let url = format!(
-            "{}/rest/v1/nango_connections",
+            "{}/rest/v1/nango_connections?on_conflict=user_id,integration_id",
             self.config.supabase_url.trim_end_matches('/'),
         );
 

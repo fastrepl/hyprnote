@@ -110,6 +110,7 @@ pub async fn suggest_providers_for_languages_live<R: tauri::Runtime>(
         AdapterKind::OpenAI,
         AdapterKind::Gladia,
         AdapterKind::ElevenLabs,
+        AdapterKind::DashScope,
     ];
 
     let mut with_support: Vec<_> = all_providers

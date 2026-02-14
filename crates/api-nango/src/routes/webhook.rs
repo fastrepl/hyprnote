@@ -64,7 +64,7 @@ pub async fn nango_webhook(
         }
     }
 
-    if payload.r#type == "auth" && payload.operation == "deletion" {
+    if payload.r#type == "auth" && payload.success && payload.operation == "deletion" {
         if let Err(e) = state
             .delete_connection(&payload.end_user.end_user_id, &payload.provider_config_key)
             .await

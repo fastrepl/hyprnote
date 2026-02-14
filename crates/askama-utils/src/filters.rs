@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use isolang::Language;
 
 thread_local! {
-    static CURRENT_DATE_OVERRIDE: RefCell<Option<String>> = RefCell::new(None);
+    static CURRENT_DATE_OVERRIDE: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
 pub fn set_current_date_override(date: Option<String>) {

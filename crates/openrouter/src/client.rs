@@ -294,15 +294,14 @@ fn process_responses_line(line: &str) -> Option<Result<ResponsesStreamOutputItem
         return None;
     }
 
-    if let Ok(value) = serde_json::from_str::<serde_json::Value>(line) {
-        if let Some(obj) = value.as_object() {
-            if obj.contains_key("type") {
-                return Some(
-                    serde_json::from_str::<ResponsesStreamOutputItem>(line)
-                        .map_err(|e| Error::Stream(e.to_string())),
-                );
-            }
-        }
+    if let Ok(value) = serde_json::from_str::<serde_json::Value>(line)
+        && let Some(obj) = value.as_object()
+        && obj.contains_key("type")
+    {
+        return Some(
+            serde_json::from_str::<ResponsesStreamOutputItem>(line)
+                .map_err(|e| Error::Stream(e.to_string())),
+        );
     }
 
     None

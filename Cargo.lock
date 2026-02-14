@@ -4691,13 +4691,13 @@ dependencies = [
  "intercept",
  "pico-args",
  "ractor",
- "ractor-supervisor",
  "sentry",
  "serde",
  "serde_json",
  "specta",
  "specta-typescript",
  "strum 0.27.2",
+ "supervisor",
  "tauri",
  "tauri-build",
  "tauri-plugin-analytics",
@@ -14393,32 +14393,23 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 
 [[package]]
 name = "ractor"
-version = "0.14.7"
+version = "0.15.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d65972a0286ef14c43c6daafbac6cf15e96496446147683b2905292c35cc178"
+checksum = "6102314f700f3e8df466c49110830b18cbfc172f88f27a9d7383e455663b1be7"
 dependencies = [
  "async-trait",
  "bon 2.3.0",
  "dashmap",
  "futures",
+ "js-sys",
  "once_cell",
  "strum 0.26.3",
  "tokio",
+ "tokio_with_wasm",
  "tracing",
-]
-
-[[package]]
-name = "ractor-supervisor"
-version = "0.1.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d90830688ebfafdc226f3c9567c40fecf4c51a7513171181102ae66e4b57c15f"
-dependencies = [
- "futures-util",
- "if_chain",
- "log",
- "ractor",
- "thiserror 2.0.18",
- "uuid",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-time",
 ]
 
 [[package]]
@@ -17507,6 +17498,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "supervisor"
+version = "0.1.0"
+dependencies = [
+ "ractor",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "svgtypes"
 version = "0.15.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -18917,6 +18918,7 @@ dependencies = [
  "specta",
  "specta-typescript",
  "strum 0.27.2",
+ "supervisor",
  "tauri",
  "tauri-plugin",
  "tauri-plugin-fs-sync",
@@ -19022,7 +19024,6 @@ dependencies = [
  "port-killer",
  "port_check",
  "ractor",
- "ractor-supervisor",
  "reqwest 0.13.2",
  "rodio",
  "serde",
@@ -19031,6 +19032,7 @@ dependencies = [
  "specta",
  "specta-typescript",
  "strum 0.27.2",
+ "supervisor",
  "tauri",
  "tauri-plugin",
  "tauri-plugin-settings",
@@ -19089,7 +19091,6 @@ name = "tauri-plugin-network"
 version = "0.1.0"
 dependencies = [
  "ractor",
- "ractor-supervisor",
  "reqwest 0.13.2",
  "serde",
  "specta",
@@ -20392,6 +20393,30 @@ dependencies = [
  "tokio-rustls 0.26.4",
  "tokio-util",
  "webpki-roots 0.26.11",
+]
+
+[[package]]
+name = "tokio_with_wasm"
+version = "0.8.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34e40fbbbd95441133fe9483f522db15dbfd26dc636164ebd8f2dd28759a6aa6"
+dependencies = [
+ "js-sys",
+ "tokio",
+ "tokio_with_wasm_proc",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "tokio_with_wasm_proc"
+version = "0.8.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d01145a2c788d6aae4cd653afec1e8332534d7d783d01897cefcafe4428de992"
+dependencies = [
+ "quote",
+ "syn 2.0.114",
 ]
 
 [[package]]

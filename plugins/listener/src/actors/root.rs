@@ -5,7 +5,6 @@ use tauri_plugin_settings::SettingsPluginExt;
 use tauri_specta::Event;
 use tracing::Instrument;
 
-use crate::DegradedError;
 use crate::SessionLifecycleEvent;
 use crate::actors::session::lifecycle::{
     clear_sentry_session_context, configure_sentry_session_context, emit_session_ended,
@@ -106,13 +105,7 @@ impl Actor for RootActor {
                     state.supervisor = None;
                     state.finalizing = false;
 
-                    let failure_reason = reason.and_then(|r| {
-                        serde_json::from_str::<DegradedError>(&r)
-                            .ok()
-                            .map(|d| format!("{:?}", d))
-                            .or(Some(r))
-                    });
-                    emit_session_ended(&state.app, &session_id, failure_reason);
+                    emit_session_ended(&state.app, &session_id, reason);
                 }
             }
             SupervisionEvent::ActorFailed(cell, error) => {
@@ -223,6 +216,12 @@ async fn stop_session_impl(state: &mut RootState) {
         }
 
         let session_ref: ActorRef<SessionMsg> = supervisor.clone().into();
-        let _ = session_ref.cast(SessionMsg::Shutdown);
+        if let Err(error) = session_ref.cast(SessionMsg::Shutdown) {
+            tracing::warn!(
+                ?error,
+                "failed_to_cast_session_shutdown_falling_back_to_stop"
+            );
+            supervisor.stop(Some("session_stop_cast_failed".to_string()));
+        }
     }
 }

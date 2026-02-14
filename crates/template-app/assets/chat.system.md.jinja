@@ -19,36 +19,7 @@ Current date: {{ ""|current_date }}
 {%- if let Some(ctx) = context %}
 
 Context: You are helping the user with their meeting notes. Here is the current context:
-{%- if let Some(title) = ctx.title %}
-
-Title: {{ title }}
-{%- endif -%}
-{%- if let Some(date) = ctx.date %}
-
-Date: {{ date }}
-{%- endif -%}
-{%- if let Some(event) = ctx.event %}
-
-Event: {{ event.name }}
-{%- endif -%}
-{%- if !ctx.participants.is_empty() %}
-
-Participants:{{ macros::participants(participants=ctx.participants) }}
-{%- endif -%}
-{%- if let Some(enhanced_content) = ctx.enhanced_content %}
-
-Enhanced Meeting Summary:
-{{ enhanced_content }}
-{%- else if let Some(raw_content) = ctx.raw_content %}
-
-User written note:
-{{ raw_content }}
-{%- endif -%}
-{%- if let Some(transcript) = ctx.transcript %}
-
-Full Meeting Transcript:
-{{ macros::transcript(transcript) }}
-{%- endif -%}
+{{ macros::session_context_details(ctx=ctx) }}
 {%- endif %}
 {%- if let Some(_ctx) = context %}
 

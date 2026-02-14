@@ -118,6 +118,7 @@ mod tests {
 
     Context: You are helping the user with their meeting notes. Here is the current context:
 
+
     Title: Weekly Standup
 
     Date: 2025-01-15

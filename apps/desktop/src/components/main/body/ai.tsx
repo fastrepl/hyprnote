@@ -19,6 +19,7 @@ import {
 } from "@hypr/ui/components/ui/scroll-fade";
 import { cn } from "@hypr/utils";
 
+import { useSettingsNavigation } from "../../../hooks/useSettingsNavigation";
 import * as main from "../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../store/zustand/tabs";
 import { LLM } from "../../settings/ai/llm";
@@ -135,6 +136,8 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
     },
     [currentIndex, setActiveTab],
   );
+
+  useSettingsNavigation(ref, activeTab);
 
   const menuItems: Array<{
     key: AITabKey;

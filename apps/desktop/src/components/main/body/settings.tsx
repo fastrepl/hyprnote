@@ -16,6 +16,7 @@ import {
 } from "@hypr/ui/components/ui/scroll-fade";
 import { cn } from "@hypr/utils";
 
+import { useSettingsNavigation } from "../../../hooks/useSettingsNavigation";
 import {
   type SettingsTab,
   type Tab,
@@ -128,6 +129,8 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
     },
     [currentIndex, setActiveTab],
   );
+
+  useSettingsNavigation(ref, activeTab);
 
   const renderContent = () => {
     switch (activeTab) {

@@ -168,7 +168,7 @@ export async function hydrateSessionContextFromFs(
   const payload = result.data;
   const participants =
     payload.meta?.participants
-      .map((participant) => {
+      ?.map((participant) => {
         const row = store?.getRow("humans", participant.humanId);
         if (!row || typeof row.name !== "string" || !row.name) {
           return null;

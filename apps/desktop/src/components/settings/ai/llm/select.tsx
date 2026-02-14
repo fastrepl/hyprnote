@@ -30,6 +30,7 @@ import { listOllamaModels } from "../shared/list-ollama";
 import { listGenericModels, listOpenAIModels } from "../shared/list-openai";
 import { listOpenRouterModels } from "../shared/list-openrouter";
 import { ModelCombobox } from "../shared/model-combobox";
+import { useLocalProviderStatus } from "../shared/use-local-provider-status";
 import { HealthStatusIndicator, useConnectionHealth } from "./health";
 import { PROVIDERS } from "./shared";
 
@@ -44,6 +45,9 @@ export function SelectProviderAndModel() {
   const health = useConnectionHealth();
   const isConfigured = !!(current_llm_provider && current_llm_model);
   const hasError = isConfigured && health.status === "error";
+
+  const { status: ollamaStatus } = useLocalProviderStatus("ollama");
+  const { status: lmStudioStatus } = useLocalProviderStatus("lmstudio");
 
   const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_llm_provider",
@@ -116,17 +120,29 @@ export function SelectProviderAndModel() {
                   <SelectContent>
                     {PROVIDERS.map((provider) => {
                       const status = configuredProviders[provider.id];
+                      const localStatus =
+                        provider.id === "ollama"
+                          ? ollamaStatus
+                          : provider.id === "lmstudio"
+                            ? lmStudioStatus
+                            : null;
+                      const isDisabled =
+                        !status?.listModels ||
+                        (localStatus !== null && localStatus !== "connected");
 
                       return (
                         <SelectItem
                           key={provider.id}
                           value={provider.id}
-                          disabled={!status?.listModels}
+                          disabled={isDisabled}
                         >
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-2">
                               {provider.icon}
                               <span>{provider.displayName}</span>
+                              {localStatus === "connected" && (
+                                <span className="size-1.5 rounded-full bg-green-500" />
+                              )}
                             </div>
                           </div>
                         </SelectItem>

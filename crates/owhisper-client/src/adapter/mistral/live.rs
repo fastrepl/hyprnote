@@ -333,9 +333,11 @@ mod tests {
 
     use super::MistralAdapter;
     use crate::ListenClient;
+    use crate::adapter::RealtimeSttAdapter;
     use crate::test_utils::{
         UrlTestCase, run_dual_test_with_rate, run_single_test_with_rate, run_url_test_cases,
     };
+    use owhisper_interface::stream::StreamResponse;
 
     const API_BASE: &str = "wss://api.mistral.ai";
     const MISTRAL_SAMPLE_RATE: u32 = 16000;

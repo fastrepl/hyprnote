@@ -30,11 +30,19 @@ impl RealtimeSttAdapter for DashScopeAdapter {
         false
     }
 
-    fn build_ws_url(&self, api_base: &str, _params: &ListenParams, _channels: u8) -> url::Url {
+    fn build_ws_url(&self, api_base: &str, params: &ListenParams, _channels: u8) -> url::Url {
         let (mut url, existing_params) = Self::build_ws_url_from_base(api_base);
 
-        if !existing_params.is_empty() {
+        let default = crate::providers::Provider::DashScope.default_live_model();
+        let model = match params.model.as_deref() {
+            Some(m) if crate::providers::is_meta_model(m) => default,
+            Some(m) => m,
+            None => default,
+        };
+
+        {
             let mut query_pairs = url.query_pairs_mut();
+            query_pairs.append_pair("model", model);
             for (key, value) in &existing_params {
                 query_pairs.append_pair(key, value);
             }
@@ -72,13 +80,6 @@ impl RealtimeSttAdapter for DashScopeAdapter {
             .first()
             .map(|l| l.iso639().code().to_string());
 
-        let default = crate::providers::Provider::DashScope.default_live_model();
-        let model = match params.model.as_deref() {
-            Some(m) if crate::providers::is_meta_model(m) => default,
-            Some(m) => m,
-            None => default,
-        };
-
         let sample_rate = if params.sample_rate == 0 {
             DEFAULT_SAMPLE_RATE
         } else {
@@ -90,7 +91,6 @@ impl RealtimeSttAdapter for DashScopeAdapter {
             session: SessionConfig {
                 modalities: vec!["text".to_string()],
                 transcription: Some(TranscriptionConfig {
-                    model: model.to_string(),
                     language,
                     input_audio_format: "pcm".to_string(),
                     input_sample_rate: sample_rate,
@@ -110,10 +110,10 @@ impl RealtimeSttAdapter for DashScopeAdapter {
     }
 
     fn finalize_message(&self) -> Message {
-        let commit = InputAudioBufferCommit {
-            event_type: "input_audio_buffer.commit".to_string(),
+        let finish = SessionFinish {
+            event_type: "session.finish".to_string(),
         };
-        Message::Text(serde_json::to_string(&commit).unwrap().into())
+        Message::Text(serde_json::to_string(&finish).unwrap().into())
     }
 
     fn parse_response(&self, raw: &str) -> Vec<StreamResponse> {
@@ -227,7 +227,6 @@ struct SessionConfig {
 
 #[derive(Debug, Serialize)]
 struct TranscriptionConfig {
-    model: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     language: Option<String>,
     input_audio_format: String,
@@ -255,6 +254,12 @@ struct InputAudioBufferAppend {
 
 #[derive(Debug, Serialize)]
 struct InputAudioBufferCommit {
+    #[serde(rename = "type")]
+    event_type: String,
+}
+
+#[derive(Debug, Serialize)]
+struct SessionFinish {
     #[serde(rename = "type")]
     event_type: String,
 }

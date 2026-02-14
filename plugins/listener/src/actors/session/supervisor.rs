@@ -35,7 +35,6 @@ pub struct SessionState {
     source_cell: Option<ActorCell>,
     listener_cell: Option<ActorCell>,
     recorder_cell: Option<ActorCell>,
-    listener_degraded: Option<DegradedError>,
     source_restarts: RestartTracker,
     recorder_restarts: RestartTracker,
     shutting_down: bool,
@@ -76,27 +75,6 @@ impl Actor for SessionActor {
             )
             .await?;
 
-            let mode = ChannelMode::determine(ctx.params.onboarding);
-            let (listener_ref, _) = Actor::spawn_linked(
-                Some(ListenerActor::name()),
-                ListenerActor,
-                ListenerArgs {
-                    app: ctx.app.clone(),
-                    languages: ctx.params.languages.clone(),
-                    onboarding: ctx.params.onboarding,
-                    model: ctx.params.model.clone(),
-                    base_url: ctx.params.base_url.clone(),
-                    api_key: ctx.params.api_key.clone(),
-                    keywords: ctx.params.keywords.clone(),
-                    mode,
-                    session_started_at: ctx.started_at_instant,
-                    session_started_at_unix: ctx.started_at_system,
-                    session_id: ctx.params.session_id.clone(),
-                },
-                myself.get_cell(),
-            )
-            .await?;
-
             let recorder_cell = if ctx.params.record_enabled {
                 let (recorder_ref, _) = Actor::spawn_linked(
                     Some(RecorderActor::name()),
@@ -116,13 +94,65 @@ impl Actor for SessionActor {
             Ok(SessionState {
                 ctx,
                 source_cell: Some(source_ref.get_cell()),
-                listener_cell: Some(listener_ref.get_cell()),
+                listener_cell: None,
                 recorder_cell,
-                listener_degraded: None,
                 source_restarts: RestartTracker::new(),
                 recorder_restarts: RestartTracker::new(),
                 shutting_down: false,
             })
+        }
+        .instrument(span)
+        .await
+    }
+
+    // Listener is spawned in post_start so that a connection failure enters
+    // degraded mode instead of killing the session -- source and recorder keep running.
+    async fn post_start(
+        &self,
+        myself: ActorRef<Self::Msg>,
+        state: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        let span = session_span(&state.ctx.params.session_id);
+
+        async {
+            let mode = ChannelMode::determine(state.ctx.params.onboarding);
+            match Actor::spawn_linked(
+                Some(ListenerActor::name()),
+                ListenerActor,
+                ListenerArgs {
+                    app: state.ctx.app.clone(),
+                    languages: state.ctx.params.languages.clone(),
+                    onboarding: state.ctx.params.onboarding,
+                    model: state.ctx.params.model.clone(),
+                    base_url: state.ctx.params.base_url.clone(),
+                    api_key: state.ctx.params.api_key.clone(),
+                    keywords: state.ctx.params.keywords.clone(),
+                    mode,
+                    session_started_at: state.ctx.started_at_instant,
+                    session_started_at_unix: state.ctx.started_at_system,
+                    session_id: state.ctx.params.session_id.clone(),
+                },
+                myself.get_cell(),
+            )
+            .await
+            {
+                Ok((listener_ref, _)) => {
+                    state.listener_cell = Some(listener_ref.get_cell());
+                }
+                Err(e) => {
+                    tracing::warn!(?e, "listener_spawn_failed_entering_degraded_mode");
+                    let base_url = &state.ctx.params.base_url;
+                    let degraded = DegradedError::UpstreamUnavailable {
+                        message: classify_connection_failure(base_url),
+                    };
+                    let _ = (SessionLifecycleEvent::Active {
+                        session_id: state.ctx.params.session_id.clone(),
+                        error: Some(degraded),
+                    })
+                    .emit(&state.ctx.app);
+                }
+            }
+            Ok(())
         }
         .instrument(span)
         .await
@@ -180,7 +210,6 @@ impl Actor for SessionActor {
                     Some(ChildKind::Listener) => {
                         tracing::info!(?reason, "listener_terminated_entering_degraded_mode");
                         let degraded = parse_degraded_reason(reason.as_ref());
-                        state.listener_degraded = Some(degraded.clone());
                         state.listener_cell = None;
 
                         let _ = (SessionLifecycleEvent::Active {
@@ -217,7 +246,6 @@ impl Actor for SessionActor {
                     let degraded = DegradedError::StreamError {
                         message: format!("{:?}", error),
                     };
-                    state.listener_degraded = Some(degraded.clone());
                     state.listener_cell = None;
 
                     let _ = (SessionLifecycleEvent::Active {
@@ -373,6 +401,16 @@ async fn meltdown(myself: ActorRef<SessionMsg>, state: &mut SessionState) {
         lifecycle::wait_for_actor_shutdown(RecorderActor::name()).await;
     }
     myself.stop(Some("restart_limit_exceeded".to_string()));
+}
+
+fn classify_connection_failure(base_url: &str) -> String {
+    if base_url.contains("localhost") || base_url.contains("127.0.0.1") {
+        "Local transcription server is not running".to_string()
+    } else if !base_url.contains("hyprnote.com") {
+        format!("Cannot reach transcription server at {}", base_url)
+    } else {
+        "Transcription service is temporarily unavailable".to_string()
+    }
 }
 
 fn parse_degraded_reason(reason: Option<&String>) -> DegradedError {

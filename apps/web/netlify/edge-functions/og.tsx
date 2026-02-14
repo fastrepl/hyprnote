@@ -443,7 +443,8 @@ function getAuthorAvatar(author: string): string {
 }
 
 function renderBlogTemplate(params: z.infer<typeof blogSchema>) {
-  const avatarUrl = getAuthorAvatar(params.author);
+  const firstAuthor = params.author.split(",")[0]?.trim() || params.author;
+  const avatarUrl = getAuthorAvatar(firstAuthor);
 
   return (
     <div

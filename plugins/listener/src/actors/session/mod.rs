@@ -1,3 +1,5 @@
+pub(crate) mod lifecycle;
+
 use std::path::PathBuf;
 use std::time::{Instant, SystemTime};
 
@@ -12,6 +14,11 @@ use crate::actors::{
 };
 
 pub const SESSION_SUPERVISOR_PREFIX: &str = "session_supervisor_";
+
+/// Creates a tracing span with session context that child events will inherit
+pub(crate) fn session_span(session_id: &str) -> tracing::Span {
+    tracing::info_span!("session", session_id = %session_id)
+}
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct SessionParams {

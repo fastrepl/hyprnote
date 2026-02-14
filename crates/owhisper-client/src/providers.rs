@@ -80,10 +80,12 @@ pub enum Provider {
     Gladia,
     #[strum(serialize = "elevenlabs")]
     ElevenLabs,
+    #[strum(serialize = "dashscope")]
+    DashScope,
 }
 
 impl Provider {
-    const ALL: [Provider; 7] = [
+    const ALL: [Provider; 8] = [
         Self::Deepgram,
         Self::AssemblyAI,
         Self::Soniox,
@@ -91,6 +93,7 @@ impl Provider {
         Self::OpenAI,
         Self::Gladia,
         Self::ElevenLabs,
+        Self::DashScope,
     ];
 
     pub fn from_host(host: &str) -> Option<Self> {
@@ -125,6 +128,10 @@ impl Provider {
                 name: "xi-api-key",
                 prefix: None,
             },
+            Self::DashScope => Auth::Header {
+                name: "Authorization",
+                prefix: Some("Bearer "),
+            },
         }
     }
 
@@ -145,6 +152,7 @@ impl Provider {
             Self::OpenAI => "api.openai.com",
             Self::Gladia => "api.gladia.io",
             Self::ElevenLabs => "api.elevenlabs.io",
+            Self::DashScope => "dashscope-intl.aliyuncs.com",
         }
     }
 
@@ -157,6 +165,7 @@ impl Provider {
             Self::OpenAI => "api.openai.com",
             Self::Gladia => "api.gladia.io",
             Self::ElevenLabs => "api.elevenlabs.io",
+            Self::DashScope => "dashscope-intl.aliyuncs.com",
         }
     }
 
@@ -169,6 +178,7 @@ impl Provider {
             Self::OpenAI => "/v1/realtime",
             Self::Gladia => "/v2/live",
             Self::ElevenLabs => "/v1/speech-to-text/realtime",
+            Self::DashScope => "/api-ws/v1/realtime",
         }
     }
 
@@ -181,6 +191,7 @@ impl Provider {
             Self::OpenAI => None,
             Self::Gladia => Some("https://api.gladia.io/v2/live"),
             Self::ElevenLabs => Some("https://api.elevenlabs.io/v1"),
+            Self::DashScope => None,
         }
     }
 
@@ -193,6 +204,7 @@ impl Provider {
             Self::OpenAI => "https://api.openai.com/v1",
             Self::Gladia => "https://api.gladia.io/v2",
             Self::ElevenLabs => "https://api.elevenlabs.io",
+            Self::DashScope => "https://dashscope-intl.aliyuncs.com",
         }
     }
 
@@ -205,6 +217,7 @@ impl Provider {
             Self::OpenAI => "openai.com",
             Self::Gladia => "gladia.io",
             Self::ElevenLabs => "elevenlabs.io",
+            Self::DashScope => "aliyuncs.com",
         }
     }
 
@@ -235,6 +248,7 @@ impl Provider {
             Self::OpenAI => "OPENAI_API_KEY",
             Self::Gladia => "GLADIA_API_KEY",
             Self::ElevenLabs => "ELEVENLABS_API_KEY",
+            Self::DashScope => "DASHSCOPE_API_KEY",
         }
     }
 
@@ -247,6 +261,7 @@ impl Provider {
             Self::OpenAI => "gpt-4o-transcribe",
             Self::Gladia => "solaria-1",
             Self::ElevenLabs => "scribe_v2_realtime",
+            Self::DashScope => "qwen3-asr-flash-realtime",
         }
     }
 
@@ -254,6 +269,7 @@ impl Provider {
         match self {
             Self::OpenAI => 24000,
             Self::ElevenLabs => 16000,
+            Self::DashScope => 16000,
             _ => 16000,
         }
     }
@@ -267,6 +283,7 @@ impl Provider {
             Self::OpenAI => "whisper-1",
             Self::Gladia => "solaria-1",
             Self::ElevenLabs => "scribe_v2",
+            Self::DashScope => "qwen3-asr-flash-filetrans",
         }
     }
 
@@ -274,6 +291,7 @@ impl Provider {
         match self {
             Self::Deepgram => &[("model", "nova-3-general"), ("mip_opt_out", "false")],
             Self::OpenAI => &[("intent", "transcription")],
+            Self::DashScope => &[],
             _ => &[],
         }
     }
@@ -287,6 +305,7 @@ impl Provider {
             Self::OpenAI => &[],
             Self::Gladia => &[],
             Self::ElevenLabs => &["commit"],
+            Self::DashScope => &[],
         }
     }
 
@@ -305,6 +324,7 @@ impl Provider {
                     "words_accurate_timestamps": true
                 }
             })),
+            Self::DashScope => None,
             _ => None,
         }
     }
@@ -315,7 +335,7 @@ impl Provider {
             Self::Soniox => soniox::error::detect_error(data),
             Self::ElevenLabs => elevenlabs::error::detect_error(data),
             Self::AssemblyAI => assemblyai::error::detect_error(data),
-            Self::Fireworks | Self::OpenAI | Self::Gladia => None,
+            Self::Fireworks | Self::OpenAI | Self::Gladia | Self::DashScope => None,
         }
     }
 

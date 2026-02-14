@@ -268,9 +268,7 @@ async fn spawn_batch_task(
         AdapterKind::DashScope => {
             spawn_batch_task_with_adapter::<DashScopeAdapter>(args, myself).await
         }
-        AdapterKind::Mistral => {
-            spawn_batch_task_with_adapter::<MistralAdapter>(args, myself).await
-        }
+        AdapterKind::Mistral => spawn_batch_task_with_adapter::<MistralAdapter>(args, myself).await,
     }
 }
 

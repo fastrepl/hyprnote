@@ -560,7 +560,6 @@ dependencies = [
  "axum 0.8.8",
  "chrono",
  "google-calendar",
- "hypr-http-utils",
  "nango",
  "reqwest 0.13.2",
  "sentry",
@@ -612,6 +611,24 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+]
+
+[[package]]
+name = "api-storage"
+version = "0.1.0"
+dependencies = [
+ "api-env",
+ "axum 0.8.8",
+ "google-drive",
+ "nango",
+ "reqwest 0.13.2",
+ "sentry",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "utoipa",
 ]
 
 [[package]]
@@ -8574,6 +8591,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "google-drive"
+version = "0.1.0"
+dependencies = [
+ "hypr-http-utils",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "urlencoding",
+]
+
+[[package]]
 name = "granola"
 version = "0.1.0"
 dependencies = [
@@ -11675,6 +11704,7 @@ version = "0.1.0"
 dependencies = [
  "hex",
  "hmac",
+ "hypr-http-utils",
  "reqwest 0.13.2",
  "schemars 1.2.1",
  "serde",

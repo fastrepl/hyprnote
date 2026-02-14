@@ -1,4 +1,4 @@
-use hypr_nango::NangoProxy;
+use crate::proxy::NangoProxy;
 
 pub struct NangoHttpClient<'a> {
     proxy: NangoProxy<'a>,

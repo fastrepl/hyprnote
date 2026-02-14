@@ -1,4 +1,5 @@
 import DOMPurify from "dompurify";
+import { Facehash } from "facehash";
 import { useCallback, useMemo } from "react";
 
 import { cn } from "@hypr/utils";
@@ -6,7 +7,6 @@ import { cn } from "@hypr/utils";
 import { type SearchResult } from "../../../../contexts/search/ui";
 import * as main from "../../../../store/tinybase/store/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
-import { getInitials } from "../../body/contacts/shared";
 
 export function SearchResultItem({
   result,
@@ -88,15 +88,12 @@ function HumanSearchResultItem({
         isSelected && "bg-neutral-100",
       ])}
     >
-      <div
-        className={cn([
-          "shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center",
-        ])}
-      >
-        <span className={cn(["text-xs font-medium text-neutral-600"])}>
-          {getInitials(result.title)}
-        </span>
-      </div>
+      <Facehash
+        name={result.title || result.id}
+        size={32}
+        interactive={false}
+        showInitial={false}
+      />
       <div className={cn(["flex-1 min-w-0"])}>
         <div
           className={cn([

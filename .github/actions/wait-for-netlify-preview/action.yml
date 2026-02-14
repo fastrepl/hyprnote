@@ -11,7 +11,7 @@ runs:
           exit 0
         fi
 
-        url="https://deploy-preview-${{ github.event.pull_request.number }}--hyprnote.netlify.app"
+        url="https://deploy-preview-${{ github.event.pull_request.number }}--char.netlify.app"
         echo "BASE_URL=$url" >> "$GITHUB_ENV"
 
         echo "Waiting for $url to be ready..."

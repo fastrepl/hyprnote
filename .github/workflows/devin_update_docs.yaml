@@ -19,7 +19,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           PR_JSON=$(gh pr list \
-            --repo fastrepl/hyprnote \
+            --repo fastrepl/char \
             --state open \
             --author "app/devin-ai-integration" \
             --search "docs" \
@@ -59,7 +59,7 @@ jobs:
 
             ## Context
             Hyprnote is a Tauri-based desktop app for AI meeting notes that prioritizes privacy.
-            Repository: fastrepl/hyprnote
+            Repository: fastrepl/char
 
             {% if has_existing_pr == "true" %}
             ## Stacked PR Instructions

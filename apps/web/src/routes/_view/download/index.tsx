@@ -145,7 +145,7 @@ function Component() {
 
 function HomebrewCard() {
   const [copied, setCopied] = useState(false);
-  const command = "brew tap fastrepl/hyprnote && brew install hyprnote --cask";
+  const command = "brew tap fastrepl/char && brew install hyprnote --cask";
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(command);

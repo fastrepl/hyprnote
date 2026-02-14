@@ -20,11 +20,11 @@ jobs:
 
             ## Context
             Hyprnote is a Tauri-based desktop app for AI meeting notes that prioritizes privacy.
-            Repository: fastrepl/hyprnote
+            Repository: fastrepl/char
 
             ## Your Task
             1. **Fetch Open Issues**
-               - Use the GitHub API to list all open issues (not pull requests) in `fastrepl/hyprnote`
+               - Use the GitHub API to list all open issues (not pull requests) in `fastrepl/char`
                - For each issue, note the title, body, labels, and creation date
 
             2. **Assess Each Issue Against the Codebase**

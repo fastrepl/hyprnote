@@ -20,7 +20,7 @@ jobs:
 
             ## Context
             Hyprnote is a Tauri-based desktop app for AI meeting notes that prioritizes privacy.
-            Repository: fastrepl/hyprnote
+            Repository: fastrepl/char
 
             ## Your Task
             1. **Analyze Recent Changes**

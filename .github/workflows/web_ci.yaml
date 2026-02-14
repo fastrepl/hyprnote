@@ -40,7 +40,7 @@ jobs:
       - uses: ./.github/actions/wait-for-netlify-preview
         if: github.event_name == 'pull_request'
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: echo "BASE_URL=https://hyprnote.netlify.app" >> "$GITHUB_ENV"
+        run: echo "BASE_URL=https://char.netlify.app" >> "$GITHUB_ENV"
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/web
       - run: pnpm -F web test

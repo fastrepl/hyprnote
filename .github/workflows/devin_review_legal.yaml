@@ -20,7 +20,7 @@ jobs:
 
             ## Context
             Hyprnote is a privacy-focused AI meeting notes app. Legal compliance is critical.
-            Repository: fastrepl/hyprnote
+            Repository: fastrepl/char
 
             ## Your Task
             1. **Analyze Product Changes (Last 30 Days)**

@@ -32,7 +32,7 @@ async function getAppAndImage(): Promise<{
       "RUN npm install -g @anthropic-ai/claude-code",
       "WORKDIR /app",
       "RUN bun add stripe @supabase/supabase-js loops pg posthog-node",
-      `RUN git clone --depth 1 https://github.com/fastrepl/hyprnote.git ${REPO_PATH}`,
+      `RUN git clone --depth 1 https://github.com/fastrepl/char.git ${REPO_PATH}`,
     ]);
 
   return { app: cachedApp, image };

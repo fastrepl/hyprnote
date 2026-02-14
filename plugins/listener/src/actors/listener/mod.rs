@@ -13,7 +13,7 @@ use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
 
 use super::session::session_span;
-use crate::{SessionDataEvent, SessionErrorEvent, SessionProgressEvent};
+use crate::{DegradedError, SessionDataEvent, SessionProgressEvent};
 
 use adapters::spawn_rx_task;
 
@@ -175,19 +175,12 @@ impl Actor for ListenerActor {
                         %provider,
                         "stream_provider_error"
                     );
-                    let _ = (SessionErrorEvent::ConnectionError {
-                        session_id: state.args.session_id.clone(),
-                        error: format!(
-                            "[{}] {} (code: {})",
-                            provider,
-                            error_message,
-                            error_code
-                                .map(|c| c.to_string())
-                                .unwrap_or_else(|| "none".to_string())
-                        ),
-                    })
-                    .emit(&state.args.app);
-                    myself.stop(Some(format!("{}: {}", provider, error_message)));
+                    stop_with_degraded_error(
+                        &myself,
+                        DegradedError::AuthenticationFailed {
+                            provider: provider.clone(),
+                        },
+                    );
                     return Ok(());
                 }
 
@@ -212,18 +205,23 @@ impl Actor for ListenerActor {
             }
 
             ListenerMsg::StreamError(error) => {
-                tracing::info!("listen_stream_error: {}", error);
-                myself.stop(None);
+                tracing::warn!("listen_stream_error: {}", error);
+                stop_with_degraded_error(&myself, DegradedError::StreamError { message: error });
             }
 
             ListenerMsg::StreamEnded => {
-                tracing::info!("listen_stream_ended");
-                myself.stop(None);
+                tracing::warn!("listen_stream_ended_unexpectedly");
+                stop_with_degraded_error(
+                    &myself,
+                    DegradedError::UpstreamUnavailable {
+                        message: "stream ended unexpectedly".to_string(),
+                    },
+                );
             }
 
-            ListenerMsg::StreamTimeout(elapsed) => {
-                tracing::info!("listen_stream_timeout: {}", elapsed);
-                myself.stop(None);
+            ListenerMsg::StreamTimeout(_elapsed) => {
+                tracing::warn!("listen_stream_timeout");
+                stop_with_degraded_error(&myself, DegradedError::ConnectionTimeout);
             }
         }
         Ok(())
@@ -248,4 +246,9 @@ impl Actor for ListenerActor {
         }
         Ok(())
     }
+}
+
+fn stop_with_degraded_error(myself: &ActorRef<ListenerMsg>, error: DegradedError) {
+    let reason = serde_json::to_string(&error).ok();
+    myself.stop(reason);
 }

@@ -121,10 +121,7 @@ impl RealtimeSttAdapter for MistralAdapter {
                 Self::build_transcript_response(&text, false, false)
             }
             MistralEvent::TranscriptionSegment {
-                text,
-                start,
-                end,
-                ..
+                text, start, end, ..
             } => {
                 tracing::debug!(
                     text = %text,
@@ -194,21 +191,13 @@ struct InputAudioEnd {
 #[allow(dead_code)]
 enum MistralEvent {
     #[serde(rename = "session.created")]
-    SessionCreated {
-        session: SessionInfo,
-    },
+    SessionCreated { session: SessionInfo },
     #[serde(rename = "session.updated")]
-    SessionUpdated {
-        session: SessionInfo,
-    },
+    SessionUpdated { session: SessionInfo },
     #[serde(rename = "transcription.language")]
-    TranscriptionLanguage {
-        audio_language: String,
-    },
+    TranscriptionLanguage { audio_language: String },
     #[serde(rename = "transcription.text.delta")]
-    TranscriptionTextDelta {
-        text: String,
-    },
+    TranscriptionTextDelta { text: String },
     #[serde(rename = "transcription.segment")]
     TranscriptionSegment {
         text: String,
@@ -222,9 +211,7 @@ enum MistralEvent {
         text: Option<String>,
     },
     #[serde(rename = "error")]
-    Error {
-        error: MistralError,
-    },
+    Error { error: MistralError },
     #[serde(other)]
     Unknown,
 }

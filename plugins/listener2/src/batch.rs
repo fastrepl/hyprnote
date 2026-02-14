@@ -265,9 +265,7 @@ async fn spawn_batch_task(
         AdapterKind::ElevenLabs => {
             spawn_batch_task_with_adapter::<ElevenLabsAdapter>(args, myself).await
         }
-        AdapterKind::Mistral => {
-            spawn_batch_task_with_adapter::<MistralAdapter>(args, myself).await
-        }
+        AdapterKind::Mistral => spawn_batch_task_with_adapter::<MistralAdapter>(args, myself).await,
     }
 }
 

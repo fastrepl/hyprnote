@@ -60,10 +60,12 @@ export type Session = { title: string | null; startedAt: string | null; endedAt:
 export type SessionContext = { title: string | null; date: string | null; rawContent: string | null; enhancedContent: string | null; transcript: Transcript | null; participants: Participant[]; event: Event | null }
 export type SupportContext = { account: AccountInfo | null; device: DeviceInfo }
 export type SupportTemplate = { supportContext: SupportContext } | { bugReport: BugReport } | { featureRequest: FeatureRequest } | { logAnalysis: LogAnalysis }
-export type Template = { enhanceSystem: EnhanceSystem } | { enhanceUser: EnhanceUser } | { titleSystem: TitleSystem } | { titleUser: TitleUser } | { chatSystem: ChatSystem }
+export type Template = { enhanceSystem: EnhanceSystem } | { enhanceUser: EnhanceUser } | { titleSystem: TitleSystem } | { titleUser: TitleUser } | { chatSystem: ChatSystem } | { toolSearchSessions: ToolSearchSessions }
 export type TemplateSection = { title: string; description: string | null }
 export type TitleSystem = { language: string | null }
 export type TitleUser = { enhancedNote: string }
+export type ToolSearchSessionItem = { id: string; title: string | null; excerpt: string | null; score: number; createdAt: number | null; sessionContext: SessionContext | null }
+export type ToolSearchSessions = { query: string; results: ToolSearchSessionItem[] }
 export type Transcript = { segments: Segment[]; startedAt: number | null; endedAt: number | null }
 
 /** tauri-specta globals **/

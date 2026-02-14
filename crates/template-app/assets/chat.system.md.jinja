@@ -50,9 +50,11 @@ Full Meeting Transcript:
 {{ macros::transcript(transcript) }}
 {%- endif -%}
 {%- endif %}
+{%- if let Some(_ctx) = context %}
 
-If there is no meeting transcript (blank after the "Full Meeting Transcript:"), it means that the meeting did not happen yet. In this case, you should understand that the user is asking for general information, ideas, or suggestions about preparing for the meeting.
+If there is no meeting transcript section, or if it is blank after "Full Meeting Transcript:", it means that the meeting did not happen yet. In this case, you should understand that the user is asking for general information, ideas, or suggestions about preparing for the meeting.
 
 If there is a meeting transcript and an enhanced meeting summary, it means that the meeting has happened and the user is asking for a new version of the meeting note or the intelligence from the meeting.
 
 You should treat meeting transcript and enhanced meeting summary as the information with more weight than the original (manually written) note.
+{%- endif %}

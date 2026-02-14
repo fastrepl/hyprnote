@@ -52,6 +52,7 @@ pub async fn nango_webhook(
 
     if payload.r#type == "auth" && payload.success && payload.operation != "deletion" {
         if let Err(e) = state
+            .supabase
             .upsert_connection(
                 &payload.end_user.end_user_id,
                 &payload.provider_config_key,
@@ -66,6 +67,7 @@ pub async fn nango_webhook(
 
     if payload.r#type == "auth" && payload.success && payload.operation == "deletion" {
         if let Err(e) = state
+            .supabase
             .delete_connection(&payload.end_user.end_user_id, &payload.provider_config_key)
             .await
         {

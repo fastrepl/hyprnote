@@ -5,6 +5,7 @@ pub mod integrations;
 mod openapi;
 mod routes;
 mod state;
+mod supabase;
 
 pub use config::NangoConfig;
 pub use extractor::{NangoConnection, NangoConnectionError, NangoConnectionState};

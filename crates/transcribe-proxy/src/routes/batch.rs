@@ -300,7 +300,10 @@ async fn transcribe_with_provider(
             ));
         }
         Provider::Mistral => {
-            todo!()
+            return Err(format!(
+                "{:?} does not support batch transcription",
+                provider
+            ));
         }
     };
 

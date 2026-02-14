@@ -218,8 +218,8 @@ enum MistralEvent {
     },
     #[serde(rename = "transcription.done")]
     TranscriptionDone {
-        model: String,
-        text: String,
+        model: Option<String>,
+        text: Option<String>,
     },
     #[serde(rename = "error")]
     Error {
@@ -232,8 +232,8 @@ enum MistralEvent {
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 struct SessionInfo {
-    request_id: String,
-    model: String,
+    request_id: Option<String>,
+    model: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

@@ -347,31 +347,36 @@ async fn try_restart_source(supervisor_cell: ActorCell, state: &mut SessionState
         return false;
     }
 
-    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    for attempt in 0..3u32 {
+        let delay = std::time::Duration::from_millis(100 * 2u64.pow(attempt));
+        tokio::time::sleep(delay).await;
 
-    match Actor::spawn_linked(
-        Some(SourceActor::name()),
-        SourceActor,
-        SourceArgs {
-            mic_device: None,
-            onboarding: state.ctx.params.onboarding,
-            app: state.ctx.app.clone(),
-            session_id: state.ctx.params.session_id.clone(),
-        },
-        supervisor_cell,
-    )
-    .await
-    {
-        Ok((actor_ref, _)) => {
-            state.source_cell = Some(actor_ref.get_cell());
-            tracing::info!("source_restarted");
-            true
-        }
-        Err(e) => {
-            tracing::error!(error = ?e, "source_restart_failed");
-            false
+        match Actor::spawn_linked(
+            Some(SourceActor::name()),
+            SourceActor,
+            SourceArgs {
+                mic_device: None,
+                onboarding: state.ctx.params.onboarding,
+                app: state.ctx.app.clone(),
+                session_id: state.ctx.params.session_id.clone(),
+            },
+            supervisor_cell.clone(),
+        )
+        .await
+        {
+            Ok((actor_ref, _)) => {
+                state.source_cell = Some(actor_ref.get_cell());
+                tracing::info!(attempt, "source_restarted");
+                return true;
+            }
+            Err(e) => {
+                tracing::warn!(attempt, error = ?e, "source_spawn_attempt_failed");
+            }
         }
     }
+
+    tracing::error!("source_restart_failed_all_attempts");
+    false
 }
 
 async fn try_restart_recorder(supervisor_cell: ActorCell, state: &mut SessionState) -> bool {
@@ -386,29 +391,34 @@ async fn try_restart_recorder(supervisor_cell: ActorCell, state: &mut SessionSta
         return false;
     }
 
-    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    for attempt in 0..3u32 {
+        let delay = std::time::Duration::from_millis(100 * 2u64.pow(attempt));
+        tokio::time::sleep(delay).await;
 
-    match Actor::spawn_linked(
-        Some(RecorderActor::name()),
-        RecorderActor,
-        RecArgs {
-            app_dir: state.ctx.app_dir.clone(),
-            session_id: state.ctx.params.session_id.clone(),
-        },
-        supervisor_cell,
-    )
-    .await
-    {
-        Ok((actor_ref, _)) => {
-            state.recorder_cell = Some(actor_ref.get_cell());
-            tracing::info!("recorder_restarted");
-            true
-        }
-        Err(e) => {
-            tracing::error!(error = ?e, "recorder_restart_failed");
-            false
+        match Actor::spawn_linked(
+            Some(RecorderActor::name()),
+            RecorderActor,
+            RecArgs {
+                app_dir: state.ctx.app_dir.clone(),
+                session_id: state.ctx.params.session_id.clone(),
+            },
+            supervisor_cell.clone(),
+        )
+        .await
+        {
+            Ok((actor_ref, _)) => {
+                state.recorder_cell = Some(actor_ref.get_cell());
+                tracing::info!(attempt, "recorder_restarted");
+                return true;
+            }
+            Err(e) => {
+                tracing::warn!(attempt, error = ?e, "recorder_spawn_attempt_failed");
+            }
         }
     }
+
+    tracing::error!("recorder_restart_failed_all_attempts");
+    false
 }
 
 async fn meltdown(myself: ActorRef<SessionMsg>, state: &mut SessionState) {
@@ -420,6 +430,7 @@ async fn meltdown(myself: ActorRef<SessionMsg>, state: &mut SessionState) {
     }
     if let Some(cell) = state.recorder_cell.take() {
         cell.stop(Some("meltdown".to_string()));
+        lifecycle::wait_for_actor_shutdown(RecorderActor::name()).await;
     }
     myself.stop(Some("restart_limit_exceeded".to_string()));
 }

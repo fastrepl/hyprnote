@@ -110,6 +110,7 @@ impl Actor for RootActor {
                         serde_json::from_str::<DegradedError>(&r)
                             .ok()
                             .map(|d| format!("{:?}", d))
+                            .or(Some(r))
                     });
                     emit_session_ended(&state.app, &session_id, failure_reason);
                 }

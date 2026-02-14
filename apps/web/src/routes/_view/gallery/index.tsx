@@ -36,15 +36,15 @@ export const Route = createFileRoute("/_view/gallery/")({
   },
   head: () => ({
     meta: [
-      { title: "Templates & Shortcuts Gallery - Hyprnote" },
+      { title: "Templates & Shortcuts Gallery - Char" },
       {
         name: "description",
         content:
-          "Discover our library of AI meeting templates and shortcuts. Get structured summaries, extract action items, and more with Hyprnote's AI-powered tools.",
+          "Discover our library of AI meeting templates and shortcuts. Get structured summaries, extract action items, and more with Char's AI-powered tools.",
       },
       {
         property: "og:title",
-        content: "Templates & Shortcuts Gallery - Hyprnote",
+        content: "Templates & Shortcuts Gallery - Char",
       },
       {
         property: "og:description",
@@ -334,7 +334,7 @@ function QuoteSection() {
   return (
     <div className="py-4 px-4 text-center border-y border-neutral-100 bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <p className="text-base text-stone-600 font-serif italic">
-        "Curated by Hyprnote and the community"
+        "Curated by Char and the community"
       </p>
     </div>
   );
@@ -569,8 +569,8 @@ function CTASection() {
           Ready to transform your meetings?
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Hyprnote and start using these templates and shortcuts to
-          capture perfect meeting notes with AI.
+          Download Char and start using these templates and shortcuts to capture
+          perfect meeting notes with AI.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
           <DownloadButton />

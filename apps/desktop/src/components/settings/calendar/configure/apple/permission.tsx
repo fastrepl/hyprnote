@@ -5,6 +5,34 @@ import { type PermissionStatus } from "@hypr/plugin-permissions";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { usePermission } from "../../../../../hooks/usePermissions";
+
+export function ApplePermissions() {
+  const calendar = usePermission("calendar");
+  const contacts = usePermission("contacts");
+
+  return (
+    <div className="flex flex-col gap-1">
+      <AccessPermissionRow
+        title="Calendar"
+        status={calendar.status}
+        isPending={calendar.isPending}
+        onOpen={calendar.open}
+        onRequest={calendar.request}
+        onReset={calendar.reset}
+      />
+      <AccessPermissionRow
+        title="Contacts"
+        status={contacts.status}
+        isPending={contacts.isPending}
+        onOpen={contacts.open}
+        onRequest={contacts.request}
+        onReset={contacts.reset}
+      />
+    </div>
+  );
+}
+
 function ActionLink({
   onClick,
   disabled,

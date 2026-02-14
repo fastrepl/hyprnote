@@ -61,21 +61,17 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["ai", "current_stt_model"],
     },
-    trial_expired_modal_dismissed_at: {
-      type: "number",
-      path: ["billing", "trial_expired_modal_dismissed_at"],
+    timezone: {
+      type: "string",
+      path: ["general", "timezone"],
     },
-    trial_start_checked_at: {
-      type: "number",
-      path: ["billing", "trial_start_checked_at"],
+    week_start: {
+      type: "string",
+      path: ["general", "week_start"],
     },
-    trial_begin_modal_pending: {
+    notification_in_meeting_reminder: {
       type: "boolean",
-      path: ["billing", "trial_begin_modal_pending"],
-    },
-    pro_subscription_modal_shown_at: {
-      type: "number",
-      path: ["billing", "pro_subscription_modal_shown_at"],
+      path: ["notification", "in_meeting_reminder"],
     },
   },
   tables: {

@@ -20,3 +20,7 @@ internal
 
 # Local Netlify folder
 .netlify
+
+# Astro generated files
+apps/meetingsucks/.astro/
+apps/meetingsucks/dist/

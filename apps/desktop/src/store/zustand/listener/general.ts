@@ -376,6 +376,9 @@ export const createGeneralSlice = <
                 draft.live.intervalId = undefined;
               }
 
+              if (draft.live.eventUnlisteners) {
+                draft.live.eventUnlisteners.forEach((fn) => fn());
+              }
               draft.live.eventUnlisteners = undefined;
               draft.live.loading = false;
               draft.live.loadingPhase = "idle";
@@ -470,10 +473,8 @@ export const createGeneralSlice = <
       return;
     }
 
-    const shouldResetPersist = Boolean(options?.handlePersist);
-
     if (options?.handlePersist) {
-      get().setTranscriptPersist(options.handlePersist);
+      get().setBatchPersist(sessionId, options.handlePersist);
     }
 
     get().handleBatchStarted(sessionId);
@@ -486,9 +487,7 @@ export const createGeneralSlice = <
         unlisten = undefined;
       }
 
-      if (shouldResetPersist) {
-        get().setTranscriptPersist(undefined);
-      }
+      get().clearBatchPersist(sessionId);
 
       if (clearSession) {
         get().clearBatchSession(sessionId);

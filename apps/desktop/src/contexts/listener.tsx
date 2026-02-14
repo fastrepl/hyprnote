@@ -53,16 +53,24 @@ const useHandleDetectEvents = (store: ListenerStore) => {
   const stop = useStore(store, (state) => state.stop);
   const setMuted = useStore(store, (state) => state.setMuted);
   const notificationDetectEnabled = useConfigValue("notification_detect");
+  const inMeetingReminderEnabled = useConfigValue(
+    "notification_in_meeting_reminder",
+  );
 
   const notificationDetectEnabledRef = useRef(notificationDetectEnabled);
   useEffect(() => {
     notificationDetectEnabledRef.current = notificationDetectEnabled;
   }, [notificationDetectEnabled]);
 
+  const inMeetingReminderEnabledRef = useRef(inMeetingReminderEnabled);
+  useEffect(() => {
+    inMeetingReminderEnabledRef.current = inMeetingReminderEnabled;
+  }, [inMeetingReminderEnabled]);
+
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     let cancelled = false;
-    let notificationTimerId: ReturnType<typeof setTimeout>;
+    let notificationTimerId: ReturnType<typeof setTimeout> | undefined;
 
     detectEvents.detectEvent
       .listen(({ payload }) => {
@@ -78,6 +86,9 @@ const useHandleDetectEvents = (store: ListenerStore) => {
                 return;
               }
 
+              if (notificationTimerId) {
+                clearTimeout(notificationTimerId);
+              }
               notificationTimerId = setTimeout(() => {
                 void notificationCommands.showNotification({
                   key: payload.key,
@@ -100,6 +111,32 @@ const useHandleDetectEvents = (store: ListenerStore) => {
           }
         } else if (payload.type === "micMuted") {
           setMuted(payload.value);
+        } else if (payload.type === "micProlongedUsage") {
+          if (!notificationDetectEnabledRef.current) {
+            return;
+          }
+
+          if (!inMeetingReminderEnabledRef.current) {
+            return;
+          }
+
+          if (store.getState().live.status === "active") {
+            return;
+          }
+
+          const minutes = Math.round(payload.duration_secs / 60);
+
+          void notificationCommands.showNotification({
+            key: payload.key,
+            title: "Meeting in progress?",
+            message: `Mic used for ${minutes} minutes. Start listening?`,
+            timeout: { secs: 15, nanos: 0 },
+            event_id: null,
+            start_time: null,
+            participants: null,
+            event_details: null,
+            action_label: null,
+          });
         }
       })
       .then((fn) => {

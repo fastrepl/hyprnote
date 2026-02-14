@@ -4,10 +4,11 @@ use ractor_supervisor::{
     dynamic::{DynamicSupervisor, DynamicSupervisorMsg, DynamicSupervisorOptions},
 };
 
+#[cfg(feature = "whisper-cpp")]
+use super::internal::{InternalSTTActor, InternalSTTArgs};
 use super::{
     ServerType,
     external::{ExternalSTTActor, ExternalSTTArgs},
-    internal::{InternalSTTActor, InternalSTTArgs},
 };
 
 pub type SupervisorRef = ActorRef<DynamicSupervisorMsg>;
@@ -40,6 +41,7 @@ pub async fn spawn_stt_supervisor(
     Ok((supervisor_ref, handle))
 }
 
+#[cfg(feature = "whisper-cpp")]
 pub async fn start_internal_stt(
     supervisor: &ActorRef<DynamicSupervisorMsg>,
     args: InternalSTTArgs,
@@ -56,6 +58,7 @@ pub async fn start_external_stt(
     DynamicSupervisor::spawn_child(supervisor.clone(), child_spec).await
 }
 
+#[cfg(feature = "whisper-cpp")]
 fn create_internal_child_spec_with_args(args: InternalSTTArgs) -> ChildSpec {
     let spawn_fn = SpawnFn::new(move |supervisor: ActorCell, child_id: String| {
         let args = args.clone();
@@ -104,6 +107,11 @@ pub async fn stop_stt_server(
     supervisor: &ActorRef<DynamicSupervisorMsg>,
     server_type: ServerType,
 ) -> Result<(), ActorProcessingErr> {
+    #[cfg(not(feature = "whisper-cpp"))]
+    if matches!(server_type, ServerType::Internal) {
+        return Ok(());
+    }
+
     let child_id = match server_type {
         ServerType::Internal => INTERNAL_STT_ACTOR_NAME,
         ServerType::External => EXTERNAL_STT_ACTOR_NAME,
@@ -121,7 +129,10 @@ pub async fn stop_stt_server(
     }
 
     match server_type {
+        #[cfg(feature = "whisper-cpp")]
         ServerType::Internal => wait_for_actor_shutdown(InternalSTTActor::name()).await,
+        #[cfg(not(feature = "whisper-cpp"))]
+        ServerType::Internal => {}
         ServerType::External => wait_for_actor_shutdown(ExternalSTTActor::name()).await,
     }
 
@@ -131,6 +142,7 @@ pub async fn stop_stt_server(
 pub async fn stop_all_stt_servers(
     supervisor: &ActorRef<DynamicSupervisorMsg>,
 ) -> Result<(), ActorProcessingErr> {
+    #[cfg(feature = "whisper-cpp")]
     let _ = stop_stt_server(supervisor, ServerType::Internal).await;
     let _ = stop_stt_server(supervisor, ServerType::External).await;
     Ok(())

@@ -9,7 +9,7 @@ const CACHE_TTL = HOUR;
 function getGitHubHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github.v3+json",
-    "User-Agent": "Hyprnote-Web",
+    "User-Agent": "Char-Web",
   };
   if (env.GITHUB_TOKEN) {
     headers["Authorization"] = `token ${env.GITHUB_TOKEN}`;

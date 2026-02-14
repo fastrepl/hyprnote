@@ -13,6 +13,7 @@
 
   --animate-shimmer: shimmer 2s infinite;
   --animate-reveal-left: reveal-left 0.5s ease-out forwards;
+  --animate-kbd-press: kbd-press 0.4s ease-out forwards;
 
   @keyframes shimmer {
     0% {
@@ -28,6 +29,22 @@
     }
     100% {
       clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes kbd-press {
+    0% {
+      transform: translateY(2px);
+      box-shadow: none;
+    }
+    50% {
+      transform: translateY(2px);
+      box-shadow: none;
+    }
+    100% {
+      transform: translateY(0);
+      box-shadow:
+        0 1px 0 0 rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
     }
   }
 }

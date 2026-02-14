@@ -9,7 +9,7 @@ import { AUTHOR_AVATARS } from "@/lib/team";
 
 const CATEGORIES = [
   "Case Study",
-  "Hyprnote Weekly",
+  "Char Weekly",
   "Productivity Hack",
   "Engineering",
 ] as const;
@@ -28,15 +28,15 @@ export const Route = createFileRoute("/_view/blog/")({
   },
   head: () => ({
     meta: [
-      { title: "Blog - Hyprnote Blog" },
+      { title: "Blog - Char Blog" },
       {
         name: "description",
-        content: "Insights, updates, and stories from the Hyprnote team",
+        content: "Insights, updates, and stories from the Char team",
       },
-      { property: "og:title", content: "Blog - Hyprnote Blog" },
+      { property: "og:title", content: "Blog - Char Blog" },
       {
         property: "og:description",
-        content: "Insights, updates, and stories from the Hyprnote team",
+        content: "Insights, updates, and stories from the Char team",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://hyprnote.com/blog" },
@@ -48,10 +48,7 @@ function Component() {
   const navigate = useNavigate({ from: Route.fullPath });
   const search = Route.useSearch();
 
-  const publishedArticles = allArticles.filter(
-    (a) => import.meta.env.DEV || a.published === true,
-  );
-  const sortedArticles = [...publishedArticles].sort((a, b) => {
+  const sortedArticles = [...allArticles].sort((a, b) => {
     const aDate = a.date;
     const bDate = b.date;
     return new Date(bDate).getTime() - new Date(aDate).getTime();
@@ -142,7 +139,7 @@ function Header() {
         Blog
       </h1>
       <p className="text-lg text-neutral-600 max-w-2xl mx-auto px-4">
-        Insights, updates, and stories from the Hyprnote team
+        Insights, updates, and stories from the Char team
       </p>
     </header>
   );
@@ -381,7 +378,7 @@ function MostRecentFeaturedCard({ article }: { article: Article }) {
         {hasCoverImage && (
           <ArticleImage
             src={article.coverImage}
-            alt={article.title}
+            alt={article.title ?? "Article"}
             isLoaded={coverImageLoaded}
             onLoad={() => setCoverImageLoaded(true)}
             onError={() => setCoverImageError(true)}
@@ -473,7 +470,7 @@ function OtherFeaturedCard({
           >
             <img
               src={article.coverImage}
-              alt={article.title}
+              alt={article.title ?? "Article"}
               className={cn([
                 "w-full h-full object-cover",
                 "group-hover:scale-105 transition-all duration-500",

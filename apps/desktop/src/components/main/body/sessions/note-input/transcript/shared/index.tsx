@@ -1,4 +1,5 @@
 import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import { cn } from "@hypr/utils";
 
@@ -6,6 +7,7 @@ import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provi
 import { useListener } from "../../../../../../../contexts/listener";
 import * as main from "../../../../../../../store/tinybase/store/main";
 import type { RuntimeSpeakerHint } from "../../../../../../../utils/segment";
+import { TranscriptEmptyState } from "../empty-state";
 import {
   useAutoScroll,
   usePlaybackAutoScroll,
@@ -93,9 +95,24 @@ export function TranscriptContainer({
   const { isAtBottom, autoScrollEnabled, scrollToBottom } =
     useScrollDetection(containerRef);
 
-  const { time, state: playerState } = useAudioPlayer();
+  const { time, state: playerState, pause, resume, start } = useAudioPlayer();
   const currentMs = time.current * 1000;
   const isPlaying = playerState === "playing";
+
+  useHotkeys(
+    "space",
+    (e) => {
+      e.preventDefault();
+      if (playerState === "playing") {
+        pause();
+      } else if (playerState === "paused") {
+        resume();
+      } else if (playerState === "stopped") {
+        start();
+      }
+    },
+    { enableOnFormTags: false },
+  );
 
   usePlaybackAutoScroll(containerRef, currentMs, isPlaying);
   const shouldAutoScroll = currentActive && autoScrollEnabled;
@@ -107,8 +124,11 @@ export function TranscriptContainer({
 
   const shouldShowButton = !isAtBottom && currentActive;
 
+  // TOOD: this can't handle words=[]
   if (transcriptIds.length === 0) {
-    return null;
+    return (
+      <TranscriptEmptyState isBatching={sessionMode === "running_batch"} />
+    );
   }
 
   const handleSelectionAction = (action: string, selectedText: string) => {

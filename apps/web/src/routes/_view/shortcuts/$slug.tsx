@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_view/shortcuts/$slug")({
 
     return {
       meta: [
-        { title: `${shortcut.title} - AI Shortcut - Hyprnote` },
+        { title: `${shortcut.title} - AI Shortcut - Char` },
         { name: "description", content: shortcut.description },
         { name: "robots", content: "noindex, nofollow" },
         {
@@ -230,7 +230,7 @@ function RightSidebar({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
             Use this shortcut
           </h3>
           <p className="text-sm text-neutral-600 mb-6">
-            Download Hyprnote to use this shortcut and get AI-powered meeting
+            Download Char to use this shortcut and get AI-powered meeting
             insights.
           </p>
           <DownloadButton />

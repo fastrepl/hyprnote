@@ -1,9 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
+import { getIdentifier } from "@tauri-apps/api/app";
 import { arch, platform } from "@tauri-apps/plugin-os";
 
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Switch } from "@hypr/ui/components/ui/switch";
+import { cn } from "@hypr/utils";
+
+import { useConfigValue } from "../../../config/use-config";
+import * as settings from "../../../store/tinybase/store/settings";
 
 export function SettingsLab() {
   const handleOpenControlWindow = async () => {
@@ -11,13 +17,12 @@ export function SettingsLab() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pt-3">
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           <h3 className="text-sm font-medium mb-1">Control Overlay</h3>
           <p className="text-xs text-neutral-600">
-            Open a floating control window for quick access to recording
-            controls. This window stays on top and can be used during meetings.
+            Floating window for quick access to recording controls.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={handleOpenControlWindow}>
@@ -25,57 +30,115 @@ export function SettingsLab() {
         </Button>
       </div>
 
-      <DownloadNightlyButton />
+      <MeetingReminderToggle />
+
+      <DownloadButtons />
     </div>
   );
 }
 
-function DownloadNightlyButton() {
+function MeetingReminderToggle() {
+  const value = useConfigValue("notification_in_meeting_reminder");
+  const setValue = settings.UI.useSetValueCallback(
+    "notification_in_meeting_reminder",
+    (value: boolean) => value,
+    [],
+    settings.STORE_ID,
+  );
+
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex-1">
+        <h3 className="text-sm font-medium mb-1">In-Meeting Reminder</h3>
+        <p className="text-xs text-neutral-600">
+          Get nudged when a meeting app is using your mic without Hyprnote
+          recording.
+        </p>
+      </div>
+      <Switch
+        checked={value}
+        onCheckedChange={(checked) => setValue(checked)}
+      />
+    </div>
+  );
+}
+
+function DownloadButtons() {
   const platformName = platform();
   const archQuery = useQuery({
     queryKey: ["target-arch"],
     queryFn: () => arch(),
     staleTime: Infinity,
   });
+  const identifierQuery = useQuery({
+    queryKey: ["app-identifier"],
+    queryFn: () => getIdentifier(),
+    staleTime: Infinity,
+  });
 
-  const getNightlyDownloadUrl = () => {
+  const isDev = identifierQuery.data === "com.hyprnote.dev";
+  const isNightly = identifierQuery.data === "com.hyprnote.nightly";
+
+  const channels: Array<"stable" | "nightly"> = isDev
+    ? ["stable", "nightly"]
+    : isNightly
+      ? ["stable"]
+      : ["nightly"];
+
+  const getDownloadUrl = (channel: "stable" | "nightly") => {
     const targetArch = archQuery.data;
     if (platformName === "macos") {
       if (targetArch === "aarch64") {
-        return "https://desktop2.hyprnote.com/download/latest/dmg-aarch64?channel=nightly";
+        return `https://desktop2.hyprnote.com/download/latest/dmg-aarch64?channel=${channel}`;
       }
-      return "https://desktop2.hyprnote.com/download/latest/dmg-x86_64?channel=nightly";
+      return `https://desktop2.hyprnote.com/download/latest/dmg-x86_64?channel=${channel}`;
     }
     if (platformName === "linux") {
-      return "https://desktop2.hyprnote.com/download/latest/appimage-x86_64?channel=nightly";
+      return `https://desktop2.hyprnote.com/download/latest/appimage-x86_64?channel=${channel}`;
     }
     return null;
   };
 
-  const downloadUrl = getNightlyDownloadUrl();
-
-  const handleDownload = async () => {
-    if (downloadUrl) {
-      await openerCommands.openUrl(downloadUrl, null);
-    }
-  };
-
-  if (!downloadUrl) {
+  if (!identifierQuery.data || !getDownloadUrl(channels[0])) {
     return null;
   }
 
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex-1">
-        <h3 className="text-sm font-medium mb-1">Nightly Build</h3>
-        <p className="text-xs text-neutral-600">
-          Download the latest nightly build to try new features before they are
-          released. Nightly builds may be less stable.
-        </p>
-      </div>
-      <Button variant="outline" size="sm" onClick={handleDownload}>
-        Download
-      </Button>
-    </div>
+    <>
+      {channels.map((channel) => {
+        const downloadUrl = getDownloadUrl(channel);
+        if (!downloadUrl) return null;
+
+        return (
+          <div
+            key={channel}
+            className="flex items-center justify-between gap-4"
+          >
+            <div className="flex-1">
+              <h3 className="text-sm font-medium mb-1">
+                {channel === "nightly" ? "Nightly" : "Stable"} Build
+              </h3>
+              <p className="text-xs text-neutral-600">
+                {channel === "nightly"
+                  ? "Try new features early. May be less stable."
+                  : "The latest stable release."}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              className={cn([
+                "text-white bg-gradient-to-br border",
+                channel === "nightly"
+                  ? "from-[#03BCF1] to-[#127FE5]"
+                  : "from-[#535353] to-[#000000]",
+              ])}
+              onClick={() => openerCommands.openUrl(downloadUrl, null)}
+            >
+              Download
+            </Button>
+          </div>
+        );
+      })}
+    </>
   );
 }

@@ -1,0 +1,276 @@
+# Legacy desktop CD workflow for 0.0.x releases
+# This workflow builds and releases the legacy Hyprnote app (fastrepl/hyprnote)
+# which uses desktop.hyprnote.com for updates
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Release channel"
+        required: true
+        type: choice
+        options:
+          - staging
+          - nightly
+          - stable
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.channel }}
+  cancel-in-progress: true
+
+env:
+  CN_APPLICATION: "fastrepl/hyprnote"
+  RELEASE_CHANNEL: ${{ inputs.channel }}
+  TAURI_CONF_PATH: ./src-tauri/tauri.conf.${{ inputs.channel }}.json
+  NODE_OPTIONS: "--max-old-space-size=4096"
+  LEGACY_BRANCH: "legacy/0.0.x"
+
+jobs:
+  compute-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.LEGACY_BRANCH }}
+          lfs: true
+          fetch-depth: 0
+          fetch-tags: true
+      - run: git fetch --tags --force
+      - id: version
+        run: |
+          # Get the latest 0.0.x tag
+          LATEST_TAG=$(git tag -l 'desktop_v0.0.*' --sort=-v:refname | head -n1)
+          if [[ -z "$LATEST_TAG" ]]; then
+            echo "Error: No desktop_v0.0.* tags found" >&2
+            exit 1
+          fi
+          echo "Latest legacy tag: $LATEST_TAG"
+
+          # Extract version number and increment patch
+          CURRENT_VERSION=$(echo "$LATEST_TAG" | sed 's/desktop_v//')
+          MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
+          MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
+          PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
+
+          if [[ "${{ inputs.channel }}" == "staging" ]]; then
+            # For staging, use current version with dev suffix
+            DISTANCE=$(git rev-list --count $LATEST_TAG..HEAD)
+            SHORT_HASH=$(git rev-parse --short HEAD)
+            VERSION="${MAJOR}.${MINOR}.${PATCH}.dev.${DISTANCE}+${SHORT_HASH}"
+          elif [[ "${{ inputs.channel }}" == "nightly" ]]; then
+            # For nightly, increment patch and add nightly suffix
+            NEW_PATCH=$((PATCH + 1))
+            # Check if there's already a nightly for this version
+            NIGHTLY_COUNT=$(git tag -l "desktop_v${MAJOR}.${MINOR}.${NEW_PATCH}-nightly.*" | wc -l)
+            if [[ $NIGHTLY_COUNT -gt 0 ]]; then
+              LATEST_NIGHTLY=$(git tag -l "desktop_v${MAJOR}.${MINOR}.${NEW_PATCH}-nightly.*" --sort=-v:refname | head -n1)
+              NIGHTLY_NUM=$(echo "$LATEST_NIGHTLY" | sed 's/.*-nightly\.//')
+              NEW_NIGHTLY=$((NIGHTLY_NUM + 1))
+            else
+              NEW_NIGHTLY=1
+            fi
+            VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}-nightly.${NEW_NIGHTLY}"
+          elif [[ "${{ inputs.channel }}" == "stable" ]]; then
+            # For stable, increment patch
+            NEW_PATCH=$((PATCH + 1))
+            VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Computed version: $VERSION"
+
+  cn-draft:
+    if: ${{ inputs.channel != 'staging' }}
+    needs: compute-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.LEGACY_BRANCH }}
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - uses: ./.github/actions/cn_release
+        with:
+          cmd: draft
+          app: ${{ env.CN_APPLICATION }}
+          key: ${{ secrets.CN_API_KEY }}
+          channel: ${{ env.RELEASE_CHANNEL }}
+          framework: tauri
+          working-directory: ./apps/desktop
+
+  build-macos:
+    needs: [compute-version, cn-draft]
+    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
+    permissions:
+      contents: write
+    runs-on: depot-macos-14
+    strategy:
+      fail-fast: true
+      matrix:
+        include: ${{ inputs.channel == 'staging' && fromJSON('[{"target":"aarch64-apple-darwin","arch":"aarch64","artifact_name":"silicon"}]') || fromJSON('[{"target":"aarch64-apple-darwin","arch":"aarch64","artifact_name":"silicon"}]') }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.LEGACY_BRANCH }}
+          lfs: true
+          fetch-depth: 0
+          fetch-tags: true
+      - run: git fetch --tags --force
+      - uses: ./.github/actions/macos_tcc
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - uses: ./.github/actions/setup_protoc
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/install_desktop_deps
+        with:
+          target: macos
+      - uses: ./.github/actions/rust_install
+        with:
+          platform: macos
+      - uses: ./.github/actions/pnpm_install
+      - uses: ./.github/actions/poetry_install
+      - run: poetry run python scripts/pre_build.py
+      - run: pnpm -F desktop lingui:compile
+      - run: pnpm -F ui build
+      - run: |
+          aws s3 cp s3://hyprnote-cache2/v0/binaries/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+      - run: |
+          chmod +x ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
+          ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/stt"
+      - uses: ./.github/actions/apple_cert
+        id: apple-cert
+        with:
+          apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
+          apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - run: |
+          FEATURES_FLAG=""
+          if [[ "${{ inputs.channel }}" == "staging" ]]; then
+            FEATURES_FLAG="--features devtools"
+          fi
+          pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
+        env:
+          CI: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AM_API_KEY: ${{ secrets.AM_API_KEY }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          APP_VERSION: ${{ needs.compute-version.outputs.version }}
+          KEYGEN_ACCOUNT_ID: ${{ secrets.KEYGEN_ACCOUNT_ID }}
+          KEYGEN_VERIFY_KEY: ${{ secrets.KEYGEN_VERIFY_KEY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ steps.apple-cert.outputs.cert-id }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      - run: |
+          mkdir -p target/release/
+          find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
+        shell: bash
+        working-directory: ./apps/desktop/src-tauri
+      - if: ${{ inputs.channel != 'staging' }}
+        uses: ./.github/actions/cn_release
+        with:
+          cmd: upload
+          app: ${{ env.CN_APPLICATION }}
+          key: ${{ secrets.CN_API_KEY }}
+          channel: ${{ env.RELEASE_CHANNEL }}
+          framework: tauri
+          working-directory: ./apps/desktop
+      - if: ${{ inputs.channel != 'staging' }}
+        run: |
+          DMG_FILE=$(find "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/" -name "*.dmg" -type f)
+          cp "$DMG_FILE" "hyprnote-legacy-macos-${{ matrix.arch }}.dmg"
+          aws s3 cp "hyprnote-legacy-macos-${{ matrix.arch }}.dmg" \
+            "s3://hyprnote-build/desktop-legacy/${{ needs.compute-version.outputs.version }}/hyprnote-macos-${{ matrix.arch }}.dmg" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+      - if: ${{ inputs.channel == 'staging' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyprnote-legacy-staging-macos-${{ matrix.artifact_name }}
+          path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          retention-days: 3
+
+  cn-publish:
+    if: ${{ inputs.channel != 'staging' }}
+    needs: [compute-version, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.LEGACY_BRANCH }}
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - uses: ./.github/actions/cn_release
+        with:
+          cmd: publish
+          app: ${{ env.CN_APPLICATION }}
+          key: ${{ secrets.CN_API_KEY }}
+          channel: ${{ env.RELEASE_CHANNEL }}
+          framework: tauri
+          working-directory: ./apps/desktop
+
+  release:
+    if: ${{ inputs.channel != 'staging' }}
+    needs: [compute-version, build-macos, cn-publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.LEGACY_BRANCH }}
+      - if: ${{ needs.build-macos.result == 'success' }}
+        run: |
+          aws s3 cp \
+            "s3://hyprnote-build/desktop-legacy/${{ needs.compute-version.outputs.version }}/hyprnote-macos-aarch64.dmg" \
+            "hyprnote-macos-aarch64.dmg" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+      - uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: desktop_v${{ needs.compute-version.outputs.version }}
+          tag_prefix: ""
+      - id: checksums
+        uses: ./.github/actions/generate_checksums
+        with:
+          files: |
+            ${{ needs.build-macos.result == 'success' && 'hyprnote-macos-aarch64.dmg' || '' }}
+      - id: artifacts
+        run: |
+          ARTIFACTS=""
+          if [[ "${{ needs.build-macos.result }}" == "success" ]]; then
+            ARTIFACTS="hyprnote-macos-aarch64.dmg"
+          fi
+          if [[ -z "$ARTIFACTS" ]]; then
+            echo "No artifacts to release" >&2
+            exit 1
+          fi
+          if [[ -n "${{ steps.checksums.outputs.checksum_files }}" ]]; then
+            ARTIFACTS="$ARTIFACTS,${{ steps.checksums.outputs.checksum_files }}"
+          fi
+          echo "list=$ARTIFACTS" >> $GITHUB_OUTPUT
+      - uses: ncipollo/release-action@v1
+        with:
+          tag: desktop_v${{ needs.compute-version.outputs.version }}
+          name: desktop_v${{ needs.compute-version.outputs.version }} (Legacy)
+          body: "Legacy release for Hyprnote 0.0.x series"
+          artifacts: ${{ steps.artifacts.outputs.list }}

@@ -93,11 +93,12 @@ const articles = defineCollection({
     ready_for_review: z.boolean().default(false),
     category: z
       .enum([
-        "Case Study",
-        "Products In-depth",
-        "Char Weekly",
-        "Productivity Hack",
+        "Product",
+        "Comparisons",
         "Engineering",
+        "Founders' notes",
+        "Guides",
+        "Char Weekly",
       ])
       .optional(),
   }),

@@ -2,13 +2,13 @@ use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
 };
-use owhisper_client::{CallbackResult, CallbackSttAdapter};
+use owhisper_client::CallbackResult;
 use serde::Deserialize;
 
 use hypr_supabase_storage::SupabaseStorage;
 
-use super::{AppState, RouteError, parse_async_provider};
-use crate::supabase::SupabaseClient;
+use super::{AppState, RouteError, parse_async_provider, process_provider_callback};
+use crate::supabase::{PipelineStatus, SupabaseClient};
 
 #[derive(Deserialize)]
 pub(crate) struct CallbackQuery {
@@ -49,66 +49,55 @@ pub async fn handler(
             "api_key not configured for provider",
         ))?;
 
-    let outcome = match owhisper_provider {
-        owhisper_client::Provider::Soniox => {
-            owhisper_client::SonioxAdapter
-                .process_callback(&state.client, &api_key, payload)
-                .await
-        }
-        owhisper_client::Provider::Deepgram => {
-            owhisper_client::DeepgramAdapter
-                .process_callback(&state.client, &api_key, payload)
-                .await
-        }
-        _ => unreachable!(),
-    }
-    .map_err(|e| {
-        tracing::error!(id = %id, provider = %provider, error = %e, "callback processing failed");
-        RouteError::Internal(format!("callback processing failed: {e}"))
-    })?;
+    let outcome =
+        process_provider_callback(owhisper_provider, &state.client, &api_key, payload)
+            .await
+            .map_err(|e| {
+                tracing::error!(id = %id, provider = %provider, error = %e, "callback processing failed");
+                RouteError::Internal(format!("callback processing failed: {e}"))
+            })?;
 
     let update = match &outcome {
         CallbackResult::Done(raw_result) => serde_json::json!({
-            "status": "done",
+            "status": PipelineStatus::Done,
             "raw_result": raw_result,
             "updated_at": chrono::Utc::now().to_rfc3339(),
         }),
         CallbackResult::ProviderError(message) => serde_json::json!({
-            "status": "error",
+            "status": PipelineStatus::Error,
             "error": message,
             "updated_at": chrono::Utc::now().to_rfc3339(),
         }),
     };
+
+    let file_id = supabase
+        .get_job(&id)
+        .await
+        .ok()
+        .flatten()
+        .map(|j| j.file_id);
 
     supabase
         .update_job(&id, &update)
         .await
         .map_err(|e| RouteError::Internal(format!("failed to update job: {e}")))?;
 
-    cleanup_audio(&supabase, &id).await;
+    if let Some(file_id) = file_id {
+        cleanup_audio(&supabase, &file_id).await;
+    }
 
     Ok(StatusCode::OK)
 }
 
-async fn cleanup_audio(supabase: &SupabaseClient, job_id: &str) {
-    let job = match supabase.get_job(job_id).await {
-        Ok(Some(j)) => j,
-        Ok(None) => return,
-        Err(e) => {
-            tracing::warn!(job_id = %job_id, error = %e, "failed to fetch job for cleanup");
-            return;
-        }
-    };
-
+async fn cleanup_audio(supabase: &SupabaseClient, file_id: &str) {
     let storage = SupabaseStorage::new(
         supabase.client.clone(),
         &supabase.url,
         &supabase.service_role_key,
     );
-    if let Err(e) = storage.delete_file("audio-files", &job.file_id).await {
+    if let Err(e) = storage.delete_file("audio-files", file_id).await {
         tracing::warn!(
-            job_id = %job_id,
-            file_id = %job.file_id,
+            file_id = %file_id,
             error = %e,
             "failed to delete audio file"
         );

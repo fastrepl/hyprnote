@@ -1,12 +1,11 @@
 use axum::{Json, extract::State};
 use hypr_api_auth::AuthContext;
-use owhisper_client::CallbackSttAdapter;
 use serde::{Deserialize, Serialize};
 
 use hypr_supabase_storage::SupabaseStorage;
 
-use super::{AppState, RouteError, parse_async_provider};
-use crate::supabase::{SupabaseClient, TranscriptionJob};
+use super::{AppState, RouteError, parse_async_provider, submit_to_provider};
+use crate::supabase::{PipelineStatus, SupabaseClient, TranscriptionJob};
 
 #[derive(Deserialize, utoipa::ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -87,30 +86,20 @@ pub async fn handler(
             "api_key not configured for provider",
         ))?;
 
-    let provider_request_id = match provider {
-        owhisper_client::Provider::Soniox => {
-            owhisper_client::SonioxAdapter
-                .submit_callback(&state.client, api_key, &audio_url, &callback_url)
-                .await
-        }
-        owhisper_client::Provider::Deepgram => {
-            owhisper_client::DeepgramAdapter
-                .submit_callback(&state.client, api_key, &audio_url, &callback_url)
-                .await
-        }
-        _ => unreachable!(),
-    }
-    .map_err(|e| {
-        tracing::error!(error = %e, provider = %provider_str, "submission failed");
-        RouteError::BadGateway(format!("{provider_str} submission failed: {e}"))
-    })?;
+    let provider_request_id =
+        submit_to_provider(provider, &state.client, api_key, &audio_url, &callback_url)
+            .await
+            .map_err(|e| {
+                tracing::error!(error = %e, provider = %provider_str, "submission failed");
+                RouteError::BadGateway(format!("{provider_str} submission failed: {e}"))
+            })?;
 
     let job = TranscriptionJob {
         id: id.clone(),
         user_id,
         file_id: body.file_id,
         provider: provider_str.to_string(),
-        status: "processing".to_string(),
+        status: PipelineStatus::Transcribing,
         provider_request_id: Some(provider_request_id),
         raw_result: None,
         error: None,

@@ -86,7 +86,7 @@ const articles = defineCollection({
     display_title: z.string().optional(),
     meta_title: z.string().optional(),
     meta_description: z.string().optional(),
-    author: z.string(),
+    author: z.union([z.string(), z.array(z.string())]),
     date: z.string(),
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),
@@ -122,7 +122,8 @@ const articles = defineCollection({
 
     const slug = document._meta.path.replace(/\.mdx$/, "");
 
-    const author = document.author || "Char Team";
+    const rawAuthor = document.author || "Char Team";
+    const author = Array.isArray(rawAuthor) ? rawAuthor : [rawAuthor];
     const title = document.display_title || document.meta_title;
 
     return {

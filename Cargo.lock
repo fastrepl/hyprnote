@@ -11601,6 +11601,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "mlx"
+version = "0.1.0"
+dependencies = [
+ "data",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
+]
+
+[[package]]
 name = "monostate"
 version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"

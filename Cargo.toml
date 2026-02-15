@@ -78,6 +78,7 @@ hypr-llm-proxy = { path = "crates/llm-proxy", package = "llm-proxy" }
 hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-mac = { path = "crates/mac", package = "mac" }
 hypr-mcp = { path = "crates/mcp", package = "mcp" }
+hypr-mlx = { path = "crates/mlx", package = "mlx" }
 hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-notch = { path = "crates/notch", package = "notch" }

@@ -42,23 +42,56 @@ fn build_listen_params(params: &QueryParams) -> ListenParams {
     }
 }
 
+macro_rules! with_adapter {
+    ($provider:expr, |$adapter:ident| $body:expr) => {
+        match $provider {
+            Provider::Deepgram => {
+                let $adapter = DeepgramAdapter;
+                $body
+            }
+            Provider::AssemblyAI => {
+                let $adapter = AssemblyAIAdapter;
+                $body
+            }
+            Provider::Soniox => {
+                let $adapter = SonioxAdapter;
+                $body
+            }
+            Provider::Fireworks => {
+                let $adapter = FireworksAdapter;
+                $body
+            }
+            Provider::OpenAI => {
+                let $adapter = OpenAIAdapter;
+                $body
+            }
+            Provider::Gladia => {
+                let $adapter = GladiaAdapter;
+                $body
+            }
+            Provider::ElevenLabs => {
+                let $adapter = ElevenLabsAdapter;
+                $body
+            }
+            Provider::DashScope => {
+                let $adapter = DashScopeAdapter;
+                $body
+            }
+            Provider::Mistral => {
+                let $adapter = MistralAdapter::default();
+                $body
+            }
+        }
+    };
+}
+
 fn build_upstream_url_with_adapter(
     provider: Provider,
     api_base: &str,
     params: &ListenParams,
     channels: u8,
 ) -> url::Url {
-    match provider {
-        Provider::Deepgram => DeepgramAdapter.build_ws_url(api_base, params, channels),
-        Provider::AssemblyAI => AssemblyAIAdapter.build_ws_url(api_base, params, channels),
-        Provider::Soniox => SonioxAdapter.build_ws_url(api_base, params, channels),
-        Provider::Fireworks => FireworksAdapter.build_ws_url(api_base, params, channels),
-        Provider::OpenAI => OpenAIAdapter.build_ws_url(api_base, params, channels),
-        Provider::Gladia => GladiaAdapter.build_ws_url(api_base, params, channels),
-        Provider::ElevenLabs => ElevenLabsAdapter.build_ws_url(api_base, params, channels),
-        Provider::DashScope => DashScopeAdapter.build_ws_url(api_base, params, channels),
-        Provider::Mistral => MistralAdapter::default().build_ws_url(api_base, params, channels),
-    }
+    with_adapter!(provider, |a| a.build_ws_url(api_base, params, channels))
 }
 
 fn build_initial_message_with_adapter(
@@ -67,17 +100,7 @@ fn build_initial_message_with_adapter(
     params: &ListenParams,
     channels: u8,
 ) -> Option<String> {
-    let msg = match provider {
-        Provider::Deepgram => DeepgramAdapter.initial_message(api_key, params, channels),
-        Provider::AssemblyAI => AssemblyAIAdapter.initial_message(api_key, params, channels),
-        Provider::Soniox => SonioxAdapter.initial_message(api_key, params, channels),
-        Provider::Fireworks => FireworksAdapter.initial_message(api_key, params, channels),
-        Provider::OpenAI => OpenAIAdapter.initial_message(api_key, params, channels),
-        Provider::Gladia => GladiaAdapter.initial_message(api_key, params, channels),
-        Provider::ElevenLabs => ElevenLabsAdapter.initial_message(api_key, params, channels),
-        Provider::DashScope => DashScopeAdapter.initial_message(api_key, params, channels),
-        Provider::Mistral => MistralAdapter::default().initial_message(api_key, params, channels),
-    };
+    let msg = with_adapter!(provider, |a| a.initial_message(api_key, params, channels));
 
     msg.and_then(|m| match m {
         owhisper_client::hypr_ws_client::client::Message::Text(t) => Some(t.to_string()),
@@ -88,19 +111,9 @@ fn build_initial_message_with_adapter(
 fn build_response_transformer(
     provider: Provider,
 ) -> impl Fn(&str) -> Option<String> + Send + Sync + 'static {
-    let mistral_adapter = MistralAdapter::default();
     move |raw: &str| {
-        let responses: Vec<owhisper_interface::stream::StreamResponse> = match provider {
-            Provider::Deepgram => DeepgramAdapter.parse_response(raw),
-            Provider::AssemblyAI => AssemblyAIAdapter.parse_response(raw),
-            Provider::Soniox => SonioxAdapter.parse_response(raw),
-            Provider::Fireworks => FireworksAdapter.parse_response(raw),
-            Provider::OpenAI => OpenAIAdapter.parse_response(raw),
-            Provider::Gladia => GladiaAdapter.parse_response(raw),
-            Provider::ElevenLabs => ElevenLabsAdapter.parse_response(raw),
-            Provider::DashScope => DashScopeAdapter.parse_response(raw),
-            Provider::Mistral => mistral_adapter.parse_response(raw),
-        };
+        let responses: Vec<owhisper_interface::stream::StreamResponse> =
+            with_adapter!(provider, |a| a.parse_response(raw));
 
         if responses.is_empty() {
             return None;

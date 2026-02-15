@@ -9,7 +9,6 @@ use crate::config::Config;
 use crate::deepgram;
 use crate::soniox;
 use crate::supabase;
-use hypr_restate_rate_limit::{AllowRequest, RateLimiterClient};
 pub use hypr_restate_stt_types::{PipelineStatus, SttStatusResponse};
 
 fn default_provider() -> String {
@@ -86,15 +85,6 @@ impl SttFileImpl {
         ctx.set("status", Json(PipelineStatus::Queued));
         ctx.set("fileId", Json(input.file_id.clone()));
         ctx.set("provider", Json(input.provider.clone()));
-
-        ctx.object_client::<RateLimiterClient>(&input.user_id)
-            .allow(Json(AllowRequest {
-                n: 1,
-                limit: 5.0 / 60.0,
-                burst: 5,
-            }))
-            .call()
-            .await?;
 
         ctx.set("status", Json(PipelineStatus::Transcribing));
 

@@ -12,7 +12,6 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
-
 use owhisper_client::Provider;
 
 use crate::config::SttProxyConfig;
@@ -119,6 +118,7 @@ impl AppState {
 fn make_state(config: SttProxyConfig) -> AppState {
     let selector = config.provider_selector();
     let router = config.hyprnote_router().map(Arc::new);
+
     AppState {
         config,
         selector,

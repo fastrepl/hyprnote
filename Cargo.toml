@@ -91,7 +91,6 @@ hypr-porkbun = { path = "crates/porkbun", package = "porkbun" }
 hypr-posthog = { path = "crates/posthog", package = "posthog" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
-hypr-restate-rate-limit = { path = "crates/restate-rate-limit", package = "restate-rate-limit" }
 hypr-restate-stt = { path = "crates/restate-stt", package = "restate-stt" }
 hypr-restate-stt-types = { path = "crates/restate-stt-types", package = "restate-stt-types" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
@@ -223,6 +222,7 @@ codes-iso-639 = "0.1.5"
 dirs = "6.0.0"
 dotenvy = "0.15.7"
 envy = "0.4"
+governor = "0.10.4"
 include_url_macro = "0.1.0"
 indoc = "2"
 isolang = "2.4"

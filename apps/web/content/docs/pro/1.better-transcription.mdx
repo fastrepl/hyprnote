@@ -37,9 +37,20 @@ To use BYOK, go to Settings > Transcription and enter your API key for your pref
 
 Char checks if your selected provider supports your configured languages. If there's a mismatch, you'll see a warning with suggestions for compatible providers. Configure your languages in Settings > Language & Vocabulary.
 
+## How Your Audio Data Is Handled
+
+When using cloud transcription, your recorded audio is sent to the selected provider for processing:
+
+- **Pro curated models:** Your audio is proxied through `pro.hyprnote.com` and forwarded to a curated STT provider. The proxy does not store your audio.
+- **BYOK:** Your audio is sent directly from your device to the provider you selected. Char acts only as the client.
+
+Your audio files and transcripts are always stored locally on your device regardless of which transcription method you use. Cloud providers only receive the audio stream for processing and return the transcript.
+
+For the full details on every data flow, see [AI Models & Data Privacy](/docs/faq/ai-models-and-privacy).
+
 ## When to Use Cloud vs Local
 
 Use cloud transcription when you need maximum accuracy and have internet access. Use local transcription (Whisper models) when privacy is paramount or you're offline. Local models support 50+ languages and run entirely on your device.
 
-For local STT model details and manual download instructions, see [Local Models](/docs/developers/local-models). To understand how your data is handled, see [AI Models & Data Privacy](/docs/faq/ai-models-and-privacy).
+For local STT model details and manual download instructions, see [Local Models](/docs/developers/local-models).
 

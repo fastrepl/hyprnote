@@ -27,6 +27,30 @@ export const Route = createFileRoute("/_view/file-transcription")({
       throw redirect({ to: "/app/file-transcription/", search });
     }
   },
+  head: () => ({
+    meta: [
+      { title: "Free Audio Transcription Tool - Char" },
+      {
+        name: "description",
+        content:
+          "Transcribe audio files to text with AI-powered accuracy. Upload MP3, WAV, M4A, or other audio formats and get instant transcripts powered by Deepgram. Free to use.",
+      },
+      {
+        property: "og:title",
+        content: "Free Audio Transcription Tool - Char",
+      },
+      {
+        property: "og:description",
+        content:
+          "Convert audio to text instantly. Upload your recordings and get accurate AI transcriptions. Supports multiple audio formats including MP3, WAV, and M4A.",
+      },
+      { property: "og:type", content: "website" },
+      {
+        property: "og:url",
+        content: "https://hyprnote.com/file-transcription",
+      },
+    ],
+  }),
 });
 
 function Component() {
@@ -50,15 +74,32 @@ function Component() {
   return (
     <div className="min-h-[calc(100vh-200px)]">
       <div className="max-w-7xl mx-auto border-x border-neutral-100">
-        <div className="flex items-center justify-center py-20 bg-linear-to-b from-stone-50/30 to-stone-100/30 border-b border-neutral-100">
+        <div className="flex items-center justify-center py-16 lg:py-20 bg-linear-to-b from-stone-50/30 to-stone-100/30 border-b border-neutral-100">
           <div className="text-center max-w-2xl px-4">
-            <h1 className="font-serif text-3xl font-medium mb-4">
+            <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium text-stone-600 mb-4">
               Audio Transcription
             </h1>
-            <p className="text-neutral-600">
+            <p className="text-lg text-neutral-600 mb-6">
               Upload your audio file and get an accurate transcript powered by
-              Deepgram
+              Deepgram. Supports MP3, WAV, M4A, and other common audio formats.
             </p>
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-neutral-500">
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border border-neutral-200 rounded-full">
+                MP3
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border border-neutral-200 rounded-full">
+                WAV
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border border-neutral-200 rounded-full">
+                M4A
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border border-neutral-200 rounded-full">
+                FLAC
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white border border-neutral-200 rounded-full">
+                OGG
+              </span>
+            </div>
           </div>
         </div>
 
@@ -151,6 +192,87 @@ function Component() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="px-6 py-12 bg-stone-50/50 border-t border-neutral-100">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-serif text-stone-600 mb-8 text-center">
+              Why Use Char for Transcription?
+            </h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="p-5 bg-white border border-neutral-200 rounded-lg">
+                <h3 className="font-medium text-stone-700 mb-2">
+                  AI-Powered Accuracy
+                </h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Powered by Deepgram's advanced speech recognition for
+                  industry-leading transcription accuracy across accents and
+                  audio quality.
+                </p>
+              </div>
+              <div className="p-5 bg-white border border-neutral-200 rounded-lg">
+                <h3 className="font-medium text-stone-700 mb-2">
+                  Speaker Diarization
+                </h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Automatically identify and label different speakers in your
+                  recordings for easy-to-follow transcripts.
+                </p>
+              </div>
+              <div className="p-5 bg-white border border-neutral-200 rounded-lg">
+                <h3 className="font-medium text-stone-700 mb-2">
+                  Combine with Notes
+                </h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Add your own notes alongside the transcript to create
+                  comprehensive meeting documentation.
+                </p>
+              </div>
+              <div className="p-5 bg-white border border-neutral-200 rounded-lg">
+                <h3 className="font-medium text-stone-700 mb-2">
+                  Multiple Formats
+                </h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Upload MP3, WAV, M4A, FLAC, OGG, and other common audio
+                  formats. No conversion needed.
+                </p>
+              </div>
+              <div className="p-5 bg-white border border-neutral-200 rounded-lg">
+                <h3 className="font-medium text-stone-700 mb-2">
+                  Fast Processing
+                </h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Get your transcripts quickly with optimized processing. Most
+                  files are transcribed in seconds.
+                </p>
+              </div>
+              <div className="p-5 bg-white border border-neutral-200 rounded-lg">
+                <h3 className="font-medium text-stone-700 mb-2">
+                  Export & Share
+                </h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Download your transcripts or share them with your team. Keep
+                  your meeting records organized.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 py-12 border-t border-neutral-100 text-center">
+          <h2 className="text-2xl font-serif text-stone-600 mb-4">
+            Want Real-Time Transcription?
+          </h2>
+          <p className="text-neutral-600 mb-6 max-w-xl mx-auto">
+            Download Char for live meeting transcription with local AI
+            processing, automatic summaries, and complete privacy.
+          </p>
+          <Link
+            to="/download/"
+            className="inline-block px-6 py-2.5 text-sm font-medium rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white hover:scale-105 active:scale-95 transition-transform"
+          >
+            Download Char Free
+          </Link>
         </div>
       </div>
     </div>

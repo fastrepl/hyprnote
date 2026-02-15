@@ -11,7 +11,6 @@ pub use mock_upstream::{MockServerHandle, MockUpstreamConfig, start_mock_server_
 #[allow(unused_imports)]
 pub use recording::{Direction, MessageKind, WsMessage, WsRecording};
 
-use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -53,24 +52,35 @@ pub async fn start_server(config: SttProxyConfig) -> SocketAddr {
 }
 
 pub async fn start_server_with_provider(provider: Provider, api_key: String) -> SocketAddr {
-    let mut api_keys = HashMap::new();
-    api_keys.insert(provider, api_key.clone());
-
-    let config = SttProxyConfig::new(api_keys)
+    let env = env_with_provider(provider, api_key);
+    let config = SttProxyConfig::new(&env)
         .with_default_provider(provider)
         .with_hyprnote_routing(HyprnoteRoutingConfig::default());
     start_server(config).await
 }
 
 pub async fn start_server_with_upstream_url(provider: Provider, upstream_url: &str) -> SocketAddr {
-    let mut api_keys = HashMap::new();
-    api_keys.insert(provider, "mock-api-key".to_string());
-
-    let config = SttProxyConfig::new(api_keys)
+    let env = env_with_provider(provider, "mock-api-key".to_string());
+    let config = SttProxyConfig::new(&env)
         .with_default_provider(provider)
         .with_upstream_url(provider, upstream_url);
-
     start_server(config).await
+}
+
+pub fn env_with_provider(provider: Provider, api_key: String) -> transcribe_proxy::Env {
+    let mut env = transcribe_proxy::Env::default();
+    match provider {
+        Provider::Deepgram => env.deepgram_api_key = Some(api_key),
+        Provider::AssemblyAI => env.assemblyai_api_key = Some(api_key),
+        Provider::Soniox => env.soniox_api_key = Some(api_key),
+        Provider::Fireworks => env.fireworks_api_key = Some(api_key),
+        Provider::OpenAI => env.openai_api_key = Some(api_key),
+        Provider::Gladia => env.gladia_api_key = Some(api_key),
+        Provider::ElevenLabs => env.elevenlabs_api_key = Some(api_key),
+        Provider::DashScope => env.dashscope_api_key = Some(api_key),
+        Provider::Mistral => env.mistral_api_key = Some(api_key),
+    }
+    env
 }
 
 pub fn test_audio_stream() -> impl futures_util::Stream<

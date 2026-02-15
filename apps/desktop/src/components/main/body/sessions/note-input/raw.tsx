@@ -11,6 +11,7 @@ import {
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
 
+import { useSearchEngine } from "../../../../../contexts/search/engine";
 import { useImageUpload } from "../../../../../hooks/useImageUpload";
 import * as main from "../../../../../store/tinybase/store/main";
 
@@ -73,14 +74,21 @@ export const RawEditor = forwardRef<
     [persistChange, hasNonEmptyText],
   );
 
+  const { search } = useSearchEngine();
+
   const mentionConfig = useMemo(
     () => ({
       trigger: "@",
-      handleSearch: async () => {
-        return [];
+      handleSearch: async (query: string) => {
+        const results = await search(query);
+        return results.slice(0, 5).map((hit) => ({
+          id: hit.document.id,
+          type: hit.document.type,
+          label: hit.document.title,
+        }));
       },
     }),
-    [],
+    [search],
   );
 
   const fileHandlerConfig = useMemo(() => ({ onImageUpload }), [onImageUpload]);

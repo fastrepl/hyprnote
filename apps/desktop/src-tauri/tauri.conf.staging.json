@@ -21,7 +21,7 @@
     ],
     "macOS": {
       "dmg": {
-        "background": "assets/dmg-background-nightly.png"
+        "background": "assets/dmg-background-staging.png"
       }
     }
   }

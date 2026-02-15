@@ -8,7 +8,6 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { z } from "zod";
 
-import { AUTHOR_NAMES } from "@/lib/team";
 import { VersionPlatform } from "@/scripts/versioning";
 
 async function embedGithubCode(content: string): Promise<string> {
@@ -20,10 +19,10 @@ async function embedGithubCode(content: string): Promise<string> {
     const [fullMatch, url] = match;
 
     const repoMatch = url.match(
-      /github\.com\/fastrepl\/hyprnote\/blob\/[^/]+\/(.+)/,
+      /github\.com\/fastrepl\/(hyprnote|char)\/blob\/[^/]+\/(.+)/,
     );
     if (repoMatch) {
-      const filePath = repoMatch[1];
+      const filePath = repoMatch[2];
       const fileName = path.basename(filePath);
       const localPath = path.resolve(process.cwd(), "..", "..", filePath);
 
@@ -85,19 +84,18 @@ const articles = defineCollection({
   exclude: "AGENTS.md",
   schema: z.object({
     display_title: z.string().optional(),
-    meta_title: z.string(),
-    meta_description: z.string(),
-    author: z.enum(AUTHOR_NAMES as [string, ...string[]]),
+    meta_title: z.string().optional(),
+    meta_description: z.string().optional(),
+    author: z.string(),
     date: z.string(),
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),
-    published: z.boolean().default(false),
     ready_for_review: z.boolean().default(false),
     category: z
       .enum([
         "Case Study",
         "Products In-depth",
-        "Hyprnote Weekly",
+        "Char Weekly",
         "Productivity Hack",
         "Engineering",
       ])
@@ -124,7 +122,7 @@ const articles = defineCollection({
 
     const slug = document._meta.path.replace(/\.mdx$/, "");
 
-    const author = document.author || "Hyprnote Team";
+    const author = document.author || "Char Team";
     const title = document.display_title || document.meta_title;
 
     return {
@@ -164,7 +162,7 @@ const changelog = defineCollection({
     });
 
     const version = document._meta.path.replace(/\.mdx$/, "");
-    const baseUrl = `https://github.com/fastrepl/hyprnote/releases/download/desktop_v${version}`;
+    const baseUrl = `https://github.com/fastrepl/char/releases/download/desktop_v${version}`;
     const downloads: Record<VersionPlatform, string> = {
       "dmg-aarch64": `${baseUrl}/hyprnote-macos-aarch64.dmg`,
       "appimage-x86_64": `${baseUrl}/hyprnote-linux-x86_64.AppImage`,

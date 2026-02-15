@@ -5,6 +5,7 @@ use std::time::Duration;
 use owhisper_client::Provider;
 
 use crate::analytics::SttAnalyticsReporter;
+use crate::env::{ApiKeys, Env};
 use crate::hyprnote_routing::{HyprnoteRouter, HyprnoteRoutingConfig};
 use crate::provider_selector::ProviderSelector;
 
@@ -18,17 +19,19 @@ pub struct SttProxyConfig {
     pub analytics: Option<Arc<dyn SttAnalyticsReporter>>,
     pub upstream_urls: HashMap<Provider, String>,
     pub hyprnote_routing: Option<HyprnoteRoutingConfig>,
+    pub restate_ingress_url: Option<String>,
 }
 
 impl SttProxyConfig {
-    pub fn new(api_keys: HashMap<Provider, String>) -> Self {
+    pub fn new(env: &Env) -> Self {
         Self {
-            api_keys,
+            api_keys: ApiKeys::from(env).0,
             default_provider: Provider::Deepgram,
             connect_timeout: Duration::from_millis(DEFAULT_CONNECT_TIMEOUT_MS),
             analytics: None,
             upstream_urls: HashMap::new(),
             hyprnote_routing: None,
+            restate_ingress_url: env.restate_ingress_url.clone(),
         }
     }
 

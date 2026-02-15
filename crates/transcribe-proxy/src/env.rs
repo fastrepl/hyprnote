@@ -4,7 +4,7 @@ use owhisper_client::Provider;
 use serde::Deserialize;
 
 #[derive(Default, Deserialize)]
-pub struct Env {
+pub struct SttApiKeysEnv {
     #[serde(default)]
     pub deepgram_api_key: Option<String>,
     #[serde(default)]
@@ -23,8 +23,32 @@ pub struct Env {
     pub dashscope_api_key: Option<String>,
     #[serde(default)]
     pub mistral_api_key: Option<String>,
+}
+
+#[derive(Default, Deserialize)]
+pub struct SupabaseEnv {
     #[serde(default)]
-    pub restate_ingress_url: Option<String>,
+    pub supabase_url: Option<String>,
+    #[serde(default)]
+    pub supabase_service_role_key: Option<String>,
+}
+
+#[derive(Default, Deserialize)]
+pub struct CallbackEnv {
+    #[serde(default)]
+    pub api_base_url: Option<String>,
+    #[serde(default)]
+    pub callback_secret: Option<String>,
+}
+
+#[derive(Default, Deserialize)]
+pub struct Env {
+    #[serde(flatten)]
+    pub stt: SttApiKeysEnv,
+    #[serde(flatten)]
+    pub supabase: SupabaseEnv,
+    #[serde(flatten)]
+    pub callback: CallbackEnv,
 }
 
 pub struct ApiKeys(pub HashMap<Provider, String>);
@@ -45,8 +69,8 @@ impl ApiKeys {
     }
 }
 
-impl From<&Env> for ApiKeys {
-    fn from(env: &Env) -> Self {
+impl From<&SttApiKeysEnv> for ApiKeys {
+    fn from(env: &SttApiKeysEnv) -> Self {
         let mut map = HashMap::new();
         if let Some(key) = env.deepgram_api_key.as_ref().filter(|s| !s.is_empty()) {
             map.insert(Provider::Deepgram, key.clone());

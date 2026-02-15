@@ -87,10 +87,15 @@ async fn app() -> Router {
         jina_api_key: env.jina_api_key.clone(),
     };
 
-    let webhook_routes = Router::new().nest(
-        "/nango",
-        hypr_api_nango::webhook_router(nango_config.clone()),
-    );
+    let webhook_routes = Router::new()
+        .nest(
+            "/nango",
+            hypr_api_nango::webhook_router(nango_config.clone()),
+        )
+        .nest(
+            "/stt",
+            hypr_transcribe_proxy::callback_router(stt_config.clone()),
+        );
 
     let pro_routes = Router::new()
         .merge(hypr_api_research::router(research_config))
@@ -279,7 +284,7 @@ fn main() -> std::io::Result<()> {
         .with(sentry::integrations::tracing::layer())
         .init();
 
-    hypr_transcribe_proxy::ApiKeys::from(&env.stt).log_configured_providers();
+    hypr_transcribe_proxy::ApiKeys::from(&env.stt.stt).log_configured_providers();
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()

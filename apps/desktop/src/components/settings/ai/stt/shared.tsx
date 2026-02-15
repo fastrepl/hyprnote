@@ -36,7 +36,11 @@ export const displayModelId = (model: string) => {
     return "Cloud";
   }
 
-  if (model === "stt-v3") {
+  if (model === "stt-v4" || model === "stt-rt-v4" || model === "stt-async-v4") {
+    return "Soniox v4";
+  }
+
+  if (model === "stt-v3" || model === "stt-rt-v3" || model === "stt-async-v3") {
     return "Soniox v3";
   }
 
@@ -173,7 +177,7 @@ const _PROVIDERS = [
       />
     ),
     baseUrl: "https://api.soniox.com",
-    models: ["stt-v3"],
+    models: ["stt-v4", "stt-v3"],
     requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {

@@ -140,6 +140,33 @@ pub trait BatchSttAdapter: Clone + Default + Send + Sync + 'static {
     ) -> BatchFuture<'a>;
 }
 
+pub enum CallbackResult {
+    Done(serde_json::Value),
+    ProviderError(String),
+}
+
+pub type CallbackSubmitFuture<'a> =
+    Pin<Box<dyn Future<Output = Result<String, Error>> + Send + 'a>>;
+pub type CallbackProcessFuture<'a> =
+    Pin<Box<dyn Future<Output = Result<CallbackResult, Error>> + Send + 'a>>;
+
+pub trait CallbackSttAdapter: Clone + Default + Send + Sync + 'static {
+    fn submit_callback<'a>(
+        &'a self,
+        client: &'a reqwest::Client,
+        api_key: &'a str,
+        audio_url: &'a str,
+        callback_url: &'a str,
+    ) -> CallbackSubmitFuture<'a>;
+
+    fn process_callback<'a>(
+        &'a self,
+        client: &'a reqwest::Client,
+        api_key: &'a str,
+        payload: serde_json::Value,
+    ) -> CallbackProcessFuture<'a>;
+}
+
 pub fn set_scheme_from_host(url: &mut url::Url) {
     if let Some(host) = url.host_str() {
         if is_local_host(host) {

@@ -8,6 +8,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use hypr_language::Language;
+use owhisper_interface::ListenParams;
 
 #[derive(Debug, Clone)]
 pub enum QueryValue {
@@ -76,6 +77,25 @@ impl QueryParams {
                     .collect()
             })
             .unwrap_or_default()
+    }
+
+    pub fn parse_keywords(&self) -> Vec<String> {
+        self.get("keyword")
+            .or_else(|| self.get("keywords"))
+            .map(|v| match v {
+                QueryValue::Single(s) => s.split(',').map(|k| k.trim().to_string()).collect(),
+                QueryValue::Multi(vec) => vec.iter().map(|k| k.trim().to_string()).collect(),
+            })
+            .unwrap_or_default()
+    }
+
+    pub fn build_listen_params(&self) -> ListenParams {
+        ListenParams {
+            model: self.get_first("model").map(|s| s.to_string()),
+            languages: self.get_languages(),
+            keywords: self.parse_keywords(),
+            ..Default::default()
+        }
     }
 }
 

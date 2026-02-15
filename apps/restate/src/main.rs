@@ -13,6 +13,7 @@ async fn main() {
     let config: &'static Config = Box::leak(Box::new(Config {
         restate_ingress_url: env.restate_ingress_url.clone(),
         soniox_api_key: env.soniox_api_key.clone(),
+        deepgram_api_key: env.deepgram_api_key.clone(),
         supabase_url: env.supabase_url.clone(),
         supabase_service_role_key: env.supabase_service_role_key.clone(),
     }));

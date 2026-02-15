@@ -50,6 +50,31 @@ pub async fn nango_webhook(
         "nango webhook received"
     );
 
+    if payload.r#type == "auth" && payload.success && payload.operation != "deletion" {
+        if let Err(e) = state
+            .supabase
+            .upsert_connection(
+                &payload.end_user.end_user_id,
+                &payload.provider_config_key,
+                &payload.connection_id,
+                &payload.provider,
+            )
+            .await
+        {
+            tracing::error!(error = %e, "failed to upsert nango connection");
+        }
+    }
+
+    if payload.r#type == "auth" && payload.success && payload.operation == "deletion" {
+        if let Err(e) = state
+            .supabase
+            .delete_connection(&payload.end_user.end_user_id, &payload.provider_config_key)
+            .await
+        {
+            tracing::error!(error = %e, "failed to delete nango connection");
+        }
+    }
+
     Ok(Json(WebhookResponse {
         status: "ok".to_string(),
     }))

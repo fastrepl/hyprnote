@@ -2,19 +2,17 @@ use axum::{Json, extract::Path};
 use serde::Serialize;
 
 use super::RouteError;
-use crate::supabase::SupabaseClient;
+use crate::supabase::{PipelineStatus, SupabaseClient};
 
 #[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SttStatusResponse {
-    pub status: String,
+    pub status: PipelineStatus,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub provider: Option<String>,
+    pub error: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[schema(value_type = Option<Object>)]
     pub raw_result: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
 }
 
 #[utoipa::path(
@@ -45,8 +43,7 @@ pub async fn handler(
 
     Ok(Json(SttStatusResponse {
         status: job.status,
-        provider: Some(job.provider),
-        raw_result: job.raw_result,
         error: job.error,
+        raw_result: job.raw_result,
     }))
 }

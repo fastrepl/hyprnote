@@ -22,7 +22,9 @@ use crate::provider_selector::{ProviderSelector, SelectedProvider};
 use crate::query_params::QueryParams;
 use crate::supabase::SupabaseClient;
 
-pub(crate) use error::{RouteError, parse_async_provider};
+pub(crate) use error::{
+    RouteError, parse_async_provider, process_provider_callback, submit_to_provider,
+};
 
 #[derive(Clone)]
 pub(crate) struct AppState {

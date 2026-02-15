@@ -14,18 +14,18 @@ async fn main() {
     let env = env::env();
 
     let config = CONFIG.get_or_init(|| Config {
-        restate_ingress_url: env.restate_ingress_url.clone(),
-        soniox_api_key: env.soniox_api_key.clone(),
-        deepgram_api_key: env.deepgram_api_key.clone(),
-        supabase_url: env.supabase_url.clone(),
-        supabase_service_role_key: env.supabase_service_role_key.clone(),
+        restate_ingress_url: env.restate.restate_ingress_url.clone(),
+        soniox_api_key: env.stt.soniox_api_key.clone(),
+        deepgram_api_key: env.stt.deepgram_api_key.clone(),
+        supabase_url: env.supabase.supabase_url.clone(),
+        supabase_service_role_key: env.supabase.supabase_service_role_key.clone(),
     });
 
     let mut builder = Endpoint::builder()
         .bind(SttFileImpl::new(config).serve())
         .bind(StorageCleanupImpl::new(config).serve());
 
-    if let Some(key) = &env.restate_identity_key {
+    if let Some(key) = &env.restate.restate_identity_key {
         builder = builder.identity_key(key).expect("invalid identity key");
     }
 

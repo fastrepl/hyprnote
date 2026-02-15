@@ -9,13 +9,6 @@ kill_signal = 'SIGTERM'
 kill_timeout = '30s'
 swap_size_mb = 512
 
-[build]
-[build.args]
-GO_VERSION = '1.25.5'
-
-[deploy]
-strategy = 'bluegreen'
-
 [env]
 PORT = '8080'
 

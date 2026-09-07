@@ -451,6 +451,39 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         },
         sql: include_str!("../migrations/20260907120300_session_deletion_context.sql"),
     },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120400_session_local_content_restoration",
+        scope: anlg_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20260907120400_session_local_content_restoration.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120500_session_documents_local_restoration",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "session_documents",
+        },
+        sql: include_str!("../migrations/20260907120500_session_documents_local_restoration.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120600_transcripts_local_restoration",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "transcripts",
+        },
+        sql: include_str!("../migrations/20260907120600_transcripts_local_restoration.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120700_session_attachments_local_restoration",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "session_attachments",
+        },
+        sql: include_str!("../migrations/20260907120700_session_attachments_local_restoration.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120800_sessions_local_restoration",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "sessions",
+        },
+        sql: include_str!("../migrations/20260907120800_sessions_local_restoration.sql"),
+    },
 ];
 
 pub fn schema() -> anlg_db_migrate::DbSchema {

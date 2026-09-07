@@ -150,6 +150,93 @@ async fn empty_rows_and_metadata_do_not_resurrect_a_deleted_note() {
 }
 
 #[tokio::test]
+async fn local_content_after_a_synced_deletion_restores_without_another_sync() {
+    for change in [
+        "INSERT INTO transcripts (id, workspace_id, session_id, words_json)
+         VALUES ('late', 'workspace-a', 'meeting', '[{\"text\":\"Recording finished\"}]')",
+        "UPDATE transcripts SET words_json = '[{\"text\":\"Recording continued\"}]' WHERE id = 'capture'",
+        "UPDATE session_documents SET body_format = 'markdown', body = 'Local notes' WHERE id = 'meeting'",
+        "INSERT INTO session_documents (id, workspace_id, session_id, body_format, body)
+         VALUES ('new-notes', 'workspace-a', 'meeting', 'markdown', 'New notes')",
+        "INSERT INTO session_attachments (id, workspace_id, session_id, size_bytes, sha256)
+         VALUES ('new-audio', 'workspace-a', 'meeting', 1234, 'new-recording')",
+        "UPDATE session_attachments SET size_bytes = 5678, sha256 = 'replacement' WHERE id = 'audio'",
+        "UPDATE sessions SET title = 'Edited meeting' WHERE id = 'meeting'",
+    ] {
+        let a = test_db().await;
+        let b = test_db().await;
+        seed(a.pool()).await;
+        sqlx::raw_sql(
+            "INSERT INTO transcripts (id, workspace_id, session_id) VALUES ('capture', 'workspace-a', 'meeting');
+             INSERT INTO session_attachments (id, workspace_id, session_id, size_bytes, sha256)
+             VALUES ('audio', 'workspace-a', 'meeting', 100, 'original');",
+        )
+        .execute(a.pool()).await.unwrap();
+        sync(a.pool(), b.pool()).await;
+        delete(a.pool(), "2099-01-01").await;
+        sync(a.pool(), b.pool()).await;
+        assert_deleted(b.pool(), true).await;
+
+        sqlx::raw_sql(sqlx::AssertSqlSafe(change))
+            .execute(b.pool())
+            .await
+            .unwrap();
+        assert_deleted(b.pool(), false).await;
+        let (context, live_documents): (String, i64) = sqlx::query_as(
+            "SELECT deletion_context, (SELECT count(*) FROM session_documents WHERE id = 'meeting' AND deleted_at IS NULL)
+             FROM sessions WHERE id = 'meeting'",
+        ).fetch_one(b.pool()).await.unwrap();
+        assert!(!context.is_empty());
+        assert_eq!(live_documents, 1);
+        sync(b.pool(), a.pool()).await;
+        assert_deleted(a.pool(), false).await;
+        delete(b.pool(), "2100-01-01").await;
+        assert_deleted(b.pool(), true).await;
+        sync(b.pool(), a.pool()).await;
+        assert_deleted(a.pool(), true).await;
+    }
+}
+
+#[tokio::test]
+async fn local_empty_writes_after_a_synced_deletion_do_not_restore() {
+    let a = test_db().await;
+    let b = test_db().await;
+    seed(a.pool()).await;
+    delete(a.pool(), "2099-01-01").await;
+    sync(a.pool(), b.pool()).await;
+    sqlx::raw_sql(
+        "INSERT INTO transcripts (id, workspace_id, session_id) VALUES ('empty', 'workspace-a', 'meeting');
+         UPDATE transcripts SET content_revision = 1 WHERE id = 'empty';
+         UPDATE session_documents SET body = '{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\"}]}' WHERE id = 'meeting';
+         INSERT INTO session_attachments (id, workspace_id, session_id) VALUES ('empty-audio', 'workspace-a', 'meeting');
+         UPDATE sessions SET ended_at = '2099-02-01' WHERE id = 'meeting';",
+    ).execute(b.pool()).await.unwrap();
+    assert_deleted(b.pool(), true).await;
+}
+
+#[tokio::test]
+async fn local_content_preserves_unrecognized_deletion_contexts() {
+    for context in [
+        "",
+        "invalid-json",
+        r#"{"version":2,"deletedAt":"2099-01-01","observed":{}}"#,
+        r#"{"version":1,"deletedAt":"2099-01-01","observed":[]}"#,
+    ] {
+        let db = test_db().await;
+        seed(db.pool()).await;
+        delete(db.pool(), "2099-01-01").await;
+        sqlx::query("UPDATE sessions SET deletion_context = ? WHERE id = 'meeting'")
+            .bind(context)
+            .execute(db.pool())
+            .await
+            .unwrap();
+        sqlx::query("UPDATE session_documents SET body_format = 'markdown', body = 'New notes' WHERE id = 'meeting'")
+            .execute(db.pool()).await.unwrap();
+        assert_deleted(db.pool(), true).await;
+    }
+}
+
+#[tokio::test]
 async fn local_undo_clears_the_deletion_observation() {
     let a = test_db().await;
     let b = test_db().await;

@@ -1,7 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getWorkspaceShareSlugFromHeaders } from "./request-workspace-share-host.ts";
+import {
+  getRequestHost,
+  getWorkspaceShareSlugFromHeaders,
+} from "./request-workspace-share-host.ts";
+
+test("preserves the workspace host when Netlify replaces forwarded headers", () => {
+  const headers = new Headers({
+    host: "anarlog.netlify.app",
+    "x-forwarded-host": "anarlog.netlify.app",
+    "x-anarlog-workspace-share-host": "fastrepl.anarlog.so",
+  });
+
+  assert.equal(getRequestHost(headers), "fastrepl.anarlog.so");
+  assert.equal(getWorkspaceShareSlugFromHeaders(headers), "fastrepl");
+});
 
 test("reads the workspace slug from the Cloudflare forwarded host", () => {
   const headers = new Headers({

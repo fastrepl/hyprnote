@@ -18,6 +18,8 @@ export const createWorkspaceShareOriginRequest = (request: Request) => {
     APP_ORIGIN,
   );
   const originRequest = new Request(originUrl, request);
+  // Netlify replaces x-forwarded-host with the origin hostname.
+  originRequest.headers.set("x-anarlog-workspace-share-host", incomingUrl.host);
   originRequest.headers.set("x-forwarded-host", incomingUrl.host);
   originRequest.headers.set("x-forwarded-proto", "https");
   return originRequest;

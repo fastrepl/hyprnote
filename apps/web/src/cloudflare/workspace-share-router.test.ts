@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { getWorkspaceShareSlugFromHeaders } from "../lib/request-workspace-share-host.ts";
 import { createWorkspaceShareOriginRequest } from "./workspace-share-router.ts";
 
 test("routes a workspace hostname to Netlify with its original host", async () => {
@@ -10,6 +11,7 @@ test("routes a workspace hostname to Netlify with its original host", async () =
       headers: {
         cookie: "session=secret",
         "x-forwarded-host": "spoofed.example.com",
+        "x-anarlog-workspace-share-host": "another-workspace.anarlog.so",
       },
     },
   );
@@ -26,6 +28,11 @@ test("routes a workspace hostname to Netlify with its original host", async () =
     "fastrepl.anarlog.so",
   );
   assert.equal(originRequest?.headers.get("cookie"), "session=secret");
+
+  const netlifyHeaders = new Headers(originRequest?.headers);
+  netlifyHeaders.set("host", "anarlog.netlify.app");
+  netlifyHeaders.set("x-forwarded-host", "anarlog.netlify.app");
+  assert.equal(getWorkspaceShareSlugFromHeaders(netlifyHeaders), "fastrepl");
 });
 
 test("does not route reserved or malformed workspace hostnames", () => {

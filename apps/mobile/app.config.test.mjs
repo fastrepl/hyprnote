@@ -49,7 +49,19 @@ test("configures distinct app identities for every build profile", () => {
       assert.equal(config.ios.icon, expected.icon);
       assert.equal(config.android.package, expected.bundleIdentifier);
       assert.equal(config.android.icon, expected.icon);
-      assert.equal(config.android.adaptiveIcon, undefined);
+      const { foregroundImage, backgroundColor, monochromeImage } =
+        config.android.adaptiveIcon;
+      assert.equal(
+        backgroundColor,
+        { dev: "#0099FF", staging: "#D1D1D1", stable: "#F7E7B0" }[appVariant],
+      );
+      for (const asset of [foregroundImage, monochromeImage]) {
+        const png = readFileSync(new URL(asset, import.meta.url));
+        assert.equal(png.toString("hex", 0, 8), "89504e470d0a1a0a");
+        assert.equal(png.readUInt32BE(16), 1024);
+        assert.equal(png.readUInt32BE(20), 1024);
+        assert.equal(png[25], 6);
+      }
       assert.deepEqual(widgetsPlugin, [
         "expo-widgets",
         {

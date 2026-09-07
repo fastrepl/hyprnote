@@ -6,18 +6,21 @@ const variants = {
   dev: {
     name: "Anarlog Dev",
     icon: "./assets/images/icon-dev.png",
+    iconBackgroundColor: "#0099FF",
     scheme: "anarlog-dev",
     bundleIdentifier: "so.anarlog.mobile.dev",
   },
   staging: {
     name: "Anarlog Staging",
     icon: "./assets/images/icon-staging.png",
+    iconBackgroundColor: "#D1D1D1",
     scheme: "anarlog-staging",
     bundleIdentifier: "so.anarlog.mobile.staging",
   },
   stable: {
     name: "Anarlog",
     icon: "./assets/images/icon.png",
+    iconBackgroundColor: "#F7E7B0",
     scheme: "anarlog",
     bundleIdentifier: "so.anarlog.mobile",
   },
@@ -26,6 +29,7 @@ const variants = {
   {
     name: string;
     icon: string;
+    iconBackgroundColor: string;
     scheme: string;
     bundleIdentifier: string;
   }
@@ -63,7 +67,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...config.android,
       icon: variant.icon,
       package: variant.bundleIdentifier,
-      adaptiveIcon: undefined,
+      adaptiveIcon: {
+        foregroundImage: isDev
+          ? "./assets/images/android-icon-foreground-dev.png"
+          : "./assets/images/android-icon-foreground.png",
+        backgroundColor: variant.iconBackgroundColor,
+        monochromeImage: "./assets/images/android-icon-foreground.png",
+      },
     },
     plugins: (config.plugins ?? []).map((plugin) => {
       const name = Array.isArray(plugin) ? plugin[0] : plugin;

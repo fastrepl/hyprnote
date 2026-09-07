@@ -1,7 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 
+import { accountPlanLabel, fetchWorkspacePlan } from "@/auth/account-plan";
+import { supabase } from "@/auth/client";
 import { useAuth } from "@/auth/context";
 import { useTrial } from "@/auth/use-trial";
 import { env } from "@/lib/env";
@@ -17,7 +19,29 @@ export default function AccountSettings() {
   const auth = useAuth();
   const trial = useTrial();
   const router = useRouter();
-  const refresh = useMutation({ mutationFn: auth.refreshBilling });
+  const accountId = auth.session?.user.id;
+  const workspacePlan = useQuery({
+    queryKey: ["mobile-account-plan", accountId],
+    enabled: Boolean(accountId) && !auth.bypass,
+    retry: 1,
+    queryFn: async ({ signal }) => {
+      const current = await supabase!.auth.getSession();
+      const session = current.data.session;
+      if (current.error || !session || session.user.id !== accountId)
+        throw new Error("Sign in again to refresh your plan.");
+      return fetchWorkspacePlan({
+        client: supabase!,
+        accessToken: session.access_token,
+        signal,
+      });
+    },
+  });
+  const refresh = useMutation({
+    mutationFn: async () => {
+      await auth.refreshBilling();
+      await workspacePlan.refetch({ throwOnError: true });
+    },
+  });
   const signOut = useMutation({ mutationFn: auth.signOut });
   const manage = useMutation({
     mutationFn: () =>
@@ -37,11 +61,11 @@ export default function AccountSettings() {
           value={
             auth.bypass
               ? "Local dev"
-              : auth.billing.plan === "trial"
-                ? `Pro trial · ${auth.billing.trialDaysRemaining ?? 0} days left`
-                : auth.billing.plan === "pro"
-                  ? "Anarlog Pro"
-                  : "Free"
+              : workspacePlan.isPending
+                ? "Checking…"
+                : workspacePlan.data === undefined
+                  ? "Could not verify plan"
+                  : accountPlanLabel(auth.billing, workspacePlan.data)
           }
         />
       </FieldGroup.Section>
@@ -79,7 +103,9 @@ export default function AccountSettings() {
             title={refresh.isPending ? "Refreshing…" : "Refresh plan"}
             onPress={() => refresh.mutate()}
           />
-          <SettingsError error={refresh.error || manage.error} />
+          <SettingsError
+            error={refresh.error || manage.error || workspacePlan.error}
+          />
         </FieldGroup.Section>
       )}
       {!auth.bypass && (

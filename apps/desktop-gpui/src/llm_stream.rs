@@ -35,8 +35,40 @@ pub struct Connection {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Request {
     pub system: String,
+    /// The final user message.
     pub prompt: String,
+    /// `0` leaves the provider's default in place (the chat sets no cap).
     pub max_output_tokens: u32,
+    /// Earlier conversation turns before `prompt`, oldest first.
+    pub history: Vec<Turn>,
+}
+
+impl Request {
+    pub fn new(
+        system: impl Into<String>,
+        prompt: impl Into<String>,
+        max_output_tokens: u32,
+    ) -> Self {
+        Self {
+            system: system.into(),
+            prompt: prompt.into(),
+            max_output_tokens,
+            history: Vec::new(),
+        }
+    }
+}
+
+/// One earlier message of a multi-turn chat.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Turn {
+    pub role: TurnRole,
+    pub text: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TurnRole {
+    User,
+    Assistant,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -116,15 +148,37 @@ pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest
     }
     let api_key = conn.api_key.as_str();
     let model = conn.model_id.as_str();
+    let turns = |assistant_role: &str| -> Vec<Value> {
+        request
+            .history
+            .iter()
+            .map(|turn| {
+                json!({
+                    "role": match turn.role {
+                        TurnRole::User => "user",
+                        TurnRole::Assistant => assistant_role,
+                    },
+                    "content": turn.text
+                })
+            })
+            .chain(std::iter::once(
+                json!({ "role": "user", "content": request.prompt }),
+            ))
+            .collect()
+    };
+    let mut openai_messages = vec![json!({ "role": "system", "content": request.system })];
+    openai_messages.extend(turns("assistant"));
     let mut openai_body = json!({
         "model": model,
         "stream": true,
-        "max_tokens": request.max_output_tokens,
-        "messages": [
-            { "role": "system", "content": request.system },
-            { "role": "user", "content": request.prompt }
-        ]
+        "messages": openai_messages
     });
+    if request.max_output_tokens > 0 {
+        merge(
+            &mut openai_body,
+            Some(json!({ "max_tokens": request.max_output_tokens })),
+        );
+    }
     Ok(match conn.provider_id.as_str() {
         "anarlog" | "claude" | "chatgpt" | "grok" | "github_copilot" | "apple_foundation" => {
             return Err(format!(
@@ -136,9 +190,10 @@ pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest
             let mut body = json!({
                 "model": model,
                 "stream": true,
-                "max_tokens": request.max_output_tokens,
+                // Anthropic requires the cap; the SDK's default for chat.
+                "max_tokens": if request.max_output_tokens > 0 { request.max_output_tokens } else { 4096 },
                 "system": request.system,
-                "messages": [{ "role": "user", "content": request.prompt }]
+                "messages": turns("assistant")
             });
             merge(&mut body, reasoning_options(conn));
             HttpRequest {
@@ -156,14 +211,26 @@ pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest
             }
         }
         "google_generative_ai" => {
-            let mut generation_config = json!({ "maxOutputTokens": request.max_output_tokens });
+            let mut generation_config = json!({});
+            if request.max_output_tokens > 0 {
+                generation_config = json!({ "maxOutputTokens": request.max_output_tokens });
+            }
             merge(&mut generation_config, reasoning_options(conn));
+            let contents: Vec<Value> = turns("model")
+                .into_iter()
+                .map(|message| {
+                    json!({
+                        "role": message["role"],
+                        "parts": [{ "text": message["content"] }]
+                    })
+                })
+                .collect();
             HttpRequest {
                 url: format!("{base}/models/{model}:streamGenerateContent?alt=sse"),
                 headers: vec![("x-goog-api-key", api_key.to_string())],
                 body: json!({
                     "systemInstruction": { "parts": [{ "text": request.system }] },
-                    "contents": [{ "role": "user", "parts": [{ "text": request.prompt }] }],
+                    "contents": contents,
                     "generationConfig": generation_config
                 }),
                 family: Family::Google,
@@ -601,11 +668,41 @@ mod tests {
     }
 
     fn request() -> Request {
-        Request {
-            system: "sys".into(),
-            prompt: "hi".into(),
-            max_output_tokens: 8192,
-        }
+        Request::new("sys", "hi", 8192)
+    }
+
+    #[test]
+    fn history_turns_precede_the_prompt_per_family() {
+        let mut request = Request::new("sys", "third", 0);
+        request.history = vec![
+            Turn {
+                role: TurnRole::User,
+                text: "first".into(),
+            },
+            Turn {
+                role: TurnRole::Assistant,
+                text: "second".into(),
+            },
+        ];
+        let openai = build_request(&conn("openai", "gpt-5.6", "default"), &request).unwrap();
+        assert_eq!(
+            openai.body["messages"],
+            json!([
+                { "role": "system", "content": "sys" },
+                { "role": "user", "content": "first" },
+                { "role": "assistant", "content": "second" },
+                { "role": "user", "content": "third" }
+            ])
+        );
+        // No cap requested: the provider default stands.
+        assert!(openai.body.get("max_tokens").is_none());
+        let anthropic = build_request(&conn("anthropic", "claude", "default"), &request).unwrap();
+        assert_eq!(anthropic.body["messages"].as_array().unwrap().len(), 3);
+        assert_eq!(anthropic.body["max_tokens"], 4096);
+        let google =
+            build_request(&conn("google_generative_ai", "gemini", "default"), &request).unwrap();
+        assert_eq!(google.body["contents"][1]["role"], "model");
+        assert_eq!(google.body["contents"][2]["parts"][0]["text"], "third");
     }
 
     #[test]

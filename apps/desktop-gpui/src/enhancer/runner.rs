@@ -96,11 +96,11 @@ async fn run_inner(
         let mut stream = llm_stream::stream(
             runtime,
             generation.conn.clone(),
-            Request {
-                system: generation.system.clone(),
+            Request::new(
+                generation.system.clone(),
                 prompt,
-                max_output_tokens: generation.max_output_tokens,
-            },
+                generation.max_output_tokens,
+            ),
         );
         let mut normalizer = BulletNormalizer::default();
         // The early-validation buffer for this attempt.

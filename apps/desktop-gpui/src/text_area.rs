@@ -33,6 +33,9 @@ actions!(
         Cut,
         Copy,
         Newline,
+        /// A plain Enter: a newline, or a submit for `submitShortcut="enter"`
+        /// fields.
+        Enter,
         Escape,
         Submit,
     ]
@@ -64,7 +67,7 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new(&format!("{m}-v"), Paste, ctx),
         KeyBinding::new(&format!("{m}-c"), Copy, ctx),
         KeyBinding::new(&format!("{m}-x"), Cut, ctx),
-        KeyBinding::new("enter", Newline, ctx),
+        KeyBinding::new("enter", Enter, ctx),
         KeyBinding::new("shift-enter", Newline, ctx),
         KeyBinding::new("escape", Escape, ctx),
         KeyBinding::new(&format!("{m}-enter"), Submit, ctx),
@@ -103,6 +106,8 @@ pub struct TextArea {
     layout: TextLayout,
     last_bounds: Option<Bounds<Pixels>>,
     is_selecting: bool,
+    /// `submitShortcut="enter"`: Enter submits and Shift+Enter breaks the line.
+    enter_submits: bool,
 }
 
 impl EventEmitter<TextAreaEvent> for TextArea {}
@@ -132,7 +137,14 @@ impl TextArea {
             layout: TextLayout::default(),
             last_bounds: None,
             is_selecting: false,
+            enter_submits: false,
         }
+    }
+
+    /// `submitShortcut="enter"`
+    pub fn enter_submits(mut self) -> Self {
+        self.enter_submits = true;
+        self
     }
 
     pub fn text(&self) -> &str {
@@ -370,6 +382,14 @@ impl TextArea {
 
     fn newline(&mut self, _: &Newline, window: &mut Window, cx: &mut Context<Self>) {
         self.replace_text_in_range(None, "\n", window, cx)
+    }
+
+    fn enter(&mut self, _: &Enter, window: &mut Window, cx: &mut Context<Self>) {
+        if self.enter_submits {
+            cx.emit(TextAreaEvent::Submit);
+        } else {
+            self.replace_text_in_range(None, "\n", window, cx)
+        }
     }
 
     fn submit(&mut self, _: &Submit, _: &mut Window, cx: &mut Context<Self>) {
@@ -616,6 +636,7 @@ impl Render for TextArea {
             .on_action(cx.listener(Self::cut))
             .on_action(cx.listener(Self::copy))
             .on_action(cx.listener(Self::newline))
+            .on_action(cx.listener(Self::enter))
             .on_action(cx.listener(Self::escape))
             .on_action(cx.listener(Self::submit))
             .on_mouse_down(MouseButton::Left, cx.listener(Self::on_mouse_down))

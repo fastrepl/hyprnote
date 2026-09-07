@@ -1,4 +1,5 @@
 mod direct;
+mod google_cloud;
 mod local;
 
 pub(super) use direct::run_direct_batch_for_adapter_kind;

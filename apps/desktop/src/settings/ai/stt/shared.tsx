@@ -721,7 +721,7 @@ const _PROVIDERS = [
     disabled: false,
     id: "google_cloud",
     displayName: "Google Cloud Speech-to-Text",
-    badge: "Short batch",
+    badge: "After recording",
     icon: <ProviderLobeIcon icon={GoogleCloud} />,
     baseUrl: "https://speech.googleapis.com/v1",
     models: ["latest_long"],

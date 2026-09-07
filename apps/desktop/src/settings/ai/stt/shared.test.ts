@@ -150,7 +150,7 @@ describe("STT model display labels", () => {
     expect(providers.speechmatics.models).toEqual(["enhanced", "standard"]);
     expect(providers.together.models).toContain("nvidia/parakeet-tdt-0.6b-v3");
     expect(providers.openrouter.models).toContain("qwen/qwen3-asr-1.7b");
-    expect(providers.google_cloud.badge).toBe("Short batch");
+    expect(providers.google_cloud.badge).toBe("After recording");
     expect(providers.aws_transcribe.badge).toBe("Gateway");
     expect(providers.dashscope.badge).toBeNull();
     expect("builtIn" in providers.soniqo && providers.soniqo.builtIn).toBe(

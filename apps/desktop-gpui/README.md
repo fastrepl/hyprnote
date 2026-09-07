@@ -1,37 +1,75 @@
 # desktop-gpui
 
-Native [GPUI](https://gpui.rs) shell for the Anarlog desktop app. This is the
-`apps/desktop-gpui` application called for in the target architecture of
+Native [GPUI](https://gpui.rs) shell for the Anarlog desktop app, the
+`apps/desktop-gpui` application from
 [ANLG-320](https://linear.app/fastrepl-inc/issue/ANLG-320/migrate-the-desktop-application-from-tauri-to-gpui).
-It runs side by side with the Tauri app, reads the same SQLite database, and is
-not a replacement for anything yet.
+It ships next to the Tauri app as an opt-in sidecar, opens the same SQLite
+database, and ports the Tauri screens one surface at a time. Tauri stays the
+default and the rollback path; nothing in this crate changes the SQLite schema
+or the ProseMirror document format.
 
-Where this sits in the ANLG-320 plan: it is the start of **Phase 2 (GPUI
-foundation)**, scaffolding the crate with test and CI targets, async runtime
-integration, logging, and a minimal theme. It deliberately does not pre-empt
-**Phase 0 (baseline, inventory, profiling, success thresholds)**, which gates
-whether the migration proceeds at all; the shell only exists so the GPUI
-dependency graph, build prerequisites, and data-layer reuse are proven before
-Phase 3 needs them.
+## Switching shells
 
-## Current scope
+The Tauri binary is the installed launcher. `Settings → General → Try the new
+Anarlog (beta)` writes the shell preference (`anlg-storage::shell`) and
+relaunches; on the next start the launcher execs `anarlog-gpui` from next to
+its own binary (`apps/desktop/src-tauri/src/shell.rs`), forwarding its
+arguments. `Settings → General → Switch back` in the native shell restores the
+classic app. `ANARLOG_SHELL=tauri|gpui` overrides the marker for one run.
+Linux builds ship the sidecar (`desktop_cd.yaml`); macOS and Windows follow once
+their `desktop_ci.yaml` lanes gate this crate.
 
-- Opens the Tauri app's `app.db` **read-only** (same path resolution as
-  `apps/desktop/src-tauri/src/db.rs`; `--db-path` overrides it).
-- Lists sessions from `anlg-db-app` and renders the selected session's note
-  (ProseMirror JSON is converted to Markdown with `anlg-tiptap`).
-- No writes, no migrations, no recording, no LLM/STT. The Tauri app stays the
-  schema owner until the write path moves here.
+## What is ported
+
+Each surface is verified side by side against the running Tauri app on the same
+database, with Tauri's logic and test fixtures ported where they exist.
+
+- Main window: title bar, sidebar timeline (calendar events, folders, search,
+  filters, context menus, drag to folder), Folders / Calendar / Contacts /
+  Templates / Automations / Stats tabs, floating chat CTA, toasts, dialogs.
+- Note view: title, view switcher, enhanced notes and templates, the ProseMirror
+  editor with writes (marks, lists, tasks, `@` mentions over the shared Tantivy
+  index, autolink, paste), find and replace, meeting info, share panel, export.
+- Transcript: word-level seeking, playback follow, speaker assignment, edit
+  mode with merge, text selection menu, live partials, audio player.
+- Recording: microphone / system capture through the shared listener runtime,
+  live and batch transcription, floating recording bar, audio import, the
+  recording-without-transcription warning, tray recording state.
+- Settings: General (shell switch, autostart, tray), Account (signed-out),
+  Stats, Teams, Appearance, Notifications, Transcription and Intelligence
+  (provider catalogue, live model listing, key verification, connection
+  health, reasoning effort), Dictionary, Meetings, Sync, Imports, Privacy,
+  Permissions, Developers.
+- Onboarding with background music and the welcome demo note (`Join & record`
+  opens the demo with a loopback completion callback and stops the capture when
+  the video ends).
+- System tray (Linux GTK thread; `anlg-tray-core` shares icons, labels, and
+  the agenda logic with the Tauri plugin), keyboard shortcuts, deep links
+  (`anlg-deeplink-core` shares the URL routes and callback page), and
+  single-instance forwarding: a second launch hands its `anarlog://` URLs to
+  the running window over a Unix socket next to the database.
+
+Not ported yet: the signed-in flows (auth callback, billing, CloudSync,
+integrations, shared-note opens: the deep links are routed and logged), the
+on-device STT/LLM model rows (Apple Silicon only, so their providers are hidden
+elsewhere like Tauri does), rich clipboard embeds, and Windows single-instance
+forwarding.
 
 ## Run
 
 ```sh
 cargo run -p desktop-gpui
 cargo run -p desktop-gpui -- --db-path /path/to/app.db
+cargo run -p desktop-gpui -- anarlog-dev://focus   # forwarded to a running instance
 ```
 
 Debug builds open the `com.hyprnote.dev` database, release builds
-`com.hyprnote.stable`; pass `--identifier` to override.
+`com.hyprnote.stable`; pass `--identifier` to override. Positional arguments are
+deep-link URLs.
+
+Headless verification (CI, cloud VMs) needs a dummy PulseAudio sink for the
+audio player and `crates/audio-mock` for capture; see the repository
+`AGENTS.md`.
 
 ### Linux build prerequisites
 
@@ -49,15 +87,31 @@ macOS needs Xcode with the Metal toolchain (`xcodebuild -downloadComponent Metal
 
 ```
 src/
-  main.rs       args, tokio runtime, GPUI Application + window
-  db.rs         app.db path resolution, read-only Store, note body conversion
-  workspace.rs  root view: sessions sidebar + note pane + status bar
-  theme.rs      palette
+  main.rs         args, tokio runtime, single instance, tray + deep-link polling, window
+  db.rs           Store: app.db path resolution, sqlx queries, note/transcript writes
+  workspace.rs    root view state; one submodule per surface under workspace/
+  editor/         ProseMirror-compatible document model and editor view
+  recording.rs    listener runtime bridge (capture, live/batch transcription)
+  deeplink.rs     URL routing, single-instance socket, loopback callback server
+  tray.rs         system tray thread
+  ai_*.rs         provider catalogue, model listing, credential checks, health
+  theme.rs, ui.rs, squircle.rs, text_input.rs, text_area.rs   shared widgets
 ```
 
 `Store` runs sqlx futures on a dedicated tokio runtime and hands GPUI a
 `JoinHandle` to await on its foreground executor; views never block the UI
-thread on the database.
+thread on the database. Shell-neutral logic that both apps need lives in
+`crates/` (`tray-core`, `deeplink-core`, `search-index`, `listener-core`, …)
+rather than being duplicated here.
+
+## Checks
+
+`desktop_ci.yaml` (`gpui_linux_ci`) runs:
+
+```sh
+cargo clippy --locked -p desktop-gpui --all-targets --no-deps -- -D warnings
+cargo test --locked -p desktop-gpui
+```
 
 ## Dependency policy
 
@@ -71,13 +125,3 @@ The crate lives in the root workspace because its dependency graph resolved
 without conflicts. ANLG-320 allows isolating it in a nested workspace if pinned
 Rust, wgpu, font, or platform dependencies ever collide with the root; any fork
 or permanent patch needs a written rationale and an owner.
-
-## Plan
-
-The phases, gates, benchmark protocol, and stop conditions are owned by
-ANLG-320; this README does not restate them. In short: Phase 0 baselines and
-inventories the Tauri app, Phase 1 moves logic behind shell-neutral Rust
-services that both Tauri and GPUI call, Phases 2 to 6 build the GPUI app up to
-parity, and Phase 7 dual-runs both builds before any cutover. Tauri stays the
-default and the rollback path throughout. Work in this crate must not change
-the SQLite schema or the document format.

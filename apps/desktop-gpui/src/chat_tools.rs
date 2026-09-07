@@ -49,6 +49,8 @@ pub struct Context {
     pub folder_filter: Option<String>,
     /// `isSessionBusy`: sessions recording, finalizing, or batch transcribing.
     pub busy_sessions: Vec<String>,
+    /// `getEnhancedNoteId()`: the summary the open note's tab shows.
+    pub enhanced_note_id: Option<String>,
 }
 
 /// Everything a tool run needs.
@@ -141,11 +143,268 @@ impl Runner {
                     .await
                     .map_err(|error| error.to_string())
             }
-            "read_folder_material" | "edit_memo" | "edit_summary" | "apply_session_correction" => {
+            "apply_session_correction" => self.apply_session_correction(ctx, &input).await,
+            "read_folder_material" | "edit_memo" | "edit_summary" => {
                 Err(format!("{name} is not available in the native shell yet."))
             }
             other => Err(format!("Unknown tool: {other}")),
         }
+    }
+
+    /// `buildApplySessionCorrectionTool`: plan the exact replacements over
+    /// the summaries, transcripts, and title, commit them guarded, and save
+    /// the dictionary terms.
+    async fn apply_session_correction(
+        &self,
+        ctx: &Context,
+        input: &Value,
+    ) -> Result<Value, String> {
+        use crate::session_correction as sc;
+        let explicit_session = input
+            .get("sessionId")
+            .and_then(|id| id.as_str())
+            .map(str::to_string);
+        let session_id = explicit_session.clone().or_else(|| ctx.session_id.clone());
+        let target = input
+            .get("target")
+            .and_then(|t| t.as_str())
+            .unwrap_or("summary_and_transcript")
+            .to_string();
+        let Some(session_id) = session_id else {
+            return Ok(json!({
+                "status": "error",
+                "message": "No active session selected. Provide sessionId explicitly when calling apply_session_correction."
+            }));
+        };
+        let old_text = input
+            .get("oldText")
+            .and_then(|t| t.as_str())
+            .unwrap_or_default()
+            .to_string();
+        let new_text = input
+            .get("newText")
+            .and_then(|t| t.as_str())
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if new_text.is_empty() {
+            return Ok(json!({
+                "status": "error",
+                "message": "Replacement text cannot be blank.",
+                "sessionId": session_id
+            }));
+        }
+        // `deps.getEnhancedNoteId()` only applies to the open note.
+        let enhanced_note_id = input
+            .get("enhancedNoteId")
+            .and_then(|id| id.as_str())
+            .map(str::to_string)
+            .or_else(|| {
+                if explicit_session.is_none() {
+                    ctx.enhanced_note_id.clone()
+                } else {
+                    None
+                }
+            });
+        let Ok(Some(snapshot)) = crate::db::enhancer::load_snapshot(self.pool(), &session_id).await
+        else {
+            return Ok(json!({
+                "status": "error",
+                "message": "The target session could not be loaded.",
+                "sessionId": session_id
+            }));
+        };
+        let mut edit_summary = matches!(target.as_str(), "summary" | "summary_and_transcript");
+        if edit_summary
+            && let Some(note_id) = &enhanced_note_id
+            && !snapshot
+                .enhanced_notes
+                .iter()
+                .any(|note| note.id == *note_id)
+        {
+            if target == "summary" {
+                return Ok(json!({
+                    "status": "error",
+                    "message": "The requested summary does not belong to the target session.",
+                    "sessionId": session_id
+                }));
+            }
+            edit_summary = false;
+        }
+        // `planSummaryCorrections`
+        let mut summary_changes: Vec<Value> = Vec::new();
+        let mut summary_updates: Vec<crate::db::chat::SummaryCorrection> = Vec::new();
+        if edit_summary {
+            for note in snapshot
+                .enhanced_notes
+                .iter()
+                .filter(|note| enhanced_note_id.as_deref().is_none_or(|id| id == note.id))
+            {
+                let markdown =
+                    crate::db::enhancer::body_to_markdown(&note.content, &note.content_format);
+                let replaced = sc::replace_exact(&markdown, &old_text, &new_text);
+                if replaced.count == 0 {
+                    continue;
+                }
+                summary_updates.push(crate::db::chat::SummaryCorrection {
+                    id: note.id.clone(),
+                    current_content: note.content.clone(),
+                    current_content_format: note.content_format.clone(),
+                    next_content: crate::document::md2json(&replaced.text),
+                });
+                summary_changes.push(json!({
+                    "enhancedNoteId": note.id,
+                    "title": if note.title.trim().is_empty() { "Summary".to_string() } else { note.title.trim().to_string() },
+                    "replacements": replaced.count
+                }));
+            }
+        }
+        // `planTranscriptCorrections` over the raw rows.
+        let edit_transcript = matches!(target.as_str(), "transcript" | "summary_and_transcript");
+        let mut transcript_changes: Vec<Value> = Vec::new();
+        let mut transcript_updates: Vec<crate::db::chat::TranscriptCorrection> = Vec::new();
+        if edit_transcript && !sc::tokenize_replacement(&new_text).is_empty() {
+            let rows = self
+                .store
+                .raw_transcript_rows(session_id.clone())
+                .await
+                .map_err(|error| error.to_string())?
+                .map_err(|error| error.to_string())?;
+            for (id, words_json, memo) in rows {
+                let words: Vec<Value> = serde_json::from_str(&words_json).unwrap_or_default();
+                let (next_words, word_count) =
+                    sc::replace_transcript_words(&words, &old_text, &new_text);
+                let has_memo = !memo.is_empty();
+                let memo_result = sc::replace_transcript_text(
+                    if has_memo { &memo } else { "" },
+                    &old_text,
+                    &new_text,
+                );
+                if word_count == 0 && memo_result.count == 0 {
+                    continue;
+                }
+                if !words.is_empty() && has_memo && (word_count == 0 || memo_result.count == 0) {
+                    continue;
+                }
+                transcript_updates.push(crate::db::chat::TranscriptCorrection {
+                    id: id.clone(),
+                    current_words_json: words_json.clone(),
+                    current_memo: memo.clone(),
+                    next_words_json: if word_count > 0 {
+                        serde_json::to_string(&next_words).unwrap_or(words_json)
+                    } else {
+                        words_json
+                    },
+                    next_memo: if memo_result.count > 0 {
+                        memo_result.text
+                    } else {
+                        memo
+                    },
+                });
+                transcript_changes.push(json!({
+                    "transcriptId": id,
+                    "wordReplacements": word_count,
+                    "memoReplacements": memo_result.count
+                }));
+            }
+        }
+        // `planTitleCorrection`
+        let title_change = if edit_summary {
+            let replaced = sc::replace_exact(&snapshot.title, &old_text, &new_text);
+            (replaced.count > 0 && replaced.text != snapshot.title)
+                .then(|| json!({ "replacements": replaced.count, "nextTitle": replaced.text }))
+        } else {
+            None
+        };
+        if summary_changes.is_empty() && transcript_changes.is_empty() && title_change.is_none() {
+            return Ok(json!({
+                "status": "not_found",
+                "message": "No exact match found. Read the note and call apply_session_correction with the exact current text.",
+                "sessionId": session_id
+            }));
+        }
+        let title = title_change.as_ref().map(|change| {
+            (
+                snapshot.title.clone(),
+                change["nextTitle"].as_str().unwrap_or_default().to_string(),
+            )
+        });
+        let committed = self
+            .store
+            .apply_session_content_corrections(
+                session_id.clone(),
+                title,
+                summary_updates,
+                transcript_updates,
+            )
+            .await;
+        if !matches!(committed, Ok(Ok(()))) {
+            tracing::error!("Failed to apply session correction");
+            return Ok(json!({
+                "status": "error",
+                "message": "The note changed before the correction could be committed. Read the note and retry.",
+                "sessionId": session_id
+            }));
+        }
+        let dictionary_terms: Vec<String> = input
+            .get("dictionaryTerms")
+            .and_then(|terms| terms.as_array())
+            .map(|terms| {
+                terms
+                    .iter()
+                    .filter_map(|term| term.as_str().map(str::to_string))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let (added_terms, dictionary_failed) =
+            match self.store.add_dictionary_terms(dictionary_terms).await {
+                Ok(Ok(added)) => (added, false),
+                _ => {
+                    tracing::error!("Failed to save correction dictionary terms");
+                    (Vec::new(), true)
+                }
+            };
+        let mut missing: Vec<&str> = Vec::new();
+        if edit_summary && summary_changes.is_empty() && title_change.is_none() {
+            missing.push("summary");
+        }
+        if edit_transcript && transcript_changes.is_empty() {
+            missing.push("transcript");
+        }
+        let mut messages: Vec<String> = Vec::new();
+        if !missing.is_empty() {
+            messages.push(format!(
+                "Applied correction where matched, but no matching {} text was found.",
+                missing.join(" or ")
+            ));
+        }
+        if dictionary_failed {
+            messages.push(
+                "The correction was applied, but dictionary terms could not be saved.".to_string(),
+            );
+        }
+        let mut result = serde_json::Map::new();
+        result.insert(
+            "status".into(),
+            if missing.is_empty() {
+                "applied"
+            } else {
+                "partial"
+            }
+            .into(),
+        );
+        if !messages.is_empty() {
+            result.insert("message".into(), messages.join(" ").into());
+        }
+        result.insert("sessionId".into(), session_id.into());
+        result.insert("summaryChanges".into(), summary_changes.into());
+        result.insert("transcriptChanges".into(), transcript_changes.into());
+        result.insert("titleChange".into(), title_change.unwrap_or(Value::Null));
+        result.insert(
+            "dictionaryChanges".into(),
+            json!({ "addedTerms": added_terms }),
+        );
+        Ok(Value::Object(result))
     }
 
     /// `searchContacts(query, limit)` → `{ query, results }`.

@@ -547,6 +547,7 @@ impl Workspace {
                 .filter(|_| self.chat.scope == Scope::General),
             folder_filter: self.folder_filter_for_chat(),
             busy_sessions: self.busy_sessions(),
+            enhanced_note_id: self.open_enhanced_note_id(),
         };
         let runner = Arc::new(crate::chat_tools::Runner {
             store: self.store.clone(),
@@ -823,6 +824,21 @@ impl Workspace {
     /// `getFolderFilter()`: the folder the sidebar's note filter is scoped to.
     fn folder_filter_for_chat(&self) -> Option<String> {
         None
+    }
+
+    /// `getEnhancedNoteId()`: the summary the open note's tab shows, in the
+    /// general scope.
+    fn open_enhanced_note_id(&self) -> Option<String> {
+        if self.chat.scope != Scope::General {
+            return None;
+        }
+        match &self.note {
+            super::Note::Ready {
+                tab: super::NoteTab::Enhanced(id),
+                ..
+            } => Some(id.clone()),
+            _ => None,
+        }
     }
 
     /// `isSessionBusy`: the live capture (active or finalizing), the running

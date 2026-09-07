@@ -35,6 +35,22 @@ pub enum Block {
     Image { alt: String },
 }
 
+/// `md2json(markdown)` serialised: the ProseMirror parser's JSON, an empty
+/// document becoming one empty paragraph.
+pub fn md2json(markdown: &str) -> String {
+    anlg_tiptap::md_to_tiptap_json(markdown)
+        .ok()
+        .filter(|doc| {
+            doc.get("content")
+                .and_then(|c| c.as_array())
+                .is_some_and(|c| !c.is_empty())
+        })
+        .unwrap_or_else(
+            || serde_json::json!({ "type": "doc", "content": [{ "type": "paragraph" }] }),
+        )
+        .to_string()
+}
+
 /// Parses a stored body. Markdown bodies go through the same converter the
 /// app uses so they render identically to ProseMirror ones.
 pub fn from_body(body_format: &str, body: &str) -> Vec<Block> {

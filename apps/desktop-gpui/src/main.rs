@@ -31,6 +31,7 @@ mod prose_text;
 mod recording;
 mod search;
 mod secrets;
+mod session_correction;
 mod sfx;
 mod shell;
 mod speaker_assignment;

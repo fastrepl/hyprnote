@@ -21,20 +21,6 @@ fn has_note_content(markdown: &str) -> bool {
     !trimmed.is_empty() && trimmed != "&nbsp;"
 }
 
-/// `md2json(markdown)`: the ProseMirror parser's JSON, an empty document
-/// becoming one empty paragraph.
-fn md2json(markdown: &str) -> String {
-    let doc = anlg_tiptap::md_to_tiptap_json(markdown)
-        .ok()
-        .filter(|doc| {
-            doc.get("content")
-                .and_then(|c| c.as_array())
-                .is_some_and(|c| !c.is_empty())
-        })
-        .unwrap_or_else(|| json!({ "type": "doc", "content": [{ "type": "paragraph" }] }));
-    doc.to_string()
-}
-
 impl Store {
     /// `moveSessionContents({ sourceSessionId, targetSessionId })`; `busy`
     /// is `isSessionBusy` for either session, decided by the caller who
@@ -138,7 +124,7 @@ impl Store {
                 let target_has_notes = has_note_content(&target.raw_markdown);
                 let next_target_note = if source_has_notes {
                     Some(if target_has_notes {
-                        md2json(&format!(
+                        crate::document::md2json(&format!(
                             "{}\n\n{}",
                             target.raw_markdown.trim(),
                             source.raw_markdown.trim()
@@ -148,7 +134,7 @@ impl Store {
                     {
                         source.raw_content.clone()
                     } else {
-                        md2json(&source.raw_markdown)
+                        crate::document::md2json(&source.raw_markdown)
                     })
                 } else {
                     None
@@ -217,7 +203,7 @@ impl Store {
                 if let Some(next_target_note) = next_target_note {
                     for (body, session_id) in [
                         (next_target_note, &target_id),
-                        (md2json(""), &source_id),
+                        (crate::document::md2json(""), &source_id),
                     ] {
                         let affected = sqlx::query(
                             "UPDATE session_documents
@@ -286,9 +272,9 @@ mod tests {
         assert!(!has_note_content("  &nbsp; "));
         assert!(has_note_content("Hi"));
         assert_eq!(
-            md2json(""),
+            crate::document::md2json(""),
             r#"{"type":"doc","content":[{"type":"paragraph"}]}"#
         );
-        assert!(md2json("Hello").contains(r#""text":"Hello""#));
+        assert!(crate::document::md2json("Hello").contains(r#""text":"Hello""#));
     }
 }

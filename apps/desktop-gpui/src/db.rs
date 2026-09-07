@@ -7,7 +7,7 @@ use anyhow::Context as _;
 use crate::document::{self, Block};
 use crate::timeline::{EventRow, SessionRow};
 
-mod chat;
+pub(crate) mod chat;
 pub(crate) mod enhancer;
 mod move_contents;
 pub use enhancer::DocumentUpdate;

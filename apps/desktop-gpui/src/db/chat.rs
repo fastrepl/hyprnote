@@ -84,6 +84,25 @@ const OWNER_USER_SQL: &str = "
     LIMIT 1
 ";
 
+/// `SummaryContentCorrection`
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SummaryCorrection {
+    pub id: String,
+    pub current_content: String,
+    pub current_content_format: String,
+    pub next_content: String,
+}
+
+/// `TranscriptContentCorrection`
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TranscriptCorrection {
+    pub id: String,
+    pub current_words_json: String,
+    pub current_memo: String,
+    pub next_words_json: String,
+    pub next_memo: String,
+}
+
 fn now() -> String {
     chrono::Utc::now()
         .format("%Y-%m-%dT%H:%M:%S%.3fZ")
@@ -258,6 +277,145 @@ impl Store {
         let db = self.db.clone();
         self.runtime
             .spawn(async move { chat_messages(db.pool(), &group_id).await })
+    }
+
+    /// `applySessionContentCorrections`: the title, summary, and transcript
+    /// updates in one transaction, each guarded by its current value; any
+    /// miss rolls everything back.
+    pub fn apply_session_content_corrections(
+        &self,
+        session_id: String,
+        title: Option<(String, String)>,
+        summaries: Vec<SummaryCorrection>,
+        transcripts: Vec<TranscriptCorrection>,
+    ) -> tokio::task::JoinHandle<anyhow::Result<()>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let now = now();
+            let mut tx = db.pool().begin().await?;
+            if let Some((current, next)) = title.filter(|(current, next)| current != next) {
+                let affected = sqlx::query(
+                    "UPDATE sessions SET title = ?, updated_at = ?
+                     WHERE id = ? AND title = ? AND deleted_at IS NULL",
+                )
+                .bind(&next)
+                .bind(&now)
+                .bind(&session_id)
+                .bind(&current)
+                .execute(&mut *tx)
+                .await?
+                .rows_affected();
+                anyhow::ensure!(affected == 1, "the session title changed");
+            }
+            for summary in &summaries {
+                let affected = sqlx::query(
+                    "UPDATE session_documents
+                     SET body = ?, body_format = 'prosemirror_json', updated_at = ?
+                     WHERE id = ? AND session_id = ?
+                       AND kind IN ('summary', 'template_output')
+                       AND body = ? AND body_format = ? AND deleted_at IS NULL",
+                )
+                .bind(&summary.next_content)
+                .bind(&now)
+                .bind(&summary.id)
+                .bind(&session_id)
+                .bind(&summary.current_content)
+                .bind(&summary.current_content_format)
+                .execute(&mut *tx)
+                .await?
+                .rows_affected();
+                anyhow::ensure!(affected == 1, "the summary changed");
+            }
+            for transcript in &transcripts {
+                let affected = sqlx::query(
+                    "UPDATE transcripts SET words_json = ?, memo = ?, updated_at = ?
+                     WHERE id = ? AND session_id = ? AND words_json = ? AND memo = ?
+                       AND deleted_at IS NULL",
+                )
+                .bind(&transcript.next_words_json)
+                .bind(&transcript.next_memo)
+                .bind(&now)
+                .bind(&transcript.id)
+                .bind(&session_id)
+                .bind(&transcript.current_words_json)
+                .bind(&transcript.current_memo)
+                .execute(&mut *tx)
+                .await?
+                .rows_affected();
+                anyhow::ensure!(affected == 1, "the transcript changed");
+            }
+            tx.commit().await?;
+            Ok(())
+        })
+    }
+
+    /// The raw `transcripts` rows of a session (`SessionContentSnapshot.transcripts`
+    /// without materialised deltas): `(id, words_json, memo)`.
+    pub fn raw_transcript_rows(
+        &self,
+        session_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<Vec<(String, String, String)>>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            Ok(sqlx::query_as::<_, (String, String, String)>(
+                "SELECT id, words_json, memo FROM transcripts
+                 WHERE session_id = ? AND deleted_at IS NULL",
+            )
+            .bind(&session_id)
+            .fetch_all(db.pool())
+            .await?)
+        })
+    }
+
+    /// `saveDictionaryTerms`: `updateSettingValue("personalization_dictionary_terms")`
+    /// merging the normalised terms; returns the ones added.
+    pub fn add_dictionary_terms(
+        &self,
+        terms: Vec<String>,
+    ) -> tokio::task::JoinHandle<anyhow::Result<Vec<String>>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            if terms.is_empty() {
+                return Ok(Vec::new());
+            }
+            let stored: Option<String> = sqlx::query_scalar(
+                "SELECT value_json FROM app_settings WHERE id = 'personalization_dictionary_terms'",
+            )
+            .fetch_optional(db.pool())
+            .await?;
+            let stored = stored
+                .and_then(|json| serde_json::from_str::<serde_json::Value>(&json).ok())
+                .and_then(|value| value.as_str().map(str::to_string))
+                .unwrap_or_else(|| "[]".to_string());
+            let current = crate::enhancer::prompts::parse_dictionary_terms_json(&stored);
+            let current_keys: Vec<String> = current
+                .iter()
+                .map(|term| crate::session_correction::dictionary_key(term))
+                .collect();
+            let added: Vec<String> =
+                crate::enhancer::prompts::normalize_keyword_list(terms.iter().map(String::as_str))
+                    .into_iter()
+                    .filter(|term| {
+                        !current_keys.contains(&crate::session_correction::dictionary_key(term))
+                    })
+                    .collect();
+            let next = crate::enhancer::prompts::normalize_keyword_list(
+                current.iter().chain(added.iter()).map(String::as_str),
+            );
+            let value = serde_json::Value::String(serde_json::to_string(&next)?);
+            sqlx::query(
+                "INSERT INTO app_settings (id, value_json, updated_at)
+                 VALUES ('personalization_dictionary_terms', ?, ?)
+                 ON CONFLICT(id) DO UPDATE SET
+                   value_json = excluded.value_json,
+                   updated_at = excluded.updated_at",
+            )
+            .bind(serde_json::to_string(&value)?)
+            .bind(now())
+            .execute(db.pool())
+            .await?;
+            Ok(added)
+        })
     }
 
     /// `hydrateSessionContext`'s inputs: the enhancer's content snapshot plus

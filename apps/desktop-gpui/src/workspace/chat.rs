@@ -16,7 +16,7 @@ use gpui::{
 
 use super::Workspace;
 use crate::chat::{self, ContextRef, Message, Metadata, Part, Role, Scope, Status};
-use crate::llm_stream::{self, Chunk, Connection, Request, Turn, TurnRole};
+use crate::llm_stream::{self, Chunk, Connection, Request, Turn};
 use crate::text_area::{TextArea, TextAreaEvent, TextAreaStyle};
 use crate::theme::alpha;
 use crate::ui::{TailwindText as _, icon};
@@ -61,6 +61,10 @@ pub(crate) struct ChatState {
     pub history: Vec<chat::GroupRow>,
     /// `regenerate()`: the assistant row the next finished reply replaces.
     pub replace_previous: Option<String>,
+    /// The tool cards whose `<details>` is open, by tool call id.
+    pub open_tools: std::collections::HashSet<String>,
+    /// The result carousels' first visible card, by tool call id.
+    pub tool_pages: std::collections::HashMap<String, usize>,
     /// `useAutoFocusEditor`: focus the composer on the next frame.
     pub focus_pending: bool,
     /// `useChatAutoScroll`'s `shouldAutoScroll`: keep the list pinned to the
@@ -353,7 +357,7 @@ impl Workspace {
                         tracing::error!(%error, "Failed to generate chat title");
                         return;
                     }
-                    Chunk::ReasoningDelta(_) => {}
+                    Chunk::ReasoningDelta(_) | Chunk::ToolCall(_) => {}
                     Chunk::Done => break,
                 }
             }
@@ -368,9 +372,11 @@ impl Workspace {
         .detach();
     }
 
-    /// `CustomChatTransport.sendMessages`: the system prompt with the tool
-    /// guidance, the context block prepended to the last user message, the
-    /// message window, and the streamed reply appended as the assistant
+    /// `CustomChatTransport.sendMessages` → `ToolLoopAgent.stream`: the
+    /// system prompt with the tool guidance, the context block prepended to
+    /// the last user message, the message window, the `chat-general` tools,
+    /// and up to `MAX_TOOL_STEPS` generations — each tool call runs locally
+    /// and its result feeds the next step — streamed into the assistant
     /// message; `onFinish` persists it.
     fn stream_chat_reply(&mut self, connection: Connection, cx: &mut Context<Self>) {
         let Some(group_id) = self.chat.group_id.clone() else {
@@ -404,6 +410,16 @@ impl Workspace {
             .collect();
         let history: Vec<Message> = self.chat.messages.clone();
         let replace_previous = self.chat.replace_previous.take();
+        let tool_context = crate::chat_tools::Context {
+            session_id: self.selected.clone(),
+            folder_filter: self.folder_filter_for_chat(),
+        };
+        let runner = Arc::new(
+            self.store.chat_tool_runner(
+                cx.try_global::<crate::search::Search>()
+                    .map(|search| search.0.clone()),
+            ),
+        );
         let runtime = self.store.runtime().clone();
         let store = self.store.clone();
         cx.spawn(async move |this, cx| {
@@ -414,16 +430,7 @@ impl Workspace {
                     contexts.push(context);
                 }
             }
-            let context_block = if contexts.is_empty() {
-                None
-            } else {
-                anlg_template_app::render(anlg_template_app::Template::ContextBlock(
-                    anlg_template_app::ContextBlock { contexts },
-                ))
-                .ok()
-                .map(|block| block.trim().to_string())
-                .filter(|block| !block.is_empty())
-            };
+            let context_block = render_context_block(contexts);
             let system = anlg_template_app::render(anlg_template_app::Template::ChatSystem(
                 anlg_template_app::ChatSystem {
                     language: Some(language),
@@ -432,36 +439,29 @@ impl Workspace {
             .unwrap_or_default();
             let system = chat::append_meeting_context_tool_guidance(&system);
             // `convertToModelMessages` over the window, the context block on
-            // the last user message only.
+            // the last user message only; earlier `search_meetings` outputs
+            // carry their hydrated context like `expandSearchMeetingsOutput`.
             let last_user = history
                 .iter()
                 .rposition(|message| message.role == Role::User);
-            let mut turns: Vec<Turn> = history
-                .iter()
-                .enumerate()
-                .map(|(index, message)| {
-                    let mut text = chat::extract_text_content(&message.parts);
-                    if Some(index) == last_user
-                        && let Some(block) = &context_block
-                    {
-                        text = format!("{block}\n\n{text}");
+            let mut base_turns: Vec<Turn> = Vec::new();
+            for (index, message) in history.iter().enumerate() {
+                match message.role {
+                    Role::User => {
+                        let mut text = chat::extract_text_content(&message.parts);
+                        if Some(index) == last_user
+                            && let Some(block) = &context_block
+                        {
+                            text = format!("{block}\n\n{text}");
+                        }
+                        base_turns.push(Turn::User(text));
                     }
-                    Turn {
-                        role: match message.role {
-                            Role::User => TurnRole::User,
-                            Role::Assistant => TurnRole::Assistant,
-                        },
-                        text,
+                    Role::Assistant => {
+                        let parts = expand_search_outputs(&store, &message.parts).await;
+                        base_turns.extend(chat::assistant_turns(&parts));
                     }
-                })
-                .collect();
-            turns = chat::window_messages(turns);
-            let Some(prompt) = turns.pop() else {
-                return;
-            };
-            let mut request = Request::new(system, prompt.text, 0);
-            request.history = turns;
-            let mut receiver = llm_stream::stream(&runtime, connection, request);
+                }
+            }
 
             let assistant_id = uuid::Uuid::new_v4().to_string();
             let created_at = chrono::Utc::now().timestamp_millis();
@@ -486,46 +486,138 @@ impl Workspace {
             {
                 return;
             }
-            let mut text = String::new();
-            let mut reasoning = String::new();
+            // The parts of the streaming assistant message; `apply` pushes
+            // them to the list.
+            let mut parts: Vec<Part> = vec![Part::StepStart];
+            let apply = |this: &gpui::WeakEntity<Self>,
+                         cx: &mut gpui::AsyncApp,
+                         parts: &[Part],
+                         status: ChatStatus|
+             -> bool {
+                let parts = parts.to_vec();
+                this.update(cx, |this, cx| {
+                    if this.chat.run != run {
+                        return false;
+                    }
+                    this.chat.status = Some(status);
+                    if let Some(message) = this
+                        .chat
+                        .messages
+                        .iter_mut()
+                        .find(|message| message.id == assistant_id)
+                    {
+                        message.parts = parts;
+                    }
+                    cx.notify();
+                    true
+                })
+                .unwrap_or(false)
+            };
             let mut outcome: Result<(), String> = Ok(());
-            while let Some(chunk) = receiver.recv().await {
-                if abort.load(Ordering::Relaxed) {
-                    break;
+            let mut aborted = false;
+            'steps: for step in 0..crate::chat_tools::MAX_TOOL_STEPS {
+                let mut turns = base_turns.clone();
+                if step > 0 {
+                    turns.extend(chat::assistant_turns(&parts));
                 }
-                match chunk {
-                    Chunk::TextDelta(delta) => text.push_str(&delta),
-                    Chunk::ReasoningDelta(delta) => reasoning.push_str(&delta),
-                    Chunk::Done => break,
-                    Chunk::Error(error) => {
-                        outcome = Err(error);
-                        break;
+                let turns = chat::window_messages(turns);
+                let mut request = Request::new(system.clone(), "", 0);
+                request.messages = turns;
+                request.tools = crate::chat_tools::specs().to_vec();
+                let mut receiver = llm_stream::stream(&runtime, connection.clone(), request);
+                let mut text = String::new();
+                let mut reasoning = String::new();
+                let mut calls: Vec<llm_stream::ToolCall> = Vec::new();
+                let step_start = parts.len();
+                while let Some(chunk) = receiver.recv().await {
+                    if abort.load(Ordering::Relaxed) {
+                        aborted = true;
+                        break 'steps;
+                    }
+                    match chunk {
+                        Chunk::TextDelta(delta) => text.push_str(&delta),
+                        Chunk::ReasoningDelta(delta) => reasoning.push_str(&delta),
+                        Chunk::ToolCall(call) => calls.push(call),
+                        Chunk::Done => break,
+                        Chunk::Error(error) => {
+                            outcome = Err(error);
+                            break 'steps;
+                        }
+                    }
+                    parts.truncate(step_start);
+                    parts.extend(step_parts(&reasoning, &text, false));
+                    if !apply(&this, cx, &parts, ChatStatus::Streaming) {
+                        return;
                     }
                 }
-                let parts = assistant_parts(&reasoning, &text, false);
-                if this
-                    .update(cx, |this, cx| {
-                        if this.chat.run != run {
-                            return;
-                        }
-                        this.chat.status = Some(ChatStatus::Streaming);
-                        if let Some(message) = this
-                            .chat
-                            .messages
-                            .iter_mut()
-                            .find(|message| message.id == assistant_id)
-                        {
-                            message.parts = parts;
-                        }
-                        cx.notify();
-                    })
-                    .is_err()
-                {
+                if abort.load(Ordering::Relaxed) {
+                    aborted = true;
+                    break 'steps;
+                }
+                parts.truncate(step_start);
+                parts.extend(step_parts(&reasoning, &text, true));
+                if calls.is_empty() {
+                    break 'steps;
+                }
+                // `input-available` while the tools run, then their outputs.
+                let first_tool = parts.len();
+                for call in &calls {
+                    parts.push(Part::tool(
+                        &call.name,
+                        &call.id,
+                        "input-available",
+                        call.arguments.clone(),
+                        None,
+                        None,
+                    ));
+                }
+                if !apply(&this, cx, &parts, ChatStatus::Streaming) {
                     return;
                 }
+                for (offset, call) in calls.iter().enumerate() {
+                    let result = runner
+                        .run(
+                            tool_context.clone(),
+                            call.name.clone(),
+                            call.arguments.clone(),
+                        )
+                        .await
+                        .unwrap_or_else(|error| Err(error.to_string()));
+                    parts[first_tool + offset] = match result {
+                        Ok(output) => Part::tool(
+                            &call.name,
+                            &call.id,
+                            "output-available",
+                            call.arguments.clone(),
+                            Some(output),
+                            None,
+                        ),
+                        Err(error) => Part::tool(
+                            &call.name,
+                            &call.id,
+                            "output-error",
+                            call.arguments.clone(),
+                            None,
+                            Some(error),
+                        ),
+                    };
+                    if !apply(&this, cx, &parts, ChatStatus::Streaming) {
+                        return;
+                    }
+                    if abort.load(Ordering::Relaxed) {
+                        aborted = true;
+                        break 'steps;
+                    }
+                }
+                if step + 1 < crate::chat_tools::MAX_TOOL_STEPS {
+                    parts.push(Part::StepStart);
+                }
             }
-            let aborted = abort.load(Ordering::Relaxed);
-            let parts = assistant_parts(&reasoning, &text, true);
+            let has_content = parts.iter().any(|part| match part {
+                Part::Text { text, .. } | Part::Reasoning { text, .. } => !text.trim().is_empty(),
+                Part::StepStart => false,
+                Part::Other(_) => true,
+            });
             this.update(cx, |this, cx| {
                 if this.chat.run != run {
                     return;
@@ -540,7 +632,7 @@ impl Workspace {
                     // `isAbort`: the partial reply stays on screen, unpersisted.
                     (_, true) => {
                         if let Some(index) = position {
-                            if text.trim().is_empty() && reasoning.trim().is_empty() {
+                            if !has_content {
                                 this.chat.messages.remove(index);
                             } else {
                                 this.chat.messages[index].parts = parts;
@@ -592,6 +684,11 @@ impl Workspace {
             .ok();
         })
         .detach();
+    }
+
+    /// `getFolderFilter()`: the folder the sidebar's note filter is scoped to.
+    fn folder_filter_for_chat(&self) -> Option<String> {
+        None
     }
 
     /// `stop()`: abort the stream.
@@ -857,7 +954,7 @@ impl Workspace {
                     .when(theme.dark, |b| {
                         b.rounded(px(16.0)).bg(theme.accent).px_3().py_1()
                     });
-                for part in &message.parts {
+                for (part_index, part) in message.parts.iter().enumerate() {
                     match part {
                         Part::Reasoning { text, state } => {
                             let raw = text.trim();
@@ -901,7 +998,16 @@ impl Workspace {
                                 renderer.chat_blocks(&crate::document::from_body("markdown", text)),
                             ));
                         }
-                        Part::StepStart | Part::Other(_) => {}
+                        Part::StepStart => {}
+                        Part::Other(_) => {
+                            if let Some(tool) = part.tool_view() {
+                                bubble = bubble.child(self.render_tool_part(
+                                    &tool,
+                                    (index, part_index),
+                                    cx,
+                                ));
+                            }
+                        }
                     }
                 }
                 bubble
@@ -1614,24 +1720,83 @@ impl Workspace {
     }
 }
 
-/// The assistant's parts while and after streaming: `step-start`, the
-/// reasoning (when any), the text; `state` is `streaming` until done.
-fn assistant_parts(reasoning: &str, text: &str, done: bool) -> Vec<Part> {
+/// One step's reasoning and text parts; `state` is `streaming` until done.
+fn step_parts(reasoning: &str, text: &str, done: bool) -> Vec<Part> {
     let state = Some(if done { "done" } else { "streaming" }.to_string());
-    let mut parts = vec![Part::StepStart];
+    let mut parts = Vec::new();
     if !reasoning.is_empty() {
         parts.push(Part::Reasoning {
             text: reasoning.to_string(),
             state: state.clone(),
         });
     }
-    if !text.is_empty() || done {
+    if !text.is_empty() {
         parts.push(Part::Text {
             text: text.to_string(),
             state,
         });
     }
     parts
+}
+
+/// `renderContextBlock`: the `ContextBlock` template over the hydrated
+/// sessions, trimmed; `None` without any.
+fn render_context_block(contexts: Vec<anlg_template_app::SessionContext>) -> Option<String> {
+    if contexts.is_empty() {
+        return None;
+    }
+    anlg_template_app::render(anlg_template_app::Template::ContextBlock(
+        anlg_template_app::ContextBlock { contexts },
+    ))
+    .ok()
+    .map(|block| block.trim().to_string())
+    .filter(|block| !block.is_empty())
+}
+
+/// `expandSearchMeetingsOutput`: a `search_meetings` output going back to
+/// the model carries the found sessions' context under `contextText`.
+async fn expand_search_outputs(store: &Arc<crate::db::Store>, parts: &[Part]) -> Vec<Part> {
+    let mut expanded = Vec::with_capacity(parts.len());
+    for part in parts {
+        let Some(view) = part.tool_view() else {
+            expanded.push(part.clone());
+            continue;
+        };
+        if !matches!(view.name, "search_meetings" | "search_sessions")
+            || view.state != "output-available"
+        {
+            expanded.push(part.clone());
+            continue;
+        }
+        let Some(output) = view.output else {
+            expanded.push(part.clone());
+            continue;
+        };
+        let mut contexts = Vec::new();
+        for session_id in chat::meeting_ids_from_search_output(output) {
+            if let Ok(Ok(Some(context))) = store.chat_session_context(session_id).await {
+                contexts.push(context);
+            }
+        }
+        match render_context_block(contexts) {
+            Some(block) => {
+                let mut output = output.clone();
+                if let Some(object) = output.as_object_mut() {
+                    object.insert(crate::chat_tools::CONTEXT_TEXT_FIELD.into(), block.into());
+                }
+                expanded.push(Part::tool(
+                    view.name,
+                    view.call_id,
+                    view.state,
+                    view.input.cloned().unwrap_or_else(|| serde_json::json!({})),
+                    Some(output),
+                    None,
+                ));
+            }
+            None => expanded.push(part.clone()),
+        }
+    }
+    expanded
 }
 
 /// `hasRenderableContent`: a text or reasoning part with content, or a tool

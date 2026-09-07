@@ -336,6 +336,7 @@ embedded!(
     "icons/warning-circle.svg",
     "icons/waveform.svg",
     "icons/x-logo.svg",
+    "icons/wrench.svg",
     "icons/x.svg",
     "anarlog-icon.png",
     "onboarding-frame.png",
@@ -374,6 +375,6 @@ mod tests {
         }
         assert!(Assets.load("icons/search.svg").unwrap().is_some());
         assert!(Assets.load("icons/missing.svg").unwrap().is_none());
-        assert_eq!(Assets.list("icons/").unwrap().len(), 193);
+        assert_eq!(Assets.list("icons/").unwrap().len(), 194);
     }
 }

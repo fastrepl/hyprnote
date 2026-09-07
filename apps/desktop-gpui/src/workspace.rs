@@ -7,6 +7,7 @@ mod billing;
 mod calendar_tab;
 mod chat;
 mod chat_cta;
+mod chat_tool_cards;
 mod contacts_tab;
 mod deep_links;
 mod developers_page;

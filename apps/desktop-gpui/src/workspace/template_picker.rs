@@ -101,25 +101,50 @@ impl Workspace {
     }
 
     /// `handleSelectTemplate` → `service.enhance(sessionId, { templateId,
-    /// targetNoteId })`: `enhance` returns `no_model` and does nothing while
-    /// no language model is configured; with one, Tauri would regenerate the
-    /// summary under the new template, which the shell cannot run yet.
+    /// targetNoteId, templateTitle })`, and `onRegenerateUsed` for the row
+    /// already in use: the summary regenerates under the chosen template
+    /// (`enhance` returns `no_model` and does nothing without a model).
     fn choose_template(
         &mut self,
         template_id: Option<String>,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        let Some(picker) = self.template_picker.as_ref() else {
+            return;
+        };
+        let note_id = picker.note_id.clone();
+        let (session_id, used_template) = match &self.note {
+            super::Note::Ready { preview, .. } => (
+                preview.session.id.clone(),
+                preview
+                    .enhanced
+                    .iter()
+                    .find(|doc| doc.id == note_id)
+                    .map(|doc| doc.template_id.clone())
+                    .unwrap_or_default(),
+            ),
+            _ => return,
+        };
         self.close_template_picker(window, cx);
+        if self.enhance_generating(&note_id) {
+            return;
+        }
         if !self.provider_settings.has_llm() {
             return;
         }
-        let _ = template_id;
-        self.flash(
-            FlashVariant::Warning,
-            "Summary generation is not available in this build yet",
-            cx,
-        );
+        // The used row's `Regenerate` keeps the note's template.
+        if template_id.as_deref().unwrap_or_default() == used_template {
+            self.regenerate_summary(session_id, note_id, None, cx);
+            return;
+        }
+        let title = template_id.as_ref().and_then(|id| {
+            self.templates
+                .iter()
+                .find(|template| template.id == *id)
+                .map(|template| template.title.clone())
+        });
+        self.regenerate_summary(session_id, note_id, Some((template_id, title)), cx);
     }
 
     /// `handleCreateTemplate`: create, then open the Templates tab on it.

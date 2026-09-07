@@ -10,6 +10,7 @@ mod deep_links;
 mod developers_page;
 mod dictionary;
 mod document_view;
+mod enhance;
 mod export;
 mod filter_menu;
 pub(crate) mod floating_bar;
@@ -226,6 +227,10 @@ pub struct Workspace {
     contacts: Option<contacts_tab::ContactsState>,
     /// The enhanced tab's template picker while open.
     template_picker: Option<template_picker::TemplatePicker>,
+    /// `EnhancerService` and the `enhance` / `title` task states.
+    enhancer: enhance::EnhancerState,
+    /// `auto-enhance-started`: switch to this enhanced note on the next reload.
+    pending_enhanced_tab: Option<String>,
     /// The template / folder icon picker while open.
     icon_picker: Option<icon_picker::IconPicker>,
     /// The Stats settings page's records and range.
@@ -398,6 +403,8 @@ impl Workspace {
             automations: None,
             contacts: None,
             template_picker: None,
+            enhancer: enhance::EnhancerState::default(),
+            pending_enhanced_tab: None,
             icon_picker: None,
             stats: None,
             onboarding: None,
@@ -444,6 +451,7 @@ impl Workspace {
                 this.restore_tabs(cx);
                 this.start_onboarding_if_needed();
                 this.spawn_recorder(cx);
+                this.start_enhancer(cx);
             }
             Mode::StandaloneNote(session_id) => {
                 this.tabs.push(session_id.clone());
@@ -990,7 +998,14 @@ impl Workspace {
 
     /// `computeCurrentNoteTab`: keep the remembered tab while it still exists,
     /// otherwise the first enhanced note, otherwise the memo.
-    fn current_tab_for(&self, preview: &NotePreview) -> NoteTab {
+    fn current_tab_for(&mut self, preview: &NotePreview) -> NoteTab {
+        // `updateSessionTabState({ view: { type: "enhanced", id } })` after
+        // `auto-enhance-started` / a template swap.
+        if let Some(note_id) = self.pending_enhanced_tab.take()
+            && preview.enhanced.iter().any(|doc| doc.id == note_id)
+        {
+            return NoteTab::Enhanced(note_id);
+        }
         let first_enhanced = preview
             .enhanced
             .first()

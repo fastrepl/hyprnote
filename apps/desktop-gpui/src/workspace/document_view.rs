@@ -447,6 +447,44 @@ impl DocumentRenderer {
             .collect()
     }
 
+    /// `.note-typography.note-title-editor > h1:first-child` (the enhanced
+    /// editor's `enforceTitleHeading`): the first block is the session title
+    /// at `1.5rem / 1.875rem` with `margin-bottom: 1rem`, showing the
+    /// `documentTitlePlaceholder` (`Untitled`) while empty.
+    pub(super) fn title_blocks(&self, blocks: &[Block]) -> Vec<AnyElement> {
+        let Some((Block::Heading { level: 1, spans }, rest)) = blocks.split_first() else {
+            return self.blocks(blocks, 0);
+        };
+        let font_px = 24.0;
+        let line = px(30.0);
+        let mut style = self.base.clone();
+        style.font_weight = gpui::FontWeight::BOLD;
+        style.font_size = px(font_px).into();
+        let empty = spans.iter().all(|span| span.text.trim().is_empty());
+        let mut text = self.prose(spans, &style, line);
+        if empty {
+            let mut placeholder_style = style.clone();
+            placeholder_style.color = self.theme.muted_foreground.into();
+            text = self.prose(
+                &[Span {
+                    text: "Untitled".to_string(),
+                    ..Span::default()
+                }],
+                &placeholder_style,
+                line,
+            );
+        }
+        let title = self.textblock(
+            div()
+                .py(px(font_px * 0.125))
+                .mb_4()
+                .text_size(px(font_px))
+                .line_height(line),
+            text,
+        );
+        std::iter::once(title).chain(self.blocks(rest, 0)).collect()
+    }
+
     fn block(&self, block: &Block, depth: usize) -> AnyElement {
         let theme = self.theme;
         // `.note-typography > * { padding-block: 0.125em }`

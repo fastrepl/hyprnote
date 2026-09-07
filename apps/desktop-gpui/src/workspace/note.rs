@@ -601,6 +601,13 @@ impl Workspace {
                                 .as_ref()
                                 .is_some_and(|picker| picker.note_id == *id)
                         });
+                    let generating = enhanced_id
+                        .as_ref()
+                        .is_some_and(|id| self.enhance_generating(id));
+                    let failed = enhanced_id.as_ref().is_some_and(|id| {
+                        self.enhance_task(&super::enhance::enhance_task_id(id))
+                            .is_some_and(|task| task.status == super::enhance::TaskStatus::Error)
+                    });
                     div()
                         .id(("view-tab", index))
                         .relative()
@@ -669,8 +676,10 @@ impl Workspace {
                             Some(live) if glyph == "waveform" => {
                                 t.child(self.render_dancing_sticks(live))
                             }
-                            _ => t.child(icon(
-                                glyph,
+                            // `HeaderViewEnhanced*`: the spinner while the summary
+                            // generates, red while its task failed.
+                            _ if generating => t.child(crate::ui::spinner(
+                                ("enhance-spinner", index),
                                 px(16.0),
                                 if active {
                                     theme.foreground
@@ -678,23 +687,33 @@ impl Workspace {
                                     alpha(theme.muted_foreground, 0.7)
                                 },
                             )),
+                            _ => t.child(icon(
+                                glyph,
+                                px(16.0),
+                                if failed {
+                                    gpui::rgb(0xe7000b)
+                                } else if active {
+                                    theme.foreground
+                                } else {
+                                    alpha(theme.muted_foreground, 0.7)
+                                },
+                            )),
                         })
                         .when(active, |t| {
-                            t.child(
-                                div()
-                                    .tw_text_xs()
-                                    .font_weight(gpui::FontWeight::MEDIUM)
-                                    .child(label),
-                            )
-                            .when(glyph == "sparkle", |t| {
-                                t.child(icon("caret-down", px(12.0), theme.foreground))
-                            })
-                            // `HeaderViewTranscriptActive`: an inactive session with a
-                            // stored transcript can enter edit mode, shown by the
-                            // pencil, and the check while editing.
-                            .when(
-                                glyph == "waveform" && can_edit,
-                                |t| {
+                            t.when(failed, |t| t.text_color(gpui::rgb(0xe7000b)))
+                                .child(
+                                    div()
+                                        .tw_text_xs()
+                                        .font_weight(gpui::FontWeight::MEDIUM)
+                                        .child(label),
+                                )
+                                .when(glyph == "sparkle", |t| {
+                                    t.child(icon("caret-down", px(12.0), theme.foreground))
+                                })
+                                // `HeaderViewTranscriptActive`: an inactive session with a
+                                // stored transcript can enter edit mode, shown by the
+                                // pencil, and the check while editing.
+                                .when(glyph == "waveform" && can_edit, |t| {
                                     t.child(icon(
                                         if edit_mode {
                                             "check-circle"
@@ -704,8 +723,7 @@ impl Workspace {
                                         px(14.0),
                                         theme.foreground,
                                     ))
-                                },
-                            )
+                                })
                         })
                 },
             ))
@@ -850,15 +868,27 @@ impl Workspace {
         };
         let renderer = self.document_renderer(window);
         let has_content = blocks.iter().any(super::document_view::has_visible_content);
-        // `Enhanced`: with no stored content and no way to generate one
-        // (`shouldShowEmptySummaryConfigError`: missing provider or model),
-        // the tab shows `ConfigError` instead of an editor.
-        if matches!(tab, NoteTab::Enhanced(_))
-            && !has_content
-            && (self.provider_settings.llm_provider.is_none()
-                || self.provider_settings.llm_model.is_none())
-        {
-            return with_search(body.child(self.render_summary_config_error(cx)));
+        // `Enhanced`: the task's error / streaming views come first, then
+        // `ConfigError` when there is no stored content and no way to generate
+        // one (`shouldShowEmptySummaryConfigError`: missing provider or model).
+        if let NoteTab::Enhanced(note_id) = tab {
+            if let Some(state) =
+                self.render_enhanced_state(preview, note_id, has_content, window, cx)
+            {
+                return with_search(body.child(state));
+            }
+            if !has_content
+                && (self.provider_settings.llm_provider.is_none()
+                    || self.provider_settings.llm_model.is_none())
+            {
+                return with_search(body.child(self.render_summary_config_error(cx)));
+            }
+        }
+        // `EnhancedEditor`: `ensureFirstLineTitle(content, sessionTitle)` with
+        // `enforceTitleHeading`, so the summary always opens on the title h1.
+        if matches!(tab, NoteTab::Enhanced(_)) {
+            let titled = crate::document::with_title_heading(blocks, &preview.session.title);
+            return with_search(body.children(renderer.title_blocks(&titled)));
         }
         with_search(
             body.when(!has_content, |body| {

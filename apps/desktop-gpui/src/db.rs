@@ -7,6 +7,8 @@ use anyhow::Context as _;
 use crate::document::{self, Block};
 use crate::timeline::{EventRow, SessionRow};
 
+mod enhancer;
+pub use enhancer::DocumentUpdate;
 const DB_FILENAME: &str = "app.db";
 
 // Same rows the Tauri sidebar reads (apps/desktop/src/calendar/queries.ts,

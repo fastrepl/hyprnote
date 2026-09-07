@@ -45,7 +45,8 @@ mime_guess = "2"
 pico-args = { workspace = true }
 ractor = { workspace = true, features = ["async-trait"] }
 regex = { workspace = true }
-reqwest = { workspace = true, features = ["json"] }
+futures-util = { workspace = true }
+reqwest = { workspace = true, features = ["json", "stream"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }
 sha2 = { workspace = true }

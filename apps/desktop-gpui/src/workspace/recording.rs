@@ -551,6 +551,11 @@ impl Workspace {
                                     if this.selected.as_deref() == Some(session_id.as_str()) {
                                         this.reload_note(session_id.clone(), cx);
                                     }
+                                    // `triggerEnhanceIfSummaryEmpty`
+                                    this.queue_auto_enhance_if_summary_empty(
+                                        session_id.clone(),
+                                        cx,
+                                    );
                                     cx.notify();
                                 })
                                 .ok();
@@ -1021,6 +1026,14 @@ impl Workspace {
     /// `LiveCaptionDefaultVisibilitySync` (a new live session starts with the
     /// panel minimized) and the `MeetingFloatData` load for its labels.
     fn on_live_session_started(&mut self, cx: &mut Context<Self>) {
+        if let Some(session_id) = self
+            .recording
+            .live
+            .as_ref()
+            .map(|live| live.session_id.clone())
+        {
+            self.enhancer_on_live_started(&session_id);
+        }
         let Some(session_id) = self
             .recording
             .live
@@ -1115,15 +1128,30 @@ impl Workspace {
                 return;
             }
             let transcript_id = persistence.transcript_id.clone();
+            // `hasTranscriptEvidence`: a transcript row was written.
+            let has_transcript = persistence.created;
             self.recording.flushing.retain(|(id, _)| *id != session_id);
             let flush = self.store.flush_live_deltas(transcript_id);
             cx.spawn(async move |this, cx| {
-                if let Ok(Err(error)) = flush.await {
-                    tracing::error!(%error, "[listener] failed to flush live transcript");
-                }
+                let flushed = match flush.await {
+                    Ok(Err(error)) => {
+                        tracing::error!(%error, "[listener] failed to flush live transcript");
+                        false
+                    }
+                    Err(error) => {
+                        tracing::error!(%error, "[listener] failed to flush live transcript");
+                        false
+                    }
+                    Ok(Ok(())) => true,
+                };
                 this.update(cx, |this, cx| {
                     if this.selected.as_deref() == Some(session_id.as_str()) {
                         this.reload_note(session_id.clone(), cx);
+                    }
+                    // `createCaptureLifecycle`: the completed transcript
+                    // schedules the summary (`requestAutoEnhance(if_empty)`).
+                    if has_transcript && flushed {
+                        this.request_auto_enhance(session_id.clone(), cx);
                     }
                 })
                 .ok();

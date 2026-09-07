@@ -291,3 +291,147 @@ mod tests {
         assert!(from_body("prosemirror_json", "  ").is_empty());
     }
 }
+
+/// `ensureFirstLineTitle` + `titleHeadingPlugin` over parsed blocks: the
+/// enhanced editor always opens on an h1 carrying the session title (an empty
+/// one shows the `Untitled` placeholder).
+pub fn with_title_heading(blocks: &[Block], title: &str) -> Vec<Block> {
+    let title = title.trim();
+    let title_block = Block::Heading {
+        level: 1,
+        spans: if title.is_empty() {
+            Vec::new()
+        } else {
+            vec![Span {
+                text: title.to_string(),
+                ..Span::default()
+            }]
+        },
+    };
+    let block_text = |spans: &[Span]| {
+        spans
+            .iter()
+            .map(|span| span.text.as_str())
+            .collect::<String>()
+    };
+    match blocks.split_first() {
+        Some((Block::Heading { level: 1, spans }, rest)) => {
+            if !title.is_empty() && block_text(spans).trim().is_empty() {
+                std::iter::once(title_block)
+                    .chain(rest.iter().cloned())
+                    .collect()
+            } else {
+                blocks.to_vec()
+            }
+        }
+        Some((Block::Paragraph(spans), rest))
+            if !title.is_empty() && block_text(spans).trim() == title =>
+        {
+            std::iter::once(title_block)
+                .chain(rest.iter().cloned())
+                .collect()
+        }
+        _ => std::iter::once(title_block)
+            .chain(blocks.iter().cloned())
+            .collect(),
+    }
+}
+
+fn collect_text(node: &Value) -> String {
+    let mut text = node
+        .get("text")
+        .and_then(|t| t.as_str())
+        .unwrap_or("")
+        .to_string();
+    if let Some(children) = node.get("content").and_then(|c| c.as_array()) {
+        for child in children {
+            text.push_str(&collect_text(child));
+        }
+    }
+    text
+}
+
+fn is_h1(node: &Value) -> bool {
+    node.get("type").and_then(|t| t.as_str()) == Some("heading")
+        && node
+            .get("attrs")
+            .and_then(|attrs| attrs.get("level"))
+            .and_then(|level| level.as_u64())
+            == Some(1)
+}
+
+/// `ensureFirstLineTitle` in `session/title-content.ts`: the document starts
+/// with an h1 carrying the title, replacing a first paragraph or an empty h1
+/// (or an h1 / paragraph that already holds the title's text).
+pub fn ensure_first_line_title(mut content: Value, title: &str) -> Value {
+    let title = title.trim();
+    if title.is_empty() {
+        return content;
+    }
+    let title_block = serde_json::json!({
+        "type": "heading",
+        "attrs": { "level": 1 },
+        "content": [{ "type": "text", "text": title }]
+    });
+    let blocks: Vec<Value> = content
+        .get("content")
+        .and_then(|c| c.as_array())
+        .cloned()
+        .unwrap_or_default();
+    let first = blocks.first();
+    let is_paragraph =
+        first.is_some_and(|node| node.get("type").and_then(|t| t.as_str()) == Some("paragraph"));
+    let next = match first {
+        Some(node) if (is_h1(node) || is_paragraph) && collect_text(node).trim() == title => {
+            if is_h1(node) {
+                return content;
+            }
+            std::iter::once(title_block)
+                .chain(blocks[1..].iter().cloned())
+                .collect::<Vec<_>>()
+        }
+        Some(node) if is_h1(node) && collect_text(node).trim().is_empty() => {
+            std::iter::once(title_block)
+                .chain(blocks[1..].iter().cloned())
+                .collect::<Vec<_>>()
+        }
+        _ => std::iter::once(title_block)
+            .chain(blocks.iter().cloned())
+            .collect::<Vec<_>>(),
+    };
+    if let Some(object) = content.as_object_mut() {
+        object.insert("content".to_string(), Value::Array(next));
+    }
+    content
+}
+
+#[cfg(test)]
+mod title_tests {
+    use super::*;
+
+    #[test]
+    fn first_line_title_replaces_placeholders_and_prepends_otherwise() {
+        let doc = |blocks: &str| -> Value {
+            serde_json::from_str(&format!(r#"{{"type":"doc","content":[{blocks}]}}"#)).unwrap()
+        };
+        let h1 =
+            r#"{"type":"heading","attrs":{"level":1},"content":[{"type":"text","text":"Sync"}]}"#;
+        let para = r#"{"type":"paragraph","content":[{"type":"text","text":"Sync"}]}"#;
+        let empty_h1 = r#"{"type":"heading","attrs":{"level":1}}"#;
+        let body = r#"{"type":"paragraph","content":[{"type":"text","text":"body"}]}"#;
+        assert_eq!(ensure_first_line_title(doc(h1), "Sync"), doc(h1));
+        assert_eq!(
+            ensure_first_line_title(doc(&format!("{para},{body}")), "Sync"),
+            doc(&format!("{h1},{body}"))
+        );
+        assert_eq!(
+            ensure_first_line_title(doc(&format!("{empty_h1},{body}")), "Sync"),
+            doc(&format!("{h1},{body}"))
+        );
+        assert_eq!(
+            ensure_first_line_title(doc(body), "Sync"),
+            doc(&format!("{h1},{body}"))
+        );
+        assert_eq!(ensure_first_line_title(doc(body), "  "), doc(body));
+    }
+}

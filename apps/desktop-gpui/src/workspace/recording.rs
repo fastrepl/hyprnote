@@ -386,6 +386,9 @@ impl Workspace {
         cx.notify();
         let languages = self.transcription_languages();
         let context = self.store.batch_session_context(session_id.clone());
+        let keywords = self
+            .store
+            .session_keywords(session_id.clone(), self.dictionary_terms());
         let runtime = self.store.runtime().clone();
         let synthetic = crate::batch::should_use_synthetic_batch_progress(
             &target.provider,
@@ -400,6 +403,7 @@ impl Workspace {
                 .ok();
                 return;
             };
+            let keywords = keywords.await.unwrap_or_default();
             let num_speakers = crate::batch::session_speaker_count(
                 participant_humans.iter().map(String::as_str),
                 Some(owner_user_id.as_str()),
@@ -414,7 +418,7 @@ impl Workspace {
                 base_url: target.base_url.clone(),
                 api_key: target.api_key.clone(),
                 languages,
-                keywords: Vec::new(),
+                keywords,
                 num_speakers,
                 min_speakers: None,
                 max_speakers: None,
@@ -665,10 +669,15 @@ impl Workspace {
             .provider_settings
             .string_setting("microphone_device", &["general", "microphone_device"])
             .filter(|device| !device.is_empty());
+        // `getSessionKeywords({ sessionId, dictionaryTerms })`
+        let keywords = self
+            .store
+            .session_keywords(session_id.clone(), self.dictionary_terms());
         self.recording.starting = true;
         cx.notify();
         cx.spawn(async move |this, cx| {
             let connection = connection.await.ok().flatten();
+            let keywords = keywords.await.unwrap_or_default();
             let has_provider = connection.is_some();
             let params = SessionParams {
                 session_id: session_id.clone(),
@@ -678,7 +687,7 @@ impl Workspace {
                 model: connection.as_ref().map(|c| c.model.clone()).unwrap_or_default(),
                 base_url: connection.as_ref().map(|c| c.base_url.clone()).unwrap_or_default(),
                 api_key: connection.as_ref().map(|c| c.api_key.clone()).unwrap_or_default(),
-                keywords: Vec::new(),
+                keywords,
                 mic_device,
                 participant_human_ids: Vec::new(),
                 self_human_id: None,

@@ -18,6 +18,7 @@ mod editor;
 mod emoji;
 mod enhancer;
 mod folders;
+mod keywords;
 mod live_transcript;
 mod llm_stream;
 mod mention;

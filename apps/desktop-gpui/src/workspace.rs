@@ -8,7 +8,7 @@ mod chat_cta;
 mod contacts_tab;
 mod deep_links;
 mod developers_page;
-mod dictionary;
+pub(crate) mod dictionary;
 mod document_view;
 mod enhance;
 mod export;

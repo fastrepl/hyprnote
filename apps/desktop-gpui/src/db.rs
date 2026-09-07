@@ -3040,6 +3040,28 @@ impl Store {
         })
     }
 
+    /// `getSessionKeywords`: the transcription hints for a session from its
+    /// note, title, event, participants, and the dictionary terms.
+    pub fn session_keywords(
+        &self,
+        session_id: String,
+        dictionary_terms: Vec<String>,
+    ) -> tokio::task::JoinHandle<Vec<String>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let snapshot =
+                sqlx::query_as::<_, crate::keywords::Snapshot>(crate::keywords::SNAPSHOT_SQL)
+                    .bind(&session_id)
+                    .fetch_optional(db.pool())
+                    .await
+                    .unwrap_or_else(|error| {
+                        tracing::warn!(%error, "session_keywords_failed");
+                        None
+                    });
+            crate::keywords::session_keywords(snapshot.as_ref(), &dictionary_terms)
+        })
+    }
+
     /// `createLiveTranscript(input, delta)`: the `live_capture` transcript
     /// row whose words and hints come from applying the first delta to an
     /// empty store.

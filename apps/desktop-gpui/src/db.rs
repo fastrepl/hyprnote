@@ -9,6 +9,7 @@ use crate::timeline::{EventRow, SessionRow};
 
 mod chat;
 pub(crate) mod enhancer;
+mod move_contents;
 pub use enhancer::DocumentUpdate;
 const DB_FILENAME: &str = "app.db";
 

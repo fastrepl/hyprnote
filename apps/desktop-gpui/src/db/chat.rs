@@ -260,18 +260,6 @@ impl Store {
             .spawn(async move { chat_messages(db.pool(), &group_id).await })
     }
 
-    /// `chat_tools::Runner` over this store's pool and runtime.
-    pub fn chat_tool_runner(
-        &self,
-        search: Option<std::sync::Arc<crate::search::SearchIndex>>,
-    ) -> crate::chat_tools::Runner {
-        crate::chat_tools::Runner {
-            pool: self.db.pool().clone(),
-            search,
-            runtime: self.runtime.clone(),
-        }
-    }
-
     /// `hydrateSessionContext`'s inputs: the enhancer's content snapshot plus
     /// the session's `created_at` and the meeting chat markdown.
     pub fn chat_session_context(

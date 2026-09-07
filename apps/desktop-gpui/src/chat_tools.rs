@@ -47,16 +47,21 @@ pub struct Context {
     pub session_id: Option<String>,
     /// `getFolderFilter()`: the folder the sidebar is filtered to.
     pub folder_filter: Option<String>,
+    /// `isSessionBusy`: sessions recording, finalizing, or batch transcribing.
+    pub busy_sessions: Vec<String>,
 }
 
 /// Everything a tool run needs.
 pub struct Runner {
-    pub pool: SqlitePool,
+    pub store: Arc<crate::db::Store>,
     pub search: Option<Arc<crate::search::SearchIndex>>,
-    pub runtime: tokio::runtime::Handle,
 }
 
 impl Runner {
+    fn pool(&self) -> &SqlitePool {
+        self.store.pool()
+    }
+
     /// Execute one tool on the Tokio runtime (sqlx needs its context);
     /// `Err` becomes the part's `output-error`.
     pub fn run(
@@ -66,7 +71,8 @@ impl Runner {
         input: Value,
     ) -> tokio::task::JoinHandle<Result<Value, String>> {
         let runner = self.clone();
-        self.runtime
+        self.store
+            .runtime()
             .spawn(async move { runner.execute(&ctx, &name, input).await })
     }
 
@@ -74,28 +80,28 @@ impl Runner {
         match name {
             "list_meetings" => {
                 let input = parse_input(input)?;
-                anlg_agent_access::list_meetings(&self.pool, input)
+                anlg_agent_access::list_meetings(self.pool(), input)
                     .await
                     .map_err(|error| error.to_string())
                     .and_then(to_value)
             }
             "get_meeting" => {
                 let input = parse_input(input)?;
-                anlg_agent_access::get_meeting(&self.pool, input)
+                anlg_agent_access::get_meeting(self.pool(), input)
                     .await
                     .map_err(|error| error.to_string())
                     .and_then(to_value)
             }
             "get_meeting_transcript" => {
                 let input = parse_input(input)?;
-                anlg_agent_access::get_meeting_transcript(&self.pool, input)
+                anlg_agent_access::get_meeting_transcript(self.pool(), input)
                     .await
                     .map_err(|error| error.to_string())
                     .and_then(to_value)
             }
             "get_recurring_meeting_history" => {
                 let input = parse_input(input)?;
-                anlg_agent_access::get_recurring_meeting_history(&self.pool, input)
+                anlg_agent_access::get_recurring_meeting_history(self.pool(), input)
                     .await
                     .map_err(|error| error.to_string())
                     .and_then(to_value)
@@ -111,11 +117,31 @@ impl Runner {
                 "query": input.get("query").cloned().unwrap_or(Value::Null),
                 "results": []
             })),
-            "read_folder_material"
-            | "edit_memo"
-            | "edit_summary"
-            | "apply_session_correction"
-            | "move_meeting_contents" => {
+            "move_meeting_contents" => {
+                let source = input
+                    .get("sourceMeetingId")
+                    .and_then(|id| id.as_str())
+                    .map(str::to_string)
+                    .or_else(|| ctx.session_id.clone());
+                let target = input
+                    .get("targetMeetingId")
+                    .and_then(|id| id.as_str())
+                    .unwrap_or_default()
+                    .to_string();
+                let Some(source) = source else {
+                    return Ok(json!({
+                        "status": "error",
+                        "message": "No source meeting selected. Provide sourceMeetingId explicitly when calling move_meeting_contents."
+                    }));
+                };
+                let busy =
+                    ctx.busy_sessions.contains(&source) || ctx.busy_sessions.contains(&target);
+                self.store
+                    .move_session_contents(source, target, busy)
+                    .await
+                    .map_err(|error| error.to_string())
+            }
+            "read_folder_material" | "edit_memo" | "edit_summary" | "apply_session_correction" => {
                 Err(format!("{name} is not available in the native shell yet."))
             }
             other => Err(format!("Unknown tool: {other}")),
@@ -162,7 +188,7 @@ impl Runner {
         .bind(&normalized)
         .bind(&normalized)
         .bind(limit)
-        .fetch_all(&self.pool)
+        .fetch_all(self.pool())
         .await
         .map_err(|error| error.to_string())?;
         let results: Vec<Value> = rows
@@ -248,7 +274,7 @@ impl Runner {
         .bind(&normalized)
         .bind(&normalized)
         .bind(limit)
-        .fetch_all(&self.pool)
+        .fetch_all(self.pool())
         .await
         .map_err(|error| error.to_string())?;
         let results: Vec<Value> = rows
@@ -340,7 +366,7 @@ impl Runner {
         created_at: Option<&anlg_search_index::CreatedAtFilter>,
         limit: usize,
     ) -> Result<Value, String> {
-        let sessions: Vec<(String, String, String, String)> = folder_sessions(&self.pool, folder)
+        let sessions: Vec<(String, String, String, String)> = folder_sessions(self.pool(), folder)
             .await?
             .into_iter()
             .map(|(id, title, created, event_json)| (id, title, event_json, created))
@@ -366,7 +392,7 @@ impl Runner {
             return Ok(json!({ "results": results }));
         }
         let ids: Vec<String> = sessions.iter().map(|(id, _, _)| id.clone()).collect();
-        let content = search_meeting_content(&self.pool, query, Some(&ids), limit).await?;
+        let content = search_meeting_content(self.pool(), query, Some(&ids), limit).await?;
         let results: Vec<Value> = content
             .into_iter()
             .map(|m| {
@@ -408,7 +434,7 @@ impl Runner {
         let session_ids = match &ctx.folder_filter {
             None => requested,
             Some(folder) => {
-                let folder_ids: Vec<String> = folder_sessions(&self.pool, folder)
+                let folder_ids: Vec<String> = folder_sessions(self.pool(), folder)
                     .await?
                     .into_iter()
                     .map(|(id, _, _, _)| id)
@@ -429,9 +455,10 @@ impl Runner {
         }
         let candidates = match &session_ids {
             Some(ids) => ids.clone(),
-            None => active_session_ids(&self.pool).await?,
+            None => active_session_ids(self.pool()).await?,
         };
-        let matches = search_meeting_content(&self.pool, trimmed, Some(&candidates), limit).await?;
+        let matches =
+            search_meeting_content(self.pool(), trimmed, Some(&candidates), limit).await?;
         let results: Vec<Value> = matches
             .into_iter()
             .map(|m| {
@@ -466,7 +493,7 @@ impl Runner {
             .and_then(|l| l.as_u64())
             .unwrap_or(DEFAULT_SEARCH_LIMIT as u64)
             .min(MAX_SEARCH_LIMIT as u64) as usize;
-        let Some(base) = load_note_file(&self.pool, &session_id).await? else {
+        let Some(base) = load_note_file(self.pool(), &session_id).await? else {
             return Ok(json!({
                 "status": "error",
                 "message": format!("Could not read note {session_id}"),
@@ -475,11 +502,11 @@ impl Runner {
             }));
         };
         let mut results: Vec<(i64, Value)> = Vec::new();
-        for candidate_id in active_session_ids(&self.pool).await? {
+        for candidate_id in active_session_ids(self.pool()).await? {
             if candidate_id == session_id {
                 continue;
             }
-            let Some(candidate) = load_note_file(&self.pool, &candidate_id).await? else {
+            let Some(candidate) = load_note_file(self.pool(), &candidate_id).await? else {
                 continue;
             };
             let mut reasons: Vec<String> = Vec::new();

@@ -546,13 +546,14 @@ impl Workspace {
                 .clone()
                 .filter(|_| self.chat.scope == Scope::General),
             folder_filter: self.folder_filter_for_chat(),
+            busy_sessions: self.busy_sessions(),
         };
-        let runner = Arc::new(
-            self.store.chat_tool_runner(
-                cx.try_global::<crate::search::Search>()
-                    .map(|search| search.0.clone()),
-            ),
-        );
+        let runner = Arc::new(crate::chat_tools::Runner {
+            store: self.store.clone(),
+            search: cx
+                .try_global::<crate::search::Search>()
+                .map(|search| search.0.clone()),
+        });
         let runtime = self.store.runtime().clone();
         let store = self.store.clone();
         cx.spawn(async move |this, cx| {
@@ -822,6 +823,25 @@ impl Workspace {
     /// `getFolderFilter()`: the folder the sidebar's note filter is scoped to.
     fn folder_filter_for_chat(&self) -> Option<String> {
         None
+    }
+
+    /// `isSessionBusy`: the live capture (active or finalizing), the running
+    /// batches, and the captures still finishing after their stop.
+    fn busy_sessions(&self) -> Vec<String> {
+        let mut busy: Vec<String> = Vec::new();
+        if let Some(live) = &self.recording.live {
+            busy.push(live.session_id.clone());
+        }
+        busy.extend(self.recording.finalizing.iter().cloned());
+        busy.extend(
+            self.recording
+                .batch
+                .iter()
+                .filter(|(_, batch)| batch.error.is_none())
+                .map(|(id, _)| id.clone()),
+        );
+        busy.extend(self.recording.pending_post_capture.keys().cloned());
+        busy
     }
 
     /// `stop()`: abort the stream.

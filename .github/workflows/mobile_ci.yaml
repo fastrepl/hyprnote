@@ -187,7 +187,14 @@ jobs:
           assert apks, "No release APK was produced"
           for apk in apks:
               with ZipFile(apk) as package:
-                  for abi in ("arm64-v8a", "armeabi-v7a", "x86_64"):
+                  supported_abis = {"arm64-v8a", "armeabi-v7a", "x86_64"}
+                  packaged_abis = {
+                      name.split("/")[1]
+                      for name in package.namelist()
+                      if name.startswith("lib/") and name.endswith(".so")
+                  }
+                  assert packaged_abis == supported_abis, f"{apk}: unexpected Android architectures {sorted(packaged_abis)}"
+                  for abi in sorted(supported_abis):
                       library = package.read(f"lib/{abi}/libcloudsync.so")
                       assert b"CLOUDSYNC_CURL_TIMEOUT_MS" in library, f"{apk}: unpatched CloudSync for {abi}"
 

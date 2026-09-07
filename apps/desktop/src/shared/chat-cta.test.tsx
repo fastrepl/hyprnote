@@ -62,7 +62,7 @@ describe("ChatCTA", () => {
     expect(surface?.className).toContain("origin-bottom");
     expect(surface?.className).toContain("h-2");
     expect(surface?.className).toContain("dark:h-3");
-    expect(surface?.className).toContain("rounded-full");
+    expect(surface?.className).toContain("rounded-pill");
     expect(surface?.className).toContain(
       "bg-[linear-gradient(180deg,#faf8f6_0%,#e3e1df_100%)]",
     );

@@ -119,11 +119,13 @@ function PlanPrice({ price }: { price: MarketingPlanPrice }) {
   const unit = price.billingUnit === "person" ? "/person" : "";
 
   return (
-    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-      <span className="text-color font-mono text-4xl leading-none font-semibold">
-        ${price.monthly}
-      </span>
-      <span className="text-color-muted text-sm">{unit}/month</span>
+    <div className="flex flex-col gap-1">
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span className="text-color font-mono text-4xl leading-none font-semibold">
+          ${price.monthly}
+        </span>
+        <span className="text-color-muted text-sm">{unit}/month</span>
+      </div>
       {price.yearly != null ? (
         <span className="text-color-muted text-sm">
           or ${price.yearly}

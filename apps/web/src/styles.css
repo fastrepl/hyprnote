@@ -46,6 +46,14 @@
   --color-fg-muted: var(--grey-500);
   --color-fg-secondary: var(--grey-600);
 
+  /* Shim for shared components (e.g. @anlg/pricing's PlanFeatureList) that
+     use shadcn-style semantic tokens. Without these, `text-foreground` /
+     `text-muted-foreground` resolve to no color at all on the marketing
+     site (this stylesheet never defines them otherwise), so that text
+     rendered near-black instead of this site's warm-grey palette. */
+  --color-foreground: var(--color-fg);
+  --color-muted-foreground: var(--color-fg-secondary);
+
   /* ── Colors: borders ─────────────────────────── */
   --color-border: var(--grey-500);
   --color-border-subtle: var(--grey-300);

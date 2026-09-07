@@ -677,9 +677,9 @@ impl Workspace {
                         // `bg-red-50 text-red-500`.
                         .when_some(live.filter(|_| active && glyph == "waveform"), |t, live| {
                             let (bg, fg) = if live.degraded() {
-                                (gpui::rgb(0xfffbeb), gpui::rgb(0xf59e0b))
+                                (gpui::rgb(0xfffbeb), gpui::rgb(0xfd9a00))
                             } else {
-                                (gpui::rgb(0xfef2f2), gpui::rgb(0xef4444))
+                                (gpui::rgb(0xfef2f2), gpui::rgb(0xfb2c36))
                             };
                             t.w(px(98.0))
                                 .min_w(px(98.0))

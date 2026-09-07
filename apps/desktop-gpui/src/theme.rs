@@ -61,7 +61,7 @@ impl Theme {
             primary: rgb(0x2d2825),
             primary_foreground: rgb(0xfafaf9),
             destructive: rgb(0xef4444),
-            red: rgb(0xef4444),
+            red: rgb(0xfb2c36),
             title: rgb(0x404040),
             close_hover: rgb(0xc42b1c),
             link: rgb(0x2563eb),
@@ -74,9 +74,9 @@ impl Theme {
             toast_background: rgb(0xffffff),
             toast_border: rgb(0xededed),
             toast_text: rgb(0x171717),
-            delete_text: rgb(0xdc2626),
+            delete_text: rgb(0xe7000b),
             delete_hover_background: rgb(0xfef2f2),
-            delete_hover_text: rgb(0xb91c1c),
+            delete_hover_text: rgb(0xc10007),
         }
     }
 
@@ -95,7 +95,7 @@ impl Theme {
             primary: rgb(0x2d2825),
             primary_foreground: rgb(0xfafaf9),
             destructive: rgb(0x7f1d1d),
-            red: rgb(0xef4444),
+            red: rgb(0xfb2c36),
             title: rgb(0xffffff),
             close_hover: rgb(0xc42b1c),
             link: rgb(0x2563eb),
@@ -108,9 +108,9 @@ impl Theme {
             toast_background: rgb(0x000000),
             toast_border: rgb(0x333333),
             toast_text: rgb(0xfcfcfc),
-            delete_text: rgb(0xf87171),
-            delete_hover_background: alpha(rgb(0x450a0a), 0.5),
-            delete_hover_text: rgb(0xfca5a5),
+            delete_text: rgb(0xff6467),
+            delete_hover_background: alpha(rgb(0x460809), 0.5),
+            delete_hover_text: rgb(0xffa2a2),
         }
     }
 

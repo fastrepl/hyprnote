@@ -1344,12 +1344,12 @@ impl Workspace {
                         .relative()
                         .rounded(px(16.0))
                         .border_1()
-                        .border_color(gpui::rgb(0xfecaca))
+                        .border_color(gpui::rgb(0xffc9c9))
                         .bg(gpui::rgb(0xfef2f2))
                         .px_3()
                         .py_1()
                         .tw_text_sm()
-                        .text_color(gpui::rgb(0xdc2626))
+                        .text_color(gpui::rgb(0xe7000b))
                         .child(SharedString::from(error.clone()))
                         .child(
                             div()
@@ -1363,7 +1363,7 @@ impl Workspace {
                                 .justify_center()
                                 .rounded(px(10.0))
                                 .border_1()
-                                .border_color(gpui::rgb(0xfecaca))
+                                .border_color(gpui::rgb(0xffc9c9))
                                 .bg(gpui::rgb(0xffffff))
                                 .opacity(0.0)
                                 .group_hover("chat-error", |style| style.opacity(1.0))
@@ -1374,7 +1374,7 @@ impl Workspace {
                                 .child(icon(
                                     "arrow-counter-clockwise",
                                     px(12.0),
-                                    gpui::rgb(0xdc2626),
+                                    gpui::rgb(0xe7000b),
                                 )),
                         ),
                 ),

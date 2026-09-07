@@ -443,13 +443,13 @@ impl Workspace {
                 column.child(
                     div()
                         .border_b_1()
-                        .border_color(gpui::rgb(0xfecaca))
+                        .border_color(gpui::rgb(0xffc9c9))
                         .bg(gpui::rgb(0xfef2f2))
                         .px_4()
                         .py_2()
                         .text_size(px(13.0))
                         .line_height(px(20.0))
-                        .text_color(gpui::rgb(0xdc2626))
+                        .text_color(gpui::rgb(0xe7000b))
                         .child(SharedString::from(error)),
                 )
             })

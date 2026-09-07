@@ -2081,9 +2081,9 @@ impl Workspace {
     /// while degraded, the waveform while muted.
     pub(super) fn render_dancing_sticks(&self, live: &LiveCapture) -> AnyElement {
         let color = if live.degraded() {
-            gpui::rgb(0xf59e0b)
+            gpui::rgb(0xfd9a00)
         } else {
-            gpui::rgb(0xef4444)
+            gpui::rgb(0xfb2c36)
         };
         if live.muted {
             return crate::ui::icon("waveform", px(16.0), self.theme.foreground).into_any_element();

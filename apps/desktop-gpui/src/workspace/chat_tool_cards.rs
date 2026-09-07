@@ -502,7 +502,7 @@ impl Workspace {
             }
             "output-error" => div()
                 .tw_text_sm()
-                .text_color(gpui::rgb(0xef4444))
+                .text_color(gpui::rgb(0xfb2c36))
                 .child(SharedString::from(format!(
                     "Error: {}",
                     tool.error_text.unwrap_or_default()
@@ -577,12 +577,12 @@ impl Workspace {
             Some(super::edit_review::EditReview::Pending(review))
                 if review.request_id == tool.call_id && review.responder.is_some()
         );
-        let red_200 = gpui::rgb(0xfecaca);
+        let red_200 = gpui::rgb(0xffc9c9);
         let red_50 = gpui::rgb(0xfef2f2);
-        let red_500 = gpui::rgb(0xef4444);
-        let red_600 = gpui::rgb(0xdc2626);
-        let red_700 = gpui::rgb(0xb91c1c);
-        let emerald_500 = gpui::rgb(0x10b981);
+        let red_500 = gpui::rgb(0xfb2c36);
+        let red_600 = gpui::rgb(0xe7000b);
+        let red_700 = gpui::rgb(0xc10007);
+        let emerald_500 = gpui::rgb(0x00bc7d);
         let header_icon: AnyElement = if running {
             crate::ui::spinner(
                 ("chat-tool-spinner", key.0 * 1000 + key.1),
@@ -840,7 +840,7 @@ impl Workspace {
                 )
             })
             .when(failed, |body| {
-                body.child(div().tw_text_xs().text_color(gpui::rgb(0xef4444)).child(
+                body.child(div().tw_text_xs().text_color(gpui::rgb(0xfb2c36)).child(
                     SharedString::from(tool.error_text.unwrap_or("Unknown error").to_string()),
                 ))
             })

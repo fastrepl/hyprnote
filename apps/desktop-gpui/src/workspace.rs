@@ -1332,6 +1332,22 @@ impl Workspace {
         .detach();
     }
 
+    /// `flushCanonicalSessionEditorChanges`: the memo editor's unsaved body
+    /// for `session_id`, written now; the returned task completes with the
+    /// write so a caller can sequence a snapshot read after it.
+    pub(crate) fn flush_memo_editor(
+        &mut self,
+        session_id: &str,
+        cx: &mut Context<Self>,
+    ) -> Option<tokio::task::JoinHandle<anyhow::Result<()>>> {
+        let body = self
+            .editor
+            .as_ref()
+            .filter(|editor| editor.read(cx).session_id == session_id)
+            .and_then(|editor| editor.update(cx, |editor, _| editor.take_pending()))?;
+        Some(self.store.update_memo(session_id.to_string(), body))
+    }
+
     /// `persistTitle`: the title input's blur/Enter writes the draft.
     fn persist_title(&mut self, cx: &mut Context<Self>) {
         let Some(session_id) = self.selected.clone() else {

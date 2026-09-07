@@ -212,6 +212,7 @@ impl CaptureLifecycle {
             provider: Some(persistence.provider.clone()).filter(|p| !p.is_empty()),
             model: Some(persistence.model.clone()).filter(|m| !m.is_empty()),
             summary_mode,
+            refresh_summary_after_repair: false,
         }
     }
 }
@@ -993,6 +994,36 @@ impl Workspace {
                 let Some(audio_path) = audio_path else {
                     return;
                 };
+                let mut marker = marker;
+                // A fresh stop with the live text saved starts the summary at
+                // once; the repair then regenerates it (`refreshSummaryAfterRepair`
+                // survives a crash in the marker).
+                if transcript_created
+                    && !transcript_write_failed
+                    && pending.recovery_attempt.is_none()
+                {
+                    marker.refresh_summary_after_repair = true;
+                    self.save_capture_marker(marker.clone());
+                    let flush = self.flush_memo_editor(&session_id, cx);
+                    let live_mode = if lifecycle.preserve_existing_transcript {
+                        super::enhance::AutoEnhanceMode::Regenerate
+                    } else {
+                        super::enhance::AutoEnhanceMode::IfEmpty
+                    };
+                    let live_session_id = session_id.clone();
+                    cx.spawn(async move |this, cx| {
+                        if let Some(flush) = flush
+                            && let Ok(Err(error)) = flush.await
+                        {
+                            tracing::warn!(%error, "[listener] failed to flush the memo before the live summary");
+                        }
+                        this.update(cx, |this, cx| {
+                            this.request_auto_enhance_with(live_session_id, live_mode, cx)
+                        })
+                        .ok();
+                    })
+                    .detach();
+                }
                 tracing::info!(
                     session_id,
                     live_active,
@@ -1000,7 +1031,9 @@ impl Workspace {
                     transcript_write_failed,
                     "[listener] starting post-stop transcript repair"
                 );
-                let summary_mode = if lifecycle.preserve_existing_transcript {
+                let summary_mode = if marker.refresh_summary_after_repair
+                    || lifecycle.preserve_existing_transcript
+                {
                     super::enhance::AutoEnhanceMode::Regenerate
                 } else {
                     super::enhance::AutoEnhanceMode::IfEmpty

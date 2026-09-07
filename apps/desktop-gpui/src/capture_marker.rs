@@ -42,6 +42,9 @@ pub struct Marker {
     pub model: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub summary_mode: Option<SummaryMode>,
+    /// The summary already ran on the live text; the batch repair regenerates it.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub refresh_summary_after_repair: bool,
 }
 
 pub fn setting_id(session_id: &str) -> String {
@@ -91,6 +94,10 @@ pub fn parse(value: &str, session_id: &str) -> Option<Marker> {
             Some("if_empty") => Some(SummaryMode::IfEmpty),
             _ => None,
         },
+        refresh_summary_after_repair: raw
+            .get("refreshSummaryAfterRepair")
+            .and_then(|v| v.as_bool())
+            == Some(true),
     })
 }
 
@@ -150,6 +157,7 @@ mod tests {
             provider: Some("deepgram".into()),
             model: Some("nova-3".into()),
             summary_mode: None,
+            refresh_summary_after_repair: false,
         }
     }
 
@@ -166,6 +174,17 @@ mod tests {
         let json = serde_json::to_string(&finalizing).unwrap();
         assert!(json.contains(r#""phase":"finalizing""#));
         assert!(json.ends_with(r#""summaryMode":"if_empty"}"#));
+        // `refreshSummaryAfterRepair` is written only when set, after the mode.
+        let mut refreshing = marker();
+        refreshing.refresh_summary_after_repair = true;
+        let json = serde_json::to_string(&refreshing).unwrap();
+        assert!(json.ends_with(r#""model":"nova-3","refreshSummaryAfterRepair":true}"#));
+        assert_eq!(parse(&json, "s1"), Some(refreshing));
+        assert!(
+            !parse(&json.replace("true}", "\"yes\"}"), "s1")
+                .unwrap()
+                .refresh_summary_after_repair
+        );
     }
 
     #[test]

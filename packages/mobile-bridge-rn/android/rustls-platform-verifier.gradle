@@ -1,0 +1,37 @@
+import groovy.json.JsonSlurper
+
+def dependencyText = providers.exec {
+  workingDir projectDir
+  commandLine "cargo", "metadata", "--locked", "--format-version", "1",
+    "--filter-platform", "aarch64-linux-android",
+    "--manifest-path", "../../../crates/mobile-bridge/Cargo.toml"
+}.standardOutput.asText.get()
+def dependencyJson = new JsonSlurper().parseText(dependencyText)
+def verifier = dependencyJson.packages.find { it.name == "rustls-platform-verifier-android" }
+if (verifier == null) {
+  throw new GradleException("The Android certificate verifier is missing from Cargo dependencies")
+}
+def verifierRepository = new File(file(verifier.manifest_path).parentFile, "maven")
+
+rootProject.allprojects {
+  repositories {
+    exclusiveContent {
+      forRepository {
+        maven {
+          url = verifierRepository
+          metadataSources.artifact()
+        }
+      }
+      filter {
+        includeModule("rustls", "rustls-platform-verifier")
+      }
+    }
+  }
+}
+
+dependencies {
+  // Cargo.lock selects the crate and its bundled Maven repository version together.
+  implementation "rustls:rustls-platform-verifier:latest.release"
+}
+
+android.defaultConfig.consumerProguardFiles "rustls-proguard-rules.pro"

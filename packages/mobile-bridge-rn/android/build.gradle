@@ -142,3 +142,5 @@ if (isNewArchitectureEnabled()) {
     codegenJavaPackageName = "so.anarlog.mobilebridge"
   }
 }
+
+apply from: "rustls-platform-verifier.gradle"

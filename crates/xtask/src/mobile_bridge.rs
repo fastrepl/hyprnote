@@ -87,6 +87,22 @@ pub(crate) fn mobile_bridge_rn() -> Result<()> {
 }
 
 fn repair_generated_native_projects() -> Result<()> {
+    let android_path = crate::repo_root().join("packages/mobile-bridge-rn/android");
+    let gradle_path = android_path.join("build.gradle");
+    let contents = fs::read_to_string(&gradle_path)?;
+    let tls_script = "apply from: \"rustls-platform-verifier.gradle\"";
+    if !contents.contains(tls_script) {
+        fs::write(gradle_path, format!("{contents}\n{tls_script}\n"))?;
+    }
+
+    let module_path =
+        android_path.join("src/main/java/so/anarlog/mobilebridge/MobileBridgeModule.kt");
+    let contents = fs::read_to_string(&module_path)?;
+    fs::write(
+        module_path,
+        initialize_android_tls_before_install(&contents)?,
+    )?;
+
     let cmake_path = crate::repo_root().join("packages/mobile-bridge-rn/android/CMakeLists.txt");
     let contents = fs::read_to_string(&cmake_path)?;
     let generated = r#"execute_process(
@@ -121,6 +137,18 @@ get_filename_component(UNIFFI_BINDGEN_PATH "${UNIFFI_BINDGEN_PATH}" DIRECTORY)"#
     }
 
     Ok(())
+}
+
+fn initialize_android_tls_before_install(contents: &str) -> Result<String> {
+    let initialization = "    AndroidTls.initialize(context)";
+    if contents.contains(initialization) {
+        return Ok(contents.to_string());
+    }
+    let anchor = "    val context = this.reactApplicationContext\n";
+    if !contents.contains(anchor) {
+        bail!("generated MobileBridge module has no recognized installation context");
+    }
+    Ok(contents.replacen(anchor, &format!("{anchor}{initialization}\n"), 1))
 }
 
 fn setup_shell() -> Result<Shell> {
@@ -162,6 +190,22 @@ fn ubrn_path() -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn initializes_android_tls_before_rust_install_and_preserves_regeneration() {
+        let generated =
+            "    val context = this.reactApplicationContext\n    return nativeInstallRustCrate(\n";
+        let repaired = initialize_android_tls_before_install(generated).unwrap();
+        assert_eq!(
+            repaired,
+            "    val context = this.reactApplicationContext\n    AndroidTls.initialize(context)\n    return nativeInstallRustCrate(\n"
+        );
+        assert_eq!(
+            initialize_android_tls_before_install(&repaired).unwrap(),
+            repaired
+        );
+        assert!(initialize_android_tls_before_install("changed generator output").is_err());
+    }
 
     #[test]
     fn packages_cloudsync_for_each_supported_android_abi() {

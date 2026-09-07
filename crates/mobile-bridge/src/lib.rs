@@ -1,5 +1,7 @@
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
 
+#[cfg(target_os = "android")]
+mod android;
 mod attachment;
 mod db;
 mod error;

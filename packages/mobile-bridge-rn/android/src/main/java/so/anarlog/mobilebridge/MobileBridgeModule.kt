@@ -21,6 +21,7 @@ class MobileBridgeModule(reactContext: ReactApplicationContext) :
 
   override fun installRustCrate(): Boolean {
     val context = this.reactApplicationContext
+    AndroidTls.initialize(context)
     return nativeInstallRustCrate(
       context.javaScriptContextHolder!!.get(),
       context.jsCallInvokerHolder!!

@@ -34,6 +34,10 @@ uniffi = { version = "0.31", features = ["tokio"] }
 url = { workspace = true }
 uuid = { workspace = true }
 
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21"
+rustls-platform-verifier = "0.6"
+
 [dev-dependencies]
 sha2 = { workspace = true }
 tempfile = { workspace = true }

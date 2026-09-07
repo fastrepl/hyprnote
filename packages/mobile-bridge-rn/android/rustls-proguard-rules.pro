@@ -1,0 +1,2 @@
+-keep, includedescriptorclasses class org.rustls.platformverifier.** { *; }
+-keep class so.anarlog.mobilebridge.AndroidTls { *; }

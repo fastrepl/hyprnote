@@ -17,6 +17,7 @@ mod cuelume;
 mod db;
 mod deeplink;
 mod developers;
+mod dictation;
 mod document;
 mod editor;
 mod emoji;

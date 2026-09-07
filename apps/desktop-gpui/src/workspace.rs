@@ -11,6 +11,7 @@ mod chat_tool_cards;
 mod contacts_tab;
 mod deep_links;
 mod developers_page;
+mod dictation;
 pub(crate) mod dictionary;
 mod document_view;
 mod edit_review;
@@ -1712,6 +1713,7 @@ impl Render for Workspace {
                 } else if this.chat_mode == chat::ChatMode::FloatingOpen {
                     // `esc` closes the floating panel only (`isVisible`).
                     this.close_chat(cx);
+                    window.focus(&this.focus_handle);
                 } else if this.share_popover_open() {
                     this.close_share_popover(cx);
                 } else if this.export_dialog.is_some() {

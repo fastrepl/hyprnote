@@ -175,6 +175,33 @@ impl TextArea {
         cx.notify();
     }
 
+    /// `ChatEditorHandle.insertText`: the trimmed text replaces the selection,
+    /// padded with a blank on either side that touches a non-blank character.
+    pub fn insert_text(&mut self, text: &str, cx: &mut Context<Self>) {
+        let value = text.trim();
+        if value.is_empty() {
+            return;
+        }
+        let range = self.selected_range.clone();
+        let before = self.content[..range.start].chars().next_back();
+        let after = self.content[range.end..].chars().next();
+        let mut insertion = String::new();
+        if before.is_some_and(|c| !c.is_whitespace()) {
+            insertion.push(' ');
+        }
+        insertion.push_str(value);
+        if after.is_some_and(|c| !c.is_whitespace()) {
+            insertion.push(' ');
+        }
+        self.splice(range.clone(), &insertion);
+        let end = range.start + insertion.len();
+        self.selected_range = end..end;
+        self.selection_reversed = false;
+        self.marked_range = None;
+        cx.emit(TextAreaEvent::Changed);
+        cx.notify();
+    }
+
     fn cursor_offset(&self) -> usize {
         if self.selection_reversed {
             self.selected_range.start

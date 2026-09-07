@@ -35,6 +35,8 @@ pub(crate) enum FlashVariant {
 pub(crate) struct FlashToast {
     variant: FlashVariant,
     message: SharedString,
+    /// sonner's `description` under the title.
+    description: Option<SharedString>,
     generation: u64,
 }
 
@@ -232,10 +234,32 @@ impl Workspace {
         message: impl Into<SharedString>,
         cx: &mut Context<Self>,
     ) {
+        self.flash_toast(variant, message.into(), None, cx);
+    }
+
+    /// `sonnerToast.<variant>(message, { description })`.
+    pub(crate) fn flash_with_description(
+        &mut self,
+        variant: FlashVariant,
+        message: impl Into<SharedString>,
+        description: impl Into<SharedString>,
+        cx: &mut Context<Self>,
+    ) {
+        self.flash_toast(variant, message.into(), Some(description.into()), cx);
+    }
+
+    fn flash_toast(
+        &mut self,
+        variant: FlashVariant,
+        message: SharedString,
+        description: Option<SharedString>,
+        cx: &mut Context<Self>,
+    ) {
         let generation = self.flash.as_ref().map_or(0, |flash| flash.generation + 1);
         self.flash = Some(FlashToast {
             variant,
-            message: message.into(),
+            message,
+            description,
             generation,
         });
         cx.notify();
@@ -337,14 +361,26 @@ impl Workspace {
                         .child(crate::ui::icon(glyph, px(20.0), text)),
                 )
                 .child(
+                    // `[data-content]`: the `font-weight: 500; line-height: 1.5`
+                    // title, then the `font-weight: 400; line-height: 1.4`
+                    // description 2px below.
                     div()
+                        .flex()
+                        .flex_col()
+                        .gap(px(2.0))
                         .flex_1()
                         .min_w_0()
                         .text_size(px(13.0))
-                        .line_height(px(19.0))
-                        .font_weight(gpui::FontWeight::MEDIUM)
                         .text_color(text)
-                        .child(flash.message.clone()),
+                        .child(
+                            div()
+                                .line_height(px(19.0))
+                                .font_weight(gpui::FontWeight::MEDIUM)
+                                .child(flash.message.clone()),
+                        )
+                        .when_some(flash.description.clone(), |content, description| {
+                            content.child(div().line_height(px(18.0)).child(description))
+                        }),
                 )
                 .into_any_element(),
         )

@@ -72,11 +72,33 @@ const DIRECT_BATCH_PROVIDERS: [&str; 24] = [
 ];
 
 /// `BatchTarget`
-struct BatchTarget {
-    provider: String,
-    model: String,
-    base_url: String,
-    api_key: String,
+#[derive(Debug, Clone)]
+pub(super) struct BatchTarget {
+    pub provider: String,
+    pub model: String,
+    pub base_url: String,
+    pub api_key: String,
+}
+
+/// `resolveBatchTarget`: the selected provider when it has a batch adapter,
+/// otherwise the on-device Soniqo model where it exists.
+pub(super) fn batch_target(connection: Option<&crate::db::SttConnection>) -> Option<BatchTarget> {
+    let selected = connection.and_then(|conn| {
+        batch_provider(&conn.provider, &conn.model).map(|provider| BatchTarget {
+            provider: provider.to_string(),
+            model: conn.model.clone(),
+            base_url: conn.base_url.clone(),
+            api_key: conn.api_key.clone(),
+        })
+    });
+    let local_available = cfg!(all(target_os = "macos", target_arch = "aarch64"));
+    let fallback = local_available.then(|| BatchTarget {
+        provider: "soniqo".to_string(),
+        model: "soniqo-parakeet-batch".to_string(),
+        base_url: "soniqo://local".to_string(),
+        api_key: String::new(),
+    });
+    selected.or(fallback)
 }
 
 /// `RunOptions.promotion`
@@ -536,22 +558,7 @@ impl Workspace {
         batch_run: BatchRun,
         cx: &mut Context<Self>,
     ) {
-        let selected = connection.as_ref().and_then(|conn| {
-            batch_provider(&conn.provider, &conn.model).map(|provider| BatchTarget {
-                provider: provider.to_string(),
-                model: conn.model.clone(),
-                base_url: conn.base_url.clone(),
-                api_key: conn.api_key.clone(),
-            })
-        });
-        let local_available = cfg!(all(target_os = "macos", target_arch = "aarch64"));
-        let fallback = local_available.then(|| BatchTarget {
-            provider: "soniqo".to_string(),
-            model: "soniqo-parakeet-batch".to_string(),
-            base_url: "soniqo://local".to_string(),
-            api_key: String::new(),
-        });
-        let Some(target) = selected.or(fallback) else {
+        let Some(target) = batch_target(connection.as_ref()) else {
             let label = connection
                 .as_ref()
                 .map(|conn| conn.model.clone())
@@ -2104,7 +2111,7 @@ impl Workspace {
     /// language first, then the distinct spoken languages, all as base codes.
     /// `getTranscriptionLanguages(aiLanguage, spokenLanguages)`: the full
     /// codes (`en-US`, not `en`), first occurrence per base language.
-    fn transcription_languages(&self) -> Vec<anlg_language::Language> {
+    pub(super) fn transcription_languages(&self) -> Vec<anlg_language::Language> {
         let ai = self
             .provider_settings
             .string_setting("ai_language", &["language", "ai_language"])

@@ -87,6 +87,8 @@ pub(crate) struct ChatState {
     pub auto_scroll: bool,
     /// `showGoToRecent`: the user scrolled down while unpinned.
     pub show_go_to_recent: bool,
+    /// `useDictation`: the composer's voice input.
+    pub dictation: super::dictation::DictationState,
 }
 
 impl ChatState {
@@ -102,7 +104,7 @@ impl ChatState {
         self.status.unwrap_or(ChatStatus::Ready)
     }
 
-    fn busy(&self) -> bool {
+    pub(super) fn busy(&self) -> bool {
         matches!(self.status(), ChatStatus::Submitted | ChatStatus::Streaming)
     }
 }
@@ -144,6 +146,8 @@ impl Workspace {
         if self.chat_open() {
             self.chat_mode = ChatMode::FloatingClosed;
             self.chat.history_open = false;
+            // The composer unmounts with the panel.
+            self.cancel_dictation(cx);
             cx.notify();
         }
     }
@@ -153,6 +157,7 @@ impl Workspace {
     /// model for the panel.
     pub(crate) fn set_chat_scope(&mut self, scope: Scope, cx: &mut Context<Self>) {
         if self.chat.scope != scope {
+            self.cancel_dictation(cx);
             std::mem::swap(&mut self.chat, &mut self.parked_chat);
         }
         if scope == Scope::Automations {
@@ -261,11 +266,13 @@ impl Workspace {
         cx.subscribe_in(
             &composer,
             window,
-            |this, _, event: &TextAreaEvent, _window, cx| match event {
+            |this, _, event: &TextAreaEvent, window, cx| match event {
                 TextAreaEvent::Submit => this.submit_chat_draft(cx),
                 TextAreaEvent::Escape => {
                     if this.chat_mode == ChatMode::FloatingOpen {
-                        this.close_chat(cx)
+                        this.close_chat(cx);
+                        // The shortcuts keep working the moment the panel goes.
+                        window.focus(&this.focus_handle);
                     }
                 }
                 TextAreaEvent::Changed => cx.notify(),
@@ -889,7 +896,7 @@ impl Workspace {
     }
 
     /// `stop()`: abort the stream.
-    fn stop_chat(&mut self, cx: &mut Context<Self>) {
+    pub(super) fn stop_chat(&mut self, cx: &mut Context<Self>) {
         if let Some(abort) = self.chat.abort.take() {
             abort.store(true, Ordering::Relaxed);
         }
@@ -1487,12 +1494,68 @@ impl Workspace {
         .into_any_element()
     }
 
+    /// The main surface's width: the viewport minus the expanded sidebar,
+    /// its 4px gutter and 1px border (`FloatingActionButton` measures it the
+    /// same way).
+    pub(super) fn main_surface_width(&self, window: &Window) -> f32 {
+        f32::from(window.viewport_size().width)
+            - if self.sidebar_expanded && !self.is_standalone() {
+                self.custom_sidebar_width() + 4.0 + 1.0
+            } else {
+                0.0
+            }
+    }
+
+    /// `SendButton`: `size-7 rounded-full border`, filled when enabled.
+    pub(super) fn render_chat_send_button(&self, enabled: bool, cx: &Context<Self>) -> AnyElement {
+        let theme = self.theme;
+        div()
+            .id("chat-send")
+            .flex()
+            .size(px(28.0))
+            .flex_shrink_0()
+            .items_center()
+            .justify_center()
+            .rounded(px(14.0))
+            .border_1()
+            .map(|button| {
+                if enabled {
+                    button
+                        .border_color(gpui::rgb(0x57534e))
+                        .bg(theme.primary)
+                        .cursor_pointer()
+                        .hover(move |style| style.bg(alpha(theme.primary, 0.9)))
+                } else {
+                    button.border_color(theme.border)
+                }
+            })
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| this.submit_chat_draft(cx)))
+            .child(icon(
+                "arrow-up",
+                px(15.0),
+                if enabled {
+                    theme.primary_foreground
+                } else {
+                    alpha(theme.muted_foreground, 0.6)
+                },
+            ))
+            .into_any_element()
+    }
+
     /// `ChatMessageInput`: floating, `px-1 pb-1` around the `rounded-[19px]
     /// bg-white border pl-4 pr-[6px] min-h-[38px]` row with the controls at
     /// its right edge; right panel, `px-2 pb-3` around the elevated
     /// `rounded-xl` column (`px-2 pt-3 pb-2`) with the controls under the
     /// editor, the send button always shown.
-    fn render_chat_composer(&mut self, window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
+    /// `panel_width` is the panel's outer width: the editor takes an explicit
+    /// width from it because a percent-wide text child is measured before
+    /// its parent's width resolves, and that narrow, tall measurement sticks.
+    fn render_chat_composer(
+        &mut self,
+        panel_width: f32,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> AnyElement {
         self.ensure_chat_composer(window, cx);
         let theme = self.theme;
         let right_panel = self.chat_in_right_panel();
@@ -1529,9 +1592,7 @@ impl Workspace {
                     .rounded(px(14.0))
                     .cursor_pointer()
                     .hover(move |style| style.bg(theme.muted))
-                    .on_click(|_: &ClickEvent, _, _| {
-                        tracing::warn!("chat voice input is not available in the native shell yet");
-                    })
+                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| this.start_dictation(cx)))
                     .child(icon("microphone", px(17.0), theme.muted_foreground)),
             );
         }
@@ -1550,43 +1611,30 @@ impl Workspace {
                     .child(icon("square", px(14.0), theme.foreground)),
             );
         } else if show_send {
-            let enabled = has_content;
-            // `SendButton`: `size-7 rounded-full border`, filled when enabled.
-            controls = controls.child(
-                div()
-                    .id("chat-send")
-                    .flex()
-                    .size(px(28.0))
-                    .flex_shrink_0()
-                    .items_center()
-                    .justify_center()
-                    .rounded(px(14.0))
-                    .border_1()
-                    .map(|button| {
-                        if enabled {
-                            button
-                                .border_color(gpui::rgb(0x57534e))
-                                .bg(theme.primary)
-                                .cursor_pointer()
-                                .hover(move |style| style.bg(alpha(theme.primary, 0.9)))
-                        } else {
-                            button.border_color(theme.border)
-                        }
-                    })
-                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| this.submit_chat_draft(cx)))
-                    .child(icon(
-                        "arrow-up",
-                        px(15.0),
-                        if enabled {
-                            theme.primary_foreground
-                        } else {
-                            alpha(theme.muted_foreground, 0.6)
-                        },
-                    )),
-            );
+            controls = controls.child(self.render_chat_send_button(has_content, cx));
         }
+        // `hasVoiceStatus`: the `VoiceStatus` row replaces the controls and
+        // the floating row becomes a column (`flex-col items-stretch`, no
+        // editor padding, `items-stretch py-2` on the surface).
+        let voice_active = self.dictation_active();
+        let controls: AnyElement = if voice_active {
+            self.render_voice_status(
+                show_send && !streaming,
+                has_content && !streaming,
+                streaming,
+                cx,
+            )
+        } else {
+            controls.into_any_element()
+        };
         // Leave room for the controls at the editor's right edge.
-        let editor_padding = if streaming || show_send { 64.0 } else { 32.0 };
+        let editor_padding = if voice_active {
+            0.0
+        } else if streaming || show_send {
+            64.0
+        } else {
+            32.0
+        };
         if right_panel {
             return div()
                 .relative()
@@ -1627,7 +1675,14 @@ impl Workspace {
                                 .px_2()
                                 .pt_3()
                                 .pb_2()
-                                .child(div().mb_1().min_h_0().child(composer))
+                                // `border-x`, `px-2` outside and inside.
+                                .child(
+                                    div()
+                                        .w(px(panel_width - 36.0))
+                                        .mb_1()
+                                        .min_h_0()
+                                        .child(composer),
+                                )
                                 .child(controls),
                         ),
                 )
@@ -1663,7 +1718,6 @@ impl Workspace {
                     .flex()
                     .max_h(px(160.0))
                     .min_h(px(38.0))
-                    .items_center()
                     .rounded(px(19.0))
                     .border_1()
                     .border_color(alpha(theme.border, 0.7))
@@ -1674,20 +1728,31 @@ impl Workspace {
                     })
                     .pl_4()
                     .pr(px(6.0))
-                    .py(px(3.0))
+                    .map(|surface| {
+                        if voice_active {
+                            surface.py_2()
+                        } else {
+                            surface.items_center().py(px(3.0))
+                        }
+                    })
                     .tw_text_sm()
                     .child(
+                        // A column, not a row: a `flex-1` text item is first
+                        // measured at its zero flex basis, and that wrapped
+                        // height sticks, so the editor takes the full width.
                         div()
                             .relative()
                             .flex()
+                            .flex_col()
+                            .justify_center()
                             .w_full()
                             .min_w_0()
                             .min_h(px(30.0))
-                            .items_center()
                             .child(
+                                // The panel border, `px-1`, the surface border,
+                                // `pl-4` and `pr-[6px]` around the editor.
                                 div()
-                                    .min_w_0()
-                                    .flex_1()
+                                    .w(px(panel_width - 34.0))
                                     .max_h(px(144.0))
                                     .pr(px(editor_padding))
                                     .child(composer),
@@ -1804,7 +1869,7 @@ impl Workspace {
         let body = self.render_chat_body(window, cx);
         let composer = self
             .chat_model_configured()
-            .then(|| self.render_chat_composer(window, cx));
+            .then(|| self.render_chat_composer(width, window, cx));
         div()
             .id("chat-right-panel")
             .flex()
@@ -1930,9 +1995,12 @@ impl Workspace {
             );
 
         let body = self.render_chat_body(window, cx);
+        // `w-full` between the frame's `px-3`, within the min / max widths.
+        let panel_width =
+            (self.main_surface_width(window) - 24.0).clamp(PANEL_MIN_WIDTH, PANEL_MAX_WIDTH);
         let composer = self
             .chat_model_configured()
-            .then(|| self.render_chat_composer(window, cx));
+            .then(|| self.render_chat_composer(panel_width, window, cx));
 
         let panel = div()
             .id("chat-panel")

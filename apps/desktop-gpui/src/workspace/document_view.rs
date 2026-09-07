@@ -462,6 +462,141 @@ impl DocumentRenderer {
             .collect()
     }
 
+    /// `Streamdown` with `chatComponents` inside a `text-sm` bubble: 14px
+    /// text on 20px lines, `p { mb-1.5 last:mb-0 }`, `h1/h2 { mt-3 mb-1
+    /// text-base font-semibold first:mt-0 }`, `h3 { mt-2 mb-1 text-sm
+    /// font-semibold first:mt-0 }`, `ul/ol { mb-1 pl-5 }`, `li { mb-1 }`.
+    pub(super) fn chat_blocks(&self, blocks: &[Block]) -> Vec<AnyElement> {
+        let count = blocks.len();
+        blocks
+            .iter()
+            .enumerate()
+            .map(|(index, block)| self.chat_block(block, index == 0, index + 1 == count))
+            .collect()
+    }
+
+    fn chat_block(&self, block: &Block, first: bool, last: bool) -> AnyElement {
+        const CHAT_PX: f32 = 14.0;
+        let theme = self.theme;
+        let line = px(20.0);
+        let mut style = self.base.clone();
+        style.font_size = px(CHAT_PX).into();
+        style.line_height = line.into();
+        match block {
+            Block::Paragraph(spans) => div()
+                .when(!last, |p| p.mb(px(6.0)))
+                .child(self.prose(spans, &style, line))
+                .into_any_element(),
+            Block::Heading { level, spans } => {
+                let (font_px, top) = match level {
+                    1 | 2 => (16.0, 12.0),
+                    _ => (CHAT_PX, 8.0),
+                };
+                let line = px(if font_px > CHAT_PX { 24.0 } else { 20.0 });
+                let mut style = style.clone();
+                style.font_weight = gpui::FontWeight::SEMIBOLD;
+                style.font_size = px(font_px).into();
+                style.line_height = line.into();
+                div()
+                    .when(!first, |h| h.mt(px(top)))
+                    .mb(px(4.0))
+                    .text_size(px(font_px))
+                    .line_height(line)
+                    .child(self.prose(spans, &style, line))
+                    .into_any_element()
+            }
+            Block::List { ordered, items } => div()
+                .flex()
+                .flex_col()
+                .mb(px(4.0))
+                .pl(px(20.0))
+                .children(items.iter().enumerate().map(|(index, item)| {
+                    // `list-disc` / `list-decimal` markers sit in the `pl-5` gutter.
+                    let marker: AnyElement = if *ordered {
+                        div()
+                            .absolute()
+                            .right(px(6.0))
+                            .top_0()
+                            .text_size(px(CHAT_PX))
+                            .line_height(line)
+                            .child(SharedString::from(format!("{}.", index + 1)))
+                            .into_any_element()
+                    } else {
+                        div()
+                            .absolute()
+                            .left(px(7.0))
+                            .top(px(7.5))
+                            .size(px(5.0))
+                            .rounded_full()
+                            .bg(theme.foreground)
+                            .into_any_element()
+                    };
+                    div()
+                        .relative()
+                        .flex()
+                        .mb(px(4.0))
+                        .child(
+                            div()
+                                .absolute()
+                                .left(px(-20.0))
+                                .top_0()
+                                .w(px(20.0))
+                                .h(line)
+                                .child(marker),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .flex_col()
+                                .min_w_0()
+                                .flex_1()
+                                .children(self.chat_blocks(&item.blocks)),
+                        )
+                }))
+                .into_any_element(),
+            Block::Blockquote(blocks) => div()
+                .pl_3()
+                .border_l_2()
+                .border_color(theme.border)
+                .text_color(theme.muted_foreground)
+                .children(self.chat_blocks(blocks))
+                .into_any_element(),
+            Block::Code(code) => {
+                let mut style = style.clone();
+                style.font_size = px(13.0).into();
+                if let Some(family) = &self.mono_family {
+                    style.font_family = family.clone();
+                }
+                let span = Span {
+                    text: code.clone(),
+                    ..Span::default()
+                };
+                div()
+                    .my(px(6.0))
+                    .px(px(12.0))
+                    .py(px(10.0))
+                    .rounded_md()
+                    .bg(theme.accent)
+                    .text_size(px(13.0))
+                    .line_height(line)
+                    .when_some(self.mono_family.clone(), |code, family| {
+                        code.font_family(family)
+                    })
+                    .child(self.prose(std::slice::from_ref(&span), &style, line))
+                    .into_any_element()
+            }
+            Block::HorizontalRule => div()
+                .my(px(8.0))
+                .h(px(1.0))
+                .bg(theme.border)
+                .into_any_element(),
+            Block::Image { alt } => div()
+                .text_color(theme.muted_foreground)
+                .child(SharedString::from(alt.clone()))
+                .into_any_element(),
+        }
+    }
+
     /// `.note-typography.note-title-editor > h1:first-child` (the enhanced
     /// editor's `enforceTitleHeading`): the first block is the session title
     /// at `1.5rem / 1.875rem` with `margin-bottom: 1rem`, showing the

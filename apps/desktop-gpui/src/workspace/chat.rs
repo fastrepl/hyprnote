@@ -1,11 +1,23 @@
 //! `PersistentChat` in its `FloatingOpen` mode (`chat/components/*`): the
-//! floating panel over the main surface with the toolbar and, without a
-//! language model, `ChatBodyEmpty`'s setup prompt. `mod+j` toggles it,
-//! Escape and a press on the frame close it.
+//! floating panel over the main surface with the toolbar (history, new chat),
+//! the message list, the composer, and the `ChatSessionProvider` flow —
+//! persisted `chat_groups` / `chat_messages`, the context block over the open
+//! note, the streamed assistant reply, and the generated chat title. `mod+j`
+//! toggles it, Escape and a press on the frame close it.
 
-use gpui::{AnyElement, ClickEvent, Context, MouseButton, MouseDownEvent, div, prelude::*, px};
+use std::collections::VecDeque;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+use gpui::{
+    AnyElement, ClickEvent, Context, Entity, MouseButton, MouseDownEvent, SharedString, Window,
+    div, prelude::*, px,
+};
 
 use super::Workspace;
+use crate::chat::{self, ContextRef, Message, Metadata, Part, Role, Scope, Status};
+use crate::llm_stream::{self, Chunk, Connection, Request, Turn, TurnRole};
+use crate::text_area::{TextArea, TextAreaEvent, TextAreaStyle};
 use crate::theme::alpha;
 use crate::ui::{TailwindText as _, icon};
 
@@ -15,25 +27,1034 @@ const PANEL_MIN_WIDTH: f32 = 476.0;
 const PANEL_MAX_WIDTH: f32 = 648.0;
 /// `FLOATING_PANEL_TOP_CLEARANCE`
 const TOP_CLEARANCE: f32 = 46.0;
+/// `max-h-[min(36rem,70vh)]`
+const LIST_MAX_HEIGHT: f32 = 576.0;
+
+/// `ChatStatus`
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ChatStatus {
+    Ready,
+    Submitted,
+    Streaming,
+    Error,
+}
+
+/// `ChatSessionProvider` + `chat-context.ts` state for the general scope.
+#[derive(Default)]
+pub(crate) struct ChatState {
+    /// `useChatSelection`: the persisted group, once the first send created it.
+    pub group_id: Option<String>,
+    pub messages: Vec<Message>,
+    pub status: Option<ChatStatus>,
+    pub error: Option<String>,
+    pub composer: Option<Entity<TextArea>>,
+    /// `useLanguageModel("chat")`: the resolved connection, `Some(None)`
+    /// once resolved without a model.
+    pub connection: Option<Option<Connection>>,
+    /// Bumped per stream so a stale run cannot touch the list.
+    pub run: u64,
+    pub abort: Option<Arc<AtomicBool>>,
+    /// `queuedMessages`: sends made while a reply streams.
+    pub queued: VecDeque<String>,
+    pub history_open: bool,
+    /// `useRecentChatGroups(scope, 5)`
+    pub history: Vec<chat::GroupRow>,
+    /// `regenerate()`: the assistant row the next finished reply replaces.
+    pub replace_previous: Option<String>,
+    /// `useAutoFocusEditor`: focus the composer on the next frame.
+    pub focus_pending: bool,
+    /// `useChatAutoScroll`'s `shouldAutoScroll`: keep the list pinned to the
+    /// bottom until the user scrolls up.
+    pub auto_scroll: bool,
+    /// `showGoToRecent`: the user scrolled down while unpinned.
+    pub show_go_to_recent: bool,
+}
+
+impl ChatState {
+    pub(crate) fn new() -> Self {
+        Self {
+            auto_scroll: true,
+            ..Default::default()
+        }
+    }
+
+    fn status(&self) -> ChatStatus {
+        self.status.unwrap_or(ChatStatus::Ready)
+    }
+
+    fn busy(&self) -> bool {
+        matches!(self.status(), ChatStatus::Submitted | ChatStatus::Streaming)
+    }
+}
 
 impl Workspace {
     /// `chat.sendEvent({ type: "TOGGLE" })`
     pub(crate) fn toggle_chat(&mut self, cx: &mut Context<Self>) {
-        self.chat_open = !self.chat_open;
+        if self.chat_open {
+            self.close_chat(cx);
+        } else {
+            self.open_chat(cx);
+        }
+    }
+
+    fn open_chat(&mut self, cx: &mut Context<Self>) {
+        self.chat_open = true;
+        self.chat.focus_pending = true;
+        self.resolve_chat_connection(cx);
+        self.load_chat_history(cx);
         cx.notify();
     }
 
     pub(crate) fn close_chat(&mut self, cx: &mut Context<Self>) {
         if self.chat_open {
             self.chat_open = false;
+            self.chat.history_open = false;
             cx.notify();
         }
+    }
+
+    /// `useLanguageModel("chat")`: the selected provider and model, re-read
+    /// whenever the panel opens or the settings change.
+    pub(crate) fn resolve_chat_connection(&mut self, cx: &mut Context<Self>) {
+        let task = self.store.llm_connection(&self.provider_settings);
+        cx.spawn(async move |this, cx| {
+            let connection = task.await.ok().flatten();
+            this.update(cx, |this, cx| {
+                this.chat.connection = Some(connection);
+                cx.notify();
+            })
+            .ok();
+        })
+        .detach();
+    }
+
+    fn chat_model_configured(&self) -> bool {
+        matches!(self.chat.connection, Some(Some(_)))
+    }
+
+    /// `useRecentChatGroups(chatScope, 5)`
+    fn load_chat_history(&mut self, cx: &mut Context<Self>) {
+        let task = self.store.chat_groups(Scope::General, Some(5));
+        cx.spawn(async move |this, cx| {
+            if let Ok(Ok(groups)) = task.await {
+                this.update(cx, |this, cx| {
+                    this.chat.history = groups;
+                    cx.notify();
+                })
+                .ok();
+            }
+        })
+        .detach();
+    }
+
+    /// `startNewChat`
+    fn start_new_chat(&mut self, cx: &mut Context<Self>) {
+        self.stop_chat(cx);
+        self.chat.group_id = None;
+        self.chat.messages.clear();
+        self.chat.status = None;
+        self.chat.error = None;
+        self.chat.queued.clear();
+        self.chat.history_open = false;
+        cx.notify();
+    }
+
+    /// `selectChat(groupId)`: load the group's persisted messages.
+    fn select_chat(&mut self, group_id: String, cx: &mut Context<Self>) {
+        self.stop_chat(cx);
+        self.chat.history_open = false;
+        self.chat.group_id = Some(group_id.clone());
+        self.chat.messages.clear();
+        self.chat.status = None;
+        self.chat.error = None;
+        let task = self.store.chat_messages(group_id.clone());
+        cx.spawn(async move |this, cx| {
+            let rows = match task.await {
+                Ok(Ok(rows)) => rows,
+                _ => return,
+            };
+            this.update(cx, |this, cx| {
+                if this.chat.group_id.as_deref() == Some(group_id.as_str()) {
+                    this.chat.messages = rows
+                        .into_iter()
+                        .filter_map(chat::MessageRow::into_message)
+                        .collect();
+                    cx.notify();
+                }
+            })
+            .ok();
+        })
+        .detach();
+    }
+
+    /// `ChatMessageInput`'s editor: `submitShortcut="enter"`, `Ask anything`.
+    fn ensure_chat_composer(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if self.chat.composer.is_some() {
+            return;
+        }
+        let theme = self.theme;
+        let style = TextAreaStyle {
+            text: theme.foreground,
+            placeholder: theme.muted_foreground,
+            selection: theme.selection,
+            font_size: px(14.0),
+            line_height: px(20.0),
+            rows: 1,
+        };
+        let composer =
+            cx.new(|cx| TextArea::new("Ask anything", style, window, cx).enter_submits());
+        cx.subscribe_in(
+            &composer,
+            window,
+            |this, _, event: &TextAreaEvent, _window, cx| match event {
+                TextAreaEvent::Submit => this.submit_chat_draft(cx),
+                TextAreaEvent::Escape => this.close_chat(cx),
+                TextAreaEvent::Changed => cx.notify(),
+                TextAreaEvent::Blurred => {}
+            },
+        )
+        .detach();
+        self.chat.composer = Some(composer);
+    }
+
+    /// `useSubmit`: send the trimmed draft and clear the editor.
+    fn submit_chat_draft(&mut self, cx: &mut Context<Self>) {
+        let Some(composer) = self.chat.composer.clone() else {
+            return;
+        };
+        let text = composer.read(cx).text().trim().to_string();
+        if text.is_empty() {
+            return;
+        }
+        composer.update(cx, |composer, cx| composer.set_text("", cx));
+        self.submit_or_queue_chat_message(text, cx);
+    }
+
+    /// `submitOrQueueMessage`: a send while a reply streams waits its turn.
+    fn submit_or_queue_chat_message(&mut self, text: String, cx: &mut Context<Self>) {
+        if !self.chat_model_configured() {
+            return;
+        }
+        if self.chat.busy() {
+            self.chat.queued.push_back(text);
+            cx.notify();
+            return;
+        }
+        self.send_chat_message(text, cx);
+    }
+
+    /// `handleSendMessage` + `sendMessage`: persist the user message (creating
+    /// the group with its fallback title and kicking off the generated title
+    /// on the first send), then stream the reply.
+    fn send_chat_message(&mut self, text: String, cx: &mut Context<Self>) {
+        let Some(Some(connection)) = self.chat.connection.clone() else {
+            return;
+        };
+        let session_id = self.selected.clone();
+        let context_refs = session_id
+            .as_deref()
+            .map(|id| vec![ContextRef::auto_session(id)])
+            .filter(|refs| !refs.is_empty());
+        let message = Message {
+            id: uuid::Uuid::new_v4().to_string(),
+            role: Role::User,
+            parts: vec![Part::Text {
+                text: text.clone(),
+                state: None,
+            }],
+            metadata: Metadata {
+                chat_scope: Some(Scope::General),
+                created_at: Some(chrono::Utc::now().timestamp_millis()),
+                context_refs,
+            },
+            status: Status::Ready,
+        };
+        let (group_id, created) = match self.chat.group_id.clone() {
+            Some(group_id) => (group_id, false),
+            None => (uuid::Uuid::new_v4().to_string(), true),
+        };
+        self.chat.group_id = Some(group_id.clone());
+        let fallback_title = created.then(|| chat::create_fallback_chat_title(&text));
+        if let Some(fallback_title) = &fallback_title {
+            self.generate_chat_title(group_id.clone(), fallback_title.clone(), text.clone(), cx);
+        }
+        self.chat.messages.push(message.clone());
+        self.chat.error = None;
+        self.chat.status = Some(ChatStatus::Submitted);
+        self.chat.auto_scroll = true;
+        self.chat.show_go_to_recent = false;
+        cx.notify();
+        let store = self.store.clone();
+        cx.spawn(async move |this, cx| {
+            let owner_user_id = store.owner_user_id().await.unwrap_or_default();
+            let row =
+                chat::MessageRow::from_message(&message, &group_id, &owner_user_id, Some(text));
+            let persist = match fallback_title {
+                Some(title) => store.create_chat_group_with_message(
+                    group_id.clone(),
+                    owner_user_id,
+                    title,
+                    row,
+                ),
+                None => store.upsert_chat_message(row),
+            };
+            // `beforeSend` must land before the transport runs.
+            if !matches!(persist.await, Ok(Ok(()))) {
+                this.update(cx, |this, cx| {
+                    this.chat.messages.pop();
+                    if created {
+                        this.chat.group_id = None;
+                    }
+                    this.chat.status = None;
+                    this.flash(
+                        super::toast::FlashVariant::Error,
+                        "Could not save this chat message.",
+                        cx,
+                    );
+                })
+                .ok();
+                return;
+            }
+            this.update(cx, |this, cx| {
+                this.load_chat_history(cx);
+                this.stream_chat_reply(connection, cx);
+            })
+            .ok();
+        })
+        .detach();
+    }
+
+    /// `generateChatTitle` → `setChatGroupTitleIfCurrent`.
+    fn generate_chat_title(
+        &mut self,
+        group_id: String,
+        fallback_title: String,
+        initial_request: String,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(Some(connection)) = self.chat.connection.clone() else {
+            return;
+        };
+        let Some(prompt) = chat::title_request(&initial_request) else {
+            return;
+        };
+        let store = self.store.clone();
+        cx.spawn(async move |this, cx| {
+            let mut receiver = llm_stream::stream(
+                store.runtime(),
+                connection,
+                Request::new(chat::TITLE_SYSTEM_PROMPT, prompt, 32),
+            );
+            let mut text = String::new();
+            while let Some(chunk) = receiver.recv().await {
+                match chunk {
+                    Chunk::TextDelta(delta) => text.push_str(&delta),
+                    Chunk::Error(error) => {
+                        tracing::error!(%error, "Failed to generate chat title");
+                        return;
+                    }
+                    Chunk::ReasoningDelta(_) => {}
+                    Chunk::Done => break,
+                }
+            }
+            let Some(title) = chat::normalize_generated_chat_title(&text) else {
+                return;
+            };
+            let _ = store
+                .set_chat_group_title_if_current(group_id, fallback_title, title)
+                .await;
+            this.update(cx, |this, cx| this.load_chat_history(cx)).ok();
+        })
+        .detach();
+    }
+
+    /// `CustomChatTransport.sendMessages`: the system prompt with the tool
+    /// guidance, the context block prepended to the last user message, the
+    /// message window, and the streamed reply appended as the assistant
+    /// message; `onFinish` persists it.
+    fn stream_chat_reply(&mut self, connection: Connection, cx: &mut Context<Self>) {
+        let Some(group_id) = self.chat.group_id.clone() else {
+            return;
+        };
+        self.chat.run += 1;
+        let run = self.chat.run;
+        let abort = Arc::new(AtomicBool::new(false));
+        self.chat.abort = Some(abort.clone());
+        self.chat.status = Some(ChatStatus::Submitted);
+        let language = self
+            .provider_settings
+            .string_setting("ai_language", &["language", "ai_language"])
+            .unwrap_or_else(|| "en".to_string());
+        // `extractContextRefsFromMessages`: every ref across the conversation,
+        // deduped by key, hydrated once.
+        let mut seen = std::collections::HashSet::new();
+        let session_ids: Vec<String> = self
+            .chat
+            .messages
+            .iter()
+            .flat_map(|message| message.metadata.context_refs.iter().flatten())
+            .filter(|reference| seen.insert(reference.key().to_string()))
+            .map(|reference| match reference {
+                ContextRef::Session { session_id, .. } => session_id.clone(),
+            })
+            .collect();
+        let context_tasks: Vec<_> = session_ids
+            .into_iter()
+            .map(|id| self.store.chat_session_context(id))
+            .collect();
+        let history: Vec<Message> = self.chat.messages.clone();
+        let replace_previous = self.chat.replace_previous.take();
+        let runtime = self.store.runtime().clone();
+        let store = self.store.clone();
+        cx.spawn(async move |this, cx| {
+            let owner_user_id = store.owner_user_id().await.unwrap_or_default();
+            let mut contexts = Vec::new();
+            for task in context_tasks {
+                if let Ok(Ok(Some(context))) = task.await {
+                    contexts.push(context);
+                }
+            }
+            let context_block = if contexts.is_empty() {
+                None
+            } else {
+                anlg_template_app::render(anlg_template_app::Template::ContextBlock(
+                    anlg_template_app::ContextBlock { contexts },
+                ))
+                .ok()
+                .map(|block| block.trim().to_string())
+                .filter(|block| !block.is_empty())
+            };
+            let system = anlg_template_app::render(anlg_template_app::Template::ChatSystem(
+                anlg_template_app::ChatSystem {
+                    language: Some(language),
+                },
+            ))
+            .unwrap_or_default();
+            let system = chat::append_meeting_context_tool_guidance(&system);
+            // `convertToModelMessages` over the window, the context block on
+            // the last user message only.
+            let last_user = history
+                .iter()
+                .rposition(|message| message.role == Role::User);
+            let mut turns: Vec<Turn> = history
+                .iter()
+                .enumerate()
+                .map(|(index, message)| {
+                    let mut text = chat::extract_text_content(&message.parts);
+                    if Some(index) == last_user
+                        && let Some(block) = &context_block
+                    {
+                        text = format!("{block}\n\n{text}");
+                    }
+                    Turn {
+                        role: match message.role {
+                            Role::User => TurnRole::User,
+                            Role::Assistant => TurnRole::Assistant,
+                        },
+                        text,
+                    }
+                })
+                .collect();
+            turns = chat::window_messages(turns);
+            let Some(prompt) = turns.pop() else {
+                return;
+            };
+            let mut request = Request::new(system, prompt.text, 0);
+            request.history = turns;
+            let mut receiver = llm_stream::stream(&runtime, connection, request);
+
+            let assistant_id = uuid::Uuid::new_v4().to_string();
+            let created_at = chrono::Utc::now().timestamp_millis();
+            if this
+                .update(cx, |this, cx| {
+                    if this.chat.run != run {
+                        return;
+                    }
+                    this.chat.messages.push(Message {
+                        id: assistant_id.clone(),
+                        role: Role::Assistant,
+                        parts: vec![Part::StepStart],
+                        metadata: Metadata {
+                            created_at: Some(created_at),
+                            ..Metadata::default()
+                        },
+                        status: Status::Streaming,
+                    });
+                    cx.notify();
+                })
+                .is_err()
+            {
+                return;
+            }
+            let mut text = String::new();
+            let mut reasoning = String::new();
+            let mut outcome: Result<(), String> = Ok(());
+            while let Some(chunk) = receiver.recv().await {
+                if abort.load(Ordering::Relaxed) {
+                    break;
+                }
+                match chunk {
+                    Chunk::TextDelta(delta) => text.push_str(&delta),
+                    Chunk::ReasoningDelta(delta) => reasoning.push_str(&delta),
+                    Chunk::Done => break,
+                    Chunk::Error(error) => {
+                        outcome = Err(error);
+                        break;
+                    }
+                }
+                let parts = assistant_parts(&reasoning, &text, false);
+                if this
+                    .update(cx, |this, cx| {
+                        if this.chat.run != run {
+                            return;
+                        }
+                        this.chat.status = Some(ChatStatus::Streaming);
+                        if let Some(message) = this
+                            .chat
+                            .messages
+                            .iter_mut()
+                            .find(|message| message.id == assistant_id)
+                        {
+                            message.parts = parts;
+                        }
+                        cx.notify();
+                    })
+                    .is_err()
+                {
+                    return;
+                }
+            }
+            let aborted = abort.load(Ordering::Relaxed);
+            let parts = assistant_parts(&reasoning, &text, true);
+            this.update(cx, |this, cx| {
+                if this.chat.run != run {
+                    return;
+                }
+                this.chat.abort = None;
+                let position = this
+                    .chat
+                    .messages
+                    .iter()
+                    .position(|message| message.id == assistant_id);
+                match (&outcome, aborted) {
+                    // `isAbort`: the partial reply stays on screen, unpersisted.
+                    (_, true) => {
+                        if let Some(index) = position {
+                            if text.trim().is_empty() && reasoning.trim().is_empty() {
+                                this.chat.messages.remove(index);
+                            } else {
+                                this.chat.messages[index].parts = parts;
+                                this.chat.messages[index].status = Status::Aborted;
+                            }
+                        }
+                        this.chat.status = Some(ChatStatus::Ready);
+                    }
+                    (Err(error), false) => {
+                        if let Some(index) = position {
+                            this.chat.messages.remove(index);
+                        }
+                        this.chat.error = Some(error.clone());
+                        this.chat.status = Some(ChatStatus::Error);
+                    }
+                    (Ok(()), false) => {
+                        if let Some(index) = position {
+                            let message = &mut this.chat.messages[index];
+                            message.parts = parts;
+                            message.status = Status::Ready;
+                            // `onFinish` persists the assistant message.
+                            let row = chat::MessageRow::from_message(
+                                message,
+                                &group_id,
+                                &owner_user_id,
+                                None,
+                            );
+                            let write = match replace_previous.clone() {
+                                Some(previous) => store.replace_chat_message(row, previous),
+                                None => store.upsert_chat_message(row),
+                            };
+                            store.runtime().spawn(async move {
+                                if let Ok(Err(error)) = write.await {
+                                    tracing::error!(%error, "Failed to persist chat message");
+                                }
+                            });
+                        }
+                        this.chat.status = Some(ChatStatus::Ready);
+                    }
+                }
+                cx.notify();
+                // `ChatQueue`: the next queued send goes out once ready.
+                if this.chat.status() == ChatStatus::Ready
+                    && let Some(next) = this.chat.queued.pop_front()
+                {
+                    this.send_chat_message(next, cx);
+                }
+            })
+            .ok();
+        })
+        .detach();
+    }
+
+    /// `stop()`: abort the stream.
+    fn stop_chat(&mut self, cx: &mut Context<Self>) {
+        if let Some(abort) = self.chat.abort.take() {
+            abort.store(true, Ordering::Relaxed);
+        }
+        if self.chat.busy() {
+            self.chat.status = Some(ChatStatus::Ready);
+            self.chat.run += 1;
+            if let Some(last) = self.chat.messages.last_mut()
+                && last.role == Role::Assistant
+                && last.status == Status::Streaming
+            {
+                if last
+                    .parts
+                    .iter()
+                    .all(|part| matches!(part, Part::StepStart))
+                {
+                    self.chat.messages.pop();
+                } else {
+                    last.status = Status::Aborted;
+                }
+            }
+            cx.notify();
+        }
+    }
+
+    /// `regenerate()`: drop the last assistant reply (tombstoning its row)
+    /// and stream again.
+    fn regenerate_chat(&mut self, cx: &mut Context<Self>) {
+        if self.chat.busy() {
+            return;
+        }
+        let Some(Some(connection)) = self.chat.connection.clone() else {
+            return;
+        };
+        let Some(group_id) = self.chat.group_id.clone() else {
+            return;
+        };
+        if let Some(last) = self.chat.messages.last()
+            && last.role == Role::Assistant
+        {
+            let previous = self.chat.messages.pop().expect("checked");
+            self.chat.replace_previous = Some(previous.id);
+        }
+        let _ = group_id;
+        self.chat.error = None;
+        self.stream_chat_reply(connection, cx);
+    }
+
+    /// `ChatBody`: the message list, or the empty state; the floating body
+    /// scrolls inside `max-h-[min(36rem,70vh)]` with `px-5 py-3`.
+    pub(super) fn render_chat_body(
+        &mut self,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> AnyElement {
+        let theme = self.theme;
+        if !self.chat_model_configured() {
+            return self.render_chat_setup_prompt(cx);
+        }
+        let has_context = self.selected.is_some();
+        // `useChatAutoScroll`: pinned to the bottom while generating unless the
+        // user scrolled up; `Go to recent` once they scroll down again.
+        let handle = self.chat_scroll.clone();
+        let max = handle.max_offset().height;
+        let distance_from_bottom = max + handle.offset().y;
+        let is_at_bottom = distance_from_bottom <= px(24.0);
+        if is_at_bottom {
+            self.chat.auto_scroll = true;
+            self.chat.show_go_to_recent = false;
+        }
+        if self.chat.auto_scroll && !self.chat.messages.is_empty() {
+            handle.scroll_to_bottom();
+        }
+        let list = div()
+            .id("chat-body")
+            .relative()
+            .flex()
+            .flex_col()
+            .child(
+                div()
+                    .id("chat-scroll")
+                    .flex()
+                    .flex_col()
+                    .max_h(px(LIST_MAX_HEIGHT))
+                    .overflow_y_scroll()
+                    .track_scroll(&self.chat_scroll)
+                    .on_scroll_wheel(cx.listener(|this, event: &gpui::ScrollWheelEvent, _, cx| {
+                        let delta_y = match event.delta {
+                            gpui::ScrollDelta::Pixels(delta) => f32::from(delta.y),
+                            gpui::ScrollDelta::Lines(delta) => delta.y,
+                        };
+                        // Scrolling up unpins; scrolling down while unpinned offers `Go to recent`.
+                        if delta_y > 0.0 {
+                            this.chat.auto_scroll = false;
+                            this.chat.show_go_to_recent = false;
+                        } else if delta_y < 0.0 && !this.chat.auto_scroll {
+                            this.chat.show_go_to_recent = true;
+                        }
+                        cx.notify();
+                    }))
+                    .child(div().flex().flex_col().px_5().py_3().child(
+                        if self.chat.messages.is_empty() {
+                            self.render_chat_suggestions(has_context, cx)
+                        } else {
+                            self.render_chat_messages(window, cx)
+                        },
+                    )),
+            )
+            .when(
+                !self.chat.messages.is_empty() && self.chat.show_go_to_recent && !is_at_bottom,
+                |body| {
+                    // `absolute bottom-3 left-1/2 -translate-x-1/2`: `Go to recent`.
+                    body.child(
+                        div()
+                            .absolute()
+                            .bottom(px(12.0))
+                            .left_0()
+                            .right_0()
+                            .flex()
+                            .justify_center()
+                            .child(
+                                div()
+                                    .id("chat-go-to-recent")
+                                    .flex()
+                                    .items_center()
+                                    .gap_1()
+                                    .h(px(32.0))
+                                    .px_3()
+                                    .rounded_full()
+                                    .border_1()
+                                    .border_color(theme.border)
+                                    .bg(theme.background)
+                                    .shadow_xs()
+                                    .cursor_pointer()
+                                    .hover(move |style| style.bg(theme.accent))
+                                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                                        this.chat.auto_scroll = true;
+                                        this.chat.show_go_to_recent = false;
+                                        this.chat_scroll.scroll_to_bottom();
+                                        cx.notify();
+                                    }))
+                                    .child(icon("caret-down", px(12.0), theme.foreground))
+                                    .child(div().tw_text_xs().child("Go to recent")),
+                            ),
+                    )
+                },
+            );
+        list.into_any_element()
+    }
+
+    /// `ChatBodyEmpty` with a model: the suggestion rows while the open note
+    /// gives the chat its context.
+    fn render_chat_suggestions(&self, has_context: bool, cx: &Context<Self>) -> AnyElement {
+        let theme = self.theme;
+        let icons = ["list-checks", "envelope", "magnifying-glass"];
+        div()
+            .flex()
+            .justify_start()
+            .pb_1()
+            .child(
+                div()
+                    .flex()
+                    .w_full()
+                    .flex_col()
+                    .when(has_context, |column| {
+                        column.child(div().flex().flex_col().gap(px(2.0)).children(
+                            chat::SUGGESTIONS.iter().zip(icons).enumerate().map(
+                                |(index, ((label, prompt), glyph))| {
+                                    let prompt = prompt.to_string();
+                                    // `grid-cols-[1.5rem_minmax(0,1fr)] gap-x-1.5 rounded-lg
+                                    // py-2 pr-3 text-sm text-muted-foreground hover:bg-muted/55`
+                                    div()
+                                        .id(("chat-suggestion", index))
+                                        .flex()
+                                        .w_full()
+                                        .items_center()
+                                        .gap(px(6.0))
+                                        .rounded(px(8.0))
+                                        .py_2()
+                                        .pr_3()
+                                        .tw_text_sm()
+                                        .text_color(theme.muted_foreground)
+                                        .cursor_pointer()
+                                        .hover(move |style| style.bg(alpha(theme.muted, 0.55)))
+                                        .on_click(cx.listener(
+                                            move |this, _: &ClickEvent, _, cx| {
+                                                this.submit_or_queue_chat_message(
+                                                    prompt.clone(),
+                                                    cx,
+                                                );
+                                            },
+                                        ))
+                                        .child(
+                                            div()
+                                                .flex()
+                                                .size(px(24.0))
+                                                .flex_shrink_0()
+                                                .items_center()
+                                                .justify_center()
+                                                .child(icon(
+                                                    glyph,
+                                                    px(16.0),
+                                                    alpha(theme.muted_foreground, 0.75),
+                                                )),
+                                        )
+                                        .child(div().min_w_0().truncate().child(*label))
+                                },
+                            ),
+                        ))
+                    }),
+            )
+            .into_any_element()
+    }
+
+    /// `ChatBodyNonEmpty`: the bubbles, then `Thinking...` while nothing is
+    /// renderable yet, then the error bubble.
+    fn render_chat_messages(&mut self, window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
+        let theme = self.theme;
+        let status = self.chat.status();
+        let last_assistant = self
+            .chat
+            .messages
+            .iter()
+            .rposition(|message| message.role == Role::Assistant);
+        let last = self.chat.messages.last();
+        let waiting = matches!(status, ChatStatus::Submitted | ChatStatus::Streaming)
+            && last.is_none_or(|message| {
+                message.role != Role::Assistant
+                    || !has_renderable_content(message)
+                    || matches!(message.parts.last(), Some(Part::StepStart))
+            });
+        let messages = self.chat.messages.clone();
+        let renderer = self.document_renderer(window);
+        let mut column = div().flex().flex_col();
+        for (index, message) in messages.iter().enumerate() {
+            if !has_renderable_content(message) {
+                continue;
+            }
+            let is_user = message.role == Role::User;
+            let bubble = if is_user {
+                // `w-fit rounded-2xl bg-blue-100 px-3 py-1 text-neutral-800`
+                div()
+                    .w_auto()
+                    .rounded(px(16.0))
+                    .bg(gpui::rgb(0xdbeafe))
+                    .px_3()
+                    .py_1()
+                    .tw_text_sm()
+                    .text_color(gpui::rgb(0x262626))
+                    .children(message.parts.iter().filter_map(|part| match part {
+                        Part::Text { text, .. } => Some(div().px(px(2.0)).py_1().children(
+                            renderer.chat_blocks(&crate::document::from_body("markdown", text)),
+                        )),
+                        _ => None,
+                    }))
+            } else {
+                let mut bubble = div()
+                    .tw_text_sm()
+                    .text_color(theme.foreground)
+                    .when(theme.dark, |b| {
+                        b.rounded(px(16.0)).bg(theme.accent).px_3().py_1()
+                    });
+                for part in &message.parts {
+                    match part {
+                        Part::Reasoning { text, state } => {
+                            let raw = text.trim();
+                            if raw.is_empty() {
+                                continue;
+                            }
+                            let cleaned = raw
+                                .replace(['\n', '`', '*', '#', '"'], " ")
+                                .split_whitespace()
+                                .collect::<Vec<_>>()
+                                .join(" ");
+                            let streaming = state.as_deref() != Some("done");
+                            let title = if streaming {
+                                cleaned
+                                    .chars()
+                                    .rev()
+                                    .take(150)
+                                    .collect::<Vec<_>>()
+                                    .into_iter()
+                                    .rev()
+                                    .collect::<String>()
+                            } else {
+                                cleaned
+                            };
+                            bubble = bubble.child(
+                                div()
+                                    .flex()
+                                    .items_center()
+                                    .gap(px(6.0))
+                                    .py_1()
+                                    .text_color(theme.muted_foreground)
+                                    .tw_text_xs()
+                                    .child(icon("brain", px(12.0), theme.muted_foreground))
+                                    .child(
+                                        div().min_w_0().truncate().child(SharedString::from(title)),
+                                    ),
+                            );
+                        }
+                        Part::Text { text, .. } => {
+                            bubble = bubble.child(div().min_w_0().px(px(2.0)).py_1().children(
+                                renderer.chat_blocks(&crate::document::from_body("markdown", text)),
+                            ));
+                        }
+                        Part::StepStart | Part::Other(_) => {}
+                    }
+                }
+                bubble
+            };
+            let mut row = div()
+                .flex()
+                .py_2()
+                .when(is_user, |row| row.justify_end())
+                .when(!is_user, |row| row.justify_start());
+            if is_user {
+                row = row.child(
+                    div()
+                        .flex()
+                        .min_w_0()
+                        .max_w(gpui::relative(0.85))
+                        .flex_col()
+                        .items_end()
+                        .child(bubble),
+                );
+            } else {
+                let is_last_assistant = last_assistant == Some(index);
+                let can_regenerate = is_last_assistant && status == ChatStatus::Ready;
+                let text = chat::extract_text_content(&message.parts);
+                row = row.child(
+                    div()
+                        .id(("chat-assistant", index))
+                        .group("chat-assistant")
+                        .flex()
+                        .w_full()
+                        .min_w_0()
+                        .flex_col()
+                        .child(bubble)
+                        .child(
+                            // `mt-1 flex items-center gap-1 opacity-0 group-hover:opacity-100`
+                            div()
+                                .mt_1()
+                                .flex()
+                                .items_center()
+                                .gap_1()
+                                .opacity(0.0)
+                                .group_hover("chat-assistant", |row| row.opacity(1.0))
+                                .child(
+                                    div()
+                                        .id(("chat-copy", index))
+                                        .p_1()
+                                        .cursor_pointer()
+                                        .text_color(theme.muted_foreground)
+                                        .hover(move |style| style.text_color(theme.foreground))
+                                        .on_click(cx.listener(move |_, _: &ClickEvent, _, cx| {
+                                            cx.write_to_clipboard(gpui::ClipboardItem::new_string(
+                                                text.clone(),
+                                            ));
+                                        }))
+                                        .child(icon("copy", px(14.0), theme.muted_foreground)),
+                                )
+                                .when(can_regenerate, |actions| {
+                                    actions.child(
+                                        div()
+                                            .id(("chat-regenerate", index))
+                                            .p_1()
+                                            .cursor_pointer()
+                                            .text_color(theme.muted_foreground)
+                                            .hover(move |style| style.text_color(theme.foreground))
+                                            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                                                this.regenerate_chat(cx)
+                                            }))
+                                            .child(icon(
+                                                "arrow-counter-clockwise",
+                                                px(14.0),
+                                                theme.muted_foreground,
+                                            )),
+                                    )
+                                }),
+                        ),
+                );
+            }
+            column = column.child(row);
+        }
+        if waiting {
+            // `LoadingMessage`: the spinner and `Thinking...`.
+            column = column.child(
+                div().flex().py_2().justify_start().child(
+                    div()
+                        .flex()
+                        .items_center()
+                        .gap_2()
+                        .tw_text_sm()
+                        .text_color(theme.foreground)
+                        .child(crate::ui::spinner(
+                            "chat-thinking",
+                            px(16.0),
+                            theme.foreground,
+                        ))
+                        .child("Thinking..."),
+                ),
+            );
+        }
+        if status == ChatStatus::Error
+            && let Some(error) = &self.chat.error
+        {
+            // `ErrorMessage`: `rounded-2xl border border-red-200 bg-red-50 px-3
+            // py-1 text-red-600` with the hover retry.
+            column = column.child(
+                div().flex().py_2().justify_start().child(
+                    div()
+                        .id("chat-error")
+                        .group("chat-error")
+                        .relative()
+                        .rounded(px(16.0))
+                        .border_1()
+                        .border_color(gpui::rgb(0xfecaca))
+                        .bg(gpui::rgb(0xfef2f2))
+                        .px_3()
+                        .py_1()
+                        .tw_text_sm()
+                        .text_color(gpui::rgb(0xdc2626))
+                        .child(SharedString::from(error.clone()))
+                        .child(
+                            div()
+                                .id("chat-error-retry")
+                                .absolute()
+                                .top(px(-4.0))
+                                .right(px(-4.0))
+                                .flex()
+                                .size(px(20.0))
+                                .items_center()
+                                .justify_center()
+                                .rounded(px(10.0))
+                                .border_1()
+                                .border_color(gpui::rgb(0xfecaca))
+                                .bg(gpui::rgb(0xffffff))
+                                .opacity(0.0)
+                                .group_hover("chat-error", |style| style.opacity(1.0))
+                                .cursor_pointer()
+                                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                                    this.regenerate_chat(cx)
+                                }))
+                                .child(icon(
+                                    "arrow-counter-clockwise",
+                                    px(12.0),
+                                    gpui::rgb(0xdc2626),
+                                )),
+                        ),
+                ),
+            );
+        }
+        column.into_any_element()
     }
 
     /// `ChatBodyEmpty` without a model: the greeting, the Beta chip, and the
     /// `Open AI Settings` button. Shared by the floating frame and the
     /// automations tab's right panel.
-    pub(super) fn render_chat_body(&self, cx: &Context<Self>) -> AnyElement {
+    pub(super) fn render_chat_setup_prompt(&self, cx: &Context<Self>) -> AnyElement {
         let theme = self.theme;
         div()
             .flex()
@@ -134,10 +1155,172 @@ impl Workspace {
         .into_any_element()
     }
 
+    /// `ChatMessageInput` in the floating layout: `px-1 pb-1` around the
+    /// `rounded-[19px] bg-white border pl-4 pr-[6px] min-h-[38px]` surface,
+    /// the editor, the mic, and the send / stop control.
+    fn render_chat_composer(&mut self, window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
+        self.ensure_chat_composer(window, cx);
+        let theme = self.theme;
+        let composer = self.chat.composer.clone().expect("ensured");
+        if std::mem::take(&mut self.chat.focus_pending) {
+            composer.update(cx, |composer, cx| composer.focus_end(window, cx));
+        }
+        let has_content = !composer.read(cx).text().trim().is_empty();
+        let streaming = self.chat.busy();
+        let show_send = streaming || has_content;
+        let queued = self.chat.queued.clone();
+        let mut controls = div()
+            .absolute()
+            .right_0()
+            .bottom(px(2.0))
+            .flex()
+            .flex_shrink_0()
+            .items_center()
+            .gap_1();
+        if !streaming {
+            // `Start voice input`: `size-7 rounded-full text-muted-foreground`.
+            controls = controls.child(
+                div()
+                    .id("chat-mic")
+                    .flex()
+                    .size(px(28.0))
+                    .flex_shrink_0()
+                    .items_center()
+                    .justify_center()
+                    .rounded(px(14.0))
+                    .cursor_pointer()
+                    .hover(move |style| style.bg(theme.muted))
+                    .on_click(|_: &ClickEvent, _, _| {
+                        tracing::warn!("chat voice input is not available in the native shell yet");
+                    })
+                    .child(icon("microphone", px(17.0), theme.muted_foreground)),
+            );
+        }
+        if streaming {
+            controls = controls.child(
+                div()
+                    .id("chat-stop")
+                    .flex()
+                    .size(px(28.0))
+                    .items_center()
+                    .justify_center()
+                    .rounded(px(14.0))
+                    .cursor_pointer()
+                    .hover(move |style| style.bg(theme.muted))
+                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| this.stop_chat(cx)))
+                    .child(icon("square", px(14.0), theme.foreground)),
+            );
+        } else if show_send {
+            let enabled = has_content;
+            // `SendButton`: `size-7 rounded-full border`, filled when enabled.
+            controls = controls.child(
+                div()
+                    .id("chat-send")
+                    .flex()
+                    .size(px(28.0))
+                    .flex_shrink_0()
+                    .items_center()
+                    .justify_center()
+                    .rounded(px(14.0))
+                    .border_1()
+                    .map(|button| {
+                        if enabled {
+                            button
+                                .border_color(gpui::rgb(0x57534e))
+                                .bg(theme.primary)
+                                .cursor_pointer()
+                                .hover(move |style| style.bg(alpha(theme.primary, 0.9)))
+                        } else {
+                            button.border_color(theme.border)
+                        }
+                    })
+                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| this.submit_chat_draft(cx)))
+                    .child(icon(
+                        "arrow-up",
+                        px(15.0),
+                        if enabled {
+                            theme.primary_foreground
+                        } else {
+                            alpha(theme.muted_foreground, 0.6)
+                        },
+                    )),
+            );
+        }
+        // Leave room for the controls at the editor's right edge.
+        let editor_padding = if streaming || show_send { 64.0 } else { 32.0 };
+        div()
+            .relative()
+            .min_w_0()
+            .flex_shrink_0()
+            .px_1()
+            .pb_1()
+            .when(!queued.is_empty(), |column| {
+                // `ChatQueue`: the waiting sends above the composer.
+                column.child(
+                    div()
+                        .px_3()
+                        .pb(px(6.0))
+                        .flex()
+                        .flex_col()
+                        .gap(px(2.0))
+                        .children(queued.into_iter().map(|text| {
+                            div()
+                                .tw_text_xs()
+                                .text_color(theme.muted_foreground)
+                                .truncate()
+                                .child(SharedString::from(text))
+                        })),
+                )
+            })
+            .child(
+                div()
+                    .relative()
+                    .flex()
+                    .max_h(px(160.0))
+                    .min_h(px(38.0))
+                    .items_center()
+                    .rounded(px(19.0))
+                    .border_1()
+                    .border_color(alpha(theme.border, 0.7))
+                    .bg(if theme.dark {
+                        theme.card
+                    } else {
+                        gpui::rgb(0xffffff)
+                    })
+                    .pl_4()
+                    .pr(px(6.0))
+                    .py(px(3.0))
+                    .tw_text_sm()
+                    .child(
+                        div()
+                            .relative()
+                            .flex()
+                            .w_full()
+                            .min_w_0()
+                            .min_h(px(30.0))
+                            .items_center()
+                            .child(
+                                div()
+                                    .min_w_0()
+                                    .flex_1()
+                                    .max_h(px(144.0))
+                                    .pr(px(editor_padding))
+                                    .child(composer),
+                            )
+                            .child(controls),
+                    ),
+            )
+            .into_any_element()
+    }
+
     /// The `[data-chat-floating-frame]` over the main surface: `items-end
     /// justify-center px-3 pb-2` with the top clearance, closing on a press
     /// outside the panel.
-    pub(super) fn render_chat_frame(&self, cx: &Context<Self>) -> Option<AnyElement> {
+    pub(super) fn render_chat_frame(
+        &mut self,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Option<AnyElement> {
         if !self.chat_open {
             return None;
         }
@@ -170,13 +1353,31 @@ impl Workspace {
             .px(px(10.0))
             .rounded(px(8.0))
             .cursor_pointer()
+            .when(self.chat.history_open, |trigger| {
+                trigger.bg(alpha(theme.muted, 0.8))
+            })
             .hover(move |style| style.bg(alpha(theme.muted, 0.8)))
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                this.chat.history_open = !this.chat.history_open;
+                if this.chat.history_open {
+                    this.load_chat_history(cx);
+                }
+                cx.notify();
+            }))
             .child(icon(
                 "clock-counter-clockwise",
                 px(16.0),
                 theme.muted_foreground,
             ))
-            .child(icon("caret-down", px(14.0), theme.muted_foreground));
+            .child(icon(
+                if self.chat.history_open {
+                    "caret-up"
+                } else {
+                    "caret-down"
+                },
+                px(14.0),
+                theme.muted_foreground,
+            ));
         let toolbar = div()
             .flex()
             .h(px(44.0))
@@ -191,18 +1392,28 @@ impl Workspace {
                     .flex_1()
                     .items_center()
                     .gap_1()
-                    .child(history),
+                    .child(
+                        div()
+                            .relative()
+                            .child(history)
+                            .children(self.render_chat_history_menu(cx)),
+                    ),
             )
             .child(
                 div()
                     .flex()
                     .flex_shrink_0()
                     .items_center()
-                    .child(ghost("chat-new", "plus"))
+                    .child(ghost("chat-new", "plus").on_click(
+                        cx.listener(|this, _: &ClickEvent, _, cx| this.start_new_chat(cx)),
+                    ))
                     .child(ghost("chat-right-panel", "sidebar-left")),
             );
 
-        let body = self.render_chat_body(cx);
+        let body = self.render_chat_body(window, cx);
+        let composer = self
+            .chat_model_configured()
+            .then(|| self.render_chat_composer(window, cx));
 
         let panel = div()
             .id("chat-panel")
@@ -235,8 +1446,14 @@ impl Workspace {
                     .bg(theme.floating_border),
             )
             .child(toolbar)
-            .child(body);
+            .child(body)
+            .children(composer);
 
+        let draft_empty = self
+            .chat
+            .composer
+            .as_ref()
+            .is_none_or(|composer| composer.read(cx).text().trim().is_empty());
         Some(
             div()
                 .id("chat-frame")
@@ -250,13 +1467,179 @@ impl Workspace {
                 .pt(px(TOP_CLEARANCE))
                 .on_mouse_down(
                     MouseButton::Left,
-                    cx.listener(|this, _: &MouseDownEvent, _, cx| {
+                    cx.listener(move |this, _: &MouseDownEvent, _, cx| {
                         cx.stop_propagation();
-                        this.close_chat(cx);
+                        // A press outside closes only while the draft is empty.
+                        if draft_empty {
+                            this.close_chat(cx);
+                        }
                     }),
                 )
                 .child(panel)
                 .into_any_element(),
         )
     }
+
+    /// `ChatGroups`' dropdown, opened to the right of the trigger (`side="right"
+    /// align="start" sideOffset={4}`): the `RECENT CHATS` header, the last five
+    /// groups with their relative times, or `No recent chats`.
+    fn render_chat_history_menu(&self, cx: &Context<Self>) -> Option<AnyElement> {
+        if !self.chat.history_open {
+            return None;
+        }
+        let theme = self.theme;
+        let now = chrono::Utc::now();
+        let mut panel = div()
+            .relative()
+            .flex()
+            .flex_col()
+            .p(px(6.0))
+            .child(crate::squircle::squircle(
+                crate::squircle::PANEL_RADIUS,
+                Some(theme.floating_panel),
+                Some((1.0, theme.floating_border)),
+            ))
+            .child(
+                // `px-2 py-1.5` + `text-[10px] font-semibold tracking-wider uppercase`
+                div()
+                    .px_2()
+                    .py(px(6.0))
+                    .text_size(px(10.0))
+                    .line_height(px(15.0))
+                    .font_weight(gpui::FontWeight::SEMIBOLD)
+                    .text_color(theme.muted_foreground)
+                    .child("RECENT CHATS"),
+            );
+        if self.chat.history.is_empty() {
+            panel = panel.child(
+                div()
+                    .flex()
+                    .flex_col()
+                    .items_center()
+                    .px_3()
+                    .py_6()
+                    .child(icon(
+                        "chat-circle",
+                        px(24.0),
+                        alpha(theme.muted_foreground, 0.7),
+                    ))
+                    .child(
+                        div()
+                            .mt(px(6.0))
+                            .tw_text_xs()
+                            .text_color(theme.muted_foreground)
+                            .child("No recent chats"),
+                    ),
+            );
+        } else {
+            panel = panel.child(div().flex().flex_col().gap(px(2.0)).children(
+                self.chat.history.iter().enumerate().map(|(index, group)| {
+                    let group_id = group.id.clone();
+                    let active = self.chat.group_id.as_deref() == Some(group.id.as_str());
+                    let relative = chrono::DateTime::parse_from_rfc3339(&group.created_at)
+                        .map(|created| {
+                            crate::automations::format_distance_to_now(
+                                created.with_timezone(&chrono::Utc),
+                                now,
+                            )
+                        })
+                        .unwrap_or_default();
+                    // `ChatGroupItem`: `px-2.5 py-1.5 rounded-[14px]`, active `bg-muted shadow-xs`.
+                    div()
+                        .id(("chat-group", index))
+                        .flex()
+                        .w_full()
+                        .items_center()
+                        .gap(px(10.0))
+                        .rounded(px(14.0))
+                        .px(px(10.0))
+                        .py(px(6.0))
+                        .cursor_pointer()
+                        .when(active, |row| row.bg(theme.muted))
+                        .hover(move |style| style.bg(theme.accent))
+                        .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                            this.select_chat(group_id.clone(), cx)
+                        }))
+                        .child(icon("chat-circle", px(14.0), theme.muted_foreground))
+                        .child(
+                            div()
+                                .min_w_0()
+                                .flex_1()
+                                .child(
+                                    div()
+                                        .truncate()
+                                        .tw_text_sm()
+                                        .font_weight(gpui::FontWeight::MEDIUM)
+                                        .text_color(if active {
+                                            theme.foreground
+                                        } else {
+                                            theme.muted_foreground
+                                        })
+                                        .child(SharedString::from(group.title.clone())),
+                                )
+                                .child(
+                                    div()
+                                        .mt(px(2.0))
+                                        .text_size(px(11.0))
+                                        .line_height(px(16.0))
+                                        .text_color(theme.muted_foreground)
+                                        .child(SharedString::from(relative)),
+                                ),
+                        )
+                }),
+            ));
+        }
+        let menu = super::menu::menu_chrome(theme, "chat-history-menu", 288.0)
+            .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+            .on_mouse_down_out(cx.listener(|this, _: &MouseDownEvent, _, cx| {
+                if this.chat.history_open {
+                    this.chat.history_open = false;
+                    cx.notify();
+                }
+            }))
+            .child(panel);
+        // The trigger is 56px wide (`px-2.5` around the two icons); the menu
+        // opens 4px past its right edge.
+        Some(
+            div()
+                .absolute()
+                .top_0()
+                .left(px(56.0 - 8.0 + 4.0))
+                .child(
+                    gpui::deferred(gpui::anchored().anchor(gpui::Corner::TopLeft).child(menu))
+                        .with_priority(3),
+                )
+                .into_any_element(),
+        )
+    }
+}
+
+/// The assistant's parts while and after streaming: `step-start`, the
+/// reasoning (when any), the text; `state` is `streaming` until done.
+fn assistant_parts(reasoning: &str, text: &str, done: bool) -> Vec<Part> {
+    let state = Some(if done { "done" } else { "streaming" }.to_string());
+    let mut parts = vec![Part::StepStart];
+    if !reasoning.is_empty() {
+        parts.push(Part::Reasoning {
+            text: reasoning.to_string(),
+            state: state.clone(),
+        });
+    }
+    if !text.is_empty() || done {
+        parts.push(Part::Text {
+            text: text.to_string(),
+            state,
+        });
+    }
+    parts
+}
+
+/// `hasRenderableContent`: a text or reasoning part with content, or a tool
+/// part.
+fn has_renderable_content(message: &Message) -> bool {
+    message.parts.iter().any(|part| match part {
+        Part::Text { text, .. } | Part::Reasoning { text, .. } => !text.trim().is_empty(),
+        Part::StepStart => false,
+        Part::Other(_) => true,
+    })
 }

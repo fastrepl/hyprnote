@@ -274,6 +274,8 @@ pub struct Workspace {
     dictionary_edit: Option<dictionary::DictionaryEdit>,
     /// `chat.mode === "FloatingOpen"`
     chat_open: bool,
+    chat: chat::ChatState,
+    chat_scroll: gpui::ScrollHandle,
     /// The Share CTA's popover while open.
     share_popover: Option<share::SharePopover>,
     /// `anarlog.template-picker.recent-emojis` (kept for the session).
@@ -432,6 +434,8 @@ impl Workspace {
             dictionary_input: None,
             dictionary_edit: None,
             chat_open: false,
+            chat: chat::ChatState::new(),
+            chat_scroll: gpui::ScrollHandle::new(),
             share_popover: None,
             recent_emoji_ids: Vec::new(),
             note_scroll: gpui::ScrollHandle::new(),

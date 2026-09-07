@@ -115,7 +115,7 @@ impl Workspace {
                 _ => None,
             })
             // `PersistentChat` portals its floating frame over this surface.
-            .children(self.render_chat_frame(cx))
+            .children(self.render_chat_frame(window, cx))
     }
 
     /// `EmptyView`: three centred actions with their shortcuts.

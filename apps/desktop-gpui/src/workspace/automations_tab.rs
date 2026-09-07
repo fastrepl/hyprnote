@@ -1093,7 +1093,7 @@ impl Workspace {
                     .bg(theme.card)
                     .rounded_tr(px(12.0))
                     .overflow_hidden()
-                    .child(self.render_chat_body(cx)),
+                    .child(self.render_chat_setup_prompt(cx)),
             )
             .into_any_element()
     }

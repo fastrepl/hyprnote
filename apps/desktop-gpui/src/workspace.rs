@@ -697,8 +697,33 @@ impl Workspace {
         .detach();
     }
 
+    /// The identity of a sidebar row, stable across rebuilds: an item's id or
+    /// a bucket's label.
+    fn row_key(&self, index: usize) -> Option<String> {
+        let Sessions::Ready(timeline) = &self.sessions else {
+            return None;
+        };
+        match self.rows.get(index)? {
+            SidebarRow::Spacer => Some(String::new()),
+            SidebarRow::Header { bucket } => timeline
+                .buckets
+                .get(*bucket)
+                .map(|bucket| format!("#{}", bucket.label)),
+            SidebarRow::Session { bucket, item } => timeline
+                .buckets
+                .get(*bucket)
+                .and_then(|bucket| bucket.items.get(*item))
+                .map(|item| item.id.clone()),
+        }
+    }
+
     /// `buildTimelineBuckets` over the loaded rows with the current view.
     pub(crate) fn rebuild_timeline(&mut self, cx: &mut Context<Self>) {
+        // The DOM list keeps its scroll position across live-query refreshes;
+        // gpui's `splice` over every row would jump to the top, so remember
+        // the row at the top of the viewport and put it back.
+        let top = self.list_state.logical_scroll_top();
+        let top_key = self.row_key(top.item_ix);
         let ignored_events =
             workspace_ignored(&self.provider_settings, "ignored_events", "tracking_id");
         let ignored_series =
@@ -720,6 +745,15 @@ impl Workspace {
             },
         ));
         self.rebuild_rows();
+        if let Some(key) = top_key
+            && let Some(item_ix) =
+                (0..self.rows.len()).find(|ix| self.row_key(*ix) == Some(key.clone()))
+        {
+            self.list_state.scroll_to(gpui::ListOffset {
+                item_ix,
+                offset_in_item: top.offset_in_item,
+            });
+        }
         self.publish_tray_schedule(cx);
         cx.notify();
     }

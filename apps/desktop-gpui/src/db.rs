@@ -2984,20 +2984,122 @@ impl Store {
             let deleted =
                 tokio::task::spawn_blocking(move || anlg_fs_sync_core::audio::delete(&session_dir))
                     .await??;
-            sqlx::query(
-                "INSERT INTO attachment_local_state (
-                   attachment_id, session_id, relative_path, availability, updated_at
-                 ) VALUES (?, ?, '', 'absent', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-                 ON CONFLICT(attachment_id) DO UPDATE SET
-                   session_id = excluded.session_id,
-                   availability = excluded.availability,
-                   updated_at = excluded.updated_at",
-            )
-            .bind(&attachment_id)
-            .bind(&session_id)
-            .execute(db.pool())
-            .await?;
+            mark_session_audio_absent(db.pool(), &session_id).await?;
             Ok(deleted)
+        })
+    }
+
+    /// `deleteLocalSessionAudio(sessionId)`: delete the file and mark the
+    /// attachment `absent`, keeping its metadata row (retention, not a user
+    /// delete). Returns whether a file was removed.
+    pub fn delete_local_session_audio(
+        &self,
+        session_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<bool>> {
+        let db = self.db.clone();
+        let session_dir = self.session_dir(&session_id);
+        self.runtime.spawn(async move {
+            let deleted =
+                tokio::task::spawn_blocking(move || anlg_fs_sync_core::audio::delete(&session_dir))
+                    .await??;
+            mark_session_audio_absent(db.pool(), &session_id).await?;
+            Ok(deleted)
+        })
+    }
+
+    /// `cleanupDeletedSessionAudio(sessionId)`: finish a tombstoned audio
+    /// attachment whose file is still on disk.
+    pub fn cleanup_deleted_session_audio(
+        &self,
+        session_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<bool>> {
+        let db = self.db.clone();
+        let session_dir = self.session_dir(&session_id);
+        self.runtime.spawn(async move {
+            let is_deleted: bool = sqlx::query_scalar(
+                "SELECT EXISTS(
+                   SELECT 1
+                   FROM session_attachments
+                   WHERE id = ?
+                     AND session_id = ?
+                     AND deleted_at IS NOT NULL
+                     AND NOT EXISTS (
+                       SELECT 1
+                       FROM attachment_local_state AS local
+                       WHERE local.attachment_id = session_attachments.id
+                         AND local.availability = 'absent'
+                     )
+                 )",
+            )
+            .bind(format!("session-audio:{session_id}"))
+            .bind(&session_id)
+            .fetch_one(db.pool())
+            .await?;
+            if !is_deleted {
+                return Ok(false);
+            }
+            let deleted =
+                tokio::task::spawn_blocking(move || anlg_fs_sync_core::audio::delete(&session_dir))
+                    .await??;
+            mark_session_audio_absent(db.pool(), &session_id).await?;
+            Ok(deleted)
+        })
+    }
+
+    /// `sessionAudioIsProcessed(sessionId)`: words exist and the primary
+    /// audio is no longer `processing`.
+    pub fn session_audio_processed(
+        &self,
+        session_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<bool>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let (has_words, processing): (bool, bool) = sqlx::query_as(
+                "SELECT
+                   EXISTS(
+                     SELECT 1 FROM transcripts
+                     WHERE session_id = ? AND deleted_at IS NULL
+                       AND json_valid(words_json) AND json_array_length(words_json) > 0
+                   ),
+                   EXISTS(
+                     SELECT 1 FROM session_attachments
+                     WHERE session_id = ? AND source_type = 'session_audio'
+                       AND source_id = 'primary' AND deleted_at IS NULL
+                       AND json_valid(metadata_json)
+                       AND json_extract(metadata_json, '$.transcript_status') = 'processing'
+                   )",
+            )
+            .bind(&session_id)
+            .bind(&session_id)
+            .fetch_one(db.pool())
+            .await?;
+            Ok(has_words && !processing)
+        })
+    }
+
+    /// `cleanupExpiredAudio`'s session rows.
+    pub fn audio_retention_rows(
+        &self,
+    ) -> tokio::task::JoinHandle<anyhow::Result<Vec<crate::audio_retention::RetentionRow>>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            Ok(sqlx::query_as(crate::audio_retention::RETENTION_ROWS_SQL)
+                .fetch_all(db.pool())
+                .await?)
+        })
+    }
+
+    /// `cleanupLogicallyDeletedAudio`'s session ids.
+    pub fn logically_deleted_audio_sessions(
+        &self,
+    ) -> tokio::task::JoinHandle<anyhow::Result<Vec<String>>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            Ok(
+                sqlx::query_scalar(crate::audio_retention::LOGICALLY_DELETED_AUDIO_SQL)
+                    .fetch_all(db.pool())
+                    .await?,
+            )
         })
     }
 
@@ -4195,6 +4297,27 @@ fn resolve_db_dir(data_dir: &Path, default_dir: &Path, identifier: &str) -> Path
     } else {
         default_dir.to_path_buf()
     }
+}
+
+/// `markSessionAudioAvailability(sessionId, "absent")`
+async fn mark_session_audio_absent(
+    pool: &sqlx::SqlitePool,
+    session_id: &str,
+) -> anyhow::Result<()> {
+    sqlx::query(
+        "INSERT INTO attachment_local_state (
+           attachment_id, session_id, relative_path, availability, updated_at
+         ) VALUES (?, ?, '', 'absent', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+         ON CONFLICT(attachment_id) DO UPDATE SET
+           session_id = excluded.session_id,
+           availability = excluded.availability,
+           updated_at = excluded.updated_at",
+    )
+    .bind(format!("session-audio:{session_id}"))
+    .bind(session_id)
+    .execute(pool)
+    .await?;
+    Ok(())
 }
 
 #[cfg(test)]

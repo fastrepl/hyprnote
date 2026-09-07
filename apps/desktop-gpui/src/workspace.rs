@@ -1,6 +1,7 @@
 mod ai_availability;
 mod ai_settings;
 mod audio_player;
+mod audio_retention;
 mod automations_tab;
 mod billing;
 mod calendar_tab;
@@ -459,8 +460,9 @@ impl Workspace {
                 this.start_onboarding_if_needed();
                 this.spawn_recorder(cx);
                 this.start_enhancer(cx);
-                // The task manager's retention tick also sweeps expired
+                // The task manager's retention tick; it also sweeps expired
                 // voiceprint candidates a few times a day.
+                this.start_audio_retention(cx);
                 crate::voiceprint::spawn_cleanup_loop(&this.store);
             }
             Mode::StandaloneNote(session_id) => {

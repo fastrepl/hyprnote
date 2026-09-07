@@ -823,6 +823,7 @@ impl Workspace {
                                                 session_id.clone(),
                                                 live_transcript_id,
                                                 audio_path,
+                                                cx,
                                             );
                                         }
                                     }
@@ -990,7 +991,7 @@ impl Workspace {
                     self.request_auto_enhance_with(session_id.clone(), mode, cx);
                 }
                 if let Some(audio_path) = audio_path {
-                    self.complete_session_audio(session_id, transcript_id, audio_path);
+                    self.complete_session_audio(session_id, transcript_id, audio_path, cx);
                 }
             }
             PostCaptureAction::None => {
@@ -1011,13 +1012,15 @@ impl Workspace {
     }
 
     /// The tail of `finalizeStoppedInner` for a completed transcript with
-    /// audio: `maybeExtractVoiceprintCandidates`, then
-    /// `markSessionAudioTranscriptionComplete`.
+    /// audio: `maybeExtractVoiceprintCandidates`,
+    /// `markSessionAudioTranscriptionComplete`, then
+    /// `deleteProcessedAudioForRetention`.
     fn complete_session_audio(
         &mut self,
         session_id: String,
         transcript_id: String,
         audio_path: String,
+        cx: &mut Context<Self>,
     ) {
         let mic_isolated = self
             .recording
@@ -1034,12 +1037,18 @@ impl Workspace {
         let mark = self
             .store
             .mark_session_audio_transcription_complete(session_id.clone());
-        self.store.runtime().spawn(async move {
+        cx.spawn(async move |this, cx| {
             let _ = extract.await;
             if let Ok(Err(error)) = mark.await {
                 tracing::error!(%error, session_id, "[listener] failed to mark session audio as processed");
+                return;
             }
-        });
+            this.update(cx, |this, cx| {
+                this.delete_processed_audio_for_retention(session_id, cx)
+            })
+            .ok();
+        })
+        .detach();
     }
 
     /// `stopTranscription(sessionId)`: abort the batch job, then

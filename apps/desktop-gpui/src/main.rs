@@ -6,6 +6,7 @@ mod ai_verify;
 mod assets;
 mod audio;
 mod audio_player;
+mod audio_retention;
 mod automations;
 mod batch;
 mod contacts;

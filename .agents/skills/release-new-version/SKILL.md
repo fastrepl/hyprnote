@@ -278,6 +278,12 @@ hook must generate the native bridge before packaging. EAS builds use the
 candidate's committed CloudSync bundle; a separate CI rebuild alone does not
 prove which bytes are embedded in a signed store artifact.
 
+For an exported source tree, resolve both `EAS_PROJECT_ROOT` and `apps/mobile`
+to their physical paths before invoking EAS. Confirm their relative path is
+exactly `apps/mobile`. On macOS, mixing `/tmp` with its physical `/private/tmp`
+path produces an invalid project directory in the remote build job. Check the
+job's `projectRootDirectory` before accepting a build.
+
 ```bash
 APP_VARIANT=stable eas build --platform ios --profile stable --non-interactive --no-wait
 APP_VARIANT=stable eas build --platform android --profile stable --non-interactive --no-wait

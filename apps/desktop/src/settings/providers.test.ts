@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   execute: vi.fn(),
-  verify: vi.fn(async () => {}),
+  verify: vi.fn<
+    typeof import("@anlg/provider-validation").verifyProviderCredentials
+  >(async () => {}),
+  fetch: vi.fn(),
   useLiveQuery: vi.fn(),
   getSecret: vi.fn(async () => ({
     status: "ok",
@@ -23,6 +26,8 @@ const mocks = vi.hoisted(() => ({
       Promise.resolve([1]),
   ),
 }));
+
+vi.mock("@tauri-apps/plugin-http", () => ({ fetch: mocks.fetch }));
 
 vi.mock("@anlg/provider-validation", () => ({
   verifyProviderCredentials: mocks.verify,
@@ -114,6 +119,46 @@ describe("SQLite AI providers", () => {
     });
     expect(mocks.verify).not.toHaveBeenCalled();
     expect(mocks.setSecret).toHaveBeenCalled();
+    queryClient.clear();
+  });
+
+  it("saves a valid local provider and rejects an invalid replacement when the server restricts origins", async () => {
+    const { verifyProviderCredentials } = await vi.importActual<
+      typeof import("@anlg/provider-validation")
+    >("@anlg/provider-validation");
+    mocks.verify.mockImplementation(verifyProviderCredentials);
+    mocks.execute.mockResolvedValue([]);
+    mocks.fetch.mockImplementation(async (_input, init) => {
+      const headers = new Headers(init?.headers);
+      if (headers.get("Origin") !== "")
+        return new Response(null, { status: 403 });
+      return headers.get("Authorization") === "Bearer local-key"
+        ? Response.json({ data: [{ id: "mtplx" }] })
+        : new Response(null, { status: 401 });
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+    const { result, unmount } = renderHook(
+      () => useSetAiProvider("llm", "custom", { verifyCredentials: true }),
+      { wrapper },
+    );
+    const draft = {
+      base_url: "http://127.0.0.1:8000/v1",
+      api_key: "local-key",
+    };
+
+    await result.current.mutateAsync(draft);
+    expect(mocks.setSecret).toHaveBeenCalledOnce();
+    expect(mocks.executeTransaction).toHaveBeenCalledOnce();
+    await expect(
+      result.current.mutateAsync({ ...draft, api_key: "wrong-key" }),
+    ).rejects.toThrow("The provider rejected this key");
+    expect(mocks.setSecret).toHaveBeenCalledOnce();
+    expect(mocks.executeTransaction).toHaveBeenCalledOnce();
+    unmount();
     queryClient.clear();
   });
 

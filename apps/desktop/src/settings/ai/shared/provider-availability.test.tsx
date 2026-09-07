@@ -27,6 +27,23 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
+test("makes an authenticated local provider available despite its origin restriction", async () => {
+  mocks.baseUrl = "http://127.0.0.1:8000/v1";
+  mocks.fetch.mockImplementation(async (_input, init) => {
+    const headers = new Headers(init?.headers);
+    if (headers.get("Origin") !== "")
+      return new Response(null, { status: 403 });
+    return headers.get("Authorization") === `Bearer saved-key-${mocks.key}`
+      ? Response.json({ data: [{ id: "mtplx" }] })
+      : new Response(null, { status: 401 });
+  });
+
+  const { result, client, unmount } = setup("llm");
+  await waitFor(() => expect(result.current.openai).toBe(true));
+  unmount();
+  client.clear();
+});
+
 test.each([
   "http://192.168.1.10/v1",
   "https://provider.test/v1?key=invalid",

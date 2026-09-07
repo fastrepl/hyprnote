@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { useMemo } from "react";
 
 import { commands as store2Commands } from "@anlg/plugin-store2";
 import { verifyProviderCredentials } from "@anlg/provider-validation";
 
+import { providerFetch } from "~/ai/provider-fetch";
 import { executeTransaction, liveQueryClient, useLiveQuery } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";
 
@@ -227,7 +227,7 @@ export function useSetAiProvider(
             baseUrl,
             apiKey,
           },
-          tauriFetch,
+          providerFetch,
         );
         changes = { ...changes, base_url: baseUrl, api_key: apiKey };
       }

@@ -4,7 +4,6 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import {
   defaultSettingsMiddleware,
   extractReasoningMiddleware,
@@ -17,6 +16,7 @@ import type { AIProviderStorage } from "@anlg/store";
 
 import { createAppleFoundationModel } from "../apple-foundation-model";
 import { createAuthFetch } from "../auth-fetch";
+import { providerFetch } from "../provider-fetch";
 import {
   normalizeReasoningEffort,
   type ReasoningEffort,
@@ -305,7 +305,7 @@ const createProviderModel = (
 
     case "anthropic": {
       const provider = createAnthropic({
-        fetch: tauriFetch,
+        fetch: providerFetch,
         apiKey: conn.apiKey,
         headers: {
           "anthropic-version": "2023-06-01",
@@ -320,7 +320,7 @@ const createProviderModel = (
       const provider = createAnthropic({
         fetch: oauth
           ? createSubscriptionFetch(conn.providerId, conn.apiKey)
-          : tauriFetch,
+          : providerFetch,
         apiKey: oauth ? "oauth" : conn.apiKey,
         headers: {
           "anthropic-version": "2023-06-01",
@@ -335,7 +335,7 @@ const createProviderModel = (
       const provider = createOpenAI({
         fetch: oauth
           ? createSubscriptionFetch(conn.providerId, conn.apiKey)
-          : tauriFetch,
+          : providerFetch,
         baseURL: oauth ? CHATGPT_API_BASE_URL : conn.baseUrl,
         apiKey: oauth ? "oauth" : conn.apiKey,
       });
@@ -363,7 +363,7 @@ const createProviderModel = (
 
     case "google_generative_ai": {
       const provider = createGoogleGenerativeAI({
-        fetch: tauriFetch,
+        fetch: providerFetch,
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
       });
@@ -372,7 +372,7 @@ const createProviderModel = (
 
     case "openrouter": {
       const provider = createOpenRouter({
-        fetch: tauriFetch,
+        fetch: providerFetch,
         apiKey: conn.apiKey,
       });
       return wrapWithThinkingMiddleware(provider.chat(conn.modelId));
@@ -380,7 +380,7 @@ const createProviderModel = (
 
     case "openai": {
       const provider = createOpenAI({
-        fetch: tauriFetch,
+        fetch: providerFetch,
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
       });
@@ -389,7 +389,7 @@ const createProviderModel = (
 
     case "azure_openai": {
       const provider = createAzure({
-        fetch: tauriFetch,
+        fetch: providerFetch,
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
       });
@@ -398,7 +398,7 @@ const createProviderModel = (
 
     case "azure_ai": {
       const provider = createOpenAICompatible({
-        fetch: tauriFetch,
+        fetch: providerFetch,
         name: "azure_ai",
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
@@ -412,7 +412,7 @@ const createProviderModel = (
       const ollamaFetch: typeof fetch = async (input, init) => {
         const headers = new Headers(init?.headers);
         headers.set("Origin", ollamaOrigin);
-        return tauriFetch(input as RequestInfo | URL, {
+        return providerFetch(input as RequestInfo | URL, {
           ...init,
           headers,
         });
@@ -430,7 +430,7 @@ const createProviderModel = (
 
     default: {
       const config: Parameters<typeof createOpenAICompatible>[0] = {
-        fetch: tauriFetch,
+        fetch: providerFetch,
         name: conn.providerId,
         baseURL: conn.baseUrl,
       };

@@ -123,10 +123,6 @@ vi.mock("./connected-import", () => ({
   }),
 }));
 
-vi.mock("./termination-pause", () => ({
-  pauseCompetingApplicationTermination: vi.fn(),
-}));
-
 import { MEETING_IMPORT_PROVIDERS } from "./providers";
 import { MeetingImportScreen } from "./screen";
 

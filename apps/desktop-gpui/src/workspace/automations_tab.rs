@@ -37,6 +37,16 @@ pub(crate) enum Selection {
     Workflow(String),
 }
 
+/// `selectionChatKey`
+fn selection_chat_key(selection: &Selection) -> String {
+    match selection {
+        Selection::Starter(id) => format!("starter:{}", id.as_str()),
+        Selection::Chat(id) => format!("chat:{id}"),
+        Selection::Draft(id) => format!("draft:{id}"),
+        Selection::Workflow(id) => format!("workflow:{id}"),
+    }
+}
+
 /// The sidebar row a right-click opened the menu for.
 #[derive(Clone, Debug)]
 enum ContextTarget {
@@ -53,6 +63,9 @@ pub(crate) struct AutomationsState {
     /// `draftIds`: unsaved drafts started from the sidebar.
     draft_ids: Vec<String>,
     chat_groups: Vec<ChatGroup>,
+    /// `chatBySelection`: each automation's own chat thread (the group id,
+    /// `None` for a fresh chat), keyed by `selectionChatKey`.
+    chat_by_selection: std::collections::HashMap<String, Option<String>>,
     /// `StarterAutomationDetails`'s `showPreview`.
     show_preview: bool,
     actions_open: bool,
@@ -137,17 +150,20 @@ impl Workspace {
                 selection: None,
                 draft_ids: Vec::new(),
                 chat_groups: Vec::new(),
+                chat_by_selection: Default::default(),
                 show_preview: false,
                 actions_open: false,
                 context_menu: None,
             });
         }
         self.reload_automation_chats(cx);
+        self.set_chat_scope(crate::chat::Scope::Automations, cx);
         cx.notify();
     }
 
     pub(crate) fn close_automations(&mut self, cx: &mut Context<Self>) {
         if self.automations.take().is_some() {
+            self.set_chat_scope(crate::chat::Scope::General, cx);
             cx.notify();
         }
     }
@@ -238,16 +254,47 @@ impl Workspace {
             .map(Selection::Starter)
     }
 
+    /// `switchTo`: the outgoing selection keeps its chat thread, the
+    /// incoming one restores its own — a chat row opens that group, a
+    /// workflow its `chatGroupId`, anything else a fresh chat.
     fn select_automation(&mut self, selection: Selection, cx: &mut Context<Self>) {
-        if let Some(state) = self.automations.as_mut() {
-            if state.selection.as_ref() != Some(&selection) {
-                state.show_preview = false;
-            }
-            state.selection = Some(selection);
-            state.actions_open = false;
-            state.context_menu = None;
-            cx.notify();
+        let Some(state) = self.automations.as_mut() else {
+            return;
+        };
+        let previous = state.selection.clone();
+        if previous.as_ref() != Some(&selection) {
+            state.show_preview = false;
         }
+        if let Some(previous) = &previous {
+            state
+                .chat_by_selection
+                .insert(selection_chat_key(previous), self.chat.group_id.clone());
+        }
+        let restored = state
+            .chat_by_selection
+            .get(&selection_chat_key(&selection))
+            .cloned();
+        let next_group = match (&selection, restored) {
+            (_, Some(group)) => group,
+            (Selection::Chat(group_id), None) => Some(group_id.clone()),
+            (Selection::Workflow(workflow_id), None) => self
+                .automation_workflows()
+                .into_iter()
+                .find(|workflow| workflow.id == *workflow_id)
+                .and_then(|workflow| workflow.chat_group_id),
+            _ => None,
+        };
+        let state = self.automations.as_mut().expect("checked above");
+        state.selection = Some(selection);
+        state.actions_open = false;
+        state.context_menu = None;
+        if self.chat.group_id != next_group {
+            match next_group {
+                Some(group_id) => self.select_chat(group_id, cx),
+                None => self.start_new_chat(cx),
+            }
+        }
+        cx.notify();
     }
 
     /// `clearSelection`: only the matching selection is dropped.
@@ -984,7 +1031,7 @@ impl Workspace {
     /// `TabContentAutomations` beside the forced-open right chat panel.
     pub(super) fn render_automations_main(
         &mut self,
-        window: &Window,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let theme = self.theme;
@@ -1079,22 +1126,8 @@ impl Workspace {
                     .bg(theme.card)
                     .child(content),
             )
-            .child(
-                // `[data-chat-right-panel]`: `border-x bg-card rounded-tr-xl`.
-                div()
-                    .flex()
-                    .flex_col()
-                    .w(px(right))
-                    .flex_shrink_0()
-                    .min_h_0()
-                    .border_l_1()
-                    .border_r_1()
-                    .border_color(theme.border)
-                    .bg(theme.card)
-                    .rounded_tr(px(12.0))
-                    .overflow_hidden()
-                    .child(self.render_chat_setup_prompt(cx)),
-            )
+            // `[data-chat-right-panel]`: the automations-scoped chat.
+            .child(self.render_chat_right_panel(right, window, cx))
             .into_any_element()
     }
 

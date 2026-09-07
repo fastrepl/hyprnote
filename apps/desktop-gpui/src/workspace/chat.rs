@@ -30,6 +30,19 @@ const TOP_CLEARANCE: f32 = 46.0;
 /// `max-h-[min(36rem,70vh)]`
 const LIST_MAX_HEIGHT: f32 = 576.0;
 
+/// The local reply while the open note's transcript is still being batch
+/// transcribed (`ChatSession.sendMessage`'s `isTranscriptUnavailable` branch).
+const TRANSCRIPT_UNAVAILABLE_REPLY: &str = "This recording is using batch transcription, so the transcript isn't available to chat yet. Ask again after transcription finishes, or switch to a Pro model for live transcription.";
+
+/// `ChatMode` (`store/zustand/tabs/chat-mode.ts`)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub(crate) enum ChatMode {
+    #[default]
+    FloatingClosed,
+    FloatingOpen,
+    RightPanelOpen,
+}
+
 /// `ChatStatus`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ChatStatus {
@@ -39,9 +52,11 @@ pub(crate) enum ChatStatus {
     Error,
 }
 
-/// `ChatSessionProvider` + `chat-context.ts` state for the general scope.
+/// `ChatSessionProvider` + `chat-context.ts` state for one `ChatScope`; the
+/// workspace keeps one per scope and shows the automations one on its tab.
 #[derive(Default)]
 pub(crate) struct ChatState {
+    pub scope: Scope,
     /// `useChatSelection`: the persisted group, once the first send created it.
     pub group_id: Option<String>,
     pub messages: Vec<Message>,
@@ -75,8 +90,9 @@ pub(crate) struct ChatState {
 }
 
 impl ChatState {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(scope: Scope) -> Self {
         Self {
+            scope,
             auto_scroll: true,
             ..Default::default()
         }
@@ -92,28 +108,56 @@ impl ChatState {
 }
 
 impl Workspace {
-    /// `chat.sendEvent({ type: "TOGGLE" })`
+    /// `chat.mode !== "FloatingClosed"`
+    pub(crate) fn chat_open(&self) -> bool {
+        self.chat_mode != ChatMode::FloatingClosed
+    }
+
+    /// The chat renders docked on the right: the automations tab always,
+    /// the general scope in `RightPanelOpen`.
+    pub(crate) fn chat_in_right_panel(&self) -> bool {
+        self.automations_open() || self.chat_mode == ChatMode::RightPanelOpen
+    }
+
+    /// `chat.sendEvent({ type: "TOGGLE" })`: closed → floating, anything
+    /// open → closed.
     pub(crate) fn toggle_chat(&mut self, cx: &mut Context<Self>) {
-        if self.chat_open {
+        if self.chat_open() {
             self.close_chat(cx);
         } else {
-            self.open_chat(cx);
+            self.open_chat(ChatMode::FloatingOpen, cx);
         }
     }
 
-    fn open_chat(&mut self, cx: &mut Context<Self>) {
-        self.chat_open = true;
+    /// `OPEN` / `OPEN_RIGHT_PANEL`
+    fn open_chat(&mut self, mode: ChatMode, cx: &mut Context<Self>) {
+        self.chat_mode = mode;
         self.chat.focus_pending = true;
+        self.chat.history_open = false;
         self.resolve_chat_connection(cx);
         self.load_chat_history(cx);
         cx.notify();
     }
 
+    /// `CLOSE`
     pub(crate) fn close_chat(&mut self, cx: &mut Context<Self>) {
-        if self.chat_open {
-            self.chat_open = false;
+        if self.chat_open() {
+            self.chat_mode = ChatMode::FloatingClosed;
             self.chat.history_open = false;
             cx.notify();
+        }
+    }
+
+    /// The automations tab shows its own `automations` chat scope; entering
+    /// or leaving it swaps which scope's state is active and resolves the
+    /// model for the panel.
+    pub(crate) fn set_chat_scope(&mut self, scope: Scope, cx: &mut Context<Self>) {
+        if self.chat.scope != scope {
+            std::mem::swap(&mut self.chat, &mut self.parked_chat);
+        }
+        if scope == Scope::Automations {
+            self.resolve_chat_connection(cx);
+            self.load_chat_history(cx);
         }
     }
 
@@ -136,14 +180,21 @@ impl Workspace {
         matches!(self.chat.connection, Some(Some(_)))
     }
 
-    /// `useRecentChatGroups(chatScope, 5)`
+    /// `useRecentChatGroups(chatScope, 5)`; the automations nav lists the
+    /// same groups, so it reloads too.
     fn load_chat_history(&mut self, cx: &mut Context<Self>) {
-        let task = self.store.chat_groups(Scope::General, Some(5));
+        let scope = self.chat.scope;
+        if scope == Scope::Automations && self.automations_open() {
+            self.reload_automation_chats(cx);
+        }
+        let task = self.store.chat_groups(scope, Some(5));
         cx.spawn(async move |this, cx| {
             if let Ok(Ok(groups)) = task.await {
                 this.update(cx, |this, cx| {
-                    this.chat.history = groups;
-                    cx.notify();
+                    if this.chat.scope == scope {
+                        this.chat.history = groups;
+                        cx.notify();
+                    }
                 })
                 .ok();
             }
@@ -152,7 +203,7 @@ impl Workspace {
     }
 
     /// `startNewChat`
-    fn start_new_chat(&mut self, cx: &mut Context<Self>) {
+    pub(super) fn start_new_chat(&mut self, cx: &mut Context<Self>) {
         self.stop_chat(cx);
         self.chat.group_id = None;
         self.chat.messages.clear();
@@ -164,7 +215,7 @@ impl Workspace {
     }
 
     /// `selectChat(groupId)`: load the group's persisted messages.
-    fn select_chat(&mut self, group_id: String, cx: &mut Context<Self>) {
+    pub(super) fn select_chat(&mut self, group_id: String, cx: &mut Context<Self>) {
         self.stop_chat(cx);
         self.chat.history_open = false;
         self.chat.group_id = Some(group_id.clone());
@@ -212,7 +263,11 @@ impl Workspace {
             window,
             |this, _, event: &TextAreaEvent, _window, cx| match event {
                 TextAreaEvent::Submit => this.submit_chat_draft(cx),
-                TextAreaEvent::Escape => this.close_chat(cx),
+                TextAreaEvent::Escape => {
+                    if this.chat_mode == ChatMode::FloatingOpen {
+                        this.close_chat(cx)
+                    }
+                }
                 TextAreaEvent::Changed => cx.notify(),
                 TextAreaEvent::Blurred => {}
             },
@@ -254,7 +309,10 @@ impl Workspace {
         let Some(Some(connection)) = self.chat.connection.clone() else {
             return;
         };
-        let session_id = self.selected.clone();
+        let scope = self.chat.scope;
+        // The automations scope clears the note context (`chat-panel.tsx`).
+        let session_id = self.selected.clone().filter(|_| scope == Scope::General);
+        let transcript_unavailable = scope == Scope::General && self.chat_transcript_unavailable();
         let context_refs = session_id
             .as_deref()
             .map(|id| vec![ContextRef::auto_session(id)])
@@ -267,7 +325,7 @@ impl Workspace {
                 state: None,
             }],
             metadata: Metadata {
-                chat_scope: Some(Scope::General),
+                chat_scope: Some(scope),
                 created_at: Some(chrono::Utc::now().timestamp_millis()),
                 context_refs,
             },
@@ -296,7 +354,7 @@ impl Workspace {
             let persist = match fallback_title {
                 Some(title) => store.create_chat_group_with_message(
                     group_id.clone(),
-                    owner_user_id,
+                    owner_user_id.clone(),
                     title,
                     row,
                 ),
@@ -319,6 +377,44 @@ impl Workspace {
                 .ok();
                 return;
             }
+            if transcript_unavailable {
+                // `isTranscriptUnavailable`: a local canned reply, persisted
+                // like any assistant row; no generation runs.
+                let reply = Message {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    role: Role::Assistant,
+                    parts: vec![Part::Text {
+                        text: TRANSCRIPT_UNAVAILABLE_REPLY.to_string(),
+                        state: None,
+                    }],
+                    metadata: Metadata {
+                        created_at: Some(
+                            (chrono::Utc::now().timestamp_millis() + 1)
+                                .max(message.metadata.created_at.unwrap_or(0) + 1),
+                        ),
+                        ..Metadata::default()
+                    },
+                    status: Status::Ready,
+                };
+                let row = chat::MessageRow::from_message(&reply, &group_id, &owner_user_id, None);
+                let saved = matches!(store.upsert_chat_message(row).await, Ok(Ok(())));
+                this.update(cx, |this, cx| {
+                    if saved {
+                        this.chat.messages.push(reply);
+                    } else {
+                        tracing::error!("Failed to save batch transcription chat response");
+                        this.chat.messages.retain(|m| m.id != message.id);
+                    }
+                    this.chat.status = Some(ChatStatus::Ready);
+                    this.load_chat_history(cx);
+                    cx.notify();
+                    if let Some(next) = this.chat.queued.pop_front() {
+                        this.send_chat_message(next, cx);
+                    }
+                })
+                .ok();
+                return;
+            }
             this.update(cx, |this, cx| {
                 this.load_chat_history(cx);
                 this.stream_chat_reply(connection, cx);
@@ -326,6 +422,40 @@ impl Workspace {
             .ok();
         })
         .detach();
+    }
+
+    /// `isBatchTranscriptionPending && !hasAvailableTranscript` for the
+    /// note the chat is open on: a running batch, or a capture (active or
+    /// finalizing) that is not transcribing live, while the session has no
+    /// transcript yet.
+    fn chat_transcript_unavailable(&self) -> bool {
+        let Some(session_id) = self.selected.as_deref() else {
+            return false;
+        };
+        let has_transcript = match &self.note {
+            super::Note::Ready { preview, .. } if preview.session.id == session_id => {
+                preview.has_transcript
+            }
+            _ => false,
+        };
+        if has_transcript {
+            return false;
+        }
+        match self.session_mode(session_id) {
+            super::recording::SessionMode::RunningBatch => true,
+            super::recording::SessionMode::Active => self
+                .recording
+                .live
+                .as_ref()
+                .is_some_and(|live| !live.live_active),
+            super::recording::SessionMode::Finalizing => self
+                .recording
+                .pending_post_capture
+                .get(session_id)
+                .and_then(|pending| pending.snapshot.as_ref())
+                .is_some_and(|(live_active, _, _)| !live_active),
+            super::recording::SessionMode::Inactive => false,
+        }
     }
 
     /// `generateChatTitle` → `setChatGroupTitleIfCurrent`.
@@ -411,7 +541,10 @@ impl Workspace {
         let history: Vec<Message> = self.chat.messages.clone();
         let replace_previous = self.chat.replace_previous.take();
         let tool_context = crate::chat_tools::Context {
-            session_id: self.selected.clone(),
+            session_id: self
+                .selected
+                .clone()
+                .filter(|_| self.chat.scope == Scope::General),
             folder_filter: self.folder_filter_for_chat(),
         };
         let runner = Arc::new(
@@ -751,7 +884,8 @@ impl Workspace {
         if !self.chat_model_configured() {
             return self.render_chat_setup_prompt(cx);
         }
-        let has_context = self.selected.is_some();
+        let has_context = self.chat.scope == Scope::General && self.selected.is_some();
+        let right_panel = self.chat_in_right_panel();
         // `useChatAutoScroll`: pinned to the bottom while generating unless the
         // user scrolled up; `Go to recent` once they scroll down again.
         let handle = self.chat_scroll.clone();
@@ -765,17 +899,29 @@ impl Workspace {
         if self.chat.auto_scroll && !self.chat.messages.is_empty() {
             handle.scroll_to_bottom();
         }
+        // Floating: `flex-auto max-h-[min(36rem,70vh)]`, `px-5 py-3`; right
+        // panel: `flex-1` filling the column with `px-3 py-5` and the spacer
+        // above the messages.
         let list = div()
             .id("chat-body")
             .relative()
             .flex()
             .flex_col()
+            .min_h_0()
+            .when(right_panel, |body| body.flex_1())
             .child(
                 div()
                     .id("chat-scroll")
                     .flex()
                     .flex_col()
-                    .max_h(px(LIST_MAX_HEIGHT))
+                    .min_h_0()
+                    .map(|scroll| {
+                        if right_panel {
+                            scroll.flex_1()
+                        } else {
+                            scroll.max_h(px(LIST_MAX_HEIGHT))
+                        }
+                    })
                     .overflow_y_scroll()
                     .track_scroll(&self.chat_scroll)
                     .on_scroll_wheel(cx.listener(|this, event: &gpui::ScrollWheelEvent, _, cx| {
@@ -792,13 +938,28 @@ impl Workspace {
                         }
                         cx.notify();
                     }))
-                    .child(div().flex().flex_col().px_5().py_3().child(
-                        if self.chat.messages.is_empty() {
-                            self.render_chat_suggestions(has_context, cx)
-                        } else {
-                            self.render_chat_messages(window, cx)
-                        },
-                    )),
+                    .child(
+                        div()
+                            .flex()
+                            .flex_col()
+                            .map(|content| {
+                                if right_panel {
+                                    content
+                                        .min_h_full()
+                                        .flex_1()
+                                        .px_3()
+                                        .py_5()
+                                        .child(div().flex_1())
+                                } else {
+                                    content.px_5().py_3()
+                                }
+                            })
+                            .child(if self.chat.messages.is_empty() {
+                                self.render_chat_suggestions(has_context, cx)
+                            } else {
+                                self.render_chat_messages(window, cx)
+                            }),
+                    ),
             )
             .when(
                 !self.chat.messages.is_empty() && self.chat.show_go_to_recent && !is_at_bottom,
@@ -1261,28 +1422,35 @@ impl Workspace {
         .into_any_element()
     }
 
-    /// `ChatMessageInput` in the floating layout: `px-1 pb-1` around the
-    /// `rounded-[19px] bg-white border pl-4 pr-[6px] min-h-[38px]` surface,
-    /// the editor, the mic, and the send / stop control.
+    /// `ChatMessageInput`: floating, `px-1 pb-1` around the `rounded-[19px]
+    /// bg-white border pl-4 pr-[6px] min-h-[38px]` row with the controls at
+    /// its right edge; right panel, `px-2 pb-3` around the elevated
+    /// `rounded-xl` column (`px-2 pt-3 pb-2`) with the controls under the
+    /// editor, the send button always shown.
     fn render_chat_composer(&mut self, window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
         self.ensure_chat_composer(window, cx);
         let theme = self.theme;
+        let right_panel = self.chat_in_right_panel();
         let composer = self.chat.composer.clone().expect("ensured");
         if std::mem::take(&mut self.chat.focus_pending) {
             composer.update(cx, |composer, cx| composer.focus_end(window, cx));
         }
         let has_content = !composer.read(cx).text().trim().is_empty();
         let streaming = self.chat.busy();
-        let show_send = streaming || has_content;
+        let show_send = right_panel || streaming || has_content;
         let queued = self.chat.queued.clone();
         let mut controls = div()
-            .absolute()
-            .right_0()
-            .bottom(px(2.0))
             .flex()
             .flex_shrink_0()
             .items_center()
-            .gap_1();
+            .gap_1()
+            .map(|controls| {
+                if right_panel {
+                    controls.justify_end()
+                } else {
+                    controls.absolute().right_0().bottom(px(2.0))
+                }
+            });
         if !streaming {
             // `Start voice input`: `size-7 rounded-full text-muted-foreground`.
             controls = controls.child(
@@ -1354,6 +1522,52 @@ impl Workspace {
         }
         // Leave room for the controls at the editor's right edge.
         let editor_padding = if streaming || show_send { 64.0 } else { 32.0 };
+        if right_panel {
+            return div()
+                .relative()
+                .min_w_0()
+                .flex_shrink_0()
+                .px_2()
+                .pb_3()
+                .when(!queued.is_empty(), |column| {
+                    column.child(
+                        div()
+                            .px_1()
+                            .pb(px(6.0))
+                            .flex()
+                            .flex_col()
+                            .gap(px(2.0))
+                            .children(queued.into_iter().map(|text| {
+                                div()
+                                    .tw_text_xs()
+                                    .text_color(theme.muted_foreground)
+                                    .truncate()
+                                    .child(SharedString::from(text))
+                            })),
+                    )
+                })
+                .child(
+                    div()
+                        .flex()
+                        .flex_col()
+                        .rounded(px(12.0))
+                        .border_1()
+                        .border_color(theme.border)
+                        .bg(theme.card)
+                        .tw_text_sm()
+                        .child(
+                            div()
+                                .flex()
+                                .flex_col()
+                                .px_2()
+                                .pt_3()
+                                .pb_2()
+                                .child(div().mb_1().min_h_0().child(composer))
+                                .child(controls),
+                        ),
+                )
+                .into_any_element();
+        }
         div()
             .relative()
             .min_w_0()
@@ -1419,6 +1633,134 @@ impl Workspace {
             .into_any_element()
     }
 
+    /// `ChatPanelFrame layout="right-panel"` inside `[data-chat-right-panel]`
+    /// (`border-x bg-card rounded-tr-xl`): the `h-9 pt-[9px]` toolbar (none
+    /// for the automations scope), the body filling the column, and the
+    /// elevated composer.
+    pub(super) fn render_chat_right_panel(
+        &mut self,
+        width: f32,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> AnyElement {
+        let theme = self.theme;
+        let toolbar = (self.chat.scope == Scope::General).then(|| {
+            // `ChatToolbarControls` at `size-7`, `pr-1 pl-3`.
+            let ghost = |id: &'static str, glyph: &'static str| {
+                div()
+                    .id(id)
+                    .flex()
+                    .size(px(28.0))
+                    .items_center()
+                    .justify_center()
+                    .rounded(px(8.0))
+                    .cursor_pointer()
+                    .hover(move |style| style.bg(alpha(theme.muted, 0.8)))
+                    .child(icon(glyph, px(16.0), theme.muted_foreground))
+            };
+            let history = div()
+                .id("chat-history")
+                .flex()
+                .h(px(28.0))
+                .items_center()
+                .gap(px(6.0))
+                .ml(px(-8.0))
+                .px(px(10.0))
+                .rounded(px(8.0))
+                .cursor_pointer()
+                .when(self.chat.history_open, |trigger| {
+                    trigger.bg(alpha(theme.muted, 0.8))
+                })
+                .hover(move |style| style.bg(alpha(theme.muted, 0.8)))
+                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                    this.chat.history_open = !this.chat.history_open;
+                    if this.chat.history_open {
+                        this.load_chat_history(cx);
+                    }
+                    cx.notify();
+                }))
+                .child(icon(
+                    "clock-counter-clockwise",
+                    px(16.0),
+                    theme.muted_foreground,
+                ))
+                .child(icon(
+                    if self.chat.history_open {
+                        "caret-up"
+                    } else {
+                        "caret-down"
+                    },
+                    px(14.0),
+                    theme.muted_foreground,
+                ));
+            div()
+                .flex()
+                .h(px(36.0))
+                .flex_shrink_0()
+                .items_start()
+                .pt(px(9.0))
+                .pl_3()
+                .pr_1()
+                .gap_2()
+                .child(
+                    div()
+                        .flex()
+                        .min_w_0()
+                        .flex_1()
+                        .items_center()
+                        .gap_1()
+                        .child(
+                            div()
+                                .relative()
+                                .child(history)
+                                .children(self.render_chat_history_menu(cx)),
+                        ),
+                )
+                .child(
+                    div()
+                        .flex()
+                        .flex_shrink_0()
+                        .items_center()
+                        .child(ghost("chat-new", "plus").on_click(
+                            cx.listener(|this, _: &ClickEvent, _, cx| this.start_new_chat(cx)),
+                        ))
+                        .child(
+                            ghost("chat-float", "picture-in-picture").on_click(cx.listener(
+                                |this, _: &ClickEvent, _, cx| {
+                                    this.open_chat(ChatMode::FloatingOpen, cx)
+                                },
+                            )),
+                        )
+                        .child(ghost("chat-close", "x").on_click(
+                            cx.listener(|this, _: &ClickEvent, _, cx| this.close_chat(cx)),
+                        )),
+                )
+        });
+        let body = self.render_chat_body(window, cx);
+        let composer = self
+            .chat_model_configured()
+            .then(|| self.render_chat_composer(window, cx));
+        div()
+            .id("chat-right-panel")
+            .flex()
+            .flex_col()
+            .w(px(width))
+            .h_full()
+            .min_h_0()
+            .flex_shrink_0()
+            .border_l_1()
+            .border_r_1()
+            .border_color(theme.border)
+            .bg(theme.card)
+            .rounded_tr(px(12.0))
+            .overflow_hidden()
+            .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+            .children(toolbar)
+            .child(body)
+            .children(composer)
+            .into_any_element()
+    }
+
     /// The `[data-chat-floating-frame]` over the main surface: `items-end
     /// justify-center px-3 pb-2` with the top clearance, closing on a press
     /// outside the panel.
@@ -1427,7 +1769,7 @@ impl Workspace {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Option<AnyElement> {
-        if !self.chat_open {
+        if self.chat_mode != ChatMode::FloatingOpen || self.automations_open() {
             return None;
         }
         let theme = self.theme;
@@ -1513,7 +1855,13 @@ impl Workspace {
                     .child(ghost("chat-new", "plus").on_click(
                         cx.listener(|this, _: &ClickEvent, _, cx| this.start_new_chat(cx)),
                     ))
-                    .child(ghost("chat-right-panel", "sidebar-left")),
+                    .child(
+                        ghost("chat-right-panel", "sidebar-left").on_click(cx.listener(
+                            |this, _: &ClickEvent, _, cx| {
+                                this.open_chat(ChatMode::RightPanelOpen, cx)
+                            },
+                        )),
+                    ),
             );
 
         let body = self.render_chat_body(window, cx);

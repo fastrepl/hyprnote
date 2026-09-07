@@ -273,9 +273,12 @@ pub struct Workspace {
     /// The Dictionary page's term field and the row being edited.
     dictionary_input: Option<gpui::Entity<TextInput>>,
     dictionary_edit: Option<dictionary::DictionaryEdit>,
-    /// `chat.mode === "FloatingOpen"`
-    chat_open: bool,
+    /// `chat.mode`
+    chat_mode: chat::ChatMode,
+    /// The active scope's chat (`general`, or `automations` on its tab) and
+    /// the parked one.
     chat: chat::ChatState,
+    parked_chat: chat::ChatState,
     chat_scroll: gpui::ScrollHandle,
     /// The Share CTA's popover while open.
     share_popover: Option<share::SharePopover>,
@@ -434,8 +437,9 @@ impl Workspace {
             applying_llm_default: false,
             dictionary_input: None,
             dictionary_edit: None,
-            chat_open: false,
-            chat: chat::ChatState::new(),
+            chat_mode: Default::default(),
+            chat: chat::ChatState::new(crate::chat::Scope::General),
+            parked_chat: chat::ChatState::new(crate::chat::Scope::Automations),
             chat_scroll: gpui::ScrollHandle::new(),
             share_popover: None,
             recent_emoji_ids: Vec::new(),
@@ -1667,7 +1671,8 @@ impl Render for Workspace {
                 } else if this.timeline_menu.is_some() {
                     this.timeline_menu = None;
                     cx.notify();
-                } else if this.chat_open {
+                } else if this.chat_mode == chat::ChatMode::FloatingOpen {
+                    // `esc` closes the floating panel only (`isVisible`).
                     this.close_chat(cx);
                 } else if this.share_popover_open() {
                     this.close_share_popover(cx);

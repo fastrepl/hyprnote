@@ -51,9 +51,10 @@ pub fn window_messages<T>(messages: Vec<T>) -> Vec<T> {
 }
 
 /// `ChatScope`
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Scope {
+    #[default]
     General,
     Automations,
 }

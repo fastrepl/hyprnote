@@ -31,7 +31,7 @@ impl Workspace {
         window: &gpui::Window,
         cx: &Context<Self>,
     ) -> Option<AnyElement> {
-        if self.chat_open {
+        if self.chat_open() {
             return None;
         }
         let bar = preview.and_then(|preview| self.render_transcript_selection_bar(preview, cx));
@@ -167,7 +167,7 @@ impl Workspace {
             }))
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
             .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
-                if !this.chat_open {
+                if !this.chat_open() {
                     this.toggle_chat(cx);
                 }
             }))

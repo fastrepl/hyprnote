@@ -65,6 +65,37 @@ impl Workspace {
                     .into_any_element()
             }
         };
+        // `MainChatPanels`: in `RightPanelOpen` the body keeps 70% (at least
+        // the note surface's min width) and the chat panel takes the rest.
+        let content = if self.chat_mode == super::chat::ChatMode::RightPanelOpen
+            && !self.automations_open()
+        {
+            let total = f32::from(window.viewport_size().width)
+                - if self.sidebar_expanded {
+                    self.custom_sidebar_width() + 4.0
+                } else {
+                    4.0
+                };
+            let right = (total * 0.3).max(320.0).min(total - 500.0).max(0.0);
+            div()
+                .flex()
+                .size_full()
+                .min_h_0()
+                .child(
+                    div()
+                        .flex()
+                        .flex_1()
+                        .min_w_0()
+                        .min_h_0()
+                        .flex_col()
+                        .overflow_hidden()
+                        .child(content),
+                )
+                .child(self.render_chat_right_panel(right, window, cx))
+                .into_any_element()
+        } else {
+            content
+        };
         // `resolvedMainSurfaceChrome`: "left" while the sidebar is expanded
         // (left border, top-left corner rounded off macOS), "top-borderless"
         // when collapsed (no border, no rounding).

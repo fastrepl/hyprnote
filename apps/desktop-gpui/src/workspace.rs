@@ -1159,9 +1159,11 @@ impl Workspace {
                     cx.global::<crate::search::Search>().0.clone(),
                     self.store.runtime().clone(),
                 );
+                let runtime = self.store.runtime().clone();
                 let editor = cx.new(|cx| {
                     let mut editor = BodyEditor::new(note_id.clone(), &body, cx);
                     editor.set_mention_search(search);
+                    editor.set_runtime(runtime);
                     editor.set_enforce_title_heading(true);
                     editor
                 });
@@ -1274,9 +1276,11 @@ impl Workspace {
                     cx.global::<crate::search::Search>().0.clone(),
                     self.store.runtime().clone(),
                 );
+                let runtime = self.store.runtime().clone();
                 let editor = cx.new(|cx| {
                     let mut editor = BodyEditor::new(session_id, &body, cx);
                     editor.set_mention_search(search);
+                    editor.set_runtime(runtime);
                     editor
                 });
                 self.load_mention_contacts(cx);

@@ -255,6 +255,122 @@ impl Doc {
         }
     }
 
+    /// `tr.replaceSelectionWith(node)` for a block atom: a selection is
+    /// deleted first, an empty textblock is replaced outright, a caret at a
+    /// textblock's edge puts the node beside the nearest ancestor that takes
+    /// a block there (`insertPoint`), and anywhere else the textblock splits
+    /// around it (`replaceRange`'s fit). The caret lands on the following
+    /// textblock, or the end of the preceding one.
+    pub fn insert_block_atom(&mut self, from: Caret, to: Caret, node: Value) -> Caret {
+        let caret = self.delete_between(from, to);
+        let Some(path) = self.textblocks.get(caret.block).cloned() else {
+            return caret;
+        };
+        let Some(textblock) = node_at(&self.root, &path) else {
+            return caret;
+        };
+        let text_len = plain_text(textblock).len();
+        let (parent_path, index) = path.split_at(path.len() - 1);
+        let index = index[0];
+        let parent_kind = |root: &Value, parent_path: &[usize]| {
+            node_at(root, parent_path)
+                .and_then(|parent| parent.get("type").and_then(Value::as_str))
+                .unwrap_or("")
+                .to_string()
+        };
+
+        let inserted_at: Vec<usize> =
+            if text_len == 0 && takes_block(&parent_kind(&self.root, parent_path), index) {
+                // `coveredDepths`: the empty textblock is what gets replaced.
+                if let Some(parent) = node_at_mut(&mut self.root, parent_path) {
+                    content_mut(parent)[index] = node;
+                }
+                path.clone()
+            } else if let Some(at) = (caret.offset == 0 || text_len == 0)
+                .then(|| self.insert_point(&path, false))
+                .flatten()
+            {
+                self.insert_node_at(&at, node);
+                at
+            } else if let Some(at) = (caret.offset >= text_len)
+                .then(|| self.insert_point(&path, true))
+                .flatten()
+            {
+                self.insert_node_at(&at, node);
+                at
+            } else {
+                // Close the textblock, place the node, reopen the same textblock
+                // type for the tail.
+                let Some(textblock) = node_at_mut(&mut self.root, &path) else {
+                    return caret;
+                };
+                let (head, tail) = split_inline(inline_content_mut(textblock), caret.offset);
+                let mut tail_block = json!({ "type": textblock["type"].clone() });
+                if let Some(attrs) = textblock.get("attrs") {
+                    tail_block["attrs"] = attrs.clone();
+                }
+                set_inline_content(textblock, head);
+                set_inline_content(&mut tail_block, tail);
+                if let Some(parent) = node_at_mut(&mut self.root, parent_path) {
+                    let siblings = content_mut(parent);
+                    siblings.insert(index + 1, tail_block);
+                    siblings.insert(index + 1, node);
+                }
+                let mut at = parent_path.to_vec();
+                at.push(index + 1);
+                at
+            };
+        self.reindex();
+        // `Selection.near(after, 1)`: forward to the next text position, else
+        // back to the previous one.
+        if let Some(block) = self.textblocks.iter().position(|p| *p > inserted_at) {
+            return Caret { block, offset: 0 };
+        }
+        let block = self
+            .textblocks
+            .iter()
+            .rposition(|p| *p < inserted_at)
+            .unwrap_or(0);
+        Caret {
+            block,
+            offset: self.text(block).len(),
+        }
+    }
+
+    /// `insertPoint` for a block node beside the textblock at `path`: climbs
+    /// while the ancestor sits at its parent's edge, returning the content
+    /// index where the first accepting ancestor takes it.
+    fn insert_point(&self, path: &[usize], after: bool) -> Option<Vec<usize>> {
+        let mut node_path = path.to_vec();
+        while let Some(index) = node_path.pop() {
+            let parent = node_at(&self.root, &node_path)?;
+            let kind = parent.get("type").and_then(Value::as_str).unwrap_or("");
+            let slot = if after { index + 1 } else { index };
+            if takes_block(kind, slot) {
+                let mut at = node_path;
+                at.push(slot);
+                return Some(at);
+            }
+            let at_edge = if after {
+                slot >= children(parent).len()
+            } else {
+                index == 0
+            };
+            if !at_edge {
+                return None;
+            }
+        }
+        None
+    }
+
+    fn insert_node_at(&mut self, at: &[usize], node: Value) {
+        let (parent_path, index) = at.split_at(at.len() - 1);
+        if let Some(parent) = node_at_mut(&mut self.root, parent_path) {
+            let siblings = content_mut(parent);
+            siblings.insert(index[0].min(siblings.len()), node);
+        }
+    }
+
     /// `joinBackward` from the start of a textblock: its content joins the
     /// previous textblock. Returns the caret at the join point.
     pub fn join_backward(&mut self, block: usize) -> Option<Caret> {
@@ -1191,6 +1307,17 @@ fn empty_doc() -> Value {
     json!({ "type": "doc", "content": [] })
 }
 
+/// Whether `kind`'s content expression takes a block node at `index`: `doc`
+/// and `blockquote` are `block+`, list items `paragraph block*`, and lists
+/// hold items only.
+fn takes_block(kind: &str, index: usize) -> bool {
+    match kind {
+        "doc" | "blockquote" => true,
+        "listItem" | "taskItem" => index >= 1,
+        _ => false,
+    }
+}
+
 fn collect_textblocks(node: &Value, path: &mut Vec<usize>, out: &mut Vec<Vec<usize>>) {
     let kind = node.get("type").and_then(Value::as_str).unwrap_or("");
     if TEXTBLOCKS.contains(&kind) {
@@ -1474,6 +1601,138 @@ fn merge_adjacent_text(inline: &mut Vec<Value>) {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    const CLIP: &str = r#"{"type":"clip","attrs":{"src":"https://www.youtube.com/embed/x"}}"#;
+
+    fn clip() -> Value {
+        serde_json::from_str(CLIP).unwrap()
+    }
+
+    #[test]
+    fn block_atom_lands_beside_a_paragraph_at_its_edges() {
+        let body = r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"abc"}]}]}"#;
+        let mut doc = Doc::parse(body);
+        assert_eq!(
+            doc.insert_block_atom(caret(0, 0), caret(0, 0), clip()),
+            caret(0, 0)
+        );
+        assert_eq!(
+            doc.to_json(),
+            format!(
+                r#"{{"type":"doc","content":[{CLIP},{{"type":"paragraph","content":[{{"type":"text","text":"abc"}}]}}]}}"#
+            )
+        );
+        let mut doc = Doc::parse(body);
+        assert_eq!(
+            doc.insert_block_atom(caret(0, 3), caret(0, 3), clip()),
+            caret(0, 3)
+        );
+        assert_eq!(
+            doc.to_json(),
+            format!(
+                r#"{{"type":"doc","content":[{{"type":"paragraph","content":[{{"type":"text","text":"abc"}}]}},{CLIP}]}}"#
+            )
+        );
+    }
+
+    #[test]
+    fn block_atom_replaces_an_empty_paragraph_and_splits_a_textblock() {
+        let mut doc = Doc::parse(r#"{"type":"doc","content":[{"type":"paragraph"}]}"#);
+        doc.insert_block_atom(caret(0, 0), caret(0, 0), clip());
+        assert_eq!(
+            doc.to_json(),
+            format!(r#"{{"type":"doc","content":[{CLIP}]}}"#)
+        );
+
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"Open bugs"}]}]}"#,
+        );
+        assert_eq!(
+            doc.insert_block_atom(caret(0, 4), caret(0, 4), clip()),
+            caret(1, 0)
+        );
+        assert_eq!(
+            doc.to_json(),
+            format!(
+                r#"{{"type":"doc","content":[{{"type":"heading","attrs":{{"level":2}},"content":[{{"type":"text","text":"Open"}}]}},{CLIP},{{"type":"heading","attrs":{{"level":2}},"content":[{{"type":"text","text":" bugs"}}]}}]}}"#
+            )
+        );
+    }
+
+    #[test]
+    fn block_atom_in_list_items_follows_insert_point() {
+        let list = |items: &str| {
+            format!(r#"{{"type":"doc","content":[{{"type":"bulletList","content":[{items}]}}]}}"#)
+        };
+        let item = |content: &str| format!(r#"{{"type":"listItem","content":[{content}]}}"#);
+        let para = |text: &str| {
+            format!(r#"{{"type":"paragraph","content":[{{"type":"text","text":"{text}"}}]}}"#)
+        };
+
+        // The middle of an item's paragraph splits it inside the item.
+        let mut doc = Doc::parse(&list(&item(&para("Open bugs"))));
+        doc.insert_block_atom(caret(0, 4), caret(0, 4), clip());
+        assert_eq!(
+            doc.to_json(),
+            list(&item(&format!("{},{CLIP},{}", para("Open"), para(" bugs"))))
+        );
+        // The end of the paragraph puts it after, still inside the item.
+        let mut doc = Doc::parse(&list(&item(&para("a"))));
+        doc.insert_block_atom(caret(0, 1), caret(0, 1), clip());
+        assert_eq!(doc.to_json(), list(&item(&format!("{},{CLIP}", para("a")))));
+        // The start of the first item climbs to the document: before the list.
+        let mut doc = Doc::parse(&list(&item(&para("a"))));
+        doc.insert_block_atom(caret(0, 0), caret(0, 0), clip());
+        assert_eq!(
+            doc.to_json(),
+            format!(
+                r#"{{"type":"doc","content":[{CLIP},{{"type":"bulletList","content":[{}]}}]}}"#,
+                item(&para("a"))
+            )
+        );
+        // The start of a later item has no insert point: the fit leaves an
+        // empty paragraph ahead of the node.
+        let mut doc = Doc::parse(&list(&format!("{},{}", item(&para("a")), item(&para("b")))));
+        assert_eq!(
+            doc.insert_block_atom(caret(1, 0), caret(1, 0), clip()),
+            caret(2, 0)
+        );
+        assert_eq!(
+            doc.to_json(),
+            list(&format!(
+                "{},{}",
+                item(&para("a")),
+                item(&format!(r#"{{"type":"paragraph"}},{CLIP},{}"#, para("b")))
+            ))
+        );
+    }
+
+    #[test]
+    fn block_atom_over_a_selection_deletes_it_first() {
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"abcdef"}]}]}"#,
+        );
+        assert_eq!(
+            doc.insert_block_atom(caret(0, 2), caret(0, 4), clip()),
+            caret(1, 0)
+        );
+        assert_eq!(
+            doc.to_json(),
+            format!(
+                r#"{{"type":"doc","content":[{{"type":"paragraph","content":[{{"type":"text","text":"ab"}}]}},{CLIP},{{"type":"paragraph","content":[{{"type":"text","text":"ef"}}]}}]}}"#
+            )
+        );
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"abc"}]}]}"#,
+        );
+        doc.insert_block_atom(caret(0, 3), caret(0, 0), clip());
+        assert_eq!(
+            doc.to_json(),
+            format!(r#"{{"type":"doc","content":[{CLIP}]}}"#)
+        );
+    }
+
     #[test]
     fn title_heading_is_enforced_like_the_plugin() {
         let mut doc = Doc::parse(
@@ -1499,8 +1758,6 @@ mod tests {
         assert!(!doc.enforce_title_heading());
         assert_eq!(doc.to_json(), before);
     }
-
-    use super::*;
 
     fn caret(block: usize, offset: usize) -> Caret {
         Caret { block, offset }

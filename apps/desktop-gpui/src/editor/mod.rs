@@ -2,6 +2,7 @@
 //! model, with the same persistence cadence as `packages/editor` (changes
 //! flushed 500ms after the last keystroke, at most 10s apart).
 
+pub mod clip;
 pub mod links;
 pub mod mention_picker;
 pub mod model;
@@ -151,6 +152,8 @@ pub struct BodyEditor {
     /// `prosemirror-search`'s `SearchQuery` set by the find bar: matches are
     /// decorated in every textblock.
     search: Option<SearchSpec>,
+    /// Runs the network lookups (`resolveYouTubeClipUrl`).
+    runtime: Option<tokio::runtime::Handle>,
 }
 
 /// The find bar's query as `setSearch` / `replace` hand it to the editor.
@@ -188,6 +191,7 @@ impl BodyEditor {
             mention_dismissed: None,
             mention_search: None,
             search: None,
+            runtime: None,
         }
     }
 
@@ -318,6 +322,10 @@ impl BodyEditor {
     }
 
     /// `mentionConfig`: how `@query` resolves to candidates.
+    pub fn set_runtime(&mut self, runtime: tokio::runtime::Handle) {
+        self.runtime = Some(runtime);
+    }
+
     pub fn set_mention_search(&mut self, search: mention_picker::Search) {
         self.mention_search = Some(search);
     }
@@ -1027,11 +1035,63 @@ impl BodyEditor {
 
     fn on_paste(&mut self, _: &Paste, window: &mut Window, cx: &mut Context<Self>) {
         if let Some(text) = cx.read_from_clipboard().and_then(|item| item.text()) {
+            if self.paste_clip(&text, cx) {
+                return;
+            }
             self.record_edit(EditKind::Structural);
             self.pasting = true;
             self.replace_text_in_range(None, &text, window, cx);
             self.pasting = false;
         }
+    }
+
+    /// `clipPastePlugin.handlePaste`: an embed snippet or a YouTube link
+    /// becomes a `clip` node; a clip link is looked up first and the paste is
+    /// consumed either way.
+    fn paste_clip(&mut self, text: &str, cx: &mut Context<Self>) -> bool {
+        if let Some(embed) = clip::parse_youtube_embed_snippet(text) {
+            self.insert_clip(&embed, cx);
+            return true;
+        }
+        if text.is_empty() {
+            return false;
+        }
+        if let Some(clip_id) = clip::parse_youtube_clip_id(text) {
+            if let Some(runtime) = self.runtime.clone() {
+                let lookup = runtime.spawn(clip::resolve_youtube_clip_url(clip_id));
+                cx.spawn(async move |this, cx| {
+                    if let Ok(Some(embed)) = lookup.await {
+                        this.update(cx, |this, cx| this.insert_clip(&embed, cx))
+                            .ok();
+                    }
+                })
+                .detach();
+            }
+            return true;
+        }
+        match clip::parse_youtube_url(text) {
+            Some(embed) => {
+                self.insert_clip(&embed, cx);
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// `tr.replaceSelectionWith(clip)`.
+    fn insert_clip(&mut self, embed_url: &str, cx: &mut Context<Self>) {
+        let Some(caret) = self.caret else {
+            return;
+        };
+        let anchor = self.anchor.unwrap_or(caret);
+        self.record_edit(EditKind::Structural);
+        let caret = self
+            .doc
+            .insert_block_atom(anchor, caret, clip::clip_node(embed_url));
+        self.caret = Some(caret);
+        self.anchor = None;
+        self.stored_marks = None;
+        self.changed(cx);
     }
 
     /// `toggleMark`: with a selection, adds or removes the mark across it;

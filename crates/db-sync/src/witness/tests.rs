@@ -494,7 +494,149 @@ async fn merged_witness_pages_can_materialize_rows_before_refresh_completes() {
 }
 
 #[tokio::test]
-async fn initialized_witness_refreshes_before_publishing_pending_state() {
+async fn initialization_publishes_local_edits_before_hydrating_conflicting_history() {
+    for publish_status in [200, 500] {
+        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+        anlg_db_app::prepare_schema(&db).await.unwrap();
+        sqlx::query(
+            "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
+         VALUES ('session-1', 'user-a', 'user-a', 'Local edit')",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+        let recovery_key = anlg_e2ee::RecoveryKey::parse(
+            "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
+        )
+        .unwrap();
+        let key = recovery_key.workspace_key("user-a").unwrap();
+        let hook = crate::E2eeSyncHook::default();
+        hook.set_personal_workspace("user-a", &recovery_key)
+            .unwrap();
+        hook.prepare_local_snapshot(db.pool(), &E2eeWitnessCancellation::default())
+            .await
+            .unwrap();
+        let uploads = anlg_db_app::pending_e2ee_witness_uploads(
+            db.pool(),
+            "user-a",
+            &key,
+            100,
+            MAX_BATCH_BYTES,
+        )
+        .await
+        .unwrap();
+        let title_id = key.blind_field_id("sessions", "session-1", "title");
+        let local_title = uploads
+            .iter()
+            .find(|upload| upload.record_id == title_id)
+            .unwrap();
+        let remote_title = key
+            .seal_field(
+                "user-a",
+                "sessions",
+                "session-1",
+                "title",
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                100,
+                false,
+                json!("Remote edit"),
+            )
+            .unwrap();
+        let events = vec![json!({
+            "sequence": 1,
+            "recordId": remote_title.record_id,
+            "payloadHash": anlg_e2ee::payload_hash(&remote_title.payload),
+            "payload": remote_title.payload,
+        })];
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/sync/e2ee/witness/user-a"))
+            .respond_with(PagedWitness {
+                events,
+                page_size: 1,
+            })
+            .mount(&server)
+            .await;
+        Mock::given(method("POST"))
+            .and(path("/sync/e2ee/witness/user-a"))
+            .respond_with(ResponseTemplate::new(publish_status).set_body_json(json!({
+                "initializedAt": "2026-07-17T00:00:00Z", "headSequence": 1,
+            })))
+            .mount(&server)
+            .await;
+        let client = E2eeWitnessClient::new(
+            E2eeWitnessConfig {
+                endpoint: format!("{}/sync/e2ee/witness/user-a", server.uri()),
+                access_token: "access-token".to_string(),
+            },
+            "user-a",
+        )
+        .unwrap();
+        let keyring = key.clone().into();
+        let keys = HashMap::from([("user-a".to_string(), key.clone().into())]);
+        let cancellation = E2eeWitnessCancellation::default();
+        let result = client
+            .initialize_keyring_with_page_handler_cancellable(
+                db.pool(),
+                &keyring,
+                || async {
+                    anlg_db_app::apply_received_e2ee_replica_changes_with_witness(
+                        db.pool(),
+                        &keys,
+                        true,
+                    )
+                    .await
+                    .map(|_| ())
+                    .map_err(replica_error)
+                },
+                &cancellation,
+            )
+            .await;
+        if publish_status == 200 {
+            result.unwrap();
+        } else {
+            assert!(result.is_err());
+            let title: String =
+                sqlx::query_scalar("SELECT title FROM sessions WHERE id = 'session-1'")
+                    .fetch_one(db.pool())
+                    .await
+                    .unwrap();
+            assert_eq!(title, "Local edit");
+            let pending = anlg_db_app::pending_e2ee_witness_uploads(
+                db.pool(),
+                "user-a",
+                &key,
+                100,
+                MAX_BATCH_BYTES,
+            )
+            .await
+            .unwrap();
+            assert!(
+                pending
+                    .iter()
+                    .any(|upload| upload.payload_hash == local_title.payload_hash)
+            );
+        }
+
+        let requests = server.received_requests().await.unwrap();
+        assert!(
+            requests
+                .iter()
+                .filter(|request| request.method.as_str() == "POST")
+                .any(|request| {
+                    let body: serde_json::Value = serde_json::from_slice(&request.body).unwrap();
+                    body["events"].as_array().unwrap().iter().any(|event| {
+                        event["recordId"] == local_title.record_id
+                            && event["payloadHash"] == local_title.payload_hash
+                    })
+                }),
+            "the unpublished local title must reach the witness before remote hydration replaces it"
+        );
+    }
+}
+
+#[tokio::test]
+async fn initialized_witness_checks_status_then_publishes_before_refreshing() {
     let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
     anlg_db_app::prepare_schema(&db).await.unwrap();
     sqlx::query(
@@ -534,10 +676,10 @@ async fn initialized_witness_refreshes_before_publishing_pending_state() {
     client.initialize(db.pool(), &key).await.unwrap();
 
     let methods = responder.methods.lock().unwrap().clone();
-    assert_eq!(&methods[..2], ["GET", "GET"]);
+    assert_eq!(methods.first().map(String::as_str), Some("GET"));
     assert_eq!(methods.last().map(String::as_str), Some("GET"));
     assert!(
-        methods[2..methods.len() - 1]
+        methods[1..methods.len() - 1]
             .iter()
             .all(|method| method == "POST")
     );

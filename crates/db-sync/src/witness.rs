@@ -244,13 +244,8 @@ impl E2eeWitnessClient {
         }
 
         if status.initialized {
-            self.refresh_keyring_with_page_handler_cancellable(
-                pool,
-                keyring,
-                &mut on_merged_page,
-                cancellation,
-            )
-            .await?;
+            // Receiving history can retire pending local versions. Publish them
+            // first so an offline edit reaches the witness before hydration.
             self.publish_pending(pool, keyring.active(), false, cancellation)
                 .await?;
         } else {

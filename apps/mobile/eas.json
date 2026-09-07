@@ -34,6 +34,10 @@
       "ios": {
         "appleId": "john@fastrepl.com",
         "ascAppId": "6807350358"
+      },
+      "android": {
+        "track": "internal",
+        "releaseStatus": "completed"
       }
     }
   }

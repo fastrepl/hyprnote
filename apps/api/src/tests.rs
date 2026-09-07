@@ -8,7 +8,7 @@ use serde_json::{Value, json};
 use tower::ServiceExt;
 use wiremock::{
     Mock, MockServer, ResponseTemplate,
-    matchers::{method, path},
+    matchers::{body_json, method, path},
 };
 
 use super::*;
@@ -605,6 +605,14 @@ async fn sync_composition_keeps_devices_and_sharing_available_when_credentials_a
             "code": "42501",
             "message": "share manager access required"
         })))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    Mock::given(method("POST"))
+        .and(path("/rest/v1/rpc/get_sync_device_limit"))
+        .and(body_json(json!({ "p_actor_user_id": "editor-user" })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!(3)))
         .expect(1)
         .mount(&server)
         .await;

@@ -449,11 +449,26 @@ impl E2eeSyncHook {
                 .get(witness.workspace_id())
                 .ok_or_else(|| std::io::Error::other("E2EE replica identity is not configured"))?;
             witness
-                .refresh_notifying_cancellable(
+                .initialize_keyring_with_page_handler_cancellable(
                     pool,
-                    keyring.active(),
-                    || {
-                        self.request_reconciliation();
+                    keyring,
+                    || async {
+                        loop {
+                            cancellation.check()?;
+                            let stats = anlg_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
+                                pool,
+                                &keys,
+                                true,
+                                || self.received_apply_cancelled(&cancellation),
+                            )
+                            .await
+                            .map_err(|error| {
+                                std::io::Error::other(format!("E2EE witness hydration failed: {error}"))
+                            })?;
+                            if !stats.remaining_replica_changes {
+                                return Ok(());
+                            }
+                        }
                     },
                     &cancellation,
                 )

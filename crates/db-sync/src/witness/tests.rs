@@ -544,6 +544,82 @@ async fn initialized_witness_refreshes_before_publishing_pending_state() {
 }
 
 #[tokio::test]
+async fn replica_startup_materializes_notes_when_a_later_history_page_fails() {
+    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+    anlg_db_app::prepare_schema(&db).await.unwrap();
+    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+        "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
+    )
+    .unwrap();
+    let key = recovery_key.workspace_key("user-a").unwrap();
+    let events = [("$row", json!(true)), ("title", json!("Remote"))]
+        .into_iter()
+        .enumerate()
+        .map(|(index, (field, value))| {
+            let sealed = key
+                .seal_field(
+                    "user-a",
+                    "sessions",
+                    "session-1",
+                    field,
+                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    1,
+                    false,
+                    value,
+                )
+                .unwrap();
+            json!({
+                "sequence": index + 1,
+                "recordId": sealed.record_id,
+                "payloadHash": anlg_e2ee::payload_hash(&sealed.payload),
+                "payload": sealed.payload,
+            })
+        })
+        .collect::<Vec<_>>();
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/sync/e2ee/witness/user-a"))
+        .and(wiremock::matchers::query_param("afterSequence", "0"))
+        .respond_with(witness_page(&events, 3, 3))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/sync/e2ee/witness/user-a"))
+        .and(wiremock::matchers::query_param("afterSequence", "2"))
+        .respond_with(ResponseTemplate::new(500))
+        .mount(&server)
+        .await;
+    let hook = crate::E2eeSyncHook::default();
+    hook.set_personal_workspace("user-a", &recovery_key)
+        .unwrap();
+    hook.set_replica_witness(
+        E2eeWitnessClient::new(
+            E2eeWitnessConfig {
+                endpoint: format!("{}/sync/e2ee/witness/user-a", server.uri()),
+                access_token: "access-token".to_string(),
+            },
+            "user-a",
+        )
+        .unwrap(),
+    );
+
+    assert!(hook.sync_replica_transport(db.pool()).await.is_err());
+    assert_eq!(
+        sqlx::query_scalar::<_, String>("SELECT title FROM sessions WHERE id = 'session-1'")
+            .fetch_one(db.pool())
+            .await
+            .unwrap(),
+        "Remote"
+    );
+    assert_eq!(
+        anlg_db_app::e2ee_witness_cursor(db.pool(), "user-a")
+            .await
+            .unwrap(),
+        2
+    );
+}
+
+#[tokio::test]
 async fn pending_local_state_is_retryable_after_a_failed_publish() {
     let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
     anlg_db_app::prepare_schema(&db).await.unwrap();

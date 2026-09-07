@@ -600,16 +600,9 @@ impl MobileDbBridge {
                 &workspace_id,
             )
             .map_err(cloudsync_error)?;
-            let key = e2ee_sync_hook
-                .workspace_key(&workspace_id)
-                .ok_or_else(|| cloudsync_error("E2EE replica identity is not configured"))?;
             let cancellation = anlg_db_sync::E2eeWitnessCancellation::default();
             e2ee_sync_hook
                 .prepare_local_snapshot(db.pool(), &cancellation)
-                .await
-                .map_err(cloudsync_error)?;
-            witness
-                .initialize_cancellable(db.pool(), &key, &cancellation)
                 .await
                 .map_err(cloudsync_error)?;
             e2ee_sync_hook.set_replica_witness(witness);
@@ -1197,6 +1190,27 @@ mod tests {
             .unwrap();
 
         assert_eq!(opened, recovery_key.expose_code().as_str());
+    }
+
+    #[test]
+    fn configuring_a_replica_does_not_wait_for_the_network() {
+        let (_dir, bridge) = new_bridge(None);
+        let recovery_key = anlg_e2ee::RecoveryKey::generate().unwrap();
+
+        let result = bridge
+            .configure_e2ee_replica(
+                "user-a".to_string(),
+                "http://127.0.0.1:9/sync/e2ee/witness/user-a".to_string(),
+                "access-token".to_string(),
+                recovery_key.expose_code().to_string(),
+            )
+            .unwrap();
+
+        assert_eq!(result, "configured");
+        let status: serde_json::Value =
+            serde_json::from_str(&bridge.cloudsync_status().unwrap()).unwrap();
+        assert_eq!(status["configured"], true);
+        assert_eq!(status["last_sync_at_ms"], serde_json::Value::Null);
     }
 
     #[test]

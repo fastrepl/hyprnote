@@ -5484,6 +5484,7 @@ dependencies = [
  "listener2-core",
  "markdown",
  "mime_guess",
+ "notification",
  "owhisper-interface",
  "pico-args",
  "ractor",

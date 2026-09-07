@@ -130,6 +130,12 @@ pub(crate) enum BatchFollowUp {
         audio_path: String,
         marker: Box<crate::capture_marker::Marker>,
         recovery_attempt: Option<u32>,
+        /// `details.liveTranscriptionActive`: with live text on screen the
+        /// repair finishes quietly (`notifyOnCompletion: false`), and its
+        /// failure toast names the transcript save rather than the batch.
+        live_active: bool,
+        /// `transcriptWriteError`: part of the live transcript failed to save.
+        transcript_write_failed: bool,
     },
 }
 
@@ -866,23 +872,34 @@ impl Workspace {
                                         this.reload_note(session_id.clone(), cx);
                                     }
                                     match after {
-                                        // `triggerEnhanceIfSummaryEmpty`
-                                        BatchFollowUp::Standalone => this
-                                            .queue_auto_enhance_if_summary_empty(
+                                        // `triggerEnhanceIfSummaryEmpty`; then
+                                        // `runBatch`'s completion notification,
+                                        // cue and attention request.
+                                        BatchFollowUp::Standalone => {
+                                            this.queue_auto_enhance_if_summary_empty(
                                                 session_id.clone(),
                                                 cx,
-                                            ),
+                                            );
+                                            this.notify_batch_completed(&session_id);
+                                            this.play_completion_sound(cx);
+                                        }
                                         BatchFollowUp::CaptureLifecycle {
                                             summary_mode,
                                             live_transcript_id,
                                             audio_path,
                                             marker,
+                                            live_active,
                                             ..
                                         } => {
                                             tracing::info!(
                                                 session_id,
                                                 "[listener] completed post-stop transcript repair"
                                             );
+                                            // `notifyOnCompletion: !details.liveTranscriptionActive`
+                                            if !live_active {
+                                                this.notify_batch_completed(&session_id);
+                                                this.play_completion_sound(cx);
+                                            }
                                             this.finish_capture(
                                                 session_id.clone(),
                                                 live_transcript_id,
@@ -1076,6 +1093,8 @@ impl Workspace {
                                     audio_path,
                                     marker: Box::new(marker),
                                     recovery_attempt: pending.recovery_attempt,
+                                    live_active,
+                                    transcript_write_failed,
                                 },
                             },
                             cx,
@@ -1388,7 +1407,9 @@ impl Workspace {
     }
 
     /// A failed post-stop repair (`finalizeStopped`'s `requestRecovery`):
-    /// the marker stays and the recovery component retries with backoff.
+    /// the marker stays and the recovery component retries with backoff. The
+    /// stop that started it (`requestRecoveryOnFailure`) also raises
+    /// `notifyFailure`'s toast, unless the note was deleted meanwhile.
     fn after_lifecycle_batch_failed(
         &mut self,
         session_id: &str,
@@ -1396,10 +1417,31 @@ impl Workspace {
         cx: &mut Context<Self>,
     ) {
         if let BatchFollowUp::CaptureLifecycle {
-            recovery_attempt, ..
+            recovery_attempt,
+            live_active,
+            transcript_write_failed,
+            ..
         } = after
         {
             tracing::error!(session_id, "[listener] post-stop transcript repair failed");
+            if recovery_attempt.is_none() {
+                let message = if *transcript_write_failed || !*live_active {
+                    "Anarlog could not finish saving the transcript. The recording was kept so you can try again."
+                } else {
+                    "Post-meeting transcription failed. The recording was kept so you can try again."
+                };
+                let deleted = self.store.session_deleted(session_id.to_string());
+                cx.spawn(async move |this, cx| {
+                    if matches!(deleted.await, Ok(Ok(true))) {
+                        return;
+                    }
+                    this.update(cx, |this, cx| {
+                        this.flash(super::toast::FlashVariant::Error, message, cx)
+                    })
+                    .ok();
+                })
+                .detach();
+            }
             self.retry_capture_recovery(session_id.to_string(), *recovery_attempt, cx);
         }
     }

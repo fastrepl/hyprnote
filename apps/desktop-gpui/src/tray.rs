@@ -420,56 +420,54 @@ mod platform {
         }
     }
 
+    /// The tray lives on the process's GTK thread (shared with the
+    /// notification windows), polling its command channel from a GLib timer.
     pub(super) fn spawn(
         state: TrayState,
         commands: Receiver<TrayCommand>,
         actions: Sender<TrayAction>,
     ) {
-        std::thread::Builder::new()
-            .name("tray".into())
-            .spawn(move || {
-                if !backend_available() {
-                    tracing::warn!("appindicator_library_missing_skipping_tray_icon");
-                    return;
+        if !backend_available() {
+            tracing::warn!("appindicator_library_missing_skipping_tray_icon");
+            return;
+        }
+        if !crate::gtk_loop::ensure_running() {
+            tracing::warn!("gtk init failed; no tray icon");
+            return;
+        }
+        crate::gtk_loop::invoke(move || {
+            MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
+                if let Some(action) = super::action_for(event.id().as_ref()) {
+                    let _ = actions.send(action);
                 }
-                if gtk::init().is_err() {
-                    tracing::warn!("gtk init failed; no tray icon");
-                    return;
-                }
-                MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
-                    if let Some(action) = super::action_for(event.id().as_ref()) {
-                        let _ = actions.send(action);
-                    }
-                }));
-                let inner = Rc::new(RefCell::new(Inner {
-                    state,
-                    icon: None,
-                    frame: 0,
-                }));
-                let poll = inner.clone();
-                gtk::glib::timeout_add_local(Duration::from_millis(50), move || {
-                    loop {
-                        match commands.try_recv() {
-                            Ok(command) => poll.borrow_mut().apply(command),
-                            Err(TryRecvError::Empty) => break gtk::glib::ControlFlow::Continue,
-                            Err(TryRecvError::Disconnected) => {
-                                gtk::main_quit();
-                                break gtk::glib::ControlFlow::Break;
-                            }
+            }));
+            let inner = Rc::new(RefCell::new(Inner {
+                state,
+                icon: None,
+                frame: 0,
+            }));
+            let poll = inner.clone();
+            gtk::glib::timeout_add_local(Duration::from_millis(50), move || {
+                loop {
+                    match commands.try_recv() {
+                        Ok(command) => poll.borrow_mut().apply(command),
+                        Err(TryRecvError::Empty) => break gtk::glib::ControlFlow::Continue,
+                        Err(TryRecvError::Disconnected) => {
+                            poll.borrow_mut().icon = None;
+                            break gtk::glib::ControlFlow::Break;
                         }
                     }
-                });
-                let animate = inner.clone();
-                gtk::glib::timeout_add_local(
-                    Duration::from_millis(icons::RECORDING_FRAME_MS),
-                    move || {
-                        animate.borrow_mut().animate();
-                        gtk::glib::ControlFlow::Continue
-                    },
-                );
-                gtk::main();
-            })
-            .ok();
+                }
+            });
+            let animate = inner.clone();
+            gtk::glib::timeout_add_local(
+                Duration::from_millis(icons::RECORDING_FRAME_MS),
+                move || {
+                    animate.borrow_mut().animate();
+                    gtk::glib::ControlFlow::Continue
+                },
+            );
+        });
     }
 }
 

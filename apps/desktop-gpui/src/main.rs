@@ -23,11 +23,13 @@ mod editor;
 mod emoji;
 mod enhancer;
 mod folders;
+mod gtk_loop;
 mod keywords;
 mod live_transcript;
 mod llm_stream;
 mod mention;
 mod note_search;
+mod notifications;
 mod prose_text;
 mod recording;
 mod search;
@@ -214,6 +216,28 @@ fn handle_tray_action(action: tray::TrayAction, store: &Arc<Store>, cx: &mut App
     }
 }
 
+/// A notification's `Open Anarlog`: bring the window back and open the
+/// session it names (`openNew({ type: "sessions", id })`).
+fn handle_notification_open(opened: notifications::Opened, store: &Arc<Store>, cx: &mut App) {
+    let handle = match cx.global::<MainWindow>().handle {
+        Some(handle) if cx.windows().contains(&handle.into()) => handle,
+        _ => match open_main_window(store.clone(), cx) {
+            Ok(handle) => handle,
+            Err(error) => {
+                tracing::error!(%error, "failed to reopen main window from notification");
+                return;
+            }
+        },
+    };
+    cx.activate(true);
+    handle
+        .update(cx, |workspace, window, cx| {
+            window.activate_window();
+            workspace.open_session_from_notification(opened.session_id, cx);
+        })
+        .ok();
+}
+
 #[cfg(debug_assertions)]
 const DEFAULT_IDENTIFIER: &str = "com.hyprnote.dev";
 #[cfg(not(debug_assertions))]
@@ -317,6 +341,7 @@ fn main() -> anyhow::Result<()> {
         cx.set_global(audio::Audio(audio));
         cx.set_global(search::Search(search));
         cx.set_global(MainWindow { handle: None });
+        cx.set_global(notifications::Notifications::install());
         cx.set_global(DeepLinks {
             server: callback_server,
         });
@@ -375,6 +400,9 @@ fn main() -> anyhow::Result<()> {
                     .update(|cx| {
                         for action in cx.global::<tray::Tray>().take_actions() {
                             handle_tray_action(action, &tray_store, cx);
+                        }
+                        for opened in cx.global::<notifications::Notifications>().take_opened() {
+                            handle_notification_open(opened, &tray_store, cx);
                         }
                         for url in forwarded.try_iter().chain(deeplink_receiver.try_iter()) {
                             handle_deep_link_url(&url, &tray_store, cx);

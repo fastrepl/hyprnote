@@ -29,6 +29,7 @@ mod mention_popup;
 mod menu;
 mod note;
 mod note_search_bar;
+mod notifications;
 pub(crate) mod onboarding;
 mod open_note;
 mod overflow;
@@ -178,6 +179,8 @@ pub struct Workspace {
     sidebar_expanded: bool,
     sidebar_width: f32,
     sidebar_drag: Option<SidebarDrag>,
+    /// `isAppWindowInactive`'s complement, kept current by the activation observer.
+    window_active: bool,
     open_menu: Option<Menu>,
     open_note: Option<open_note::OpenNoteDialog>,
     /// `recentlyOpenedSessionIds`, newest first, persisted to `store.json`.
@@ -398,6 +401,7 @@ impl Workspace {
             sidebar_expanded: true,
             sidebar_width: SIDEBAR_DEFAULT_WIDTH,
             sidebar_drag: None,
+            window_active: true,
             open_menu: None,
             open_note: None,
             recently_opened: Vec::new(),
@@ -480,6 +484,7 @@ impl Workspace {
         this.reload_sessions(cx);
         this.reload_settings(cx);
         this.watch_changes(cx);
+        this.observe_window_activity(window, cx);
         match mode {
             Mode::Main => {
                 this.restore_tabs(cx);

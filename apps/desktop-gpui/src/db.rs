@@ -3241,6 +3241,22 @@ impl Store {
         })
     }
 
+    /// `isSessionDeleted`: no live row for the id.
+    pub fn session_deleted(
+        &self,
+        session_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<bool>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let live: Option<i64> =
+                sqlx::query_scalar("SELECT 1 FROM sessions WHERE id = ? AND deleted_at IS NULL")
+                    .bind(&session_id)
+                    .fetch_optional(db.pool())
+                    .await?;
+            Ok(live.is_none())
+        })
+    }
+
     /// `saveCaptureLifecycleMarker(marker)`
     pub fn save_capture_marker(
         &self,

@@ -1477,11 +1477,15 @@ async fn enhance_success(
         persist_title(store, &args.session_id, &generated_title).await?;
     }
     tracing::info!(session_id = %args.session_id, "note.enhanced");
-    // `playCompletionSound` (the summary-ready notification and
-    // `requestAppAttention` need the notification plugin and a window
-    // attention API the shell does not have).
-    this.update(cx, |this, cx| this.play_completion_sound(cx))
-        .ok();
+    // `showSummaryReadyNotification(sessionId, trimmedTitle)` and
+    // `playCompletionSound` (`requestAppAttention` needs a window attention
+    // API GPUI does not expose).
+    let session_id = args.session_id.clone();
+    this.update(cx, |this, cx| {
+        this.notify_summary_ready(&session_id, Some(&trimmed_title));
+        this.play_completion_sound(cx);
+    })
+    .ok();
     Ok(())
 }
 

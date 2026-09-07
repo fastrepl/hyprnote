@@ -1789,38 +1789,7 @@ impl Store {
         let db = self.db.clone();
         self.runtime.spawn(async move {
             let pool = db.pool();
-            let row =
-                sqlx::query_as::<_, (String, String, String, String, i64, i64, i64, i64, i64)>(
-                    SESSION_EMPTY_SQL,
-                )
-                .bind(&session_id)
-                .fetch_optional(pool)
-                .await?;
-            let Some((
-                title,
-                event_json,
-                note_body,
-                note_body_format,
-                transcripts,
-                enhanced,
-                chats,
-                manual_participants,
-                tags,
-            )) = row
-            else {
-                return Ok(false);
-            };
-            // Same early returns as `isSessionEmpty`.
-            if !title.trim().is_empty() && event_json.is_empty() {
-                return Ok(false);
-            }
-            if has_note_content(&note_body, &note_body_format) {
-                return Ok(false);
-            }
-            if [transcripts, enhanced, chats, manual_participants, tags]
-                .iter()
-                .any(|count| *count != 0)
-            {
+            if !session_is_empty(pool, &session_id).await? {
                 return Ok(false);
             }
 
@@ -1828,6 +1797,55 @@ impl Store {
                 .format("%Y-%m-%dT%H:%M:%S%.3fZ")
                 .to_string();
             Ok(apply_tombstone(pool, &session_id, &tombstone, false).await? == 1)
+        })
+    }
+
+    /// `discardEmptyAutomaticCapture`: an automatic capture that recorded no
+    /// speech into a session the user never touched (title still the event's,
+    /// no attachments, `isSessionEmpty`) loses its un-catalogued audio. The
+    /// calendar note and anything another device contributed stay. Returns
+    /// whether the audio was removed.
+    pub fn discard_empty_automatic_capture(
+        &self,
+        session_id: String,
+        initial_title: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<bool>> {
+        let db = self.db.clone();
+        let session_dir = self.session_dir(&session_id);
+        self.runtime.spawn(async move {
+            let Some(path) = anlg_fs_sync_core::audio::path(&session_dir) else {
+                return Ok(false);
+            };
+            let speech =
+                tokio::task::spawn_blocking(move || anlg_fs_sync_core::audio::has_speech(&path))
+                    .await??;
+            if speech {
+                return Ok(false);
+            }
+            let pool = db.pool();
+            let row = sqlx::query_as::<_, (String, i64)>(
+                "SELECT title, EXISTS (
+                   SELECT 1 FROM session_attachments
+                   WHERE session_id = sessions.id AND deleted_at IS NULL
+                 ) AS has_attachments
+                 FROM sessions WHERE id = ? AND deleted_at IS NULL",
+            )
+            .bind(&session_id)
+            .fetch_optional(pool)
+            .await?;
+            let Some((title, has_attachments)) = row else {
+                return Ok(false);
+            };
+            if title != initial_title || has_attachments != 0 {
+                return Ok(false);
+            }
+            if !session_is_empty(pool, &session_id).await? {
+                return Ok(false);
+            }
+            Ok(
+                tokio::task::spawn_blocking(move || anlg_fs_sync_core::audio::delete(&session_dir))
+                    .await??,
+            )
         })
     }
 
@@ -4044,6 +4062,27 @@ impl Store {
         })
     }
 
+    /// `SCHEDULED_MEETINGS_SQL`: the timed calendar events with a meeting
+    /// link, for the scheduled auto-start.
+    pub fn scheduled_meetings(
+        &self,
+    ) -> tokio::task::JoinHandle<anyhow::Result<Vec<crate::scheduled_auto_start::ScheduledMeeting>>>
+    {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            Ok(
+                sqlx::query_as(crate::scheduled_auto_start::SCHEDULED_MEETINGS_SQL)
+                    .fetch_all(db.pool())
+                    .await?,
+            )
+        })
+    }
+
+    /// `audioExist(sessionId)`
+    pub fn audio_exists(&self, session_id: &str) -> bool {
+        anlg_fs_sync_core::audio::path(&self.session_dir(session_id)).is_some()
+    }
+
     /// `getOrCreateSessionForEventId`: open the session backing a calendar
     /// event, creating it (with participants from the event) if none exists.
     pub fn open_event_session(
@@ -4438,6 +4477,39 @@ fn resolve_db_dir(data_dir: &Path, default_dir: &Path, identifier: &str) -> Path
 }
 
 /// `markSessionAudioAvailability(sessionId, "absent")`
+/// `isSessionEmpty`
+async fn session_is_empty(pool: &sqlx::SqlitePool, session_id: &str) -> anyhow::Result<bool> {
+    let row = sqlx::query_as::<_, (String, String, String, String, i64, i64, i64, i64, i64)>(
+        SESSION_EMPTY_SQL,
+    )
+    .bind(session_id)
+    .fetch_optional(pool)
+    .await?;
+    let Some((
+        title,
+        event_json,
+        note_body,
+        note_body_format,
+        transcripts,
+        enhanced,
+        chats,
+        manual_participants,
+        tags,
+    )) = row
+    else {
+        return Ok(false);
+    };
+    if !title.trim().is_empty() && event_json.is_empty() {
+        return Ok(false);
+    }
+    if has_note_content(&note_body, &note_body_format) {
+        return Ok(false);
+    }
+    Ok([transcripts, enhanced, chats, manual_participants, tags]
+        .iter()
+        .all(|count| *count == 0))
+}
+
 async fn mark_session_audio_absent(
     pool: &sqlx::SqlitePool,
     session_id: &str,

@@ -217,6 +217,30 @@ pub(crate) struct CaptureLifecycle {
     pub owner_user_id: String,
     /// `initialTitle` for the recovery marker.
     pub initial_title: Option<String>,
+    /// `startedAutomatically`: a scheduled meeting's auto-start.
+    pub automatic: bool,
+    /// `preserveExistingAudio`: `true` for a manual capture; for an
+    /// automatic one, whether the session already had audio at start.
+    pub preserve_existing_audio: bool,
+    /// `live.requestedLiveTranscription`
+    pub requested_live: bool,
+}
+
+impl CaptureLifecycle {
+    /// `discardEmptyAutomaticCapture`'s preconditions that need no I/O: only
+    /// a fresh automatic capture of a session the start left untouched, whose
+    /// transcription completed, is a candidate.
+    fn discard_candidate(&self, live_active: bool, transcript_write_failed: bool) -> bool {
+        let transcription_complete = (!self.requested_live || live_active)
+            && !self.needs_batch_repair
+            && !transcript_write_failed;
+        self.automatic
+            && !self.preserve_existing_audio
+            && !self.preserve_existing_transcript
+            && self.initial_title.is_some()
+            && !self.transcript_touched
+            && transcription_complete
+    }
 }
 
 impl CaptureLifecycle {
@@ -237,9 +261,8 @@ impl CaptureLifecycle {
             created_at: persistence.created_at.clone(),
             audio_offset_ms: self.existing_audio_ms.max(0),
             preserve_existing_transcript: self.preserve_existing_transcript,
-            // The shell records manual captures only, which keep prior audio.
-            automatic: Some(false),
-            preserve_existing_audio: Some(true),
+            automatic: Some(self.automatic),
+            preserve_existing_audio: Some(self.preserve_existing_audio),
             initial_title: self.initial_title.clone(),
             owner_user_id: self.owner_user_id.clone(),
             memo: persistence.memo.clone(),
@@ -312,6 +335,9 @@ pub(crate) struct PendingPostCapture {
     /// `recoverStopped` rather than `onStopped`: failures do not request
     /// another recovery pass beyond the retry budget.
     pub recovery_attempt: Option<u32>,
+    /// The empty-automatic-capture check ran and the audio was catalogued
+    /// (`catalogLocalSessionAudio`), in `finalizeStopped`'s order.
+    pub catalogued: bool,
 }
 
 /// `getPostCaptureAction`
@@ -1003,6 +1029,72 @@ impl Workspace {
             return;
         };
         let transcript_write_failed = !flushed;
+        if !pending.catalogued
+            && let Some(path) = audio_path.clone()
+        {
+            // `finalizeStopped`: after the flush, an empty automatic capture is
+            // discarded before anything is catalogued; otherwise
+            // `catalogLocalSessionAudio` runs and the finalization goes on.
+            let discard = lifecycle
+                .discard_candidate(live_active, transcript_write_failed)
+                .then(|| {
+                    self.store.discard_empty_automatic_capture(
+                        session_id.to_string(),
+                        lifecycle.initial_title.clone().unwrap_or_default(),
+                    )
+                });
+            let catalog_store = self.store.clone();
+            let session_id = session_id.to_string();
+            let pending = PendingPostCapture {
+                flush: Some((transcript_id.clone(), transcript_created, flushed)),
+                snapshot: Some((live_active, lifecycle, marker)),
+                inactive: Some(Some(path)),
+                recovered_summary_mode: pending.recovered_summary_mode,
+                recovery_attempt: pending.recovery_attempt,
+                catalogued: true,
+            };
+            cx.spawn(async move |this, cx| {
+                let discarded = match discard {
+                    Some(task) => match task.await.map_err(anyhow::Error::from).and_then(|r| r) {
+                        Ok(discarded) => discarded,
+                        Err(error) => {
+                            tracing::warn!(%error, "[listener] keeping automatic capture after an inconclusive activity check");
+                            false
+                        }
+                    },
+                    None => false,
+                };
+                if discarded {
+                    tracing::info!(session_id, "[listener] discarded empty automatic capture");
+                    this.update(cx, |this, cx| {
+                        this.clear_capture_marker(session_id.clone(), transcript_id);
+                        if this.selected.as_deref() == Some(session_id.as_str()) {
+                            this.reload_note(session_id, cx);
+                        }
+                    })
+                    .ok();
+                    return;
+                }
+                // `onStopped` → `catalogLocalSessionAudio`: the primary audio
+                // attachment row, `transcript_status: processing`.
+                if let Ok(Err(error)) = catalog_store.catalog_session_audio(session_id.clone()).await
+                {
+                    tracing::error!(%error, "[listener] failed to catalog session audio");
+                }
+                this.update(cx, |this, cx| {
+                    this.recording
+                        .pending_post_capture
+                        .insert(session_id.clone(), pending);
+                    this.finalize_capture_when_ready(&session_id, cx);
+                    if this.selected.as_deref() == Some(session_id.as_str()) {
+                        this.reload_note(session_id, cx);
+                    }
+                })
+                .ok();
+            })
+            .detach();
+            return;
+        }
         // `canRunBatchTranscription` is unconditional; a missing batch target
         // surfaces as the batch's own error.
         let action = match pending.recovered_summary_mode {
@@ -1258,18 +1350,9 @@ impl Workspace {
         let exists = self.store.transcript_exists(marker.transcript_id.clone());
         let audio_path = anlg_fs_sync_core::audio::path(&self.store.session_dir(&session_id))
             .map(|path| path.to_string_lossy().into_owned());
-        // `catalogLocalSessionAudio`: the recovered recording's attachment row.
-        let catalog = audio_path
-            .is_some()
-            .then(|| self.store.catalog_session_audio(session_id.clone()));
         cx.spawn(async move |this, cx| {
             let flushed = matches!(flush.await, Ok(Ok(())));
             let created = matches!(exists.await, Ok(Ok(true)));
-            if let Some(catalog) = catalog
-                && let Ok(Err(error)) = catalog.await
-            {
-                tracing::error!(%error, "[listener] failed to catalog recorded audio");
-            }
             this.update(cx, |this, cx| {
                 let lifecycle = CaptureLifecycle {
                     preserve_existing_transcript: marker.preserve_existing_transcript,
@@ -1278,6 +1361,9 @@ impl Workspace {
                     transcript_touched: created,
                     owner_user_id: marker.owner_user_id.clone(),
                     initial_title: marker.initial_title.clone(),
+                    automatic: marker.automatic == Some(true),
+                    preserve_existing_audio: marker.preserve_existing_audio.unwrap_or(true),
+                    requested_live: true,
                 };
                 let recovered_summary_mode = marker.summary_mode.map(|mode| match mode {
                     crate::capture_marker::SummaryMode::Regenerate => {
@@ -1295,6 +1381,7 @@ impl Workspace {
                         inactive: Some(audio_path),
                         recovered_summary_mode,
                         recovery_attempt: Some(attempt),
+                        catalogued: false,
                     },
                 );
                 this.finalize_capture_when_ready(&session_id, cx);
@@ -1500,10 +1587,24 @@ impl Workspace {
     /// `start_capture`; on success the sidebar collapses and, without a
     /// transcription provider, the warning toast appears.
     pub(crate) fn start_listening(&mut self, session_id: String, cx: &mut Context<Self>) {
+        self.start_listening_with(session_id, false, cx);
+    }
+
+    /// `useStartListeningState(sessionId, { automatic })`: `automatic` marks
+    /// a scheduled meeting's auto-start, whose empty recording is discarded.
+    pub(crate) fn start_listening_with(
+        &mut self,
+        session_id: String,
+        automatic: bool,
+        cx: &mut Context<Self>,
+    ) {
         // `canStartLiveSession`: one capture at a time.
         if self.recording.live.is_some() || self.recording.starting {
             return;
         }
+        // `existingAudioPromise`: a manual capture keeps prior audio; an
+        // automatic one records whether there was any.
+        let preserve_existing_audio = !automatic || self.store.audio_exists(&session_id);
         let Some(recorder) = self.recording.recorder.clone() else {
             self.flash(
                 super::toast::FlashVariant::Error,
@@ -1606,6 +1707,9 @@ impl Workspace {
                                 transcript_touched: false,
                                 owner_user_id: context.owner_user_id.clone(),
                                 initial_title: context.initial_title.clone(),
+                                automatic,
+                                preserve_existing_audio,
+                                requested_live: true,
                             },
                         });
                         // `lifecycle.persistMarker()`: the durable capture state
@@ -1763,36 +1867,14 @@ impl Workspace {
                 if let Some(error) = error {
                     tracing::error!(%error, "[listener] capture ended with an error");
                 }
-                if let Some(audio_path) = audio_path {
-                    // `onStopped` → `catalogLocalSessionAudio`: the primary
-                    // audio attachment row, `transcript_status: processing`.
-                    let task = self.store.catalog_session_audio(session_id.clone());
-                    cx.spawn(async move |this, cx| {
-                        if let Ok(Err(error)) = task.await {
-                            tracing::error!(%error, "[listener] failed to catalog session audio");
-                        }
-                        this.update(cx, |this, cx| {
-                            this.recording
-                                .pending_post_capture
-                                .entry(session_id.clone())
-                                .or_default()
-                                .inactive = Some(Some(audio_path));
-                            this.finalize_capture_when_ready(&session_id, cx);
-                            if this.selected.as_deref() == Some(session_id.as_str()) {
-                                this.reload_note(session_id, cx);
-                            }
-                        })
-                        .ok();
-                    })
-                    .detach();
-                } else {
-                    self.recording
-                        .pending_post_capture
-                        .entry(session_id.clone())
-                        .or_default()
-                        .inactive = Some(None);
-                    self.finalize_capture_when_ready(&session_id, cx);
-                }
+                // The audio is catalogued once the flush and the snapshot
+                // are in, after the empty-automatic-capture check.
+                self.recording
+                    .pending_post_capture
+                    .entry(session_id.clone())
+                    .or_default()
+                    .inactive = Some(audio_path);
+                self.finalize_capture_when_ready(&session_id, cx);
             }
             Event::Progress(SessionProgressEvent::AudioReady { .. })
             | Event::Progress(SessionProgressEvent::AudioInitializing { .. })

@@ -35,6 +35,7 @@ pub(crate) mod onboarding;
 mod open_note;
 mod overflow;
 mod recording;
+mod scheduled_auto_start;
 mod session_drag;
 mod settings;
 pub(crate) use settings::SettingsTab;
@@ -258,6 +259,8 @@ pub struct Workspace {
     onboarding: Option<onboarding::OnboardingState>,
     /// The capture engine and the live session state.
     recording: recording::RecordingState,
+    /// `ScheduledMeetingAutoStart`'s state.
+    auto_start: scheduled_auto_start::AutoStartState,
     /// `joiningMeeting`: `Join & record` is opening the meeting and starting.
     joining_meeting: bool,
     /// The session audio player for the open transcript tab.
@@ -448,6 +451,7 @@ impl Workspace {
             stats: None,
             onboarding: None,
             recording: recording::RecordingState::default(),
+            auto_start: Default::default(),
             joining_meeting: false,
             audio_player: None,
             transcript_view: transcript_tab::TranscriptView::default(),
@@ -496,6 +500,8 @@ impl Workspace {
                 this.restore_tabs(cx);
                 this.start_onboarding_if_needed();
                 this.spawn_recorder(cx);
+                // `ScheduledMeetingAutoStart`: linked meetings record themselves.
+                this.start_scheduled_auto_start(cx);
                 // `LiveCaptureRecovery`: finalize captures a crash left behind.
                 this.recover_captures(cx);
                 this.start_enhancer(cx);
@@ -1063,6 +1069,8 @@ impl Workspace {
                     Err(error) => Note::Failed(error.to_string()),
                 };
                 this.ensure_default_summary(cx);
+                // `ReadyScheduledSessionAutoStart` mounts with the loaded note.
+                this.try_pending_auto_start(cx);
                 cx.notify();
             })
             .ok();

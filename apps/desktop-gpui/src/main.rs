@@ -33,6 +33,7 @@ mod note_search;
 mod notifications;
 mod prose_text;
 mod recording;
+mod scheduled_auto_start;
 mod search;
 mod secrets;
 mod session_correction;

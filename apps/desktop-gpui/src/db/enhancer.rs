@@ -26,6 +26,8 @@ const SESSION_CONTENT_SQL: &str = "
     session.title,
     session.event_json,
     session.source_apps_json,
+    session.created_at,
+    COALESCE(session.event_id, '') AS event_id,
     COALESCE(note.template_id, '') AS raw_template_id,
     COALESCE(note.body, '') AS raw_body,
     COALESCE(note.body_format, 'prosemirror_json') AS raw_body_format
@@ -390,20 +392,7 @@ async fn enhanced_notes(pool: &SqlitePool, session_id: &str) -> anyhow::Result<V
         .collect())
 }
 
-/// `loadMeetingChatRecords` → `formatMeetingChatRecordsAsMarkdown`.
-pub(super) async fn meeting_chat_markdown(
-    pool: &SqlitePool,
-    session_id: &str,
-) -> anyhow::Result<Option<String>> {
-    let bodies: Vec<String> = sqlx::query_scalar(MEETING_CHAT_SQL)
-        .bind(session_id)
-        .fetch_all(pool)
-        .await?;
-    let markdown = crate::enhancer::meeting_chat_markdown(&bodies);
-    Ok((!markdown.is_empty()).then_some(markdown))
-}
-
-pub(super) async fn load_snapshot(
+pub(crate) async fn load_snapshot(
     pool: &SqlitePool,
     session_id: &str,
 ) -> anyhow::Result<Option<Snapshot>> {
@@ -413,12 +402,16 @@ pub(super) async fn load_snapshot(
         title,
         event_json,
         source_apps_json,
+        created_at,
+        event_id,
         raw_template_id,
         raw_body,
         raw_body_format,
     )) = sqlx::query_as::<
         _,
         (
+            String,
+            String,
             String,
             String,
             String,
@@ -528,6 +521,7 @@ pub(super) async fn load_snapshot(
         .bind(&id)
         .fetch_all(pool)
         .await?;
+    let meeting_chat = crate::enhancer::meeting_chat_markdown(&chat_bodies);
     let supplemental_context = [
         crate::enhancer::source_apps_context(&source_apps_json),
         crate::enhancer::meeting_chat_context(&chat_bodies),
@@ -541,7 +535,10 @@ pub(super) async fn load_snapshot(
         session_id: id,
         owner_user_id,
         title,
+        created_at,
+        event_id,
         event_json,
+        meeting_chat,
         raw_template_id,
         raw_markdown: body_to_markdown(&raw_body, &raw_body_format),
         raw_content: raw_body,

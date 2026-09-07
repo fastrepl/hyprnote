@@ -5455,6 +5455,7 @@ dependencies = [
 name = "desktop-gpui"
 version = "0.0.0"
 dependencies = [
+ "agent-access",
  "anyhow",
  "aspasia",
  "audio",

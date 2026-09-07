@@ -11,6 +11,7 @@ mod automations;
 mod batch;
 mod capture_marker;
 mod chat;
+mod chat_tools;
 mod contacts;
 mod cuelume;
 mod db;

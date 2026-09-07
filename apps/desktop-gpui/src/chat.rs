@@ -125,6 +125,126 @@ pub enum Part {
     Other(serde_json::Value),
 }
 
+/// A `tool-<name>` part read out of `Part::Other`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct ToolView<'a> {
+    pub name: &'a str,
+    pub call_id: &'a str,
+    pub state: &'a str,
+    pub input: Option<&'a serde_json::Value>,
+    pub output: Option<&'a serde_json::Value>,
+    pub error_text: Option<&'a str>,
+}
+
+impl Part {
+    /// A tool part in the AI SDK's key order: `type`, `toolCallId`, `state`,
+    /// `input`, then `output` or `errorText`.
+    pub fn tool(
+        name: &str,
+        call_id: &str,
+        state: &str,
+        input: serde_json::Value,
+        output: Option<serde_json::Value>,
+        error_text: Option<String>,
+    ) -> Part {
+        let mut map = serde_json::Map::new();
+        map.insert("type".into(), format!("tool-{name}").into());
+        map.insert("toolCallId".into(), call_id.into());
+        map.insert("state".into(), state.into());
+        map.insert("input".into(), input);
+        if let Some(output) = output {
+            map.insert("output".into(), output);
+        }
+        if let Some(error_text) = error_text {
+            map.insert("errorText".into(), error_text.into());
+        }
+        Part::Other(serde_json::Value::Object(map))
+    }
+
+    pub fn tool_view(&self) -> Option<ToolView<'_>> {
+        let Part::Other(value) = self else {
+            return None;
+        };
+        let name = value.get("type")?.as_str()?.strip_prefix("tool-")?;
+        Some(ToolView {
+            name,
+            call_id: value
+                .get("toolCallId")
+                .and_then(|id| id.as_str())
+                .unwrap_or_default(),
+            state: value
+                .get("state")
+                .and_then(|s| s.as_str())
+                .unwrap_or_default(),
+            input: value.get("input"),
+            output: value.get("output"),
+            error_text: value.get("errorText").and_then(|e| e.as_str()),
+        })
+    }
+}
+
+/// `convertToModelMessages` for one assistant message: each step's text and
+/// tool calls become an assistant turn followed by the tool results.
+pub fn assistant_turns(parts: &[Part]) -> Vec<crate::llm_stream::Turn> {
+    use crate::llm_stream::{ToolCall, Turn};
+    let mut turns = Vec::new();
+    let mut text = String::new();
+    let mut calls: Vec<ToolCall> = Vec::new();
+    let mut results: Vec<Turn> = Vec::new();
+    let flush = |text: &mut String,
+                 calls: &mut Vec<ToolCall>,
+                 results: &mut Vec<Turn>,
+                 turns: &mut Vec<Turn>| {
+        if !text.is_empty() || !calls.is_empty() {
+            turns.push(Turn::Assistant {
+                text: std::mem::take(text),
+                tool_calls: std::mem::take(calls),
+            });
+        }
+        turns.append(results);
+    };
+    for part in parts {
+        match part {
+            Part::StepStart => flush(&mut text, &mut calls, &mut results, &mut turns),
+            Part::Text { text: t, .. } => text.push_str(t),
+            Part::Reasoning { .. } => {}
+            Part::Other(_) => {
+                if let Some(tool) = part.tool_view() {
+                    calls.push(ToolCall {
+                        id: tool.call_id.to_string(),
+                        name: tool.name.to_string(),
+                        arguments: tool.input.cloned().unwrap_or_else(|| serde_json::json!({})),
+                    });
+                    let output = match (tool.output, tool.error_text) {
+                        (Some(output), _) => output.to_string(),
+                        (None, Some(error)) => error.to_string(),
+                        (None, None) => String::new(),
+                    };
+                    results.push(Turn::ToolResult {
+                        call_id: tool.call_id.to_string(),
+                        name: tool.name.to_string(),
+                        output,
+                    });
+                }
+            }
+        }
+    }
+    flush(&mut text, &mut calls, &mut results, &mut turns);
+    turns
+}
+
+/// `getMeetingIdsFromSearchOutput`: the session ids a `search_meetings`
+/// output names.
+pub fn meeting_ids_from_search_output(output: &serde_json::Value) -> Vec<String> {
+    ["results", "meetings"]
+        .iter()
+        .filter_map(|key| output.get(key).and_then(|v| v.as_array()))
+        .flatten()
+        .filter_map(|result| result.get("id").and_then(|id| id.as_str()))
+        .map(str::to_string)
+        .collect()
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Role {
@@ -347,11 +467,7 @@ pub const SUGGESTIONS: [(&str, &str); 3] = [
 
 /// `hydrateSessionContext(sessionId)` over the enhancer's content snapshot:
 /// the `SessionContext` the `ContextBlock` template renders.
-pub fn session_context(
-    snapshot: &crate::enhancer::Snapshot,
-    created_at: Option<&str>,
-    meeting_chat: Option<&str>,
-) -> anlg_template_app::SessionContext {
+pub fn session_context(snapshot: &crate::enhancer::Snapshot) -> anlg_template_app::SessionContext {
     let enhanced: Vec<String> = snapshot
         .enhanced_notes
         .iter()
@@ -398,14 +514,10 @@ pub fn session_context(
         });
     anlg_template_app::SessionContext {
         title: Some(snapshot.title.clone()).filter(|title| !title.is_empty()),
-        date: created_at
-            .map(str::to_string)
-            .filter(|date| !date.is_empty()),
+        date: Some(snapshot.created_at.clone()).filter(|date| !date.is_empty()),
         raw_content: Some(snapshot.raw_markdown.clone()).filter(|md| !md.is_empty()),
         enhanced_content: (!enhanced.is_empty()).then(|| enhanced.join("\n\n---\n\n")),
-        meeting_chat: meeting_chat
-            .map(str::to_string)
-            .filter(|chat| !chat.is_empty()),
+        meeting_chat: Some(snapshot.meeting_chat.clone()).filter(|chat| !chat.is_empty()),
         transcript,
         participants: snapshot
             .participants
@@ -488,6 +600,53 @@ mod tests {
             Some("Initial request:\nhello world".into())
         );
         assert_eq!(title_request(" "), None);
+    }
+
+    #[test]
+    fn tool_parts_keep_the_sdk_key_order_and_become_turns() {
+        let part = Part::tool(
+            "list_meetings",
+            "call_1",
+            "output-available",
+            serde_json::json!({ "limit": 3 }),
+            Some(serde_json::json!({ "meetings": [] })),
+            None,
+        );
+        assert_eq!(
+            serde_json::to_string(&part).unwrap(),
+            r#"{"type":"tool-list_meetings","toolCallId":"call_1","state":"output-available","input":{"limit":3},"output":{"meetings":[]}}"#
+        );
+        let view = part.tool_view().unwrap();
+        assert_eq!(
+            (view.name, view.call_id, view.state),
+            ("list_meetings", "call_1", "output-available")
+        );
+        let parts = vec![
+            Part::StepStart,
+            part,
+            Part::StepStart,
+            Part::Text {
+                text: "Found none.".into(),
+                state: Some("done".into()),
+            },
+        ];
+        let turns = assistant_turns(&parts);
+        assert_eq!(turns.len(), 3);
+        assert!(
+            matches!(&turns[0], crate::llm_stream::Turn::Assistant { text, tool_calls } if text.is_empty() && tool_calls.len() == 1)
+        );
+        assert!(
+            matches!(&turns[1], crate::llm_stream::Turn::ToolResult { call_id, output, .. } if call_id == "call_1" && output == r#"{"meetings":[]}"#)
+        );
+        assert!(
+            matches!(&turns[2], crate::llm_stream::Turn::Assistant { text, tool_calls } if text == "Found none." && tool_calls.is_empty())
+        );
+        assert_eq!(
+            meeting_ids_from_search_output(
+                &serde_json::json!({ "results": [{ "id": "a" }, { "title": "no id" }] })
+            ),
+            ["a"]
+        );
     }
 
     #[test]

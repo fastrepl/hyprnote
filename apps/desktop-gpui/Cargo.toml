@@ -10,6 +10,7 @@ name = "anarlog-gpui"
 path = "src/main.rs"
 
 [dependencies]
+anlg-agent-access = { workspace = true }
 anlg-audio = { workspace = true }
 anlg-audio-actual = { workspace = true }
 anlg-audio-mock = { workspace = true }

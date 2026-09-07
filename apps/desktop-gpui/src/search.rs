@@ -98,17 +98,45 @@ impl SearchIndex {
         runtime: &tokio::runtime::Handle,
         query: &str,
     ) -> Result<Vec<SearchHit>, anlg_search_index::Error> {
-        let request = SearchRequest {
-            query: normalize_query(query),
-            collection: None,
-            filters: SearchFilters::default(),
-            limit: 100,
-            options: SearchOptions::default(),
-        };
+        self.search_with_filters(runtime, query, SearchFilters::default())
+    }
+
+    /// `SearchEngineProvider.search(query, filters)` with `buildTantivyFilters`'
+    /// created-at bounds.
+    pub fn search_with_filters(
+        &self,
+        runtime: &tokio::runtime::Handle,
+        query: &str,
+        filters: SearchFilters,
+    ) -> Result<Vec<SearchHit>, anlg_search_index::Error> {
         let collections = self.collections.clone();
+        let request = search_request(query, filters);
         runtime
             .block_on(async move { collections.search(request).await })
             .map(|result| result.hits)
+    }
+
+    /// The same search from inside a Tokio task.
+    pub async fn search_async(
+        &self,
+        query: &str,
+        filters: SearchFilters,
+    ) -> Result<Vec<SearchHit>, anlg_search_index::Error> {
+        let collections = self.collections.clone();
+        collections
+            .search(search_request(query, filters))
+            .await
+            .map(|result| result.hits)
+    }
+}
+
+fn search_request(query: &str, filters: SearchFilters) -> SearchRequest {
+    SearchRequest {
+        query: normalize_query(query),
+        collection: None,
+        filters,
+        limit: 100,
+        options: SearchOptions::default(),
     }
 }
 

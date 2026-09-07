@@ -59,7 +59,11 @@ pub struct Snapshot {
     pub session_id: String,
     pub owner_user_id: String,
     pub title: String,
+    pub created_at: String,
+    pub event_id: String,
     pub event_json: String,
+    /// `formatMeetingChatRecordsAsMarkdown` over the meeting chat records.
+    pub meeting_chat: String,
     pub raw_template_id: String,
     pub raw_content: String,
     pub raw_content_format: String,

@@ -260,6 +260,18 @@ impl Store {
             .spawn(async move { chat_messages(db.pool(), &group_id).await })
     }
 
+    /// `chat_tools::Runner` over this store's pool and runtime.
+    pub fn chat_tool_runner(
+        &self,
+        search: Option<std::sync::Arc<crate::search::SearchIndex>>,
+    ) -> crate::chat_tools::Runner {
+        crate::chat_tools::Runner {
+            pool: self.db.pool().clone(),
+            search,
+            runtime: self.runtime.clone(),
+        }
+    }
+
     /// `hydrateSessionContext`'s inputs: the enhancer's content snapshot plus
     /// the session's `created_at` and the meeting chat markdown.
     pub fn chat_session_context(
@@ -272,18 +284,7 @@ impl Store {
             let Some(snapshot) = super::enhancer::load_snapshot(pool, &session_id).await? else {
                 return Ok(None);
             };
-            let created_at: Option<String> = sqlx::query_scalar(
-                "SELECT created_at FROM sessions WHERE id = ? AND deleted_at IS NULL",
-            )
-            .bind(&session_id)
-            .fetch_optional(pool)
-            .await?;
-            let meeting_chat = super::enhancer::meeting_chat_markdown(pool, &session_id).await?;
-            Ok(Some(crate::chat::session_context(
-                &snapshot,
-                created_at.as_deref(),
-                meeting_chat.as_deref(),
-            )))
+            Ok(Some(crate::chat::session_context(&snapshot)))
         })
     }
 }

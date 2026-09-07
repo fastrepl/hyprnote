@@ -223,7 +223,7 @@ describe("SyncStatusIndicator", () => {
     expect(await screen.findByText("Device limit reached")).toBeTruthy();
     expect(
       screen.getByText(
-        "This account already syncs on 5 devices. Remove another device to sync here.",
+        "Your plan’s sync device limit is reached. Remove another device to sync here.",
       ),
     ).toBeTruthy();
     expect(screen.queryByText("Connecting...")).toBeNull();

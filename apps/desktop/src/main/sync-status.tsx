@@ -123,7 +123,7 @@ export function SyncStatusIndicator() {
         return {
           kind: "error" as const,
           label: t`Device limit reached`,
-          description: t`This account already syncs on 5 devices. Remove another device to sync here.`,
+          description: t`Your plan’s sync device limit is reached. Remove another device to sync here.`,
         };
       case "approval_pending":
         return {

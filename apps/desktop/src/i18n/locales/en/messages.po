@@ -5137,10 +5137,6 @@ msgstr "They already have another shared item. Invite them to your Team for fold
 msgid "Thinking..."
 msgstr "Thinking..."
 
-#: src/main/sync-status.tsx
-msgid "This account already syncs on 5 devices. Remove another device to sync here."
-msgstr "This account already syncs on 5 devices. Remove another device to sync here."
-
 #: src/resource-sharing/library.tsx
 msgid "This adds a copy you can edit without changing the shared item."
 msgstr "This adds a copy you can edit without changing the shared item."
@@ -5747,6 +5743,7 @@ msgid "Your notes remain available locally. Try again in a moment."
 msgstr "Your notes remain available locally. Try again in a moment."
 
 #: src/auth/cloudsync.ts
+#: src/main/sync-status.tsx
 msgid "Your plan’s sync device limit is reached. Remove another device to sync here."
 msgstr "Your plan’s sync device limit is reached. Remove another device to sync here."
 

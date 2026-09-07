@@ -184,6 +184,13 @@ impl Runner {
             "edit_memo" => self.edit_memo(ctx, call_id, &input).await,
             "edit_summary" => self.edit_summary(ctx, call_id, &input).await,
             "read_folder_material" => {
+                // `buildReadFolderMaterialTool`: without a sidebar folder view
+                // (`getFolderFilter`), which the shipping app never enters,
+                // the tool answers this error; the material read itself is
+                // not ported yet.
+                if ctx.folder_filter.is_none() {
+                    return Ok(json!({ "status": "error", "message": "No folder is selected" }));
+                }
                 Err(format!("{name} is not available in the native shell yet."))
             }
             other => Err(format!("Unknown tool: {other}")),

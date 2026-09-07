@@ -212,9 +212,12 @@ GitHub against the provenance manifest.
 
 The publish workflow calls `desktop_store_publish.yaml` with
 `submit_to_stores=true` for Microsoft Store certification. Inspect that job and
-the resulting submission separately from GitHub/CrabNebula publication. Also
-follow the generated Linux package update through its package-publication jobs;
-creating its PR is not package publication.
+the resulting submission separately from GitHub/CrabNebula publication. Merge
+the generated Linux package metadata PR and verify the signed APT index is live
+on `anarlog.so`. Check whether Netlify deployed that commit automatically before
+dispatching `web_cd.yaml`. Arch `PKGBUILD` and `.SRCINFO` updates ship in this
+repository; there is no AUR publication workflow. Check the AUR registry before
+claiming an AUR release. Creating the metadata PR alone is not publication.
 
 ## Mobile Store Distribution
 
@@ -277,6 +280,12 @@ SHA and hash and verify that no local changes entered it. The EAS post-install
 hook must generate the native bridge before packaging. EAS builds use the
 candidate's committed CloudSync bundle; a separate CI rebuild alone does not
 prove which bytes are embedded in a signed store artifact.
+
+For an exported source tree, resolve both `EAS_PROJECT_ROOT` and `apps/mobile`
+to their physical paths before invoking EAS. Confirm their relative path is
+exactly `apps/mobile`. On macOS, mixing `/tmp` with its physical `/private/tmp`
+path produces an invalid project directory in the remote build job. Check the
+job's `projectRootDirectory` before accepting a build.
 
 ```bash
 APP_VARIANT=stable eas build --platform ios --profile stable --non-interactive --no-wait

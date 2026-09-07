@@ -286,85 +286,96 @@ fn main() -> anyhow::Result<()> {
     let callback_server = deeplink::CallbackServer::new(
         runtime.handle().clone(),
         deeplink::scheme(&identifier),
-        deeplink_sender,
+        deeplink_sender.clone(),
     );
-    Application::new()
-        .with_assets(assets::Assets)
-        .run(move |cx: &mut App| {
-            cx.set_global(audio::Audio(audio));
-            cx.set_global(search::Search(search));
-            cx.set_global(MainWindow { handle: None });
-            cx.set_global(DeepLinks {
-                server: callback_server,
-            });
-            let store_file = store_file::StoreFile::next_to(store.path());
-            cx.set_global(tray::Tray::start(tray::TrayState {
-                app_name: tray::app_name(&identifier).to_string(),
-                version_label: anlg_tray_core::labels::version(
-                    env!("CARGO_PKG_VERSION"),
-                    tray::channel(&identifier),
-                ),
-                schedule: Vec::new(),
-                show_events: store_file
-                    .scoped_bool(tray::SCOPE, tray::SHOW_EVENTS_KEY)
-                    .unwrap_or(true),
-                start_disabled: false,
-                recording: false,
-                degraded: false,
-            }));
-            actions::bind_keys(cx);
-            text_input::bind_keys(cx);
-            text_area::bind_keys(cx);
-            editor::bind_keys(cx);
-            cx.on_window_closed(|cx| {
-                if cx.windows().is_empty() {
-                    // gpui 0.2.2's X11 client still holds its state borrow while
-                    // firing this callback; quitting synchronously re-borrows it
-                    // and panics, so hop to the next executor tick first.
-                    cx.spawn(async move |cx| cx.update(|cx| cx.quit()).ok())
-                        .detach();
-                }
-            })
-            .detach();
-
-            if let Err(error) = open_main_window(store.clone(), cx) {
-                tracing::error!(%error, "failed to open main window");
-                cx.quit();
-                return;
-            }
-            cx.activate(true);
-
-            // URLs the launcher was started with are queued until the window
-            // is up (`take_pending_deep_links`).
-            for url in &startup_urls {
-                handle_deep_link_url(url, &store, cx);
-            }
-
-            // Tray menu clicks, forwarded launches, and loopback callbacks
-            // arrive on their threads' channels.
-            let tray_store = store.clone();
-            cx.spawn(async move |cx| {
-                loop {
-                    cx.background_executor()
-                        .timer(std::time::Duration::from_millis(100))
-                        .await;
-                    let stop = cx
-                        .update(|cx| {
-                            for action in cx.global::<tray::Tray>().take_actions() {
-                                handle_tray_action(action, &tray_store, cx);
-                            }
-                            for url in forwarded.try_iter().chain(deeplink_receiver.try_iter()) {
-                                handle_deep_link_url(&url, &tray_store, cx);
-                            }
-                        })
-                        .is_err();
-                    if stop {
-                        break;
-                    }
-                }
-            })
-            .detach();
+    let reopen_sender = deeplink_sender.clone();
+    let app = Application::new().with_assets(assets::Assets);
+    // macOS delivers scheme URLs to the running process (`on_open_url`)
+    // instead of a second launch; a Dock click on a running app is a bare
+    // reopen, which brings the window back like a focus link.
+    app.on_open_urls(move |urls| {
+        for url in urls {
+            let _ = deeplink_sender.send(url);
+        }
+    })
+    .on_reopen(move |_| {
+        let _ = reopen_sender.send(String::new());
+    });
+    app.run(move |cx: &mut App| {
+        cx.set_global(audio::Audio(audio));
+        cx.set_global(search::Search(search));
+        cx.set_global(MainWindow { handle: None });
+        cx.set_global(DeepLinks {
+            server: callback_server,
         });
+        let store_file = store_file::StoreFile::next_to(store.path());
+        cx.set_global(tray::Tray::start(tray::TrayState {
+            app_name: tray::app_name(&identifier).to_string(),
+            version_label: anlg_tray_core::labels::version(
+                env!("CARGO_PKG_VERSION"),
+                tray::channel(&identifier),
+            ),
+            schedule: Vec::new(),
+            show_events: store_file
+                .scoped_bool(tray::SCOPE, tray::SHOW_EVENTS_KEY)
+                .unwrap_or(true),
+            start_disabled: false,
+            recording: false,
+            degraded: false,
+        }));
+        actions::bind_keys(cx);
+        text_input::bind_keys(cx);
+        text_area::bind_keys(cx);
+        editor::bind_keys(cx);
+        cx.on_window_closed(|cx| {
+            if cx.windows().is_empty() {
+                // gpui 0.2.2's X11 client still holds its state borrow while
+                // firing this callback; quitting synchronously re-borrows it
+                // and panics, so hop to the next executor tick first.
+                cx.spawn(async move |cx| cx.update(|cx| cx.quit()).ok())
+                    .detach();
+            }
+        })
+        .detach();
+
+        if let Err(error) = open_main_window(store.clone(), cx) {
+            tracing::error!(%error, "failed to open main window");
+            cx.quit();
+            return;
+        }
+        cx.activate(true);
+
+        // URLs the launcher was started with are queued until the window
+        // is up (`take_pending_deep_links`).
+        for url in &startup_urls {
+            handle_deep_link_url(url, &store, cx);
+        }
+
+        // Tray menu clicks, forwarded launches, and loopback callbacks
+        // arrive on their threads' channels.
+        let tray_store = store.clone();
+        cx.spawn(async move |cx| {
+            loop {
+                cx.background_executor()
+                    .timer(std::time::Duration::from_millis(100))
+                    .await;
+                let stop = cx
+                    .update(|cx| {
+                        for action in cx.global::<tray::Tray>().take_actions() {
+                            handle_tray_action(action, &tray_store, cx);
+                        }
+                        for url in forwarded.try_iter().chain(deeplink_receiver.try_iter()) {
+                            handle_deep_link_url(&url, &tray_store, cx);
+                        }
+                    })
+                    .is_err();
+                if stop {
+                    break;
+                }
+            }
+        })
+        .detach();
+    });
 
     drop(runtime);
     Ok(())

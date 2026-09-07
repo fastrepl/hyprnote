@@ -267,6 +267,29 @@ const CLEAR_PENDING_BY_BODY_SQL: &str = "
     AND json_extract(value_json, '$.body') = ?
 ";
 
+/// `updateEnhancedNoteContent`.
+const UPDATE_ENHANCED_CONTENT_SQL: &str = "
+  UPDATE session_documents
+  SET body = ?, body_format = 'prosemirror_json', updated_at = ?
+  WHERE id = ?
+    AND kind IN ('summary', 'template_output')
+    AND deleted_at IS NULL
+";
+
+const CLEAR_PENDING_UNLESS_BODY_SQL: &str = "
+  DELETE FROM app_settings
+  WHERE id = ?
+    AND json_valid(value_json)
+    AND json_extract(value_json, '$.noteId') = ?
+    AND json_extract(value_json, '$.body') <> ?
+";
+
+const UPDATE_SESSION_TITLE_UNGUARDED_SQL: &str = "
+  UPDATE sessions
+  SET title = ?, updated_at = ?
+  WHERE id = ? AND deleted_at IS NULL
+";
+
 const UPSERT_TAG_SQL: &str = "
   INSERT INTO tags (
     id, owner_user_id, name, created_at, updated_at, deleted_at
@@ -974,6 +997,45 @@ impl Store {
                     .bind(tag)
                     .bind(&now)
                     .bind(&now)
+                    .execute(&mut *tx)
+                    .await?;
+            }
+            tx.commit().await?;
+            Ok(())
+        })
+    }
+
+    /// `updateEnhancedNoteContent`: the edited summary body, dropping a
+    /// pending auto-summary marker that no longer matches, and the session
+    /// title extracted from the first line when the editor asks for it.
+    pub fn update_enhanced_note_content(
+        &self,
+        note_id: String,
+        session_id: String,
+        content: String,
+        session_title: Option<String>,
+    ) -> tokio::task::JoinHandle<anyhow::Result<()>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let now = now();
+            let mut tx = db.pool().begin().await?;
+            sqlx::query(UPDATE_ENHANCED_CONTENT_SQL)
+                .bind(&content)
+                .bind(&now)
+                .bind(&note_id)
+                .execute(&mut *tx)
+                .await?;
+            sqlx::query(CLEAR_PENDING_UNLESS_BODY_SQL)
+                .bind(pending_setting_id(&session_id))
+                .bind(&note_id)
+                .bind(&content)
+                .execute(&mut *tx)
+                .await?;
+            if let Some(title) = session_title {
+                sqlx::query(UPDATE_SESSION_TITLE_UNGUARDED_SQL)
+                    .bind(&title)
+                    .bind(&now)
+                    .bind(&session_id)
                     .execute(&mut *tx)
                     .await?;
             }

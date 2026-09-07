@@ -74,6 +74,10 @@ pub(super) struct DocumentRenderer {
     placeholder: Option<(usize, SharedString)>,
     /// Overrides the `blue-600` link colour (and makes links `font-medium`).
     link_color: Option<gpui::Rgba>,
+    /// `documentTitlePlaceholder` applies while the selection anchor sits in
+    /// the (empty) title heading; ProseMirror starts there, so a document
+    /// without a caret yet shows it too.
+    title_placeholder: bool,
 }
 
 impl Workspace {
@@ -96,6 +100,7 @@ impl Workspace {
             strike_next: Cell::new(false),
             mentions_next: Default::default(),
             placeholder: None,
+            title_placeholder: true,
             link_color: None,
         }
     }
@@ -118,8 +123,18 @@ impl Workspace {
                 .filter(|block| editor.doc().text(*block).is_empty())
                 .map(|block| (block, SharedString::from("Start writing...")))
         };
+        renderer.title_placeholder = editor.read(cx).caret().is_none_or(|caret| caret.block == 0);
         renderer.editor = Some(editor);
         renderer
+    }
+}
+
+impl DocumentRenderer {
+    /// The enhanced editor's `documentTitlePlaceholder`: only the title
+    /// heading has a placeholder, never the body blocks.
+    pub(super) fn for_title_document(mut self) -> Self {
+        self.placeholder = None;
+        self
     }
 }
 
@@ -461,19 +476,7 @@ impl DocumentRenderer {
         style.font_weight = gpui::FontWeight::BOLD;
         style.font_size = px(font_px).into();
         let empty = spans.iter().all(|span| span.text.trim().is_empty());
-        let mut text = self.prose(spans, &style, line);
-        if empty {
-            let mut placeholder_style = style.clone();
-            placeholder_style.color = self.theme.muted_foreground.into();
-            text = self.prose(
-                &[Span {
-                    text: "Untitled".to_string(),
-                    ..Span::default()
-                }],
-                &placeholder_style,
-                line,
-            );
-        }
+        let text = self.prose(spans, &style, line);
         let title = self.textblock(
             div()
                 .py(px(font_px * 0.125))
@@ -482,6 +485,33 @@ impl DocumentRenderer {
                 .line_height(line),
             text,
         );
+        // `documentTitlePlaceholder`: `Untitled` over the empty title heading,
+        // in the editor too (the placeholder is an overlay, not text).
+        let title = if empty && self.title_placeholder {
+            let mut placeholder_style = style.clone();
+            placeholder_style.color = self.theme.muted_foreground.into();
+            let placeholder = self.prose(
+                &[Span {
+                    text: "Untitled".to_string(),
+                    ..Span::default()
+                }],
+                &placeholder_style,
+                line,
+            );
+            div()
+                .relative()
+                .child(title)
+                .child(
+                    div()
+                        .absolute()
+                        .top(px(font_px * 0.125))
+                        .left_0()
+                        .child(placeholder),
+                )
+                .into_any_element()
+        } else {
+            title
+        };
         std::iter::once(title).chain(self.blocks(rest, 0)).collect()
     }
 
@@ -786,6 +816,7 @@ impl DocumentRenderer {
             mentions_next: Default::default(),
             placeholder: None,
             link_color: Some(link_color),
+            title_placeholder: false,
         };
         renderer.text(spans, &base)
     }

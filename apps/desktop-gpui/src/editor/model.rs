@@ -834,6 +834,48 @@ impl Doc {
             .map(str::to_string)
     }
 
+    /// `titleHeadingPlugin`'s `appendTransaction`: the document starts with
+    /// an h1 (a first paragraph or heading becomes one, anything else gets
+    /// an empty h1 before it), and a lone empty title gets a paragraph to
+    /// type into. Returns whether a block was inserted at the top.
+    pub fn enforce_title_heading(&mut self) -> bool {
+        let first = self.root_content_mut().first().cloned();
+        let kind = first
+            .as_ref()
+            .and_then(|node| node.get("type").and_then(Value::as_str))
+            .map(str::to_string);
+        let level = first
+            .as_ref()
+            .and_then(|node| node.get("attrs"))
+            .and_then(|attrs| attrs.get("level"))
+            .and_then(Value::as_u64);
+        match kind.as_deref() {
+            Some("heading") if level == Some(1) => {
+                let content = self.root_content_mut();
+                if content.len() == 1 && plain_text(&content[0]).trim().is_empty() {
+                    content.push(json!({ "type": "paragraph" }));
+                    self.reindex();
+                }
+                false
+            }
+            Some("paragraph") | Some("heading") => {
+                let content = self.root_content_mut();
+                if let Some(object) = content[0].as_object_mut() {
+                    object.insert("type".into(), Value::String("heading".into()));
+                    object.insert("attrs".into(), json!({ "level": 1 }));
+                }
+                self.reindex();
+                false
+            }
+            _ => {
+                self.root_content_mut()
+                    .insert(0, json!({ "type": "heading", "attrs": { "level": 1 } }));
+                self.reindex();
+                true
+            }
+        }
+    }
+
     /// `setBlockType`: change a textblock's type, replacing its attrs.
     pub fn set_block_type(&mut self, block: usize, kind: &str, attrs: Option<Value>) {
         let Some(path) = self.textblocks.get(block).cloned() else {
@@ -1432,6 +1474,32 @@ fn merge_adjacent_text(inline: &mut Vec<Value>) {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn title_heading_is_enforced_like_the_plugin() {
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Sync"}]}]}"#,
+        );
+        assert!(!doc.enforce_title_heading());
+        assert_eq!(doc.block_type(0).as_deref(), Some("heading"));
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]}]}]}"#,
+        );
+        assert!(doc.enforce_title_heading());
+        assert_eq!(doc.block_type(0).as_deref(), Some("heading"));
+        assert_eq!(doc.textblock_count(), 2);
+        let mut doc =
+            Doc::parse(r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":1}}]}"#);
+        assert!(!doc.enforce_title_heading());
+        assert_eq!(doc.textblock_count(), 2);
+        assert_eq!(doc.block_type(1).as_deref(), Some("paragraph"));
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":1},"content":[{"type":"text","text":"T"}]},{"type":"paragraph"}]}"#,
+        );
+        let before = doc.to_json();
+        assert!(!doc.enforce_title_heading());
+        assert_eq!(doc.to_json(), before);
+    }
+
     use super::*;
 
     fn caret(block: usize, offset: usize) -> Caret {

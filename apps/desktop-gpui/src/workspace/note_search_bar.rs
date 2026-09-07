@@ -65,9 +65,9 @@ impl Workspace {
         )
     }
 
-    /// `allowReplace` = `isEditableTab`: the shell edits the memo.
+    /// `allowReplace` = `isEditableTab`: the memo and the enhanced notes.
     fn replace_allowed(&self, tab: &NoteTab) -> bool {
-        matches!(tab, NoteTab::Memo)
+        matches!(tab, NoteTab::Memo | NoteTab::Enhanced(_))
     }
 
     /// The open bar for the shown note and tab, dropping one left over from
@@ -187,7 +187,7 @@ impl Workspace {
             return false;
         }
         if let Some(cx) = cx {
-            if let Some(editor) = &self.editor {
+            if let Some(editor) = self.active_editor().cloned() {
                 editor.update(cx, |editor, cx| editor.set_search(None, cx));
             }
             cx.notify();
@@ -256,12 +256,13 @@ impl Workspace {
                 }
             }
         };
-        let spec = (!prepared.is_empty() && matches!(tab, NoteTab::Memo)).then_some(SearchSpec {
-            query: raw_query,
-            case_sensitive: options.case_sensitive,
-            whole_word: options.whole_word,
-        });
-        if let Some(editor) = &self.editor {
+        let spec = (!prepared.is_empty() && matches!(tab, NoteTab::Memo | NoteTab::Enhanced(_)))
+            .then_some(SearchSpec {
+                query: raw_query,
+                case_sensitive: options.case_sensitive,
+                whole_word: options.whole_word,
+            });
+        if let Some(editor) = self.active_editor().cloned() {
             editor.update(cx, |editor, cx| editor.set_search(spec, cx));
         }
         if let Some(search) = self.note_search.as_mut() {
@@ -282,7 +283,7 @@ impl Workspace {
         options: SearchOptions,
         cx: &gpui::App,
     ) -> Vec<NoteMatch> {
-        let Some(editor) = &self.editor else {
+        let Some(editor) = self.active_editor() else {
             return Vec::new();
         };
         let editor = editor.read(cx);
@@ -331,7 +332,7 @@ impl Workspace {
         }
         let replacement = search.replace.read(cx).text().to_string();
         let current = search.current;
-        if let Some(editor) = &self.editor {
+        if let Some(editor) = self.active_editor().cloned() {
             editor.update(cx, |editor, cx| {
                 editor.replace_search(&replacement, all, current, cx)
             });

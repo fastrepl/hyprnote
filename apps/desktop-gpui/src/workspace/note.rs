@@ -885,8 +885,28 @@ impl Workspace {
             }
         }
         // `EnhancedEditor`: `ensureFirstLineTitle(content, sessionTitle)` with
-        // `enforceTitleHeading`, so the summary always opens on the title h1.
-        if matches!(tab, NoteTab::Enhanced(_)) {
+        // `enforceTitleHeading`, so the summary always opens on the title h1;
+        // live like the memo when its editor is mounted.
+        if let NoteTab::Enhanced(note_id) = tab {
+            if let Some(editor) = self
+                .enhanced_editor
+                .as_ref()
+                .filter(|(id, _)| id == note_id)
+                .map(|(_, editor)| editor.clone())
+            {
+                let renderer = self
+                    .document_editor_renderer(editor.clone(), window, cx)
+                    .for_title_document();
+                let mut blocks = crate::document::parse(editor.read(cx).doc().root());
+                if blocks.is_empty() {
+                    blocks.push(crate::document::Block::Paragraph(Vec::new()));
+                }
+                let children = renderer.title_blocks(&blocks);
+                let root = editor.update(cx, |editor, cx| editor.render_root(cx));
+                return with_search(
+                    body.child(root.child(renderer.editable_root(&editor, children, cx))),
+                );
+            }
             let titled = crate::document::with_title_heading(blocks, &preview.session.title);
             return with_search(body.children(renderer.title_blocks(&titled)));
         }

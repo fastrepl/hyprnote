@@ -138,6 +138,8 @@ pub struct BodyEditor {
     /// Text layouts captured while painting, one per textblock.
     layouts: Vec<Option<(ProseLayout, Bounds<Pixels>)>>,
     dirty_since: Option<Instant>,
+    /// `enforceTitleHeading` (the enhanced editor): keep an h1 first.
+    enforce_title_heading: bool,
     last_input: Option<Instant>,
     flush_scheduled: bool,
     /// `MentionSuggestion`: derived from the caret after every change.
@@ -179,6 +181,7 @@ impl BodyEditor {
             redo_stack: Vec::new(),
             last_edit: None,
             dirty_since: None,
+            enforce_title_heading: false,
             last_input: None,
             flush_scheduled: false,
             mention: None,
@@ -711,9 +714,23 @@ impl BodyEditor {
         }
     }
 
+    /// `enforceTitleHeading`: the document keeps an h1 as its first block.
+    pub fn set_enforce_title_heading(&mut self, enforce: bool) {
+        self.enforce_title_heading = enforce;
+    }
+
     fn changed(&mut self, cx: &mut Context<Self>) {
         // `taskIdentityPlugin`: ids stay unique after splits and pastes.
         self.doc.ensure_task_identity();
+        if self.enforce_title_heading && self.doc.enforce_title_heading() {
+            // A heading was inserted above: the caret's block shifted down.
+            if let Some(caret) = self.caret.as_mut() {
+                caret.block += 1;
+            }
+            if let Some(anchor) = self.anchor.as_mut() {
+                anchor.block += 1;
+            }
+        }
         // `appendTransaction` of the autolink and link-boundary-guard plugins:
         // the caret's block is the changed textblock; a structural edit (split,
         // join, lift) may also have reshaped the block before it.

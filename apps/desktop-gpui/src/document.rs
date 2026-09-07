@@ -360,6 +360,76 @@ fn is_h1(node: &Value) -> bool {
             == Some(1)
 }
 
+/// `extractFirstLineTitle`: the first block's text, `Some("")` when only the
+/// body has text, `None` for an empty document.
+pub fn extract_first_line_title(content: &Value) -> Option<String> {
+    let first = content
+        .get("content")
+        .and_then(|c| c.as_array())
+        .and_then(|blocks| blocks.first());
+    let title = first.map(collect_text).unwrap_or_default();
+    let title = title.trim();
+    if !title.is_empty() {
+        return Some(title.to_string());
+    }
+    (!collect_text(content).trim().is_empty()).then(String::new)
+}
+
+/// `hasStoredNoteContent`: a stored body with visible text.
+pub fn has_stored_note_content(body: &str) -> bool {
+    if body.trim().is_empty() {
+        return false;
+    }
+    match serde_json::from_str::<Value>(body) {
+        Ok(json) => !collect_text(&json).trim().is_empty(),
+        Err(_) => true,
+    }
+}
+
+/// `isCanonicalEmptyDocument`: the title heading (matching the session title,
+/// or empty without one) followed by one empty paragraph and nothing else.
+pub fn is_canonical_empty_document(content: &Value, session_title: &str) -> bool {
+    let blocks: Vec<Value> = content
+        .get("content")
+        .and_then(|c| c.as_array())
+        .cloned()
+        .unwrap_or_default();
+    let [title, body] = blocks.as_slice() else {
+        return false;
+    };
+    let expected = session_title.trim();
+    let title_content: Vec<Value> = title
+        .get("content")
+        .and_then(|c| c.as_array())
+        .cloned()
+        .unwrap_or_default();
+    let has_expected_title = if expected.is_empty() {
+        title_content.is_empty()
+    } else {
+        title_content.len() == 1
+            && title_content[0].get("type").and_then(|t| t.as_str()) == Some("text")
+            && title_content[0].get("text").and_then(|t| t.as_str()) == Some(expected)
+            && title_content[0]
+                .get("marks")
+                .and_then(|m| m.as_array())
+                .is_none_or(|marks| marks.is_empty())
+    };
+    let title_attrs = title.get("attrs").and_then(|a| a.as_object());
+    content.get("type").and_then(|t| t.as_str()) == Some("doc")
+        && is_h1(title)
+        && title_attrs.is_some_and(|attrs| attrs.len() == 1)
+        && has_expected_title
+        && body.get("type").and_then(|t| t.as_str()) == Some("paragraph")
+        && body
+            .get("attrs")
+            .and_then(|a| a.as_object())
+            .is_none_or(|attrs| attrs.is_empty())
+        && body
+            .get("content")
+            .and_then(|c| c.as_array())
+            .is_none_or(|children| children.is_empty())
+}
+
 /// `ensureFirstLineTitle` in `session/title-content.ts`: the document starts
 /// with an h1 carrying the title, replacing a first paragraph or an empty h1
 /// (or an h1 / paragraph that already holds the title's text).
@@ -408,6 +478,32 @@ pub fn ensure_first_line_title(mut content: Value, title: &str) -> Value {
 #[cfg(test)]
 mod title_tests {
     use super::*;
+
+    #[test]
+    fn enhanced_editor_helpers_follow_title_content() {
+        let doc: Value = serde_json::from_str(
+            r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":1},"content":[{"type":"text","text":"Sync"}]},{"type":"paragraph"}]}"#,
+        )
+        .unwrap();
+        assert_eq!(extract_first_line_title(&doc), Some("Sync".into()));
+        assert!(is_canonical_empty_document(&doc, "Sync"));
+        assert!(!is_canonical_empty_document(&doc, "Other"));
+        let empty: Value = serde_json::from_str(
+            r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":1}},{"type":"paragraph"}]}"#,
+        )
+        .unwrap();
+        assert_eq!(extract_first_line_title(&empty), None);
+        assert!(is_canonical_empty_document(&empty, ""));
+        let body_only: Value = serde_json::from_str(
+            r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":1}},{"type":"paragraph","content":[{"type":"text","text":"x"}]}]}"#,
+        )
+        .unwrap();
+        assert_eq!(extract_first_line_title(&body_only), Some(String::new()));
+        assert!(!is_canonical_empty_document(&body_only, ""));
+        assert!(has_stored_note_content(&body_only.to_string()));
+        assert!(!has_stored_note_content(&empty.to_string()));
+        assert!(!has_stored_note_content(""));
+    }
 
     #[test]
     fn first_line_title_replaces_placeholders_and_prepends_otherwise() {

@@ -149,6 +149,8 @@ pub struct Workspace {
     title_input: gpui::Entity<TextInput>,
     /// The memo editor for the selected session.
     editor: Option<gpui::Entity<BodyEditor>>,
+    /// `EnhancedEditor`: the open summary's editor, keyed by its note id.
+    enhanced_editor: Option<(String, gpui::Entity<BodyEditor>)>,
     font_family: Option<SharedString>,
     mono_font_family: Option<SharedString>,
     sessions: Sessions,
@@ -353,6 +355,7 @@ impl Workspace {
             focus_handle: cx.focus_handle(),
             title_input,
             editor: None,
+            enhanced_editor: None,
             font_family,
             mono_font_family,
             sessions: Sessions::Loading,
@@ -971,6 +974,7 @@ impl Workspace {
                             }
                         });
                         this.sync_editor(&preview, cx);
+                        this.sync_enhanced_editor(&preview, &tab, cx);
                         // `useAutoFocusEditor`: focus the memo once per opened
                         // session, at the document start.
                         if tab == NoteTab::Memo
@@ -1030,9 +1034,152 @@ impl Workspace {
         if let Note::Ready { tab: current, .. } = &mut self.note
             && *current != tab
         {
-            *current = tab;
+            *current = tab.clone();
+            if let Note::Ready { preview, .. } = &self.note {
+                let preview = preview.clone();
+                self.sync_enhanced_editor(&preview, &tab, cx);
+            }
             cx.notify();
         }
+    }
+
+    /// The editor behind the current tab: the memo's, or the open summary's.
+    pub(crate) fn active_editor(&self) -> Option<&gpui::Entity<BodyEditor>> {
+        match &self.note {
+            Note::Ready {
+                tab: NoteTab::Enhanced(id),
+                ..
+            } => self
+                .enhanced_editor
+                .as_ref()
+                .filter(|(note_id, _)| note_id == id)
+                .map(|(_, editor)| editor),
+            _ => self.editor.as_ref(),
+        }
+    }
+
+    /// `EnhancedEditor`'s `initialContent` / `key`: one editor per summary,
+    /// opened on `ensureFirstLineTitle(content, sessionTitle)` and refreshed
+    /// from the store while it has no pending edits.
+    fn sync_enhanced_editor(
+        &mut self,
+        preview: &NotePreview,
+        tab: &NoteTab,
+        cx: &mut Context<Self>,
+    ) {
+        let NoteTab::Enhanced(note_id) = tab else {
+            return;
+        };
+        let Some(doc) = preview.enhanced.iter().find(|doc| &doc.id == note_id) else {
+            return;
+        };
+        let parsed = serde_json::from_str::<serde_json::Value>(&doc.body)
+            .ok()
+            .filter(|json| json.get("type").is_some())
+            .or_else(|| {
+                (!doc.body.trim().is_empty())
+                    .then(|| anlg_tiptap::md_to_tiptap_json(&doc.body).ok())
+                    .flatten()
+            })
+            .unwrap_or_else(|| serde_json::json!({ "type": "doc", "content": [] }));
+        let body =
+            crate::document::ensure_first_line_title(parsed, &preview.session.title).to_string();
+        match &self.enhanced_editor {
+            Some((current, editor)) if current == note_id => {
+                editor.update(cx, |editor, cx| editor.replace_body(&body, cx));
+            }
+            _ => {
+                if let Some((_, previous)) = self.enhanced_editor.take() {
+                    previous.update(cx, |editor, cx| editor.flush(cx));
+                }
+                let search = mention_popup::search_over(
+                    self.mention_candidates.clone(),
+                    cx.global::<crate::search::Search>().0.clone(),
+                    self.store.runtime().clone(),
+                );
+                let editor = cx.new(|cx| {
+                    let mut editor = BodyEditor::new(note_id.clone(), &body, cx);
+                    editor.set_mention_search(search);
+                    editor.set_enforce_title_heading(true);
+                    editor
+                });
+                let session_id = preview.session.id.clone();
+                let stored = doc.body.clone();
+                let session_title = preview.session.title.clone();
+                cx.subscribe(
+                    &editor,
+                    move |this, editor, event: &EditorEvent, cx| match event {
+                        EditorEvent::Flush(json) => {
+                            let note_id = editor.read(cx).session_id.clone();
+                            this.persist_enhanced_note(
+                                session_id.clone(),
+                                note_id,
+                                &stored,
+                                &session_title,
+                                json.clone(),
+                                cx,
+                            );
+                        }
+                        EditorEvent::OpenMention { kind, id } => {
+                            this.open_mention(kind, id.clone(), cx);
+                        }
+                    },
+                )
+                .detach();
+                self.enhanced_editor = Some((note_id.clone(), editor));
+            }
+        }
+    }
+
+    /// `EnhancedEditor.handleChange`: skip the canonical empty document on an
+    /// empty store body, then `updateEnhancedNoteContent` with the title from
+    /// the first line (kept when neither the document nor the store has text).
+    fn persist_enhanced_note(
+        &mut self,
+        session_id: String,
+        note_id: String,
+        stored_content: &str,
+        session_title: &str,
+        json: String,
+        cx: &mut Context<Self>,
+    ) {
+        let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json) else {
+            return;
+        };
+        if stored_content.is_empty()
+            && crate::document::is_canonical_empty_document(&parsed, session_title)
+        {
+            return;
+        }
+        let title = crate::document::extract_first_line_title(&parsed);
+        let next_title =
+            if title.is_some() || crate::document::has_stored_note_content(stored_content) {
+                Some(title.unwrap_or_default())
+            } else {
+                None
+            };
+        let title_changed = next_title.is_some();
+        let task =
+            self.store
+                .update_enhanced_note_content(note_id, session_id.clone(), json, next_title);
+        cx.spawn(async move |this, cx| match task.await {
+            Ok(Ok(())) => {
+                this.update(cx, |this, cx| {
+                    if title_changed {
+                        this.reload_sessions(cx);
+                    }
+                    if this.selected.as_deref() == Some(session_id.as_str()) {
+                        this.reload_note(session_id, cx);
+                    }
+                })
+                .ok();
+            }
+            Ok(Err(error)) => {
+                tracing::error!(%error, "[enhanced-editor] failed to persist summary")
+            }
+            Err(error) => tracing::error!(%error, "[enhanced-editor] failed to persist summary"),
+        })
+        .detach();
     }
 
     pub(crate) fn focus_handle(&self) -> &FocusHandle {

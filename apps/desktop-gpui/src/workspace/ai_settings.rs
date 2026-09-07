@@ -220,6 +220,15 @@ impl Workspace {
         if !self.ai_provider_config_complete(kind, provider) {
             return false;
         }
+        // The on-device engines (`listSupportedModels`, `isDesktopLocalSttAvailable`,
+        // `checkAppleFoundationModelAvailability`) exist on Apple Silicon only.
+        if matches!(
+            provider.id,
+            "soniqo" | "apple_speech" | "local_file" | "apple_foundation"
+        ) && !(cfg!(target_os = "macos") && cfg!(target_arch = "aarch64"))
+        {
+            return false;
+        }
         if provider.checks_availability {
             let selected = self
                 .provider_settings

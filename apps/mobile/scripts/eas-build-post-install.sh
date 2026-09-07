@@ -17,6 +17,10 @@ if ! command -v rustup >/dev/null 2>&1; then
 fi
 
 if [[ $EAS_BUILD_PLATFORM == android ]]; then
+  if [[ $(uname -s) == Linux ]]; then
+    sudo apt-get -o Acquire::Retries=5 update
+    sudo apt-get -o Acquire::Retries=5 install -y --no-install-recommends libclang-dev
+  fi
   rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
   export ANDROID_NDK_HOME="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-${ANDROID_HOME:-${ANDROID_SDK_ROOT:?Android SDK is required}}/ndk/27.1.12297006}}"
   test -f "$ANDROID_NDK_HOME/source.properties"

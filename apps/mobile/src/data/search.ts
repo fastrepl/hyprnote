@@ -31,7 +31,7 @@ LEFT JOIN session_documents AS note
 WHERE sessions.deleted_at IS NULL
   AND (sessions.title LIKE ? ESCAPE '\\' OR note.body LIKE ? ESCAPE '\\')
 ORDER BY sessions.created_at DESC
-LIMIT 50
+LIMIT 51
 `;
 
 function escapeLike(term: string): string {
@@ -41,14 +41,24 @@ function escapeLike(term: string): string {
 export function useSessionSearch(query: string): {
   results: TimelineSession[];
   isLoading: boolean;
+  error: Error | null;
+  hasMore: boolean;
 } {
   const term = query.trim();
   const pattern = `%${escapeLike(term)}%`;
-  const { data, isLoading } = useLiveQuery<TimelineRow, TimelineSession[]>({
+  const { data, isLoading, error } = useLiveQuery<
+    TimelineRow,
+    TimelineSession[]
+  >({
     sql: SEARCH_SQL,
     params: [pattern, pattern],
     enabled: term !== "",
     mapRows: mapTimelineRows,
   });
-  return { results: term === "" ? [] : (data ?? []), isLoading };
+  return {
+    results: term === "" ? [] : (data?.slice(0, 50) ?? []),
+    isLoading,
+    error,
+    hasMore: term !== "" && (data?.length ?? 0) > 50,
+  };
 }

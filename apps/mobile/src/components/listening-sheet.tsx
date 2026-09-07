@@ -23,7 +23,10 @@ import {
   Spacing,
   Typography,
 } from "@/constants/theme";
-import type { TranscriptSegment } from "@/data/transcripts";
+import {
+  useSessionTranscripts,
+  type TranscriptSegment,
+} from "@/data/transcripts";
 import { createStyleHook, useColors } from "@/settings/theme-provider";
 
 function formatDuration(ms: number): string {
@@ -73,7 +76,7 @@ export function ListeningSheet({
   durationMs,
   liveStatus,
   liveTranscript,
-  transcripts,
+  sessionId,
   recordingDetails,
   onStop,
   onRetry,
@@ -86,7 +89,7 @@ export function ListeningSheet({
   durationMs: number;
   liveStatus: "connecting" | "live" | "fallback";
   liveTranscript: string;
-  transcripts: TranscriptSegment[];
+  sessionId: string;
   recordingDetails: ReactNode;
   onStop: () => void;
   onRetry: () => void;
@@ -95,6 +98,11 @@ export function ListeningSheet({
   const styles = useStyles();
   const Colors = useColors();
   const [expanded, setExpanded] = useState(false);
+  const {
+    segments: transcripts,
+    isLoading,
+    error,
+  } = useSessionTranscripts(sessionId, expanded);
   const listRef = useRef<FlatList<TranscriptSegment>>(null);
   const following = useRef(active);
   const permissionDenied =
@@ -231,11 +239,15 @@ export function ListeningSheet({
               ListEmptyComponent={
                 !liveTranscript ? (
                   <Text style={styles.hint}>
-                    {active
-                      ? liveStatus === "fallback"
-                        ? "Your recording will be transcribed after you stop listening."
-                        : "Your transcript will appear here as you speak."
-                      : "No transcript yet."}
+                    {isLoading
+                      ? "Loading transcript…"
+                      : error
+                        ? "Couldn't load the transcript. Close and reopen to retry."
+                        : active
+                          ? liveStatus === "fallback"
+                            ? "Your recording will be transcribed after you stop listening."
+                            : "Your transcript will appear here as you speak."
+                          : "No transcript yet."}
                   </Text>
                 ) : null
               }

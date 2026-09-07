@@ -120,6 +120,7 @@ const {
 const { requestProviderTranscription } =
   await import("../data/provider-transcription.ts");
 const { summarizeSession } = await import("../data/summarize.ts");
+const { loadSessionTranscripts } = await import("../data/transcripts.ts");
 const { Platform } = await import("react-native");
 
 function signedInWith(claims) {
@@ -1782,6 +1783,12 @@ test("summaries read the full visible transcript, including uncompact live revis
       new_words: [word("second", "Wrong ending", 100)],
     }),
   );
+  const exported = await loadSessionTranscripts("note-1");
+  assert.deepEqual(
+    exported.map(({ speaker, text }) => ({ speaker, text })),
+    [{ speaker: "John", text: "First snapshot Corrected ending" }],
+  );
+  assert.deepEqual(await loadSessionTranscripts("missing-session"), []);
   await summarizeSession("note-1");
   const request = JSON.stringify(JSON.parse(fixture.requests[0].options.body));
   assert.match(request, /John: First snapshot Corrected ending/);

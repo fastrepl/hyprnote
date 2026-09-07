@@ -10,6 +10,7 @@ mod automations;
 mod batch;
 mod contacts;
 mod db;
+mod deeplink;
 mod developers;
 mod document;
 mod editor;
@@ -56,6 +57,45 @@ struct MainWindow {
 }
 
 impl gpui::Global for MainWindow {}
+
+/// The loopback callback server the onboarding demo reports back to.
+struct DeepLinks {
+    server: deeplink::CallbackServer,
+}
+
+impl gpui::Global for DeepLinks {}
+
+/// `useDeeplinkHandler` + the single-instance callback: bring the main
+/// window back (reopening it when it was closed) and route the link.
+fn handle_deep_link_url(url: &str, store: &Arc<Store>, cx: &mut App) {
+    let incoming = deeplink::classify(url);
+    let handle = match cx.global::<MainWindow>().handle {
+        Some(handle) if cx.windows().contains(&handle.into()) => handle,
+        _ => match open_main_window(store.clone(), cx) {
+            Ok(handle) => handle,
+            Err(error) => {
+                tracing::error!(%error, "failed to reopen main window for deep link");
+                return;
+            }
+        },
+    };
+    cx.activate(true);
+    handle
+        .update(cx, |workspace, window, cx| {
+            window.activate_window();
+            match incoming {
+                deeplink::Incoming::DeepLink(link) => workspace.handle_deep_link(link, cx),
+                deeplink::Incoming::ShareOpen(request) => {
+                    tracing::warn!(
+                        ?request,
+                        "shared-note opens need the signed-in flows, which the native shell does not ship yet"
+                    );
+                }
+                deeplink::Incoming::Focus => {}
+            }
+        })
+        .ok();
+}
 
 fn open_main_window(store: Arc<Store>, cx: &mut App) -> anyhow::Result<WindowHandle<Workspace>> {
     let bounds = Bounds::centered(None, size(px(1100.0), px(720.0)), cx);
@@ -172,6 +212,8 @@ const APP_ID: &str = "so.anarlog.Anarlog";
 struct Args {
     db_path: Option<PathBuf>,
     identifier: String,
+    /// `anarlog://…` URLs the OS (or the Tauri launcher) passed along.
+    urls: Vec<String>,
 }
 
 fn parse_args() -> anyhow::Result<Args> {
@@ -181,7 +223,8 @@ fn parse_args() -> anyhow::Result<Args> {
             "anarlog-gpui\n\n\
              Options:\n  \
              --db-path <PATH>       Open a specific app.db instead of the desktop app's database\n  \
-             --identifier <ID>      Bundle identifier whose database to open (default: {DEFAULT_IDENTIFIER})"
+             --identifier <ID>      Bundle identifier whose database to open (default: {DEFAULT_IDENTIFIER})\n\n\
+             Positional arguments are deep-link URLs (e.g. anarlog://focus)."
         );
         std::process::exit(0);
     }
@@ -190,12 +233,14 @@ fn parse_args() -> anyhow::Result<Args> {
         .opt_value_from_str("--identifier")?
         .unwrap_or_else(|| DEFAULT_IDENTIFIER.to_string());
     let rest = args.finish();
-    if !rest.is_empty() {
+    let urls = deeplink::urls_from_args(&rest);
+    if urls.len() != rest.len() {
         anyhow::bail!("unexpected arguments: {rest:?}");
     }
     Ok(Args {
         db_path,
         identifier,
+        urls,
     })
 }
 
@@ -212,6 +257,14 @@ fn main() -> anyhow::Result<()> {
         Some(path) => path,
         None => db::default_db_path(&args.identifier)?,
     };
+    // One window per database: a second launch hands its URLs to the
+    // running instance (`tauri-plugin-single-instance`).
+    let forwarded = match deeplink::claim(&deeplink::socket_path(&db_path), &args.urls) {
+        deeplink::Claim::Forwarded => return Ok(()),
+        deeplink::Claim::Primary(receiver) => receiver,
+    };
+    let (deeplink_sender, deeplink_receiver) = std::sync::mpsc::channel::<String>();
+    let startup_urls = args.urls.clone();
 
     // sqlx runs on tokio; GPUI drives its own executor on the main thread. The
     // runtime lives for the whole process and the Store bridges the two.
@@ -230,12 +283,20 @@ fn main() -> anyhow::Result<()> {
     tracing::info!(path = %store.path().display(), "opened application database");
 
     let identifier = args.identifier.clone();
+    let callback_server = deeplink::CallbackServer::new(
+        runtime.handle().clone(),
+        deeplink::scheme(&identifier),
+        deeplink_sender,
+    );
     Application::new()
         .with_assets(assets::Assets)
         .run(move |cx: &mut App| {
             cx.set_global(audio::Audio(audio));
             cx.set_global(search::Search(search));
             cx.set_global(MainWindow { handle: None });
+            cx.set_global(DeepLinks {
+                server: callback_server,
+            });
             let store_file = store_file::StoreFile::next_to(store.path());
             cx.set_global(tray::Tray::start(tray::TrayState {
                 app_name: tray::app_name(&identifier).to_string(),
@@ -273,7 +334,14 @@ fn main() -> anyhow::Result<()> {
             }
             cx.activate(true);
 
-            // Tray menu clicks arrive on the tray thread's channel.
+            // URLs the launcher was started with are queued until the window
+            // is up (`take_pending_deep_links`).
+            for url in &startup_urls {
+                handle_deep_link_url(url, &store, cx);
+            }
+
+            // Tray menu clicks, forwarded launches, and loopback callbacks
+            // arrive on their threads' channels.
             let tray_store = store.clone();
             cx.spawn(async move |cx| {
                 loop {
@@ -284,6 +352,9 @@ fn main() -> anyhow::Result<()> {
                         .update(|cx| {
                             for action in cx.global::<tray::Tray>().take_actions() {
                                 handle_tray_action(action, &tray_store, cx);
+                            }
+                            for url in forwarded.try_iter().chain(deeplink_receiver.try_iter()) {
+                                handle_deep_link_url(&url, &tray_store, cx);
                             }
                         })
                         .is_err();

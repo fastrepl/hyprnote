@@ -1396,7 +1396,7 @@ impl Workspace {
         format!(
             "{}/auth?flow=desktop&scheme={}",
             web_app_url(),
-            deep_link_scheme(self.store.identifier())
+            crate::deeplink::scheme(self.store.identifier())
         )
     }
 
@@ -3042,14 +3042,6 @@ fn web_app_url() -> &'static str {
 }
 
 /// `getScheme()` in `shared/utils.ts`.
-fn deep_link_scheme(identifier: &str) -> &'static str {
-    match identifier {
-        "com.hyprnote.stable" | "com.hyprnote.Hyprnote" => "anarlog",
-        "com.hyprnote.staging" => "anarlog-staging",
-        _ => "anarlog-dev",
-    }
-}
-
 /// `usePermission`'s slice the page renders.
 #[derive(Debug, Default, Clone)]
 pub(crate) struct PermissionState {

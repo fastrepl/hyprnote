@@ -39,9 +39,12 @@ pub fn hand_off_if_preferred(identifier: &str) {
         );
         return;
     };
+    // The OS hands deep-link URLs to this launcher as positional arguments;
+    // pass them through so `anarlog://…` reaches the native shell.
     match std::process::Command::new(&binary)
         .arg("--identifier")
         .arg(identifier)
+        .args(std::env::args_os().skip(1))
         .spawn()
     {
         Ok(_) => std::process::exit(0),

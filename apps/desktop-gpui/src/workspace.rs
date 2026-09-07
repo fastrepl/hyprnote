@@ -6,6 +6,7 @@ mod calendar_tab;
 mod chat;
 mod chat_cta;
 mod contacts_tab;
+mod deep_links;
 mod developers_page;
 mod dictionary;
 mod document_view;
@@ -233,6 +234,8 @@ pub struct Workspace {
     onboarding: Option<onboarding::OnboardingState>,
     /// The capture engine and the live session state.
     recording: recording::RecordingState,
+    /// `joiningMeeting`: `Join & record` is opening the meeting and starting.
+    joining_meeting: bool,
     /// The session audio player for the open transcript tab.
     audio_player: Option<audio_player::AudioPlayer>,
     /// The open transcript tab's scroll, follow and word hover state.
@@ -399,6 +402,7 @@ impl Workspace {
             stats: None,
             onboarding: None,
             recording: recording::RecordingState::default(),
+            joining_meeting: false,
             audio_player: None,
             transcript_view: transcript_tab::TranscriptView::default(),
             chat_cta_hovered: false,

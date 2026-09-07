@@ -315,34 +315,28 @@ impl Workspace {
                     .flex_shrink_0()
                     .into_any_element(),
             ),
-            Some(event)
-                if event
-                    .meeting_link
-                    .as_deref()
-                    .is_some_and(|link| !link.is_empty()) =>
-            {
-                (
-                    "Join & record",
-                    match event.remote_meeting() {
-                        Some(RemoteMeeting::Zoom) => img(embedded("zoom-icon.svg"))
-                            .size(px(14.0))
-                            .into_any_element(),
-                        Some(RemoteMeeting::GoogleMeet) => img(embedded("google-meet.svg"))
-                            .size(px(14.0))
-                            .into_any_element(),
-                        Some(RemoteMeeting::Webex) => {
-                            img(embedded("webex.png")).size(px(14.0)).into_any_element()
-                        }
-                        Some(RemoteMeeting::Teams) => {
-                            img(embedded("teams.png")).size(px(14.0)).into_any_element()
-                        }
-                        Some(RemoteMeeting::CalCom) => {
-                            icon("video-camera", px(14.0), theme.foreground).into_any_element()
-                        }
-                        None => icon("headset", px(14.0), theme.foreground).into_any_element(),
-                    },
-                )
-            }
+            // `canJoinFromHeader`: a recognised remote meeting link
+            // (`getRemoteMeeting`); unknown links fall through to `Record`.
+            Some(event) if event.remote_meeting().is_some() => (
+                "Join & record",
+                match event.remote_meeting() {
+                    Some(RemoteMeeting::Zoom) => img(embedded("zoom-icon.svg"))
+                        .size(px(14.0))
+                        .into_any_element(),
+                    Some(RemoteMeeting::GoogleMeet) => img(embedded("google-meet.svg"))
+                        .size(px(14.0))
+                        .into_any_element(),
+                    Some(RemoteMeeting::Webex) => {
+                        img(embedded("webex.png")).size(px(14.0)).into_any_element()
+                    }
+                    Some(RemoteMeeting::Teams) => {
+                        img(embedded("teams.png")).size(px(14.0)).into_any_element()
+                    }
+                    Some(RemoteMeeting::CalCom) | None => {
+                        icon("video-camera", px(14.0), theme.foreground).into_any_element()
+                    }
+                },
+            ),
             _ => (
                 "Record",
                 div()
@@ -370,8 +364,12 @@ impl Workspace {
         let hovered = self.hovered == Some("meeting-cta");
         // `disabled` while finalizing (`cursor-default opacity-60`); the
         // active CTA swaps `bg-transparent` for `bg-card`.
-        let disabled = mode == super::recording::SessionMode::Finalizing || self.recording.starting;
+        // `disabled = sessionMode === "finalizing" || joiningMeeting`.
+        let disabled = mode == super::recording::SessionMode::Finalizing
+            || self.recording.starting
+            || self.joining_meeting;
         let session_id = preview.session.id.clone();
+        let join_event = event.cloned();
         let button = div()
             .id("meeting-cta")
             .relative()
@@ -406,6 +404,14 @@ impl Workspace {
             .when(!disabled && label == "Record", |button| {
                 button.on_click(cx.listener(move |this, _: &gpui::ClickEvent, _, cx| {
                     this.start_listening(session_id.clone(), cx);
+                }))
+            })
+            .when(!disabled && label == "Join & record", |button| {
+                let session_id = preview.session.id.clone();
+                button.on_click(cx.listener(move |this, _: &gpui::ClickEvent, _, cx| {
+                    if let Some(event) = join_event.as_ref() {
+                        this.join_meeting(session_id.clone(), event, cx);
+                    }
                 }))
             })
             .when(!disabled && label == "Stop", |button| {

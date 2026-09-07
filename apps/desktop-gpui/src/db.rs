@@ -257,6 +257,18 @@ const WELCOME_SESSION_SQL: &str = "
     LIMIT 1
 ";
 
+/// `stopActiveWelcomeDemo`'s guard: the live session must still be the demo.
+const IS_WELCOME_SESSION_SQL: &str = "
+    SELECT COUNT(*)
+    FROM sessions
+    WHERE id = ?
+      AND deleted_at IS NULL
+      AND CASE
+        WHEN json_valid(event_json)
+        THEN json_extract(event_json, '$.tracking_id')
+      END = ?
+";
+
 // `createEmptyNoteStatement`.
 const CREATE_EMPTY_NOTE_SQL: &str = "
     INSERT INTO session_documents (
@@ -1608,6 +1620,22 @@ impl Store {
             }
             transaction.commit().await?;
             Ok(())
+        })
+    }
+
+    /// Whether `session_id` is the (undeleted) onboarding demo session.
+    pub fn is_welcome_session(
+        &self,
+        session_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<bool>> {
+        let store = self.clone_handle();
+        self.runtime.spawn(async move {
+            let count: i64 = sqlx::query_scalar(IS_WELCOME_SESSION_SQL)
+                .bind(&session_id)
+                .bind(crate::workspace::onboarding::WELCOME_NOTE_TRACKING_ID)
+                .fetch_one(store.db.pool())
+                .await?;
+            Ok(count > 0)
         })
     }
 

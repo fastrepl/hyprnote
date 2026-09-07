@@ -10,6 +10,9 @@ use crate::runtime::{AudioImportEvent, AudioImportRuntime};
 use chrono::{DateTime, Utc};
 use sha2::{Digest, Sha256};
 
+mod activity;
+pub use activity::has_speech;
+
 const AUDIO_FORMATS: [&str; 3] = ["audio.mp3", "audio.wav", "audio.ogg"];
 const AUDIO_ARTIFACTS: [&str; 7] = [
     "audio.mp3",

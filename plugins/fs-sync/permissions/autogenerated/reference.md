@@ -20,6 +20,7 @@ Default permissions for the fs-sync plugin
 - `allow-audio-import`
 - `allow-audio-import-data`
 - `allow-audio-source-metadata`
+- `allow-audio-has-speech`
 - `allow-audio-path`
 - `allow-audio-copy`
 - `allow-session-dir`
@@ -250,6 +251,32 @@ Enables the audio_exist command without any pre-configured scope.
 <td>
 
 Denies the audio_exist command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:allow-audio-has-speech`
+
+</td>
+<td>
+
+Enables the audio_has_speech command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:deny-audio-has-speech`
+
+</td>
+<td>
+
+Denies the audio_has_speech command without any pre-configured scope.
 
 </td>
 </tr>

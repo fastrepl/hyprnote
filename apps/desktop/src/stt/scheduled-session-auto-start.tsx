@@ -65,7 +65,10 @@ function PendingScheduledSessionAutoStart({
 }
 
 function ReadyScheduledSessionAutoStart({ sessionId }: { sessionId: string }) {
-  const { connectionReady, startListening } = useStartListeningState(sessionId);
+  const { connectionReady, startListening } = useStartListeningState(
+    sessionId,
+    { automatic: true },
+  );
   const attemptedRef = useRef(false);
 
   useMountEffect(() => {

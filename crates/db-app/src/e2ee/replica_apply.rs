@@ -680,6 +680,14 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
         remove_apply_guard(&mut transaction, &workspace_id, &table, &row_id).await?;
         rollback_if_cancelled!(transaction, is_cancelled);
         pending.retain(|(record_id, _)| !deferred_pending_ids.contains(record_id));
+        crate::session_deletion::reconcile_session_deletion(
+            &mut transaction,
+            &workspace_id,
+            &table,
+            &row_id,
+        )
+        .await?;
+        rollback_if_cancelled!(transaction, is_cancelled);
         delete_reconciled_replica_entries_in_transaction(&mut transaction, &pending).await?;
         rollback_if_cancelled!(transaction, is_cancelled);
         commit_e2ee_apply_transaction(transaction, is_cancelled).await?;

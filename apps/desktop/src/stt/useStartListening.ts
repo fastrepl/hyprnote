@@ -39,7 +39,10 @@ export function useStartListening(sessionId: string) {
   return useStartListeningState(sessionId).startListening;
 }
 
-export function useStartListeningState(sessionId: string) {
+export function useStartListeningState(
+  sessionId: string,
+  { automatic = false }: { automatic?: boolean } = {},
+) {
   const {
     conn,
     connectionReady,
@@ -71,7 +74,7 @@ export function useStartListeningState(sessionId: string) {
       return;
     }
     await stopMeetingChatTasks();
-    const lifecycle = createCaptureLifecycle();
+    const lifecycle = createCaptureLifecycle(undefined, automatic);
     // A fresh note or a just-focused window starts listening right as a sync
     // round begins; waiting for that round to yield made the start feel slow
     // and sometimes refused to record at all.
@@ -266,6 +269,7 @@ export function useStartListeningState(sessionId: string) {
         : {}),
     });
   }, [
+    automatic,
     aiLanguage,
     canStartLiveSession,
     conn,

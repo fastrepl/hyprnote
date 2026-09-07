@@ -72,6 +72,21 @@ test("loads a valid capture marker", async () => {
   );
 });
 
+test("preserves automatic capture provenance and its pre-recording audio state", async () => {
+  const automaticMarker = {
+    ...marker,
+    automatic: true,
+    preserveExistingAudio: false,
+    initialTitle: "Standup",
+  };
+  mocks.execute.mockResolvedValue([
+    { value_json: JSON.stringify(automaticMarker) },
+  ]);
+  await expect(loadCaptureLifecycleMarker("session-1")).resolves.toEqual(
+    automaticMarker,
+  );
+});
+
 test("loads the exact durable summary recovery mode", async () => {
   const summaryMarker = {
     ...marker,

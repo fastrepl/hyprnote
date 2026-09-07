@@ -12,6 +12,9 @@ export type CaptureLifecycleMarker = {
   createdAt: string;
   audioOffsetMs: number;
   preserveExistingTranscript: boolean;
+  automatic?: boolean;
+  preserveExistingAudio?: boolean;
+  initialTitle?: string;
   ownerUserId: string;
   memo: string;
   provider?: string;
@@ -154,6 +157,15 @@ function parseCaptureLifecycleMarker(
       createdAt: parsed.createdAt,
       audioOffsetMs: Math.max(0, parsed.audioOffsetMs),
       preserveExistingTranscript: parsed.preserveExistingTranscript,
+      ...(typeof parsed.automatic === "boolean"
+        ? { automatic: parsed.automatic }
+        : {}),
+      ...(typeof parsed.preserveExistingAudio === "boolean"
+        ? { preserveExistingAudio: parsed.preserveExistingAudio }
+        : {}),
+      ...(typeof parsed.initialTitle === "string"
+        ? { initialTitle: parsed.initialTitle }
+        : {}),
       ownerUserId: parsed.ownerUserId,
       memo: parsed.memo,
       ...(parsed.phase === "capturing" || parsed.phase === "finalizing"

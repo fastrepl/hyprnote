@@ -713,7 +713,9 @@ impl Store {
         pending: bool,
     ) -> tokio::task::JoinHandle<anyhow::Result<(EnhancedNote, Option<PendingJob>)>> {
         let db = self.db.clone();
+        let lock = self.session_lock(&session_id);
         self.runtime.spawn(async move {
+            let _guard = lock.lock().await;
             let pool = db.pool();
             let Some(snapshot) = load_snapshot(pool, &session_id).await? else {
                 anyhow::bail!("Session {session_id} no longer exists");

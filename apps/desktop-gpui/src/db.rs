@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -1379,6 +1380,9 @@ pub struct Store {
     /// The Tauri bundle identifier whose data (and credential-store entries)
     /// this shell shares.
     identifier: String,
+    /// `enqueueDatabaseWrite("session:<id>")`: check-then-insert writes for
+    /// one session run one at a time.
+    session_locks: Arc<std::sync::Mutex<HashMap<String, Arc<tokio::sync::Mutex<()>>>>>,
 }
 
 const CHANGE_POLL_INTERVAL: std::time::Duration = std::time::Duration::from_millis(750);
@@ -1407,7 +1411,18 @@ impl Store {
             path,
             changes,
             identifier,
+            session_locks: Default::default(),
         })
+    }
+
+    /// The write lock for `session_id`, shared by every handle of this store.
+    fn session_lock(&self, session_id: &str) -> Arc<tokio::sync::Mutex<()>> {
+        self.session_locks
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .entry(session_id.to_string())
+            .or_default()
+            .clone()
     }
 
     pub fn path(&self) -> &Path {
@@ -1699,6 +1714,7 @@ impl Store {
             path: self.path.clone(),
             changes: self.changes.clone(),
             identifier: self.identifier.clone(),
+            session_locks: self.session_locks.clone(),
         }
     }
 
@@ -4157,7 +4173,9 @@ impl Store {
         session_id: String,
     ) -> tokio::task::JoinHandle<anyhow::Result<bool>> {
         let db = self.db.clone();
+        let lock = self.session_lock(&session_id);
         self.runtime.spawn(async move {
+            let _guard = lock.lock().await;
             let pool = db.pool();
             if anlg_db_app::get_session(pool, &session_id).await?.is_none() {
                 return Ok(false);

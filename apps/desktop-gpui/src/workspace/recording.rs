@@ -1003,7 +1003,8 @@ impl Workspace {
                     && pending.recovery_attempt.is_none()
                 {
                     marker.refresh_summary_after_repair = true;
-                    self.save_capture_marker(marker.clone());
+                    tracing::info!(session_id, "[listener] starting live transcript summary");
+                    drop(self.save_capture_marker(marker.clone()));
                     let flush = self.flush_memo_editor(&session_id, cx);
                     let live_mode = if lifecycle.preserve_existing_transcript {
                         super::enhance::AutoEnhanceMode::Regenerate
@@ -1138,25 +1139,38 @@ impl Workspace {
     ) {
         marker.phase = Some(crate::capture_marker::Phase::Finalizing);
         marker.summary_mode = summary_mode.map(summary_mode_marker);
-        self.save_capture_marker(marker);
+        // The frontend awaits this write before it clears the marker; the
+        // clear must not race ahead of the `finalizing` save.
+        let saved = self.save_capture_marker(marker);
         if let Some(mode) = summary_mode {
             self.request_auto_enhance_with(session_id.clone(), mode, cx);
         }
         match audio_path {
             Some(audio_path) => {
-                self.complete_session_audio(session_id, transcript_id, audio_path, cx)
+                self.complete_session_audio(session_id, transcript_id, audio_path, saved, cx)
             }
-            None => self.clear_capture_marker(session_id, transcript_id),
+            None => {
+                let clear = self.store.clear_capture_marker(session_id, transcript_id);
+                self.store.runtime().spawn(async move {
+                    let _ = saved.await;
+                    if let Ok(Err(error)) = clear.await {
+                        tracing::error!(%error, "[listener] failed to clear capture recovery state");
+                    }
+                });
+            }
         }
     }
 
-    fn save_capture_marker(&self, marker: crate::capture_marker::Marker) {
+    fn save_capture_marker(
+        &self,
+        marker: crate::capture_marker::Marker,
+    ) -> tokio::task::JoinHandle<()> {
         let task = self.store.save_capture_marker(marker);
         self.store.runtime().spawn(async move {
             if let Ok(Err(error)) = task.await {
                 tracing::error!(%error, "[listener] failed to persist capture recovery state");
             }
-        });
+        })
     }
 
     fn clear_capture_marker(&self, session_id: String, transcript_id: String) {
@@ -1309,6 +1323,7 @@ impl Workspace {
         session_id: String,
         transcript_id: String,
         audio_path: String,
+        marker_saved: tokio::task::JoinHandle<()>,
         cx: &mut Context<Self>,
     ) {
         let mic_isolated = self
@@ -1332,6 +1347,7 @@ impl Workspace {
                 tracing::error!(%error, session_id, "[listener] failed to mark session audio as processed");
                 return;
             }
+            let _ = marker_saved.await;
             this.update(cx, |this, cx| {
                 // `clearCaptureLifecycleMarker`, then the retention policy.
                 this.clear_capture_marker(session_id.clone(), transcript_id);

@@ -106,6 +106,8 @@ pub(crate) enum BatchFollowUp {
         summary_mode: super::enhance::AutoEnhanceMode,
         live_transcript_id: String,
         audio_path: String,
+        marker: Box<crate::capture_marker::Marker>,
+        recovery_attempt: Option<u32>,
     },
 }
 
@@ -183,6 +185,46 @@ pub(crate) struct CaptureLifecycle {
     pub needs_batch_repair: bool,
     /// `transcriptTouched`: a delta with content was persisted.
     pub transcript_touched: bool,
+    /// `ownerUserId` for the recovery marker.
+    pub owner_user_id: String,
+}
+
+impl CaptureLifecycle {
+    /// `marker()`: the durable `CaptureLifecycleMarker` for this capture.
+    fn marker(
+        &self,
+        session_id: &str,
+        persistence: &LivePersistence,
+        phase: crate::capture_marker::Phase,
+        summary_mode: Option<crate::capture_marker::SummaryMode>,
+    ) -> crate::capture_marker::Marker {
+        crate::capture_marker::Marker {
+            version: 1,
+            phase: Some(phase),
+            session_id: session_id.to_string(),
+            transcript_id: persistence.transcript_id.clone(),
+            started_at: persistence.started_at_ms,
+            created_at: persistence.created_at.clone(),
+            audio_offset_ms: self.existing_audio_ms.max(0),
+            preserve_existing_transcript: self.preserve_existing_transcript,
+            owner_user_id: self.owner_user_id.clone(),
+            memo: persistence.memo.clone(),
+            provider: Some(persistence.provider.clone()).filter(|p| !p.is_empty()),
+            model: Some(persistence.model.clone()).filter(|m| !m.is_empty()),
+            summary_mode,
+        }
+    }
+}
+
+fn summary_mode_marker(
+    mode: super::enhance::AutoEnhanceMode,
+) -> crate::capture_marker::SummaryMode {
+    match mode {
+        super::enhance::AutoEnhanceMode::Regenerate => {
+            crate::capture_marker::SummaryMode::Regenerate
+        }
+        super::enhance::AutoEnhanceMode::IfEmpty => crate::capture_marker::SummaryMode::IfEmpty,
+    }
 }
 
 impl LiveCapture {
@@ -224,11 +266,17 @@ pub(crate) struct PendingPostCapture {
     /// (`transcriptCreated`), and whether the final flush succeeded.
     pub flush: Option<(String, bool, bool)>,
     /// What the capture knew when it ended: `liveTranscriptionActive`, the
-    /// lifecycle inputs, and `startedAt`.
-    pub snapshot: Option<(bool, CaptureLifecycle, i64)>,
+    /// lifecycle inputs, and its `Finalizing` marker (without a summary mode).
+    pub snapshot: Option<(bool, CaptureLifecycle, crate::capture_marker::Marker)>,
     /// `details.audioPath` once the engine reported `Inactive` and the audio
     /// was catalogued.
     pub inactive: Option<Option<String>>,
+    /// `recoveredMarker.summaryMode`: a recovered finalization that only has
+    /// the summary left.
+    pub recovered_summary_mode: Option<super::enhance::AutoEnhanceMode>,
+    /// `recoverStopped` rather than `onStopped`: failures do not request
+    /// another recovery pass beyond the retry budget.
+    pub recovery_attempt: Option<u32>,
 }
 
 /// `getPostCaptureAction`
@@ -508,12 +556,13 @@ impl Workspace {
                 .map(|conn| conn.model.clone())
                 .unwrap_or_else(|| "the selected speech-to-text provider".to_string());
             self.fail_batch(
-                session_id,
+                session_id.clone(),
                 format!(
                     "{label} is not available for batch transcription on this platform. Configure a batch-capable speech-to-text provider."
                 ),
                 cx,
             );
+            self.after_lifecycle_batch_failed(&session_id, &batch_run.after, cx);
             return;
         };
         let Ok(provider) = serde_json::from_value::<anlg_listener2_core::BatchProvider>(
@@ -678,12 +727,14 @@ impl Workspace {
                         synthetic_active.store(false, std::sync::atomic::Ordering::Relaxed);
                         let words = crate::batch::transform_batch(&response);
                         if words.is_empty() {
+                            let after = batch_run.after.clone();
                             this.update(cx, |this, cx| {
                                 this.fail_batch(
                                     session_id.clone(),
                                     crate::batch::EMPTY_BATCH_TRANSCRIPT_ERROR.to_string(),
                                     cx,
-                                )
+                                );
+                                this.after_lifecycle_batch_failed(&session_id, &after, cx);
                             })
                             .ok();
                             break;
@@ -719,13 +770,15 @@ impl Workspace {
                                 }
                             };
                         if words.is_empty() {
+                            let after = batch_run.after.clone();
                             this.update(cx, |this, cx| {
                                 this.fail_batch(
                                     session_id.clone(),
                                     crate::batch::EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR
                                         .to_string(),
                                     cx,
-                                )
+                                );
+                                this.after_lifecycle_batch_failed(&session_id, &after, cx);
                             })
                             .ok();
                             break;
@@ -809,20 +862,19 @@ impl Workspace {
                                             summary_mode,
                                             live_transcript_id,
                                             audio_path,
+                                            marker,
+                                            ..
                                         } => {
                                             tracing::info!(
                                                 session_id,
                                                 "[listener] completed post-stop transcript repair"
                                             );
-                                            this.request_auto_enhance_with(
-                                                session_id.clone(),
-                                                summary_mode,
-                                                cx,
-                                            );
-                                            this.complete_session_audio(
+                                            this.finish_capture(
                                                 session_id.clone(),
                                                 live_transcript_id,
-                                                audio_path,
+                                                Some(audio_path),
+                                                *marker,
+                                                Some(summary_mode),
                                                 cx,
                                             );
                                         }
@@ -833,8 +885,10 @@ impl Workspace {
                             }
                             Err(error) => {
                                 tracing::error!(%error, "[runBatch] error handling batch response");
+                                let after = batch_run.after.clone();
                                 this.update(cx, |this, cx| {
-                                    this.fail_batch(session_id.clone(), error.to_string(), cx)
+                                    this.fail_batch(session_id.clone(), error.to_string(), cx);
+                                    this.after_lifecycle_batch_failed(&session_id, &after, cx);
                                 })
                                 .ok();
                             }
@@ -844,8 +898,10 @@ impl Workspace {
                     anlg_listener2_core::BatchEvent::BatchFailed { error, .. } => {
                         settled = true;
                         synthetic_active.store(false, std::sync::atomic::Ordering::Relaxed);
+                        let after = batch_run.after.clone();
                         this.update(cx, |this, cx| {
-                            this.fail_batch(session_id.clone(), error, cx)
+                            this.fail_batch(session_id.clone(), error, cx);
+                            this.after_lifecycle_batch_failed(&session_id, &after, cx);
                         })
                         .ok();
                     }
@@ -873,22 +929,26 @@ impl Workspace {
         self.recording
             .mic_isolation
             .persist(&self.store_file, session_id, live.mic_isolated);
+        let marker = live.lifecycle.marker(
+            session_id,
+            &live.persistence,
+            crate::capture_marker::Phase::Finalizing,
+            None,
+        );
         self.recording
             .pending_post_capture
             .entry(session_id.to_string())
             .or_default()
-            .snapshot = Some((
-            live.live_active,
-            live.lifecycle.clone(),
-            live.persistence.started_at_ms,
-        ));
+            .snapshot = Some((live.live_active, live.lifecycle.clone(), marker));
         self.finish_live_persistence(live.persistence, session_id.to_string(), cx);
     }
 
     /// `finalizeStopped`, once the transcript flush and the `Inactive`
     /// details have both arrived: `getPostCaptureAction` decides between the
     /// post-stop batch repair and the summary alone; the summary mode is
-    /// `regenerate` when the capture extended an existing transcript.
+    /// `regenerate` when the capture extended an existing transcript. The
+    /// marker moves to `finalizing` with the summary mode before the summary
+    /// is requested and clears once the audio is marked processed.
     fn finalize_capture_when_ready(&mut self, session_id: &str, cx: &mut Context<Self>) {
         let ready = self
             .recording
@@ -905,7 +965,7 @@ impl Workspace {
         };
         let (
             Some((transcript_id, transcript_created, flushed)),
-            Some((live_active, lifecycle, started_at_ms)),
+            Some((live_active, lifecycle, marker)),
             Some(audio_path),
         ) = (pending.flush, pending.snapshot, pending.inactive)
         else {
@@ -914,16 +974,19 @@ impl Workspace {
         let transcript_write_failed = !flushed;
         // `canRunBatchTranscription` is unconditional; a missing batch target
         // surfaces as the batch's own error.
-        let action = post_capture_action(
-            PostCaptureInputs {
-                has_audio: audio_path.is_some(),
-                live_transcription_active: live_active,
-                needs_batch_repair: lifecycle.needs_batch_repair,
-                refine_speaker_diarization: false,
-                transcript_write_failed,
-            },
-            true,
-        );
+        let action = match pending.recovered_summary_mode {
+            Some(_) => PostCaptureAction::EnhanceOnly,
+            None => post_capture_action(
+                PostCaptureInputs {
+                    has_audio: audio_path.is_some(),
+                    live_transcription_active: live_active,
+                    needs_batch_repair: lifecycle.needs_batch_repair,
+                    refine_speaker_diarization: false,
+                    transcript_write_failed,
+                },
+                true,
+            ),
+        };
         let session_id = session_id.to_string();
         match action {
             PostCaptureAction::BatchThenEnhance => {
@@ -946,7 +1009,7 @@ impl Workspace {
                     BatchPromotion::CurrentCapture {
                         existing_audio_ms: lifecycle.existing_audio_ms,
                         replace_transcript_id: transcript_created.then(|| transcript_id.clone()),
-                        started_at_ms,
+                        started_at_ms: marker.started_at,
                     }
                 } else {
                     BatchPromotion::WholeSession
@@ -964,6 +1027,8 @@ impl Workspace {
                                     summary_mode,
                                     live_transcript_id: transcript_id,
                                     audio_path,
+                                    marker: Box::new(marker),
+                                    recovery_attempt: pending.recovery_attempt,
                                 },
                             },
                             cx,
@@ -976,39 +1041,230 @@ impl Workspace {
             PostCaptureAction::EnhanceOnly => {
                 // `playCompletionSound` / `requestAppAttention` when the
                 // capture produced or extended a transcript without a repair.
-                if lifecycle.transcript_touched || lifecycle.preserve_existing_transcript {
+                if pending.recovered_summary_mode.is_none()
+                    && (lifecycle.transcript_touched || lifecycle.preserve_existing_transcript)
+                {
                     self.play_completion_sound(cx);
                 }
-                let has_transcript_evidence =
-                    lifecycle.preserve_existing_transcript || lifecycle.transcript_touched;
-                if has_transcript_evidence {
-                    let mode =
+                let has_transcript_evidence = pending.recovered_summary_mode.is_some()
+                    || lifecycle.preserve_existing_transcript
+                    || lifecycle.transcript_touched;
+                let summary_mode = pending.recovered_summary_mode.or_else(|| {
+                    has_transcript_evidence.then_some(
                         if lifecycle.preserve_existing_transcript && lifecycle.transcript_touched {
                             super::enhance::AutoEnhanceMode::Regenerate
                         } else {
                             super::enhance::AutoEnhanceMode::IfEmpty
-                        };
-                    self.request_auto_enhance_with(session_id.clone(), mode, cx);
-                }
-                if let Some(audio_path) = audio_path {
-                    self.complete_session_audio(session_id, transcript_id, audio_path, cx);
-                }
+                        },
+                    )
+                });
+                self.finish_capture(
+                    session_id,
+                    transcript_id,
+                    audio_path,
+                    marker,
+                    summary_mode,
+                    cx,
+                );
             }
             PostCaptureAction::None => {
                 // `transcriptIsComplete` only for an empty fresh capture; a
-                // recording with neither transcript nor batch target waits
-                // for the recovery flow, which the shell does not run yet.
-                let empty_fresh_capture = audio_path.is_none()
+                // recording with neither transcript nor batch target keeps
+                // its marker for the next recovery pass.
+                let empty_fresh_capture = pending.recovery_attempt.is_none()
+                    && audio_path.is_none()
                     && !lifecycle.transcript_touched
                     && !transcript_write_failed;
-                if !empty_fresh_capture {
+                if empty_fresh_capture {
+                    self.clear_capture_marker(session_id, transcript_id);
+                } else {
+                    // `requestRecovery`: the recovery component retries the
+                    // finalization with backoff until its budget runs out.
                     tracing::warn!(
                         session_id,
                         "[listener] capture ended without a complete transcript"
                     );
+                    self.retry_capture_recovery(session_id, pending.recovery_attempt, cx);
                 }
             }
         }
+    }
+
+    /// `finishCaptureSyncDeferral` + the summary request +
+    /// `complete_session_audio`: the marker turns `finalizing` carrying the
+    /// summary mode, the summary is scheduled, the audio is finished, and
+    /// the marker clears.
+    fn finish_capture(
+        &mut self,
+        session_id: String,
+        transcript_id: String,
+        audio_path: Option<String>,
+        mut marker: crate::capture_marker::Marker,
+        summary_mode: Option<super::enhance::AutoEnhanceMode>,
+        cx: &mut Context<Self>,
+    ) {
+        marker.phase = Some(crate::capture_marker::Phase::Finalizing);
+        marker.summary_mode = summary_mode.map(summary_mode_marker);
+        self.save_capture_marker(marker);
+        if let Some(mode) = summary_mode {
+            self.request_auto_enhance_with(session_id.clone(), mode, cx);
+        }
+        match audio_path {
+            Some(audio_path) => {
+                self.complete_session_audio(session_id, transcript_id, audio_path, cx)
+            }
+            None => self.clear_capture_marker(session_id, transcript_id),
+        }
+    }
+
+    fn save_capture_marker(&self, marker: crate::capture_marker::Marker) {
+        let task = self.store.save_capture_marker(marker);
+        self.store.runtime().spawn(async move {
+            if let Ok(Err(error)) = task.await {
+                tracing::error!(%error, "[listener] failed to persist capture recovery state");
+            }
+        });
+    }
+
+    fn clear_capture_marker(&self, session_id: String, transcript_id: String) {
+        let task = self.store.clear_capture_marker(session_id, transcript_id);
+        self.store.runtime().spawn(async move {
+            if let Ok(Err(error)) = task.await {
+                tracing::error!(%error, "[listener] failed to clear capture recovery state");
+            }
+        });
+    }
+
+    /// `LiveCaptureRecovery` at launch: every `capture_lifecycle_pending:`
+    /// marker without a running capture is finalized as a recovered stop
+    /// (`recoverStopped`: live transcription inactive, batch repair needed).
+    pub(crate) fn recover_captures(&mut self, cx: &mut Context<Self>) {
+        let markers = self.store.load_capture_markers();
+        cx.spawn(async move |this, cx| {
+            let markers = match markers.await.map_err(anyhow::Error::from).and_then(|r| r) {
+                Ok(markers) => markers,
+                Err(error) => {
+                    tracing::error!(%error, "[listener] failed to load capture recovery state");
+                    return;
+                }
+            };
+            for marker in markers {
+                this.update(cx, |this, cx| this.recover_capture(marker, 1, cx))
+                    .ok();
+            }
+        })
+        .detach();
+    }
+
+    /// `useResumeListeningLifecycle` for a marker whose capture is gone:
+    /// flush its journal, then run `finalizeStopped` with the recovered
+    /// details.
+    fn recover_capture(
+        &mut self,
+        marker: crate::capture_marker::Marker,
+        attempt: u32,
+        cx: &mut Context<Self>,
+    ) {
+        let session_id = marker.session_id.clone();
+        if self.session_mode(&session_id) != SessionMode::Inactive
+            || self
+                .recording
+                .pending_post_capture
+                .contains_key(&session_id)
+        {
+            return;
+        }
+        tracing::info!(session_id, attempt, "[listener] recovering capture");
+        let flush = self.store.flush_live_deltas(marker.transcript_id.clone());
+        let exists = self.store.transcript_exists(marker.transcript_id.clone());
+        let audio_path = anlg_fs_sync_core::audio::path(&self.store.session_dir(&session_id))
+            .map(|path| path.to_string_lossy().into_owned());
+        // `catalogLocalSessionAudio`: the recovered recording's attachment row.
+        let catalog = audio_path
+            .is_some()
+            .then(|| self.store.catalog_session_audio(session_id.clone()));
+        cx.spawn(async move |this, cx| {
+            let flushed = matches!(flush.await, Ok(Ok(())));
+            let created = matches!(exists.await, Ok(Ok(true)));
+            if let Some(catalog) = catalog
+                && let Ok(Err(error)) = catalog.await
+            {
+                tracing::error!(%error, "[listener] failed to catalog recorded audio");
+            }
+            this.update(cx, |this, cx| {
+                let lifecycle = CaptureLifecycle {
+                    preserve_existing_transcript: marker.preserve_existing_transcript,
+                    existing_audio_ms: marker.audio_offset_ms,
+                    needs_batch_repair: true,
+                    transcript_touched: created,
+                    owner_user_id: marker.owner_user_id.clone(),
+                };
+                let recovered_summary_mode = marker.summary_mode.map(|mode| match mode {
+                    crate::capture_marker::SummaryMode::Regenerate => {
+                        super::enhance::AutoEnhanceMode::Regenerate
+                    }
+                    crate::capture_marker::SummaryMode::IfEmpty => {
+                        super::enhance::AutoEnhanceMode::IfEmpty
+                    }
+                });
+                this.recording.pending_post_capture.insert(
+                    session_id.clone(),
+                    PendingPostCapture {
+                        flush: Some((marker.transcript_id.clone(), created, flushed)),
+                        snapshot: Some((false, lifecycle, marker)),
+                        inactive: Some(audio_path),
+                        recovered_summary_mode,
+                        recovery_attempt: Some(attempt),
+                    },
+                );
+                this.finalize_capture_when_ready(&session_id, cx);
+            })
+            .ok();
+        })
+        .detach();
+    }
+
+    /// `LiveCaptureSessionRecovery`'s retry: `CAPTURE_RECOVERY_BASE_RETRY_MS`
+    /// doubling per attempt, abandoning (clearing the marker) after
+    /// `CAPTURE_RECOVERY_MAX_ATTEMPTS`. A fresh capture's failure leaves the
+    /// marker for the next launch instead.
+    fn retry_capture_recovery(
+        &mut self,
+        session_id: String,
+        attempt: Option<u32>,
+        cx: &mut Context<Self>,
+    ) {
+        const BASE_RETRY: std::time::Duration = std::time::Duration::from_millis(2_000);
+        const MAX_ATTEMPTS: u32 = 5;
+        // `requestCaptureRecovery` from a fresh capture starts the recovery
+        // component at attempt 1; a recovery attempt's failure retries.
+        let attempt = attempt.unwrap_or(0);
+        let markers = self.store.load_capture_markers();
+        cx.spawn(async move |this, cx| {
+            let Ok(Ok(markers)) = markers.await else {
+                return;
+            };
+            let Some(marker) = markers
+                .into_iter()
+                .find(|marker| marker.session_id == session_id)
+            else {
+                return;
+            };
+            if attempt >= MAX_ATTEMPTS {
+                tracing::error!(session_id, "[listener] abandoning capture recovery");
+                this.update(cx, |this, _| {
+                    this.clear_capture_marker(session_id.clone(), marker.transcript_id.clone())
+                })
+                .ok();
+                return;
+            }
+            cx.background_executor()
+                .timer(BASE_RETRY * 2u32.pow(attempt.saturating_sub(1)))
+                .await;
+            this.update(cx, |this, cx| this.recover_capture(marker, attempt + 1, cx))
+                .ok();
+        })
+        .detach();
     }
 
     /// The tail of `finalizeStoppedInner` for a completed transcript with
@@ -1030,7 +1286,7 @@ impl Workspace {
             &self.store,
             self.remember_speakers(),
             session_id.clone(),
-            transcript_id,
+            transcript_id.clone(),
             Some(audio_path),
             mic_isolated,
         );
@@ -1044,6 +1300,8 @@ impl Workspace {
                 return;
             }
             this.update(cx, |this, cx| {
+                // `clearCaptureLifecycleMarker`, then the retention policy.
+                this.clear_capture_marker(session_id.clone(), transcript_id);
                 this.delete_processed_audio_for_retention(session_id, cx)
             })
             .ok();
@@ -1064,6 +1322,23 @@ impl Workspace {
             abort.abort();
         }
         self.fail_batch(session_id, "Transcription stopped.".to_string(), cx);
+    }
+
+    /// A failed post-stop repair (`finalizeStopped`'s `requestRecovery`):
+    /// the marker stays and the recovery component retries with backoff.
+    fn after_lifecycle_batch_failed(
+        &mut self,
+        session_id: &str,
+        after: &BatchFollowUp,
+        cx: &mut Context<Self>,
+    ) {
+        if let BatchFollowUp::CaptureLifecycle {
+            recovery_attempt, ..
+        } = after
+        {
+            tracing::error!(session_id, "[listener] post-stop transcript repair failed");
+            self.retry_capture_recovery(session_id.to_string(), *recovery_attempt, cx);
+        }
     }
 
     /// `handleBatchFailed(sessionId, error)`
@@ -1224,8 +1499,20 @@ impl Workspace {
                                 existing_audio_ms: context.existing_audio_ms,
                                 needs_batch_repair: false,
                                 transcript_touched: false,
+                                owner_user_id: context.owner_user_id.clone(),
                             },
                         });
+                        // `lifecycle.persistMarker()`: the durable capture state
+                        // a relaunch recovers from.
+                        if let Some(live) = this.recording.live.as_ref() {
+                            let marker = live.lifecycle.marker(
+                                &live.session_id,
+                                &live.persistence,
+                                crate::capture_marker::Phase::Capturing,
+                                None,
+                            );
+                            this.save_capture_marker(marker);
+                        }
                         this.on_live_session_started(cx);
                         // `setLeftSidebarExpanded(false)`
                         this.sidebar_expanded = false;

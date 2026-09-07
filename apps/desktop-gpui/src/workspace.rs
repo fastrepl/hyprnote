@@ -459,6 +459,8 @@ impl Workspace {
                 this.restore_tabs(cx);
                 this.start_onboarding_if_needed();
                 this.spawn_recorder(cx);
+                // `LiveCaptureRecovery`: finalize captures a crash left behind.
+                this.recover_captures(cx);
                 this.start_enhancer(cx);
                 // The task manager's retention tick; it also sweeps expired
                 // voiceprint candidates a few times a day.

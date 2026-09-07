@@ -9,6 +9,7 @@ mod audio_player;
 mod audio_retention;
 mod automations;
 mod batch;
+mod capture_marker;
 mod contacts;
 mod cuelume;
 mod db;

@@ -3212,6 +3212,84 @@ impl Store {
         })
     }
 
+    /// `saveCaptureLifecycleMarker(marker)`
+    pub fn save_capture_marker(
+        &self,
+        marker: crate::capture_marker::Marker,
+    ) -> tokio::task::JoinHandle<anyhow::Result<()>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let now = chrono::Utc::now()
+                .format("%Y-%m-%dT%H:%M:%S%.3fZ")
+                .to_string();
+            let result = sqlx::query(crate::capture_marker::SAVE_SQL)
+                .bind(crate::capture_marker::setting_id(&marker.session_id))
+                .bind(serde_json::to_string(&marker)?)
+                .bind(&now)
+                .execute(db.pool())
+                .await?;
+            anyhow::ensure!(
+                result.rows_affected() == 1,
+                "another capture's marker holds session {}",
+                marker.session_id
+            );
+            Ok(())
+        })
+    }
+
+    /// `clearCaptureLifecycleMarker(sessionId, transcriptId)`
+    pub fn clear_capture_marker(
+        &self,
+        session_id: String,
+        transcript_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<()>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            sqlx::query(crate::capture_marker::CLEAR_SQL)
+                .bind(crate::capture_marker::setting_id(&session_id))
+                .bind(&transcript_id)
+                .execute(db.pool())
+                .await?;
+            Ok(())
+        })
+    }
+
+    /// `loadCaptureLifecycleMarkers()`
+    pub fn load_capture_markers(
+        &self,
+    ) -> tokio::task::JoinHandle<anyhow::Result<Vec<crate::capture_marker::Marker>>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let rows: Vec<(String, String)> = sqlx::query_as(crate::capture_marker::LOAD_ALL_SQL)
+                .bind(format!("{}*", crate::capture_marker::SETTING_PREFIX))
+                .fetch_all(db.pool())
+                .await?;
+            Ok(rows
+                .iter()
+                .filter_map(|(id, value)| {
+                    let session_id = id.strip_prefix(crate::capture_marker::SETTING_PREFIX)?;
+                    crate::capture_marker::parse(value, session_id)
+                })
+                .collect())
+        })
+    }
+
+    /// `transcriptExists(transcriptId)`: a live transcript row (any words).
+    pub fn transcript_exists(
+        &self,
+        transcript_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<bool>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            Ok(sqlx::query_scalar(
+                "SELECT EXISTS(SELECT 1 FROM transcripts WHERE id = ? AND deleted_at IS NULL)",
+            )
+            .bind(&transcript_id)
+            .fetch_one(db.pool())
+            .await?)
+        })
+    }
+
     /// `getAudioDurationMs(audioPath)`
     pub fn audio_duration_ms(&self, path: PathBuf) -> tokio::task::JoinHandle<Option<i64>> {
         self.runtime.spawn(async move {

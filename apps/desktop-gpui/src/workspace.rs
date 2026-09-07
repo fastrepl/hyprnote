@@ -459,6 +459,9 @@ impl Workspace {
                 this.start_onboarding_if_needed();
                 this.spawn_recorder(cx);
                 this.start_enhancer(cx);
+                // The task manager's retention tick also sweeps expired
+                // voiceprint candidates a few times a day.
+                crate::voiceprint::spawn_cleanup_loop(&this.store);
             }
             Mode::StandaloneNote(session_id) => {
                 this.tabs.push(session_id.clone());

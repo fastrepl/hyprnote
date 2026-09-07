@@ -127,6 +127,9 @@ pub(crate) struct LiveCapture {
     pub segments: Vec<anlg_listener_core::LiveTranscriptSegment>,
     /// `MeetingFloatData` for this session: title, owner, participants, names.
     pub label_context: Option<super::floating_bar::LabelContext>,
+    /// `SessionStateSnapshot.mic_isolated`: every stream so far came from an
+    /// isolated (headphone) mic.
+    pub mic_isolated: Option<bool>,
 }
 
 impl LiveCapture {
@@ -153,6 +156,19 @@ pub(crate) struct RecordingState {
     pub toast: Option<RecordingToast>,
     /// `Record` was clicked and the engine has not answered yet.
     pub starting: bool,
+    /// `MicIsolationCache` + its store scope.
+    pub mic_isolation: crate::voiceprint::MicIsolation,
+    /// Captures whose transcript flush and audio finalization are still
+    /// meeting up for voiceprint extraction, by session id.
+    pub pending_voiceprints: std::collections::HashMap<String, PendingVoiceprint>,
+}
+
+/// `createCaptureLifecycle`: `maybeExtractVoiceprintCandidates` runs once the
+/// transcript is complete and the audio path is known.
+#[derive(Default)]
+pub(crate) struct PendingVoiceprint {
+    pub transcript_id: Option<String>,
+    pub audio_path: Option<String>,
 }
 
 pub(crate) struct RecordingToast {
@@ -396,6 +412,12 @@ impl Workspace {
         let keywords = self
             .store
             .session_keywords(session_id.clone(), self.dictionary_terms());
+        let known_speakers = crate::voiceprint::known_speakers(&self.store, session_id.clone());
+        let remember_speakers = self.remember_speakers();
+        let mic_isolated = self
+            .recording
+            .mic_isolation
+            .get(&self.store_file, &session_id);
         let runtime = self.store.runtime().clone();
         let synthetic = crate::batch::should_use_synthetic_batch_progress(
             &target.provider,
@@ -411,6 +433,15 @@ impl Workspace {
                 return;
             };
             let keywords = keywords.await.unwrap_or_default();
+            let known_speakers = known_speakers
+                .await
+                .unwrap_or_default()
+                .into_iter()
+                .map(|known| anlg_listener2_core::KnownSpeaker {
+                    id: known.human_id,
+                    embedding: known.embedding,
+                })
+                .collect();
             let num_speakers = crate::batch::session_speaker_count(
                 participant_humans.iter().map(String::as_str),
                 Some(owner_user_id.as_str()),
@@ -429,7 +460,7 @@ impl Workspace {
                 num_speakers,
                 min_speakers: None,
                 max_speakers: None,
-                known_speakers: Vec::new(),
+                known_speakers,
             };
             let (events_tx, mut events_rx) =
                 tokio::sync::mpsc::unbounded_channel::<anlg_listener2_core::BatchEvent>();
@@ -526,10 +557,11 @@ impl Workspace {
                             break;
                         }
                         let (rows, hints) = crate::batch::stage_words(&words, &target.provider);
+                        let transcript_id = uuid::Uuid::new_v4().to_string();
                         let write = this
                             .update(cx, |this, _| {
                                 this.store.create_batch_transcript(
-                                    uuid::Uuid::new_v4().to_string(),
+                                    transcript_id.clone(),
                                     session_id.clone(),
                                     created_at.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string(),
                                     started_at_ms,
@@ -548,6 +580,23 @@ impl Workspace {
                         };
                         match written {
                             Ok(()) => {
+                                // `maybeExtractVoiceprintCandidates` before the
+                                // audio is marked processed.
+                                let extract = this
+                                    .update(cx, |this, _| {
+                                        crate::voiceprint::maybe_extract_candidates(
+                                            &this.store,
+                                            remember_speakers,
+                                            session_id.clone(),
+                                            transcript_id.clone(),
+                                            Some(file_path.to_string_lossy().into_owned()),
+                                            mic_isolated,
+                                        )
+                                    })
+                                    .ok();
+                                if let Some(extract) = extract {
+                                    let _ = extract.await;
+                                }
                                 let mark = this
                                     .update(cx, |this, _| {
                                         this.store.mark_session_audio_transcription_complete(
@@ -602,6 +651,58 @@ impl Workspace {
             let _ = run.await;
         })
         .detach();
+    }
+
+    /// `useConfigValue("remember_speakers")`
+    fn remember_speakers(&self) -> bool {
+        self.provider_settings.bool_setting(
+            "remember_speakers",
+            &["general", "remember_speakers"],
+            true,
+        )
+    }
+
+    /// `createCaptureLifecycle`: once the completed transcript and the audio
+    /// path have both arrived, extract voiceprint candidates and mark the
+    /// session audio as processed.
+    fn extract_voiceprints_when_ready(&mut self, session_id: &str, _cx: &mut Context<Self>) {
+        let ready = self
+            .recording
+            .pending_voiceprints
+            .get(session_id)
+            .is_some_and(|pending| pending.transcript_id.is_some() && pending.audio_path.is_some());
+        if !ready {
+            return;
+        }
+        let Some(pending) = self.recording.pending_voiceprints.remove(session_id) else {
+            return;
+        };
+        let (Some(transcript_id), Some(audio_path)) = (pending.transcript_id, pending.audio_path)
+        else {
+            return;
+        };
+        let mic_isolated = self
+            .recording
+            .mic_isolation
+            .get(&self.store_file, session_id);
+        let extract = crate::voiceprint::maybe_extract_candidates(
+            &self.store,
+            self.remember_speakers(),
+            session_id.to_string(),
+            transcript_id,
+            Some(audio_path),
+            mic_isolated,
+        );
+        let mark = self
+            .store
+            .mark_session_audio_transcription_complete(session_id.to_string());
+        let session_id = session_id.to_string();
+        self.store.runtime().spawn(async move {
+            let _ = extract.await;
+            if let Ok(Err(error)) = mark.await {
+                tracing::error!(%error, session_id, "[listener] failed to mark session audio as processed");
+            }
+        });
     }
 
     /// `stopTranscription(sessionId)`: abort the batch job, then
@@ -759,6 +860,7 @@ impl Workspace {
                             muted: false,
                             segments: Vec::new(),
                             label_context: None,
+                            mic_isolated: None,
                         });
                         this.on_live_session_started(cx);
                         // `setLeftSidebarExpanded(false)`
@@ -853,6 +955,7 @@ impl Workspace {
                             muted: false,
                             segments: Vec::new(),
                             label_context: None,
+                            mic_isolated: None,
                         });
                         self.on_live_session_started(cx);
                     }
@@ -869,6 +972,11 @@ impl Workspace {
                     .live
                     .take_if(|live| live.session_id == session_id)
                 {
+                    self.recording.mic_isolation.persist(
+                        &self.store_file,
+                        &session_id,
+                        live.mic_isolated,
+                    );
                     self.finish_live_persistence(live.persistence, session_id.clone(), cx);
                 }
                 self.recording.toast = None;
@@ -892,6 +1000,11 @@ impl Workspace {
                     .live
                     .take_if(|live| live.session_id == session_id)
                 {
+                    self.recording.mic_isolation.persist(
+                        &self.store_file,
+                        &session_id,
+                        live.mic_isolated,
+                    );
                     self.finish_live_persistence(live.persistence, session_id.clone(), cx);
                 }
                 self.recording.toast = None;
@@ -899,7 +1012,7 @@ impl Workspace {
                 if let Some(error) = error {
                     tracing::error!(%error, "[listener] capture ended with an error");
                 }
-                if audio_path.is_some() {
+                if let Some(audio_path) = audio_path {
                     // `onStopped` → `catalogLocalSessionAudio`: the primary
                     // audio attachment row, `transcript_status: processing`.
                     let task = self.store.catalog_session_audio(session_id.clone());
@@ -908,6 +1021,12 @@ impl Workspace {
                             tracing::error!(%error, "[listener] failed to catalog session audio");
                         }
                         this.update(cx, |this, cx| {
+                            this.recording
+                                .pending_voiceprints
+                                .entry(session_id.clone())
+                                .or_default()
+                                .audio_path = Some(audio_path);
+                            this.extract_voiceprints_when_ready(&session_id, cx);
                             if this.selected.as_deref() == Some(session_id.as_str()) {
                                 this.reload_note(session_id, cx);
                             }
@@ -946,6 +1065,19 @@ impl Workspace {
             Event::Data(SessionDataEvent::MicMuted { value, .. }) => {
                 if let Some(live) = self.recording.live.as_mut() {
                     live.muted = value;
+                }
+            }
+            Event::Data(SessionDataEvent::MicIsolated { session_id, value }) => {
+                if let Some(live) = self
+                    .recording
+                    .live
+                    .as_mut()
+                    .filter(|live| live.session_id == session_id)
+                {
+                    live.mic_isolated = Some(crate::voiceprint::merge_mic_isolation(
+                        live.mic_isolated,
+                        value,
+                    ));
                 }
             }
             Event::Data(SessionDataEvent::TranscriptSegmentDelta { session_id, delta }) => {
@@ -1171,7 +1303,7 @@ impl Workspace {
             // `hasTranscriptEvidence`: a transcript row was written.
             let has_transcript = persistence.created;
             self.recording.flushing.retain(|(id, _)| *id != session_id);
-            let flush = self.store.flush_live_deltas(transcript_id);
+            let flush = self.store.flush_live_deltas(transcript_id.clone());
             cx.spawn(async move |this, cx| {
                 let flushed = match flush.await {
                     Ok(Err(error)) => {
@@ -1189,9 +1321,18 @@ impl Workspace {
                         this.reload_note(session_id.clone(), cx);
                     }
                     // `createCaptureLifecycle`: the completed transcript
-                    // schedules the summary (`requestAutoEnhance(if_empty)`).
+                    // schedules the summary (`requestAutoEnhance(if_empty)`)
+                    // and, once the audio is finalized, voiceprint extraction.
                     if has_transcript && flushed {
                         this.request_auto_enhance(session_id.clone(), cx);
+                        this.recording
+                            .pending_voiceprints
+                            .entry(session_id.clone())
+                            .or_default()
+                            .transcript_id = Some(transcript_id);
+                        this.extract_voiceprints_when_ready(&session_id, cx);
+                    } else {
+                        this.recording.pending_voiceprints.remove(&session_id);
                     }
                 })
                 .ok();
@@ -1265,15 +1406,26 @@ impl Workspace {
 
     /// `getTranscriptionLanguages(aiLanguage, spokenLanguages)`: the AI
     /// language first, then the distinct spoken languages, all as base codes.
+    /// `getTranscriptionLanguages(aiLanguage, spokenLanguages)`: the full
+    /// codes (`en-US`, not `en`), first occurrence per base language.
     fn transcription_languages(&self) -> Vec<anlg_language::Language> {
         let ai = self
             .provider_settings
             .string_setting("ai_language", &["language", "ai_language"])
             .unwrap_or_else(|| "en".to_string());
-        let mut codes = vec![super::settings::base_language_code(&ai)];
-        codes.extend(self.spoken_languages());
-        codes
-            .iter()
+        let spoken = self
+            .provider_settings
+            .string_setting("spoken_languages", &["language", "spoken_languages"])
+            .and_then(|json| serde_json::from_str::<Vec<String>>(&json).ok())
+            .unwrap_or_default();
+        let mut seen = std::collections::HashSet::new();
+        std::iter::once(ai)
+            .chain(spoken)
+            .filter(|code| !code.is_empty())
+            .filter(|code| {
+                let base = super::settings::base_language_code(code);
+                !base.is_empty() && seen.insert(base)
+            })
             .filter_map(|code| code.parse::<anlg_language::Language>().ok())
             .collect()
     }

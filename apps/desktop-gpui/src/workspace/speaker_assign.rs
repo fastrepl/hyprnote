@@ -575,12 +575,22 @@ impl Workspace {
                             store
                                 .assign_session_transcript_speaker(
                                     session_id.clone(),
-                                    transcript_id,
-                                    segment_key,
-                                    human_id,
+                                    transcript_id.clone(),
+                                    segment_key.clone(),
+                                    human_id.clone(),
                                     anchor_word_id,
                                 )
                                 .await??;
+                            // `assignSpeaker` promotes the speaker's voiceprint
+                            // candidates after an "all" assignment.
+                            let _ = crate::voiceprint::promote_candidates(
+                                &store,
+                                transcript_id,
+                                segment_key.channel as i32,
+                                segment_key.speaker_index,
+                                human_id,
+                            )
+                            .await;
                         } else {
                             store
                                 .assign_transcript_speaker(

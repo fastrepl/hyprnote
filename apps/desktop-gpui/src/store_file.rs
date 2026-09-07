@@ -114,6 +114,23 @@ impl StoreFile {
 
     /// A plugin's `scoped_store(scope).set(key, value)`.
     pub fn set_scoped(&self, scope: &str, key: &str, value: bool) -> std::io::Result<()> {
+        self.update_scoped(scope, |inner| {
+            inner.insert(key.into(), Value::Bool(value));
+        })
+    }
+
+    /// A plugin's `scoped_store(scope).delete(key)`.
+    pub fn delete_scoped(&self, scope: &str, key: &str) -> std::io::Result<()> {
+        self.update_scoped(scope, |inner| {
+            inner.remove(key);
+        })
+    }
+
+    fn update_scoped(
+        &self,
+        scope: &str,
+        update: impl FnOnce(&mut Map<String, Value>),
+    ) -> std::io::Result<()> {
         let mut outer = std::fs::read_to_string(&self.path)
             .ok()
             .and_then(|text| serde_json::from_str::<Value>(&text).ok())
@@ -125,7 +142,7 @@ impl StoreFile {
             .and_then(|inner| serde_json::from_str::<Value>(inner).ok())
             .and_then(|inner| inner.as_object().cloned())
             .unwrap_or_default();
-        inner.insert(key.into(), Value::Bool(value));
+        update(&mut inner);
         outer.insert(
             scope.into(),
             Value::String(serde_json::to_string(&inner).expect("json map serialises")),

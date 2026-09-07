@@ -41,6 +41,7 @@ mod timeline;
 mod transcript;
 mod tray;
 mod ui;
+mod voiceprint;
 mod workspace;
 
 use std::path::PathBuf;

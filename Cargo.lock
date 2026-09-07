@@ -5508,6 +5508,7 @@ dependencies = [
  "unicode-segmentation",
  "url",
  "uuid",
+ "voiceprint-service",
 ]
 
 [[package]]
@@ -20608,6 +20609,7 @@ dependencies = [
  "transcription-core",
  "uuid",
  "voiceprint",
+ "voiceprint-service",
 ]
 
 [[package]]
@@ -23258,6 +23260,25 @@ dependencies = [
 [[package]]
 name = "voiceprint"
 version = "0.1.0"
+
+[[package]]
+name = "voiceprint-service"
+version = "0.1.0"
+dependencies = [
+ "audio-utils",
+ "base64 0.22.1",
+ "chrono",
+ "db-app",
+ "embedding",
+ "rodio",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "uuid",
+ "voiceprint",
+]
 
 [[package]]
 name = "vorbis_rs"

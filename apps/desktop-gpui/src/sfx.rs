@@ -26,6 +26,46 @@ impl Sound {
         Self::play(BGM, true, BGM_VOLUME)
     }
 
+    /// `cuelume`'s `play(sound, { volume })`: render the recipe and play it
+    /// once; the thread ends with the sound.
+    pub fn play_cue(name: &str, volume: f32) -> Option<Self> {
+        let recipe = crate::cuelume::recipe(name)?;
+        let samples = crate::cuelume::render(&recipe, volume);
+        let (control, rx) = channel();
+        std::thread::Builder::new()
+            .name("sfx-cue".into())
+            .spawn(move || {
+                let Ok(sink) = rodio::DeviceSinkBuilder::open_default_sink() else {
+                    tracing::debug!("no playback device for sfx");
+                    return;
+                };
+                let source = rodio::buffer::SamplesBuffer::new(
+                    std::num::NonZero::new(1u16).expect("one channel"),
+                    std::num::NonZero::new(crate::cuelume::SAMPLE_RATE).expect("sample rate"),
+                    samples,
+                );
+                let player = rodio::Player::connect_new(sink.mixer());
+                player.append(source);
+                loop {
+                    match rx.recv_timeout(Duration::from_millis(100)) {
+                        Ok(SoundControl::Stop) | Err(RecvTimeoutError::Disconnected) => {
+                            player.stop();
+                            break;
+                        }
+                        Ok(SoundControl::SetVolume(volume)) => player.set_volume(volume),
+                        Err(RecvTimeoutError::Timeout) => {
+                            if player.empty() {
+                                break;
+                            }
+                        }
+                    }
+                }
+                drop(sink);
+            })
+            .ok();
+        Some(Self { control })
+    }
+
     fn play(bytes: &'static [u8], looping: bool, volume: f32) -> Self {
         use rodio::Source as _;
         let (control, rx) = channel();

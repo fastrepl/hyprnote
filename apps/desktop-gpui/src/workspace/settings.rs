@@ -1280,11 +1280,22 @@ impl Workspace {
                                                 .text_color(theme.foreground)
                                                 .when(disabled_all, |button| button.opacity(0.5))
                                                 .when(!disabled_all, |button| {
-                                                    button.cursor_pointer().on_hover(cx.listener(
-                                                        |this, hovering: &bool, _, cx| {
-                                                            this.set_hovered("notification-sound-preview", *hovering, cx);
-                                                        },
-                                                    ))
+                                                    let name = sound_name.clone();
+                                                    button
+                                                        .cursor_pointer()
+                                                        .on_hover(cx.listener(
+                                                            |this, hovering: &bool, _, cx| {
+                                                                this.set_hovered("notification-sound-preview", *hovering, cx);
+                                                            },
+                                                        ))
+                                                        // `previewCompletionSound(normalizeCompletionSoundName(name))`
+                                                        .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                                                        .on_click(cx.listener(move |this, _: &gpui::ClickEvent, _, cx| {
+                                                            this.preview_completion_sound(
+                                                                crate::cuelume::normalize_completion_sound_name(Some(&name)),
+                                                                cx,
+                                                            );
+                                                        }))
                                                 })
                                                 .child("Preview"),
                                         )

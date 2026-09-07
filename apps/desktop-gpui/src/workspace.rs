@@ -253,6 +253,8 @@ pub struct Workspace {
     note_search: Option<note_search_bar::NoteSearch>,
     /// The onboarding's looping BGM while it is shown.
     onboarding_bgm: Option<crate::sfx::Sound>,
+    /// The completion cue playing (dropping a `Sound` stops it).
+    completion_cue: Option<crate::sfx::Sound>,
     /// `["models", provider, listModels]`: the Intelligence page's catalogues.
     llm_models: llm_models::LlmModelsCache,
     /// `["llm-health-check", model]`: the selected model's probe result.
@@ -418,6 +420,7 @@ impl Workspace {
             chat_cta_hovered: false,
             note_search: None,
             onboarding_bgm: None,
+            completion_cue: None,
             llm_models: Default::default(),
             llm_health: Default::default(),
             last_llm_models: Default::default(),

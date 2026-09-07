@@ -9,6 +9,7 @@ mod audio_player;
 mod automations;
 mod batch;
 mod contacts;
+mod cuelume;
 mod db;
 mod deeplink;
 mod developers;

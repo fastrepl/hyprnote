@@ -1412,6 +1412,11 @@ async fn enhance_success(
         persist_title(store, &args.session_id, &generated_title).await?;
     }
     tracing::info!(session_id = %args.session_id, "note.enhanced");
+    // `playCompletionSound` (the summary-ready notification and
+    // `requestAppAttention` need the notification plugin and a window
+    // attention API the shell does not have).
+    this.update(cx, |this, cx| this.play_completion_sound(cx))
+        .ok();
     Ok(())
 }
 
@@ -1548,6 +1553,37 @@ async fn persist_title(store: &Arc<Store>, session_id: &str, text: &str) -> anyh
 }
 
 impl Workspace {
+    /// `playCompletionSound`: the chosen cuelume cue at 0.7 unless
+    /// notifications or the completion sound are off.
+    pub(crate) fn play_completion_sound(&mut self, cx: &mut Context<Self>) {
+        let settings = &self.provider_settings;
+        if settings.bool_setting(
+            "notification_disabled",
+            &["notification", "disabled"],
+            false,
+        ) || !settings.bool_setting(
+            "notification_completion_sound",
+            &["notification", "completion_sound"],
+            true,
+        ) {
+            return;
+        }
+        let name = settings.string_setting(
+            "notification_completion_sound_name",
+            &["notification", "completion_sound_name"],
+        );
+        self.preview_completion_sound(
+            crate::cuelume::normalize_completion_sound_name(name.as_deref()),
+            cx,
+        );
+    }
+
+    /// `previewCompletionSound(sound)`.
+    pub(crate) fn preview_completion_sound(&mut self, name: &str, _cx: &mut Context<Self>) {
+        self.completion_cue =
+            crate::sfx::Sound::play_cue(name, crate::cuelume::COMPLETION_SOUND_VOLUME);
+    }
+
     /// `hasLiveSessionTitleDraft`: the title field is being edited.
     fn has_live_title_draft(&self, session_id: &str, cx: &gpui::App) -> bool {
         self.selected.as_deref() == Some(session_id) && self.title_input.read(cx).is_dirty()

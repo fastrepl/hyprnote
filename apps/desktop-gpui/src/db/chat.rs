@@ -418,6 +418,30 @@ impl Store {
         })
     }
 
+    /// `resolveContextRef` for the text-only refs: `renderHumanContext`,
+    /// `renderOrganizationContext`, and `renderFolderContext`.
+    pub fn chat_context_text(
+        &self,
+        reference: crate::chat::ContextRef,
+    ) -> tokio::task::JoinHandle<anyhow::Result<Option<String>>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let pool = db.pool();
+            Ok(match reference {
+                crate::chat::ContextRef::Human { human_id, .. } => {
+                    human_context(pool, &human_id).await?
+                }
+                crate::chat::ContextRef::Organization {
+                    organization_id, ..
+                } => organization_context(pool, &organization_id).await?,
+                crate::chat::ContextRef::Folder { folder_id, .. } => {
+                    Some(folder_context(pool, &folder_id).await?)
+                }
+                _ => None,
+            })
+        })
+    }
+
     /// `hydrateSessionContext`'s inputs: the enhancer's content snapshot plus
     /// the session's `created_at` and the meeting chat markdown.
     pub fn chat_session_context(
@@ -443,4 +467,134 @@ pub(super) async fn chat_messages(
         .bind(group_id)
         .fetch_all(pool)
         .await?)
+}
+
+/// `renderHumanContext`: the contact's name (or email), title, organization,
+/// email, and notes; nothing for a contact without a name or email.
+async fn human_context(pool: &SqlitePool, human_id: &str) -> anyhow::Result<Option<String>> {
+    let Some((name, email, job_title, memo, organization_id)) =
+        sqlx::query_as::<_, (String, String, String, String, String)>(
+            "SELECT name, email, job_title, memo, organization_id FROM humans
+             WHERE id = ? AND deleted_at IS NULL",
+        )
+        .bind(human_id)
+        .fetch_optional(pool)
+        .await?
+    else {
+        return Ok(None);
+    };
+    let organization_name = organization_name(pool, &organization_id).await?;
+    let name = name.trim();
+    let email = email.trim();
+    if name.is_empty() && email.is_empty() {
+        return Ok(None);
+    }
+    let mut lines = vec![format!(
+        "Referenced contact: {}",
+        if name.is_empty() { email } else { name }
+    )];
+    if !job_title.trim().is_empty() {
+        lines.push(job_title.trim().to_string());
+    }
+    if let Some(organization) = organization_name {
+        lines.push(format!("Organization: {organization}"));
+    }
+    if !email.is_empty() {
+        lines.push(format!("Email: {email}"));
+    }
+    if !memo.trim().is_empty() {
+        lines.push(format!("Notes: {}", memo.trim()));
+    }
+    Ok(Some(lines.join("\n")))
+}
+
+async fn organization_name(
+    pool: &SqlitePool,
+    organization_id: &str,
+) -> anyhow::Result<Option<String>> {
+    if organization_id.is_empty() {
+        return Ok(None);
+    }
+    let name: Option<String> =
+        sqlx::query_scalar("SELECT name FROM organizations WHERE id = ? AND deleted_at IS NULL")
+            .bind(organization_id)
+            .fetch_optional(pool)
+            .await?;
+    Ok(name
+        .map(|name| name.trim().to_string())
+        .filter(|name| !name.is_empty()))
+}
+
+/// `renderOrganizationContext`
+async fn organization_context(
+    pool: &SqlitePool,
+    organization_id: &str,
+) -> anyhow::Result<Option<String>> {
+    Ok(organization_name(pool, organization_id)
+        .await?
+        .map(|name| format!("Referenced organization: {name}")))
+}
+
+/// `FOLDER_CONTEXT_SESSION_LIMIT`
+const FOLDER_CONTEXT_SESSION_LIMIT: usize = 50;
+
+/// `renderFolderContext`: the folder's instructions, materials, and up to
+/// fifty notes with their ids for the tools.
+async fn folder_context(pool: &SqlitePool, folder_id: &str) -> anyhow::Result<String> {
+    let sessions = crate::chat_tools::folder_sessions(pool, folder_id)
+        .await
+        .map_err(anyhow::Error::msg)?;
+    let (instructions, materials) = if folder_id.is_empty() {
+        (String::new(), Vec::new())
+    } else {
+        (
+            crate::folders::load_instructions(pool, folder_id).await?,
+            crate::folders::load_materials(pool, folder_id).await?,
+        )
+    };
+    let label = if folder_id.is_empty() {
+        "No folder"
+    } else {
+        folder_id
+    };
+    let mut lines = vec![
+        format!("Folder context: {label}"),
+        "Answer from notes in this folder. Use get_meeting or search_meetings with the listed IDs when you need full notes or transcripts. Use read_folder_material with a listed material ID to read a syllabus or other folder file.".to_string(),
+    ];
+    if !instructions.trim().is_empty() {
+        lines.push(String::new());
+        lines.push("Folder instructions:".to_string());
+        lines.push(instructions.trim().to_string());
+    }
+    if !materials.is_empty() {
+        lines.push(String::new());
+        lines.push("Folder materials:".to_string());
+        for material in &materials {
+            lines.push(format!("- {} [{}]", material.filename, material.id));
+        }
+    }
+    if sessions.is_empty() {
+        lines.push(String::new());
+        lines.push("This folder has no notes yet.".to_string());
+        return Ok(lines.join("\n"));
+    }
+    lines.push(String::new());
+    for (id, title, created_at, _) in sessions.iter().take(FOLDER_CONTEXT_SESSION_LIMIT) {
+        let title = if title.trim().is_empty() {
+            "Untitled"
+        } else {
+            title.trim()
+        };
+        let date = created_at.trim();
+        if date.is_empty() {
+            lines.push(format!("- {title} [{id}]"));
+        } else {
+            lines.push(format!("- {title} ({date}) [{id}]"));
+        }
+    }
+    let hidden = sessions.len().saturating_sub(FOLDER_CONTEXT_SESSION_LIMIT);
+    if hidden > 0 {
+        lines.push(format!("- and {hidden} more"));
+    }
+    Ok(lines.join("\n"))
 }

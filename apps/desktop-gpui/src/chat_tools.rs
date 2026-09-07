@@ -1227,7 +1227,7 @@ fn to_epoch_ms(value: &Value) -> i64 {
 
 /// `loadSessionSummariesByFolder`: `(id, title, created_at, event_json)` of
 /// the folder's sessions and its subfolders', newest first.
-async fn folder_sessions(
+pub(crate) async fn folder_sessions(
     pool: &SqlitePool,
     folder: &str,
 ) -> Result<Vec<(String, String, String, String)>, String> {

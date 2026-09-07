@@ -58,6 +58,79 @@ pub fn facehash_background(name: &str, dark: bool) -> u32 {
     if dark { dark_color } else { light }
 }
 
+/// `MentionAvatar` painted over a chip's placeholder box: a 1em circle in the
+/// facehash colour with two eyes and the initial for humans (`stone-950` on
+/// the pastel), the Note / Buildings / User glyph in `muted-foreground`
+/// otherwise.
+#[allow(clippy::too_many_arguments)]
+pub fn paint_avatar(
+    window: &mut gpui::Window,
+    cx: &mut gpui::App,
+    bounds: gpui::Bounds<gpui::Pixels>,
+    kind: &str,
+    label: &str,
+    font: &gpui::Font,
+    icon_color: gpui::Rgba,
+    dark: bool,
+) {
+    use gpui::{fill, point, size};
+    let em = bounds.size.width;
+    let origin = bounds.origin;
+    if kind == "human" {
+        let name = if label.is_empty() { "?" } else { label };
+        let background = facehash_background(name, dark);
+        window.paint_quad(gpui::quad(
+            bounds,
+            gpui::Corners::all(em / 2.0),
+            gpui::rgb(background),
+            gpui::Edges::default(),
+            gpui::transparent_black(),
+            gpui::BorderStyle::default(),
+        ));
+        // The face: two eyes at 60% width, then the initial at `26cqw`
+        // below them.
+        let ink = gpui::rgb(0x0c0a09);
+        let eye = gpui::px(1.5);
+        let eyes_y = origin.y + em * 0.33;
+        for x in [origin.x + em * 0.32, origin.x + em * 0.62] {
+            window.paint_quad(fill(
+                gpui::Bounds::new(point(x, eyes_y), size(eye, eye)),
+                ink,
+            ));
+        }
+        let initial: String = name.chars().next().unwrap().to_uppercase().collect();
+        let font_size = em * 0.26;
+        let run = gpui::TextRun {
+            len: initial.len(),
+            font: font.clone(),
+            color: ink.into(),
+            background_color: None,
+            underline: None,
+            strikethrough: None,
+        };
+        let line = window
+            .text_system()
+            .shape_line(initial.into(), font_size, &[run], None);
+        let text_origin = point(origin.x + (em - line.width) / 2.0, origin.y + em * 0.5);
+        line.paint(text_origin, font_size, window, cx).ok();
+    } else {
+        let name = match kind {
+            "session" => "note",
+            "organization" => "buildings",
+            _ => "user",
+        };
+        window
+            .paint_svg(
+                bounds,
+                gpui::SharedString::from(format!("icons/{name}.svg")),
+                gpui::TransformationMatrix::unit(),
+                icon_color.into(),
+                cx,
+            )
+            .ok();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -332,7 +332,9 @@ impl Workspace {
                     this.focus_handle.focus(window);
                 }
                 TextAreaEvent::Submit => this.focus_handle.focus(window),
-                TextAreaEvent::Changed => {}
+                TextAreaEvent::Changed
+                | TextAreaEvent::HistoryPrev
+                | TextAreaEvent::HistoryNext => {}
             },
         )
         .detach();

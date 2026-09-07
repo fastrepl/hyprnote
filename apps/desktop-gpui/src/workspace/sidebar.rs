@@ -613,6 +613,8 @@ impl Workspace {
         );
         let folder = timeline::folder_label(&item.folder_id).filter(|_| show_folder);
         let menu_id = item.id.clone();
+        let drag =
+            (!is_event).then(|| super::session_drag::SessionDrag::new(&item.id, &item.title));
 
         div().child(
             div()
@@ -622,6 +624,22 @@ impl Workspace {
                 .px_3()
                 .py_2()
                 .when(!ignored, |row| row.cursor_pointer())
+                // `draggable`: note rows carry the session-context payload.
+                .when_some(drag, |row, drag| {
+                    let time = time.clone();
+                    let mono_font_family = self.mono_font_family.clone();
+                    row.on_drag(drag, move |drag, _, _, cx| {
+                        let title: SharedString = drag.title.clone().into();
+                        let time = time.clone();
+                        let mono_font_family = mono_font_family.clone();
+                        cx.new(|_| super::session_drag::SessionDragPreview {
+                            title,
+                            time,
+                            mono_font_family,
+                            theme,
+                        })
+                    })
+                })
                 .when(multi_selected || selected, |row| row.bg(theme.accent))
                 .when(!multi_selected && !selected, |row| {
                     row.hover(move |style| style.bg(alpha(theme.accent, 0.5)))

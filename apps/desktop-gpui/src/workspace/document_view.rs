@@ -224,6 +224,7 @@ impl DocumentRenderer {
         let handler_editor = editor.clone();
         let click_editor = editor.clone();
         let drop_editor = editor.clone();
+        let mention_drop_editor = editor.clone();
         div()
             .relative()
             .flex()
@@ -234,6 +235,15 @@ impl DocumentRenderer {
                 let position = window.mouse_position();
                 drop_editor.update(cx, |editor, cx| {
                     editor.drop_paths(paths.paths().to_vec(), position, cx)
+                });
+            })
+            // `sessionMentionDropPlugin`: a dragged note lands as a mention
+            // chip plus a space under the pointer.
+            .on_drop(move |drag: &super::session_drag::SessionDrag, window, cx| {
+                let position = window.mouse_position();
+                let item = drag.mention_item();
+                mention_drop_editor.update(cx, |editor, cx| {
+                    editor.drop_mention(item, position, window, cx)
                 });
             })
             .children(children)
@@ -466,69 +476,16 @@ impl DocumentRenderer {
                             slot.origin.x,
                             slot.origin.y + (line_height - em) / 2.0 - px(2.0),
                         );
-                        let bounds = gpui::Bounds::new(origin, size(em, em));
-                        if kind == "human" {
-                            let name = if label.is_empty() {
-                                "?"
-                            } else {
-                                label.as_str()
-                            };
-                            let background = crate::mention::facehash_background(name, theme.dark);
-                            window.paint_quad(gpui::quad(
-                                bounds,
-                                gpui::Corners::all(em / 2.0),
-                                gpui::rgb(background),
-                                gpui::Edges::default(),
-                                gpui::transparent_black(),
-                                gpui::BorderStyle::default(),
-                            ));
-                            // The face: two eyes at 60% width, then the initial
-                            // at `26cqw` below them (`stone-950` on the pastel).
-                            let ink = gpui::rgb(0x0c0a09);
-                            let eye = px(1.5);
-                            let eyes_y = origin.y + em * 0.33;
-                            for x in [origin.x + em * 0.32, origin.x + em * 0.62] {
-                                window.paint_quad(fill(
-                                    gpui::Bounds::new(point(x, eyes_y), size(eye, eye)),
-                                    ink,
-                                ));
-                            }
-                            let initial: String =
-                                name.chars().next().unwrap().to_uppercase().collect();
-                            let font_size = em * 0.26;
-                            let run = TextRun {
-                                len: initial.len(),
-                                font: font.clone(),
-                                color: ink.into(),
-                                background_color: None,
-                                underline: None,
-                                strikethrough: None,
-                            };
-                            let line = window.text_system().shape_line(
-                                initial.into(),
-                                font_size,
-                                &[run],
-                                None,
-                            );
-                            let text_origin =
-                                point(origin.x + (em - line.width) / 2.0, origin.y + em * 0.5);
-                            line.paint(text_origin, font_size, window, cx).ok();
-                        } else {
-                            let name = match kind.as_str() {
-                                "session" => "note",
-                                "organization" => "buildings",
-                                _ => "user",
-                            };
-                            window
-                                .paint_svg(
-                                    bounds,
-                                    SharedString::from(format!("icons/{name}.svg")),
-                                    gpui::TransformationMatrix::unit(),
-                                    theme.muted_foreground.into(),
-                                    cx,
-                                )
-                                .ok();
-                        }
+                        crate::mention::paint_avatar(
+                            window,
+                            cx,
+                            gpui::Bounds::new(origin, size(em, em)),
+                            kind,
+                            label,
+                            &font,
+                            theme.muted_foreground,
+                            theme.dark,
+                        );
                     }
                 },
             )

@@ -35,6 +35,7 @@ pub(crate) mod onboarding;
 mod open_note;
 mod overflow;
 mod recording;
+mod session_drag;
 mod settings;
 pub(crate) use settings::SettingsTab;
 mod share;
@@ -203,6 +204,9 @@ pub struct Workspace {
     /// `useMentionConfig` candidates shared with the editor's picker.
     mention_candidates:
         std::rc::Rc<std::cell::RefCell<Vec<crate::editor::mention_picker::MentionItem>>>,
+    /// `chat/components/input/history.ts`: the sent drafts, newest first,
+    /// shared across chats so a prompt can be recalled in a new one.
+    chat_sent_history: Vec<crate::text_area::Draft>,
     mention_humans: Vec<crate::contacts::Human>,
     mention_organizations: Vec<crate::contacts::Organization>,
     auth: toast::Auth,
@@ -414,6 +418,7 @@ impl Workspace {
             pending_editor_focus: None,
             pending_contact: None,
             mention_candidates: Default::default(),
+            chat_sent_history: Vec::new(),
             mention_humans: Vec::new(),
             mention_organizations: Vec::new(),
             auth: toast::Auth::Loading,
@@ -921,6 +926,8 @@ impl Workspace {
             return;
         }
         let previous = self.selected.replace(session_id.clone());
+        // The chat's pending drop refs belong to the note they were dropped on.
+        self.chat.pending_manual_refs.clear();
         self.reveal_session = Some(session_id.clone());
         let already_open = self.tabs.contains(&session_id);
         if !already_open {
@@ -1871,6 +1878,7 @@ impl Render for Workspace {
             .children(self.render_automations_context_menu(window, cx))
             .children(self.render_timeline_context_menu(window, cx))
             .children(self.render_mention_popup(window, cx))
+            .children(self.render_composer_mention_popup(window, cx))
             .children(self.render_format_toolbar(window, cx))
             .children(self.render_delete_selected_dialog(cx))
             .children(self.render_open_menu(window, cx))

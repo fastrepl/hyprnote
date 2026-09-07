@@ -59,17 +59,45 @@ pub enum Scope {
     Automations,
 }
 
-/// A `ContextRef` in the message metadata: the current note attached by
-/// `use-chat-context-pipeline.ts` (`session:auto:<id>`, `auto-current`).
+/// A `ContextRef` in the message metadata (`context/entities.ts`): the
+/// current note and folder `use-chat-context-pipeline.ts` attaches
+/// (`session:auto:<id>` / `folder:auto:<id>`, `auto-current`) and the
+/// sessions, people, and organizations mentioned or dropped into the
+/// composer (`*:manual:<id>`, `manual`). Kinds this shell does not know are
+/// kept verbatim so a row written by another build survives a round trip.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum ContextRef {
     Session {
         key: String,
+        #[serde(default, skip_serializing_if = "String::is_empty")]
         source: String,
         #[serde(rename = "sessionId")]
         session_id: String,
     },
+    Human {
+        key: String,
+        #[serde(default, skip_serializing_if = "String::is_empty")]
+        source: String,
+        #[serde(rename = "humanId")]
+        human_id: String,
+    },
+    Organization {
+        key: String,
+        #[serde(default, skip_serializing_if = "String::is_empty")]
+        source: String,
+        #[serde(rename = "organizationId")]
+        organization_id: String,
+    },
+    Folder {
+        key: String,
+        #[serde(default, skip_serializing_if = "String::is_empty")]
+        source: String,
+        #[serde(rename = "folderId")]
+        folder_id: String,
+    },
+    #[serde(untagged)]
+    Other(serde_json::Value),
 }
 
 impl ContextRef {
@@ -81,11 +109,49 @@ impl ContextRef {
         }
     }
 
+    /// `extractContextRefsFromTiptapJson` / the chat panel's drop: a mention
+    /// or dropped row of the given `type` (`session`, `human`,
+    /// `organization`); other types are not context.
+    pub fn manual(kind: &str, id: &str) -> Option<Self> {
+        let key = format!("{kind}:manual:{id}");
+        let source = "manual".to_string();
+        Some(match kind {
+            "session" => Self::Session {
+                key,
+                source,
+                session_id: id.to_string(),
+            },
+            "human" => Self::Human {
+                key,
+                source,
+                human_id: id.to_string(),
+            },
+            "organization" => Self::Organization {
+                key,
+                source,
+                organization_id: id.to_string(),
+            },
+            _ => return None,
+        })
+    }
+
     pub fn key(&self) -> &str {
         match self {
-            Self::Session { key, .. } => key,
+            Self::Session { key, .. }
+            | Self::Human { key, .. }
+            | Self::Organization { key, .. }
+            | Self::Folder { key, .. } => key,
+            Self::Other(value) => value.get("key").and_then(|key| key.as_str()).unwrap_or(""),
         }
     }
+}
+
+/// `dedupeByKey`: the first ref per key wins.
+pub fn dedupe_refs(refs: impl IntoIterator<Item = ContextRef>) -> Vec<ContextRef> {
+    let mut seen = std::collections::HashSet::new();
+    refs.into_iter()
+        .filter(|reference| seen.insert(reference.key().to_string()))
+        .collect()
 }
 
 /// `AnlgUIMessage["metadata"]`
@@ -478,7 +544,9 @@ pub fn session_context(snapshot: &crate::enhancer::Snapshot) -> anlg_template_ap
             (!markdown.trim().is_empty()).then_some(markdown)
         })
         .collect();
-    let transcript = (!snapshot.transcripts.is_empty()).then(|| anlg_template_app::Transcript {
+    // `buildTranscript` is `null` when no transcript has a renderable word
+    // (an id, text, and times), which is exactly when nothing rendered.
+    let transcript = (!snapshot.segments.is_empty()).then(|| anlg_template_app::Transcript {
         segments: snapshot
             .segments
             .iter()
@@ -651,6 +719,47 @@ mod tests {
     }
 
     #[test]
+    fn session_context_omits_a_transcript_nothing_rendered() {
+        let mut snapshot = crate::enhancer::Snapshot {
+            session_id: "s".into(),
+            owner_user_id: String::new(),
+            title: "T".into(),
+            created_at: "2026-08-20T10:00:00.000Z".into(),
+            event_id: String::new(),
+            event_json: String::new(),
+            meeting_chat: String::new(),
+            raw_note_id: None,
+            raw_template_id: String::new(),
+            raw_content: String::new(),
+            raw_content_format: "prosemirror_json".into(),
+            raw_markdown: String::new(),
+            enhanced_notes: Vec::new(),
+            // A row whose words have no ids renders nothing (`buildTranscript`
+            // returns null for it).
+            transcripts: vec![crate::enhancer::SnapshotTranscript {
+                id: "t".into(),
+                started_at: 0,
+                ended_at: Some(5_400_000),
+                memo: String::new(),
+                words: vec!["hello".into()],
+            }],
+            participants: Vec::new(),
+            segments: Vec::new(),
+            supplemental_context: String::new(),
+        };
+        assert!(session_context(&snapshot).transcript.is_none());
+        snapshot.segments.push(crate::enhancer::SegmentPayload {
+            speaker_label: "Speaker 1".into(),
+            start_ms: 0,
+            end_ms: 1,
+            text: "hello".into(),
+        });
+        let transcript = session_context(&snapshot).transcript.unwrap();
+        assert_eq!(transcript.segments.len(), 1);
+        assert_eq!(transcript.ended_at, Some(5_400_000));
+    }
+
+    #[test]
     fn message_rows_round_trip_with_the_frontend_shapes() {
         let message = Message {
             id: "m1".into(),
@@ -675,6 +784,35 @@ mod tests {
         );
         assert_eq!(row.parts_json, r#"[{"type":"text","text":"Hi"}]"#);
         assert_eq!(row.clone().into_message(), Some(message));
+        // Every ref kind the frontend writes, plus one it does not, survive.
+        let refs: Vec<ContextRef> = serde_json::from_str(
+            r#"[{"kind":"human","key":"human:manual:h1","source":"manual","humanId":"h1"},{"kind":"organization","key":"organization:manual:o1","source":"manual","organizationId":"o1"},{"kind":"folder","key":"folder:auto:","source":"auto-current","folderId":""},{"kind":"calendar_event","key":"calendar_event:search:e1","eventId":"e1"},{"kind":"session","key":"session:manual:s2","sessionId":"s2"}]"#,
+        )
+        .unwrap();
+        assert_eq!(refs[0], ContextRef::manual("human", "h1").unwrap());
+        assert_eq!(refs[1], ContextRef::manual("organization", "o1").unwrap());
+        assert_eq!(
+            refs[2],
+            ContextRef::Folder {
+                key: "folder:auto:".into(),
+                source: "auto-current".into(),
+                folder_id: String::new(),
+            }
+        );
+        assert!(matches!(&refs[3], ContextRef::Other(value) if value["kind"] == "calendar_event"));
+        assert_eq!(refs[3].key(), "calendar_event:search:e1");
+        assert_eq!(refs[4].key(), "session:manual:s2");
+        assert_eq!(
+            serde_json::to_string(&refs).unwrap(),
+            r#"[{"kind":"human","key":"human:manual:h1","source":"manual","humanId":"h1"},{"kind":"organization","key":"organization:manual:o1","source":"manual","organizationId":"o1"},{"kind":"folder","key":"folder:auto:","source":"auto-current","folderId":""},{"kind":"calendar_event","key":"calendar_event:search:e1","eventId":"e1"},{"kind":"session","key":"session:manual:s2","sessionId":"s2"}]"#
+        );
+        assert_eq!(ContextRef::manual("calendar_event", "x"), None);
+        let deduped = dedupe_refs([
+            ContextRef::auto_session("s1"),
+            ContextRef::manual("session", "s1").unwrap(),
+            ContextRef::auto_session("s1"),
+        ]);
+        assert_eq!(deduped.len(), 2);
         // Unknown parts survive untouched.
         let tool = MessageRow {
             parts_json: r#"[{"type":"step-start"},{"type":"tool-search_meetings","state":"output-available","input":{}}]"#.into(),

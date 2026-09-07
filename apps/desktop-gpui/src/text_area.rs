@@ -4,6 +4,7 @@
 //! focus leaves (the app's textareas save `onBlur`).
 
 use std::ops::Range;
+use std::time::{Duration, Instant};
 
 use gpui::{
     App, Bounds, ClipboardItem, Context, CursorStyle, ElementInputHandler, EntityInputHandler,
@@ -12,6 +13,8 @@ use gpui::{
     UTF16Selection, Window, actions, canvas, div, fill, point, prelude::*, px, size,
 };
 use unicode_segmentation::UnicodeSegmentation;
+
+use crate::editor::mention_picker::{self, MentionState, Search};
 
 actions!(
     text_area,
@@ -38,8 +41,14 @@ actions!(
         Enter,
         Escape,
         Submit,
+        Undo,
+        Redo,
     ]
 );
+
+/// ProseMirror history's `newGroupDelay`: edits closer than this share one
+/// undo step.
+const UNDO_GROUP_DELAY: Duration = Duration::from_millis(500);
 
 const KEY_CONTEXT: &str = "TextArea";
 
@@ -71,7 +80,12 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new("shift-enter", Newline, ctx),
         KeyBinding::new("escape", Escape, ctx),
         KeyBinding::new(&format!("{m}-enter"), Submit, ctx),
+        KeyBinding::new(&format!("{m}-z"), Undo, ctx),
+        KeyBinding::new(&format!("{m}-shift-z"), Redo, ctx),
     ]);
+    if !cfg!(target_os = "macos") {
+        cx.bind_keys([KeyBinding::new("ctrl-y", Redo, ctx)]);
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -82,6 +96,42 @@ pub enum TextAreaEvent {
     Escape,
     /// Cmd/Ctrl+Enter, for fields that commit on it.
     Submit,
+    /// `historyNavCommand`: Up with the caret at the very start, or Down at
+    /// the very end, of a field that recalls sent messages.
+    HistoryPrev,
+    HistoryNext,
+}
+
+/// An inline `mention-@` atom: the chip's display text in the content and
+/// the node's attrs (`packages/editor/src/chat/schema.ts`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Atom {
+    pub range: Range<usize>,
+    /// `session`, `human`, or `organization`.
+    pub kind: String,
+    pub id: String,
+    pub label: String,
+}
+
+/// The chip colours (`MentionAvatar`'s glyph tint and the facehash palette).
+#[derive(Debug, Clone, Copy)]
+pub struct MentionStyle {
+    pub icon: Rgba,
+    pub dark: bool,
+}
+
+/// The field's content with its chips, as history and drafts keep it.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Draft {
+    pub content: String,
+    pub atoms: Vec<Atom>,
+}
+
+#[derive(Debug, Clone)]
+struct Snapshot {
+    content: SharedString,
+    atoms: Vec<Atom>,
+    selected_range: Range<usize>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -108,6 +158,18 @@ pub struct TextArea {
     is_selecting: bool,
     /// `submitShortcut="enter"`: Enter submits and Shift+Enter breaks the line.
     enter_submits: bool,
+    /// Up / Down at the edges emit the history events instead of moving.
+    history_navigation: bool,
+    atoms: Vec<Atom>,
+    mention_search: Option<Search>,
+    mention_style: Option<MentionStyle>,
+    mention: Option<MentionState>,
+    /// The trigger offset whose popup was dismissed or used, so it stays
+    /// closed until the caret leaves it.
+    mention_dismissed: Option<usize>,
+    undo_stack: Vec<Snapshot>,
+    redo_stack: Vec<Snapshot>,
+    last_edit: Option<Instant>,
 }
 
 impl EventEmitter<TextAreaEvent> for TextArea {}
@@ -138,6 +200,15 @@ impl TextArea {
             last_bounds: None,
             is_selecting: false,
             enter_submits: false,
+            history_navigation: false,
+            atoms: Vec::new(),
+            mention_search: None,
+            mention_style: None,
+            mention: None,
+            mention_dismissed: None,
+            undo_stack: Vec::new(),
+            redo_stack: Vec::new(),
+            last_edit: None,
         }
     }
 
@@ -147,8 +218,243 @@ impl TextArea {
         self
     }
 
+    /// `mentionConfig`: `@` opens the suggestion popup over `search`, and the
+    /// chosen items become chips.
+    pub fn with_mentions(mut self, search: Search, style: MentionStyle) -> Self {
+        self.mention_search = Some(search);
+        self.mention_style = Some(style);
+        self
+    }
+
+    /// `useMessageHistory`: Up at the start and Down at the end recall sent
+    /// messages through `HistoryPrev` / `HistoryNext`.
+    pub fn with_history_navigation(mut self) -> Self {
+        self.history_navigation = true;
+        self
+    }
+
     pub fn text(&self) -> &str {
         &self.content
+    }
+
+    pub fn atoms(&self) -> &[Atom] {
+        &self.atoms
+    }
+
+    /// `proseMirrorJsonToText`: the text with each chip as `@label`.
+    pub fn message_text(&self) -> String {
+        message_text(&self.content, &self.atoms)
+    }
+
+    pub fn draft(&self) -> Draft {
+        Draft {
+            content: self.content.to_string(),
+            atoms: self.atoms.clone(),
+        }
+    }
+
+    /// `replaceContent(content, selection)`: the field takes a draft back
+    /// with the caret at its start or end. Not a user edit (`isApplyingRef`),
+    /// so no `Changed` is emitted; the owner redraws itself.
+    pub fn restore(&mut self, draft: Draft, at_end: bool, cx: &mut Context<Self>) {
+        self.content = draft.content.into();
+        self.atoms = draft.atoms;
+        let offset = if at_end { self.content.len() } else { 0 };
+        self.selected_range = offset..offset;
+        self.selection_reversed = false;
+        self.marked_range = None;
+        self.mention = None;
+        self.mention_dismissed = None;
+        self.undo_stack.clear();
+        self.redo_stack.clear();
+        self.last_edit = None;
+        cx.notify();
+    }
+
+    /// The open popup's state, while it has results to show.
+    pub fn mention(&self) -> Option<&MentionState> {
+        self.mention
+            .as_ref()
+            .filter(|state| !state.items.is_empty())
+    }
+
+    /// Window position under the trigger (`coordsAtPos(from)`) and the line
+    /// height, for the popup's `bottom-start` placement.
+    pub fn mention_anchor(&self) -> Option<(Point<Pixels>, Pixels)> {
+        let state = self.mention()?;
+        let position = if self.content.is_empty() {
+            self.last_bounds?.origin
+        } else {
+            self.layout.position_for_index(state.from)?
+        };
+        Some((position, self.style.line_height))
+    }
+
+    pub fn select_mention(&mut self, index: usize, cx: &mut Context<Self>) {
+        if let Some(state) = self.mention.as_mut()
+            && index < state.items.len()
+        {
+            state.selected = index;
+            cx.notify();
+        }
+    }
+
+    /// `insertMention`: the chip plus a space replace `@query`; the popup
+    /// stays closed for that trigger.
+    pub fn insert_mention(&mut self, index: usize, cx: &mut Context<Self>) {
+        let Some(state) = self.mention.clone() else {
+            return;
+        };
+        let Some(item) = state.items.get(index).cloned() else {
+            return;
+        };
+        self.record_edit(true);
+        let display = crate::mention::display_text(&item.label);
+        let range = self.splice(state.from..state.to, &format!("{display} "));
+        let atom_range = range.start..range.start + display.len();
+        let position = self
+            .atoms
+            .iter()
+            .position(|atom| atom.range.start > atom_range.start)
+            .unwrap_or(self.atoms.len());
+        self.atoms.insert(
+            position,
+            Atom {
+                range: atom_range.clone(),
+                kind: item.kind,
+                id: item.id,
+                label: item.label,
+            },
+        );
+        let caret = atom_range.end + 1;
+        self.selected_range = caret..caret;
+        self.selection_reversed = false;
+        self.marked_range = None;
+        self.mention = None;
+        self.mention_dismissed = Some(state.from);
+        cx.emit(TextAreaEvent::Changed);
+        cx.notify();
+    }
+
+    /// The candidate rows changed: re-run the open popup's query.
+    pub fn rerun_mention_search(&mut self, cx: &mut Context<Self>) {
+        if self.mention.take().is_some() {
+            self.refresh_mention();
+            cx.notify();
+        }
+    }
+
+    /// `findMention` on the caret after every change.
+    fn refresh_mention(&mut self) {
+        let Some(search) = self.mention_search.clone() else {
+            return;
+        };
+        if !self.selected_range.is_empty() {
+            self.mention = None;
+            return;
+        }
+        let ranges: Vec<Range<usize>> = self.atoms.iter().map(|atom| atom.range.clone()).collect();
+        let caret = mention_picker::Caret {
+            block: 0,
+            offset: self.cursor_offset(),
+        };
+        let Some((from, to, query)) = mention_picker::find_mention(&self.content, &ranges, caret)
+        else {
+            self.mention = None;
+            self.mention_dismissed = None;
+            return;
+        };
+        if self.mention_dismissed == Some(from) {
+            self.mention = None;
+            return;
+        }
+        if let Some(state) = self.mention.as_mut()
+            && state.from == from
+            && state.query == query
+        {
+            state.to = to;
+            return;
+        }
+        let items = search(&query);
+        self.mention = Some(MentionState {
+            block: 0,
+            from,
+            to,
+            query,
+            items,
+            selected: 0,
+        });
+    }
+
+    fn dismiss_mention(&mut self) {
+        if let Some(state) = self.mention.take() {
+            self.mention_dismissed = Some(state.from);
+        }
+    }
+
+    fn snap_out_of_atoms(&self, offset: usize, direction: isize) -> usize {
+        snap_out_of_atoms(&self.atoms, offset, direction)
+    }
+
+    /// Snapshot the field before an edit; typing bursts within
+    /// `UNDO_GROUP_DELAY` share one step, `structural` edits never do.
+    fn record_edit(&mut self, structural: bool) {
+        let now = Instant::now();
+        let grouped = !structural
+            && self
+                .last_edit
+                .is_some_and(|last| now.duration_since(last) < UNDO_GROUP_DELAY);
+        self.last_edit = Some(now);
+        self.redo_stack.clear();
+        if grouped && !self.undo_stack.is_empty() {
+            return;
+        }
+        self.undo_stack.push(Snapshot {
+            content: self.content.clone(),
+            atoms: self.atoms.clone(),
+            selected_range: self.selected_range.clone(),
+        });
+        if self.undo_stack.len() > 100 {
+            self.undo_stack.remove(0);
+        }
+    }
+
+    fn apply_snapshot(&mut self, snapshot: Snapshot, cx: &mut Context<Self>) {
+        self.content = snapshot.content;
+        self.atoms = snapshot.atoms;
+        let end = self.content.len();
+        self.selected_range =
+            snapshot.selected_range.start.min(end)..snapshot.selected_range.end.min(end);
+        self.selection_reversed = false;
+        self.marked_range = None;
+        self.last_edit = None;
+        self.refresh_mention();
+        cx.emit(TextAreaEvent::Changed);
+        cx.notify();
+    }
+
+    fn undo(&mut self, _: &Undo, _: &mut Window, cx: &mut Context<Self>) {
+        let Some(snapshot) = self.undo_stack.pop() else {
+            return;
+        };
+        self.redo_stack.push(Snapshot {
+            content: self.content.clone(),
+            atoms: self.atoms.clone(),
+            selected_range: self.selected_range.clone(),
+        });
+        self.apply_snapshot(snapshot, cx);
+    }
+
+    fn redo(&mut self, _: &Redo, _: &mut Window, cx: &mut Context<Self>) {
+        let Some(snapshot) = self.redo_stack.pop() else {
+            return;
+        };
+        self.undo_stack.push(Snapshot {
+            content: self.content.clone(),
+            atoms: self.atoms.clone(),
+            selected_range: self.selected_range.clone(),
+        });
+        self.apply_snapshot(snapshot, cx);
     }
 
     /// A click on the field's padding: focus and put the caret at the end,
@@ -169,9 +475,15 @@ impl TextArea {
             return;
         }
         self.content = text;
+        self.atoms.clear();
         let end = self.content.len();
         self.selected_range = end.min(self.selected_range.start)..end.min(self.selected_range.end);
         self.marked_range = None;
+        self.mention = None;
+        self.mention_dismissed = None;
+        self.undo_stack.clear();
+        self.redo_stack.clear();
+        self.last_edit = None;
         cx.notify();
     }
 
@@ -193,11 +505,13 @@ impl TextArea {
         if after.is_some_and(|c| !c.is_whitespace()) {
             insertion.push(' ');
         }
-        self.splice(range.clone(), &insertion);
+        self.record_edit(true);
+        let range = self.splice(range, &insertion);
         let end = range.start + insertion.len();
         self.selected_range = end..end;
         self.selection_reversed = false;
         self.marked_range = None;
+        self.refresh_mention();
         cx.emit(TextAreaEvent::Changed);
         cx.notify();
     }
@@ -213,6 +527,7 @@ impl TextArea {
     fn move_to(&mut self, offset: usize, cx: &mut Context<Self>) {
         self.selected_range = offset..offset;
         self.selection_reversed = false;
+        self.refresh_mention();
         cx.notify();
     }
 
@@ -226,22 +541,29 @@ impl TextArea {
             self.selection_reversed = !self.selection_reversed;
             self.selected_range = self.selected_range.end..self.selected_range.start;
         }
+        self.refresh_mention();
         cx.notify();
     }
 
+    /// One grapheme back, over a whole chip when the caret sits after one.
     fn previous_boundary(&self, offset: usize) -> usize {
-        self.content
+        let boundary = self
+            .content
             .grapheme_indices(true)
             .rev()
             .find_map(|(idx, _)| (idx < offset).then_some(idx))
-            .unwrap_or(0)
+            .unwrap_or(0);
+        self.snap_out_of_atoms(boundary, -1)
     }
 
+    /// One grapheme forward, over a whole chip when the caret sits before one.
     fn next_boundary(&self, offset: usize) -> usize {
-        self.content
+        let boundary = self
+            .content
             .grapheme_indices(true)
             .find_map(|(idx, _)| (idx > offset).then_some(idx))
-            .unwrap_or(self.content.len())
+            .unwrap_or(self.content.len());
+        self.snap_out_of_atoms(boundary, 1)
     }
 
     fn line_start(&self, offset: usize) -> usize {
@@ -269,7 +591,7 @@ impl TextArea {
             return Some(self.content.len());
         }
         Some(match self.layout.index_for_position(target) {
-            Ok(index) | Err(index) => index.min(self.content.len()),
+            Ok(index) | Err(index) => self.snap_out_of_atoms(index.min(self.content.len()), 0),
         })
     }
 
@@ -285,7 +607,7 @@ impl TextArea {
             return self.content.len();
         }
         match self.layout.index_for_position(position) {
-            Ok(index) | Err(index) => index.min(self.content.len()),
+            Ok(index) | Err(index) => self.snap_out_of_atoms(index.min(self.content.len()), 0),
         }
     }
 
@@ -323,10 +645,14 @@ impl TextArea {
         self.offset_from_utf16(range_utf16.start)..self.offset_from_utf16(range_utf16.end)
     }
 
-    fn splice(&mut self, range: Range<usize>, new_text: &str) {
+    /// Replaces `range`, widened to swallow any chip it cuts into (an atom
+    /// goes as a whole, like ProseMirror's), and returns the range replaced.
+    fn splice(&mut self, range: Range<usize>, new_text: &str) -> Range<usize> {
+        let range = splice_atoms(&mut self.atoms, range, new_text.len());
         self.content =
             (self.content[0..range.start].to_owned() + new_text + &self.content[range.end..])
                 .into();
+        range
     }
 
     fn left(&mut self, _: &Left, _: &mut Window, cx: &mut Context<Self>) {
@@ -346,12 +672,31 @@ impl TextArea {
     }
 
     fn up(&mut self, _: &Up, _: &mut Window, cx: &mut Context<Self>) {
+        if let Some(state) = self.mention.as_mut().filter(|s| !s.items.is_empty()) {
+            state.selected = (state.selected + state.items.len() - 1) % state.items.len();
+            cx.notify();
+            return;
+        }
+        if self.history_navigation && self.selected_range == (0..0) {
+            cx.emit(TextAreaEvent::HistoryPrev);
+            return;
+        }
         if let Some(offset) = self.vertical_neighbour(self.cursor_offset(), -1.0) {
             self.move_to(offset, cx);
         }
     }
 
     fn down(&mut self, _: &Down, _: &mut Window, cx: &mut Context<Self>) {
+        if let Some(state) = self.mention.as_mut().filter(|s| !s.items.is_empty()) {
+            state.selected = (state.selected + 1) % state.items.len();
+            cx.notify();
+            return;
+        }
+        let end = self.content.len();
+        if self.history_navigation && self.selected_range == (end..end) {
+            cx.emit(TextAreaEvent::HistoryNext);
+            return;
+        }
         if let Some(offset) = self.vertical_neighbour(self.cursor_offset(), 1.0) {
             self.move_to(offset, cx);
         }
@@ -412,6 +757,11 @@ impl TextArea {
     }
 
     fn enter(&mut self, _: &Enter, window: &mut Window, cx: &mut Context<Self>) {
+        if let Some(state) = self.mention() {
+            let index = state.selected;
+            self.insert_mention(index, cx);
+            return;
+        }
         if self.enter_submits {
             cx.emit(TextAreaEvent::Submit);
         } else {
@@ -423,7 +773,13 @@ impl TextArea {
         cx.emit(TextAreaEvent::Submit);
     }
 
+    /// Escape closes an open popup first; otherwise the owner hears it.
     fn escape(&mut self, _: &Escape, _: &mut Window, cx: &mut Context<Self>) {
+        if self.mention().is_some() {
+            self.dismiss_mention();
+            cx.notify();
+            return;
+        }
         cx.emit(TextAreaEvent::Escape);
     }
 
@@ -532,10 +888,17 @@ impl EntityInputHandler for TextArea {
             .map(|range_utf16| self.range_from_utf16(range_utf16))
             .or(self.marked_range.clone())
             .unwrap_or(self.selected_range.clone());
-        self.splice(range.clone(), new_text);
+        // Deleting or pasting over a chip is a step of its own.
+        let touches_atom = self
+            .atoms
+            .iter()
+            .any(|atom| atom.range.start < range.end && range.start < atom.range.end);
+        self.record_edit(touches_atom || new_text.contains('\n') || new_text.len() > 1);
+        let range = self.splice(range, new_text);
         self.selected_range = range.start + new_text.len()..range.start + new_text.len();
         self.selection_reversed = false;
         self.marked_range.take();
+        self.refresh_mention();
         cx.emit(TextAreaEvent::Changed);
         cx.notify();
     }
@@ -553,7 +916,8 @@ impl EntityInputHandler for TextArea {
             .map(|range_utf16| self.range_from_utf16(range_utf16))
             .or(self.marked_range.clone())
             .unwrap_or(self.selected_range.clone());
-        self.splice(range.clone(), new_text);
+        self.record_edit(false);
+        let range = self.splice(range, new_text);
         self.marked_range = Some(range.start..range.start + new_text.len());
         self.selected_range = new_selected_range_utf16
             .as_ref()
@@ -625,6 +989,19 @@ impl Render for TextArea {
                 },
             ));
         }
+        if !empty {
+            // `.mention { font-weight: 500 }`
+            for atom in &self.atoms {
+                highlights.push((
+                    atom.range.clone(),
+                    HighlightStyle {
+                        font_weight: Some(gpui::FontWeight::MEDIUM),
+                        ..Default::default()
+                    },
+                ));
+            }
+            highlights.sort_by_key(|(range, _)| range.start);
+        }
         let styled = StyledText::new(text).with_default_highlights(&text_style, highlights);
         self.layout = styled.layout().clone();
         let layout = self.layout.clone();
@@ -637,6 +1014,16 @@ impl Render for TextArea {
         let selection_color = style.selection;
         let caret_color = style.text;
         let line_height = style.line_height;
+        let chips: Vec<(usize, String, String)> = if empty {
+            Vec::new()
+        } else {
+            self.atoms
+                .iter()
+                .map(|atom| (atom.range.start, atom.kind.clone(), atom.label.clone()))
+                .collect()
+        };
+        let mention_style = self.mention_style;
+        let font_size = style.font_size;
 
         div()
             .id("text-area")
@@ -666,6 +1053,8 @@ impl Render for TextArea {
             .on_action(cx.listener(Self::enter))
             .on_action(cx.listener(Self::escape))
             .on_action(cx.listener(Self::submit))
+            .on_action(cx.listener(Self::undo))
+            .on_action(cx.listener(Self::redo))
             .on_mouse_down(MouseButton::Left, cx.listener(Self::on_mouse_down))
             .on_mouse_up(MouseButton::Left, cx.listener(Self::on_mouse_up))
             .on_mouse_up_out(MouseButton::Left, cx.listener(Self::on_mouse_up))
@@ -683,6 +1072,30 @@ impl Render for TextArea {
                         entity.update(cx, |this, _| this.last_bounds = Some(bounds));
                         if let Some(range) = selection.clone() {
                             paint_selection(&layout, range, selection_color, line_height, window);
+                        }
+                        // `MentionAvatar` over each chip's placeholder:
+                        // `vertical-align: middle` with `top: -2px`.
+                        if let Some(mention_style) = mention_style {
+                            let font = window.text_style().font();
+                            for (start, kind, label) in &chips {
+                                let Some(origin) = layout.position_for_index(*start) else {
+                                    continue;
+                                };
+                                let origin = point(
+                                    origin.x,
+                                    origin.y + (line_height - font_size) / 2.0 - px(2.0),
+                                );
+                                crate::mention::paint_avatar(
+                                    window,
+                                    cx,
+                                    Bounds::new(origin, size(font_size, font_size)),
+                                    kind,
+                                    label,
+                                    &font,
+                                    mention_style.icon,
+                                    mention_style.dark,
+                                );
+                            }
                         }
                         if let Some(caret) = caret {
                             let position = if empty {
@@ -711,6 +1124,62 @@ impl Focusable for TextArea {
     fn focus_handle(&self, _: &App) -> FocusHandle {
         self.focus_handle.clone()
     }
+}
+
+/// `proseMirrorJsonToText` over a field's text: each chip as `@label`
+/// (`@id` for a chip without one).
+fn message_text(content: &str, atoms: &[Atom]) -> String {
+    let mut out = String::new();
+    let mut cursor = 0;
+    for atom in atoms {
+        out.push_str(&content[cursor..atom.range.start]);
+        out.push('@');
+        out.push_str(if atom.label.is_empty() {
+            &atom.id
+        } else {
+            &atom.label
+        });
+        cursor = atom.range.end;
+    }
+    out.push_str(&content[cursor..]);
+    out
+}
+
+/// `mentionSkipPlugin`: an offset inside a chip moves to its edge in
+/// `direction` (`> 0` forward, `< 0` back, `0` the nearer one).
+fn snap_out_of_atoms(atoms: &[Atom], offset: usize, direction: isize) -> usize {
+    for atom in atoms {
+        if atom.range.start < offset && offset < atom.range.end {
+            let nearer_start = offset - atom.range.start <= atom.range.end - offset;
+            return if direction > 0 || (direction == 0 && !nearer_start) {
+                atom.range.end
+            } else {
+                atom.range.start
+            };
+        }
+    }
+    offset
+}
+
+/// Widens `range` over every chip it cuts into, drops the chips inside it,
+/// and shifts the chips after it by the replacement's length difference.
+fn splice_atoms(atoms: &mut Vec<Atom>, mut range: Range<usize>, new_len: usize) -> Range<usize> {
+    for atom in atoms.iter() {
+        let overlaps = atom.range.start < range.end && range.start < atom.range.end;
+        if overlaps {
+            range.start = range.start.min(atom.range.start);
+            range.end = range.end.max(atom.range.end);
+        }
+    }
+    let delta = new_len as isize - (range.end - range.start) as isize;
+    atoms.retain(|atom| atom.range.end <= range.start || atom.range.start >= range.end);
+    for atom in atoms.iter_mut() {
+        if atom.range.start >= range.end {
+            atom.range.start = (atom.range.start as isize + delta) as usize;
+            atom.range.end = (atom.range.end as isize + delta) as usize;
+        }
+    }
+    range
 }
 
 /// One quad per wrapped line the byte range covers.
@@ -751,5 +1220,72 @@ fn paint_selection(
         {
             start += 1;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn chip(text: &mut String, kind: &str, id: &str, label: &str) -> Atom {
+        let display = crate::mention::display_text(label);
+        let start = text.len();
+        text.push_str(&display);
+        Atom {
+            range: start..text.len(),
+            kind: kind.into(),
+            id: id.into(),
+            label: label.into(),
+        }
+    }
+
+    #[test]
+    fn message_text_flattens_chips_like_the_frontend() {
+        let mut text = String::from("Tell me about ");
+        let ada = chip(&mut text, "human", "h1", "Ada Lovelace");
+        text.push_str(" and ");
+        let nameless = chip(&mut text, "session", "s1", "");
+        text.push_str(" please");
+        assert_eq!(
+            message_text(&text, &[ada, nameless]),
+            "Tell me about @Ada Lovelace and @s1 please"
+        );
+    }
+
+    #[test]
+    fn carets_skip_chips_and_edits_take_them_whole() {
+        let mut text = String::from("a ");
+        let ada = chip(&mut text, "human", "h1", "Ada");
+        text.push_str(" b");
+        let atoms = vec![ada.clone()];
+        let inside = ada.range.start + 2;
+        assert_eq!(snap_out_of_atoms(&atoms, inside, 1), ada.range.end);
+        assert_eq!(snap_out_of_atoms(&atoms, inside, -1), ada.range.start);
+        assert_eq!(
+            snap_out_of_atoms(&atoms, ada.range.end - 1, 0),
+            ada.range.end
+        );
+        assert_eq!(
+            snap_out_of_atoms(&atoms, ada.range.start, 0),
+            ada.range.start
+        );
+        assert_eq!(snap_out_of_atoms(&atoms, 1, 1), 1);
+
+        // Backspace after the chip removes the whole chip.
+        let mut atoms = vec![ada.clone()];
+        let range = splice_atoms(&mut atoms, ada.range.end - 1..ada.range.end, 0);
+        assert_eq!(range, ada.range.clone());
+        assert!(atoms.is_empty());
+
+        // An edit before the chip shifts it.
+        let mut atoms = vec![ada.clone()];
+        let range = splice_atoms(&mut atoms, 0..1, 3);
+        assert_eq!(range, 0..1);
+        assert_eq!(atoms[0].range, ada.range.start + 2..ada.range.end + 2);
+
+        // An edit after the chip leaves it alone.
+        let mut atoms = vec![ada.clone()];
+        splice_atoms(&mut atoms, ada.range.end..ada.range.end + 1, 0);
+        assert_eq!(atoms[0].range, ada.range);
     }
 }

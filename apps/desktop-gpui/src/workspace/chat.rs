@@ -17,7 +17,7 @@ use gpui::{
 use super::Workspace;
 use crate::chat::{self, ContextRef, Message, Metadata, Part, Role, Scope, Status};
 use crate::llm_stream::{self, Chunk, Connection, Request, Turn};
-use crate::text_area::{TextArea, TextAreaEvent, TextAreaStyle};
+use crate::text_area::{Draft, MentionStyle, TextArea, TextAreaEvent, TextAreaStyle};
 use crate::theme::alpha;
 use crate::ui::{TailwindText as _, icon};
 
@@ -69,8 +69,16 @@ pub(crate) struct ChatState {
     /// Bumped per stream so a stale run cannot touch the list.
     pub run: u64,
     pub abort: Option<Arc<AtomicBool>>,
-    /// `queuedMessages`: sends made while a reply streams.
-    pub queued: VecDeque<String>,
+    /// `queuedMessages`: sends made while a reply streams, with the refs
+    /// merged when they were queued.
+    pub queued: VecDeque<(String, Vec<ContextRef>)>,
+    /// `pendingManualRefs`: notes dropped onto the panel, attached to the
+    /// next send and cleared with it or when the chat moves on.
+    pub pending_manual_refs: Vec<ContextRef>,
+    /// `useMessageHistory`: the sent draft being browsed (newest first) and
+    /// the draft set aside while browsing.
+    pub history_index: Option<usize>,
+    pub draft_before_history: Option<Draft>,
     pub history_open: bool,
     /// `useRecentChatGroups(scope, 5)`
     pub history: Vec<chat::GroupRow>,
@@ -215,6 +223,7 @@ impl Workspace {
         self.chat.status = None;
         self.chat.error = None;
         self.chat.queued.clear();
+        self.chat.pending_manual_refs.clear();
         self.chat.history_open = false;
         cx.notify();
     }
@@ -223,6 +232,7 @@ impl Workspace {
     pub(super) fn select_chat(&mut self, group_id: String, cx: &mut Context<Self>) {
         self.stop_chat(cx);
         self.chat.history_open = false;
+        self.chat.pending_manual_refs.clear();
         self.chat.group_id = Some(group_id.clone());
         self.chat.messages.clear();
         self.chat.status = None;
@@ -261,8 +271,30 @@ impl Workspace {
             line_height: px(20.0),
             rows: 1,
         };
-        let composer =
-            cx.new(|cx| TextArea::new("Ask anything", style, window, cx).enter_submits());
+        // `useMentionConfig`: the same `@` candidates the note editor offers.
+        let candidates = self.mention_candidates.clone();
+        let search = match cx.try_global::<crate::search::Search>() {
+            Some(search) => super::mention_popup::search_over(
+                candidates,
+                search.0.clone(),
+                self.store.runtime().clone(),
+            ),
+            None => std::rc::Rc::new(move |query: &str| {
+                crate::editor::mention_picker::search_candidates(&candidates.borrow(), query)
+            }),
+        };
+        let composer = cx.new(|cx| {
+            TextArea::new("Ask anything", style, window, cx)
+                .enter_submits()
+                .with_mentions(
+                    search,
+                    MentionStyle {
+                        icon: theme.muted_foreground,
+                        dark: theme.dark,
+                    },
+                )
+                .with_history_navigation()
+        });
         cx.subscribe_in(
             &composer,
             window,
@@ -275,7 +307,13 @@ impl Workspace {
                         window.focus(&this.focus_handle);
                     }
                 }
-                TextAreaEvent::Changed => cx.notify(),
+                TextAreaEvent::Changed => {
+                    // `handleUserEdit`: typing leaves the history browse.
+                    this.chat.history_index = None;
+                    cx.notify()
+                }
+                TextAreaEvent::HistoryPrev => this.navigate_chat_history(true, cx),
+                TextAreaEvent::HistoryNext => this.navigate_chat_history(false, cx),
                 TextAreaEvent::Blurred => {}
             },
         )
@@ -283,47 +321,158 @@ impl Workspace {
         self.chat.composer = Some(composer);
     }
 
-    /// `useSubmit`: send the trimmed draft and clear the editor.
+    /// `useMessageHistory().navigate`: Up walks back through the sent drafts
+    /// (the current one set aside first), Down walks forward and finally
+    /// restores it.
+    fn navigate_chat_history(&mut self, prev: bool, cx: &mut Context<Self>) {
+        let Some(composer) = self.chat.composer.clone() else {
+            return;
+        };
+        let total = self.chat_sent_history.len();
+        let (next_index, restore, at_end) = if prev {
+            if total == 0 {
+                return;
+            }
+            let next = self.chat.history_index.map_or(0, |index| index + 1);
+            if next >= total {
+                return;
+            }
+            if self.chat.history_index.is_none() {
+                self.chat.draft_before_history = Some(composer.read(cx).draft());
+            }
+            (Some(next), self.chat_sent_history[next].clone(), false)
+        } else {
+            let Some(index) = self.chat.history_index else {
+                return;
+            };
+            if index == 0 {
+                (
+                    None,
+                    self.chat.draft_before_history.take().unwrap_or_default(),
+                    true,
+                )
+            } else {
+                (
+                    Some(index - 1),
+                    self.chat_sent_history[index - 1].clone(),
+                    true,
+                )
+            }
+        };
+        self.chat.history_index = next_index;
+        composer.update(cx, |composer, cx| composer.restore(restore, at_end, cx));
+        cx.notify();
+    }
+
+    /// `pushSentMessage`: newest first, no immediate repeats, fifty kept.
+    fn push_sent_history(&mut self, draft: Draft) {
+        const MAX_ENTRIES: usize = 50;
+        if self.chat_sent_history.first() == Some(&draft) {
+            return;
+        }
+        self.chat_sent_history.insert(0, draft);
+        self.chat_sent_history.truncate(MAX_ENTRIES);
+    }
+
+    /// `useSubmit`: send the trimmed draft with the refs its mentions carry,
+    /// remember it for the history, and clear the editor.
     fn submit_chat_draft(&mut self, cx: &mut Context<Self>) {
         let Some(composer) = self.chat.composer.clone() else {
             return;
         };
-        let text = composer.read(cx).text().trim().to_string();
+        let (text, mention_refs, draft) = {
+            let composer = composer.read(cx);
+            // `proseMirrorJsonToText` joins the blocks with nothing between
+            // them, so a Shift+Enter break is not in the sent text.
+            let text = composer.message_text().replace('\n', "").trim().to_string();
+            let refs: Vec<ContextRef> = composer
+                .atoms()
+                .iter()
+                .filter_map(|atom| ContextRef::manual(&atom.kind, &atom.id))
+                .collect();
+            (text, refs, composer.draft())
+        };
         if text.is_empty() {
             return;
         }
         composer.update(cx, |composer, cx| composer.set_text("", cx));
-        self.submit_or_queue_chat_message(text, cx);
+        self.push_sent_history(draft);
+        self.chat.history_index = None;
+        self.chat.draft_before_history = None;
+        self.submit_or_queue_chat_message(text, mention_refs, cx);
     }
 
-    /// `submitOrQueueMessage`: a send while a reply streams waits its turn.
-    fn submit_or_queue_chat_message(&mut self, text: String, cx: &mut Context<Self>) {
+    /// `useChatContextPipeline().pendingRefs` + `mergeContextRefs`: the
+    /// current note, the dropped notes, then the mentions, one per key.
+    fn merged_context_refs(&self, mention_refs: Vec<ContextRef>) -> Vec<ContextRef> {
+        let scope = self.chat.scope;
+        // The automations scope clears the note context (`chat-panel.tsx`).
+        let auto = self
+            .selected
+            .as_deref()
+            .filter(|_| scope == Scope::General)
+            .map(ContextRef::auto_session);
+        chat::dedupe_refs(
+            auto.into_iter()
+                .chain(self.chat.pending_manual_refs.iter().cloned())
+                .chain(mention_refs),
+        )
+    }
+
+    /// `submitOrQueueMessage`: a send while a reply streams waits its turn,
+    /// with the refs it had when queued.
+    fn submit_or_queue_chat_message(
+        &mut self,
+        text: String,
+        mention_refs: Vec<ContextRef>,
+        cx: &mut Context<Self>,
+    ) {
         if !self.chat_model_configured() {
             return;
         }
+        let refs = self.merged_context_refs(mention_refs);
         if self.chat.busy() {
-            self.chat.queued.push_back(text);
+            self.chat.queued.push_back((text, refs));
             cx.notify();
             return;
         }
-        self.send_chat_message(text, cx);
+        self.send_chat_message(text, refs, cx);
+    }
+
+    /// `onAddContextEntity`: a note dropped on the panel joins the next send.
+    pub(super) fn add_chat_context_session(&mut self, session_id: &str, cx: &mut Context<Self>) {
+        let Some(reference) = ContextRef::manual("session", session_id) else {
+            return;
+        };
+        if self
+            .chat
+            .pending_manual_refs
+            .iter()
+            .any(|existing| existing.key() == reference.key())
+        {
+            return;
+        }
+        self.chat.pending_manual_refs.push(reference);
+        cx.notify();
     }
 
     /// `handleSendMessage` + `sendMessage`: persist the user message (creating
     /// the group with its fallback title and kicking off the generated title
     /// on the first send), then stream the reply.
-    fn send_chat_message(&mut self, text: String, cx: &mut Context<Self>) {
+    fn send_chat_message(
+        &mut self,
+        text: String,
+        context_refs: Vec<ContextRef>,
+        cx: &mut Context<Self>,
+    ) {
         let Some(Some(connection)) = self.chat.connection.clone() else {
             return;
         };
         let scope = self.chat.scope;
-        // The automations scope clears the note context (`chat-panel.tsx`).
-        let session_id = self.selected.clone().filter(|_| scope == Scope::General);
         let transcript_unavailable = scope == Scope::General && self.chat_transcript_unavailable();
-        let context_refs = session_id
-            .as_deref()
-            .map(|id| vec![ContextRef::auto_session(id)])
-            .filter(|refs| !refs.is_empty());
+        // A user message clears the pending refs (`prevUserMsgCountRef`).
+        self.chat.pending_manual_refs.clear();
+        let context_refs = Some(context_refs).filter(|refs| !refs.is_empty());
         let message = Message {
             id: uuid::Uuid::new_v4().to_string(),
             role: Role::User,
@@ -415,8 +564,8 @@ impl Workspace {
                     this.chat.status = Some(ChatStatus::Ready);
                     this.load_chat_history(cx);
                     cx.notify();
-                    if let Some(next) = this.chat.queued.pop_front() {
-                        this.send_chat_message(next, cx);
+                    if let Some((next, refs)) = this.chat.queued.pop_front() {
+                        this.send_chat_message(next, refs, cx);
                     }
                 })
                 .ok();
@@ -529,21 +678,24 @@ impl Workspace {
             .string_setting("ai_language", &["language", "ai_language"])
             .unwrap_or_else(|| "en".to_string());
         // `extractContextRefsFromMessages`: every ref across the conversation,
-        // deduped by key, hydrated once.
-        let mut seen = std::collections::HashSet::new();
-        let session_ids: Vec<String> = self
-            .chat
-            .messages
-            .iter()
-            .flat_map(|message| message.metadata.context_refs.iter().flatten())
-            .filter(|reference| seen.insert(reference.key().to_string()))
-            .map(|reference| match reference {
-                ContextRef::Session { session_id, .. } => session_id.clone(),
-            })
-            .collect();
-        let context_tasks: Vec<_> = session_ids
+        // deduped by key, hydrated once — sessions into the context block,
+        // contacts / organizations / folders into text blocks after it.
+        let refs = chat::dedupe_refs(
+            self.chat
+                .messages
+                .iter()
+                .flat_map(|message| message.metadata.context_refs.iter().flatten())
+                .cloned(),
+        );
+        let context_tasks: Vec<ContextTask> = refs
             .into_iter()
-            .map(|id| self.store.chat_session_context(id))
+            .filter_map(|reference| match reference {
+                ContextRef::Session { session_id, .. } => Some(ContextTask::Session(
+                    self.store.chat_session_context(session_id),
+                )),
+                ContextRef::Other(_) => None,
+                reference => Some(ContextTask::Text(self.store.chat_context_text(reference))),
+            })
             .collect();
         let history: Vec<Message> = self.chat.messages.clone();
         let replace_previous = self.chat.replace_previous.take();
@@ -570,12 +722,24 @@ impl Workspace {
         cx.spawn(async move |this, cx| {
             let owner_user_id = store.owner_user_id().await.unwrap_or_default();
             let mut contexts = Vec::new();
+            let mut texts = Vec::new();
             for task in context_tasks {
-                if let Ok(Ok(Some(context))) = task.await {
-                    contexts.push(context);
+                match task {
+                    ContextTask::Session(task) => {
+                        if let Ok(Ok(Some(context))) = task.await {
+                            contexts.push(context);
+                        }
+                    }
+                    ContextTask::Text(task) => {
+                        if let Ok(Ok(Some(text))) = task.await
+                            && !text.trim().is_empty()
+                        {
+                            texts.push(text.trim().to_string());
+                        }
+                    }
                 }
             }
-            let context_block = render_context_block(contexts);
+            let context_block = render_context_blocks(contexts, texts);
             let system = anlg_template_app::render(anlg_template_app::Template::ChatSystem(
                 anlg_template_app::ChatSystem {
                     language: Some(language),
@@ -836,9 +1000,9 @@ impl Workspace {
                 cx.notify();
                 // `ChatQueue`: the next queued send goes out once ready.
                 if this.chat.status() == ChatStatus::Ready
-                    && let Some(next) = this.chat.queued.pop_front()
+                    && let Some((next, refs)) = this.chat.queued.pop_front()
                 {
-                    this.send_chat_message(next, cx);
+                    this.send_chat_message(next, refs, cx);
                 }
             })
             .ok();
@@ -1112,6 +1276,7 @@ impl Workspace {
                                             move |this, _: &ClickEvent, _, cx| {
                                                 this.submit_or_queue_chat_message(
                                                     prompt.clone(),
+                                                    Vec::new(),
                                                     cx,
                                                 );
                                             },
@@ -1567,6 +1732,24 @@ impl Workspace {
         let streaming = self.chat.busy();
         let show_send = right_panel || streaming || has_content;
         let queued = self.chat.queued.clone();
+        // `History N/M` above the surface while browsing sent messages.
+        let history_indicator = self.chat.history_index.map(|index| {
+            // `text-[11px] leading-none pb-1`: an 11px line over 4px.
+            div()
+                .flex()
+                .items_start()
+                .h(px(15.0))
+                .flex_shrink_0()
+                .map(|row| if right_panel { row.px_2() } else { row.px_4() })
+                .text_size(px(11.0))
+                .line_height(px(11.0))
+                .text_color(alpha(theme.muted_foreground, 0.8))
+                .child(SharedString::from(format!(
+                    "History {}/{}",
+                    index + 1,
+                    self.chat_sent_history.len()
+                )))
+        });
         let mut controls = div()
             .flex()
             .flex_shrink_0()
@@ -1638,10 +1821,13 @@ impl Workspace {
         if right_panel {
             return div()
                 .relative()
+                .flex()
+                .flex_col()
                 .min_w_0()
                 .flex_shrink_0()
                 .px_2()
                 .pb_3()
+                .children(history_indicator)
                 .when(!queued.is_empty(), |column| {
                     column.child(
                         div()
@@ -1650,7 +1836,7 @@ impl Workspace {
                             .flex()
                             .flex_col()
                             .gap(px(2.0))
-                            .children(queued.into_iter().map(|text| {
+                            .children(queued.into_iter().map(|(text, _)| {
                                 div()
                                     .tw_text_xs()
                                     .text_color(theme.muted_foreground)
@@ -1690,10 +1876,13 @@ impl Workspace {
         }
         div()
             .relative()
+            .flex()
+            .flex_col()
             .min_w_0()
             .flex_shrink_0()
             .px_1()
             .pb_1()
+            .children(history_indicator)
             .when(!queued.is_empty(), |column| {
                 // `ChatQueue`: the waiting sends above the composer.
                 column.child(
@@ -1703,7 +1892,7 @@ impl Workspace {
                         .flex()
                         .flex_col()
                         .gap(px(2.0))
-                        .children(queued.into_iter().map(|text| {
+                        .children(queued.into_iter().map(|(text, _)| {
                             div()
                                 .tw_text_xs()
                                 .text_color(theme.muted_foreground)
@@ -1872,6 +2061,13 @@ impl Workspace {
             .then(|| self.render_chat_composer(width, window, cx));
         div()
             .id("chat-right-panel")
+            // `[data-chat-content]`'s drop: a dragged note becomes a manual
+            // context ref for the next send.
+            .on_drop(
+                cx.listener(|this, drag: &super::session_drag::SessionDrag, _, cx| {
+                    this.add_chat_context_session(&drag.session_id, cx);
+                }),
+            )
             .flex()
             .flex_col()
             .w(px(width))
@@ -2004,6 +2200,11 @@ impl Workspace {
 
         let panel = div()
             .id("chat-panel")
+            .on_drop(
+                cx.listener(|this, drag: &super::session_drag::SessionDrag, _, cx| {
+                    this.add_chat_context_session(&drag.session_id, cx);
+                }),
+            )
             .relative()
             .flex()
             .flex_col()
@@ -2232,6 +2433,29 @@ fn render_context_block(contexts: Vec<anlg_template_app::SessionContext>) -> Opt
     .ok()
     .map(|block| block.trim().to_string())
     .filter(|block| !block.is_empty())
+}
+
+/// A ref's hydration in flight: a session's `SessionContext`, or the text of
+/// a contact / organization / folder ref.
+enum ContextTask {
+    Session(tokio::task::JoinHandle<anyhow::Result<Option<anlg_template_app::SessionContext>>>),
+    Text(tokio::task::JoinHandle<anyhow::Result<Option<String>>>),
+}
+
+/// `renderContextBlock`: the sessions' `<context>` block first, then the
+/// text contexts joined by blank lines.
+fn render_context_blocks(
+    contexts: Vec<anlg_template_app::SessionContext>,
+    texts: Vec<String>,
+) -> Option<String> {
+    let mut blocks = Vec::new();
+    if let Some(block) = render_context_block(contexts) {
+        blocks.push(block);
+    }
+    if !texts.is_empty() {
+        blocks.push(texts.join("\n\n"));
+    }
+    (!blocks.is_empty()).then(|| blocks.join("\n\n"))
 }
 
 /// `expandSearchMeetingsOutput`: a `search_meetings` output going back to

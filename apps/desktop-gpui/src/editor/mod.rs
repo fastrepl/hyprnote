@@ -1197,6 +1197,43 @@ impl BodyEditor {
         cx.emit(EditorEvent::Dropped(paths));
     }
 
+    /// `sessionMentionDropPlugin.handleDrop`: the mention node plus a space
+    /// at `posAtCoords`, the caret after them, the editor focused.
+    pub fn drop_mention(
+        &mut self,
+        item: mention_picker::MentionItem,
+        position: Point<Pixels>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.doc.ensure_textblock();
+        let block = self
+            .layouts
+            .iter()
+            .enumerate()
+            .filter_map(|(index, layout)| layout.as_ref().map(|(_, bounds)| (index, *bounds)))
+            .fold(None::<(usize, Bounds<Pixels>)>, |best, (index, bounds)| {
+                if bounds.top() <= position.y {
+                    Some((index, bounds))
+                } else {
+                    best
+                }
+            })
+            .map(|(index, _)| index)
+            .unwrap_or(0);
+        let head = self.caret_for_position(block, position);
+        self.record_edit(EditKind::Structural);
+        let caret = self
+            .doc
+            .insert_mention(head.block, head.offset..head.offset, &item);
+        self.caret = Some(caret);
+        self.anchor = None;
+        self.changed(cx);
+        if !self.focus_handle.is_focused(window) {
+            self.focus_handle.focus(window);
+        }
+    }
+
     /// `insertImage` / `insertFileAttachment` once an upload finished:
     /// `tr.replaceSelectionWith(node)` at the selection of that moment.
     pub fn insert_attachment(&mut self, node: serde_json::Value, cx: &mut Context<Self>) {

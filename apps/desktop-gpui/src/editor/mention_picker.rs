@@ -8,7 +8,7 @@ use std::rc::Rc;
 
 use serde_json::{Value, json};
 
-use super::model::Caret;
+pub use super::model::Caret;
 
 pub const TRIGGER: char = '@';
 /// `results.slice(0, 5)`

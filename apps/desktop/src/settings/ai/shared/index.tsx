@@ -1,7 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { type AnyFieldApi, useForm } from "@tanstack/react-form";
 import { useMutation, useQueries } from "@tanstack/react-query";
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { type ComponentType, type ReactNode, useMemo, useState } from "react";
 import { Streamdown } from "streamdown";
 
@@ -44,6 +43,7 @@ import {
 } from "./eligibility";
 import { useProviderSelectionPrompt } from "./provider-selection-prompt";
 
+import { providerFetch } from "~/ai/provider-fetch";
 import { useBillingAccess } from "~/auth/billing-context";
 import {
   isKeychainAccessError,
@@ -256,7 +256,7 @@ export function useProviderAvailability(
         try {
           await verifyProviderCredentials(
             { provider: provider.id, baseUrl, apiKey },
-            tauriFetch,
+            providerFetch,
             signal,
           );
         } catch (error) {

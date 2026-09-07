@@ -122,6 +122,35 @@ describe("SQLite AI providers", () => {
     queryClient.clear();
   });
 
+  it("saves Custom STT without requiring a model-list endpoint", async () => {
+    const { verifyProviderCredentials } = await vi.importActual<
+      typeof import("@anlg/provider-validation")
+    >("@anlg/provider-validation");
+    mocks.verify.mockImplementation(verifyProviderCredentials);
+    mocks.execute.mockResolvedValue([]);
+    mocks.fetch.mockResolvedValue(new Response(null, { status: 404 }));
+    const queryClient = new QueryClient();
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+    const { result, unmount } = renderHook(
+      () => useSetAiProvider("stt", "custom", { verifyCredentials: true }),
+      { wrapper },
+    );
+    await result.current.mutateAsync({
+      base_url: "http://127.0.0.1:8000/v1",
+      api_key: "local-key",
+    });
+    expect(mocks.fetch).not.toHaveBeenCalled();
+    expect(mocks.setSecret).toHaveBeenCalledWith(
+      "ai-provider-api-keys",
+      "stt:custom",
+      "local-key",
+    );
+    expect(mocks.executeTransaction).toHaveBeenCalledOnce();
+    unmount();
+    queryClient.clear();
+  });
+
   it("saves a valid local provider and rejects an invalid replacement when the server restricts origins", async () => {
     const { verifyProviderCredentials } = await vi.importActual<
       typeof import("@anlg/provider-validation")
@@ -201,7 +230,12 @@ describe("SQLite AI providers", () => {
       );
       await result.current.mutateAsync({ api_key: "working", base_url: draft });
       expect(mocks.verify).toHaveBeenCalledWith(
-        { provider: "openai", baseUrl: expected, apiKey: "working" },
+        {
+          type: "llm",
+          provider: "openai",
+          baseUrl: expected,
+          apiKey: "working",
+        },
         expect.any(Function),
       );
       const persisted = mocks.executeTransaction.mock.calls[0][0][0].params[0];

@@ -255,7 +255,7 @@ export function useProviderAvailability(
           return provider.checkAvailability(baseUrl, apiKey);
         try {
           await verifyProviderCredentials(
-            { provider: provider.id, baseUrl, apiKey },
+            { type: providerType, provider: provider.id, baseUrl, apiKey },
             providerFetch,
             signal,
           );

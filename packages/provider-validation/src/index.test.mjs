@@ -78,6 +78,56 @@ test("a public model catalog cannot validate a key", async () => {
   );
 });
 
+test("custom STT validates configuration without probing an OpenAI model catalog", async () => {
+  const fetcher = async () => {
+    assert.fail("Custom STT must not send model-list or control-key requests");
+  };
+  for (const baseUrl of [
+    "http://127.0.0.1:8000/v1",
+    "https://stt.example/v1",
+  ]) {
+    await verifyProviderCredentials(
+      { ...credential, type: "stt", provider: "custom", baseUrl },
+      fetcher,
+    );
+  }
+});
+
+test("custom STT still rejects unsafe URLs and malformed keys before saving", async () => {
+  for (const update of [
+    { baseUrl: "not-a-url" },
+    { baseUrl: "http://stt.example/v1" },
+    { baseUrl: "https://user:password@stt.example/v1" },
+    { baseUrl: "https://stt.example/v1?key=secret" },
+    { apiKey: "" },
+    { apiKey: "bad\nkey" },
+  ]) {
+    await assert.rejects(
+      verifyProviderCredentials(
+        { ...credential, type: "stt", provider: "custom", ...update },
+        async () => assert.fail("Invalid configuration must not send requests"),
+      ),
+      ProviderCredentialError,
+    );
+  }
+});
+
+test("Custom LLM still requires key proof after accepting the same STT configuration", async () => {
+  const custom = { ...credential, provider: "custom" };
+  let calls = 0;
+  const fetcher = async () => {
+    calls++;
+    return Response.json({ data: [] });
+  };
+  await verifyProviderCredentials({ ...custom, type: "stt" }, fetcher);
+  assert.equal(calls, 0);
+  await assert.rejects(
+    verifyProviderCredentials({ ...custom, type: "llm" }, fetcher),
+    /doesn’t support API key verification/,
+  );
+  assert.equal(calls, 2);
+});
+
 test("a gateway must accept the candidate key and reject the control key", async () => {
   const keys = [];
   await verifyProviderCredentials(

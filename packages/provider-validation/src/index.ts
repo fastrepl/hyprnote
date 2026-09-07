@@ -1,6 +1,7 @@
 import { sha256 } from "js-sha256";
 
 export type ProviderCredential = {
+  type?: "stt" | "llm";
   provider: string;
   baseUrl: string;
   apiKey: string;
@@ -50,6 +51,10 @@ export async function verifyProviderCredentials(
     throw new ProviderCredentialError("Use HTTPS for provider credentials.");
 
   signal?.throwIfAborted();
+  // Deepgram-compatible listen servers need not expose a model catalog or a
+  // credential-probe endpoint. Their credentials are checked when transcribing.
+  if (credential.type === "stt" && credential.provider === "custom") return;
+
   const identity = providerCredentialIdentity({ ...credential, apiKey });
   const recent = verified.get(fetcher) ?? new Map<string, number>();
   verified.set(fetcher, recent);

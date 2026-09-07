@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use serde::Deserialize;
+use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
 #[derive(Deserialize)]
@@ -8,7 +9,15 @@ use sqlx::{Sqlite, Transaction};
 struct DeletionContext {
     version: u32,
     deleted_at: String,
-    observed: BTreeMap<String, String>,
+    observed: BTreeMap<String, Value>,
+}
+
+fn observed_content_version(value: Option<&Value>) -> Option<String> {
+    match value {
+        Some(Value::String(value)) => Some(value.clone()),
+        Some(value) => serde_json::to_string(value).ok(),
+        None => None,
+    }
 }
 
 pub(crate) async fn reconcile_session_deletion(
@@ -89,9 +98,9 @@ async fn reconcile_deleted_session(
     .bind(&context.deleted_at)
     .fetch_all(&mut **transaction)
     .await?;
-    let unseen_content = content
-        .iter()
-        .any(|(id, version)| context.observed.get(id) != Some(version));
+    let unseen_content = content.iter().any(|(id, version)| {
+        observed_content_version(context.observed.get(id)).as_deref() != Some(version)
+    });
     let deleted_at = (!unseen_content).then_some(context.deleted_at.as_str());
 
     // Keep the original observation even after restoring the note. Later row
@@ -169,4 +178,33 @@ async fn reconcile_deleted_session(
     .execute(&mut **transaction)
     .await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn observed_content_versions_accept_strings_and_json_values() {
+        let context: DeletionContext = serde_json::from_str(
+            r#"{
+              "version": 1,
+              "deletedAt": "2099-01-01",
+              "observed": {
+                "document:meeting": "content-token",
+                "attachment:meeting": ["sha", 123, "", "", ""]
+              }
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            observed_content_version(context.observed.get("document:meeting")),
+            Some("content-token".into())
+        );
+        assert_eq!(
+            observed_content_version(context.observed.get("attachment:meeting")),
+            Some(r#"["sha",123,"","",""]"#.into())
+        );
+    }
 }

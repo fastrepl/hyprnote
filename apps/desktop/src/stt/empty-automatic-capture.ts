@@ -40,7 +40,7 @@ export async function discardEmptyAutomaticCapture({
       await flushCanonicalSessionEditorChanges(sessionId);
       const [session] = await liveQueryClient.execute<{
         title: string;
-        has_attachments: number;
+        has_attachments: boolean | number;
       }>(
         `SELECT title, EXISTS (
           SELECT 1 FROM session_attachments
@@ -52,7 +52,7 @@ export async function discardEmptyAutomaticCapture({
       if (
         !session ||
         session.title !== initialTitle ||
-        session.has_attachments !== 0 ||
+        (session.has_attachments !== 0 && session.has_attachments !== false) ||
         !(await isSessionEmpty(sessionId))
       ) {
         return false;

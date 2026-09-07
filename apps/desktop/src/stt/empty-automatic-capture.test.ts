@@ -44,12 +44,18 @@ beforeEach(() => {
   mocks.flush.mockResolvedValue(undefined);
 });
 
-it("discards only silent automatic audio without deleting the shared note", async () => {
-  expect(await discardEmptyAutomaticCapture(input)).toBe(true);
-  expect(mocks.remove).toHaveBeenCalledWith("meeting");
-  expect(mocks.execute).toHaveBeenCalledTimes(1);
-  expect(mocks.execute.mock.calls[0][0]).toMatch(/^SELECT /);
-});
+it.each([0, false])(
+  "discards silent automatic audio when the attachment flag is %j",
+  async (hasAttachments) => {
+    mocks.execute.mockResolvedValue([
+      { title: "Standup", has_attachments: hasAttachments },
+    ]);
+    expect(await discardEmptyAutomaticCapture(input)).toBe(true);
+    expect(mocks.remove).toHaveBeenCalledWith("meeting");
+    expect(mocks.execute).toHaveBeenCalledTimes(1);
+    expect(mocks.execute.mock.calls[0][0]).toMatch(/^SELECT /);
+  },
+);
 
 it.each([
   { automatic: false },
@@ -81,11 +87,16 @@ it("keeps recordings when the user adds notes", async () => {
   expect(mocks.remove).not.toHaveBeenCalled();
 });
 
-it("keeps audio catalogued before recovery or contributed by another device", async () => {
-  mocks.execute.mockResolvedValue([{ title: "Standup", has_attachments: 1 }]);
-  expect(await discardEmptyAutomaticCapture(input)).toBe(false);
-  expect(mocks.remove).not.toHaveBeenCalled();
-});
+it.each([1, true, null, undefined, "0"])(
+  "keeps audio when the attachment flag is present or uncertain: %j",
+  async (hasAttachments) => {
+    mocks.execute.mockResolvedValue([
+      { title: "Standup", has_attachments: hasAttachments },
+    ]);
+    expect(await discardEmptyAutomaticCapture(input)).toBe(false);
+    expect(mocks.remove).not.toHaveBeenCalled();
+  },
+);
 
 it("flushes edits made during audio analysis before deciding whether to discard", async () => {
   mocks.speech.mockImplementation(async () => {

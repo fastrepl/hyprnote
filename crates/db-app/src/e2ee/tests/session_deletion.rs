@@ -185,6 +185,16 @@ async fn replacement_audio_survives_deletion_of_the_older_recording() {
     .await
     .unwrap();
     delete(a.pool(), "2099-01-01").await;
+    let context: String =
+        sqlx::query_scalar("SELECT deletion_context FROM sessions WHERE id = 'meeting'")
+            .fetch_one(a.pool())
+            .await
+            .unwrap();
+    let context: serde_json::Value = serde_json::from_str(&context).unwrap();
+    assert_eq!(
+        context["observed"]["attachment:session-audio:meeting"],
+        serde_json::json!("[\"empty-device-a\",100,\"\",\"\",\"\"]")
+    );
     sync(a.pool(), b.pool()).await;
     sync(b.pool(), a.pool()).await;
     for db in [&a, &b] {
@@ -198,6 +208,14 @@ async fn replacement_audio_survives_deletion_of_the_older_recording() {
         .unwrap();
         assert_eq!(hash, "useful-device-b");
     }
+    delete(a.pool(), "2100-01-01").await;
+    sync(a.pool(), b.pool()).await;
+    sync(b.pool(), a.pool()).await;
+    assert_deleted(a.pool(), true).await;
+    assert_deleted(b.pool(), true).await;
+    let fresh = test_db().await;
+    sync(a.pool(), fresh.pool()).await;
+    assert_deleted(fresh.pool(), true).await;
 }
 
 #[tokio::test]

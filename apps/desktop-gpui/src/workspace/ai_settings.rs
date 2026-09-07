@@ -842,7 +842,7 @@ impl Workspace {
                             .flex()
                             .items_center()
                             .gap_2()
-                            .child(provider_icon(provider.icon, px(20.0), theme))
+                            .child(provider_slot_icon(provider.icon, theme))
                             // `hover:underline` on the trigger text.
                             .child(
                                 div()
@@ -1301,14 +1301,14 @@ fn section_title(theme: crate::theme::Theme, label: &'static str) -> Div {
         .child(label)
 }
 
-/// `ProviderBadge`: `Batch only` is a `bg-background/40 rounded-md px-1.5
-/// py-0.5 text-[11px] font-medium` chip, everything else a `rounded-full
-/// border px-2 text-xs font-light` pill.
+/// `ProviderBadge`: `After recording` is a `bg-background/40 rounded-md
+/// px-1.5 py-0.5 text-[11px] font-medium` chip, everything else a
+/// `rounded-full border px-2 text-xs font-light` pill.
 fn provider_badge(theme: crate::theme::Theme, badge: &'static str) -> Div {
-    let batch_only = badge == "Batch only";
+    let after_recording = badge == "After recording";
     div()
         .text_color(theme.muted_foreground)
-        .when(batch_only, |chip| {
+        .when(after_recording, |chip| {
             chip.rounded_md()
                 .px(px(6.0))
                 .py(px(2.0))
@@ -1317,7 +1317,7 @@ fn provider_badge(theme: crate::theme::Theme, badge: &'static str) -> Div {
                 .line_height(px(16.0))
                 .font_weight(gpui::FontWeight::MEDIUM)
         })
-        .when(!batch_only, |pill| {
+        .when(!after_recording, |pill| {
             // `.rounded-full` is `0.5rem` in the desktop app.
             pill.rounded(px(8.0))
                 .border_1()
@@ -1330,6 +1330,21 @@ fn provider_badge(theme: crate::theme::Theme, badge: &'static str) -> Div {
 }
 
 /// `ProviderIconSlot` / `ProviderButtonIcon`: the brand mark in a square slot.
+/// `ProviderIconSlot`: the `size-5` slot whose art is `size-3`, except the
+/// Soniox mark scaled by `--soniox-icon-scale` back to the full slot.
+pub(crate) fn provider_slot_icon(glyph: Icon, theme: crate::theme::Theme) -> AnyElement {
+    let soniox = matches!(glyph, Icon::Image(path) if path.contains("soniox"));
+    let art = if soniox { px(20.0) } else { px(12.0) };
+    div()
+        .size(px(20.0))
+        .flex_shrink_0()
+        .flex()
+        .items_center()
+        .justify_center()
+        .child(provider_icon(glyph, art, theme))
+        .into_any_element()
+}
+
 pub(crate) fn provider_icon(
     glyph: Icon,
     size: gpui::Pixels,
@@ -1383,9 +1398,6 @@ fn provider_context(kind: ProviderKind, provider_id: &str) -> Option<&'static st
         }
         (ProviderKind::Stt, "cloudflare_workers_ai") => {
             "Use a [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/) endpoint that exposes Deepgram-compatible Nova-3 transcription."
-        }
-        (ProviderKind::Stt, "fireworks") => {
-            "Use [Fireworks AI](https://fireworks.ai) for transcriptions."
         }
         (ProviderKind::Stt, "mistral") => {
             "Use [Mistral](https://mistral.ai) for transcriptions. Keep the Base URL as `https://api.mistral.ai/v1` (Reset under Advanced if you pasted a transcriptions endpoint). **Voxtral Mini Transcribe 2** transcribes after recording; the realtime model is for live captions."

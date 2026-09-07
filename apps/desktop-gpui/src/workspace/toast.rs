@@ -185,15 +185,32 @@ impl Workspace {
     /// `SettingsAlertToast` on the AI pages: the `stt-settings-alert` /
     /// `llm-settings-alert` warning while no model is configured.
     pub(super) fn settings_alert(&self) -> Option<SharedString> {
+        // `isConfigured`: the visible selection — a configured (available,
+        // verified) provider — with a model.
+        let selection_configured = |kind: super::ai_settings::ProviderKind,
+                                    provider: Option<&str>,
+                                    model: Option<&str>| {
+            provider.is_some_and(|id| {
+                kind.providers().iter().any(|provider| {
+                    provider.id == id && self.ai_provider_configured(kind, provider)
+                })
+            }) && model.is_some_and(|model| !model.is_empty())
+        };
         match self.settings_tab? {
             super::settings::SettingsTab::Transcription => {
-                let configured = self.provider_settings.stt_provider.is_some()
-                    && self.provider_settings.stt_model.is_some();
+                let configured = selection_configured(
+                    super::ai_settings::ProviderKind::Stt,
+                    self.provider_settings.stt_provider.as_deref(),
+                    self.provider_settings.stt_model.as_deref(),
+                );
                 (!configured).then(|| "Choose a transcription model to start listening.".into())
             }
             super::settings::SettingsTab::Intelligence => {
-                let configured = self.provider_settings.llm_provider.is_some()
-                    && self.provider_settings.llm_model.is_some();
+                let configured = selection_configured(
+                    super::ai_settings::ProviderKind::Llm,
+                    self.provider_settings.llm_provider.as_deref(),
+                    self.provider_settings.llm_model.as_deref(),
+                );
                 if !configured {
                     return Some("Choose a language model for summaries and chat.".into());
                 }

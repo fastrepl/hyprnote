@@ -131,13 +131,13 @@ fn nav_groups() -> Vec<(&'static str, Vec<NavItem>)> {
                 NavItem::Tab {
                     tab: SettingsTab::Transcription,
                     label: "Transcription",
-                    icon: "sparkle",
+                    icon: "waveform",
                     requires_pro: false,
                 },
                 NavItem::Tab {
                     tab: SettingsTab::Intelligence,
                     label: "Intelligence",
-                    icon: "sparkle",
+                    icon: "brain",
                     requires_pro: false,
                 },
                 NavItem::Tab {
@@ -3349,9 +3349,11 @@ impl Workspace {
                             .flex()
                             .items_center()
                             .gap_2()
-                            .children(selected_glyph.map(|glyph| {
-                                super::ai_settings::provider_icon(glyph, px(20.0), theme)
-                            }))
+                            .children(
+                                selected_glyph.map(|glyph| {
+                                    super::ai_settings::provider_slot_icon(glyph, theme)
+                                }),
+                            )
                             .child(div().min_w_0().truncate().child(text))
                             .when(selected_deprecated, |row| row.child(deprecated_badge()))
                             // `suffix={<HealthStatusIndicator />}`
@@ -3434,7 +3436,7 @@ impl Workspace {
                     }))
                     .when_some(option.glyph, |row, glyph| {
                         row.gap_2()
-                            .child(super::ai_settings::provider_icon(glyph, px(20.0), theme))
+                            .child(super::ai_settings::provider_slot_icon(glyph, theme))
                     })
                     .child(SharedString::from(option.label.clone()))
                     .when(selected, |item| {

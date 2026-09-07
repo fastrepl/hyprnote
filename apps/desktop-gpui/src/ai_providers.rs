@@ -109,10 +109,10 @@ pub static STT_PROVIDERS: &[Provider] = &[
     },
     Provider {
         id: "local_file",
-        display_name: "On-device file",
+        display_name: "BYO-model",
         badge: Some("On device"),
-        description: Some("whisper.cpp .bin"),
-        icon: Icon::Glyph("folder-open"),
+        description: None,
+        icon: Icon::Glyph("cpu"),
         base_url: Some(""),
         base_url_is_api: false,
         models: &["local-file"],
@@ -209,7 +209,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "openrouter",
         display_name: "OpenRouter",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Mono("brands/openrouter.svg", Some(0x6566F1)),
         base_url: Some("https://openrouter.ai/api/v1"),
@@ -282,7 +282,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "zai",
         display_name: "Z.AI",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Mono("brands/zai.svg", None),
         base_url: Some("https://api.z.ai/api/paas/v4"),
@@ -310,7 +310,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "siliconflow",
         display_name: "SiliconFlow",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Image("brands/siliconcloud.svg"),
         base_url: Some("https://api.siliconflow.com/v1"),
@@ -418,7 +418,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "azure_speech",
         display_name: "Azure AI Speech",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Mono("brands/azure.svg", None),
         base_url: None,
@@ -498,7 +498,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "speechmatics",
         display_name: "Speechmatics",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Image("brands/speechmatics.svg"),
         base_url: Some("https://eu1.asr.api.speechmatics.com/v2"),
@@ -526,7 +526,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "groq",
         display_name: "Groq",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Mono("brands/groq.svg", Some(0xF55036)),
         base_url: Some("https://api.groq.com/openai/v1"),
@@ -574,7 +574,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "revai",
         display_name: "Rev AI",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Image("brands/revai.svg"),
         base_url: Some("https://api.rev.ai/speechtotext/v1"),
@@ -670,7 +670,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "together",
         display_name: "Together AI",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Image("brands/together.svg"),
         base_url: Some("https://api.together.xyz/v1"),
@@ -755,7 +755,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "pyannote",
         display_name: "pyannoteAI",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Image("brands/pyannote-logo-black.png"),
         base_url: Some("https://api.pyannote.ai"),
@@ -775,7 +775,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "cohere",
         display_name: "Cohere",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Image("brands/cohere.svg"),
         base_url: Some("https://api.cohere.com/v2"),
@@ -806,7 +806,7 @@ pub static STT_PROVIDERS: &[Provider] = &[
     Provider {
         id: "aquavoice",
         display_name: "AquaVoice",
-        badge: Some("Batch only"),
+        badge: Some("After recording"),
         description: None,
         icon: Icon::Image("brands/aquavoice-black.png"),
         base_url: Some("https://api.aquavoice.com/v1"),
@@ -828,23 +828,6 @@ pub static STT_PROVIDERS: &[Provider] = &[
         subscription: false,
         hide_advanced: false,
         disabled: false,
-        built_in: false,
-        checks_availability: false,
-    },
-    Provider {
-        id: "fireworks",
-        display_name: "Fireworks",
-        badge: Some("Discontinued"),
-        description: None,
-        icon: Icon::Image("brands/fireworks.svg"),
-        base_url: Some("https://api.fireworks.ai"),
-        base_url_is_api: false,
-        models: &["whisper-v3-turbo"],
-        requirements: &[Requirement::Config(&["api_key"])],
-        links: &[],
-        subscription: false,
-        hide_advanced: false,
-        disabled: true,
         built_in: false,
         checks_availability: false,
     },
@@ -1217,7 +1200,7 @@ pub static LLM_PROVIDERS: &[Provider] = &[
     Provider {
         id: "amazon_bedrock",
         display_name: "Amazon Bedrock",
-        badge: Some("Beta"),
+        badge: None,
         description: None,
         icon: Icon::Image("brands/aws.svg"),
         base_url: None,
@@ -1245,7 +1228,7 @@ pub static LLM_PROVIDERS: &[Provider] = &[
     Provider {
         id: "azure_openai",
         display_name: "Azure OpenAI",
-        badge: Some("Beta"),
+        badge: None,
         description: None,
         icon: Icon::Mono("brands/azure.svg", None),
         base_url: None,
@@ -1273,7 +1256,7 @@ pub static LLM_PROVIDERS: &[Provider] = &[
     Provider {
         id: "google_vertex_ai",
         display_name: "Google Vertex AI",
-        badge: Some("Beta"),
+        badge: None,
         description: None,
         icon: Icon::Image("brands/google-cloud.svg"),
         base_url: None,
@@ -1301,7 +1284,7 @@ pub static LLM_PROVIDERS: &[Provider] = &[
     Provider {
         id: "azure_ai",
         display_name: "Azure AI Foundry",
-        badge: Some("Beta"),
+        badge: None,
         description: None,
         icon: Icon::Mono("brands/azure-ai.svg", None),
         base_url: None,
@@ -1616,7 +1599,7 @@ pub static LLM_PROVIDERS: &[Provider] = &[
     Provider {
         id: "apple_foundation",
         display_name: "Apple Intelligence",
-        badge: Some("Experimental"),
+        badge: None,
         description: None,
         icon: Icon::Mono("brands/apple.svg", None),
         base_url: None,

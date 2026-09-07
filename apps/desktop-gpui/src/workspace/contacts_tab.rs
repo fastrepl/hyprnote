@@ -38,19 +38,18 @@ pub(crate) enum Selection {
 }
 
 pub(crate) struct ContactsState {
-    humans: Vec<Human>,
-    organizations: Vec<Organization>,
+    pub(super) humans: Vec<Human>,
+    pub(super) organizations: Vec<Organization>,
     selected: Option<Selection>,
     sort: Sort,
     sort_menu_open: bool,
     search: Entity<TextInput>,
     /// `showNewPerson`
     new_person: Option<Entity<TextInput>>,
-    details: Option<PersonDetails>,
+    pub(super) details: Option<PersonDetails>,
     organization: Option<OrganizationDetails>,
     /// `ContactPageHeader`'s `...` menu, for whichever column is shown.
     actions_open: bool,
-    /// `useContactSummary` is LLM-backed; the shell shows the stored facts.
     avatars: HashMap<String, Arc<RenderImage>>,
     /// Uploaded `avatarDataUrl` photos, decoded once per data URL.
     photos: HashMap<String, Option<Arc<RenderImage>>>,
@@ -62,15 +61,17 @@ struct OrganizationDetails {
     name: Entity<TextInput>,
 }
 
-struct PersonDetails {
-    id: String,
+pub(super) struct PersonDetails {
+    pub(super) id: String,
     name: Entity<TextInput>,
     job_title: Entity<TextInput>,
     email: Entity<TextInput>,
     phone: Entity<TextInput>,
     linkedin: Entity<TextInput>,
     memo: Entity<TextArea>,
-    sessions: Vec<HumanSession>,
+    pub(super) sessions: Vec<HumanSession>,
+    /// `useContactSummary` for this person.
+    pub(super) summary: super::contact_summary::SummaryQuery,
     organization_open: bool,
     organization_search: Option<Entity<TextInput>>,
     related_newest: bool,
@@ -203,6 +204,16 @@ impl Workspace {
                     state.humans = humans;
                     state.organizations = organizations;
                     cx.notify();
+                }
+                // `useHumanSessions` is a live query: the open person's
+                // meetings follow the database too.
+                if let Some(id) = this
+                    .contacts
+                    .as_ref()
+                    .and_then(|state| state.details.as_ref())
+                    .map(|details| details.id.clone())
+                {
+                    this.refresh_related_notes(id, cx);
                 }
             })
             .ok();
@@ -349,6 +360,7 @@ impl Workspace {
                 linkedin,
                 memo,
                 sessions: Vec::new(),
+                summary: Default::default(),
                 organization_open: false,
                 organization_search: None,
                 related_newest: true,
@@ -372,6 +384,7 @@ impl Workspace {
                     .filter(|details| details.id == id)
                 {
                     details.sessions = sessions;
+                    this.sync_contact_summary(cx);
                     cx.notify();
                 }
             })
@@ -1632,7 +1645,7 @@ impl Workspace {
                     ),
             )
             .when(!details.sessions.is_empty(), |body| {
-                body.child(self.render_contact_summary(human))
+                body.child(self.render_contact_summary(human, &details.summary, cx))
             })
             .child(self.render_related_notes(details, cx))
             .child(div().pb(px(384.0)));
@@ -1651,69 +1664,6 @@ impl Workspace {
             ))
             .child(body)
             .into_any_element()
-    }
-
-    /// `ContactSummarySection` with the stored facts or the explainer copy.
-    fn render_contact_summary(&self, human: &Human) -> Div {
-        let theme = self.theme;
-        div()
-            .border_b_1()
-            .border_color(theme.border)
-            .p_6()
-            .child(
-                div()
-                    .mb_3()
-                    .flex()
-                    .items_center()
-                    .gap_2()
-                    .child(
-                        div()
-                            .tw_text_sm()
-                            .font_weight(gpui::FontWeight::MEDIUM)
-                            .text_color(theme.muted_foreground)
-                            .child("Summary"),
-                    ),
-            )
-            .child(
-                div()
-                    .rounded_lg()
-                    .border_1()
-                    .border_color(theme.border)
-                    .bg(theme.muted)
-                    .p_4()
-                    .child(if human.summary_facts.is_empty() {
-                        div()
-                            .tw_text_sm()
-                            .line_height(px(22.0))
-                            .text_color(theme.muted_foreground)
-                            .child("AI-generated summary of all interactions and notes with this contact will appear here. This will synthesize key discussion points, action items, and relationship context across all meetings and notes.")
-                            .into_any_element()
-                    } else {
-                        div()
-                            .flex()
-                            .flex_col()
-                            .gap_2()
-                            .pl_5()
-                            .tw_text_sm()
-                            .line_height(px(22.0))
-                            .text_color(theme.foreground)
-                            .children(human.summary_facts.iter().map(|fact| {
-                                div()
-                                    .relative()
-                                    .child(
-                                        div()
-                                            .absolute()
-                                            .left(px(-14.0))
-                                            .top(px(8.0))
-                                            .size(px(5.0))
-                                            .rounded_full()
-                                            .bg(theme.foreground),
-                                    )
-                                    .child(SharedString::from(fact.clone()))
-                            }))
-                            .into_any_element()
-                    }),
-            )
     }
 
     /// `RelatedNotesSection`

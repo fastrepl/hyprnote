@@ -12,6 +12,7 @@ mod batch;
 mod capture_marker;
 mod chat;
 mod chat_tools;
+mod contact_summary;
 mod contacts;
 mod cuelume;
 mod db;

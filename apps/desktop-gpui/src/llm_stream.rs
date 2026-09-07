@@ -60,6 +60,9 @@ pub struct Request {
     pub max_output_tokens: u32,
     /// The tools the model may call; empty leaves the request without any.
     pub tools: Vec<ToolSpec>,
+    /// `Output.object`'s JSON Schema: the reply must be one object matching
+    /// it, requested in each provider's structured-output shape.
+    pub json_schema: Option<Value>,
 }
 
 impl Request {
@@ -74,6 +77,7 @@ impl Request {
             messages: vec![Turn::User(prompt.into())],
             max_output_tokens,
             tools: Vec::new(),
+            json_schema: None,
         }
     }
 }
@@ -125,6 +129,7 @@ impl Request {
             }],
             max_output_tokens,
             tools: Vec::new(),
+            json_schema: None,
         }
     }
 }
@@ -198,8 +203,99 @@ fn merge(target: &mut Value, extra: Option<Value>) {
     }
 }
 
-/// The HTTP request for one generation attempt.
+/// `getModelCapabilities().supportsStructuredOutput` of `@ai-sdk/anthropic`:
+/// the models that take `output_config.format`; older ones get the `json`
+/// tool instead.
+fn anthropic_supports_structured_output(model: &str) -> bool {
+    [
+        "claude-sonnet-4-6",
+        "claude-opus-4-6",
+        "claude-sonnet-4-5",
+        "claude-opus-4-5",
+        "claude-haiku-4-5",
+        "claude-opus-4-1",
+    ]
+    .iter()
+    .any(|family| model.contains(family))
+}
+
+/// `convertJSONSchemaToOpenAPISchema` of `@ai-sdk/google`, for the schema
+/// features the AI tasks use: Gemini's `responseSchema` drops `$schema`,
+/// `additionalProperties`, and array bounds.
+fn openapi_schema(schema: &Value) -> Value {
+    let Some(object) = schema.as_object() else {
+        return schema.clone();
+    };
+    let mut out = serde_json::Map::new();
+    for key in ["description", "required", "format"] {
+        if let Some(value) = object.get(key) {
+            out.insert(key.to_string(), value.clone());
+        }
+    }
+    if let Some(constant) = object.get("const") {
+        out.insert("enum".to_string(), json!([constant]));
+    }
+    if let Some(kind) = object.get("type") {
+        match kind.as_array() {
+            Some(kinds) if kinds.iter().any(|k| k == "null") => {
+                if let Some(first) = kinds.iter().find(|k| *k != "null") {
+                    out.insert("type".to_string(), first.clone());
+                }
+                out.insert("nullable".to_string(), Value::Bool(true));
+            }
+            _ => {
+                out.insert("type".to_string(), kind.clone());
+            }
+        }
+    }
+    if let Some(values) = object.get("enum") {
+        out.insert("enum".to_string(), values.clone());
+    }
+    if let Some(properties) = object.get("properties").and_then(Value::as_object) {
+        out.insert(
+            "properties".to_string(),
+            Value::Object(
+                properties
+                    .iter()
+                    .map(|(key, value)| (key.clone(), openapi_schema(value)))
+                    .collect(),
+            ),
+        );
+    }
+    if let Some(items) = object.get("items") {
+        out.insert(
+            "items".to_string(),
+            match items.as_array() {
+                Some(items) => Value::Array(items.iter().map(openapi_schema).collect()),
+                None => openapi_schema(items),
+            },
+        );
+    }
+    for key in ["allOf", "anyOf", "oneOf"] {
+        if let Some(variants) = object.get(key).and_then(Value::as_array) {
+            out.insert(
+                key.to_string(),
+                Value::Array(variants.iter().map(openapi_schema).collect()),
+            );
+        }
+    }
+    if let Some(min_length) = object.get("minLength") {
+        out.insert("minLength".to_string(), min_length.clone());
+    }
+    Value::Object(out)
+}
+
+/// The HTTP request for one streaming generation attempt.
 pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest, String> {
+    build(conn, request, true)
+}
+
+/// The HTTP request for one `generateText` attempt: the reply arrives whole.
+pub fn build_generate_request(conn: &Connection, request: &Request) -> Result<HttpRequest, String> {
+    build(conn, request, false)
+}
+
+fn build(conn: &Connection, request: &Request, stream: bool) -> Result<HttpRequest, String> {
     let base = conn.base_url.trim_end_matches('/');
     if base.is_empty() {
         return Err("The language model provider has no base URL.".to_string());
@@ -208,17 +304,35 @@ pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest
     let model = conn.model_id.as_str();
     let mut openai_messages = vec![json!({ "role": "system", "content": request.system })];
     openai_messages.extend(request.messages.iter().map(openai_message));
-    let mut openai_body = json!({
-        "model": model,
-        "stream": true,
-        "messages": openai_messages
-    });
+    // Keys in the order the SDK's `args` spread produces them.
+    let mut openai_body = json!({ "model": model });
     if request.max_output_tokens > 0 {
         merge(
             &mut openai_body,
             Some(json!({ "max_tokens": request.max_output_tokens })),
         );
     }
+    if let Some(schema) = &request.json_schema {
+        // `@ai-sdk/openai` and `@ai-sdk/azure` send the schema itself;
+        // `@ai-sdk/openai-compatible` without `supportsStructuredOutputs`
+        // asks for any JSON object.
+        let response_format = if matches!(conn.provider_id.as_str(), "openai" | "azure_openai") {
+            json!({
+                "type": "json_schema",
+                "json_schema": { "schema": schema, "strict": true, "name": "response" }
+            })
+        } else {
+            json!({ "type": "json_object" })
+        };
+        merge(
+            &mut openai_body,
+            Some(json!({ "response_format": response_format })),
+        );
+    }
+    merge(
+        &mut openai_body,
+        Some(json!({ "messages": openai_messages })),
+    );
     if !request.tools.is_empty() {
         let tools: Vec<Value> = request
             .tools
@@ -239,6 +353,9 @@ pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest
             Some(json!({ "tools": tools, "tool_choice": "auto" })),
         );
     }
+    if stream {
+        merge(&mut openai_body, Some(json!({ "stream": true })));
+    }
     Ok(match conn.provider_id.as_str() {
         "anarlog" | "claude" | "chatgpt" | "grok" | "github_copilot" | "apple_foundation" => {
             return Err(format!(
@@ -249,12 +366,31 @@ pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest
         "anthropic" => {
             let mut body = json!({
                 "model": model,
-                "stream": true,
                 // Anthropic requires the cap; the SDK's default for chat.
                 "max_tokens": if request.max_output_tokens > 0 { request.max_output_tokens } else { 4096 },
-                "system": request.system,
-                "messages": request.messages.iter().map(anthropic_message).collect::<Vec<_>>()
             });
+            // `thinking` / `output_config` precede the prompt in `baseArgs`.
+            merge(&mut body, reasoning_options(conn));
+            if let Some(schema) = &request.json_schema
+                && anthropic_supports_structured_output(model)
+            {
+                let mut output_config = body
+                    .as_object_mut()
+                    .and_then(|body| body.remove("output_config"))
+                    .unwrap_or_else(|| json!({}));
+                merge(
+                    &mut output_config,
+                    Some(json!({ "format": { "type": "json_schema", "schema": schema } })),
+                );
+                merge(&mut body, Some(json!({ "output_config": output_config })));
+            }
+            merge(
+                &mut body,
+                Some(json!({
+                    "system": request.system,
+                    "messages": request.messages.iter().map(anthropic_message).collect::<Vec<_>>()
+                })),
+            );
             if !request.tools.is_empty() {
                 let tools: Vec<Value> = request
                     .tools
@@ -269,7 +405,25 @@ pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest
                     .collect();
                 merge(&mut body, Some(json!({ "tools": tools })));
             }
-            merge(&mut body, reasoning_options(conn));
+            if let Some(schema) = &request.json_schema
+                && !anthropic_supports_structured_output(model)
+            {
+                // `jsonResponseTool`: the object arrives as a tool call.
+                merge(
+                    &mut body,
+                    Some(json!({
+                        "tools": [{
+                            "name": "json",
+                            "description": "Respond with a JSON object.",
+                            "input_schema": schema
+                        }],
+                        "tool_choice": { "type": "any", "disable_parallel_tool_use": true }
+                    })),
+                );
+            }
+            if stream {
+                merge(&mut body, Some(json!({ "stream": true })));
+            }
             HttpRequest {
                 url: format!("{base}/messages"),
                 headers: vec![
@@ -289,12 +443,21 @@ pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest
             if request.max_output_tokens > 0 {
                 generation_config = json!({ "maxOutputTokens": request.max_output_tokens });
             }
+            if let Some(schema) = &request.json_schema {
+                merge(
+                    &mut generation_config,
+                    Some(json!({
+                        "responseMimeType": "application/json",
+                        "responseSchema": openapi_schema(schema)
+                    })),
+                );
+            }
             merge(&mut generation_config, reasoning_options(conn));
             let contents: Vec<Value> = request.messages.iter().map(google_content).collect();
             let mut body = json!({
-                "systemInstruction": { "parts": [{ "text": request.system }] },
+                "generationConfig": generation_config,
                 "contents": contents,
-                "generationConfig": generation_config
+                "systemInstruction": { "parts": [{ "text": request.system }] }
             });
             if !request.tools.is_empty() {
                 let declarations: Vec<Value> = request
@@ -314,7 +477,11 @@ pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest
                 );
             }
             HttpRequest {
-                url: format!("{base}/models/{model}:streamGenerateContent?alt=sse"),
+                url: if stream {
+                    format!("{base}/models/{model}:streamGenerateContent?alt=sse")
+                } else {
+                    format!("{base}/models/{model}:generateContent")
+                },
                 headers: vec![("x-goog-api-key", api_key.to_string())],
                 body,
                 family: Family::Google,
@@ -889,6 +1056,211 @@ enum Retry {
     Give(String),
 }
 
+/// A whole reply: `generateText`'s text and tool calls.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Generated {
+    pub text: String,
+    pub tool_calls: Vec<ToolCall>,
+}
+
+/// `generateText`: one complete reply, retried like the SDK (`maxRetries`
+/// attempts after the first, backing off 2s, 4s, ...).
+pub async fn generate(
+    conn: &Connection,
+    request: &Request,
+    max_retries: usize,
+) -> Result<Generated, String> {
+    let http = build_generate_request(conn, request)?;
+    let client = reqwest::Client::builder()
+        .connect_timeout(Duration::from_secs(30))
+        .build()
+        .map_err(|error| error.to_string())?;
+    let mut attempt = 0;
+    loop {
+        match generate_once(&client, &http).await {
+            Ok(generated) => return Ok(generated),
+            Err(Retry::Give(message)) => return Err(message),
+            Err(Retry::Again(message)) => {
+                attempt += 1;
+                if attempt > max_retries {
+                    return Err(message);
+                }
+                tokio::time::sleep(Duration::from_secs(1 << attempt)).await;
+            }
+        }
+    }
+}
+
+/// `Output.object` over a whole reply: the object the model produced,
+/// whether as text or as Anthropic's `json` tool call.
+pub async fn generate_object(
+    conn: &Connection,
+    request: &Request,
+    max_retries: usize,
+) -> Result<Value, String> {
+    let generated = generate(conn, request, max_retries).await?;
+    if let Some(call) = generated.tool_calls.iter().find(|call| call.name == "json") {
+        return Ok(call.arguments.clone());
+    }
+    serde_json::from_str(generated.text.trim())
+        .map_err(|_| "No object generated: could not parse the response.".to_string())
+}
+
+async fn generate_once(client: &reqwest::Client, http: &HttpRequest) -> Result<Generated, Retry> {
+    let mut builder = client.post(&http.url).json(&http.body);
+    for (name, value) in &http.headers {
+        builder = builder.header(*name, value);
+    }
+    let response = builder.send().await.map_err(|error| {
+        if error.is_connect() || error.is_timeout() || error.is_request() {
+            Retry::Again(error.to_string())
+        } else {
+            Retry::Give(error.to_string())
+        }
+    })?;
+    let status = response.status().as_u16();
+    let body = response
+        .text()
+        .await
+        .map_err(|error| Retry::Again(error.to_string()))?;
+    if status >= 400 {
+        let message = crate::ai_health::llm_health_error_message(status, &body);
+        return Err(if retryable_status(status) {
+            Retry::Again(message)
+        } else {
+            Retry::Give(message)
+        });
+    }
+    let value: Value = serde_json::from_str(&body)
+        .map_err(|_| Retry::Give("The language model returned an unreadable reply.".to_string()))?;
+    parse_generated(http.family, &value).map_err(Retry::Give)
+}
+
+/// A complete reply's text and tool calls, per family, with the thinking
+/// tags stripped like `extractReasoningMiddleware`'s `wrapGenerate`.
+fn parse_generated(family: Family, value: &Value) -> Result<Generated, String> {
+    if let Some(error) = value.get("error") {
+        return Err(api_error_message(error));
+    }
+    let mut text = String::new();
+    let mut tool_calls = Vec::new();
+    match family {
+        Family::OpenAiCompatible => {
+            let message = value
+                .get("choices")
+                .and_then(Value::as_array)
+                .and_then(|choices| choices.first())
+                .and_then(|choice| choice.get("message"));
+            if let Some(content) = message
+                .and_then(|message| message.get("content"))
+                .and_then(Value::as_str)
+            {
+                text.push_str(content);
+            }
+            for (position, call) in message
+                .and_then(|message| message.get("tool_calls"))
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+                .enumerate()
+            {
+                let function = call.get("function");
+                let arguments = function
+                    .and_then(|f| f.get("arguments"))
+                    .and_then(Value::as_str)
+                    .unwrap_or_default();
+                tool_calls.push(ToolCall {
+                    id: call
+                        .get("id")
+                        .and_then(Value::as_str)
+                        .filter(|id| !id.is_empty())
+                        .map_or_else(|| format!("call_{position}"), str::to_string),
+                    name: function
+                        .and_then(|f| f.get("name"))
+                        .and_then(Value::as_str)
+                        .unwrap_or_default()
+                        .to_string(),
+                    arguments: serde_json::from_str(arguments).unwrap_or_else(|_| json!({})),
+                });
+            }
+        }
+        Family::Anthropic => {
+            for block in value
+                .get("content")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
+                match block.get("type").and_then(Value::as_str) {
+                    Some("text") => {
+                        if let Some(part) = block.get("text").and_then(Value::as_str) {
+                            text.push_str(part);
+                        }
+                    }
+                    Some("tool_use") => tool_calls.push(ToolCall {
+                        id: block
+                            .get("id")
+                            .and_then(Value::as_str)
+                            .unwrap_or_default()
+                            .to_string(),
+                        name: block
+                            .get("name")
+                            .and_then(Value::as_str)
+                            .unwrap_or_default()
+                            .to_string(),
+                        arguments: block.get("input").cloned().unwrap_or_else(|| json!({})),
+                    }),
+                    _ => {}
+                }
+            }
+        }
+        Family::Google => {
+            let parts = value
+                .get("candidates")
+                .and_then(Value::as_array)
+                .and_then(|candidates| candidates.first())
+                .and_then(|candidate| candidate.get("content"))
+                .and_then(|content| content.get("parts"))
+                .and_then(Value::as_array);
+            for (position, part) in parts.into_iter().flatten().enumerate() {
+                if part.get("thought").and_then(Value::as_bool) == Some(true) {
+                    continue;
+                }
+                if let Some(part_text) = part.get("text").and_then(Value::as_str) {
+                    text.push_str(part_text);
+                }
+                if let Some(call) = part.get("functionCall") {
+                    tool_calls.push(ToolCall {
+                        id: call
+                            .get("id")
+                            .and_then(Value::as_str)
+                            .map_or_else(|| format!("call_{position}"), str::to_string),
+                        name: call
+                            .get("name")
+                            .and_then(Value::as_str)
+                            .unwrap_or_default()
+                            .to_string(),
+                        arguments: call.get("args").cloned().unwrap_or_else(|| json!({})),
+                    });
+                }
+            }
+        }
+    }
+    let mut extractor = ReasoningExtractor::default();
+    let mut chunks = extractor.push(&text);
+    chunks.extend(extractor.finish());
+    Ok(Generated {
+        text: chunks
+            .into_iter()
+            .filter_map(|chunk| match chunk {
+                Chunk::TextDelta(text) => Some(text),
+                _ => None,
+            })
+            .collect(),
+        tool_calls,
+    })
+}
+
 async fn run_once(
     client: &reqwest::Client,
     http: &HttpRequest,
@@ -1405,5 +1777,198 @@ mod tests {
         assert!(is_local_model_provider("ollama"));
         assert!(is_local_model_provider("lmstudio"));
         assert!(!is_local_model_provider("openai"));
+    }
+
+    fn object_request() -> Request {
+        let mut request = Request::new("SYS", r#"{"target":{"name":"A"},"meetings":[]}"#, 4096);
+        request.json_schema = Some(crate::contact_summary::schema());
+        request
+    }
+
+    // The bodies below are what `generateText({ output: Output.object })`
+    // sent through each `@ai-sdk` provider, captured against a fake fetch.
+    #[test]
+    fn generate_requests_take_each_provider_structured_output_shape() {
+        let request = object_request();
+        let compatible =
+            build_generate_request(&conn("lmstudio", "m", "default"), &request).unwrap();
+        assert_eq!(compatible.url, "https://api.example/v1/chat/completions");
+        assert_eq!(compatible.body.get("stream"), None);
+        assert_eq!(compatible.body["max_tokens"], 4096);
+        assert_eq!(
+            compatible.body["response_format"],
+            json!({ "type": "json_object" })
+        );
+
+        let openai =
+            build_generate_request(&conn("openai", "gpt-4o", "default"), &request).unwrap();
+        assert_eq!(
+            openai.body["response_format"],
+            json!({
+                "type": "json_schema",
+                "json_schema": {
+                    "schema": crate::contact_summary::schema(),
+                    "strict": true,
+                    "name": "response"
+                }
+            })
+        );
+
+        let anthropic =
+            build_generate_request(&conn("anthropic", "claude-sonnet-4-5", "default"), &request)
+                .unwrap();
+        assert_eq!(anthropic.body.get("stream"), None);
+        assert_eq!(
+            anthropic.body["output_config"],
+            json!({ "format": { "type": "json_schema", "schema": crate::contact_summary::schema() } })
+        );
+        assert_eq!(anthropic.body.get("tools"), None);
+
+        // Reasoning effort shares `output_config` with the format.
+        let anthropic_effort =
+            build_generate_request(&conn("anthropic", "claude-sonnet-4-5", "high"), &request)
+                .unwrap();
+        assert_eq!(anthropic_effort.body["output_config"]["effort"], "high");
+        assert_eq!(
+            anthropic_effort.body["output_config"]["format"]["type"],
+            "json_schema"
+        );
+
+        let anthropic_tool = build_generate_request(
+            &conn("anthropic", "claude-3-haiku-20240307", "default"),
+            &request,
+        )
+        .unwrap();
+        assert_eq!(anthropic_tool.body.get("output_config"), None);
+        assert_eq!(
+            anthropic_tool.body["tools"],
+            json!([{
+                "name": "json",
+                "description": "Respond with a JSON object.",
+                "input_schema": crate::contact_summary::schema()
+            }])
+        );
+        assert_eq!(
+            anthropic_tool.body["tool_choice"],
+            json!({ "type": "any", "disable_parallel_tool_use": true })
+        );
+
+        let google = build_generate_request(
+            &conn("google_generative_ai", "gemini-2.5-flash", "default"),
+            &request,
+        )
+        .unwrap();
+        assert_eq!(
+            google.url,
+            "https://api.example/v1/models/gemini-2.5-flash:generateContent"
+        );
+        assert_eq!(
+            google.body["generationConfig"],
+            json!({
+                "maxOutputTokens": 4096,
+                "responseMimeType": "application/json",
+                "responseSchema": {
+                    "required": ["facts"],
+                    "type": "object",
+                    "properties": { "facts": { "type": "array", "items": { "type": "string" } } }
+                }
+            })
+        );
+    }
+
+    #[test]
+    fn streaming_requests_are_unchanged_without_a_schema() {
+        let http = build_request(&conn("openai", "gpt-4o", "default"), &request()).unwrap();
+        assert_eq!(http.body["stream"], true);
+        assert_eq!(http.body.get("response_format"), None);
+        let google = build_request(
+            &conn("google_generative_ai", "gemini-2.5-flash", "default"),
+            &request(),
+        )
+        .unwrap();
+        assert!(google.url.ends_with(":streamGenerateContent?alt=sse"));
+        assert_eq!(
+            google.body["generationConfig"].get("responseMimeType"),
+            None
+        );
+    }
+
+    #[test]
+    fn whole_replies_parse_per_family() {
+        let openai = parse_generated(
+            Family::OpenAiCompatible,
+            &json!({
+                "choices": [{ "message": {
+                    "role": "assistant",
+                    "content": "<think>hmm</think>\n{\"facts\":[\"a\"]}",
+                    "tool_calls": [{ "id": "c1", "type": "function", "function": { "name": "f", "arguments": "{\"x\":1}" } }]
+                } }]
+            }),
+        )
+        .unwrap();
+        assert_eq!(openai.text, "{\"facts\":[\"a\"]}");
+        assert_eq!(openai.tool_calls[0].name, "f");
+        assert_eq!(openai.tool_calls[0].arguments, json!({ "x": 1 }));
+
+        let anthropic = parse_generated(
+            Family::Anthropic,
+            &json!({
+                "content": [
+                    { "type": "text", "text": "hi " },
+                    { "type": "text", "text": "there" },
+                    { "type": "tool_use", "id": "t1", "name": "json", "input": { "facts": ["a", "b", "c"] } }
+                ]
+            }),
+        )
+        .unwrap();
+        assert_eq!(anthropic.text, "hi there");
+        assert_eq!(
+            anthropic.tool_calls[0].arguments["facts"],
+            json!(["a", "b", "c"])
+        );
+
+        let google = parse_generated(
+            Family::Google,
+            &json!({
+                "candidates": [{ "content": { "parts": [
+                    { "text": "plan", "thought": true },
+                    { "text": "{\"facts\":[]}" }
+                ] } }]
+            }),
+        )
+        .unwrap();
+        assert_eq!(google.text, "{\"facts\":[]}");
+        assert!(google.tool_calls.is_empty());
+
+        let error = parse_generated(
+            Family::OpenAiCompatible,
+            &json!({ "error": { "message": "quota exceeded" } }),
+        );
+        assert_eq!(error, Err("quota exceeded".to_string()));
+    }
+
+    #[test]
+    fn openapi_schema_drops_unsupported_keywords() {
+        let converted = openapi_schema(&json!({
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "properties": {
+                "kind": { "type": ["string", "null"], "enum": ["a", "b"], "description": "d" },
+                "n": { "const": 1 }
+            },
+            "required": ["kind"],
+            "additionalProperties": false
+        }));
+        assert_eq!(
+            converted,
+            json!({
+                "required": ["kind"],
+                "type": "object",
+                "properties": {
+                    "kind": { "description": "d", "type": "string", "nullable": true, "enum": ["a", "b"] },
+                    "n": { "enum": [1] }
+                }
+            })
+        );
     }
 }

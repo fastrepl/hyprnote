@@ -19,8 +19,8 @@ pub struct Human {
     pub pinned: bool,
     pub pin_order: Option<i64>,
     pub avatar_data_url: Option<String>,
-    /// `metadata_json.contactSummary.facts`
-    pub summary_facts: Vec<String>,
+    /// `metadata_json.contactSummary`, when it is a usable record.
+    pub summary: Option<crate::contact_summary::Summary>,
 }
 
 impl Human {
@@ -65,6 +65,9 @@ pub struct HumanSession {
     pub id: String,
     pub title: String,
     pub created_at: String,
+    /// The newest `updated_at` across the session, its participant mapping,
+    /// its documents, and its transcripts: what the contact summary keys on.
+    pub source_updated_at: String,
 }
 
 const HUMANS_SQL: &str = "
@@ -106,7 +109,34 @@ const ORGANIZATIONS_SQL: &str = "
 ";
 
 const HUMAN_SESSIONS_SQL: &str = "
-  SELECT sessions.id, sessions.title, sessions.created_at
+  SELECT
+    sessions.id,
+    sessions.title,
+    sessions.created_at,
+    MAX(
+      sessions.updated_at,
+      COALESCE((
+        SELECT MAX(mapping.updated_at)
+        FROM session_participants AS mapping
+        WHERE mapping.session_id = sessions.id
+          AND mapping.human_id = ?
+          AND mapping.source <> 'excluded'
+          AND mapping.deleted_at IS NULL
+      ), ''),
+      COALESCE((
+        SELECT MAX(document.updated_at)
+        FROM session_documents AS document
+        WHERE document.session_id = sessions.id
+          AND document.kind IN ('note', 'summary', 'template_output')
+          AND document.deleted_at IS NULL
+      ), ''),
+      COALESCE((
+        SELECT MAX(transcript.updated_at)
+        FROM transcripts AS transcript
+        WHERE transcript.session_id = sessions.id
+          AND transcript.deleted_at IS NULL
+      ), '')
+    ) AS source_updated_at
   FROM sessions
   WHERE sessions.deleted_at IS NULL
     AND EXISTS (
@@ -167,27 +197,6 @@ fn now_iso() -> String {
         .to_string()
 }
 
-fn parse_summary_facts(json: Option<&str>) -> Vec<String> {
-    let Some(json) = json else {
-        return Vec::new();
-    };
-    let value: serde_json::Value = match serde_json::from_str(json) {
-        Ok(serde_json::Value::String(inner)) => serde_json::from_str(&inner).unwrap_or_default(),
-        Ok(value) => value,
-        Err(_) => return Vec::new(),
-    };
-    value
-        .get("facts")
-        .and_then(|facts| facts.as_array())
-        .map(|facts| {
-            facts
-                .iter()
-                .filter_map(|fact| fact.as_str().map(str::to_string))
-                .collect()
-        })
-        .unwrap_or_default()
-}
-
 pub async fn list_humans(pool: &SqlitePool) -> anyhow::Result<Vec<Human>> {
     type Row = (
         String,
@@ -238,7 +247,7 @@ pub async fn list_humans(pool: &SqlitePool) -> anyhow::Result<Vec<Human>> {
                 pinned: pinned != 0,
                 pin_order,
                 avatar_data_url: avatar_data_url.filter(|url| !url.is_empty()),
-                summary_facts: parse_summary_facts(summary.as_deref()),
+                summary: crate::contact_summary::Summary::parse(summary.as_deref()),
             },
         )
         .collect())
@@ -279,16 +288,18 @@ pub async fn human_sessions(
     pool: &SqlitePool,
     human_id: &str,
 ) -> anyhow::Result<Vec<HumanSession>> {
-    let rows: Vec<(String, String, String)> = sqlx::query_as(HUMAN_SESSIONS_SQL)
+    let rows: Vec<(String, String, String, String)> = sqlx::query_as(HUMAN_SESSIONS_SQL)
+        .bind(human_id)
         .bind(human_id)
         .fetch_all(pool)
         .await?;
     Ok(rows
         .into_iter()
-        .map(|(id, title, created_at)| HumanSession {
+        .map(|(id, title, created_at, source_updated_at)| HumanSession {
             id,
             title,
             created_at,
+            source_updated_at,
         })
         .collect())
 }
@@ -326,6 +337,32 @@ pub async fn update_human_field(
         .bind(human_id)
         .execute(pool)
         .await?;
+    Ok(())
+}
+
+/// `updateHumanContactSummary`: the brief lives under
+/// `metadata_json.contactSummary`; unreadable metadata is replaced.
+pub async fn update_human_contact_summary(
+    pool: &SqlitePool,
+    human_id: &str,
+    summary: &crate::contact_summary::Summary,
+) -> anyhow::Result<()> {
+    sqlx::query(
+        "UPDATE humans
+         SET
+           metadata_json = json_set(
+             CASE WHEN json_valid(metadata_json) THEN metadata_json ELSE '{}' END,
+             '$.contactSummary',
+             json(?)
+           ),
+           updated_at = ?
+         WHERE id = ? AND deleted_at IS NULL",
+    )
+    .bind(summary.to_json())
+    .bind(now_iso())
+    .bind(human_id)
+    .execute(pool)
+    .await?;
     Ok(())
 }
 

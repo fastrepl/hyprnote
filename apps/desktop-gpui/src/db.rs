@@ -2528,6 +2528,17 @@ impl Store {
     }
 
     /// `updateHuman` for one column.
+    pub fn update_human_contact_summary(
+        &self,
+        human_id: String,
+        summary: crate::contact_summary::Summary,
+    ) -> tokio::task::JoinHandle<anyhow::Result<()>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            crate::contacts::update_human_contact_summary(db.pool(), &human_id, &summary).await
+        })
+    }
+
     pub fn update_human_field(
         &self,
         human_id: String,

@@ -9,6 +9,9 @@ esac
 cd "$(dirname "${BASH_SOURCE[0]}")/../../.."
 
 export PATH="${CARGO_HOME:-$HOME/.cargo}/bin:$PATH"
+if command -v set-env >/dev/null 2>&1; then
+  set-env PATH "$PATH"
+fi
 if ! command -v rustup >/dev/null 2>&1; then
   installer=$(mktemp)
   trap 'rm -f "$installer"' EXIT

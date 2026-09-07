@@ -21,6 +21,7 @@ export const env = createEnv({
     SUPABASE_URL: requiredInProd(z.string().min(1)),
     SUPABASE_ANON_KEY: requiredInProd(z.string().min(1)),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+    WORKSPACE_SHARE_PROXY_SECRET: z.string().min(1).optional(),
 
     STRIPE_SECRET_KEY: requiredInProd(z.string().min(1)),
     STRIPE_MONTHLY_PRICE_ID: requiredInProd(z.string().min(1)),

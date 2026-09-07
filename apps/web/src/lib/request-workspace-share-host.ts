@@ -6,13 +6,25 @@ const firstHeaderValue = (value: string | null) =>
     .map((part) => part.trim())
     .find(Boolean);
 
-export const getRequestHost = (headers: Headers) =>
-  firstHeaderValue(headers.get("x-anarlog-workspace-share-host")) ??
-  firstHeaderValue(headers.get("x-forwarded-host")) ??
-  firstHeaderValue(headers.get("host"));
+export const getRequestHost = (headers: Headers, proxySecret?: string) => {
+  if (
+    proxySecret &&
+    headers.get("x-anarlog-workspace-share-token") === proxySecret
+  ) {
+    return firstHeaderValue(headers.get("x-anarlog-workspace-share-host"));
+  }
 
-export const getWorkspaceShareSlugFromHeaders = (headers: Headers) => {
-  const host = getRequestHost(headers);
+  return (
+    firstHeaderValue(headers.get("x-forwarded-host")) ??
+    firstHeaderValue(headers.get("host"))
+  );
+};
+
+export const getWorkspaceShareSlugFromHeaders = (
+  headers: Headers,
+  proxySecret?: string,
+) => {
+  const host = getRequestHost(headers, proxySecret);
   if (!host) return null;
 
   try {

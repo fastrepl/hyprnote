@@ -10,7 +10,7 @@ const LOCAL_APP_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
 export const getRequestAppOrigin = () => {
   const headers = getRequestHeaders();
-  const host = getRequestHost(headers);
+  const host = getRequestHost(headers, env.WORKSPACE_SHARE_PROXY_SECRET);
 
   if (!host) {
     return env.VITE_APP_URL;

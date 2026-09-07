@@ -94,7 +94,10 @@ export function UserAvatarButton({
       onPress={onPress}
       style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
-      <UserAvatar user={user} />
+      <UserAvatar
+        size={process.env.EXPO_OS === "android" ? 32 : undefined}
+        user={user}
+      />
     </Pressable>
   );
 }

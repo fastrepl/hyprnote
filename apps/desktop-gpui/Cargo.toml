@@ -15,6 +15,7 @@ anlg-audio-actual = { workspace = true }
 anlg-audio-mock = { workspace = true }
 anlg-db-app = { workspace = true }
 anlg-db-core = { workspace = true }
+anlg-deeplink-core = { workspace = true }
 anlg-export-core = { workspace = true }
 anlg-fs-sync-core = { workspace = true }
 anlg-language = { workspace = true }
@@ -25,7 +26,6 @@ anlg-storage = { workspace = true }
 anlg-template-app = { workspace = true }
 anlg-tiptap = { workspace = true }
 anlg-transcript = { workspace = true }
-anlg-deeplink-core = { workspace = true }
 anlg-tray-core = { workspace = true }
 owhisper-interface = { workspace = true }
 rodio = { workspace = true, features = ["symphonia-all"] }
@@ -36,6 +36,7 @@ base64 = { workspace = true }
 chrono = { workspace = true }
 chrono-tz = { workspace = true }
 dirs = { workspace = true }
+futures-util = { workspace = true }
 gpui = { workspace = true }
 hmac = { workspace = true }
 iana-time-zone = "0.1"
@@ -45,7 +46,6 @@ mime_guess = "2"
 pico-args = { workspace = true }
 ractor = { workspace = true, features = ["async-trait"] }
 regex = { workspace = true }
-futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json", "stream"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["preserve_order"] }

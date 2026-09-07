@@ -61,6 +61,22 @@ export default {
       return new Response("Sharing domain unavailable", { status: 503 });
     }
 
-    return fetch(originRequest);
+    const response = await fetch(originRequest);
+    const location = response.headers.get("location");
+    if (response.status < 300 || response.status >= 400 || !location) {
+      return response;
+    }
+
+    const redirectUrl = new URL(location, originRequest.url);
+    if (redirectUrl.origin !== APP_ORIGIN) return response;
+
+    redirectUrl.host = incomingUrl.host;
+    const headers = new Headers(response.headers);
+    headers.set("location", redirectUrl.toString());
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
   },
 };

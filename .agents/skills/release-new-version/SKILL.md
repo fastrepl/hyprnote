@@ -295,7 +295,7 @@ CloudSync inclusion, and signing metadata before submission. Never select
 Use the explicit completed build IDs:
 
 ```bash
-APP_VARIANT=stable eas submit --platform ios --profile stable --id <ios-build-id> --non-interactive --wait
+APP_VARIANT=stable eas submit --platform ios --profile stable --id <ios-build-id> --non-interactive --no-auto-testflight-setup --wait
 APP_VARIANT=stable eas submit --platform android --profile stable --id <android-build-id> --non-interactive --wait
 ```
 
@@ -311,6 +311,11 @@ availability to the intended existing tester group. External TestFlight testing
 can require Beta App Review. For Android, verify the exact version code on the
 internal track and the release status. Report missing credentials, app setup,
 store processing, or tester-group access as concrete pending steps.
+
+Current EAS Submit enables automatic TestFlight setup by default, which can
+create a group and invite every App Store Connect admin. Keep
+`--no-auto-testflight-setup` unless those invitations were explicitly requested.
+An upload request alone does not authorize inviting additional testers.
 
 ### Public App Store and Google Play releases
 

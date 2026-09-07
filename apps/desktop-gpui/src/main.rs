@@ -39,6 +39,7 @@ mod secrets;
 mod session_correction;
 mod sfx;
 mod shell;
+mod sidebar_layout;
 mod speaker_assignment;
 mod squircle;
 mod stats;
@@ -53,6 +54,7 @@ mod tray;
 mod ui;
 mod unified_diff;
 mod voiceprint;
+mod webkit_local_storage;
 mod workspace;
 
 use std::path::PathBuf;

@@ -112,6 +112,23 @@ impl StoreFile {
             .as_bool()
     }
 
+    /// A scoped number, for the shell's own scope.
+    pub fn scoped_f64(&self, scope: &str, key: &str) -> Option<f64> {
+        let text = std::fs::read_to_string(&self.path).ok()?;
+        let outer = serde_json::from_str::<Value>(&text).ok()?;
+        let inner = outer.get(scope)?.as_str()?;
+        serde_json::from_str::<Value>(inner)
+            .ok()?
+            .get(key)?
+            .as_f64()
+    }
+
+    pub fn set_scoped_f64(&self, scope: &str, key: &str, value: f64) -> std::io::Result<()> {
+        self.update_scoped(scope, |inner| {
+            inner.insert(key.into(), Value::from(value));
+        })
+    }
+
     /// A plugin's `scoped_store(scope).set(key, value)`.
     pub fn set_scoped(&self, scope: &str, key: &str, value: bool) -> std::io::Result<()> {
         self.update_scoped(scope, |inner| {

@@ -71,9 +71,13 @@ use crate::timeline::{self, Timeline};
 use crate::ui::TailwindText as _;
 
 /// `apps/desktop/src/main/left-sidebar-panel.ts`.
-const SIDEBAR_DEFAULT_WIDTH: f32 = 200.0;
-const SIDEBAR_MIN_WIDTH: f32 = 200.0;
-const SIDEBAR_MAX_WIDTH: f32 = 360.0;
+const SIDEBAR_DEFAULT_WIDTH: f32 = crate::sidebar_layout::DEFAULT_WIDTH_PX;
+const SIDEBAR_MIN_WIDTH: f32 = crate::sidebar_layout::MIN_WIDTH_PX;
+const SIDEBAR_MAX_WIDTH: f32 = crate::sidebar_layout::MAX_WIDTH_PX;
+/// The shell's own `store.json` scope for the sidebar share when the webview
+/// has no layout to share.
+const SIDEBAR_STORE_SCOPE: &str = "gpui";
+const SIDEBAR_STORE_KEY: &str = "left_sidebar_fraction";
 const RESIZE_EDGE: f32 = 5.0;
 
 /// Which title bar menu is open.
@@ -181,6 +185,11 @@ pub struct Workspace {
     note: Note,
     sidebar_expanded: bool,
     sidebar_width: f32,
+    /// `react-resizable-panels`' persisted layout: the sidebar's share of the
+    /// panel group, `None` until the first frame sets the 200px default.
+    sidebar_fraction: Option<f64>,
+    /// The panel group width the last frame laid out.
+    sidebar_group_width: f32,
     sidebar_drag: Option<SidebarDrag>,
     /// `isAppWindowInactive`'s complement, kept current by the activation observer.
     window_active: bool,
@@ -384,6 +393,7 @@ impl Workspace {
         })
         .detach();
         let store_file = StoreFile::next_to(store.path());
+        let sidebar_fraction = Self::load_sidebar_fraction(&store, &store_file);
         let mut this = Self {
             mode: mode.clone(),
             store,
@@ -408,6 +418,8 @@ impl Workspace {
             note: Note::Empty,
             sidebar_expanded: true,
             sidebar_width: SIDEBAR_DEFAULT_WIDTH,
+            sidebar_fraction,
+            sidebar_group_width: 0.0,
             sidebar_drag: None,
             window_active: true,
             open_menu: None,
@@ -1562,16 +1574,82 @@ impl Workspace {
         if let Some(drag) = &self.sidebar_drag {
             let width = (drag.start_width + f32::from(x - drag.start_x))
                 .clamp(SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH);
-            if width != self.sidebar_width {
+            // The drag moves the layout's share of the group; the rendered
+            // width follows the flex split like the web view's.
+            let fraction = crate::sidebar_layout::fraction_for(width, self.sidebar_group_width);
+            let width = crate::sidebar_layout::width_for(fraction, self.sidebar_group_width);
+            if width != self.sidebar_width || self.sidebar_fraction != Some(fraction) {
                 self.sidebar_width = width;
+                self.sidebar_fraction = Some(fraction);
                 cx.notify();
             }
         }
     }
 
+    /// The drag ended: the layout is saved where `autoSaveId` keeps it (the
+    /// webview's localStorage, for the Tauri app to read back) and in the
+    /// shell's own scope of `store.json`.
     fn end_sidebar_drag(&mut self, cx: &mut Context<Self>) {
         if self.sidebar_drag.take().is_some() {
+            if let Some(fraction) = self.sidebar_fraction {
+                self.save_sidebar_fraction(fraction);
+            }
             cx.notify();
+        }
+    }
+
+    fn save_sidebar_fraction(&self, fraction: f64) {
+        if let Err(error) =
+            self.store_file
+                .set_scoped_f64(SIDEBAR_STORE_SCOPE, SIDEBAR_STORE_KEY, fraction)
+        {
+            tracing::warn!(%error, "failed to save the sidebar width");
+        }
+        let files =
+            crate::webkit_local_storage::origin_files(self.store.path(), self.store.identifier());
+        if files.is_empty() {
+            return;
+        }
+        self.store.runtime().spawn(async move {
+            let key = crate::sidebar_layout::STORAGE_KEY;
+            let current = crate::webkit_local_storage::read(&files, key).await;
+            let next = crate::sidebar_layout::with_layout_fraction(current.as_deref(), fraction);
+            crate::webkit_local_storage::write(&files, key, &next).await;
+        });
+    }
+
+    /// The saved share: the webview's `react-resizable-panels` layout first,
+    /// then the shell's own copy.
+    fn load_sidebar_fraction(store: &crate::db::Store, store_file: &StoreFile) -> Option<f64> {
+        let files = crate::webkit_local_storage::origin_files(store.path(), store.identifier());
+        let shared = if files.is_empty() {
+            None
+        } else {
+            store
+                .runtime()
+                .block_on(crate::webkit_local_storage::read(
+                    &files,
+                    crate::sidebar_layout::STORAGE_KEY,
+                ))
+                .and_then(|document| crate::sidebar_layout::read_layout_fraction(&document))
+        };
+        shared.or_else(|| store_file.scoped_f64(SIDEBAR_STORE_SCOPE, SIDEBAR_STORE_KEY))
+    }
+
+    /// `createLeftSidebarPanelConstraints` + the panel's percentage layout on
+    /// every frame: the share of the panel group (the window minus `pl-1`),
+    /// clamped to the pixel constraints; the first frame sets the 200px
+    /// default when nothing was saved.
+    fn sync_sidebar_width(&mut self, window: &Window) {
+        let group = (f32::from(window.viewport_size().width)
+            - crate::sidebar_layout::GROUP_INSET_PX)
+            .max(1.0);
+        self.sidebar_group_width = group;
+        let fraction = *self
+            .sidebar_fraction
+            .get_or_insert_with(|| crate::sidebar_layout::default_fraction(group));
+        if self.sidebar_drag.is_none() {
+            self.sidebar_width = crate::sidebar_layout::width_for(fraction, group);
         }
     }
 
@@ -1631,6 +1709,7 @@ impl Workspace {
 
 impl Render for Workspace {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.sync_sidebar_width(window);
         // `resolveIsDarkMode` on every frame: the setting or the system
         // appearance may have changed since the last one.
         if let Some(editor) = self.pending_editor_focus.take() {

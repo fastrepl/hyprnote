@@ -97,3 +97,29 @@ test("removes workspace proxy headers when passing through platform hosts", asyn
   assert.equal(response.status, 200);
   assert.equal(fetchMock.mock.callCount(), 1);
 });
+
+for (const [location, expected] of [
+  [
+    "https://anarlog.netlify.app/app/?view=compact#notes",
+    "https://fastrepl.anarlog.so/app/?view=compact#notes",
+  ],
+  ["/auth/?flow=web", "https://fastrepl.anarlog.so/auth/?flow=web"],
+  ["https://accounts.google.com/auth", "https://accounts.google.com/auth"],
+]) {
+  test(`preserves the browser destination for redirect ${location}`, async (t) => {
+    const fetchMock = t.mock.method(
+      globalThis,
+      "fetch",
+      async () => new Response(null, { status: 308, headers: { location } }),
+    );
+
+    const response = await worker.fetch(
+      new Request("https://fastrepl.anarlog.so/app"),
+      { WORKSPACE_SHARE_PROXY_SECRET: "test-secret" },
+    );
+
+    assert.equal(response.status, 308);
+    assert.equal(response.headers.get("location"), expected);
+    assert.equal(fetchMock.mock.callCount(), 1);
+  });
+}

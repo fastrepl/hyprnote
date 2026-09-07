@@ -518,6 +518,8 @@ impl ProviderSettings {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct CaptureContext {
     pub owner_user_id: String,
+    /// `initialTitle`: the session title when the capture starts.
+    pub initial_title: Option<String>,
     pub participant_human_ids: Vec<String>,
     pub preserve_existing_transcript: bool,
     pub existing_audio_ms: i64,
@@ -3198,13 +3200,16 @@ impl Store {
         let db = self.db.clone();
         let session_dir = self.session_dir(&session_id);
         self.runtime.spawn(async move {
-            let owner_user_id: String = sqlx::query_scalar(
-                "SELECT COALESCE(owner_user_id, '') FROM sessions WHERE id = ? AND deleted_at IS NULL",
+            let session: Option<(String, String)> = sqlx::query_as(
+                "SELECT COALESCE(owner_user_id, ''), title FROM sessions WHERE id = ? AND deleted_at IS NULL",
             )
             .bind(&session_id)
             .fetch_optional(db.pool())
-            .await?
-            .unwrap_or_default();
+            .await?;
+            let (owner_user_id, initial_title) = match session {
+                Some((owner, title)) => (owner, Some(title)),
+                None => (String::new(), None),
+            };
             let participant_human_ids: Vec<String> = sqlx::query_scalar(PARTICIPANT_HUMAN_IDS_SQL)
                 .bind(&session_id)
                 .fetch_all(db.pool())
@@ -3228,6 +3233,7 @@ impl Store {
             };
             Ok(CaptureContext {
                 owner_user_id,
+                initial_title,
                 participant_human_ids,
                 preserve_existing_transcript: has_transcript,
                 existing_audio_ms,

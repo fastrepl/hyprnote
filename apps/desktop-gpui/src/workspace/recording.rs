@@ -209,6 +209,8 @@ pub(crate) struct CaptureLifecycle {
     pub transcript_touched: bool,
     /// `ownerUserId` for the recovery marker.
     pub owner_user_id: String,
+    /// `initialTitle` for the recovery marker.
+    pub initial_title: Option<String>,
 }
 
 impl CaptureLifecycle {
@@ -229,6 +231,10 @@ impl CaptureLifecycle {
             created_at: persistence.created_at.clone(),
             audio_offset_ms: self.existing_audio_ms.max(0),
             preserve_existing_transcript: self.preserve_existing_transcript,
+            // The shell records manual captures only, which keep prior audio.
+            automatic: Some(false),
+            preserve_existing_audio: Some(true),
+            initial_title: self.initial_title.clone(),
             owner_user_id: self.owner_user_id.clone(),
             memo: persistence.memo.clone(),
             provider: Some(persistence.provider.clone()).filter(|p| !p.is_empty()),
@@ -1252,6 +1258,7 @@ impl Workspace {
                     needs_batch_repair: true,
                     transcript_touched: created,
                     owner_user_id: marker.owner_user_id.clone(),
+                    initial_title: marker.initial_title.clone(),
                 };
                 let recovered_summary_mode = marker.summary_mode.map(|mode| match mode {
                     crate::capture_marker::SummaryMode::Regenerate => {
@@ -1556,6 +1563,7 @@ impl Workspace {
                                 needs_batch_repair: false,
                                 transcript_touched: false,
                                 owner_user_id: context.owner_user_id.clone(),
+                                initial_title: context.initial_title.clone(),
                             },
                         });
                         // `lifecycle.persistMarker()`: the durable capture state

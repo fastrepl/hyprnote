@@ -34,6 +34,16 @@ pub struct Marker {
     pub created_at: String,
     pub audio_offset_ms: i64,
     pub preserve_existing_transcript: bool,
+    /// A scheduled auto-start (`startedAutomatically`); the shell only
+    /// records manual captures.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub automatic: Option<bool>,
+    /// Whether audio existed before the capture (always kept for manual ones).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preserve_existing_audio: Option<bool>,
+    /// The session title when the capture started.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub initial_title: Option<String>,
     pub owner_user_id: String,
     pub memo: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -85,6 +95,9 @@ pub fn parse(value: &str, session_id: &str) -> Option<Marker> {
         created_at,
         audio_offset_ms,
         preserve_existing_transcript,
+        automatic: raw.get("automatic").and_then(|v| v.as_bool()),
+        preserve_existing_audio: raw.get("preserveExistingAudio").and_then(|v| v.as_bool()),
+        initial_title: optional_string("initialTitle"),
         owner_user_id,
         memo,
         provider: optional_string("provider"),
@@ -152,6 +165,9 @@ mod tests {
             created_at: "2026-09-07T09:00:00.000Z".into(),
             audio_offset_ms: 0,
             preserve_existing_transcript: false,
+            automatic: Some(false),
+            preserve_existing_audio: Some(true),
+            initial_title: Some("Standup".into()),
             owner_user_id: "u1".into(),
             memo: String::new(),
             provider: Some("deepgram".into()),
@@ -166,7 +182,7 @@ mod tests {
         let json = serde_json::to_string(&marker()).unwrap();
         assert_eq!(
             json,
-            r#"{"version":1,"phase":"capturing","sessionId":"s1","transcriptId":"t1","startedAt":1700000000000,"createdAt":"2026-09-07T09:00:00.000Z","audioOffsetMs":0,"preserveExistingTranscript":false,"ownerUserId":"u1","memo":"","provider":"deepgram","model":"nova-3"}"#
+            r#"{"version":1,"phase":"capturing","sessionId":"s1","transcriptId":"t1","startedAt":1700000000000,"createdAt":"2026-09-07T09:00:00.000Z","audioOffsetMs":0,"preserveExistingTranscript":false,"automatic":false,"preserveExistingAudio":true,"initialTitle":"Standup","ownerUserId":"u1","memo":"","provider":"deepgram","model":"nova-3"}"#
         );
         let mut finalizing = marker();
         finalizing.phase = Some(Phase::Finalizing);

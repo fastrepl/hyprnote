@@ -16,10 +16,6 @@ mod windows;
 #[cfg(target_os = "windows")]
 pub use windows::*;
 
-mod competitors;
-
-pub use competitors::*;
-
 #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
 pub fn list_installed_apps() -> Vec<InstalledApp> {
     Vec::new()

@@ -56,11 +56,9 @@ import {
   importMeetingFiles,
   useMeetingImportHistory,
 } from "./queries";
-import { pauseCompetingApplicationTermination } from "./termination-pause";
 
 import { useAuth } from "~/auth";
 import { useConnections } from "~/auth/useConnections";
-import { useMountEffect } from "~/shared/hooks/useMountEffect";
 
 const IMPORT_EXTENSIONS = [
   "csv",
@@ -145,7 +143,6 @@ export function MeetingImportScreen({
     queryFn: detectImportSources,
     refetchOnMount: "always",
   });
-  useMountEffect(pauseCompetingApplicationTermination);
   const historyQuery = useMeetingImportHistory();
   const history = historyQuery.data ?? EMPTY_MEETING_IMPORT_HISTORY;
   const detectedProviders = detectionQuery.data ?? [];

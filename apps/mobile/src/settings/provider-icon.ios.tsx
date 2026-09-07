@@ -7,7 +7,10 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 import { useAssets } from "expo-asset";
 
-import { providerIconSource } from "./provider-icon-assets";
+import {
+  providerIconArtworkSize,
+  providerIconSource,
+} from "./provider-icon-assets";
 import { useAppColorScheme, useColors } from "./theme-provider";
 
 export function ProviderIcon({
@@ -20,10 +23,21 @@ export function ProviderIcon({
   const scheme = useAppColorScheme();
   const Colors = useColors();
   const source = providerIconSource(provider, scheme);
-  return source ? (
-    <BundledIcon key={source} source={source} size={size} />
-  ) : (
-    <Icon name="shuffle" size={size} color={Colors.muted} />
+  const artworkSize = providerIconArtworkSize(provider, size);
+  return (
+    <Column
+      alignment="center"
+      style={{
+        width: size,
+        paddingVertical: (size - artworkSize) / 2,
+      }}
+    >
+      {source ? (
+        <BundledIcon key={source} source={source} size={artworkSize} />
+      ) : (
+        <Icon name="shuffle" size={artworkSize} color={Colors.muted} />
+      )}
+    </Column>
   );
 }
 

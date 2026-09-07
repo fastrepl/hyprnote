@@ -1,9 +1,15 @@
 import { useRouter } from "expo-router";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IconButton } from "@/components/ui/icon-button";
-import { Spacing, Typography } from "@/constants/theme";
+import {
+  ControlSize,
+  CornerCurve,
+  Radius,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
 import { useLiveQuery } from "@/db";
 import { formatStorageBytes } from "@/settings/storage";
 import { createStyleHook } from "@/settings/theme-provider";
@@ -33,6 +39,7 @@ export default function RecordingStorageScreen() {
           onPress={() => router.back()}
         />
         <Text style={styles.title}>Saved recordings</Text>
+        <View style={styles.spacer} />
       </View>
       <FlatList
         data={recordings.data ?? []}
@@ -50,7 +57,7 @@ export default function RecordingStorageScreen() {
         renderItem={({ item }) => (
           <Pressable
             accessibilityRole="button"
-            style={styles.row}
+            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
             onPress={() =>
               router.push({ pathname: "/note/[id]", params: { id: item.id } })
             }
@@ -74,16 +81,23 @@ const useStyles = createStyleHook((Colors) => ({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.md,
-    padding: Spacing.lg,
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.md,
   },
   title: { ...Typography.section, color: Colors.ink },
   copy: { ...Typography.caption, color: Colors.muted },
-  list: { padding: Spacing.lg, gap: Spacing.md },
+  spacer: { width: ControlSize.default, height: ControlSize.default },
+  list: { padding: Spacing.md, gap: Spacing.md },
   row: {
     padding: Spacing.md,
     backgroundColor: Colors.surface,
-    borderRadius: 16,
+    borderRadius: Radius.card,
+    borderCurve: CornerCurve.squircle,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
     gap: Spacing.sm,
   },
+  pressed: { backgroundColor: Colors.accentSurface },
 }));

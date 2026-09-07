@@ -1,15 +1,4 @@
-import {
-  Button,
-  Column,
-  FieldGroup,
-  Icon,
-  ListItem,
-  Row,
-  Spacer,
-  Text,
-  TextInput,
-  useNativeState,
-} from "@expo/ui";
+import { Column, Icon, Row, Spacer, useNativeState } from "@expo/ui";
 import { useForm } from "@tanstack/react-form";
 import {
   useMutation,
@@ -19,10 +8,11 @@ import {
 } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { Platform } from "react-native";
 
 import { ProRequiredError } from "@/auth/billing";
 import { useAuth } from "@/auth/context";
+import { FieldGroup } from "@/settings/field-group";
+import { Button, ListItem, Text, TextInput } from "@/settings/fields";
 
 import { SettingsPage } from "./components";
 import { createProviderAutosave } from "./provider-autosave";
@@ -154,7 +144,7 @@ function ProviderForm({
       <FieldGroup.Section>
         <Row alignment="center">
           <Text>Provider</Text>
-          <Spacer />
+          <Spacer flexible />
           <ProviderPicker
             providers={providerOptions}
             selectedValue={visibleProvider}
@@ -175,7 +165,7 @@ function ProviderForm({
         ) : selectedProvider === "anarlog" ? (
           <Row alignment="center">
             <Text>Model</Text>
-            <Spacer />
+            <Spacer flexible />
             <Text>Automatic</Text>
           </Row>
         ) : selectedSetup?.data ? (
@@ -247,6 +237,7 @@ function ProviderForm({
                           })
                     }
                     size={14}
+                    color={Colors.muted}
                   />
                 }
               >
@@ -374,7 +365,6 @@ function ProviderFields({
       spacing={16}
       style={{
         paddingBottom: 8,
-        paddingHorizontal: Platform.OS === "android" ? 16 : 0,
       }}
     >
       <Row alignment="center" spacing={8}>

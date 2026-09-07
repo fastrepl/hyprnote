@@ -1,9 +1,10 @@
-import { FieldGroup, Switch, Text } from "@expo/ui";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as LocalAuthentication from "expo-local-authentication";
 
 import { authenticateForAppLock } from "@/settings/app-lock";
 import { SettingsError, SettingsPage } from "@/settings/components";
+import { FieldGroup } from "@/settings/field-group";
+import { Switch, Text } from "@/settings/fields";
 import {
   setPrivacyPreference,
   usePrivacyPreferences,

@@ -1,20 +1,12 @@
-import {
-  Button,
-  Column,
-  Icon,
-  Picker,
-  Row,
-  Spacer,
-  Text,
-  TextInput,
-  useNativeState,
-} from "@expo/ui";
+import { Column, Icon, Row, Spacer, useNativeState } from "@expo/ui";
 import { layoutPriority } from "@expo/ui/swift-ui/modifiers";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Platform } from "react-native";
+
+import { Button, Picker, Text, TextInput } from "@/settings/fields";
 
 import { createProviderAutosave } from "./provider-autosave";
 import { modelOptions, presetProviderModels } from "./provider-model-catalog";
@@ -82,7 +74,7 @@ export function ProviderModelPicker({
           style={{ width: 20 }}
         />
         <Text>Model</Text>
-        <Spacer />
+        <Spacer flexible />
         <Column
           alignment="end"
           modifiers={Platform.OS === "ios" ? [layoutPriority(1)] : undefined}

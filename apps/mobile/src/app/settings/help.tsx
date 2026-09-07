@@ -1,4 +1,3 @@
-import { FieldGroup } from "@expo/ui";
 import { useMutation } from "@tanstack/react-query";
 import Constants from "expo-constants";
 import * as WebBrowser from "expo-web-browser";
@@ -9,6 +8,7 @@ import {
   SettingsPage,
   SettingsRow,
 } from "@/settings/components";
+import { FieldGroup } from "@/settings/field-group";
 
 export default function HelpSettings() {
   const open = useMutation({

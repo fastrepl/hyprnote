@@ -1,6 +1,8 @@
-import { FieldGroup, Picker, Row, Spacer, Switch, Text } from "@expo/ui";
+import { Row, Spacer } from "@expo/ui";
 
 import { SettingsError, SettingsPage } from "@/settings/components";
+import { FieldGroup } from "@/settings/field-group";
+import { Picker, Switch, Text } from "@/settings/fields";
 import { usePreferenceMutation, usePreferences } from "@/settings/preferences";
 
 export default function AppearanceSettings() {
@@ -13,7 +15,7 @@ export default function AppearanceSettings() {
       <FieldGroup.Section>
         <Row alignment="center">
           <Text>Theme</Text>
-          <Spacer />
+          <Spacer flexible />
           <Picker
             selectedValue={preferences.theme}
             onValueChange={(value) => theme.mutate(value)}

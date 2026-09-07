@@ -1,4 +1,3 @@
-import { Button, FieldGroup, Text } from "@expo/ui";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useSyncExternalStore } from "react";
@@ -9,6 +8,8 @@ import {
   SettingsPage,
   SettingsRow,
 } from "@/settings/components";
+import { FieldGroup } from "@/settings/field-group";
+import { Button, Text } from "@/settings/fields";
 import { formatStorageBytes, useRecordingStorage } from "@/settings/storage";
 import { requestSyncDeviceList } from "@/settings/sync-devices";
 import {

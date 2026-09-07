@@ -1,15 +1,9 @@
-import {
-  Button,
-  FieldGroup,
-  Row,
-  Spacer,
-  Text,
-  TextInput,
-  useNativeState,
-} from "@expo/ui";
+import { Row, Spacer, useNativeState } from "@expo/ui";
 import { useForm } from "@tanstack/react-form";
 
 import { SettingsError, SettingsPage } from "@/settings/components";
+import { FieldGroup } from "@/settings/field-group";
+import { Button, Text, TextInput } from "@/settings/fields";
 import { usePreferenceMutation, usePreferences } from "@/settings/preferences";
 import { normalizeDictionary } from "@/settings/preferences-model";
 

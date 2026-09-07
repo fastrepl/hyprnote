@@ -1,5 +1,5 @@
 import type { IconName } from "@expo/ui";
-import { FieldGroup, Host, Icon, ListItem, Text as NativeText } from "@expo/ui";
+import { Host, Icon } from "@expo/ui";
 import {
   font,
   listSectionSpacing,
@@ -12,6 +12,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IconButton } from "@/components/ui/icon-button";
 import { ControlSize, Spacing, Typography } from "@/constants/theme";
+import { FieldGroup } from "@/settings/field-group";
+import { ListItem, Text as NativeText } from "@/settings/fields";
 import {
   createStyleHook,
   useAppColorScheme,
@@ -87,10 +89,13 @@ export function SettingsRow({
   icon?: IconName;
   onPress?: () => void;
 }) {
+  const Colors = useColors();
   return (
     <ListItem
       onPress={onPress}
-      leading={icon ? <Icon name={icon} size={20} /> : undefined}
+      leading={
+        icon ? <Icon name={icon} size={20} color={Colors.muted} /> : undefined
+      }
       supportingText={description ?? (onPress ? value : undefined)}
       trailing={
         onPress ? (
@@ -100,9 +105,10 @@ export function SettingsRow({
               android: import("@expo/material-symbols/chevron_right.xml"),
             })}
             size={14}
+            color={Colors.muted}
           />
         ) : value ? (
-          <NativeText>{value}</NativeText>
+          <NativeText textStyle={{ color: Colors.muted }}>{value}</NativeText>
         ) : undefined
       }
     >
@@ -112,10 +118,13 @@ export function SettingsRow({
 }
 
 export function SettingsError({ error }: { error: unknown }) {
+  const Colors = useColors();
   if (!error) return null;
   return (
     <FieldGroup.SectionFooter>
-      <NativeText>Could not complete this change. Please try again.</NativeText>
+      <NativeText textStyle={{ color: Colors.destructive }}>
+        Could not complete this change. Please try again.
+      </NativeText>
     </FieldGroup.SectionFooter>
   );
 }

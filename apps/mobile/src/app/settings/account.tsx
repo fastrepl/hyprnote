@@ -1,4 +1,3 @@
-import { FieldGroup, Text } from "@expo/ui";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -11,6 +10,8 @@ import {
   SettingsPage,
   SettingsRow,
 } from "@/settings/components";
+import { FieldGroup } from "@/settings/field-group";
+import { Text } from "@/settings/fields";
 
 export default function AccountSettings() {
   const auth = useAuth();

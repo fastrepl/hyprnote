@@ -1,6 +1,6 @@
-import { FieldGroup, Switch, Text } from "@expo/ui";
-
 import { SettingsError, SettingsPage } from "@/settings/components";
+import { FieldGroup } from "@/settings/field-group";
+import { Switch, Text } from "@/settings/fields";
 import { LANGUAGE_CODES, languageName } from "@/settings/languages";
 import { usePreferenceMutation, usePreferences } from "@/settings/preferences";
 

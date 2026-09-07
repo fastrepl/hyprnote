@@ -1,4 +1,3 @@
-import { FieldGroup, Text } from "@expo/ui";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getRecordingPermissionsAsync,
@@ -12,6 +11,8 @@ import {
   SettingsPage,
   SettingsRow,
 } from "@/settings/components";
+import { FieldGroup } from "@/settings/field-group";
+import { Text } from "@/settings/fields";
 
 export default function RecordingSettings() {
   const router = useRouter();

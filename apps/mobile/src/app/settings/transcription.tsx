@@ -1,4 +1,4 @@
-import { FieldGroup, Picker, Row, Spacer, Text } from "@expo/ui";
+import { Row, Spacer } from "@expo/ui";
 import { useRouter } from "expo-router";
 
 import {
@@ -6,6 +6,8 @@ import {
   SettingsPage,
   SettingsRow,
 } from "@/settings/components";
+import { FieldGroup } from "@/settings/field-group";
+import { Picker, Text } from "@/settings/fields";
 import { LANGUAGE_CODES, languageName } from "@/settings/languages";
 import { usePreferenceMutation, usePreferences } from "@/settings/preferences";
 
@@ -32,7 +34,7 @@ export default function TranscriptionSettings() {
       <FieldGroup.Section title="Language">
         <Row alignment="center">
           <Text>Main language</Text>
-          <Spacer />
+          <Spacer flexible />
           <Picker
             selectedValue={preferences.ai_language}
             onValueChange={(value) => language.mutate(value)}
@@ -72,7 +74,7 @@ export default function TranscriptionSettings() {
       <FieldGroup.Section>
         <Row alignment="center">
           <Text>Summary length</Text>
-          <Spacer />
+          <Spacer flexible />
           <Picker
             selectedValue={preferences.summary_length}
             onValueChange={(value) => length.mutate(value)}

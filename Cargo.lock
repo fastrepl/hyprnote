@@ -5494,7 +5494,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.11.0",
- "similar",
  "smallvec 1.15.1",
  "sqlx",
  "storage",

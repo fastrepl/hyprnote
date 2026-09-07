@@ -440,10 +440,9 @@ impl Workspace {
             .child(header)
             .when_some(error, |column, error| {
                 // `border-red-200 bg-red-50 px-4 py-2 text-[13px] text-red-600`
+                // (the border colour without a border width).
                 column.child(
                     div()
-                        .border_b_1()
-                        .border_color(gpui::rgb(0xffc9c9))
                         .bg(gpui::rgb(0xfef2f2))
                         .px_4()
                         .py_2()
@@ -454,11 +453,13 @@ impl Workspace {
                 )
             })
             .child(
+                // `overflow: "scroll"`: lines keep `white-space: pre` and the
+                // code scrolls sideways instead of wrapping.
                 div()
                     .id("edit-review-diff")
                     .flex_1()
                     .min_h_0()
-                    .overflow_y_scroll()
+                    .overflow_scroll()
                     .child(diff),
             )
             .into_any_element()
@@ -597,7 +598,13 @@ impl Workspace {
                     }),
             );
 
-        let mut body = div().flex().flex_col().bg(bg).pb(px(2.0)).child(header);
+        let mut body = div()
+            .flex()
+            .flex_col()
+            .min_w_full()
+            .bg(bg)
+            .pb(px(2.0))
+            .child(header);
         if diff.rows.is_empty() {
             body = body.child(
                 div()
@@ -744,8 +751,9 @@ impl Workspace {
                         .child(
                             div()
                                 .relative()
-                                .min_w_0()
                                 .flex_1()
+                                .flex_shrink_0()
+                                .whitespace_nowrap()
                                 .px(px(ch))
                                 .text_size(px(FONT_PX))
                                 .line_height(px(LINE_PX))

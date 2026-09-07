@@ -192,6 +192,7 @@ embedded!(
     "icons/eye.svg",
     "icons/eye-slash.svg",
     "icons/file-arrow-down.svg",
+    "icons/file-spreadsheet.svg",
     "icons/file-text.svg",
     "icons/file.svg",
     "icons/filter.svg",
@@ -203,6 +204,7 @@ embedded!(
     "icons/grip-vertical.svg",
     "icons/headset.svg",
     "icons/heart.svg",
+    "icons/image.svg",
     "icons/lightning.svg",
     "icons/list-checks.svg",
     "icons/lock-key.svg",
@@ -377,6 +379,6 @@ mod tests {
         }
         assert!(Assets.load("icons/search.svg").unwrap().is_some());
         assert!(Assets.load("icons/missing.svg").unwrap().is_none());
-        assert_eq!(Assets.list("icons/").unwrap().len(), 196);
+        assert_eq!(Assets.list("icons/").unwrap().len(), 198);
     }
 }

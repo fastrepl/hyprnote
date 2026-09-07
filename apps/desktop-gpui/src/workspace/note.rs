@@ -872,7 +872,9 @@ impl Workspace {
 
         if let Some(editor) = editor {
             // The memo is live: render the editor's document, not the snapshot.
-            let renderer = self.document_editor_renderer(editor.clone(), window, cx);
+            let renderer = self
+                .document_editor_renderer(editor.clone(), window, cx)
+                .for_session(&self.store.session_dir(&preview.session.id));
             let (mut blocks, pristine) = {
                 let editor = editor.read(cx);
                 (
@@ -895,7 +897,15 @@ impl Workspace {
                 body.child(
                     div()
                         .relative()
-                        .child(root.child(renderer.editable_root(&editor, children, cx)))
+                        .flex_1()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            root.flex_1()
+                                .flex()
+                                .flex_col()
+                                .child(renderer.editable_root(&editor, children, cx)),
+                        )
                         .children(suggestions),
                 ),
             );
@@ -910,7 +920,9 @@ impl Workspace {
                 .map(|doc| doc.blocks.as_slice())
                 .unwrap_or(&[]),
         };
-        let renderer = self.document_renderer(window);
+        let renderer = self
+            .document_renderer(window)
+            .for_session(&self.store.session_dir(&preview.session.id));
         let has_content = blocks.iter().any(super::document_view::has_visible_content);
         // `Enhanced`: the task's error / streaming views come first, then
         // `ConfigError` when there is no stored content and no way to generate
@@ -940,7 +952,8 @@ impl Workspace {
             {
                 let renderer = self
                     .document_editor_renderer(editor.clone(), window, cx)
-                    .for_title_document();
+                    .for_title_document()
+                    .for_session(&self.store.session_dir(&preview.session.id));
                 let mut blocks = crate::document::parse(editor.read(cx).doc().root());
                 if blocks.is_empty() {
                     blocks.push(crate::document::Block::Paragraph(Vec::new()));
@@ -948,7 +961,12 @@ impl Workspace {
                 let children = renderer.title_blocks(&blocks);
                 let root = editor.update(cx, |editor, cx| editor.render_root(cx));
                 return with_search(
-                    body.child(root.child(renderer.editable_root(&editor, children, cx))),
+                    body.child(
+                        root.flex_1()
+                            .flex()
+                            .flex_col()
+                            .child(renderer.editable_root(&editor, children, cx)),
+                    ),
                 );
             }
             let titled = crate::document::with_title_heading(blocks, &preview.session.title);

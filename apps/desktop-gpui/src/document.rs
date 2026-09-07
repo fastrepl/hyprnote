@@ -27,12 +27,59 @@ pub struct ListItem {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Block {
     Paragraph(Vec<Span>),
-    Heading { level: u8, spans: Vec<Span> },
-    List { ordered: bool, items: Vec<ListItem> },
+    Heading {
+        level: u8,
+        spans: Vec<Span>,
+    },
+    List {
+        ordered: bool,
+        items: Vec<ListItem>,
+    },
     Blockquote(Vec<Block>),
     Code(String),
     HorizontalRule,
-    Image { alt: String },
+    Image(Image),
+    FileAttachment(FileAttachment),
+    /// The `clip` embed: no view or styles in the desktop app, so only the
+    /// block padding shows.
+    Clip,
+}
+
+/// The `image` node's attributes (`ResizableImageView`): the attachment id
+/// (a shared one takes precedence) resolves to a local file, `src` is the
+/// stored fallback, and `editorWidth` is the percentage of the editor width.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Image {
+    pub src: Option<String>,
+    pub alt: String,
+    pub title: Option<String>,
+    pub attachment_id: Option<String>,
+    pub editor_width: u8,
+}
+
+/// The `fileAttachment` node's attributes (`FileAttachmentView`).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct FileAttachment {
+    pub attachment_id: Option<String>,
+    pub name: String,
+    pub mime_type: String,
+    pub src: Option<String>,
+    pub path: Option<String>,
+    pub size: Option<u64>,
+}
+
+pub const MIN_IMAGE_WIDTH: u8 = 15;
+pub const MAX_IMAGE_WIDTH: u8 = 100;
+pub const DEFAULT_IMAGE_WIDTH: u8 = 80;
+
+/// `clampImageWidth`
+pub fn clamp_image_width(value: Option<f64>) -> u8 {
+    match value {
+        Some(value) if value.is_finite() => {
+            (value.round() as i64).clamp(MIN_IMAGE_WIDTH as i64, MAX_IMAGE_WIDTH as i64) as u8
+        }
+        _ => DEFAULT_IMAGE_WIDTH,
+    }
 }
 
 /// `md2json(markdown)` serialised: the ProseMirror parser's JSON, an empty
@@ -116,12 +163,45 @@ fn block(node: &Value) -> Option<Block> {
             inline(node).into_iter().map(|span| span.text).collect(),
         )),
         "horizontalRule" => Some(Block::HorizontalRule),
-        "image" => Some(Block::Image {
+        "clip" => Some(Block::Clip),
+        "image" => Some(Block::Image(Image {
+            src: attr(node, "src")
+                .and_then(Value::as_str)
+                .map(str::to_string),
             alt: attr(node, "alt")
                 .and_then(Value::as_str)
                 .unwrap_or_default()
                 .to_string(),
-        }),
+            title: attr(node, "title")
+                .and_then(Value::as_str)
+                .map(str::to_string),
+            attachment_id: attr(node, "sharedAttachmentId")
+                .and_then(Value::as_str)
+                .or_else(|| attr(node, "attachmentId").and_then(Value::as_str))
+                .map(str::to_string),
+            editor_width: clamp_image_width(attr(node, "editorWidth").and_then(Value::as_f64)),
+        })),
+        "fileAttachment" => Some(Block::FileAttachment(FileAttachment {
+            attachment_id: attr(node, "sharedAttachmentId")
+                .and_then(Value::as_str)
+                .or_else(|| attr(node, "attachmentId").and_then(Value::as_str))
+                .map(str::to_string),
+            name: attr(node, "name")
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_string(),
+            mime_type: attr(node, "mimeType")
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_string(),
+            src: attr(node, "src")
+                .and_then(Value::as_str)
+                .map(str::to_string),
+            path: attr(node, "path")
+                .and_then(Value::as_str)
+                .map(str::to_string),
+            size: attr(node, "size").and_then(Value::as_u64),
+        })),
         // Stray inline content at block level still has to show up somewhere.
         "text" | "hardBreak" => Some(Block::Paragraph(inline_nodes(std::slice::from_ref(node)))),
         _ => None,
@@ -279,9 +359,13 @@ mod tests {
         assert_eq!(blocks[7], Block::HorizontalRule);
         assert_eq!(
             blocks[8],
-            Block::Image {
-                alt: "Diagram".into()
-            }
+            Block::Image(Image {
+                src: Some("x.png".into()),
+                alt: "Diagram".into(),
+                title: None,
+                attachment_id: None,
+                editor_width: DEFAULT_IMAGE_WIDTH,
+            })
         );
         let Block::Paragraph(spans) = &blocks[9] else {
             panic!("expected paragraph");

@@ -118,6 +118,32 @@ pub enum EditorEvent {
     Flush(String),
     /// A mention chip was clicked: navigate to `/app/<kind>/<id>`.
     OpenMention { kind: String, id: String },
+    /// Files were pasted (`fileHandlerPlugin.handlePaste`): the owner saves
+    /// them as attachments and inserts the nodes with `insert_attachment`.
+    Files(Vec<PastedFile>),
+    /// Paths were dropped on the editor (`handleDrop`), the caret already
+    /// placed at the drop point.
+    Dropped(Vec<std::path::PathBuf>),
+}
+
+/// A file from the clipboard or a drop, before it is saved as an attachment.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PastedFile {
+    pub name: String,
+    pub mime_type: String,
+    pub bytes: Vec<u8>,
+}
+
+/// `ResizableImageView`'s drag: the image's document-order index, which
+/// handle, and the widths the pointer delta applies to.
+#[derive(Debug, Clone, Copy)]
+struct ImageResize {
+    nth: usize,
+    left: bool,
+    start_x: Pixels,
+    start_width: Pixels,
+    max_width: Pixels,
+    current: Pixels,
 }
 
 pub struct BodyEditor {
@@ -154,6 +180,11 @@ pub struct BodyEditor {
     search: Option<SearchSpec>,
     /// Runs the network lookups (`resolveYouTubeClipUrl`).
     runtime: Option<tokio::runtime::Handle>,
+    /// Image frames measured while painting, by document order.
+    image_bounds: Vec<Option<Bounds<Pixels>>>,
+    /// The editor root's width (`.ProseMirror`), the resize maximum.
+    root_width: Option<Pixels>,
+    image_resize: Option<ImageResize>,
 }
 
 /// The find bar's query as `setSearch` / `replace` hand it to the editor.
@@ -192,6 +223,9 @@ impl BodyEditor {
             mention_search: None,
             search: None,
             runtime: None,
+            image_bounds: Vec::new(),
+            root_width: None,
+            image_resize: None,
         }
     }
 
@@ -730,6 +764,27 @@ impl BodyEditor {
     fn changed(&mut self, cx: &mut Context<Self>) {
         // `taskIdentityPlugin`: ids stay unique after splits and pastes.
         self.doc.ensure_task_identity();
+        // `imageTrailingParagraphPlugin`: a paragraph follows every top-level
+        // image. The caret's block index shifts when one lands above it.
+        let caret_path = self
+            .caret
+            .and_then(|caret| self.doc.textblock_path(caret.block));
+        let inserted_after = self.doc.ensure_image_trailing_paragraphs();
+        if !inserted_after.is_empty()
+            && let Some(caret) = self.caret
+            && let Some(mut path) = caret_path
+        {
+            path[0] += inserted_after
+                .iter()
+                .filter(|image| **image < path[0])
+                .count();
+            if let Some(block) = self.doc.textblock_index_of(&path) {
+                self.caret = Some(model::Caret {
+                    block,
+                    offset: caret.offset,
+                });
+            }
+        }
         if self.enforce_title_heading && self.doc.enforce_title_heading() {
             // A heading was inserted above: the caret's block shifted down.
             if let Some(caret) = self.caret.as_mut() {
@@ -1034,7 +1089,27 @@ impl BodyEditor {
     }
 
     fn on_paste(&mut self, _: &Paste, window: &mut Window, cx: &mut Context<Self>) {
-        if let Some(text) = cx.read_from_clipboard().and_then(|item| item.text()) {
+        let Some(item) = cx.read_from_clipboard() else {
+            return;
+        };
+        // `clipboardData.files`: images on the clipboard become attachments.
+        let files: Vec<PastedFile> = item
+            .entries()
+            .iter()
+            .filter_map(|entry| match entry {
+                gpui::ClipboardEntry::Image(image) => Some(PastedFile {
+                    name: format!("image.{}", image_extension(image.format)),
+                    mime_type: image.format.mime_type().to_string(),
+                    bytes: image.bytes.clone(),
+                }),
+                gpui::ClipboardEntry::String(_) => None,
+            })
+            .collect();
+        if !files.is_empty() {
+            cx.emit(EditorEvent::Files(files));
+            return;
+        }
+        if let Some(text) = item.text() {
             if self.paste_clip(&text, cx) {
                 return;
             }
@@ -1042,6 +1117,153 @@ impl BodyEditor {
             self.pasting = true;
             self.replace_text_in_range(None, &text, window, cx);
             self.pasting = false;
+        }
+    }
+
+    /// `handleDrop`: the caret moves to `posAtCoords` of the drop, then the
+    /// owner sorts the paths into an audio import and attachments.
+    pub fn drop_paths(
+        &mut self,
+        paths: Vec<std::path::PathBuf>,
+        position: Point<Pixels>,
+        cx: &mut Context<Self>,
+    ) {
+        if paths.is_empty() {
+            return;
+        }
+        self.doc.ensure_textblock();
+        // The textblock under the pointer, else the nearest one above it
+        // (or the first).
+        let block = self
+            .layouts
+            .iter()
+            .enumerate()
+            .filter_map(|(index, layout)| layout.as_ref().map(|(_, bounds)| (index, *bounds)))
+            .fold(None::<(usize, Bounds<Pixels>)>, |best, (index, bounds)| {
+                if bounds.top() <= position.y {
+                    Some((index, bounds))
+                } else {
+                    best
+                }
+            })
+            .map(|(index, _)| index)
+            .unwrap_or(0);
+        let head = self.caret_for_position(block, position);
+        self.set_head(head, false, cx);
+        cx.emit(EditorEvent::Dropped(paths));
+    }
+
+    /// `insertImage` / `insertFileAttachment` once an upload finished:
+    /// `tr.replaceSelectionWith(node)` at the selection of that moment.
+    pub fn insert_attachment(&mut self, node: serde_json::Value, cx: &mut Context<Self>) {
+        let Some(caret) = self.caret.or_else(|| {
+            (self.doc.textblock_count() > 0).then_some(model::Caret {
+                block: 0,
+                offset: 0,
+            })
+        }) else {
+            return;
+        };
+        let anchor = self.anchor.unwrap_or(caret);
+        self.record_edit(EditKind::Structural);
+        let caret = self.doc.insert_block_atom(anchor, caret, node);
+        self.caret = Some(caret);
+        self.anchor = None;
+        self.stored_marks = None;
+        self.changed(cx);
+    }
+
+    /// `FileAttachmentView.handleRemove`: delete the `nth` node of `kind`.
+    pub fn remove_block_atom(&mut self, kind: &str, nth: usize, cx: &mut Context<Self>) {
+        let Some(path) = self.doc.nth_block_path(kind, nth) else {
+            return;
+        };
+        self.record_edit(EditKind::Structural);
+        let caret = self.doc.remove_block(&path);
+        self.caret = Some(caret);
+        self.anchor = None;
+        self.changed(cx);
+    }
+
+    pub fn set_image_bounds(&mut self, nth: usize, bounds: Bounds<Pixels>) {
+        if self.image_bounds.len() <= nth {
+            self.image_bounds.resize(nth + 1, None);
+        }
+        self.image_bounds[nth] = Some(bounds);
+    }
+
+    pub fn set_root_width(&mut self, width: Pixels) {
+        self.root_width = Some(width);
+    }
+
+    /// The image being resized and its draft pixel width.
+    pub fn image_resize_draft(&self) -> Option<(usize, Pixels)> {
+        self.image_resize.map(|resize| (resize.nth, resize.current))
+    }
+
+    /// `handleResizeStart`: the drag starts from the image's painted width
+    /// against the editor's width.
+    pub fn begin_image_resize(
+        &mut self,
+        nth: usize,
+        left: bool,
+        x: Pixels,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(start_width) = self
+            .image_bounds
+            .get(nth)
+            .copied()
+            .flatten()
+            .map(|bounds| bounds.size.width)
+        else {
+            return;
+        };
+        let max_width = self.root_width.unwrap_or(start_width);
+        self.image_resize = Some(ImageResize {
+            nth,
+            left,
+            start_x: x,
+            start_width,
+            max_width,
+            current: start_width,
+        });
+        cx.notify();
+    }
+
+    /// `handlePointerMove`: `min(maxWidth, max(120, startWidth + deltaX))`.
+    fn update_image_resize(&mut self, x: Pixels, cx: &mut Context<Self>) {
+        let Some(resize) = self.image_resize.as_mut() else {
+            return;
+        };
+        let delta = if resize.left {
+            resize.start_x - x
+        } else {
+            x - resize.start_x
+        };
+        let next = (resize.start_width + delta)
+            .max(gpui::px(120.0))
+            .min(resize.max_width);
+        if next != resize.current {
+            resize.current = next;
+            cx.notify();
+        }
+    }
+
+    /// `onCommit`: `editorWidth = clampImageWidth(currentWidth / maxWidth * 100)`.
+    fn commit_image_resize(&mut self, cx: &mut Context<Self>) {
+        let Some(resize) = self.image_resize.take() else {
+            return;
+        };
+        let percent = f32::from(resize.current) / f32::from(resize.max_width).max(1.0) * 100.0;
+        let width = crate::document::clamp_image_width(Some(percent as f64));
+        if let Some(path) = self.doc.nth_block_path("image", resize.nth) {
+            self.record_edit(EditKind::Structural);
+            self.doc
+                .set_block_attr(&path, "editorWidth", serde_json::json!(width));
+            self.changed(cx);
+        } else {
+            cx.notify();
         }
     }
 
@@ -1369,14 +1591,36 @@ impl BodyEditor {
             .on_action(cx.listener(Self::on_escape))
             .on_action(cx.listener(Self::on_undo))
             .on_action(cx.listener(Self::on_redo))
+            .on_mouse_move(cx.listener(|this, event: &gpui::MouseMoveEvent, _, cx| {
+                this.update_image_resize(event.position.x, cx)
+            }))
             .on_mouse_up(
                 gpui::MouseButton::Left,
-                cx.listener(|this, _: &gpui::MouseUpEvent, _, _| this.end_mouse_selection()),
+                cx.listener(|this, _: &gpui::MouseUpEvent, _, cx| {
+                    this.end_mouse_selection();
+                    this.commit_image_resize(cx);
+                }),
             )
             .on_mouse_up_out(
                 gpui::MouseButton::Left,
-                cx.listener(|this, _: &gpui::MouseUpEvent, _, _| this.end_mouse_selection()),
+                cx.listener(|this, _: &gpui::MouseUpEvent, _, cx| {
+                    this.end_mouse_selection();
+                    this.commit_image_resize(cx);
+                }),
             )
+    }
+}
+
+/// The extension `File.name` carries for a pasted image (`image.png`).
+fn image_extension(format: gpui::ImageFormat) -> &'static str {
+    match format {
+        gpui::ImageFormat::Png => "png",
+        gpui::ImageFormat::Jpeg => "jpeg",
+        gpui::ImageFormat::Webp => "webp",
+        gpui::ImageFormat::Gif => "gif",
+        gpui::ImageFormat::Svg => "svg",
+        gpui::ImageFormat::Bmp => "bmp",
+        gpui::ImageFormat::Tiff => "tiff",
     }
 }
 

@@ -1,5 +1,6 @@
 mod ai_availability;
 mod ai_settings;
+mod attachments;
 mod audio_player;
 mod audio_retention;
 mod automations_tab;
@@ -1187,6 +1188,12 @@ impl Workspace {
                         EditorEvent::OpenMention { kind, id } => {
                             this.open_mention(kind, id.clone(), cx);
                         }
+                        EditorEvent::Files(files) => {
+                            this.attach_files(session_id.clone(), editor, files.clone(), cx);
+                        }
+                        EditorEvent::Dropped(paths) => {
+                            this.drop_files(session_id.clone(), editor, paths.clone(), cx);
+                        }
                     },
                 )
                 .detach();
@@ -1293,6 +1300,14 @@ impl Workspace {
                         }
                         EditorEvent::OpenMention { kind, id } => {
                             this.open_mention(kind, id.clone(), cx);
+                        }
+                        EditorEvent::Files(files) => {
+                            let session_id = editor.read(cx).session_id.clone();
+                            this.attach_files(session_id, editor, files.clone(), cx);
+                        }
+                        EditorEvent::Dropped(paths) => {
+                            let session_id = editor.read(cx).session_id.clone();
+                            this.drop_files(session_id, editor, paths.clone(), cx);
                         }
                     },
                 )

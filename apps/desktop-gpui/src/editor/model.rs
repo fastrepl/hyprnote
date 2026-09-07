@@ -337,6 +337,108 @@ impl Doc {
         }
     }
 
+    /// The path of the `nth` node of `kind` in document order.
+    pub fn nth_block_path(&self, kind: &str, nth: usize) -> Option<Vec<usize>> {
+        fn walk(
+            node: &Value,
+            kind: &str,
+            path: &mut Vec<usize>,
+            seen: &mut usize,
+            nth: usize,
+        ) -> Option<Vec<usize>> {
+            for (index, child) in children(node).iter().enumerate() {
+                path.push(index);
+                if child.get("type").and_then(Value::as_str) == Some(kind) {
+                    if *seen == nth {
+                        return Some(path.clone());
+                    }
+                    *seen += 1;
+                }
+                if let Some(found) = walk(child, kind, path, seen, nth) {
+                    return Some(found);
+                }
+                path.pop();
+            }
+            None
+        }
+        walk(&self.root, kind, &mut Vec::new(), &mut 0, nth)
+    }
+
+    /// `tr.setNodeMarkup(pos, undefined, { ...attrs, [key]: value })`.
+    pub fn set_block_attr(&mut self, path: &[usize], key: &str, value: Value) -> bool {
+        let Some(node) = node_at_mut(&mut self.root, path) else {
+            return false;
+        };
+        let object = node.as_object_mut().expect("node object");
+        let attrs = object
+            .entry("attrs")
+            .or_insert_with(|| Value::Object(Map::new()));
+        match attrs.as_object_mut() {
+            Some(attrs) => {
+                attrs.insert(key.to_string(), value);
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// `tr.delete(pos, pos + node.nodeSize)` for a block node; an emptied
+    /// document keeps a paragraph to type into. Returns the caret to land on.
+    pub fn remove_block(&mut self, path: &[usize]) -> Caret {
+        self.remove_node(path);
+        self.reindex();
+        self.ensure_textblock();
+        let block = self
+            .textblocks
+            .iter()
+            .position(|p| p.as_slice() >= path)
+            .or_else(|| self.textblocks.len().checked_sub(1))
+            .unwrap_or(0);
+        Caret {
+            block,
+            offset: if self
+                .textblocks
+                .get(block)
+                .is_some_and(|p| p.as_slice() >= path)
+            {
+                0
+            } else {
+                self.text(block).len()
+            },
+        }
+    }
+
+    /// `imageTrailingParagraphPlugin`: every top-level image is followed by a
+    /// paragraph. Returns the images' indices before the insertions.
+    pub fn ensure_image_trailing_paragraphs(&mut self) -> Vec<usize> {
+        let content = self.root_content_mut();
+        let mut index = 0;
+        let mut inserted_after = Vec::new();
+        while index < content.len() {
+            let is_image = content[index].get("type").and_then(Value::as_str) == Some("image");
+            let next_is_paragraph = content
+                .get(index + 1)
+                .is_some_and(|next| next.get("type").and_then(Value::as_str) == Some("paragraph"));
+            if is_image && !next_is_paragraph {
+                content.insert(index + 1, json!({ "type": "paragraph" }));
+                inserted_after.push(index - inserted_after.len());
+            }
+            index += 1;
+        }
+        if !inserted_after.is_empty() {
+            self.reindex();
+        }
+        inserted_after
+    }
+
+    pub fn textblock_path(&self, block: usize) -> Option<Vec<usize>> {
+        self.textblocks.get(block).cloned()
+    }
+
+    pub fn textblock_index_of(&self, path: &[usize]) -> Option<usize> {
+        self.textblocks.iter().position(|p| p.as_slice() == path)
+    }
+
     /// `insertPoint` for a block node beside the textblock at `path`: climbs
     /// while the ancestor sits at its parent's edge, returning the content
     /// index where the first accepting ancestor takes it.

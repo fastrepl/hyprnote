@@ -427,7 +427,7 @@ impl Workspace {
     }
 
     /// `runAudioImport`
-    fn run_audio_import(
+    pub(super) fn run_audio_import(
         &mut self,
         session_id: String,
         path: std::path::PathBuf,

@@ -4,15 +4,16 @@
 //! circle → square, links in blue-600 with underline.
 
 use std::cell::Cell;
+use std::path::PathBuf;
 
 use gpui::{
     AnyElement, Div, ElementInputHandler, Entity, Focusable as _, HighlightStyle, MouseButton,
     MouseDownEvent, Pixels, Point, SharedString, StyledText, TextRun, TextStyle, Window, canvas,
-    div, fill, point, prelude::*, px, size,
+    div, fill, img, point, prelude::*, px, relative, size,
 };
 
 use super::Workspace;
-use crate::document::{Block, Span};
+use crate::document::{Block, FileAttachment, Image, Span};
 use crate::editor::BodyEditor;
 use crate::prose_text::{ProseLayout, ProseText};
 use crate::theme::{Theme, alpha};
@@ -26,6 +27,17 @@ const BODY_PX: f32 = 16.0;
 pub(super) fn webkit_line_height(font_px: f32, ratio: f32) -> f32 {
     let percent = ratio * 100.0;
     (percent * font_px / 100.0).floor()
+}
+
+/// `formatFileSize`
+pub(super) fn format_file_size(bytes: u64) -> String {
+    if bytes < 1024 {
+        format!("{bytes} B")
+    } else if bytes < 1024 * 1024 {
+        format!("{:.1} KB", bytes as f64 / 1024.0)
+    } else {
+        format!("{:.1} MB", bytes as f64 / (1024.0 * 1024.0))
+    }
 }
 
 /// Paints one quad per wrapped line the byte range covers.
@@ -51,7 +63,8 @@ pub(super) fn has_visible_content(block: &Block) -> bool {
             .any(|item| item.checked.is_some() || item.blocks.iter().any(has_visible_content)),
         Block::Blockquote(blocks) => blocks.iter().any(has_visible_content),
         Block::Code(code) => !code.trim().is_empty(),
-        Block::HorizontalRule | Block::Image { .. } => true,
+        Block::HorizontalRule | Block::Image(_) | Block::FileAttachment(_) => true,
+        Block::Clip => false,
     }
 }
 
@@ -78,6 +91,19 @@ pub(super) struct DocumentRenderer {
     /// the (empty) title heading; ProseMirror starts there, so a document
     /// without a caret yet shows it too.
     title_placeholder: bool,
+    /// `useAttachmentResolver`: `<session dir>/attachments`, where an
+    /// attachment id names its file.
+    attachments_dir: Option<PathBuf>,
+    /// An image resize in progress: the image's document-order index and its
+    /// draft pixel width.
+    image_draft: Option<(usize, Pixels)>,
+    /// Document-order counters for the image and file-attachment atoms, so
+    /// their controls address the right node.
+    next_image: Cell<usize>,
+    next_file: Cell<usize>,
+    /// The line box's depth below an `inline-block` sitting on the baseline:
+    /// the body font's rounded descent plus half-leading at the 24px line.
+    inline_block_gap: Pixels,
 }
 
 impl Workspace {
@@ -91,6 +117,12 @@ impl Workspace {
         if let Some(family) = &self.font_family {
             base.font_family = family.clone();
         }
+        let font_id = window.text_system().resolve_font(&base.font());
+        let ascent = f32::from(window.text_system().ascent(font_id, px(BODY_PX))).round();
+        let descent = f32::from(window.text_system().descent(font_id, px(BODY_PX)))
+            .abs()
+            .round();
+        let inline_block_gap = px((BODY_PX * 1.5 - ascent + descent) / 2.0);
         DocumentRenderer {
             base,
             mono_family: self.mono_font_family.clone(),
@@ -102,6 +134,11 @@ impl Workspace {
             placeholder: None,
             title_placeholder: true,
             link_color: None,
+            attachments_dir: None,
+            image_draft: None,
+            next_image: Cell::new(0),
+            next_file: Cell::new(0),
+            inline_block_gap,
         }
     }
 
@@ -124,6 +161,7 @@ impl Workspace {
                 .map(|block| (block, SharedString::from("Start writing...")))
         };
         renderer.title_placeholder = editor.read(cx).caret().is_none_or(|caret| caret.block == 0);
+        renderer.image_draft = editor.read(cx).image_resize_draft();
         renderer.editor = Some(editor);
         renderer
     }
@@ -135,6 +173,17 @@ impl DocumentRenderer {
     pub(super) fn for_title_document(mut self) -> Self {
         self.placeholder = None;
         self
+    }
+
+    /// Resolves attachment ids against the session's `attachments` folder.
+    pub(super) fn for_session(mut self, session_dir: &std::path::Path) -> Self {
+        self.attachments_dir = Some(anlg_fs_sync_core::attachments::dir(session_dir));
+        self
+    }
+
+    fn attachment_path(&self, attachment_id: Option<&str>) -> Option<PathBuf> {
+        let dir = self.attachments_dir.as_ref()?;
+        anlg_fs_sync_core::attachments::path_in(dir, attachment_id?)
     }
 }
 
@@ -151,11 +200,19 @@ impl DocumentRenderer {
         let focus_handle = editor.read(cx).focus_handle(cx);
         let handler_editor = editor.clone();
         let click_editor = editor.clone();
+        let drop_editor = editor.clone();
         div()
             .relative()
             .flex()
+            .flex_1()
             .flex_col()
             .w_full()
+            .on_drop(move |paths: &gpui::ExternalPaths, window, cx| {
+                let position = window.mouse_position();
+                drop_editor.update(cx, |editor, cx| {
+                    editor.drop_paths(paths.paths().to_vec(), position, cx)
+                });
+            })
             .children(children)
             .child(
                 canvas(
@@ -166,6 +223,8 @@ impl DocumentRenderer {
                             ElementInputHandler::new(bounds, handler_editor.clone()),
                             cx,
                         );
+                        handler_editor
+                            .update(cx, |editor, _| editor.set_root_width(bounds.size.width));
                     },
                 )
                 .absolute()
@@ -174,10 +233,13 @@ impl DocumentRenderer {
                 .size_full(),
             )
             .child(
-                // The `flex-1` tail below the content: `trailing-empty-line-click`.
+                // `.prosemirror-editor { min-height: 100% }`: the editor fills
+                // the viewport, and a press below the last block places the
+                // caret at the end (`trailing-empty-line-click`).
                 div()
                     .id("editor-tail")
-                    .h(px(BODY_PX * 1.5 * 4.0))
+                    .flex_1()
+                    .min_h_0()
                     .w_full()
                     .cursor_text()
                     .on_mouse_down(MouseButton::Left, move |_: &MouseDownEvent, window, cx| {
@@ -590,10 +652,15 @@ impl DocumentRenderer {
                 .h(px(1.0))
                 .bg(theme.border)
                 .into_any_element(),
-            Block::Image { alt } => div()
+            Block::Image(Image { alt, .. }) => div()
                 .text_color(theme.muted_foreground)
                 .child(SharedString::from(alt.clone()))
                 .into_any_element(),
+            Block::FileAttachment(file) => div()
+                .text_color(theme.muted_foreground)
+                .child(SharedString::from(file.name.clone()))
+                .into_any_element(),
+            Block::Clip => div().into_any_element(),
         }
     }
 
@@ -741,10 +808,15 @@ impl DocumentRenderer {
                     .into_any_element()
             }
             Block::HorizontalRule => div().h(px(1.0)).bg(self.theme.border).into_any_element(),
-            Block::Image { alt } => div()
+            Block::Image(Image { alt, .. }) => div()
                 .text_color(color)
                 .child(SharedString::from(alt.clone()))
                 .into_any_element(),
+            Block::FileAttachment(file) => div()
+                .text_color(color)
+                .child(SharedString::from(file.name.clone()))
+                .into_any_element(),
+            Block::Clip => div().into_any_element(),
         }
     }
 
@@ -929,23 +1001,312 @@ impl DocumentRenderer {
                 .h(px(1.0))
                 .bg(theme.border)
                 .into_any_element(),
-            Block::Image { alt } => div()
-                .my(pad)
-                .px_3()
-                .py_2()
-                .rounded_md()
-                .border_1()
-                .border_dashed()
-                .border_color(theme.border)
-                .text_color(theme.muted_foreground)
-                .tw_text_sm()
-                .child(SharedString::from(if alt.is_empty() {
-                    "Image".to_string()
-                } else {
-                    format!("Image: {alt}")
-                }))
-                .into_any_element(),
+            Block::Image(image) => self.image_block(image, pad),
+            Block::FileAttachment(file) => self.file_attachment_block(file, pad),
+            // `div[data-type="clip"]` is empty: `padding-block: 0.125em` only.
+            Block::Clip => div().py(pad).into_any_element(),
         }
+    }
+
+    /// `ResizableImageView` (its root is a plain block child, so only the
+    /// `padding-block: 0.125em` applies; the `.node-image` rules match
+    /// nothing): the `inline-block` frame at `editorWidth%` of the editor sits
+    /// on the line's baseline, so the strut's descent follows it; the image is
+    /// `rounded-md bg-card` with the `ring-border ring-offset-2` hover ring
+    /// and — while editing — the two resize pills.
+    fn image_block(&self, image: &Image, pad: Pixels) -> AnyElement {
+        let theme = self.theme;
+        let nth = self.next_image.replace(self.next_image.get() + 1);
+        let source: Option<gpui::ImageSource> = self
+            .attachment_path(image.attachment_id.as_deref())
+            .map(gpui::ImageSource::from)
+            .or_else(|| {
+                let src = image.src.as_deref()?;
+                (src.starts_with("https://") || src.starts_with("http://"))
+                    .then(|| gpui::ImageSource::from(SharedString::from(src.to_string())))
+            });
+        let editor = self.editor.clone();
+        // A drag in progress paints its pixel width; otherwise the stored
+        // percentage of the editor.
+        let draft = self
+            .image_draft
+            .filter(|(index, _)| *index == nth)
+            .map(|(_, width)| width);
+        let ring = vec![
+            gpui::BoxShadow {
+                color: theme.border.into(),
+                offset: point(px(0.0), px(0.0)),
+                blur_radius: px(0.0),
+                spread_radius: px(3.0),
+            },
+            gpui::BoxShadow {
+                color: theme.card.into(),
+                offset: point(px(0.0), px(0.0)),
+                blur_radius: px(0.0),
+                spread_radius: px(2.0),
+            },
+        ];
+        let handle = |left: bool, editor: Option<Entity<BodyEditor>>| {
+            div()
+                .id((
+                    if left {
+                        "image-resize-left"
+                    } else {
+                        "image-resize-right"
+                    },
+                    nth,
+                ))
+                .absolute()
+                .top_0()
+                .bottom_0()
+                .map(|handle| {
+                    if left {
+                        handle.left(px(4.0))
+                    } else {
+                        handle.right(px(4.0))
+                    }
+                })
+                .flex()
+                .items_center()
+                .opacity(0.0)
+                .group_hover("note-image", |handle| handle.opacity(1.0))
+                .child(
+                    div()
+                        .flex()
+                        .h(px(56.0))
+                        .w(px(16.0))
+                        .items_center()
+                        .justify_center()
+                        .rounded_full()
+                        .border_1()
+                        .border_color(theme.border)
+                        .bg(alpha(theme.card, 0.95))
+                        .shadow_sm()
+                        .cursor(gpui::CursorStyle::ResizeLeftRight)
+                        .child(
+                            div()
+                                .h(px(32.0))
+                                .w(px(4.0))
+                                .rounded_full()
+                                .bg(theme.muted_foreground),
+                        ),
+                )
+                .when_some(
+                    editor,
+                    |handle: gpui::Stateful<Div>, editor: Entity<BodyEditor>| {
+                        handle.on_mouse_down(
+                            MouseButton::Left,
+                            move |event: &MouseDownEvent, _, cx| {
+                                cx.stop_propagation();
+                                editor.update(cx, |editor, cx| {
+                                    editor.begin_image_resize(nth, left, event.position.x, cx)
+                                });
+                            },
+                        )
+                    },
+                )
+        };
+        let bounds_editor = editor.clone();
+        div()
+            .pt(pad)
+            .pb(pad + self.inline_block_gap)
+            .child(
+                div()
+                    .id(("note-image", nth))
+                    .group("note-image")
+                    .relative()
+                    .map(|frame| match draft {
+                        Some(width) => frame.w(width),
+                        None => frame.w(relative(image.editor_width as f32 / 100.0)),
+                    })
+                    .max_w_full()
+                    .rounded(px(6.0))
+                    .hover(move |style| style.shadow(ring.clone()))
+                    .map(|frame| match source {
+                        Some(source) => frame.child(
+                            img(source)
+                                .w_full()
+                                .rounded(px(6.0))
+                                .bg(theme.card)
+                                .with_fallback({
+                                    let alt = image.alt.clone();
+                                    let color = theme.muted_foreground;
+                                    move || {
+                                        div()
+                                            .text_color(color)
+                                            .child(SharedString::from(alt.clone()))
+                                            .into_any_element()
+                                    }
+                                }),
+                        ),
+                        None => frame.child(
+                            div()
+                                .text_color(theme.muted_foreground)
+                                .child(SharedString::from(image.alt.clone())),
+                        ),
+                    })
+                    .when_some(bounds_editor, |frame, editor| {
+                        frame.child(
+                            canvas(
+                                |_, _, _| (),
+                                move |bounds, _, _, cx| {
+                                    editor.update(cx, |editor, _| {
+                                        editor.set_image_bounds(nth, bounds)
+                                    });
+                                },
+                            )
+                            .absolute()
+                            .top_0()
+                            .left_0()
+                            .size_full(),
+                        )
+                    })
+                    .when(self.editor.is_some(), |frame| {
+                        frame
+                            .child(handle(true, editor.clone()))
+                            .child(handle(false, editor.clone()))
+                    }),
+            )
+            .into_any_element()
+    }
+
+    /// `FileAttachmentView`: the `my-1 rounded-lg border bg-muted px-3 py-2.5`
+    /// card with the 40px icon (or image thumbnail), the name and size, and
+    /// the open / remove buttons shown on hover.
+    fn file_attachment_block(&self, file: &FileAttachment, pad: Pixels) -> AnyElement {
+        let theme = self.theme;
+        let nth = self.next_file.replace(self.next_file.get() + 1);
+        let path = self
+            .attachment_path(file.attachment_id.as_deref())
+            .map(|path| path.to_string_lossy().to_string())
+            .or_else(|| file.path.clone());
+        let is_image = file.mime_type.starts_with("image/");
+        let icon_name = if is_image {
+            "image"
+        } else {
+            match file.mime_type.as_str() {
+                "application/pdf"
+                | "text/plain"
+                | "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                | "application/msword" => "file-text",
+                "text/csv"
+                | "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                | "application/vnd.ms-excel" => "file-spreadsheet",
+                _ => "file",
+            }
+        };
+        let display_name = if file.name.is_empty() {
+            "file".to_string()
+        } else if file.name.chars().count() > 60 {
+            format!("{}\u{2026}", file.name.chars().take(60).collect::<String>())
+        } else {
+            file.name.clone()
+        };
+        let size_label = file.size.map(format_file_size);
+        let thumbnail = path.as_deref().filter(|_| is_image).map(PathBuf::from);
+        let action = |id: &'static str, glyph: &'static str| {
+            div()
+                .id((id, nth))
+                .p(px(4.0))
+                .rounded(px(4.0))
+                .cursor_pointer()
+                .hover(move |style| style.bg(theme.accent))
+                .child(crate::ui::icon(glyph, px(14.0), theme.muted_foreground))
+        };
+        let open_path = path.clone();
+        let editor = self.editor.clone();
+        div()
+            .py(pad)
+            .child(
+                div()
+                    .id(("file-attachment", nth))
+                    .group("file-attachment")
+                    // `my-1`, but `.prosemirror-editor :first-child { margin-top: 0 }`.
+                    .mb(px(4.0))
+                    .flex()
+                    .items_center()
+                    .gap(px(12.0))
+                    .rounded(px(8.0))
+                    .border_1()
+                    .border_color(theme.border)
+                    .bg(theme.muted)
+                    .px(px(12.0))
+                    .py(px(10.0))
+                    .hover(move |style| style.bg(theme.accent))
+                    .child(match thumbnail {
+                        Some(path) => img(path)
+                            .size(px(40.0))
+                            .flex_shrink_0()
+                            .rounded(px(4.0))
+                            .object_fit(gpui::ObjectFit::Cover)
+                            .into_any_element(),
+                        None => div()
+                            .flex()
+                            .size(px(40.0))
+                            .flex_shrink_0()
+                            .items_center()
+                            .justify_center()
+                            .rounded(px(4.0))
+                            .bg(alpha(theme.accent, 0.6))
+                            .child(crate::ui::icon(icon_name, px(20.0), theme.muted_foreground))
+                            .into_any_element(),
+                    })
+                    .child(
+                        div()
+                            .min_w_0()
+                            .flex_1()
+                            .child(
+                                div()
+                                    .tw_text_sm()
+                                    .font_weight(gpui::FontWeight::MEDIUM)
+                                    .text_color(theme.muted_foreground)
+                                    .truncate()
+                                    .child(SharedString::from(display_name)),
+                            )
+                            .when_some(size_label, |column, label| {
+                                column.child(
+                                    div()
+                                        .tw_text_xs()
+                                        .text_color(theme.muted_foreground)
+                                        .child(SharedString::from(label)),
+                                )
+                            }),
+                    )
+                    .child(
+                        div()
+                            .flex()
+                            .flex_shrink_0()
+                            .items_center()
+                            .gap(px(4.0))
+                            .opacity(0.0)
+                            .group_hover("file-attachment", |row| row.opacity(1.0))
+                            .when_some(open_path, |row, path| {
+                                row.child(
+                                    action("file-attachment-open", "arrow-square-out")
+                                        .on_mouse_down(MouseButton::Left, move |_, _, cx| {
+                                            cx.stop_propagation();
+                                            if path.starts_with("https://") {
+                                                cx.open_url(&path);
+                                            } else {
+                                                cx.open_url(&format!("file://{path}"));
+                                            }
+                                        }),
+                                )
+                            })
+                            .when_some(editor, |row, editor| {
+                                row.child(action("file-attachment-remove", "x").on_mouse_down(
+                                    MouseButton::Left,
+                                    move |_, _, cx| {
+                                        cx.stop_propagation();
+                                        editor.update(cx, |editor, cx| {
+                                            editor.remove_block_atom("fileAttachment", nth, cx)
+                                        });
+                                    },
+                                ))
+                            }),
+                    ),
+            )
+            .into_any_element()
     }
 
     /// Unordered markers cycle by depth (filled circle, hollow circle, square,
@@ -1103,6 +1464,11 @@ impl DocumentRenderer {
             placeholder: None,
             link_color: Some(link_color),
             title_placeholder: false,
+            attachments_dir: None,
+            image_draft: None,
+            next_image: Cell::new(0),
+            next_file: Cell::new(0),
+            inline_block_gap: self.inline_block_gap,
         };
         renderer.text(spans, &base)
     }

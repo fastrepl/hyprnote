@@ -1,3 +1,4 @@
+mod ai_availability;
 mod ai_settings;
 mod audio_player;
 mod automations_tab;
@@ -13,6 +14,7 @@ mod filter_menu;
 pub(crate) mod floating_bar;
 mod folders_tab;
 mod icon_picker;
+mod llm_models;
 mod meeting_info;
 mod mention_popup;
 mod menu;
@@ -241,6 +243,18 @@ pub struct Workspace {
     note_search: Option<note_search_bar::NoteSearch>,
     /// The onboarding's looping BGM while it is shown.
     onboarding_bgm: Option<crate::sfx::Sound>,
+    /// `["models", provider, listModels]`: the Intelligence page's catalogues.
+    llm_models: llm_models::LlmModelsCache,
+    /// `["llm-health-check", model]`: the selected model's probe result.
+    llm_health: llm_models::LlmHealthCache,
+    /// `lastSelectedModelsRef`
+    last_llm_models: llm_models::LastLlmModels,
+    /// `useProviderAvailability` results by config.
+    ai_availability: ai_availability::AvailabilityCache,
+    /// The AI pages whose 5s local-server poll is running.
+    availability_polls: std::collections::HashSet<ai_settings::ProviderKind>,
+    /// `PersistAiSelection` is writing the default LLM selection.
+    applying_llm_default: bool,
     /// The Dictionary page's term field and the row being edited.
     dictionary_input: Option<gpui::Entity<TextInput>>,
     dictionary_edit: Option<dictionary::DictionaryEdit>,
@@ -390,6 +404,12 @@ impl Workspace {
             chat_cta_hovered: false,
             note_search: None,
             onboarding_bgm: None,
+            llm_models: Default::default(),
+            llm_health: Default::default(),
+            last_llm_models: Default::default(),
+            ai_availability: Default::default(),
+            availability_polls: Default::default(),
+            applying_llm_default: false,
             dictionary_input: None,
             dictionary_edit: None,
             chat_open: false,
@@ -536,6 +556,15 @@ impl Workspace {
                         // `FloatingMeetingWindowSettingsSync`
                         this.sync_floating_bar(cx);
                         this.sync_tray(cx);
+                        for kind in [
+                            ai_settings::ProviderKind::Stt,
+                            ai_settings::ProviderKind::Llm,
+                        ] {
+                            if this.ai_settings.contains_key(&kind) {
+                                this.ensure_ai_availability(kind, false, cx);
+                            }
+                        }
+                        this.ensure_llm_models(false, cx);
                         cx.notify();
                     }
                 })

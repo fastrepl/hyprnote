@@ -386,6 +386,12 @@ impl Workspace {
             _ => {}
         }
         self.settings_tab = Some(tab);
+        if tab == SettingsTab::Intelligence {
+            // `useModelMetadata` / `useQuery(["models", ...])` on mount, and the
+            // `staleTime: 0` health probe refetching with it.
+            self.ensure_llm_models(false, cx);
+            self.ensure_llm_health(true, cx);
+        }
         cx.notify();
     }
 
@@ -684,6 +690,9 @@ impl Workspace {
         if key == "show_tray_icon" {
             // `setSettingValues` → `setTrayIconVisible`: the switch drives the tray at once.
             self.sync_tray(cx);
+        }
+        if key.starts_with("current_llm_") && !self.applying_llm_default {
+            self.ensure_llm_models(false, cx);
         }
         cx.notify();
         let task = self.store.set_setting(key.to_string(), value, synced);
@@ -1338,6 +1347,7 @@ impl Workspace {
                                         this.set_setting("mic_active_threshold", serde_json::Value::from(seconds), cx);
                                     }
                                 }),
+                                combobox: None,
                             },
                             cx,
                         );
@@ -2309,6 +2319,7 @@ impl Workspace {
                                                 cx,
                                             );
                                         }),
+                                        combobox: None,
                                     },
                                     cx,
                                 ),
@@ -2355,6 +2366,7 @@ impl Workspace {
                                                 cx,
                                             );
                                         }),
+                                        combobox: None,
                                     },
                                     cx,
                                 ),
@@ -2729,7 +2741,7 @@ fn section_heading(theme: crate::theme::Theme, label: &'static str) -> Div {
 
 /// `SettingRow`: title `text-sm font-medium mb-1`, description `text-xs
 /// text-muted-foreground`, control in a `w-48` column (or content width).
-fn setting_row(
+pub(super) fn setting_row(
     theme: crate::theme::Theme,
     title: &'static str,
     description: Option<&'static str>,
@@ -3063,11 +3075,33 @@ pub(crate) struct SelectSpec {
     pub options: Rc<Vec<SelectOption>>,
     pub search: Option<SearchSpec>,
     pub on_select: OnSelect,
+    /// `ModelCombobox` extras over the searchable panel.
+    pub combobox: Option<Rc<ComboboxExtras>>,
 }
+
+/// `ModelCombobox`: the freeform `Select "…"` row, the ignored models behind
+/// the eye toggle, the loading state and the refresh button.
+pub(crate) struct ComboboxExtras {
+    /// `disabled || isLoadingModels`: the trigger reads `Loading models...`.
+    pub loading: bool,
+    /// `isConfigured`: a green check replaces the caret.
+    pub configured: bool,
+    /// `HealthStatusIndicator`: the probe is running.
+    pub pending: bool,
+    /// `getDisplayName(value)` for a selected model missing from the list.
+    pub current_label: Option<String>,
+    /// `(id, display name, deprecated)` of the ignored models.
+    pub ignored: Vec<(String, String, bool)>,
+    /// The selected value is an ignored `old_model`.
+    pub selected_deprecated: bool,
+    pub on_refresh: OnRefresh,
+}
+
+type OnRefresh = Rc<dyn Fn(&mut Workspace, &mut Context<Workspace>)>;
 
 impl SelectSpec {
     /// A select that writes its value straight to `key`.
-    fn for_setting(
+    pub(super) fn for_setting(
         key: &'static str,
         current: Option<String>,
         placeholder: &'static str,
@@ -3082,6 +3116,7 @@ impl SelectSpec {
             on_select: Rc::new(move |this, value, _, cx| {
                 this.set_setting(key, serde_json::Value::String(value), cx);
             }),
+            combobox: None,
         }
     }
 }
@@ -3094,6 +3129,8 @@ pub(crate) struct OpenSelect {
     on_select: OnSelect,
     highlighted: usize,
     search: Option<gpui::Entity<TextInput>>,
+    /// `showIgnored` of the model combobox.
+    show_ignored: bool,
 }
 
 /// cmdk's `filter`: case-insensitive substring match on `label detail`.
@@ -3188,6 +3225,7 @@ impl Workspace {
             on_select: spec.on_select.clone(),
             highlighted: 0,
             search,
+            show_ignored: false,
         });
         cx.notify();
     }
@@ -3209,6 +3247,7 @@ impl Workspace {
             .current
             .as_ref()
             .and_then(|value| spec.options.iter().find(|option| &option.value == value));
+        let combobox = spec.combobox.clone();
         let (text, color) = match selected {
             Some(option) => (
                 SharedString::from(match option.detail {
@@ -3217,8 +3256,38 @@ impl Workspace {
                 }),
                 theme.foreground,
             ),
-            None => (SharedString::from(spec.placeholder), theme.muted_foreground),
+            // `ModelCombobox` shows the stored model's name even before (or
+            // without) the catalogue listing it.
+            None => match combobox
+                .as_ref()
+                .and_then(|extras| extras.current_label.clone())
+                .filter(|_| spec.current.as_ref().is_some_and(|value| !value.is_empty()))
+            {
+                Some(label) => (
+                    SharedString::from(label),
+                    if combobox
+                        .as_ref()
+                        .is_some_and(|extras| extras.selected_deprecated)
+                    {
+                        theme.muted_foreground
+                    } else {
+                        theme.foreground
+                    },
+                ),
+                None => (
+                    SharedString::from(match &combobox {
+                        Some(extras) if extras.loading => "Loading models...",
+                        _ => spec.placeholder,
+                    }),
+                    theme.muted_foreground,
+                ),
+            },
         };
+        let selected_deprecated = combobox
+            .as_ref()
+            .is_some_and(|extras| extras.selected_deprecated && spec.current.is_some());
+        let configured = combobox.as_ref().is_some_and(|extras| extras.configured);
+        let pending = combobox.as_ref().is_some_and(|extras| extras.pending);
         let selected_glyph = selected.and_then(|option| option.glyph);
         let id = spec.id;
         let open = self.open_select.as_ref().filter(|open| open.id == id);
@@ -3283,9 +3352,22 @@ impl Workspace {
                             .children(selected_glyph.map(|glyph| {
                                 super::ai_settings::provider_icon(glyph, px(20.0), theme)
                             }))
-                            .child(div().min_w_0().truncate().child(text)),
+                            .child(div().min_w_0().truncate().child(text))
+                            .when(selected_deprecated, |row| row.child(deprecated_badge()))
+                            // `suffix={<HealthStatusIndicator />}`
+                            .when(pending, |row| {
+                                row.child(div().ml_auto().child(crate::ui::spinner(
+                                    SharedString::from(format!("select-health-{id}")),
+                                    px(14.0),
+                                    theme.muted_foreground,
+                                )))
+                            }),
                     )
-                    .child(icon("caret-down", px(16.0), alpha(theme.foreground, 0.5))),
+                    .child(if configured {
+                        icon("check", px(16.0), gpui::rgb(0x16a34a))
+                    } else {
+                        icon("caret-down", px(16.0), alpha(theme.foreground, 0.5))
+                    }),
             )
             .when_some(open, |wrapper, open| {
                 let panel = match &spec.search {
@@ -3386,6 +3468,40 @@ impl Workspace {
             .unwrap_or_default();
         let matches = filter_options(&spec.options, &query);
         let highlighted = open.highlighted;
+        let combobox = spec.combobox.clone();
+        let trimmed_query = query.trim().to_string();
+        // `canSelectFreeform`: a typed id that matches no option exactly.
+        let freeform = combobox.is_some()
+            && !trimmed_query.is_empty()
+            && !spec
+                .options
+                .iter()
+                .any(|option| option.value.to_lowercase() == trimmed_query.to_lowercase());
+        let ignored_rows: Vec<(String, String, bool)> = combobox
+            .as_ref()
+            .filter(|_| open.show_ignored)
+            .map(|extras| {
+                let lower = query.to_lowercase();
+                extras
+                    .ignored
+                    .iter()
+                    .filter(|(id, label, _)| {
+                        lower.is_empty() || format!("{id} {label}").to_lowercase().contains(&lower)
+                    })
+                    .cloned()
+                    .collect()
+            })
+            .unwrap_or_default();
+        let empty_message: SharedString = match &combobox {
+            Some(extras) => SharedString::from(if !trimmed_query.is_empty() {
+                "No results found."
+            } else if !extras.ignored.is_empty() {
+                "No models ready to use."
+            } else {
+                "No models available."
+            }),
+            None => SharedString::from(search.empty_message),
+        };
 
         let mut panel = div()
             .id(SharedString::from(format!("select-content-{id}")))
@@ -3416,14 +3532,14 @@ impl Workspace {
             .max_h(px(250.0))
             .overflow_y_scroll()
             .p_1();
-        if matches.is_empty() {
+        if matches.is_empty() && ignored_rows.is_empty() && !freeform {
             list = list.child(
                 div()
                     .px_2()
                     .py(px(6.0))
                     .tw_text_sm()
                     .text_color(theme.muted_foreground)
-                    .child(search.empty_message),
+                    .child(empty_message),
             );
         } else {
             list = list.children(matches.into_iter().enumerate().map(|(index, option)| {
@@ -3479,11 +3595,147 @@ impl Workspace {
                                 .child(detail),
                         )
                     })
-                    .when(selected, |row| {
+                    // cmdk items carry no check indicator in the combobox.
+                    .when(selected && combobox.is_none(), |row| {
                         row.child(icon("check", px(16.0), theme.foreground))
                     })
             }));
+            // `showIgnored`: the filtered-out models at half opacity, the
+            // deprecated ones badged.
+            list = list.children(ignored_rows.into_iter().enumerate().map(
+                |(index, (value, label, deprecated))| {
+                    let on_select = spec.on_select.clone();
+                    div()
+                        .id(SharedString::from(format!("select-ignored-{id}-{index}")))
+                        .flex()
+                        .w_full()
+                        .items_center()
+                        .gap_2()
+                        .px_2()
+                        .py(px(6.0))
+                        .rounded(px(14.0))
+                        .tw_text_sm()
+                        .text_color(theme.foreground)
+                        .opacity(0.5)
+                        .cursor_pointer()
+                        .hover(move |style| style.bg(theme.accent))
+                        .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                        .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
+                            this.close_select(cx);
+                            this.focus_handle.focus(window);
+                            on_select(this, value.clone(), window, cx);
+                        }))
+                        .child(div().min_w_0().truncate().child(SharedString::from(label)))
+                        .when(deprecated, |row| row.child(deprecated_badge()))
+                },
+            ));
+            // `Select "query"`
+            if freeform {
+                let value = trimmed_query.clone();
+                let on_select = spec.on_select.clone();
+                list = list.child(
+                    div()
+                        .id(SharedString::from(format!("select-freeform-{id}")))
+                        .flex()
+                        .w_full()
+                        .items_center()
+                        .px_2()
+                        .py(px(6.0))
+                        .rounded(px(14.0))
+                        .tw_text_sm()
+                        .text_color(theme.foreground)
+                        .cursor_pointer()
+                        .hover(move |style| style.bg(theme.accent))
+                        .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                        .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
+                            this.close_select(cx);
+                            this.focus_handle.focus(window);
+                            on_select(this, value.clone(), window, cx);
+                        }))
+                        .child(icon("plus-circle", px(16.0), theme.foreground))
+                        .child(div().w(px(8.0)))
+                        .child(
+                            div()
+                                .min_w_0()
+                                .truncate()
+                                .child(SharedString::from(format!("Select \"{trimmed_query}\""))),
+                        ),
+                );
+            }
         }
+        // `border-t px-2 py-1.5 text-xs`: the eye toggle, the count and the
+        // refresh button.
+        let footer = combobox.as_ref().map(|extras| {
+            let show_ignored = open.show_ignored;
+            let ignored_count = extras.ignored.len();
+            let shown = spec.options.len();
+            let on_refresh = extras.on_refresh.clone();
+            let loading = extras.loading;
+            div()
+                .flex()
+                .items_center()
+                .justify_between()
+                .border_t_1()
+                .border_color(theme.border)
+                .px_2()
+                .py(px(6.0))
+                .tw_text_xs()
+                .text_color(theme.muted_foreground)
+                .child(
+                    div()
+                        .id(SharedString::from(format!("select-ignored-toggle-{id}")))
+                        .flex()
+                        .items_center()
+                        .gap_1()
+                        .mr_1()
+                        .cursor_pointer()
+                        .hover(move |style| style.text_color(theme.foreground))
+                        .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                        .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                            if let Some(open) = this.open_select.as_mut() {
+                                open.show_ignored = !open.show_ignored;
+                                cx.notify();
+                            }
+                        }))
+                        .child(icon(
+                            if show_ignored { "eye-slash" } else { "eye" },
+                            px(12.0),
+                            theme.muted_foreground,
+                        )),
+                )
+                .when(ignored_count > 0, |footer| {
+                    footer.child(SharedString::from(if show_ignored {
+                        format!("Showing total of {shown} models.")
+                    } else {
+                        format!("{ignored_count} items ignored.")
+                    }))
+                })
+                .child(
+                    div()
+                        .id(SharedString::from(format!("select-refresh-{id}")))
+                        .ml_auto()
+                        .flex()
+                        .items_center()
+                        .gap_1()
+                        .when(loading, |button| button.opacity(0.5))
+                        .when(!loading, |button| {
+                            button
+                                .cursor_pointer()
+                                .hover(move |style| style.text_color(theme.foreground))
+                        })
+                        .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                        .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                            if !loading {
+                                on_refresh(this, cx);
+                            }
+                        }))
+                        .child(icon(
+                            "arrows-counter-clockwise",
+                            px(12.0),
+                            theme.muted_foreground,
+                        )),
+                )
+        });
 
         panel
             .child(
@@ -3510,8 +3762,25 @@ impl Workspace {
                                 row.child(div().flex_1().min_w_0().child(input))
                             }),
                     )
-                    .child(list),
+                    .child(list)
+                    .children(footer),
             )
             .into_any_element()
     }
+}
+
+/// `DeprecatedBadge`: `rounded-md px-1.5 py-0.5 text-[11px] font-medium
+/// bg-amber-50 text-amber-800`.
+fn deprecated_badge() -> gpui::Div {
+    div()
+        .flex_shrink_0()
+        .rounded(px(6.0))
+        .px(px(6.0))
+        .py(px(2.0))
+        .text_size(px(11.0))
+        .line_height(px(16.0))
+        .font_weight(gpui::FontWeight::MEDIUM)
+        .bg(gpui::rgb(0xfffbeb))
+        .text_color(gpui::rgb(0x92400e))
+        .child("Deprecated")
 }

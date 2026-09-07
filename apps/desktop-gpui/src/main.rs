@@ -1,5 +1,8 @@
 mod actions;
+mod ai_health;
+mod ai_models;
 mod ai_providers;
+mod ai_verify;
 mod assets;
 mod audio;
 mod audio_player;

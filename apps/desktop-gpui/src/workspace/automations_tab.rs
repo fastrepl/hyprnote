@@ -2072,6 +2072,7 @@ impl Workspace {
                     next.trigger = Trigger::parse(&value);
                     this.persist_workflow(next, cx);
                 }),
+                combobox: None,
             },
             true,
             cx,
@@ -2128,6 +2129,7 @@ impl Workspace {
                         }
                         this.persist_workflow(next, cx);
                     }),
+                    combobox: None,
                 },
                 true,
                 cx,
@@ -2202,6 +2204,7 @@ impl Workspace {
                     next.steps.push(Step::new(kind));
                     this.persist_workflow(next, cx);
                 }),
+                combobox: None,
             },
             true,
             cx,

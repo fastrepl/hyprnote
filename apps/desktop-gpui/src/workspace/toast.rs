@@ -184,17 +184,24 @@ impl Workspace {
 
     /// `SettingsAlertToast` on the AI pages: the `stt-settings-alert` /
     /// `llm-settings-alert` warning while no model is configured.
-    pub(super) fn settings_alert(&self) -> Option<&'static str> {
+    pub(super) fn settings_alert(&self) -> Option<SharedString> {
         match self.settings_tab? {
             super::settings::SettingsTab::Transcription => {
                 let configured = self.provider_settings.stt_provider.is_some()
                     && self.provider_settings.stt_model.is_some();
-                (!configured).then_some("Choose a transcription model to start listening.")
+                (!configured).then(|| "Choose a transcription model to start listening.".into())
             }
             super::settings::SettingsTab::Intelligence => {
                 let configured = self.provider_settings.llm_provider.is_some()
                     && self.provider_settings.llm_model.is_some();
-                (!configured).then_some("Choose a language model for summaries and chat.")
+                if !configured {
+                    return Some("Choose a language model for summaries and chat.".into());
+                }
+                // `hasError`: the connection probe's message replaces the hint.
+                match self.llm_health_status() {
+                    Some(crate::ai_health::Health::Error(message)) => Some(message.clone().into()),
+                    _ => None,
+                }
             }
             _ => None,
         }

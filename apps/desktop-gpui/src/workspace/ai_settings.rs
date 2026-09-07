@@ -32,7 +32,7 @@ impl ProviderKind {
         }
     }
 
-    fn providers(self) -> &'static [Provider] {
+    pub(super) fn providers(self) -> &'static [Provider] {
         match self {
             Self::Stt => STT_PROVIDERS,
             Self::Llm => LLM_PROVIDERS,
@@ -69,6 +69,8 @@ pub(crate) struct AiSettings {
     api_keys: HashMap<String, String>,
     /// The credential store's error, surfaced like the keychain alert toast.
     keychain_error: Option<String>,
+    /// `providerMutation.error` per provider: a rejected key verification.
+    form_errors: HashMap<String, String>,
 }
 
 impl Workspace {
@@ -90,6 +92,7 @@ impl Workspace {
         cx: &mut Context<Self>,
     ) {
         if self.ai_settings.contains_key(&kind) {
+            self.ensure_ai_availability(kind, true, cx);
             return;
         }
         let style = self.text_input_style(false);
@@ -118,6 +121,7 @@ impl Workspace {
                 forms: HashMap::new(),
                 api_keys: HashMap::new(),
                 keychain_error: None,
+                form_errors: HashMap::new(),
             },
         );
         self.reload_ai_api_keys(kind, cx);
@@ -147,6 +151,12 @@ impl Workspace {
                                 Err(error) => page.keychain_error = Some(error),
                             }
                         }
+                        // Availability and the catalogue cache are keyed by the
+                        // credentials.
+                        this.ensure_ai_availability(kind, false, cx);
+                        if kind == ProviderKind::Llm {
+                            this.ensure_llm_models(false, cx);
+                        }
                         cx.notify();
                     }
                 })
@@ -158,7 +168,11 @@ impl Workspace {
 
     /// The effective config of a provider: the stored row's base URL (or the
     /// registry default) and the credential-store key.
-    fn ai_provider_config(&self, kind: ProviderKind, provider: &Provider) -> (String, String) {
+    pub(super) fn ai_provider_config(
+        &self,
+        kind: ProviderKind,
+        provider: &Provider,
+    ) -> (String, String) {
         let configs = self.provider_settings.ai_providers(kind.key());
         let stored = configs.get(provider.id);
         let base_url = stored
@@ -179,7 +193,11 @@ impl Workspace {
 
     /// `getProviderSelectionBlockers(...).length === 0` with the shell's
     /// account state: not signed in, not Pro.
-    fn ai_provider_configured(&self, kind: ProviderKind, provider: &Provider) -> bool {
+    pub(super) fn ai_provider_config_complete(
+        &self,
+        kind: ProviderKind,
+        provider: &Provider,
+    ) -> bool {
         let (base_url, api_key) = self.ai_provider_config(kind, provider);
         provider
             .requirements
@@ -192,6 +210,27 @@ impl Workspace {
                 }),
                 Requirement::Entitlement(_) | Requirement::Auth => false,
             })
+    }
+
+    /// `getLlmProviderStatus(...).configured`: the blockers pass and, for a
+    /// local server or a key-verified provider, the availability check did
+    /// too. The selected local provider bypasses reachability so a stopped
+    /// server surfaces as a connection error rather than a silent reselect.
+    pub(super) fn ai_provider_configured(&self, kind: ProviderKind, provider: &Provider) -> bool {
+        if !self.ai_provider_config_complete(kind, provider) {
+            return false;
+        }
+        if provider.checks_availability {
+            let selected = self
+                .provider_settings
+                .string_setting(kind.provider_setting(), &["ai", kind.provider_setting()])
+                .is_some_and(|id| id == provider.id);
+            return selected || self.ai_provider_available(kind, provider) == Some(true);
+        }
+        if super::ai_availability::requires_key_verification(provider) {
+            return self.ai_provider_available(kind, provider) == Some(true);
+        }
+        true
     }
 
     fn toggle_ai_provider(
@@ -267,20 +306,78 @@ impl Workspace {
             "base_url" => (Some(value), None),
             _ => (None, Some(value)),
         };
-        if let (Some(key), Some(page)) = (api_key.as_ref(), self.ai_settings.get_mut(&kind)) {
-            page.api_keys.insert(provider.id.to_string(), key.clone());
-        }
-        let task =
-            self.store
-                .set_ai_provider(kind.key(), provider.id.to_string(), base_url, api_key);
+        // `useSetAiProvider({ verifyCredentials: requiresKeyVerification })`:
+        // the key is proven against the effective config before it is saved.
+        let verify = super::ai_availability::requires_key_verification(provider).then(|| {
+            let (stored_url, stored_key) = self.ai_provider_config(kind, provider);
+            let effective_url = base_url
+                .clone()
+                .map(|url| url.trim().to_string())
+                .filter(|url| !url.is_empty())
+                .unwrap_or(stored_url);
+            let effective_key = api_key
+                .clone()
+                .map(|key| key.trim().to_string())
+                .unwrap_or(stored_key);
+            (effective_url, effective_key)
+        });
+        let store = self.store.clone();
+        let runtime = self.store.runtime().clone();
+        let provider_id = provider.id;
+        let key_for_page = api_key.clone();
         cx.spawn(async move |this, cx| {
-            let result = task.await.map_err(anyhow::Error::from).and_then(|r| r);
+            if let Some((url, key)) = verify {
+                let verified = runtime
+                    .spawn(async move {
+                        crate::ai_verify::verify_provider_credentials(provider_id, &url, &key).await
+                    })
+                    .await
+                    .unwrap_or_else(|_| {
+                        Err(crate::ai_verify::CredentialError {
+                            message:
+                                "Couldn’t verify this key. Check your connection and try again."
+                                    .into(),
+                            retryable: true,
+                        })
+                    });
+                if let Err(error) = verified {
+                    this.update(cx, |this, cx| {
+                        if let Some(page) = this.ai_settings.get_mut(&kind) {
+                            page.form_errors
+                                .insert(provider_id.to_string(), error.message);
+                        }
+                        cx.notify();
+                    })
+                    .ok();
+                    return;
+                }
+            }
+            this.update(cx, |this, _| {
+                if let Some(page) = this.ai_settings.get_mut(&kind) {
+                    page.form_errors.remove(provider_id);
+                    if let Some(key) = key_for_page.as_ref() {
+                        page.api_keys.insert(provider_id.to_string(), key.clone());
+                    }
+                }
+            })
+            .ok();
+            let result = store
+                .set_ai_provider(kind.key(), provider_id.to_string(), base_url, api_key)
+                .await
+                .map_err(anyhow::Error::from)
+                .and_then(|r| r);
             this.update(cx, |this, cx| {
                 match result {
                     Ok(()) => {
                         this.reload_settings(cx);
                         if let Some(page) = this.ai_settings.get_mut(&kind) {
                             page.keychain_error = None;
+                        }
+                        // A new key or URL is a new availability / `["models", ...]`
+                        // query key.
+                        this.ensure_ai_availability(kind, false, cx);
+                        if kind == ProviderKind::Llm {
+                            this.ensure_llm_models(false, cx);
                         }
                     }
                     Err(error) => {
@@ -348,20 +445,82 @@ impl Workspace {
                 glyph: Some(provider.icon),
             })
             .collect();
-        let model_options: Vec<SelectOption> = selected_provider
-            .map(|provider| {
-                provider
-                    .models
-                    .iter()
-                    .map(|model| SelectOption {
-                        value: model.to_string(),
-                        label: model.to_string(),
-                        detail: None,
-                        glyph: None,
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
+        // The LLM page lists the provider's live catalogue (`ModelCombobox`
+        // over `listModels`); STT keeps the registry's models.
+        let catalogue = match (kind, selected_provider) {
+            (ProviderKind::Llm, Some(provider)) => Some(self.llm_models_for(provider)),
+            _ => None,
+        };
+        let model_options: Vec<SelectOption> = match (kind, selected_provider, catalogue) {
+            (
+                ProviderKind::Llm,
+                Some(provider),
+                Some(Some(super::llm_models::LlmModels::Loaded(result))),
+            ) => result
+                .models
+                .iter()
+                .map(|model| SelectOption {
+                    value: model.clone(),
+                    label: crate::ai_models::display_llm_model_id(provider.id, model),
+                    detail: None,
+                    glyph: None,
+                })
+                .collect(),
+            (ProviderKind::Llm, Some(_), _) => Vec::new(),
+            (_, Some(provider), _) => provider
+                .models
+                .iter()
+                .map(|model| SelectOption {
+                    value: model.to_string(),
+                    label: model.to_string(),
+                    detail: None,
+                    glyph: None,
+                })
+                .collect(),
+            (_, None, _) => Vec::new(),
+        };
+        let combobox = match (kind, selected_provider) {
+            (ProviderKind::Llm, Some(provider)) => {
+                let (loading, ignored) = match catalogue {
+                    Some(Some(super::llm_models::LlmModels::Loaded(result))) => (
+                        false,
+                        result
+                            .ignored
+                            .iter()
+                            .map(|model| {
+                                (
+                                    model.id.clone(),
+                                    crate::ai_models::display_llm_model_id(provider.id, &model.id),
+                                    model
+                                        .reasons
+                                        .contains(&crate::ai_models::IgnoreReason::OldModel),
+                                )
+                            })
+                            .collect(),
+                    ),
+                    _ => (true, Vec::new()),
+                };
+                let selected_deprecated = current_model.as_deref().is_some_and(|model| {
+                    ignored
+                        .iter()
+                        .any(|(id, _, deprecated)| id == model && *deprecated)
+                });
+                let health = self.llm_health_status();
+                Some(Rc::new(super::settings::ComboboxExtras {
+                    loading,
+                    // `isConfigured && health.status === "success"`
+                    configured: matches!(health, Some(crate::ai_health::Health::Success)),
+                    pending: matches!(health, Some(crate::ai_health::Health::Pending)),
+                    current_label: current_model
+                        .as_deref()
+                        .map(|model| crate::ai_models::display_llm_model_id(provider.id, model)),
+                    ignored,
+                    selected_deprecated,
+                    on_refresh: Rc::new(|this, cx| this.ensure_llm_models(true, cx)),
+                }))
+            }
+            _ => None,
+        };
 
         div()
             .flex()
@@ -377,9 +536,10 @@ impl Workspace {
                     .child(
                         div()
                             .min_w_0()
+                            // `flex-2` next to the model's `flex-3`.
                             .flex_grow()
                             .flex_shrink()
-                            .flex_basis(px(0.0))
+                            .flex_basis(gpui::relative(0.4))
                             .child(self.render_select(
                                 SelectSpec {
                                     id: match kind {
@@ -392,12 +552,17 @@ impl Workspace {
                                     options: Rc::new(provider_options),
                                     search: None,
                                     on_select: Rc::new(move |this, value, _, cx| {
+                                        if kind == ProviderKind::Llm {
+                                            this.change_llm_provider(value, cx);
+                                            return;
+                                        }
                                         this.set_setting(
                                             provider_setting,
                                             serde_json::Value::String(value),
                                             cx,
                                         );
                                     }),
+                                    combobox: None,
                                 },
                                 cx,
                             )),
@@ -413,8 +578,7 @@ impl Workspace {
                             .min_w_0()
                             .flex_grow()
                             .flex_shrink()
-                            .flex_basis(px(0.0))
-                            // `flex-3` against the provider's `flex-2`.
+                            .flex_basis(gpui::relative(0.6))
                             .relative()
                             .child(self.render_select(
                                 SelectSpec {
@@ -425,7 +589,13 @@ impl Workspace {
                                     current: selected_provider.and(current_model.clone()),
                                     placeholder: "Select a model",
                                     options: Rc::new(model_options),
-                                    search: None,
+                                    search: combobox.as_ref().map(|_| {
+                                        super::settings::SearchSpec {
+                                            placeholder: "Search or create new",
+                                            empty_message: "No models available.",
+                                            width: None,
+                                        }
+                                    }),
                                     on_select: Rc::new(move |this, value, _, cx| {
                                         this.set_setting(
                                             model_setting,
@@ -433,10 +603,58 @@ impl Workspace {
                                             cx,
                                         );
                                     }),
+                                    combobox,
                                 },
                                 cx,
                             )),
                     ),
+            )
+            // `supportsReasoningEffort(provider)`: the `Reasoning effort` row.
+            .when(
+                kind == ProviderKind::Llm
+                    && selected_provider.is_some_and(|provider| {
+                        crate::ai_models::supports_reasoning_effort(provider.id)
+                    }),
+                |column| {
+                    let effort = self
+                        .provider_settings
+                        .string_setting(
+                            "current_llm_reasoning_effort",
+                            &["ai", "current_llm_reasoning_effort"],
+                        )
+                        .map(|value| crate::ai_models::normalize_reasoning_effort(&value))
+                        .unwrap_or("default");
+                    column.child(super::settings::setting_row(
+                        theme,
+                        "Reasoning effort",
+                        Some(
+                            "How much the model thinks before answering. Default leaves it to the provider.",
+                        ),
+                        true,
+                        self.render_select(
+                            SelectSpec::for_setting(
+                                "current_llm_reasoning_effort",
+                                Some(effort.to_string()),
+                                "Default",
+                                [
+                                    ("default", "Default"),
+                                    ("low", "Low"),
+                                    ("medium", "Medium"),
+                                    ("high", "High"),
+                                ]
+                                .into_iter()
+                                .map(|(value, label)| SelectOption {
+                                    value: value.to_string(),
+                                    label: label.to_string(),
+                                    detail: None,
+                                    glyph: None,
+                                })
+                                .collect(),
+                            ),
+                            cx,
+                        ),
+                    ))
+                },
             )
     }
 
@@ -932,6 +1150,15 @@ impl Workspace {
             form_column = form_column.children(reset);
         }
         if let Some(error) = &page.keychain_error {
+            form_column = form_column.child(
+                div()
+                    .tw_text_xs()
+                    .text_color(theme.destructive)
+                    .child(SharedString::from(error.clone())),
+            );
+        }
+        // `providerMutation.error.message`
+        if let Some(error) = page.form_errors.get(provider.id) {
             form_column = form_column.child(
                 div()
                     .tw_text_xs()

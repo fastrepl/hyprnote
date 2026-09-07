@@ -159,6 +159,7 @@ embedded!(
     "icons/arrows-clockwise.svg",
     "icons/arrows-down-up.svg",
     "icons/arrows-merge.svg",
+    "icons/arrows-counter-clockwise.svg",
     "icons/bell.svg",
     "icons/book-open-text.svg",
     "icons/book-open.svg",
@@ -185,6 +186,7 @@ embedded!(
     "icons/envelope.svg",
     "icons/external-link.svg",
     "icons/eye.svg",
+    "icons/eye-slash.svg",
     "icons/file-arrow-down.svg",
     "icons/file-text.svg",
     "icons/file.svg",
@@ -216,6 +218,7 @@ embedded!(
     "icons/play.svg",
     "icons/plugs-connected.svg",
     "icons/plus.svg",
+    "icons/plus-circle.svg",
     "icons/repeat.svg",
     "icons/popover-tail-border.svg",
     "icons/popover-tail.svg",
@@ -365,6 +368,6 @@ mod tests {
         }
         assert!(Assets.load("icons/search.svg").unwrap().is_some());
         assert!(Assets.load("icons/missing.svg").unwrap().is_none());
-        assert_eq!(Assets.list("icons/").unwrap().len(), 184);
+        assert_eq!(Assets.list("icons/").unwrap().len(), 187);
     }
 }

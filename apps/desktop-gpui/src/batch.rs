@@ -258,6 +258,26 @@ pub fn stage_words(words: &[BatchWord], provider: &str) -> (Vec<Value>, Vec<Valu
     (rows, hints)
 }
 
+/// `EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE`
+pub const EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR: &str =
+    "Batch transcription did not include the current recording.";
+
+/// `prepareTranscriptPromotion` for `current_capture`: drop the words that
+/// end before the existing audio's offset and re-base the rest to the
+/// capture's start.
+pub fn promote_current_capture(words: Vec<BatchWord>, audio_offset_ms: i64) -> Vec<BatchWord> {
+    let offset = audio_offset_ms.max(0);
+    words
+        .into_iter()
+        .filter(|word| word.end_ms > offset)
+        .map(|word| BatchWord {
+            start_ms: (word.start_ms - offset).max(0),
+            end_ms: (word.end_ms - offset).max(0),
+            ..word
+        })
+        .collect()
+}
+
 /// `syntheticBatchProgress(elapsedMs)`
 pub fn synthetic_batch_progress(elapsed_ms: f64) -> f64 {
     let elapsed = elapsed_ms.max(0.0);
@@ -321,6 +341,32 @@ pub fn session_speaker_count<'a>(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn current_capture_promotion_drops_and_rebases_words() {
+        let word = |start_ms: i64, end_ms: i64| super::BatchWord {
+            text: "w".into(),
+            start_ms,
+            end_ms,
+            channel: 0,
+            metadata: serde_json::Value::Null,
+            speaker_index: None,
+        };
+        let promoted = super::promote_current_capture(
+            vec![word(0, 900), word(950, 1_200), word(1_300, 1_600)],
+            1_000,
+        );
+        let ranges: Vec<_> = promoted
+            .iter()
+            .map(|word| (word.start_ms, word.end_ms))
+            .collect();
+        // The word ending at the offset is dropped; the straddling one clamps to 0.
+        assert_eq!(ranges, vec![(0, 200), (300, 600)]);
+        assert_eq!(
+            super::promote_current_capture(vec![word(0, 500)], -5).len(),
+            1
+        );
+    }
+
     use super::*;
     use owhisper_interface::batch::{Alternatives, Channel, Results};
 

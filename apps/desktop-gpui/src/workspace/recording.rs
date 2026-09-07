@@ -79,6 +79,42 @@ struct BatchTarget {
     api_key: String,
 }
 
+/// `RunOptions.promotion`
+#[derive(Debug, Clone)]
+pub(crate) enum BatchPromotion {
+    /// Tombstone the session's other transcripts.
+    WholeSession,
+    /// The post-stop repair of a capture: keep the words after the existing
+    /// audio, re-based to the capture's start, and replace the live
+    /// transcript it wrote.
+    CurrentCapture {
+        existing_audio_ms: i64,
+        replace_transcript_id: Option<String>,
+        started_at_ms: i64,
+    },
+}
+
+/// What follows a completed batch.
+#[derive(Debug, Clone)]
+pub(crate) enum BatchFollowUp {
+    /// Re-transcribe / import: `markSessionAudioTranscriptionComplete` and
+    /// `queueAutoEnhanceIfSummaryEmpty`.
+    Standalone,
+    /// `finalizeStopped`'s `batch_then_enhance`: the capture lifecycle
+    /// schedules the summary and finishes the audio itself.
+    CaptureLifecycle {
+        summary_mode: super::enhance::AutoEnhanceMode,
+        live_transcript_id: String,
+        audio_path: String,
+    },
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct BatchRun {
+    pub promotion: BatchPromotion,
+    pub after: BatchFollowUp,
+}
+
 /// `getBatchProvider`
 fn batch_provider(provider: &str, model: &str) -> Option<&'static str> {
     if provider == "cloudflare_workers_ai" {
@@ -130,6 +166,23 @@ pub(crate) struct LiveCapture {
     /// `SessionStateSnapshot.mic_isolated`: every stream so far came from an
     /// isolated (headphone) mic.
     pub mic_isolated: Option<bool>,
+    /// `createCaptureLifecycle`'s post-capture inputs.
+    pub lifecycle: CaptureLifecycle,
+}
+
+/// `createCaptureLifecycle`: what the capture knew at start plus what the
+/// live stream reported, deciding `getPostCaptureAction` at stop.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct CaptureLifecycle {
+    /// `preserveExistingTranscript`: the session already had a transcript.
+    pub preserve_existing_transcript: bool,
+    /// `getExistingAudioDurationMs` at start, when preserving.
+    pub existing_audio_ms: i64,
+    /// `live.needsBatchRepair`: live transcription was requested but not
+    /// active or degraded at some point.
+    pub needs_batch_repair: bool,
+    /// `transcriptTouched`: a delta with content was persisted.
+    pub transcript_touched: bool,
 }
 
 impl LiveCapture {
@@ -158,17 +211,78 @@ pub(crate) struct RecordingState {
     pub starting: bool,
     /// `MicIsolationCache` + its store scope.
     pub mic_isolation: crate::voiceprint::MicIsolation,
-    /// Captures whose transcript flush and audio finalization are still
-    /// meeting up for voiceprint extraction, by session id.
-    pub pending_voiceprints: std::collections::HashMap<String, PendingVoiceprint>,
+    /// Captures whose final transcript flush and `Inactive` event are still
+    /// meeting up for `finalizeStopped`, by session id.
+    pub pending_post_capture: std::collections::HashMap<String, PendingPostCapture>,
 }
 
-/// `createCaptureLifecycle`: `maybeExtractVoiceprintCandidates` runs once the
-/// transcript is complete and the audio path is known.
+/// `onStopped` waits for both the transcript persistence flush and the
+/// engine's `Inactive` details before `finalizeStopped` runs.
 #[derive(Default)]
-pub(crate) struct PendingVoiceprint {
-    pub transcript_id: Option<String>,
-    pub audio_path: Option<String>,
+pub(crate) struct PendingPostCapture {
+    /// The live transcript's id, whether a row was written
+    /// (`transcriptCreated`), and whether the final flush succeeded.
+    pub flush: Option<(String, bool, bool)>,
+    /// What the capture knew when it ended: `liveTranscriptionActive`, the
+    /// lifecycle inputs, and `startedAt`.
+    pub snapshot: Option<(bool, CaptureLifecycle, i64)>,
+    /// `details.audioPath` once the engine reported `Inactive` and the audio
+    /// was catalogued.
+    pub inactive: Option<Option<String>>,
+}
+
+/// `getPostCaptureAction`
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum PostCaptureAction {
+    EnhanceOnly,
+    BatchThenEnhance,
+    None,
+}
+
+/// `getPostCaptureAction(details, canRunBatch)`
+#[derive(Debug, Clone, Copy, Default)]
+pub(crate) struct PostCaptureInputs {
+    pub has_audio: bool,
+    pub live_transcription_active: bool,
+    pub needs_batch_repair: bool,
+    /// `shouldRefineSpeakerDiarization`: a settled diarization pass after a
+    /// multi-speaker cloud transcript (unavailable to the signed-out shell).
+    pub refine_speaker_diarization: bool,
+    pub transcript_write_failed: bool,
+}
+
+pub(crate) fn post_capture_action(
+    details: PostCaptureInputs,
+    can_run_batch: bool,
+) -> PostCaptureAction {
+    let live_transcript_complete = details.live_transcription_active
+        && !details.needs_batch_repair
+        && !details.transcript_write_failed;
+    if live_transcript_complete && !details.refine_speaker_diarization {
+        return PostCaptureAction::EnhanceOnly;
+    }
+    if details.has_audio && can_run_batch {
+        return PostCaptureAction::BatchThenEnhance;
+    }
+    if live_transcript_complete {
+        return PostCaptureAction::EnhanceOnly;
+    }
+    PostCaptureAction::None
+}
+
+/// The `audioOffsetMs` of a `current_capture` promotion: the existing audio's
+/// length when the final file is at least that long (minus a second of
+/// tolerance), otherwise the capture starts the file over.
+pub(crate) fn current_capture_audio_offset_ms(
+    existing_audio_ms: i64,
+    final_audio_ms: Option<i64>,
+) -> i64 {
+    match final_audio_ms {
+        Some(final_ms) if existing_audio_ms > 0 && final_ms + 1_000 >= existing_audio_ms => {
+            existing_audio_ms.min(final_ms)
+        }
+        _ => 0,
+    }
 }
 
 pub(crate) struct RecordingToast {
@@ -353,6 +467,24 @@ impl Workspace {
         &mut self,
         session_id: String,
         connection: Option<crate::db::SttConnection>,
+        cx: &mut Context<Self>,
+    ) {
+        self.run_batch_with(
+            session_id,
+            connection,
+            BatchRun {
+                promotion: BatchPromotion::WholeSession,
+                after: BatchFollowUp::Standalone,
+            },
+            cx,
+        );
+    }
+
+    fn run_batch_with(
+        &mut self,
+        session_id: String,
+        connection: Option<crate::db::SttConnection>,
+        batch_run: BatchRun,
         cx: &mut Context<Self>,
     ) {
         let selected = connection.as_ref().and_then(|conn| {
@@ -556,6 +688,48 @@ impl Workspace {
                             .ok();
                             break;
                         }
+                        // `prepareTranscriptPromotion`
+                        let (words, replace_session, replace_transcript_id, started_at_ms) =
+                            match batch_run.promotion.clone() {
+                                BatchPromotion::WholeSession => (words, true, None, started_at_ms),
+                                BatchPromotion::CurrentCapture {
+                                    existing_audio_ms,
+                                    replace_transcript_id,
+                                    started_at_ms: capture_started_at_ms,
+                                } => {
+                                    let final_audio_ms = this
+                                        .update(cx, |this, _| {
+                                            this.store.audio_duration_ms(file_path.clone())
+                                        })
+                                        .ok();
+                                    let final_audio_ms = match final_audio_ms {
+                                        Some(task) => task.await.ok().flatten(),
+                                        None => None,
+                                    };
+                                    let offset = current_capture_audio_offset_ms(
+                                        existing_audio_ms,
+                                        final_audio_ms,
+                                    );
+                                    (
+                                        crate::batch::promote_current_capture(words, offset),
+                                        false,
+                                        replace_transcript_id,
+                                        capture_started_at_ms,
+                                    )
+                                }
+                            };
+                        if words.is_empty() {
+                            this.update(cx, |this, cx| {
+                                this.fail_batch(
+                                    session_id.clone(),
+                                    crate::batch::EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR
+                                        .to_string(),
+                                    cx,
+                                )
+                            })
+                            .ok();
+                            break;
+                        }
                         let (rows, hints) = crate::batch::stage_words(&words, &target.provider);
                         let transcript_id = uuid::Uuid::new_v4().to_string();
                         let write = this
@@ -570,7 +744,8 @@ impl Workspace {
                                     target.model.clone(),
                                     serde_json::Value::Array(rows).to_string(),
                                     serde_json::Value::Array(hints).to_string(),
-                                    true,
+                                    replace_session,
+                                    replace_transcript_id,
                                 )
                             })
                             .ok();
@@ -597,32 +772,60 @@ impl Workspace {
                                 if let Some(extract) = extract {
                                     let _ = extract.await;
                                 }
-                                let mark = this
-                                    .update(cx, |this, _| {
-                                        this.store.mark_session_audio_transcription_complete(
-                                            session_id.clone(),
-                                        )
-                                    })
-                                    .ok();
-                                if let Some(mark) = mark
-                                    && let Ok(Err(error)) = mark.await
-                                {
-                                    tracing::error!(
-                                        %error,
-                                        "[runBatch] failed to mark session audio as processed"
-                                    );
+                                // `deferAudioFinalization`: the capture
+                                // lifecycle marks the audio itself.
+                                if matches!(batch_run.after, BatchFollowUp::Standalone) {
+                                    let mark = this
+                                        .update(cx, |this, _| {
+                                            this.store.mark_session_audio_transcription_complete(
+                                                session_id.clone(),
+                                            )
+                                        })
+                                        .ok();
+                                    if let Some(mark) = mark
+                                        && let Ok(Err(error)) = mark.await
+                                    {
+                                        tracing::error!(
+                                            %error,
+                                            "[runBatch] failed to mark session audio as processed"
+                                        );
+                                    }
                                 }
+                                let after = batch_run.after.clone();
                                 this.update(cx, |this, cx| {
                                     // `clearBatchSession`
                                     this.recording.batch.remove(&session_id);
                                     if this.selected.as_deref() == Some(session_id.as_str()) {
                                         this.reload_note(session_id.clone(), cx);
                                     }
-                                    // `triggerEnhanceIfSummaryEmpty`
-                                    this.queue_auto_enhance_if_summary_empty(
-                                        session_id.clone(),
-                                        cx,
-                                    );
+                                    match after {
+                                        // `triggerEnhanceIfSummaryEmpty`
+                                        BatchFollowUp::Standalone => this
+                                            .queue_auto_enhance_if_summary_empty(
+                                                session_id.clone(),
+                                                cx,
+                                            ),
+                                        BatchFollowUp::CaptureLifecycle {
+                                            summary_mode,
+                                            live_transcript_id,
+                                            audio_path,
+                                        } => {
+                                            tracing::info!(
+                                                session_id,
+                                                "[listener] completed post-stop transcript repair"
+                                            );
+                                            this.request_auto_enhance_with(
+                                                session_id.clone(),
+                                                summary_mode,
+                                                cx,
+                                            );
+                                            this.complete_session_audio(
+                                                session_id.clone(),
+                                                live_transcript_id,
+                                                audio_path,
+                                            );
+                                        }
+                                    }
                                     cx.notify();
                                 })
                                 .ok();
@@ -662,41 +865,175 @@ impl Workspace {
         )
     }
 
-    /// `createCaptureLifecycle`: once the completed transcript and the audio
-    /// path have both arrived, extract voiceprint candidates and mark the
-    /// session audio as processed.
-    fn extract_voiceprints_when_ready(&mut self, session_id: &str, _cx: &mut Context<Self>) {
+    /// The live capture ended (`Finalizing` or `Inactive`, whichever came
+    /// first): remember its mic isolation and lifecycle inputs, then let the
+    /// persistence queue write its tail and flush.
+    fn end_live_capture(&mut self, live: LiveCapture, session_id: &str, cx: &mut Context<Self>) {
+        self.recording
+            .mic_isolation
+            .persist(&self.store_file, session_id, live.mic_isolated);
+        self.recording
+            .pending_post_capture
+            .entry(session_id.to_string())
+            .or_default()
+            .snapshot = Some((
+            live.live_active,
+            live.lifecycle.clone(),
+            live.persistence.started_at_ms,
+        ));
+        self.finish_live_persistence(live.persistence, session_id.to_string(), cx);
+    }
+
+    /// `finalizeStopped`, once the transcript flush and the `Inactive`
+    /// details have both arrived: `getPostCaptureAction` decides between the
+    /// post-stop batch repair and the summary alone; the summary mode is
+    /// `regenerate` when the capture extended an existing transcript.
+    fn finalize_capture_when_ready(&mut self, session_id: &str, cx: &mut Context<Self>) {
         let ready = self
             .recording
-            .pending_voiceprints
+            .pending_post_capture
             .get(session_id)
-            .is_some_and(|pending| pending.transcript_id.is_some() && pending.audio_path.is_some());
+            .is_some_and(|pending| {
+                pending.flush.is_some() && pending.snapshot.is_some() && pending.inactive.is_some()
+            });
         if !ready {
             return;
         }
-        let Some(pending) = self.recording.pending_voiceprints.remove(session_id) else {
+        let Some(pending) = self.recording.pending_post_capture.remove(session_id) else {
             return;
         };
-        let (Some(transcript_id), Some(audio_path)) = (pending.transcript_id, pending.audio_path)
+        let (
+            Some((transcript_id, transcript_created, flushed)),
+            Some((live_active, lifecycle, started_at_ms)),
+            Some(audio_path),
+        ) = (pending.flush, pending.snapshot, pending.inactive)
         else {
             return;
         };
+        let transcript_write_failed = !flushed;
+        // `canRunBatchTranscription` is unconditional; a missing batch target
+        // surfaces as the batch's own error.
+        let action = post_capture_action(
+            PostCaptureInputs {
+                has_audio: audio_path.is_some(),
+                live_transcription_active: live_active,
+                needs_batch_repair: lifecycle.needs_batch_repair,
+                refine_speaker_diarization: false,
+                transcript_write_failed,
+            },
+            true,
+        );
+        let session_id = session_id.to_string();
+        match action {
+            PostCaptureAction::BatchThenEnhance => {
+                let Some(audio_path) = audio_path else {
+                    return;
+                };
+                tracing::info!(
+                    session_id,
+                    live_active,
+                    needs_batch_repair = lifecycle.needs_batch_repair,
+                    transcript_write_failed,
+                    "[listener] starting post-stop transcript repair"
+                );
+                let summary_mode = if lifecycle.preserve_existing_transcript {
+                    super::enhance::AutoEnhanceMode::Regenerate
+                } else {
+                    super::enhance::AutoEnhanceMode::IfEmpty
+                };
+                let promotion = if lifecycle.preserve_existing_transcript || transcript_created {
+                    BatchPromotion::CurrentCapture {
+                        existing_audio_ms: lifecycle.existing_audio_ms,
+                        replace_transcript_id: transcript_created.then(|| transcript_id.clone()),
+                        started_at_ms,
+                    }
+                } else {
+                    BatchPromotion::WholeSession
+                };
+                let connection = self.store.stt_connection(&self.provider_settings);
+                cx.spawn(async move |this, cx| {
+                    let connection = connection.await.ok().flatten();
+                    this.update(cx, |this, cx| {
+                        this.run_batch_with(
+                            session_id,
+                            connection,
+                            BatchRun {
+                                promotion,
+                                after: BatchFollowUp::CaptureLifecycle {
+                                    summary_mode,
+                                    live_transcript_id: transcript_id,
+                                    audio_path,
+                                },
+                            },
+                            cx,
+                        )
+                    })
+                    .ok();
+                })
+                .detach();
+            }
+            PostCaptureAction::EnhanceOnly => {
+                // `playCompletionSound` / `requestAppAttention` when the
+                // capture produced or extended a transcript without a repair.
+                if lifecycle.transcript_touched || lifecycle.preserve_existing_transcript {
+                    self.play_completion_sound(cx);
+                }
+                let has_transcript_evidence =
+                    lifecycle.preserve_existing_transcript || lifecycle.transcript_touched;
+                if has_transcript_evidence {
+                    let mode =
+                        if lifecycle.preserve_existing_transcript && lifecycle.transcript_touched {
+                            super::enhance::AutoEnhanceMode::Regenerate
+                        } else {
+                            super::enhance::AutoEnhanceMode::IfEmpty
+                        };
+                    self.request_auto_enhance_with(session_id.clone(), mode, cx);
+                }
+                if let Some(audio_path) = audio_path {
+                    self.complete_session_audio(session_id, transcript_id, audio_path);
+                }
+            }
+            PostCaptureAction::None => {
+                // `transcriptIsComplete` only for an empty fresh capture; a
+                // recording with neither transcript nor batch target waits
+                // for the recovery flow, which the shell does not run yet.
+                let empty_fresh_capture = audio_path.is_none()
+                    && !lifecycle.transcript_touched
+                    && !transcript_write_failed;
+                if !empty_fresh_capture {
+                    tracing::warn!(
+                        session_id,
+                        "[listener] capture ended without a complete transcript"
+                    );
+                }
+            }
+        }
+    }
+
+    /// The tail of `finalizeStoppedInner` for a completed transcript with
+    /// audio: `maybeExtractVoiceprintCandidates`, then
+    /// `markSessionAudioTranscriptionComplete`.
+    fn complete_session_audio(
+        &mut self,
+        session_id: String,
+        transcript_id: String,
+        audio_path: String,
+    ) {
         let mic_isolated = self
             .recording
             .mic_isolation
-            .get(&self.store_file, session_id);
+            .get(&self.store_file, &session_id);
         let extract = crate::voiceprint::maybe_extract_candidates(
             &self.store,
             self.remember_speakers(),
-            session_id.to_string(),
+            session_id.clone(),
             transcript_id,
             Some(audio_path),
             mic_isolated,
         );
         let mark = self
             .store
-            .mark_session_audio_transcription_complete(session_id.to_string());
-        let session_id = session_id.to_string();
+            .mark_session_audio_transcription_complete(session_id.clone());
         self.store.runtime().spawn(async move {
             let _ = extract.await;
             if let Ok(Err(error)) = mark.await {
@@ -805,11 +1142,23 @@ impl Workspace {
         let keywords = self
             .store
             .session_keywords(session_id.clone(), self.dictionary_terms());
+        // `useSessionParticipantHumanIds` / `session.user_id` /
+        // `transcriptExistence` / `getExistingAudioDurationMs`.
+        let context = self.store.capture_context(session_id.clone());
         self.recording.starting = true;
         cx.notify();
         cx.spawn(async move |this, cx| {
             let connection = connection.await.ok().flatten();
             let keywords = keywords.await.unwrap_or_default();
+            let context = match context.await.map_err(anyhow::Error::from).and_then(|r| r) {
+                Ok(context) => context,
+                Err(error) => {
+                    // A missing context falls back to the empty inputs
+                    // rather than blocking the capture.
+                    tracing::warn!(%error, "[listener] failed to load capture context");
+                    crate::db::CaptureContext::default()
+                }
+            };
             let has_provider = connection.is_some();
             let params = SessionParams {
                 session_id: session_id.clone(),
@@ -821,8 +1170,8 @@ impl Workspace {
                 api_key: connection.as_ref().map(|c| c.api_key.clone()).unwrap_or_default(),
                 keywords,
                 mic_device,
-                participant_human_ids: Vec::new(),
-                self_human_id: None,
+                participant_human_ids: context.participant_human_ids.clone(),
+                self_human_id: Some(context.owner_user_id.clone()).filter(|id| !id.is_empty()),
                 speaker_assignments: Vec::new(),
             };
             let result = recorder.start(params).await;
@@ -861,6 +1210,12 @@ impl Workspace {
                             segments: Vec::new(),
                             label_context: None,
                             mic_isolated: None,
+                            lifecycle: CaptureLifecycle {
+                                preserve_existing_transcript: context.preserve_existing_transcript,
+                                existing_audio_ms: context.existing_audio_ms,
+                                needs_batch_repair: false,
+                                transcript_touched: false,
+                            },
                         });
                         this.on_live_session_started(cx);
                         // `setLeftSidebarExpanded(false)`
@@ -928,6 +1283,9 @@ impl Workspace {
                     Some(live) if live.session_id == session_id => {
                         live.requested_live = requested_live;
                         live.live_active = live_active;
+                        // `live.needsBatchRepair ||= requested && (!active || degraded)`
+                        live.lifecycle.needs_batch_repair |=
+                            requested_live && (!live_active || error.is_some());
                         live.error = error;
                     }
                     _ => {
@@ -956,6 +1314,7 @@ impl Workspace {
                             segments: Vec::new(),
                             label_context: None,
                             mic_isolated: None,
+                            lifecycle: CaptureLifecycle::default(),
                         });
                         self.on_live_session_started(cx);
                     }
@@ -972,12 +1331,7 @@ impl Workspace {
                     .live
                     .take_if(|live| live.session_id == session_id)
                 {
-                    self.recording.mic_isolation.persist(
-                        &self.store_file,
-                        &session_id,
-                        live.mic_isolated,
-                    );
-                    self.finish_live_persistence(live.persistence, session_id.clone(), cx);
+                    self.end_live_capture(live, &session_id, cx);
                 }
                 self.recording.toast = None;
                 if !self.recording.finalizing.contains(&session_id) {
@@ -1000,12 +1354,7 @@ impl Workspace {
                     .live
                     .take_if(|live| live.session_id == session_id)
                 {
-                    self.recording.mic_isolation.persist(
-                        &self.store_file,
-                        &session_id,
-                        live.mic_isolated,
-                    );
-                    self.finish_live_persistence(live.persistence, session_id.clone(), cx);
+                    self.end_live_capture(live, &session_id, cx);
                 }
                 self.recording.toast = None;
                 self.recording.finalizing.retain(|id| *id != session_id);
@@ -1022,11 +1371,11 @@ impl Workspace {
                         }
                         this.update(cx, |this, cx| {
                             this.recording
-                                .pending_voiceprints
+                                .pending_post_capture
                                 .entry(session_id.clone())
                                 .or_default()
-                                .audio_path = Some(audio_path);
-                            this.extract_voiceprints_when_ready(&session_id, cx);
+                                .inactive = Some(Some(audio_path));
+                            this.finalize_capture_when_ready(&session_id, cx);
                             if this.selected.as_deref() == Some(session_id.as_str()) {
                                 this.reload_note(session_id, cx);
                             }
@@ -1034,6 +1383,13 @@ impl Workspace {
                         .ok();
                     })
                     .detach();
+                } else {
+                    self.recording
+                        .pending_post_capture
+                        .entry(session_id.clone())
+                        .or_default()
+                        .inactive = Some(None);
+                    self.finalize_capture_when_ready(&session_id, cx);
                 }
             }
             Event::Progress(SessionProgressEvent::AudioReady { .. })
@@ -1106,6 +1462,7 @@ impl Workspace {
                     .as_mut()
                     .filter(|live| live.session_id == session_id)
                 {
+                    live.lifecycle.transcript_touched = true;
                     live.persistence.pending.push(*delta);
                     self.drain_live_persistence(session_id, cx);
                 }
@@ -1320,20 +1677,14 @@ impl Workspace {
                     if this.selected.as_deref() == Some(session_id.as_str()) {
                         this.reload_note(session_id.clone(), cx);
                     }
-                    // `createCaptureLifecycle`: the completed transcript
-                    // schedules the summary (`requestAutoEnhance(if_empty)`)
-                    // and, once the audio is finalized, voiceprint extraction.
-                    if has_transcript && flushed {
-                        this.request_auto_enhance(session_id.clone(), cx);
-                        this.recording
-                            .pending_voiceprints
-                            .entry(session_id.clone())
-                            .or_default()
-                            .transcript_id = Some(transcript_id);
-                        this.extract_voiceprints_when_ready(&session_id, cx);
-                    } else {
-                        this.recording.pending_voiceprints.remove(&session_id);
-                    }
+                    // `transcriptPersistence.flush()` done: `finalizeStopped`
+                    // continues once the engine's `Inactive` details arrive.
+                    this.recording
+                        .pending_post_capture
+                        .entry(session_id.clone())
+                        .or_default()
+                        .flush = Some((transcript_id, has_transcript, flushed));
+                    this.finalize_capture_when_ready(&session_id, cx);
                 })
                 .ok();
             })
@@ -2031,4 +2382,80 @@ pub(super) fn dancing_sticks(
                 .bg(color)
         }))
         .into_any_element()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn details(live: bool, repair: bool) -> PostCaptureInputs {
+        PostCaptureInputs {
+            has_audio: true,
+            live_transcription_active: live,
+            needs_batch_repair: repair,
+            refine_speaker_diarization: false,
+            transcript_write_failed: false,
+        }
+    }
+
+    #[test]
+    fn post_capture_action_follows_get_post_capture_action() {
+        // Record-only capture with audio: batch then enhance.
+        assert_eq!(
+            post_capture_action(details(false, false), true),
+            PostCaptureAction::BatchThenEnhance
+        );
+        // Live transcription completed during recording.
+        assert_eq!(
+            post_capture_action(details(true, false), true),
+            PostCaptureAction::EnhanceOnly
+        );
+        // Settled diarization refines a complete live transcript when batch can run.
+        let refine = PostCaptureInputs {
+            refine_speaker_diarization: true,
+            ..details(true, false)
+        };
+        assert_eq!(
+            post_capture_action(refine, true),
+            PostCaptureAction::BatchThenEnhance
+        );
+        assert_eq!(
+            post_capture_action(refine, false),
+            PostCaptureAction::EnhanceOnly
+        );
+        // Live transcription recovered mid-way, or a write failed: repair.
+        assert_eq!(
+            post_capture_action(details(true, true), true),
+            PostCaptureAction::BatchThenEnhance
+        );
+        let failed = PostCaptureInputs {
+            transcript_write_failed: true,
+            ..details(true, false)
+        };
+        assert_eq!(
+            post_capture_action(failed, true),
+            PostCaptureAction::BatchThenEnhance
+        );
+        // No batch connection, or no saved audio: nothing.
+        assert_eq!(
+            post_capture_action(details(false, false), false),
+            PostCaptureAction::None
+        );
+        let no_audio = PostCaptureInputs {
+            has_audio: false,
+            ..details(false, false)
+        };
+        assert_eq!(post_capture_action(no_audio, true), PostCaptureAction::None);
+    }
+
+    #[test]
+    fn current_capture_offset_keeps_the_existing_audio_when_the_file_grew() {
+        assert_eq!(current_capture_audio_offset_ms(0, Some(10_000)), 0);
+        assert_eq!(current_capture_audio_offset_ms(4_000, Some(10_000)), 4_000);
+        // Within the one-second tolerance the shorter final file wins.
+        assert_eq!(current_capture_audio_offset_ms(4_000, Some(3_500)), 3_500);
+        // A re-recorded (shorter) file starts over.
+        assert_eq!(current_capture_audio_offset_ms(4_000, Some(2_000)), 0);
+        assert_eq!(current_capture_audio_offset_ms(4_000, None), 0);
+    }
 }

@@ -39,6 +39,13 @@ pub(crate) enum TaskStatus {
     Error,
 }
 
+/// `AutoEnhanceMode`
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum AutoEnhanceMode {
+    Regenerate,
+    IfEmpty,
+}
+
 /// `TaskState` for one `${entityId}-enhance` / `${sessionId}-title` task.
 #[derive(Debug, Clone)]
 pub(crate) struct TaskState {
@@ -117,12 +124,70 @@ impl Workspace {
         self.enhancer.eligibility_retries.remove(session_id);
     }
 
-    /// `requestAutoEnhance(sessionId, "if_empty")`, the capture lifecycle's
-    /// post-transcript request. The `regenerate` mode belongs to recording
-    /// more into a session that already has a transcript, which the shell
-    /// does not offer yet.
-    pub(crate) fn request_auto_enhance(&mut self, session_id: String, cx: &mut Context<Self>) {
-        self.queue_auto_enhance_if_summary_empty(session_id, cx);
+    /// `requestAutoEnhance(sessionId, mode)`: `regenerate` (a capture that
+    /// extended an existing transcript) re-runs the summary of the note the
+    /// auto-enhance would pick, dropping its tasks and retries first;
+    /// `if_empty` is `queueAutoEnhanceIfSummaryEmpty`.
+    pub(crate) fn request_auto_enhance_with(
+        &mut self,
+        session_id: String,
+        mode: AutoEnhanceMode,
+        cx: &mut Context<Self>,
+    ) {
+        match mode {
+            AutoEnhanceMode::IfEmpty => self.queue_auto_enhance_if_summary_empty(session_id, cx),
+            AutoEnhanceMode::Regenerate => {
+                let store = self.store.clone();
+                cx.spawn(async move |this, cx| {
+                    let snapshot = match load_snapshot(&store, &session_id).await {
+                        Ok(snapshot) => snapshot,
+                        Err(error) => {
+                            tracing::error!(%error, "[enhancer] failed to load session");
+                            return;
+                        }
+                    };
+                    let (_, selected) = match store.enhancer_settings().await {
+                        Ok(Ok(settings)) => settings,
+                        _ => (Default::default(), None),
+                    };
+                    let template_id =
+                        resolve_template_id(None, &snapshot.raw_template_id, selected.as_deref());
+                    let template = match snapshot.auto_enhanced_note(template_id.as_deref()) {
+                        Some(note) => Some(note.template_id.clone()).filter(|id| !id.is_empty()),
+                        None => template_id,
+                    };
+                    // `ensurePendingAutoEnhanceDocument`
+                    let pending = match store
+                        .enhancer_ensure_summary(session_id.clone(), template, true)
+                        .await
+                        .map_err(anyhow::Error::from)
+                        .and_then(|result| result)
+                    {
+                        Ok((_, Some(pending))) => pending,
+                        Ok((_, None)) => return,
+                        Err(error) => {
+                            tracing::error!(%error, "[enhancer] failed to prepare summary document");
+                            return;
+                        }
+                    };
+                    let note_ids: Vec<String> =
+                        snapshot.enhanced_notes.iter().map(|note| note.id.clone()).collect();
+                    this.update(cx, |this, cx| {
+                        // `resetEnhanceTasks` / `activeAutoEnhance.delete` / `clearRetry`
+                        for note_id in note_ids {
+                            this.enhancer.tasks.remove(&enhance_task_id(&note_id));
+                        }
+                        this.enhancer.active_auto.remove(&session_id);
+                        this.enhancer.eligibility_retries.remove(&session_id);
+                        this.schedule_pending_resume(PENDING_AUTO_ENHANCE_RECOVERY_INTERVAL, cx);
+                        this.queue_auto_enhance(session_id.clone(), Some(pending), cx);
+                        cx.notify();
+                    })
+                    .ok();
+                })
+                .detach();
+            }
+        }
     }
 
     /// `queueAutoEnhanceIfSummaryEmpty`.

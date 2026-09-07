@@ -509,6 +509,15 @@ impl ProviderSettings {
     }
 }
 
+/// `createCaptureLifecycle`'s session inputs at capture start.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct CaptureContext {
+    pub owner_user_id: String,
+    pub participant_human_ids: Vec<String>,
+    pub preserve_existing_transcript: bool,
+    pub existing_audio_ms: i64,
+}
+
 /// `useSTTConnection`'s resolved connection for a third-party provider.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SttConnection {
@@ -2891,6 +2900,7 @@ impl Store {
         words_json: String,
         hints_json: String,
         replace_session: bool,
+        replace_transcript_id: Option<String>,
     ) -> tokio::task::JoinHandle<anyhow::Result<()>> {
         let db = self.db.clone();
         self.runtime.spawn(async move {
@@ -2912,6 +2922,18 @@ impl Store {
                 )
                 .bind(&now)
                 .bind(&now)
+                .bind(&session_id)
+                .execute(&mut *tx)
+                .await?;
+            } else if let Some(replace_transcript_id) = replace_transcript_id {
+                // `replaceTranscriptId`: the live transcript this batch repairs.
+                sqlx::query(
+                    "UPDATE transcripts SET deleted_at = ?, updated_at = ?
+                     WHERE id = ? AND session_id = ? AND deleted_at IS NULL",
+                )
+                .bind(&now)
+                .bind(&now)
+                .bind(&replace_transcript_id)
                 .bind(&session_id)
                 .execute(&mut *tx)
                 .await?;
@@ -3037,6 +3059,69 @@ impl Store {
             .fetch_all(db.pool())
             .await?;
             Ok((user_id, memo.unwrap_or_default(), humans))
+        })
+    }
+
+    /// `createCaptureLifecycle`'s session inputs: the owner (`self_human_id`),
+    /// `useSessionParticipantHumanIds`, whether a transcript with words
+    /// already exists (`preserveExistingTranscript`), and, when it does, the
+    /// duration of the existing session audio (`getExistingAudioDurationMs`).
+    pub fn capture_context(
+        &self,
+        session_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<CaptureContext>> {
+        let db = self.db.clone();
+        let session_dir = self.session_dir(&session_id);
+        self.runtime.spawn(async move {
+            let owner_user_id: String = sqlx::query_scalar(
+                "SELECT COALESCE(owner_user_id, '') FROM sessions WHERE id = ? AND deleted_at IS NULL",
+            )
+            .bind(&session_id)
+            .fetch_optional(db.pool())
+            .await?
+            .unwrap_or_default();
+            let participant_human_ids: Vec<String> = sqlx::query_scalar(PARTICIPANT_HUMAN_IDS_SQL)
+                .bind(&session_id)
+                .fetch_all(db.pool())
+                .await?;
+            let has_transcript: bool = sqlx::query_scalar(HAS_TRANSCRIPT_SQL)
+                .bind(&session_id)
+                .fetch_one(db.pool())
+                .await?;
+            let existing_audio_ms = if has_transcript {
+                tokio::task::spawn_blocking(move || {
+                    anlg_fs_sync_core::audio::path(&session_dir)
+                        .and_then(|path| anlg_fs_sync_core::audio::source_metadata(&path).ok())
+                        .and_then(|metadata| metadata.duration_ms)
+                        .map(|duration| duration as i64)
+                        .unwrap_or(0)
+                        .max(0)
+                })
+                .await?
+            } else {
+                0
+            };
+            Ok(CaptureContext {
+                owner_user_id,
+                participant_human_ids,
+                preserve_existing_transcript: has_transcript,
+                existing_audio_ms,
+            })
+        })
+    }
+
+    /// `getAudioDurationMs(audioPath)`
+    pub fn audio_duration_ms(&self, path: PathBuf) -> tokio::task::JoinHandle<Option<i64>> {
+        self.runtime.spawn(async move {
+            tokio::task::spawn_blocking(move || {
+                anlg_fs_sync_core::audio::source_metadata(&path)
+                    .ok()
+                    .and_then(|metadata| metadata.duration_ms)
+                    .map(|duration| (duration as i64).max(0))
+            })
+            .await
+            .ok()
+            .flatten()
         })
     }
 

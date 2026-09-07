@@ -87,6 +87,32 @@ test("loads the exact durable summary recovery mode", async () => {
   );
 });
 
+test("preserves the summary refresh requirement while batch repair is pending", async () => {
+  const repairMarker = { ...marker, refreshSummaryAfterRepair: true };
+  await saveCaptureLifecycleMarker(repairMarker);
+  const statement = mocks.executeTransaction.mock.calls[0]?.[0]?.[0];
+  mocks.execute.mockResolvedValue([{ value_json: statement.params[1] }]);
+
+  await expect(loadCaptureLifecycleMarker("session-1")).resolves.toEqual(
+    repairMarker,
+  );
+});
+
+test.each([false, "true", 1, null])(
+  "ignores an invalid summary refresh flag: %s",
+  async (refreshSummaryAfterRepair) => {
+    mocks.execute.mockResolvedValue([
+      {
+        value_json: JSON.stringify({ ...marker, refreshSummaryAfterRepair }),
+      },
+    ]);
+
+    await expect(loadCaptureLifecycleMarker("session-1")).resolves.toEqual(
+      marker,
+    );
+  },
+);
+
 test("ignores malformed or mismatched capture markers", async () => {
   mocks.execute.mockResolvedValue([
     {

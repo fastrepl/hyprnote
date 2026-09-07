@@ -378,6 +378,7 @@ mod tests {
             created_at: String::new(),
             event_id: String::new(),
             meeting_chat: String::new(),
+            raw_note_id: None,
             event_json: r#"{"title":"Planning","started_at":"2026-09-07T10:00:00Z","ended_at":""}"#
                 .into(),
             raw_template_id: "tpl".into(),

@@ -46,6 +46,7 @@ mod timeline;
 mod transcript;
 mod tray;
 mod ui;
+mod unified_diff;
 mod voiceprint;
 mod workspace;
 

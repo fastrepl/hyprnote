@@ -279,6 +279,7 @@ impl Workspace {
         self.close_templates(cx);
         self.close_contacts(cx);
         self.close_automations(cx);
+        self.close_edit_review(cx);
         if self.calendar.is_none() {
             let today = Local::now().date_naive();
             self.calendar = Some(CalendarState {

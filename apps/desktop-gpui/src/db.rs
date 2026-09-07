@@ -10,6 +10,7 @@ use crate::timeline::{EventRow, SessionRow};
 pub(crate) mod chat;
 pub(crate) mod enhancer;
 mod move_contents;
+pub(crate) mod proposals;
 pub use enhancer::DocumentUpdate;
 const DB_FILENAME: &str = "app.db";
 
@@ -1347,6 +1348,9 @@ pub struct NotePreview {
     pub audio_exists: bool,
     /// Stored transcripts, segmented for the Transcript tab.
     pub transcripts: Vec<crate::transcript::RenderedTranscript>,
+    /// `usePendingSessionProposals`: `(id, kind)` of the pending
+    /// `session_proposals`, newest first, for the banner.
+    pub pending_proposals: Vec<(String, String)>,
 }
 
 /// Who a transcript speaker is assigned to: an existing human or one to
@@ -4294,10 +4298,12 @@ impl Store {
             } else {
                 Vec::new()
             };
+            let pending_proposals = proposals::pending_for_session(db.pool(), &session_id).await?;
             Ok(Some(NotePreview {
                 has_transcript,
                 audio_exists,
                 transcripts,
+                pending_proposals,
                 session: SessionRow {
                     id: session.id,
                     title: session.title,

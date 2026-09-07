@@ -51,6 +51,36 @@ pub struct Context {
     pub busy_sessions: Vec<String>,
     /// `getEnhancedNoteId()`: the summary the open note's tab shows.
     pub enhanced_note_id: Option<String>,
+    /// `openEditTab`: where `edit_memo` / `edit_summary` hand their proposal
+    /// for review; the tool waits on the responder.
+    pub edit_requests: Option<tokio::sync::mpsc::UnboundedSender<PendingEdit>>,
+}
+
+/// `PendingEdit`: a proposal the user reviews in the edit tab; `responder`
+/// carries the decision back to the waiting tool.
+#[derive(Debug)]
+pub struct PendingEdit {
+    pub request_id: String,
+    pub session_id: String,
+    pub target: EditTarget,
+    pub current_content: String,
+    pub proposed_content: String,
+    pub source: String,
+    pub responder: tokio::sync::oneshot::Sender<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EditTarget {
+    Memo,
+    Summary { enhanced_note_id: String },
+}
+
+struct PendingEditRequest {
+    request_id: String,
+    session_id: String,
+    target: EditTarget,
+    current_content: String,
+    proposed_content: String,
 }
 
 /// Everything a tool run needs.
@@ -69,16 +99,23 @@ impl Runner {
     pub fn run(
         self: &Arc<Self>,
         ctx: Context,
+        call_id: String,
         name: String,
         input: Value,
     ) -> tokio::task::JoinHandle<Result<Value, String>> {
         let runner = self.clone();
         self.store
             .runtime()
-            .spawn(async move { runner.execute(&ctx, &name, input).await })
+            .spawn(async move { runner.execute(&ctx, &call_id, &name, input).await })
     }
 
-    async fn execute(&self, ctx: &Context, name: &str, input: Value) -> Result<Value, String> {
+    async fn execute(
+        &self,
+        ctx: &Context,
+        call_id: &str,
+        name: &str,
+        input: Value,
+    ) -> Result<Value, String> {
         match name {
             "list_meetings" => {
                 let input = parse_input(input)?;
@@ -144,11 +181,240 @@ impl Runner {
                     .map_err(|error| error.to_string())
             }
             "apply_session_correction" => self.apply_session_correction(ctx, &input).await,
-            "read_folder_material" | "edit_memo" | "edit_summary" => {
+            "edit_memo" => self.edit_memo(ctx, call_id, &input).await,
+            "edit_summary" => self.edit_summary(ctx, call_id, &input).await,
+            "read_folder_material" => {
                 Err(format!("{name} is not available in the native shell yet."))
             }
             other => Err(format!("Unknown tool: {other}")),
         }
+    }
+
+    /// `buildEditMemoTool`: persist the `memo_replace` proposal and wait for
+    /// the review.
+    async fn edit_memo(
+        &self,
+        ctx: &Context,
+        call_id: &str,
+        input: &Value,
+    ) -> Result<Value, String> {
+        let Some(session_id) = input
+            .get("sessionId")
+            .and_then(|id| id.as_str())
+            .map(str::to_string)
+            .or_else(|| ctx.session_id.clone())
+        else {
+            return Ok(json!({
+                "status": "error",
+                "message": "No active session selected. Provide sessionId explicitly when calling edit_memo."
+            }));
+        };
+        let content = input
+            .get("content")
+            .and_then(|c| c.as_str())
+            .unwrap_or_default()
+            .to_string();
+        let Ok(Some(snapshot)) = crate::db::enhancer::load_snapshot(self.pool(), &session_id).await
+        else {
+            return Ok(json!({ "status": "error", "message": "Session not found." }));
+        };
+        let persisted = self
+            .store
+            .persist_chat_session_proposal(
+                call_id.to_string(),
+                session_id.clone(),
+                "memo_replace".to_string(),
+                snapshot
+                    .raw_note_id
+                    .clone()
+                    .unwrap_or_else(|| session_id.clone()),
+                snapshot.raw_markdown.clone(),
+                content.clone(),
+            )
+            .await;
+        if !matches!(persisted, Ok(Ok(()))) {
+            return Ok(
+                json!({ "status": "error", "message": "Failed to save the proposed memo edit." }),
+            );
+        }
+        let approved = self
+            .review(
+                ctx,
+                PendingEditRequest {
+                    request_id: call_id.to_string(),
+                    session_id,
+                    target: EditTarget::Memo,
+                    current_content: snapshot.raw_markdown,
+                    proposed_content: content,
+                },
+            )
+            .await?;
+        if !approved {
+            let _ = self
+                .store
+                .decline_session_proposal(call_id.to_string())
+                .await;
+            return Ok(json!({ "status": "declined" }));
+        }
+        match self.store.apply_session_proposal(call_id.to_string()).await {
+            Ok(Ok(())) => Ok(json!({ "status": "applied" })),
+            _ => Ok(json!({ "status": "error", "message": "Failed to apply the memo edit." })),
+        }
+    }
+
+    /// `buildEditSummaryTool`: resolve the summary (requested, active, the
+    /// untemplated one, or the only one), persist the `summary_replace`
+    /// proposal and wait for the review.
+    async fn edit_summary(
+        &self,
+        ctx: &Context,
+        call_id: &str,
+        input: &Value,
+    ) -> Result<Value, String> {
+        let Some(session_id) = input
+            .get("sessionId")
+            .and_then(|id| id.as_str())
+            .map(str::to_string)
+            .or_else(|| ctx.session_id.clone())
+        else {
+            return Ok(json!({
+                "status": "error",
+                "message": "No active session selected. Provide sessionId explicitly when calling edit_summary."
+            }));
+        };
+        let content = input
+            .get("content")
+            .and_then(|c| c.as_str())
+            .unwrap_or_default()
+            .to_string();
+        let snapshot = crate::db::enhancer::load_snapshot(self.pool(), &session_id)
+            .await
+            .ok()
+            .flatten();
+        let notes: Vec<&crate::enhancer::EnhancedNote> = snapshot
+            .as_ref()
+            .map(|snapshot| snapshot.enhanced_notes.iter().collect())
+            .unwrap_or_default();
+        if notes.is_empty() {
+            return Ok(
+                json!({ "status": "error", "message": "No summaries found for this session" }),
+            );
+        }
+        let candidates: Vec<Value> = notes
+            .iter()
+            .map(|note| {
+                let mut candidate = serde_json::Map::new();
+                candidate.insert("enhancedNoteId".into(), note.id.clone().into());
+                candidate.insert(
+                    "title".into(),
+                    if note.title.trim().is_empty() {
+                        "Summary".into()
+                    } else {
+                        note.title.trim().into()
+                    },
+                );
+                if !note.template_id.is_empty() {
+                    candidate.insert("templateId".into(), note.template_id.clone().into());
+                }
+                candidate.insert("position".into(), note.position.into());
+                Value::Object(candidate)
+            })
+            .collect();
+        let requested = input
+            .get("enhancedNoteId")
+            .and_then(|id| id.as_str())
+            .map(str::to_string);
+        if let Some(requested) = &requested
+            && !notes.iter().any(|note| note.id == *requested)
+        {
+            return Ok(json!({
+                "status": "error",
+                "message": "That summary does not belong to the target session.",
+                "candidates": candidates
+            }));
+        }
+        let active = ctx
+            .enhanced_note_id
+            .clone()
+            .filter(|id| notes.iter().any(|note| note.id == *id));
+        let default = notes
+            .iter()
+            .find(|note| note.template_id.is_empty())
+            .map(|note| note.id.clone());
+        let only = (notes.len() == 1).then(|| notes[0].id.clone());
+        let Some(enhanced_note_id) = requested.or(active).or(default).or(only) else {
+            return Ok(json!({
+                "status": "error",
+                "message": "Multiple summaries exist for this session. Specify enhancedNoteId explicitly.",
+                "candidates": candidates
+            }));
+        };
+        let current_content = notes
+            .iter()
+            .find(|note| note.id == enhanced_note_id)
+            .map(|note| crate::db::enhancer::body_to_markdown(&note.content, &note.content_format))
+            .unwrap_or_default();
+        let persisted = self
+            .store
+            .persist_chat_session_proposal(
+                call_id.to_string(),
+                session_id.clone(),
+                "summary_replace".to_string(),
+                enhanced_note_id.clone(),
+                current_content.clone(),
+                content.clone(),
+            )
+            .await;
+        if !matches!(persisted, Ok(Ok(()))) {
+            return Ok(
+                json!({ "status": "error", "message": "Failed to save the proposed summary edit." }),
+            );
+        }
+        let approved = self
+            .review(
+                ctx,
+                PendingEditRequest {
+                    request_id: call_id.to_string(),
+                    session_id,
+                    target: EditTarget::Summary { enhanced_note_id },
+                    current_content,
+                    proposed_content: content,
+                },
+            )
+            .await?;
+        if !approved {
+            let _ = self
+                .store
+                .decline_session_proposal(call_id.to_string())
+                .await;
+            return Ok(json!({ "status": "declined" }));
+        }
+        match self.store.apply_session_proposal(call_id.to_string()).await {
+            Ok(Ok(())) => Ok(json!({ "status": "applied" })),
+            _ => Ok(json!({ "status": "error", "message": "Failed to apply the summary edit." })),
+        }
+    }
+
+    /// `usePendingEditStore.addEdit` + `deps.openEditTab`: hand the proposal
+    /// to the review surface and wait for its decision.
+    async fn review(&self, ctx: &Context, request: PendingEditRequest) -> Result<bool, String> {
+        let Some(edit_requests) = &ctx.edit_requests else {
+            return Err("No review surface is available for this edit.".to_string());
+        };
+        let (responder, decision) = tokio::sync::oneshot::channel();
+        edit_requests
+            .send(PendingEdit {
+                request_id: request.request_id,
+                session_id: request.session_id,
+                target: request.target,
+                current_content: request.current_content,
+                proposed_content: request.proposed_content,
+                source: "chat".to_string(),
+                responder,
+            })
+            .map_err(|_| "The review surface went away.".to_string())?;
+        // A dropped responder (the review closed without a choice) declines.
+        Ok(decision.await.unwrap_or(false))
     }
 
     /// `buildApplySessionCorrectionTool`: plan the exact replacements over

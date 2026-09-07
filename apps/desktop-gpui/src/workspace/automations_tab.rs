@@ -26,7 +26,7 @@ use crate::ui::{TailwindText as _, icon};
 
 /// A press handler on the workspace.
 type Action = Rc<dyn Fn(&mut Workspace, &mut Context<Workspace>)>;
-type WindowAction = Rc<dyn Fn(&mut Workspace, &mut Window, &mut Context<Workspace>)>;
+pub(super) type WindowAction = Rc<dyn Fn(&mut Workspace, &mut Window, &mut Context<Workspace>)>;
 
 /// `AutomationSelection`
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -131,6 +131,7 @@ impl Workspace {
         self.close_templates(cx);
         self.close_calendar(cx);
         self.close_contacts(cx);
+        self.close_edit_review(cx);
         if self.automations.is_none() {
             let style = self.plain_input_style();
             let search = cx.new(|cx| TextInput::new("Search automations...", style, window, cx));
@@ -1436,7 +1437,7 @@ impl Workspace {
 
     /// `Button size="sm"` (28px, `px-2 text-xs gap-2 rounded-full`), outline
     /// or default variant, optionally disabled.
-    fn small_button(&self, button: SmallButton, cx: &Context<Self>) -> AnyElement {
+    pub(super) fn small_button(&self, button: SmallButton, cx: &Context<Self>) -> AnyElement {
         let SmallButton {
             id,
             outline,
@@ -2441,13 +2442,13 @@ struct WorkflowCard {
     on_remove: Option<(usize, Action)>,
 }
 
-struct SmallButton {
-    id: &'static str,
-    outline: bool,
-    glyph: Option<&'static str>,
-    label: &'static str,
-    disabled: bool,
-    on_click: Option<WindowAction>,
+pub(super) struct SmallButton {
+    pub id: &'static str,
+    pub outline: bool,
+    pub glyph: Option<&'static str>,
+    pub label: &'static str,
+    pub disabled: bool,
+    pub on_click: Option<WindowAction>,
 }
 
 /// Where a chosen export folder is written.

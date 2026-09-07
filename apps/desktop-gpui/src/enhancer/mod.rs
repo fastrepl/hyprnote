@@ -64,6 +64,8 @@ pub struct Snapshot {
     pub event_json: String,
     /// `formatMeetingChatRecordsAsMarkdown` over the meeting chat records.
     pub meeting_chat: String,
+    /// `rawNoteId`: the memo document's id when one exists.
+    pub raw_note_id: Option<String>,
     pub raw_template_id: String,
     pub raw_content: String,
     pub raw_content_format: String,

@@ -176,6 +176,25 @@ const MONO_STACK: [&str; 8] = [
     "monospace",
 ];
 
+/// `@pierre/diffs`' `--diffs-font-fallback` stack.
+const DIFF_MONO_STACK: [&str; 7] = [
+    "SF Mono",
+    "Monaco",
+    "Consolas",
+    "Ubuntu Mono",
+    "Liberation Mono",
+    "Courier New",
+    "monospace",
+];
+
+/// The family the diff review's code renders in, resolved like `font-mono`.
+pub fn diff_mono_font_family(text_system: &TextSystem) -> Option<String> {
+    let installed = text_system.all_font_names();
+    let is_installed = |family: &str| installed.iter().any(|name| name == family);
+    fontconfig::resolve_stack(&DIFF_MONO_STACK, &is_installed)
+        .or_else(|| mono_font_family(text_system))
+}
+
 /// The family the Tauri app's `system-ui` CSS resolves to on this machine.
 /// GPUI's built-in fallbacks are requested at normal weight, so an explicit
 /// installed family is also what makes bold and semibold runs render.

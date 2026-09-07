@@ -279,6 +279,7 @@ impl Workspace {
         self.close_templates(cx);
         self.close_calendar(cx);
         self.close_contacts(cx);
+        self.close_edit_review(cx);
         if self.settings_search.is_none() {
             let theme = self.theme;
             let input = cx.new(|cx| {

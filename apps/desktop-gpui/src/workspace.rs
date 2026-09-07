@@ -13,6 +13,7 @@ mod deep_links;
 mod developers_page;
 pub(crate) mod dictionary;
 mod document_view;
+mod edit_review;
 mod enhance;
 mod export;
 mod filter_menu;
@@ -156,6 +157,8 @@ pub struct Workspace {
     enhanced_editor: Option<(String, gpui::Entity<BodyEditor>)>,
     font_family: Option<SharedString>,
     mono_font_family: Option<SharedString>,
+    /// `@pierre/diffs`' mono stack for the edit review.
+    diff_font_family: Option<SharedString>,
     sessions: Sessions,
     /// Every non-deleted session (`useSessionSummaries`), for the open-note dialog.
     session_rows: Vec<timeline::SessionRow>,
@@ -280,6 +283,8 @@ pub struct Workspace {
     chat: chat::ChatState,
     parked_chat: chat::ChatState,
     chat_scroll: gpui::ScrollHandle,
+    /// The `edit` tab: a chat `edit_memo` / `edit_summary` proposal under review.
+    edit_review: Option<edit_review::EditReview>,
     /// The Share CTA's popover while open.
     share_popover: Option<share::SharePopover>,
     /// `anarlog.template-picker.recent-emojis` (kept for the session).
@@ -335,7 +340,14 @@ impl Workspace {
         let font_family = crate::theme::ui_font_family(cx.text_system()).map(SharedString::from);
         let mono_font_family =
             crate::theme::mono_font_family(cx.text_system()).map(SharedString::from);
-        tracing::info!(ui = ?font_family, mono = ?mono_font_family, "resolved font families");
+        let diff_font_family =
+            crate::theme::diff_mono_font_family(cx.text_system()).map(SharedString::from);
+        tracing::info!(
+            ui = ?font_family,
+            mono = ?mono_font_family,
+            diff = ?diff_font_family,
+            "resolved font families"
+        );
         let theme = Theme::light();
         let title_input = cx.new(|cx| {
             TextInput::new(
@@ -368,6 +380,7 @@ impl Workspace {
             enhanced_editor: None,
             font_family,
             mono_font_family,
+            diff_font_family,
             sessions: Sessions::Loading,
             session_rows: Vec::new(),
             event_rows: Vec::new(),
@@ -441,6 +454,7 @@ impl Workspace {
             chat: chat::ChatState::new(crate::chat::Scope::General),
             parked_chat: chat::ChatState::new(crate::chat::Scope::Automations),
             chat_scroll: gpui::ScrollHandle::new(),
+            edit_review: None,
             share_popover: None,
             recent_emoji_ids: Vec::new(),
             note_scroll: gpui::ScrollHandle::new(),
@@ -893,6 +907,7 @@ impl Workspace {
         self.close_calendar(cx);
         self.close_contacts(cx);
         self.close_automations(cx);
+        self.close_edit_review(cx);
         if self.selected.as_deref() == Some(session_id.as_str()) {
             return;
         }
@@ -1568,6 +1583,13 @@ impl Render for Workspace {
             self.select_contact(Some(selection), window, cx);
         }
         self.prepare_contact_avatars();
+        // The web view's shortcuts listen on `document`: when the focused
+        // field unmounts (the chat closes, an overlay swaps out), GPUI would
+        // dispatch keys to the bare root, past this element's bindings, so
+        // the workspace takes the focus back.
+        if window.focused(cx).is_none() {
+            window.focus(&self.focus_handle);
+        }
         let resolved = Theme::resolve(&self.theme_preference, window.appearance());
         if resolved != self.theme {
             self.theme = resolved;

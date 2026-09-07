@@ -218,6 +218,7 @@ embedded!(
     "icons/notebook.svg",
     "icons/minus-circle.svg",
     "icons/pause.svg",
+    "icons/pencil.svg",
     "icons/pencil-edit.svg",
     "icons/pencil-simple.svg",
     "icons/picture-in-picture.svg",
@@ -337,6 +338,7 @@ embedded!(
     "icons/waveform.svg",
     "icons/x-logo.svg",
     "icons/wrench.svg",
+    "icons/x-circle.svg",
     "icons/x.svg",
     "anarlog-icon.png",
     "onboarding-frame.png",
@@ -375,6 +377,6 @@ mod tests {
         }
         assert!(Assets.load("icons/search.svg").unwrap().is_some());
         assert!(Assets.load("icons/missing.svg").unwrap().is_none());
-        assert_eq!(Assets.list("icons/").unwrap().len(), 194);
+        assert_eq!(Assets.list("icons/").unwrap().len(), 196);
     }
 }

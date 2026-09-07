@@ -84,6 +84,7 @@ impl Workspace {
         self.close_templates(cx);
         self.close_calendar(cx);
         self.close_automations(cx);
+        self.close_edit_review(cx);
         if self.contacts.is_none() {
             let style = self.contact_input_style(self.theme.foreground);
             let search = cx.new(|cx| TextInput::new("Search contacts...", style, window, cx));

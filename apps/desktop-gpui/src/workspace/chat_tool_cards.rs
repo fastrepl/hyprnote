@@ -1,11 +1,16 @@
 //! `chat/components/message/tool/*`: the tool parts inside an assistant
 //! bubble — the `Disclosure` shell, the search card for `list_meetings` /
-//! `search_meetings`, and the generic card for everything else.
+//! `search_meetings`, the edit card for `edit_memo` / `edit_summary`, and
+//! the generic card for everything else.
+
+use std::rc::Rc;
 
 use gpui::{AnyElement, ClickEvent, Context, SharedString, div, prelude::*, px};
 
 use super::Workspace;
+use super::automations_tab::SmallButton;
 use crate::chat::ToolView;
+use crate::theme::alpha;
 use crate::ui::{TailwindText as _, icon};
 
 /// `formatToolName`: underscores to spaces, first letter capitalised.
@@ -163,14 +168,26 @@ pub fn format_output_text(output: Option<&serde_json::Value>) -> Option<String> 
     }
 }
 
+fn capitalize(word: &str) -> String {
+    let mut chars = word.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+        None => String::new(),
+    }
+}
+
 impl Workspace {
     /// The tool part's card; `key` scopes the element ids.
     pub(super) fn render_tool_part(
         &self,
         tool: &ToolView<'_>,
         key: (usize, usize),
+        renderer: &super::document_view::DocumentRenderer,
         cx: &Context<Self>,
     ) -> AnyElement {
+        if matches!(tool.name, "edit_memo" | "edit_summary") {
+            return self.render_edit_tool_card(tool, key, renderer, cx);
+        }
         let running = matches!(tool.state, "input-streaming" | "input-available");
         let failed = tool.state == "output-error";
         let done = tool.state == "output-available";
@@ -493,6 +510,286 @@ impl Workspace {
                 .into_any_element(),
             _ => div().children(details_block).into_any_element(),
         }
+    }
+
+    /// `ToolEditMemo` / `ToolEditSummary` (`defineTool`): the `ToolCard`
+    /// (`my-2.5 rounded-xl border shadow-sm`) with the `ToolCardHeader`
+    /// (spinner while running, the pencil in emerald once applied, the label
+    /// per state), the `MarkdownPreview` of the proposed content, the error
+    /// footer (and the summary candidates), and `Decline` / `Apply to …`
+    /// while the proposal waits on this review.
+    fn render_edit_tool_card(
+        &self,
+        tool: &ToolView<'_>,
+        key: (usize, usize),
+        renderer: &super::document_view::DocumentRenderer,
+        cx: &Context<Self>,
+    ) -> AnyElement {
+        let theme = self.theme;
+        let is_memo = tool.name == "edit_memo";
+        let running = matches!(tool.state, "input-streaming" | "input-available");
+        let failed = tool.state == "output-error";
+        let done = tool.state == "output-available";
+        let status = done.then(|| tool.output?.get("status")?.as_str()).flatten();
+        let message = tool
+            .output
+            .and_then(|output| output.get("message"))
+            .and_then(|message| message.as_str());
+        let candidates: Vec<String> = tool
+            .output
+            .and_then(|output| output.get("candidates"))
+            .and_then(|candidates| candidates.as_array())
+            .map(|candidates| {
+                candidates
+                    .iter()
+                    .map(|candidate| {
+                        format!(
+                            "{} ({})",
+                            candidate
+                                .get("title")
+                                .and_then(|t| t.as_str())
+                                .unwrap_or_default(),
+                            candidate
+                                .get("enhancedNoteId")
+                                .and_then(|id| id.as_str())
+                                .unwrap_or_default()
+                        )
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        let target = if is_memo { "memo" } else { "summary" };
+        let label = if running {
+            format!("Edit {target} — review tab opened")
+        } else if failed {
+            format!("{} edit failed", capitalize(target))
+        } else {
+            match status {
+                Some("applied") => format!("{} updated", capitalize(target)),
+                Some("declined") => format!("{} edit declined", capitalize(target)),
+                _ => format!("Edit {target}"),
+            }
+        };
+        let applied = status == Some("applied");
+        // `EditActions`: only while the tool is waiting on this review.
+        let pending = matches!(
+            &self.edit_review,
+            Some(super::edit_review::EditReview::Pending(review))
+                if review.request_id == tool.call_id && review.responder.is_some()
+        );
+        let red_200 = gpui::rgb(0xfecaca);
+        let red_50 = gpui::rgb(0xfef2f2);
+        let red_500 = gpui::rgb(0xef4444);
+        let red_600 = gpui::rgb(0xdc2626);
+        let red_700 = gpui::rgb(0xb91c1c);
+        let emerald_500 = gpui::rgb(0x10b981);
+        let header_icon: AnyElement = if running {
+            crate::ui::spinner(
+                ("chat-tool-spinner", key.0 * 1000 + key.1),
+                px(16.0),
+                theme.muted_foreground,
+            )
+            .into_any_element()
+        } else {
+            icon(
+                "pencil",
+                px(16.0),
+                if failed {
+                    red_500
+                } else if applied {
+                    emerald_500
+                } else {
+                    theme.muted_foreground
+                },
+            )
+            .into_any_element()
+        };
+        // `flex items-center gap-2.5 px-3.5 py-2 text-[13px]`
+        let header = div()
+            .flex()
+            .items_center()
+            .gap(px(10.0))
+            .px(px(14.0))
+            .py_2()
+            .text_size(px(13.0))
+            .line_height(px(18.0))
+            .map(|header| {
+                if failed {
+                    header.bg(red_50).text_color(red_700)
+                } else {
+                    header
+                        .bg(alpha(theme.muted, 0.8))
+                        .text_color(theme.muted_foreground)
+                }
+            })
+            .child(header_icon)
+            .child(
+                div()
+                    .font_weight(gpui::FontWeight::MEDIUM)
+                    .child(SharedString::from(label)),
+            );
+        let content = tool
+            .input
+            .and_then(|input| input.get("content"))
+            .and_then(|content| content.as_str())
+            .filter(|content| !content.is_empty());
+        // `ToolCardBody` (`px-3.5 py-2.5`) > `MarkdownPreview`: `rounded-lg
+        // border bg-card` around `max-h-64 overflow-y-auto px-3 py-2.5`.
+        let body = content.map(|content| {
+            let blocks = crate::document::from_body("markdown", content);
+            div().px(px(14.0)).py(px(10.0)).child(
+                div()
+                    .rounded(px(8.0))
+                    .border_1()
+                    .border_color(alpha(theme.border, 0.8))
+                    .bg(theme.card)
+                    .overflow_hidden()
+                    .child(
+                        div()
+                            .id(("chat-edit-preview", key.0 * 1000 + key.1))
+                            .max_h(px(256.0))
+                            .overflow_y_scroll()
+                            .px_3()
+                            .py(px(10.0))
+                            .flex()
+                            .flex_col()
+                            .children(renderer.preview_blocks(&blocks, theme.muted_foreground)),
+                    ),
+            )
+        });
+        let error_footer = |text: String| {
+            // `ToolCardFooterError`
+            div()
+                .flex()
+                .items_center()
+                .gap_2()
+                .border_t_1()
+                .border_color(red_200)
+                .bg(red_50)
+                .px(px(14.0))
+                .py(px(10.0))
+                .child(icon("x-circle", px(16.0), red_500))
+                .child(
+                    div()
+                        .text_size(px(13.0))
+                        .line_height(px(18.0))
+                        .text_color(red_600)
+                        .child(SharedString::from(text)),
+                )
+        };
+        let call_id = tool.call_id.to_string();
+        let decline_id = call_id.clone();
+        let apply_id = call_id;
+        // The card is transparent in the web view; GPUI paints the shadow
+        // under the element, so it takes the panel's surface colour.
+        let surface = if self.chat_in_right_panel() {
+            theme.card
+        } else if theme.dark {
+            gpui::rgb(0x202020)
+        } else {
+            gpui::rgb(0xf4f4f5)
+        };
+        div()
+            .my(px(10.0))
+            .rounded(px(12.0))
+            .bg(surface)
+            .border_1()
+            .border_color(if failed {
+                red_200
+            } else {
+                alpha(theme.border, 0.8)
+            })
+            .overflow_hidden()
+            // Tailwind v4 `shadow-sm`.
+            .shadow(vec![
+                gpui::BoxShadow {
+                    color: gpui::hsla(0.0, 0.0, 0.0, 0.1),
+                    offset: gpui::point(px(0.0), px(1.0)),
+                    blur_radius: px(3.0),
+                    spread_radius: px(0.0),
+                },
+                gpui::BoxShadow {
+                    color: gpui::hsla(0.0, 0.0, 0.0, 0.1),
+                    offset: gpui::point(px(0.0), px(1.0)),
+                    blur_radius: px(2.0),
+                    spread_radius: px(-1.0),
+                },
+            ])
+            .child(header)
+            .children(body)
+            .when(status == Some("error"), |card| {
+                card.child(error_footer(message.unwrap_or("Unknown error").to_string()))
+                    .when(!candidates.is_empty(), |card| {
+                        // The summary candidates under the error.
+                        card.child(
+                            div().px(px(14.0)).pb(px(10.0)).child(
+                                div()
+                                    .flex()
+                                    .flex_col()
+                                    .gap_1()
+                                    .rounded(px(6.0))
+                                    .border_1()
+                                    .border_color(theme.border)
+                                    .bg(theme.muted)
+                                    .p_2()
+                                    .text_size(px(12.0))
+                                    .text_color(theme.muted_foreground)
+                                    .children(candidates.into_iter().map(|candidate| {
+                                        div().child(SharedString::from(candidate))
+                                    })),
+                            ),
+                        )
+                    })
+            })
+            .when(failed, |card| {
+                card.child(error_footer(
+                    tool.error_text.unwrap_or("Unknown error").to_string(),
+                ))
+            })
+            .when(pending, |card| {
+                // `border-border/80 flex justify-end gap-2 border-t px-3.5 py-2.5`
+                card.child(
+                    div()
+                        .flex()
+                        .justify_end()
+                        .gap_2()
+                        .border_t_1()
+                        .border_color(alpha(theme.border, 0.8))
+                        .px(px(14.0))
+                        .py(px(10.0))
+                        .child(self.small_button(
+                            SmallButton {
+                                id: "chat-edit-decline",
+                                outline: true,
+                                glyph: None,
+                                label: "Decline",
+                                disabled: false,
+                                on_click: Some(Rc::new(move |this, _, cx| {
+                                    this.review_edit(&decline_id, false, cx)
+                                })),
+                            },
+                            cx,
+                        ))
+                        .child(self.small_button(
+                            SmallButton {
+                                id: "chat-edit-apply",
+                                outline: false,
+                                glyph: None,
+                                label: if is_memo {
+                                    "Apply to memo"
+                                } else {
+                                    "Apply to summary"
+                                },
+                                disabled: false,
+                                on_click: Some(Rc::new(move |this, _, cx| {
+                                    this.review_edit(&apply_id, true, cx)
+                                })),
+                            },
+                            cx,
+                        )),
+                )
+            })
+            .into_any_element()
     }
 
     /// `ToolGeneric`'s body: the `key: value` input lines, the error, the

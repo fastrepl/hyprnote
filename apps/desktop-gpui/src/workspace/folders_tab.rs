@@ -61,6 +61,7 @@ impl Workspace {
         self.close_calendar(cx);
         self.close_contacts(cx);
         self.close_automations(cx);
+        self.close_edit_review(cx);
         if self.folders.is_none() {
             let style = self.input_style();
             let search = cx.new(|cx| TextInput::new("Search folders...", style, window, cx));

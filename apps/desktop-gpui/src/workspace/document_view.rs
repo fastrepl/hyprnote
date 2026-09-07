@@ -597,6 +597,157 @@ impl DocumentRenderer {
         }
     }
 
+    /// `MarkdownPreview`: plain `Streamdown` in the tool card at `text-[13px]
+    /// leading-relaxed text-muted-foreground`. Only the Streamdown classes the
+    /// desktop bundle also uses elsewhere exist there (its chunk is not a
+    /// Tailwind source): `mt-6 mb-2 font-semibold` on headings with `text-3xl`
+    /// / `text-xl` / `text-lg` (no `text-2xl`, so `h2` stays 13px), `space-y-4`
+    /// between blocks (a heading's `mb-2` wins), `list-disc` outside the
+    /// unpadded list (the marker sits left of the content edge), `li { py-1 }`.
+    pub(super) fn preview_blocks(&self, blocks: &[Block], color: gpui::Rgba) -> Vec<AnyElement> {
+        let count = blocks.len();
+        let margins = |block: &Block, last: bool| -> (f32, f32) {
+            match block {
+                Block::Heading { .. } => (24.0, 8.0),
+                Block::HorizontalRule => (24.0, 24.0),
+                _ => (0.0, if last { 0.0 } else { 16.0 }),
+            }
+        };
+        let mut elements = Vec::with_capacity(count);
+        let mut previous_bottom = 0.0_f32;
+        for (index, block) in blocks.iter().enumerate() {
+            let last = index + 1 == count;
+            let (top, bottom) = margins(block, last);
+            // Adjacent block margins collapse; the first one keeps its own
+            // top margin inside the `overflow-y-auto` box.
+            let gap = if index == 0 {
+                top
+            } else {
+                top.max(previous_bottom)
+            };
+            elements.push(
+                div()
+                    .when(gap > 0.0, |block| block.mt(px(gap)))
+                    .child(self.preview_block(block, color))
+                    .into_any_element(),
+            );
+            previous_bottom = bottom;
+        }
+        if previous_bottom > 0.0 {
+            elements.push(div().h(px(previous_bottom)).into_any_element());
+        }
+        elements
+    }
+
+    fn preview_block(&self, block: &Block, color: gpui::Rgba) -> AnyElement {
+        const PREVIEW_PX: f32 = 13.0;
+        let line = px(PREVIEW_PX * 1.625);
+        let mut style = self.base.clone();
+        style.font_size = px(PREVIEW_PX).into();
+        style.line_height = line.into();
+        style.color = color.into();
+        match block {
+            Block::Paragraph(spans) => div()
+                .text_size(px(PREVIEW_PX))
+                .line_height(line)
+                .child(self.prose(spans, &style, line))
+                .into_any_element(),
+            Block::Heading { level, spans } => {
+                let (font_px, line_px) = match level {
+                    1 => (30.0, 36.0),
+                    3 => (20.0, 28.0),
+                    4 => (18.0, 28.0),
+                    5 => (16.0, 24.0),
+                    _ => (PREVIEW_PX, PREVIEW_PX * 1.625),
+                };
+                let line = px(line_px);
+                let mut style = style.clone();
+                style.font_weight = gpui::FontWeight::SEMIBOLD;
+                style.font_size = px(font_px).into();
+                style.line_height = line.into();
+                div()
+                    .text_size(px(font_px))
+                    .line_height(line)
+                    .child(self.prose(spans, &style, line))
+                    .into_any_element()
+            }
+            Block::List { ordered, items } => div()
+                .flex()
+                .flex_col()
+                .children(items.iter().enumerate().map(|(index, item)| {
+                    // `list-style-position: outside` without padding: the
+                    // marker hangs left of the content and gets clipped.
+                    let marker: AnyElement = if *ordered {
+                        div()
+                            .absolute()
+                            .right(px(6.0))
+                            .top_0()
+                            .text_size(px(PREVIEW_PX))
+                            .line_height(line)
+                            .text_color(color)
+                            .child(SharedString::from(format!("{}.", index + 1)))
+                            .into_any_element()
+                    } else {
+                        div()
+                            .absolute()
+                            .left(px(-16.0))
+                            .top(px(12.0))
+                            .size(px(5.0))
+                            .rounded_full()
+                            .bg(color)
+                            .into_any_element()
+                    };
+                    div()
+                        .relative()
+                        .py_1()
+                        .text_size(px(PREVIEW_PX))
+                        .line_height(line)
+                        .child(marker)
+                        .child(
+                            div().flex().flex_col().min_w_0().children(
+                                item.blocks
+                                    .iter()
+                                    .map(|block| self.preview_block(block, color)),
+                            ),
+                        )
+                }))
+                .into_any_element(),
+            Block::Blockquote(blocks) => div()
+                .pl_4()
+                .italic()
+                .children(blocks.iter().map(|block| self.preview_block(block, color)))
+                .into_any_element(),
+            Block::Code(code) => {
+                let mut style = style.clone();
+                style.font_size = px(14.0).into();
+                if let Some(family) = &self.mono_family {
+                    style.font_family = family.clone();
+                }
+                let span = Span {
+                    text: code.clone(),
+                    ..Span::default()
+                };
+                div()
+                    .rounded(px(4.0))
+                    .bg(self.theme.muted)
+                    .px(px(6.0))
+                    .py(px(2.0))
+                    .text_size(px(14.0))
+                    .line_height(line)
+                    .when_some(self.mono_family.clone(), |code, family| {
+                        code.font_family(family)
+                    })
+                    .child(self.prose(std::slice::from_ref(&span), &style, line))
+                    .into_any_element()
+            }
+            Block::HorizontalRule => div().h(px(1.0)).bg(self.theme.border).into_any_element(),
+            Block::Image { alt } => div()
+                .text_color(color)
+                .child(SharedString::from(alt.clone()))
+                .into_any_element(),
+        }
+    }
+
     /// `.note-typography.note-title-editor > h1:first-child` (the enhanced
     /// editor's `enforceTitleHeading`): the first block is the session title
     /// at `1.5rem / 1.875rem` with `margin-bottom: 1rem`, showing the

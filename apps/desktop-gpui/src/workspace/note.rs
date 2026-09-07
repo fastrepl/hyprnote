@@ -21,6 +21,7 @@ impl Workspace {
     ) -> Div {
         let theme = self.theme;
         let content = match &self.note {
+            _ if self.edit_review_open() => self.render_edit_review(window, cx),
             _ if self.contacts_open() => self.render_contacts_main(cx),
             _ if self.automations_open() => self.render_automations_main(window, cx),
             _ if self.calendar_open() => self.render_calendar_main(window, cx),
@@ -49,6 +50,9 @@ impl Workspace {
                             .px_1()
                             .child(self.render_outer_header(&preview, &tab, window, cx)),
                     )
+                    // `session/index.tsx`: the pending-proposals banner sits
+                    // above the note column (`shrink-0`, then `min-h-0 flex-1`).
+                    .children(self.render_pending_proposals_banner(&preview, cx))
                     // Measured against the Tauri window: the text column starts at
                     // the same x as the breadcrumb title (12px from the surface).
                     .child(
@@ -129,7 +133,8 @@ impl Workspace {
             // `FloatingActionButton` / `FloatingChatCTA`: the chat pill (and
             // the transcript selection bar) over the note or the empty view.
             .children(match &self.note {
-                _ if self.contacts_open()
+                _ if self.edit_review_open()
+                    || self.contacts_open()
                     || self.automations_open()
                     || self.calendar_open()
                     || self.templates_open()

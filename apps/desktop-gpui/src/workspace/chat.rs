@@ -540,14 +540,17 @@ impl Workspace {
             .collect();
         let history: Vec<Message> = self.chat.messages.clone();
         let replace_previous = self.chat.replace_previous.take();
+        // `openEditTab`: proposals the edit tools hand over for review.
+        let (edit_requests, mut edit_reviews) =
+            tokio::sync::mpsc::unbounded_channel::<crate::chat_tools::PendingEdit>();
         let tool_context = crate::chat_tools::Context {
             session_id: self
-                .selected
-                .clone()
+                .active_session_tab_id()
                 .filter(|_| self.chat.scope == Scope::General),
             folder_filter: self.folder_filter_for_chat(),
             busy_sessions: self.busy_sessions(),
             enhanced_note_id: self.open_enhanced_note_id(),
+            edit_requests: Some(edit_requests),
         };
         let runner = Arc::new(crate::chat_tools::Runner {
             store: self.store.clone(),
@@ -710,14 +713,29 @@ impl Workspace {
                     return;
                 }
                 for (offset, call) in calls.iter().enumerate() {
-                    let result = runner
-                        .run(
-                            tool_context.clone(),
-                            call.name.clone(),
-                            call.arguments.clone(),
-                        )
-                        .await
-                        .unwrap_or_else(|error| Err(error.to_string()));
+                    let mut run = runner.run(
+                        tool_context.clone(),
+                        call.id.clone(),
+                        call.name.clone(),
+                        call.arguments.clone(),
+                    );
+                    // A tool may open a review and wait for it: keep the
+                    // panel responsive and show the review while it runs.
+                    let result = loop {
+                        tokio::select! {
+                            result = &mut run => {
+                                break result.unwrap_or_else(|error| Err(error.to_string()));
+                            }
+                            Some(edit) = edit_reviews.recv() => {
+                                if this
+                                    .update(cx, |this, cx| this.open_edit_review(edit, cx))
+                                    .is_err()
+                                {
+                                    return;
+                                }
+                            }
+                        }
+                    };
                     parts[first_tool + offset] = match result {
                         Ok(output) => Part::tool(
                             &call.name,
@@ -828,8 +846,18 @@ impl Workspace {
 
     /// `getEnhancedNoteId()`: the summary the open note's tab shows, in the
     /// general scope.
+    /// `useSessionTab().getSessionId()`: the selected session only while a
+    /// sessions tab is what the main surface shows (not settings, folders,
+    /// templates, calendar, contacts, automations, or an edit review).
+    fn active_session_tab_id(&self) -> Option<String> {
+        if self.custom_sidebar_open() || self.edit_review_open() {
+            return None;
+        }
+        self.selected.clone()
+    }
+
     fn open_enhanced_note_id(&self) -> Option<String> {
-        if self.chat.scope != Scope::General {
+        if self.chat.scope != Scope::General || self.active_session_tab_id().is_none() {
             return None;
         }
         match &self.note {
@@ -1201,6 +1229,7 @@ impl Workspace {
                                 bubble = bubble.child(self.render_tool_part(
                                     &tool,
                                     (index, part_index),
+                                    &renderer,
                                     cx,
                                 ));
                             }

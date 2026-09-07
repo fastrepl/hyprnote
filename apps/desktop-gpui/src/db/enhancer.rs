@@ -28,6 +28,7 @@ const SESSION_CONTENT_SQL: &str = "
     session.source_apps_json,
     session.created_at,
     COALESCE(session.event_id, '') AS event_id,
+    COALESCE(note.id, '') AS raw_note_id,
     COALESCE(note.template_id, '') AS raw_template_id,
     COALESCE(note.body, '') AS raw_body,
     COALESCE(note.body_format, 'prosemirror_json') AS raw_body_format
@@ -392,6 +393,21 @@ async fn enhanced_notes(pool: &SqlitePool, session_id: &str) -> anyhow::Result<V
         .collect())
 }
 
+/// `SESSION_CONTENT_SQL`'s scalar columns.
+type SessionContentRow = (
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+);
+
 pub(crate) async fn load_snapshot(
     pool: &SqlitePool,
     session_id: &str,
@@ -404,27 +420,14 @@ pub(crate) async fn load_snapshot(
         source_apps_json,
         created_at,
         event_id,
+        raw_note_id,
         raw_template_id,
         raw_body,
         raw_body_format,
-    )) = sqlx::query_as::<
-        _,
-        (
-            String,
-            String,
-            String,
-            String,
-            String,
-            String,
-            String,
-            String,
-            String,
-            String,
-        ),
-    >(SESSION_CONTENT_SQL)
-    .bind(session_id)
-    .fetch_optional(pool)
-    .await?
+    )) = sqlx::query_as::<_, SessionContentRow>(SESSION_CONTENT_SQL)
+        .bind(session_id)
+        .fetch_optional(pool)
+        .await?
     else {
         return Ok(None);
     };
@@ -539,6 +542,7 @@ pub(crate) async fn load_snapshot(
         event_id,
         event_json,
         meeting_chat,
+        raw_note_id: Some(raw_note_id).filter(|id| !id.is_empty()),
         raw_template_id,
         raw_markdown: body_to_markdown(&raw_body, &raw_body_format),
         raw_content: raw_body,

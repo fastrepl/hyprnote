@@ -20,7 +20,9 @@ export const createWorkspaceShareOriginRequest = (
     incomingUrl.pathname + incomingUrl.search,
     APP_ORIGIN,
   );
-  const originRequest = new Request(originUrl, request);
+  const originRequest = new Request(new Request(originUrl, request), {
+    redirect: "manual",
+  });
   // Netlify replaces x-forwarded-host with the origin hostname.
   originRequest.headers.set("x-anarlog-workspace-share-host", incomingUrl.host);
   originRequest.headers.set("x-anarlog-workspace-share-token", proxySecret);

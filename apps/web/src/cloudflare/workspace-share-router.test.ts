@@ -34,6 +34,7 @@ test("routes a workspace hostname to Netlify with its original host", async () =
     "fastrepl.anarlog.so",
   );
   assert.equal(originRequest?.headers.get("cookie"), "session=secret");
+  assert.equal(originRequest?.redirect, "manual");
 
   const netlifyHeaders = new Headers(originRequest?.headers);
   netlifyHeaders.set("host", "anarlog.netlify.app");

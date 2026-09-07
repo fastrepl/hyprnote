@@ -204,6 +204,7 @@ embedded!(
     "icons/grip-vertical.svg",
     "icons/headset.svg",
     "icons/heart.svg",
+    "icons/highlighter.svg",
     "icons/image.svg",
     "icons/lightning.svg",
     "icons/list-checks.svg",
@@ -248,6 +249,10 @@ embedded!(
     "icons/swap.svg",
     "icons/text-align-left.svg",
     "icons/text-aa.svg",
+    "icons/text-bold.svg",
+    "icons/text-italic.svg",
+    "icons/text-strikethrough.svg",
+    "icons/text-underline.svg",
     "icons/textbox.svg",
     "icons/tpl-activity.svg",
     "icons/tpl-alert.svg",
@@ -379,6 +384,6 @@ mod tests {
         }
         assert!(Assets.load("icons/search.svg").unwrap().is_some());
         assert!(Assets.load("icons/missing.svg").unwrap().is_none());
-        assert_eq!(Assets.list("icons/").unwrap().len(), 198);
+        assert_eq!(Assets.list("icons/").unwrap().len(), 203);
     }
 }

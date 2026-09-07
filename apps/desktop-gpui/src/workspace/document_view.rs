@@ -104,9 +104,34 @@ pub(super) struct DocumentRenderer {
     /// The line box's depth below an `inline-block` sitting on the baseline:
     /// the body font's rounded descent plus half-leading at the 24px line.
     inline_block_gap: Pixels,
+    /// The body font's rounded ascent plus descent at 16px: the inline box
+    /// height a `<mark>` background covers.
+    inline_box_height: f32,
 }
 
 impl Workspace {
+    /// The body font's ascent and descent at 16px, rounded the way WebKit's
+    /// `FontMetrics` are for line layout.
+    pub(super) fn body_font_metrics(&self, window: &Window) -> (f32, f32) {
+        let mut font = window.text_style().font();
+        if let Some(family) = &self.font_family {
+            font.family = family.clone();
+        }
+        let font_id = window.text_system().resolve_font(&font);
+        let ascent = f32::from(window.text_system().ascent(font_id, px(BODY_PX))).round();
+        let descent = f32::from(window.text_system().descent(font_id, px(BODY_PX)))
+            .abs()
+            .round();
+        (ascent, descent)
+    }
+
+    /// The inline text box of a 16px / 24px body line sits `half-leading`
+    /// inside the line box on both sides (`Range.getClientRects()`).
+    pub(super) fn body_half_leading(&self, window: &Window) -> Pixels {
+        let (ascent, descent) = self.body_font_metrics(window);
+        px(((BODY_PX * 1.5) - ascent - descent) / 2.0)
+    }
+
     pub(super) fn document_renderer(&self, window: &Window) -> DocumentRenderer {
         let mut base = window.text_style();
         base.font_size = px(BODY_PX).into();
@@ -117,12 +142,9 @@ impl Workspace {
         if let Some(family) = &self.font_family {
             base.font_family = family.clone();
         }
-        let font_id = window.text_system().resolve_font(&base.font());
-        let ascent = f32::from(window.text_system().ascent(font_id, px(BODY_PX))).round();
-        let descent = f32::from(window.text_system().descent(font_id, px(BODY_PX)))
-            .abs()
-            .round();
+        let (ascent, descent) = self.body_font_metrics(window);
         let inline_block_gap = px((BODY_PX * 1.5 - ascent + descent) / 2.0);
+        let inline_box_height = ascent + descent;
         DocumentRenderer {
             base,
             mono_family: self.mono_font_family.clone(),
@@ -139,6 +161,7 @@ impl Workspace {
             next_image: Cell::new(0),
             next_file: Cell::new(0),
             inline_block_gap,
+            inline_box_height,
         }
     }
 
@@ -1469,6 +1492,7 @@ impl DocumentRenderer {
             next_image: Cell::new(0),
             next_file: Cell::new(0),
             inline_block_gap: self.inline_block_gap,
+            inline_box_height: self.inline_box_height,
         };
         renderer.text(spans, &base)
     }
@@ -1489,7 +1513,26 @@ impl DocumentRenderer {
             runs.push(base.to_run(text.len() - ix));
         }
         let font_size = base.font_size.to_pixels(px(16.0));
-        ProseText::new(text, runs, font_size, line_height)
+        // `.note-typography mark`: `yellow-200` over the inline box only, with
+        // `border-radius: 0.125rem`.
+        let mut marks = Vec::new();
+        let mut start = 0;
+        for span in spans {
+            let end = start + span.text.len();
+            if span.highlight {
+                marks.push(crate::prose_text::Highlight {
+                    range: start..end,
+                    color: gpui::rgb(0xfef08a),
+                    inset_x: px(0.0),
+                    radius: px(2.0),
+                });
+            }
+            start = end;
+        }
+        let font_px = f32::from(font_size);
+        let inset_y =
+            px(((f32::from(line_height)) - self.inline_box_height * font_px / BODY_PX) / 2.0);
+        ProseText::new(text, runs, font_size, line_height).with_inline_backgrounds(marks, inset_y)
     }
 
     fn text(&self, spans: &[Span], base: &TextStyle) -> StyledText {
@@ -1527,7 +1570,12 @@ impl DocumentRenderer {
                     None
                 },
                 font_style: span.italic.then_some(gpui::FontStyle::Italic),
-                color: span.link.is_some().then(|| link_color.into()),
+                // `.note-typography mark`: `yellow-200`, dark text in dark mode.
+                color: if span.highlight && self.theme.dark {
+                    Some(gpui::rgb(0x1c1917).into())
+                } else {
+                    span.link.is_some().then(|| link_color.into())
+                },
                 background_color: span.code.then(|| self.theme.accent.into()),
                 underline: (span.underline || span.link.is_some()).then(|| gpui::UnderlineStyle {
                     thickness: px(1.0),

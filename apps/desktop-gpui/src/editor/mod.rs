@@ -30,6 +30,8 @@ actions!(
         Down,
         Home,
         End,
+        SelectHome,
+        SelectEnd,
         SelectLeft,
         SelectRight,
         SelectUp,
@@ -71,6 +73,8 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new("down", Down, ctx),
         KeyBinding::new("home", Home, ctx),
         KeyBinding::new("end", End, ctx),
+        KeyBinding::new("shift-home", SelectHome, ctx),
+        KeyBinding::new("shift-end", SelectEnd, ctx),
         KeyBinding::new("shift-left", SelectLeft, ctx),
         KeyBinding::new("shift-right", SelectRight, ctx),
         KeyBinding::new("shift-up", SelectUp, ctx),
@@ -491,7 +495,7 @@ impl BodyEditor {
         (start < end).then_some(start..end)
     }
 
-    fn selection(&self) -> Option<(Caret, Caret)> {
+    pub fn selection(&self) -> Option<(Caret, Caret)> {
         let (anchor, caret) = (self.anchor?, self.caret?);
         (anchor != caret).then(|| model::order(anchor, caret))
     }
@@ -593,6 +597,38 @@ impl BodyEditor {
         if let Some(slot) = self.layouts.get_mut(block) {
             *slot = Some((layout, bounds));
         }
+    }
+
+    /// `createSelectionVirtualElement`: `coordsAtPos(from)` and
+    /// `coordsAtPos(to)` joined into one rectangle, in window coordinates.
+    pub fn selection_rect(&self) -> Option<Bounds<Pixels>> {
+        let (from, to) = self.selection()?;
+        let coords = |caret: Caret| {
+            let (layout, _) = self.layouts.get(caret.block)?.as_ref()?;
+            let position = layout.position_for_index(caret.offset)?;
+            Some((position, layout.line_height()))
+        };
+        let (start, _) = coords(from)?;
+        let (end, end_line) = coords(to)?;
+        let left = start.x.min(end.x);
+        Some(Bounds::new(
+            Point::new(left, start.y),
+            gpui::size((end.x - start.x).abs(), end.y + end_line - start.y),
+        ))
+    }
+
+    /// `isMarkActive` for a non-empty selection: `rangeHasMark`.
+    pub fn selection_has_mark(&self, mark: &str) -> bool {
+        self.selection()
+            .is_some_and(|(from, to)| self.doc.range_has_mark(from, to, mark))
+    }
+
+    /// `selectionTouchesTitleHeading`: with the title heading enforced, a
+    /// selection overlapping the first block is not formatted.
+    pub fn selection_touches_title(&self) -> bool {
+        self.enforce_title_heading
+            && self.selection().is_some_and(|(from, _)| from.block == 0)
+            && self.doc.block_type(0).as_deref() == Some("heading")
     }
 
     /// Caret position in window coordinates plus the line height, when the
@@ -1043,27 +1079,35 @@ impl BodyEditor {
     }
 
     fn on_home(&mut self, _: &Home, _: &mut Window, cx: &mut Context<Self>) {
-        if let Some(caret) = self.caret {
-            self.set_head(
-                Caret {
-                    block: caret.block,
-                    offset: 0,
-                },
-                false,
-                cx,
-            );
-        }
+        self.move_to_line_edge(false, false, cx);
     }
 
     fn on_end(&mut self, _: &End, _: &mut Window, cx: &mut Context<Self>) {
+        self.move_to_line_edge(true, false, cx);
+    }
+
+    fn on_select_home(&mut self, _: &SelectHome, _: &mut Window, cx: &mut Context<Self>) {
+        self.move_to_line_edge(false, true, cx);
+    }
+
+    fn on_select_end(&mut self, _: &SelectEnd, _: &mut Window, cx: &mut Context<Self>) {
+        self.move_to_line_edge(true, true, cx);
+    }
+
+    /// Home / End (with Shift extending) to the textblock's edge.
+    fn move_to_line_edge(&mut self, end: bool, extend: bool, cx: &mut Context<Self>) {
         if let Some(caret) = self.caret {
-            let offset = self.doc.text(caret.block).len();
+            let offset = if end {
+                self.doc.text(caret.block).len()
+            } else {
+                0
+            };
             self.set_head(
                 Caret {
                     block: caret.block,
                     offset,
                 },
-                false,
+                extend,
                 cx,
             );
         }
@@ -1318,7 +1362,7 @@ impl BodyEditor {
 
     /// `toggleMark`: with a selection, adds or removes the mark across it;
     /// with a caret only, toggles it in the stored marks for the next input.
-    fn toggle_mark(&mut self, mark: &'static str, cx: &mut Context<Self>) {
+    pub fn toggle_mark(&mut self, mark: &'static str, cx: &mut Context<Self>) {
         if let Some((from, to)) = self.selection() {
             self.record_edit(EditKind::Structural);
             self.doc.toggle_mark(from, to, mark);
@@ -1571,6 +1615,8 @@ impl BodyEditor {
             .on_action(cx.listener(Self::on_down))
             .on_action(cx.listener(Self::on_home))
             .on_action(cx.listener(Self::on_end))
+            .on_action(cx.listener(Self::on_select_home))
+            .on_action(cx.listener(Self::on_select_end))
             .on_action(cx.listener(Self::on_select_left))
             .on_action(cx.listener(Self::on_select_right))
             .on_action(cx.listener(Self::on_select_up))

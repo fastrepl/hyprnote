@@ -31,6 +31,12 @@ pub struct ProseText {
     /// `text-wrap: pretty` (the app's global rule for `p`): WebKit's
     /// constrained line breaking that avoids orphans.
     pretty: bool,
+    /// Backgrounds painted behind byte ranges at the inline box's height
+    /// (`<mark>`): the line box's half-leading is left uncovered above and
+    /// below, unlike a run background.
+    inline_backgrounds: Vec<Highlight>,
+    /// The half-leading the inline backgrounds stay inside of.
+    inline_inset_y: Pixels,
     layout: ProseLayout,
 }
 
@@ -72,8 +78,18 @@ impl ProseText {
             centered: false,
             max_width: None,
             pretty: false,
+            inline_backgrounds: Vec::new(),
+            inline_inset_y: px(0.0),
             layout: ProseLayout::default(),
         }
+    }
+
+    /// Paint `<mark>`-style backgrounds behind byte ranges, inset `inset_y`
+    /// from the line box's top and bottom.
+    pub fn with_inline_backgrounds(mut self, backgrounds: Vec<Highlight>, inset_y: Pixels) -> Self {
+        self.inline_backgrounds = backgrounds;
+        self.inline_inset_y = inset_y;
+        self
     }
 
     /// A paragraph whose layout handle the caller keeps for hit testing.
@@ -346,6 +362,27 @@ impl Element for ProseText {
         window: &mut Window,
         cx: &mut App,
     ) {
+        if self.layout.0.borrow().is_none() {
+            return;
+        }
+        for highlight in &self.inline_backgrounds {
+            for span in self.layout.line_spans(highlight.range.clone()) {
+                let quad_bounds = Bounds::new(
+                    Point::new(
+                        span.origin.x - highlight.inset_x,
+                        span.origin.y + self.inline_inset_y,
+                    ),
+                    Size::new(
+                        span.size.width + highlight.inset_x * 2.0,
+                        span.size.height - self.inline_inset_y * 2.0,
+                    ),
+                );
+                window.paint_quad(
+                    gpui::fill(quad_bounds, highlight.color)
+                        .corner_radii(gpui::Corners::all(highlight.radius)),
+                );
+            }
+        }
         let inner = self.layout.0.borrow();
         let Some(inner) = inner.as_ref() else {
             return;

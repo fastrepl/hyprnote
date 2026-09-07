@@ -12,6 +12,8 @@ pub struct Span {
     pub strike: bool,
     pub code: bool,
     pub underline: bool,
+    /// The `highlight` mark (`<mark>`).
+    pub highlight: bool,
     pub link: Option<String>,
     /// A `mention-@` chip: `(type, id, label)`; `text` is its display text.
     pub mention: Option<(String, String, String)>,
@@ -251,6 +253,7 @@ fn inline_nodes(nodes: &[Value]) -> Vec<Span> {
                         Some("strike") => span.strike = true,
                         Some("code") => span.code = true,
                         Some("underline") => span.underline = true,
+                        Some("highlight") => span.highlight = true,
                         Some("link") => {
                             span.link = attr(mark, "href")
                                 .and_then(Value::as_str)

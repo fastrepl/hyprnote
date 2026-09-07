@@ -21,6 +21,7 @@ mod export;
 mod filter_menu;
 pub(crate) mod floating_bar;
 mod folders_tab;
+mod format_toolbar;
 mod icon_picker;
 mod llm_models;
 mod meeting_info;
@@ -1864,6 +1865,7 @@ impl Render for Workspace {
             .children(self.render_automations_context_menu(window, cx))
             .children(self.render_timeline_context_menu(window, cx))
             .children(self.render_mention_popup(window, cx))
+            .children(self.render_format_toolbar(window, cx))
             .children(self.render_delete_selected_dialog(cx))
             .children(self.render_open_menu(window, cx))
             .children(self.render_export_dialog(cx))

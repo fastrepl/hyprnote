@@ -496,17 +496,6 @@ impl Workspace {
         );
     }
 
-    /// `billing.isPro`: the shell has no signed-in billing state yet.
-    fn is_pro(&self) -> bool {
-        false
-    }
-
-    /// `billing.isReady`: the claims query never settles without a session,
-    /// so the save / enable buttons stay disabled while signed out.
-    fn billing_ready(&self) -> bool {
-        false
-    }
-
     // ------------------------------------------------------------------
     // Sidebar
     // ------------------------------------------------------------------

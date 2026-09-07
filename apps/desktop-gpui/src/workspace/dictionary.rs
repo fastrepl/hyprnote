@@ -124,10 +124,9 @@ impl Workspace {
         );
     }
 
-    /// `useBillingAccess().isPro`: unresolved without Supabase, so the page
-    /// stays behind the gate like the Tauri app signed out.
+    /// `PlanGate plan="pro"`
     fn dictionary_allowed(&self) -> bool {
-        false
+        self.is_pro()
     }
 
     pub(crate) fn ensure_dictionary_input(&mut self, window: &mut Window, cx: &mut Context<Self>) {

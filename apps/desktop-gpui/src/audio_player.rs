@@ -2,8 +2,9 @@
 //! timeline-shell}.tsx`: wavesurfer's bar rendering over the decoded
 //! session audio, the play / pause button, and the `mm:ss / mm:ss` meta.
 
+use std::cell::Cell;
 use std::path::Path;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use rodio::Source;
 
@@ -100,13 +101,65 @@ pub enum PlayerState {
     Stopped,
 }
 
+/// `currentTime` for a source played at a rate: the position is the anchor
+/// plus the wall time since it, scaled by the rate, while running.
+#[derive(Debug, Clone, Copy)]
+struct Clock {
+    rate: f32,
+    anchor: Duration,
+    /// When playback last (re)started; `None` while paused.
+    anchor_at: Option<Instant>,
+}
+
+impl Clock {
+    fn position(&self, now: Instant) -> Duration {
+        let elapsed = self
+            .anchor_at
+            .map(|since| now.saturating_duration_since(since).mul_f32(self.rate))
+            .unwrap_or_default();
+        self.anchor + elapsed
+    }
+
+    fn pause(&mut self, now: Instant) {
+        self.anchor = self.position(now);
+        self.anchor_at = None;
+    }
+
+    fn resume(&mut self, now: Instant) {
+        if self.anchor_at.is_none() {
+            self.anchor_at = Some(now);
+        }
+    }
+
+    fn seek(&mut self, position: Duration, now: Instant) {
+        self.anchor = position;
+        if self.anchor_at.is_some() {
+            self.anchor_at = Some(now);
+        }
+    }
+
+    fn set_rate(&mut self, rate: f32, now: Instant) {
+        // Re-anchor so the time already played keeps the old rate.
+        self.anchor = self.position(now);
+        if self.anchor_at.is_some() {
+            self.anchor_at = Some(now);
+        }
+        self.rate = rate;
+    }
+}
+
 /// The WebAudio element behind wavesurfer: rodio's default output device
 /// with one queued decode of the file. Without an output device the player
 /// stays stopped, like a media element that fails to play.
+///
+/// The position is kept in a [`Clock`] rather than read back from rodio: its
+/// `get_pos` is output time, which no longer maps to the recording once the
+/// speed changes mid-play.
 pub struct Playback {
     _sink: rodio::MixerDeviceSink,
     player: rodio::Player,
     duration: Duration,
+    clock: Cell<Clock>,
 }
 
 impl Playback {
@@ -122,11 +175,22 @@ impl Playback {
             _sink: sink,
             player,
             duration,
+            clock: Cell::new(Clock {
+                rate,
+                anchor: Duration::ZERO,
+                anchor_at: Some(Instant::now()),
+            }),
         })
     }
 
+    fn with_clock(&self, update: impl FnOnce(&mut Clock, Instant)) {
+        let mut clock = self.clock.get();
+        update(&mut clock, Instant::now());
+        self.clock.set(clock);
+    }
+
     pub fn position(&self) -> Duration {
-        self.player.get_pos().min(self.duration)
+        self.clock.get().position(Instant::now()).min(self.duration)
     }
 
     pub fn finished(&self) -> bool {
@@ -134,15 +198,41 @@ impl Playback {
     }
 
     pub fn pause(&self) {
+        self.with_clock(|clock, now| clock.pause(now));
         self.player.pause();
     }
 
     pub fn resume(&self) {
+        self.with_clock(|clock, now| clock.resume(now));
         self.player.play();
     }
 
     pub fn seek(&self, position: Duration) {
-        let _ = self.player.try_seek(position.min(self.duration));
+        let position = position.min(self.duration);
+        self.with_clock(|clock, now| clock.seek(position, now));
+        // rodio's speed source scales the seek target by the current speed.
+        let _ = self
+            .player
+            .try_seek(position.div_f32(self.clock.get().rate));
+    }
+
+    /// `wavesurfer.setPlaybackRate(rate, false)`: resampled, so the pitch
+    /// follows the rate like the media element without `preservesPitch`.
+    pub fn set_rate(&self, rate: f32) {
+        self.with_clock(|clock, now| clock.set_rate(rate, now));
+        self.player.set_speed(rate);
+    }
+}
+
+/// `PLAYBACK_RATES`
+pub const PLAYBACK_RATES: [f32; 7] = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+
+/// `${rate}x`: JavaScript number formatting, so `1x` and `1.25x`.
+pub fn format_rate(rate: f32) -> String {
+    if rate.fract() == 0.0 {
+        format!("{}x", rate as i64)
+    } else {
+        format!("{rate}x")
     }
 }
 
@@ -157,6 +247,42 @@ mod tests {
         assert_eq!(format_time(61.0), "01:01");
         assert_eq!(format_time(3600.0), "60:00");
         assert_eq!(format_time(-3.0), "00:00");
+    }
+
+    #[test]
+    fn clock_scales_elapsed_time_by_the_rate_in_effect() {
+        let t0 = Instant::now();
+        let at = |secs: u64| t0 + Duration::from_secs(secs);
+        let mut clock = Clock {
+            rate: 1.0,
+            anchor: Duration::ZERO,
+            anchor_at: Some(at(0)),
+        };
+        assert_eq!(clock.position(at(2)), Duration::from_secs(2));
+        clock.set_rate(2.0, at(2));
+        assert_eq!(clock.position(at(3)), Duration::from_secs(4));
+        clock.pause(at(4));
+        assert_eq!(clock.position(at(10)), Duration::from_secs(6));
+        clock.resume(at(10));
+        clock.resume(at(11));
+        assert_eq!(clock.position(at(11)), Duration::from_secs(8));
+        clock.seek(Duration::from_secs(1), at(11));
+        assert_eq!(clock.position(at(12)), Duration::from_secs(3));
+        clock.pause(at(12));
+        clock.seek(Duration::from_secs(9), at(20));
+        assert_eq!(clock.position(at(30)), Duration::from_secs(9));
+    }
+
+    #[test]
+    fn rates_format_like_javascript_numbers() {
+        assert_eq!(
+            PLAYBACK_RATES
+                .iter()
+                .copied()
+                .map(format_rate)
+                .collect::<Vec<_>>(),
+            ["0.5x", "0.75x", "1x", "1.25x", "1.5x", "1.75x", "2x"]
+        );
     }
 
     #[test]

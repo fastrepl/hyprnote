@@ -2,6 +2,7 @@ mod ai_availability;
 mod ai_settings;
 mod audio_player;
 mod automations_tab;
+mod billing;
 mod calendar_tab;
 mod chat;
 mod chat_cta;

@@ -24,8 +24,10 @@ pub(crate) struct AudioPlayer {
     pub playback: Option<Playback>,
     /// `timeStore.current`
     pub position: Duration,
-    /// `playbackRate` (the rate menu is Pro-only, so this stays at 1x).
+    /// `playbackRate`: in-memory only, like the provider's `useState(1)`.
     pub rate: f32,
+    /// `showRateMenu`
+    pub rate_menu_open: bool,
     /// `useNativeContextMenu`: the context menu's anchor while open.
     pub menu_at: Option<gpui::Point<gpui::Pixels>>,
     pub deleting: bool,
@@ -50,6 +52,7 @@ impl Workspace {
             playback: None,
             position: Duration::ZERO,
             rate: 1.0,
+            rate_menu_open: false,
             menu_at: None,
             deleting: false,
         });
@@ -356,6 +359,128 @@ impl Workspace {
         cx.notify();
     }
 
+    /// `setPlaybackRate`: ignored without Pro unless it resets to 1x; the
+    /// running playback follows immediately.
+    pub(super) fn set_playback_rate(&mut self, rate: f32, cx: &mut Context<Self>) {
+        if !self.is_pro() && rate != 1.0 {
+            return;
+        }
+        let Some(player) = self.audio_player.as_mut() else {
+            return;
+        };
+        player.rate = rate;
+        player.rate_menu_open = false;
+        if let Some(playback) = &player.playback {
+            playback.set_rate(rate);
+        }
+        cx.notify();
+    }
+
+    /// The `rateMenuRef` click-outside handler.
+    pub(super) fn close_rate_menu(&mut self) -> bool {
+        match self.audio_player.as_mut() {
+            Some(player) if player.rate_menu_open => {
+                player.rate_menu_open = false;
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// The Pro-only `{playbackRate}x` button with its rate list above it.
+    fn render_rate_menu(&self, player: &AudioPlayer, cx: &Context<Self>) -> AnyElement {
+        let theme = self.theme;
+        let mono = self.mono_font_family.clone();
+        let mut trigger = div()
+            .id("audio-player-rate")
+            .flex()
+            .h(px(24.0))
+            .px(px(6.0))
+            .items_center()
+            .justify_center()
+            .rounded(px(6.0))
+            .border_1()
+            .border_color(theme.border)
+            .bg(theme.card)
+            .shadow_xs()
+            .cursor_pointer()
+            .hover(|s| s.bg(theme.accent))
+            .when_some(mono.clone(), |t, family| t.font_family(family))
+            .tw_text_xs()
+            .text_color(theme.muted_foreground)
+            .on_click(cx.listener(|this, _: &gpui::ClickEvent, _, cx| {
+                if let Some(player) = this.audio_player.as_mut() {
+                    player.rate_menu_open = !player.rate_menu_open;
+                    cx.notify();
+                }
+            }))
+            .child(SharedString::from(crate::audio_player::format_rate(
+                player.rate,
+            )));
+        if !player.rate_menu_open {
+            return div()
+                .relative()
+                .flex_shrink_0()
+                .child(trigger)
+                .into_any_element();
+        }
+        trigger = trigger.on_mouse_down(gpui::MouseButton::Left, |_, _, cx| cx.stop_propagation());
+        let current = player.rate;
+        // `absolute right-0 bottom-full mb-1 rounded-lg border bg-card shadow-md py-1`
+        let list = div()
+            .id("audio-player-rate-menu")
+            .occlude()
+            .py_1()
+            .rounded(px(8.0))
+            .border_1()
+            .border_color(theme.border)
+            .bg(theme.card)
+            .shadow_md()
+            .on_mouse_down(gpui::MouseButton::Left, |_, _, cx| cx.stop_propagation())
+            .on_mouse_down_out(cx.listener(|this, _: &gpui::MouseDownEvent, _, cx| {
+                if this.close_rate_menu() {
+                    cx.notify();
+                }
+            }))
+            .children(crate::audio_player::PLAYBACK_RATES.iter().map(|&rate| {
+                let selected = rate == current;
+                // `block w-full px-3 py-1 text-left font-mono text-xs hover:bg-accent`
+                div()
+                    .id(SharedString::from(format!("audio-player-rate-{rate}")))
+                    .w_full()
+                    .px_3()
+                    .py_1()
+                    .cursor_pointer()
+                    .hover(|s| s.bg(theme.accent))
+                    .when_some(mono.clone(), |t, family| t.font_family(family))
+                    .tw_text_xs()
+                    .when(selected, |t| t.font_weight(gpui::FontWeight::SEMIBOLD))
+                    .text_color(if selected {
+                        theme.foreground
+                    } else {
+                        theme.muted_foreground
+                    })
+                    .on_click(cx.listener(move |this, _: &gpui::ClickEvent, _, cx| {
+                        this.set_playback_rate(rate, cx);
+                    }))
+                    .child(SharedString::from(crate::audio_player::format_rate(rate)))
+            }));
+        // Tauri anchors the list `bottom-full` (above the button), where the
+        // top player's `overflow-hidden` shell clips it away; here it opens
+        // below the button and flips above when there is no room.
+        div()
+            .relative()
+            .flex_shrink_0()
+            .child(trigger)
+            .child(
+                div().absolute().right_0().top(px(24.0 + 4.0)).child(
+                    gpui::deferred(gpui::anchored().anchor(gpui::Corner::TopRight).child(list))
+                        .with_priority(2),
+                ),
+            )
+            .into_any_element()
+    }
+
     /// `showTopAudioPlayer`: the transcript view, audio present and decoded,
     /// and no capture running for the session.
     pub(super) fn render_top_audio_player(
@@ -449,6 +574,9 @@ impl Workspace {
             })
             .child(waveform_canvas(waveform, position_fraction, lane_bounds));
 
+        // `{isPro ? <rate menu> : null}` sits between the meta and the lane.
+        let rate_menu = self.is_pro().then(|| self.render_rate_menu(player, cx));
+
         Some(
             div()
                 .flex_shrink_0()
@@ -482,6 +610,7 @@ impl Workspace {
                                 .py(px(6.0))
                                 .child(button)
                                 .child(meta)
+                                .children(rate_menu)
                                 .child(lane),
                         ),
                 )

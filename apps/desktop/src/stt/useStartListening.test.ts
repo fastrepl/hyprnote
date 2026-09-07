@@ -2555,6 +2555,231 @@ describe("useStartListening", () => {
     consoleError.mockRestore();
   });
 
+  describe("summaries during post-stop repair", () => {
+    async function startWithLiveTranscript() {
+      const { result } = renderHook(() => useStartListening("session-1"));
+      await act(async () => {
+        await result.current();
+      });
+      const callbacks = startMock.mock.calls[0]?.[1];
+      callbacks.handlePersist({
+        new_words: [
+          {
+            id: "word-1",
+            text: "Meeting notes",
+            start_ms: 0,
+            end_ms: 100,
+            channel: 0,
+          },
+        ],
+        replaced_ids: [],
+        partials: [],
+      });
+      return callbacks;
+    }
+
+    const stoppedDetails = {
+      durationSeconds: 42,
+      audioPath: "/tmp/session.wav",
+      requestedLiveTranscription: true,
+      liveTranscriptionActive: true,
+      needsBatchRepair: true,
+    };
+
+    test.each([
+      {
+        reason: "an incomplete stream",
+        liveTranscriptionActive: true,
+        needsBatchRepair: true,
+      },
+      {
+        reason: "a disconnected stream",
+        liveTranscriptionActive: false,
+        needsBatchRepair: true,
+      },
+      {
+        reason: "speaker refinement",
+        liveTranscriptionActive: true,
+        needsBatchRepair: false,
+      },
+    ])(
+      "starts a live summary while repairing $reason, then refreshes it",
+      async (details) => {
+        useSTTConnectionMock.mockReturnValue({
+          conn: {
+            provider: "anarlog",
+            model: "cloud",
+            baseUrl: "https://api.anarlog.so/stt",
+            apiKey: "test",
+          },
+        });
+        useSessionParticipantHumanIdsMock.mockReturnValue([
+          "user-1",
+          "speaker-1",
+          "speaker-2",
+        ]);
+        let finishBatch: (() => void) | undefined;
+        runBatchMock.mockImplementationOnce(
+          () =>
+            new Promise<void>((resolve) => {
+              finishBatch = resolve;
+            }),
+        );
+        const callbacks = await startWithLiveTranscript();
+        const stopped = callbacks.onStopped("session-1", {
+          ...stoppedDetails,
+          ...details,
+        });
+
+        await waitFor(() => expect(runBatchMock).toHaveBeenCalledOnce());
+        expect(requestAutoEnhanceMock.mock.calls).toEqual([
+          ["session-1", "if_empty"],
+        ]);
+        expect(flushLiveTranscriptDeltasToDatabaseMock).toHaveBeenCalledBefore(
+          requestAutoEnhanceMock,
+        );
+        expect(flushCanonicalSessionEditorChangesMock).toHaveBeenCalledBefore(
+          requestAutoEnhanceMock,
+        );
+        expect(requestAutoEnhanceMock).toHaveBeenCalledBefore(runBatchMock);
+        expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
+        expect(
+          markSessionAudioTranscriptionCompleteMock,
+        ).not.toHaveBeenCalled();
+        expect(saveCaptureLifecycleMarkerMock).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            refreshSummaryAfterRepair: true,
+          }),
+        );
+        expect(
+          saveCaptureLifecycleMarkerMock.mock.calls.slice(-1)[0]?.[0]
+            .summaryMode,
+        ).toBeUndefined();
+
+        finishBatch?.();
+        await act(async () => await stopped);
+
+        expect(requestAutoEnhanceMock.mock.calls).toEqual([
+          ["session-1", "if_empty"],
+          ["session-1", "regenerate"],
+        ]);
+        expect(saveCaptureLifecycleMarkerMock).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            summaryMode: "regenerate",
+          }),
+        );
+        expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledOnce();
+      },
+    );
+
+    test.each(["upload failed", "Transcription stopped."])(
+      "keeps the first summary when repair ends with %s",
+      async (message) => {
+        const consoleError = vi
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
+        runBatchMock.mockRejectedValueOnce(new Error(message));
+        const callbacks = await startWithLiveTranscript();
+
+        await act(
+          async () => await callbacks.onStopped("session-1", stoppedDetails),
+        );
+
+        expect(requestAutoEnhanceMock.mock.calls).toEqual([
+          ["session-1", "if_empty"],
+        ]);
+        expect(resetEnhanceTasksMock).not.toHaveBeenCalled();
+        expect(deleteProcessedAudioForRetentionMock).not.toHaveBeenCalled();
+        expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
+        expect(requestCaptureRecoveryMock).toHaveBeenCalledWith("session-1");
+        expect(
+          saveCaptureLifecycleMarkerMock.mock.calls.slice(-1)[0]?.[0],
+        ).toMatchObject({
+          refreshSummaryAfterRepair: true,
+        });
+        expect(
+          saveCaptureLifecycleMarkerMock.mock.calls.slice(-1)[0]?.[0]
+            .summaryMode,
+        ).toBeUndefined();
+        consoleError.mockRestore();
+      },
+    );
+
+    test("continues repair when the first summary cannot be scheduled", async () => {
+      const consoleWarn = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
+      requestAutoEnhanceMock.mockRejectedValueOnce(
+        new Error("summary unavailable"),
+      );
+      const callbacks = await startWithLiveTranscript();
+
+      await act(
+        async () => await callbacks.onStopped("session-1", stoppedDetails),
+      );
+
+      expect(runBatchMock).toHaveBeenCalledOnce();
+      expect(requestAutoEnhanceMock.mock.calls).toEqual([
+        ["session-1", "if_empty"],
+        ["session-1", "regenerate"],
+      ]);
+      expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledOnce();
+      expect(requestCaptureRecoveryMock).not.toHaveBeenCalled();
+      consoleWarn.mockRestore();
+    });
+
+    test("forwards both summary passes from a secondary window", async () => {
+      getEnhancerServiceMock.mockReturnValue(null);
+      const callbacks = await startWithLiveTranscript();
+
+      await act(
+        async () => await callbacks.onStopped("session-1", stoppedDetails),
+      );
+
+      expect(requestMainAutoEnhanceMock.mock.calls).toEqual([
+        ["session-1", "if_empty"],
+        ["session-1", "regenerate"],
+      ]);
+      expect(requestMainAutoEnhanceMock).toHaveBeenCalledBefore(runBatchMock);
+      expect(requestAutoEnhanceMock).not.toHaveBeenCalled();
+    });
+
+    test("refreshes the early summary after repair recovers across a reload", async () => {
+      attachLiveSessionMock.mockResolvedValue("inactive");
+      transcriptExistsMock.mockResolvedValue(true);
+      const marker = {
+        version: 1 as const,
+        sessionId: "session-1",
+        transcriptId: "transcript-before-reload",
+        startedAt: 1_000,
+        createdAt: "2026-07-24T00:00:00.000Z",
+        audioOffsetMs: 0,
+        preserveExistingTranscript: false,
+        ownerUserId: "user-1",
+        memo: "Existing memo",
+        refreshSummaryAfterRepair: true,
+      };
+      loadCaptureLifecycleMarkerMock
+        .mockResolvedValueOnce(marker)
+        .mockResolvedValueOnce(marker)
+        .mockResolvedValueOnce(null);
+      const { result } = renderHook(() =>
+        useResumeListeningLifecycle("session-1"),
+      );
+
+      await act(async () => {
+        await expect(result.current()).resolves.toBe("inactive");
+      });
+
+      expect(runBatchMock).toHaveBeenCalledOnce();
+      expect(runBatchMock).toHaveBeenCalledBefore(requestAutoEnhanceMock);
+      expect(requestAutoEnhanceMock.mock.calls).toEqual([
+        ["session-1", "regenerate"],
+      ]);
+      expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledOnce();
+    });
+  });
+
   test("coalesces live transcript deltas in arrival order", async () => {
     let resolveCreate: (() => void) | undefined;
     createLiveTranscriptMock.mockImplementationOnce(

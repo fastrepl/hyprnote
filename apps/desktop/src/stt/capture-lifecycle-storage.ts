@@ -17,6 +17,7 @@ export type CaptureLifecycleMarker = {
   provider?: string;
   model?: string;
   summaryMode?: "regenerate" | "if_empty";
+  refreshSummaryAfterRepair?: boolean;
 };
 
 export function saveCaptureLifecycleMarker(
@@ -165,6 +166,9 @@ function parseCaptureLifecycleMarker(
       ...(parsed.summaryMode === "regenerate" ||
       parsed.summaryMode === "if_empty"
         ? { summaryMode: parsed.summaryMode }
+        : {}),
+      ...(parsed.refreshSummaryAfterRepair === true
+        ? { refreshSummaryAfterRepair: true }
         : {}),
     };
   } catch {

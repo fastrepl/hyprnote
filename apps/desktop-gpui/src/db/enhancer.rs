@@ -350,15 +350,41 @@ pub fn body_to_markdown(body: &str, format: &str) -> String {
     if body.is_empty() || format == "markdown" {
         return body.to_string();
     }
-    serde_json::from_str::<serde_json::Value>(body)
+    let Ok(json) = serde_json::from_str::<serde_json::Value>(body) else {
+        return body.to_string();
+    };
+    let Some(blocks) = json.get("content").and_then(|content| content.as_array()) else {
+        return body.to_string();
+    };
+    // prosemirror-markdown's `MarkdownSerializerState`: a block's closing
+    // `\n\n` is flushed by the next write, so the document never ends with
+    // one, and an empty paragraph (a write of nothing) leaves the one newline
+    // the flush adds when the output already ends at a blank.
+    let mut out = String::new();
+    let mut closed = false;
+    for block in blocks {
+        let rendered = serde_json::from_value::<serde_json::Value>(serde_json::json!({
+            "type": "doc",
+            "content": [block]
+        }))
         .ok()
-        .and_then(|json| {
-            let mut ast = anlg_tiptap::tiptap_json_to_mdast(&json);
+        .and_then(|doc| {
+            let mut ast = anlg_tiptap::tiptap_json_to_mdast(&doc);
             spread_lists(&mut ast);
             anlg_tiptap::mdast_to_markdown(&ast).ok()
         })
         .map(|markdown| markdown.trim_end_matches('\n').to_string())
-        .unwrap_or_else(|| body.to_string())
+        .unwrap_or_default();
+        if closed {
+            if !out.is_empty() && !out.ends_with('\n') {
+                out.push('\n');
+            }
+            out.push('\n');
+        }
+        out.push_str(&rendered);
+        closed = true;
+    }
+    out
 }
 
 fn spread_lists(node: &mut markdown::mdast::Node) {
@@ -1141,5 +1167,39 @@ mod tests {
         );
         assert_eq!(body_to_markdown("- a\n- b", "markdown"), "- a\n- b");
         assert_eq!(body_to_markdown("", "tiptap"), "");
+    }
+
+    #[test]
+    fn empty_paragraphs_leave_json2md_newlines() {
+        let doc = |blocks: &str| format!(r#"{{"type":"doc","content":[{blocks}]}}"#);
+        let para = |text: &str| {
+            format!(r#"{{"type":"paragraph","content":[{{"type":"text","text":"{text}"}}]}}"#)
+        };
+        let empty = r#"{"type":"paragraph"}"#;
+        assert_eq!(
+            body_to_markdown(
+                &doc(&format!("{},{empty},{}", para("a"), para("b"))),
+                "tiptap"
+            ),
+            "a\n\n\nb"
+        );
+        assert_eq!(
+            body_to_markdown(&doc(&format!("{empty},{}", para("a"))), "tiptap"),
+            "\na"
+        );
+        assert_eq!(
+            body_to_markdown(&doc(&format!("{},{empty},{empty}", para("a"))), "tiptap"),
+            "a\n\n\n"
+        );
+        assert_eq!(body_to_markdown(&doc(empty), "tiptap"), "");
+        // The trailing paragraph after an image is what `imageTrailingParagraph` keeps.
+        let image = r#"{"type":"image","attrs":{"src":"asset://localhost/%2Fa%2Fattachments%2Fimage.png","alt":null,"title":null,"attachmentId":"image.png","sharedAttachmentId":null,"editorWidth":80}}"#;
+        assert_eq!(
+            body_to_markdown(
+                &doc(&format!("{},{image},{empty}", para("delta beta"))),
+                "tiptap"
+            ),
+            "delta beta\n\n![](asset://localhost/%2Fa%2Fattachments%2Fimage.png \"char-editor-width=80\")\n\n"
+        );
     }
 }

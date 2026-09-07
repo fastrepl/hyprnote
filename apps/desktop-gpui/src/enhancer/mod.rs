@@ -6,6 +6,7 @@
 //! `workspace/enhance.rs` drives the task lifecycle and the UI.
 
 pub mod eligibility;
+pub mod images;
 pub mod prompts;
 pub mod runner;
 pub mod summary_length;

@@ -45,7 +45,7 @@ gpui = { workspace = true }
 hmac = { workspace = true }
 hound = { workspace = true }
 iana-time-zone = "0.1"
-image = { workspace = true, features = ["jpeg", "png"] }
+image = { workspace = true, features = ["gif", "jpeg", "png"] }
 keyring = { workspace = true }
 mime_guess = "2"
 pico-args = { workspace = true }

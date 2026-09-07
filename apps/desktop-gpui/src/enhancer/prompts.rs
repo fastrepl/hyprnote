@@ -323,8 +323,9 @@ pub fn enhance_system_prompt(args: &EnhanceArgs) -> Result<String, String> {
 }
 
 /// `getUserPrompt` + `withLengthGuidance` (no image context here).
-pub fn enhance_user_prompt(args: &EnhanceArgs) -> Result<String, String> {
-    let rendered = anlg_template_app::render(Template::EnhanceUser(Box::new(EnhanceUser {
+/// `withLengthGuidance(withImageContextNote(getUserPrompt(args), imageCount), …)`.
+pub fn enhance_user_prompt(args: &EnhanceArgs, image_count: usize) -> Result<String, String> {
+    let mut rendered = anlg_template_app::render(Template::EnhanceUser(Box::new(EnhanceUser {
         session: args.session.clone(),
         participants: args.participants.clone(),
         template: args.template.clone(),
@@ -333,6 +334,9 @@ pub fn enhance_user_prompt(args: &EnhanceArgs) -> Result<String, String> {
         post_meeting_memo: args.post_meeting_memo.clone(),
     })))
     .map_err(|error| error.to_string())?;
+    if image_count > 0 {
+        rendered = format!("{rendered}\n\n{}", super::images::IMAGE_CONTEXT_NOTE);
+    }
     if args.has_template_sections() {
         return Ok(rendered);
     }
@@ -485,7 +489,7 @@ mod tests {
         let system = enhance_system_prompt(&args).unwrap();
         assert!(system.contains("# Summary Mode"));
         assert!(system.contains("Summary mode: detailed."));
-        let user = enhance_user_prompt(&args).unwrap();
+        let user = enhance_user_prompt(&args, 0).unwrap();
         assert!(user.contains("Summary length: the transcript contains about 239 characters."));
         assert!(user.contains("Ada"));
         let with_names = append_preferred_names("p", &["Zed".to_string(), "Zed".to_string()]);

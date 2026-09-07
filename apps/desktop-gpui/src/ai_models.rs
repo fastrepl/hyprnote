@@ -937,7 +937,7 @@ pub const CLOUDFLARE_WORKERS_AI_MODELS: &[&str] = &[
     "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
 ];
 
-const CLOUDFLARE_VISION_MODELS: &[&str] = &[
+pub const CLOUDFLARE_VISION_MODELS: &[&str] = &[
     "@cf/moonshotai/kimi-k2.7-code",
     "@cf/moonshotai/kimi-k2.6",
     "@cf/meta/llama-4-scout-17b-16e-instruct",

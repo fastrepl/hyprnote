@@ -82,6 +82,12 @@ impl Request {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Turn {
     User(String),
+    /// A user message with `ImagePart`s after its text (`createPromptInput`
+    /// with image context).
+    UserWithImages {
+        text: String,
+        images: Vec<ImagePart>,
+    },
     Assistant {
         text: String,
         tool_calls: Vec<ToolCall>,
@@ -92,6 +98,35 @@ pub enum Turn {
         name: String,
         output: String,
     },
+}
+
+/// An `ImagePart`: base64 data with its media type.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImagePart {
+    pub base64: String,
+    pub mime_type: String,
+}
+
+impl Request {
+    /// `Request::new` with images attached to the user message.
+    pub fn with_images(
+        system: impl Into<String>,
+        prompt: impl Into<String>,
+        images: Vec<ImagePart>,
+        max_output_tokens: u32,
+    ) -> Self {
+        let text = prompt.into();
+        Self {
+            system: system.into(),
+            messages: vec![if images.is_empty() {
+                Turn::User(text)
+            } else {
+                Turn::UserWithImages { text, images }
+            }],
+            max_output_tokens,
+            tools: Vec::new(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -329,6 +364,17 @@ pub fn build_request(conn: &Connection, request: &Request) -> Result<HttpRequest
 fn openai_message(turn: &Turn) -> Value {
     match turn {
         Turn::User(text) => json!({ "role": "user", "content": text }),
+        // `image_url` parts carry a data URL.
+        Turn::UserWithImages { text, images } => {
+            let mut content = vec![json!({ "type": "text", "text": text })];
+            content.extend(images.iter().map(|image| {
+                json!({
+                    "type": "image_url",
+                    "image_url": { "url": format!("data:{};base64,{}", image.mime_type, image.base64) }
+                })
+            }));
+            json!({ "role": "user", "content": content })
+        }
         Turn::Assistant { text, tool_calls } => {
             let mut message = json!({ "role": "assistant", "content": text });
             if !tool_calls.is_empty() {
@@ -358,6 +404,16 @@ fn openai_message(turn: &Turn) -> Value {
 fn anthropic_message(turn: &Turn) -> Value {
     match turn {
         Turn::User(text) => json!({ "role": "user", "content": text }),
+        Turn::UserWithImages { text, images } => {
+            let mut content = vec![json!({ "type": "text", "text": text })];
+            content.extend(images.iter().map(|image| {
+                json!({
+                    "type": "image",
+                    "source": { "type": "base64", "media_type": image.mime_type, "data": image.base64 }
+                })
+            }));
+            json!({ "role": "user", "content": content })
+        }
         Turn::Assistant { text, tool_calls } => {
             let mut content: Vec<Value> = Vec::new();
             if !text.is_empty() {
@@ -385,6 +441,13 @@ fn anthropic_message(turn: &Turn) -> Value {
 fn google_content(turn: &Turn) -> Value {
     match turn {
         Turn::User(text) => json!({ "role": "user", "parts": [{ "text": text }] }),
+        Turn::UserWithImages { text, images } => {
+            let mut parts = vec![json!({ "text": text })];
+            parts.extend(images.iter().map(|image| {
+                json!({ "inlineData": { "mimeType": image.mime_type, "data": image.base64 } })
+            }));
+            json!({ "role": "user", "parts": parts })
+        }
         Turn::Assistant { text, tool_calls } => {
             let mut parts: Vec<Value> = Vec::new();
             if !text.is_empty() {
@@ -1147,6 +1210,52 @@ mod tests {
                 name: "search_contacts".into(),
                 arguments: json!({ "query": "ada" }),
             })]
+        );
+    }
+
+    #[test]
+    fn image_parts_take_each_provider_shape() {
+        let images = vec![ImagePart {
+            base64: "QUJD".into(),
+            mime_type: "image/png".into(),
+        }];
+        let request = Request::with_images("sys", "look", images, 0);
+        assert!(
+            matches!(&request.messages[0], Turn::UserWithImages { text, images } if text == "look" && images.len() == 1)
+        );
+        assert!(matches!(
+            Request::with_images("sys", "plain", Vec::new(), 0).messages[0],
+            Turn::User(_)
+        ));
+
+        let openai = build_request(&conn("openai", "gpt-5.6", "default"), &request).unwrap();
+        assert_eq!(
+            openai.body["messages"][1]["content"],
+            json!([
+                { "type": "text", "text": "look" },
+                { "type": "image_url", "image_url": { "url": "data:image/png;base64,QUJD" } }
+            ])
+        );
+        let anthropic =
+            build_request(&conn("anthropic", "claude-sonnet-4", "default"), &request).unwrap();
+        assert_eq!(
+            anthropic.body["messages"][0]["content"],
+            json!([
+                { "type": "text", "text": "look" },
+                { "type": "image", "source": { "type": "base64", "media_type": "image/png", "data": "QUJD" } }
+            ])
+        );
+        let google = build_request(
+            &conn("google_generative_ai", "gemini-2.5-flash", "default"),
+            &request,
+        )
+        .unwrap();
+        assert_eq!(
+            google.body["contents"][0]["parts"],
+            json!([
+                { "text": "look" },
+                { "inlineData": { "mimeType": "image/png", "data": "QUJD" } }
+            ])
         );
     }
 

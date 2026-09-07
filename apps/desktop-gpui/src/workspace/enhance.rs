@@ -1267,8 +1267,29 @@ async fn generate_enhance_inner(
         template_record.as_ref(),
         &settings,
     );
+    // `collectEnhanceImageContext` over the memos for a model that takes images.
+    let images = if crate::enhancer::images::model_supports_image_input(
+        Some(&args.conn.provider_id),
+        Some(&args.conn.model_id),
+    ) {
+        let session_dir = store.session_dir(&args.session_id);
+        let contents: Vec<String> = std::iter::once(snapshot.raw_content.clone())
+            .chain(snapshot.transcripts.iter().map(|t| t.memo.clone()))
+            .collect();
+        store
+            .runtime()
+            .spawn_blocking(move || {
+                let refs: Vec<&str> = contents.iter().map(String::as_str).collect();
+                crate::enhancer::images::collect_enhance_image_context(&session_dir, &refs)
+            })
+            .await
+            .unwrap_or_default()
+    } else {
+        Vec::new()
+    };
     let system = prompts::enhance_system_prompt(&enhance_args).map_err(anyhow::Error::msg)?;
-    let prompt = prompts::enhance_user_prompt(&enhance_args).map_err(anyhow::Error::msg)?;
+    let prompt =
+        prompts::enhance_user_prompt(&enhance_args, images.len()).map_err(anyhow::Error::msg)?;
     let validator = EnhanceValidator::new(
         enhance_args.template.as_ref(),
         !enhance_args.format_override.trim().is_empty(),
@@ -1280,6 +1301,13 @@ async fn generate_enhance_inner(
             conn: args.conn.clone(),
             system,
             prompt,
+            images: images
+                .into_iter()
+                .map(|image| crate::llm_stream::ImagePart {
+                    base64: image.base64,
+                    mime_type: image.mime_type,
+                })
+                .collect(),
             max_output_tokens: SUMMARY_MAX_OUTPUT_TOKENS,
             validator: Some(validator),
             normalize_bullets: true,
@@ -1534,6 +1562,7 @@ async fn generate_title(
             conn: args.conn.clone(),
             system,
             prompt,
+            images: Vec::new(),
             max_output_tokens: TITLE_MAX_OUTPUT_TOKENS,
             validator: None,
             normalize_bullets: false,

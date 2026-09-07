@@ -37,6 +37,8 @@ pub struct Generation {
     pub conn: Connection,
     pub system: String,
     pub prompt: String,
+    /// `args.imageContext`: the note's images for a model that takes them.
+    pub images: Vec<llm_stream::ImagePart>,
     pub max_output_tokens: u32,
     /// `withEarlyValidationRetry` when set; the title task streams straight.
     pub validator: Option<EnhanceValidator>,
@@ -96,9 +98,10 @@ async fn run_inner(
         let mut stream = llm_stream::stream(
             runtime,
             generation.conn.clone(),
-            Request::new(
+            Request::with_images(
                 generation.system.clone(),
                 prompt,
+                generation.images.clone(),
                 generation.max_output_tokens,
             ),
         );

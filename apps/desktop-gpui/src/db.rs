@@ -7,7 +7,8 @@ use anyhow::Context as _;
 use crate::document::{self, Block};
 use crate::timeline::{EventRow, SessionRow};
 
-mod enhancer;
+mod chat;
+pub(crate) mod enhancer;
 pub use enhancer::DocumentUpdate;
 const DB_FILENAME: &str = "app.db";
 

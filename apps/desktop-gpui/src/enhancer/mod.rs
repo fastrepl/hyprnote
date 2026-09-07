@@ -145,6 +145,17 @@ pub fn resolve_template_id(
 
 /// `formatMeetingChatContext` over the `meeting_chat` documents' bodies.
 pub fn meeting_chat_context(bodies: &[String]) -> String {
+    let markdown = meeting_chat_markdown(bodies);
+    if markdown.is_empty() {
+        String::new()
+    } else {
+        format!("## Meeting chat\n{markdown}")
+    }
+}
+
+/// `formatMeetingChatRecordsAsMarkdown` over the stored `meeting_chat`
+/// document bodies.
+pub fn meeting_chat_markdown(bodies: &[String]) -> String {
     let lines: Vec<String> = bodies
         .iter()
         .filter(|body| body.len() <= 16 * 1024)
@@ -190,11 +201,7 @@ pub fn meeting_chat_context(bodies: &[String]) -> String {
             ))
         })
         .collect();
-    if lines.is_empty() {
-        String::new()
-    } else {
-        format!("## Meeting chat\n{}", lines.join("\n"))
-    }
+    lines.join("\n")
 }
 
 /// `formatSessionSourceAppsContext` over `sessions.source_apps_json`.

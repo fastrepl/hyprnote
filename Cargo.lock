@@ -5481,6 +5481,7 @@ dependencies = [
  "libloading 0.8.9",
  "listener-core",
  "listener2-core",
+ "markdown",
  "mime_guess",
  "owhisper-interface",
  "pico-args",

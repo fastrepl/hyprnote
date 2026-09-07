@@ -28,6 +28,7 @@ anlg-tiptap = { workspace = true }
 anlg-transcript = { workspace = true }
 anlg-tray-core = { workspace = true }
 anlg-voiceprint-service = { workspace = true }
+markdown = { workspace = true }
 owhisper-interface = { workspace = true }
 rodio = { workspace = true, features = ["symphonia-all"] }
 

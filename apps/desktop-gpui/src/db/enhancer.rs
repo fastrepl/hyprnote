@@ -340,16 +340,33 @@ pub struct DocumentUpdate {
     pub next_content: String,
 }
 
-fn body_to_markdown(body: &str, format: &str) -> String {
+/// `bodyToMarkdown` → `json2md`: ProseMirror's `MarkdownSerializer` with its
+/// default `tightLists: false`, so list items are separated by blank lines,
+/// and no trailing newline.
+pub fn body_to_markdown(body: &str, format: &str) -> String {
     if body.is_empty() || format == "markdown" {
         return body.to_string();
     }
     serde_json::from_str::<serde_json::Value>(body)
         .ok()
-        .and_then(|json| anlg_tiptap::tiptap_json_to_md(&json).ok())
-        // ProseMirror's `MarkdownSerializer` ends without a newline.
+        .and_then(|json| {
+            let mut ast = anlg_tiptap::tiptap_json_to_mdast(&json);
+            spread_lists(&mut ast);
+            anlg_tiptap::mdast_to_markdown(&ast).ok()
+        })
         .map(|markdown| markdown.trim_end_matches('\n').to_string())
         .unwrap_or_else(|| body.to_string())
+}
+
+fn spread_lists(node: &mut markdown::mdast::Node) {
+    if let markdown::mdast::Node::List(list) = node {
+        list.spread = true;
+    }
+    if let Some(children) = node.children_mut() {
+        for child in children {
+            spread_lists(child);
+        }
+    }
 }
 
 async fn enhanced_notes(pool: &SqlitePool, session_id: &str) -> anyhow::Result<Vec<EnhancedNote>> {
@@ -371,6 +388,19 @@ async fn enhanced_notes(pool: &SqlitePool, session_id: &str) -> anyhow::Result<V
             },
         )
         .collect())
+}
+
+/// `loadMeetingChatRecords` → `formatMeetingChatRecordsAsMarkdown`.
+pub(super) async fn meeting_chat_markdown(
+    pool: &SqlitePool,
+    session_id: &str,
+) -> anyhow::Result<Option<String>> {
+    let bodies: Vec<String> = sqlx::query_scalar(MEETING_CHAT_SQL)
+        .bind(session_id)
+        .fetch_all(pool)
+        .await?;
+    let markdown = crate::enhancer::meeting_chat_markdown(&bodies);
+    Ok((!markdown.is_empty()).then_some(markdown))
 }
 
 pub(super) async fn load_snapshot(
@@ -1086,5 +1116,27 @@ impl Store {
             tx.commit().await?;
             Ok(())
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::body_to_markdown;
+
+    #[test]
+    fn body_markdown_matches_json2md_loose_lists() {
+        let body = r#"{"type":"doc","content":[
+            {"type":"heading","attrs":{"level":1},"content":[{"type":"text","text":"Next Steps"}]},
+            {"type":"bulletList","content":[
+                {"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Ship it."}]}]},
+                {"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Close bugs."}]}]}
+            ]}
+        ]}"#;
+        assert_eq!(
+            body_to_markdown(body, "tiptap"),
+            "# Next Steps\n\n- Ship it.\n\n- Close bugs."
+        );
+        assert_eq!(body_to_markdown("- a\n- b", "markdown"), "- a\n- b");
+        assert_eq!(body_to_markdown("", "tiptap"), "");
     }
 }

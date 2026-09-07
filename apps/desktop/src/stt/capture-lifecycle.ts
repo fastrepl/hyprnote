@@ -5,6 +5,7 @@ import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
 import { sonnerToast } from "@anlg/ui/components/ui/toast";
 
 import { useListener } from "./contexts";
+import { discardEmptyAutomaticCapture } from "./empty-automatic-capture";
 import { cancelMeetingRecordingDisclosure } from "./meeting-disclosure";
 import { persistTranscriptWrite } from "./persist-retry";
 import { createTranscriptPersistenceWorker } from "./transcript-persistence-worker";
@@ -204,7 +205,24 @@ export function useCaptureLifecycle(sessionId: string) {
   );
 
   const createCaptureLifecycle = useCallback(
-    (recoveredMarker?: CaptureLifecycleMarker) => {
+    (
+      recoveredMarker?: CaptureLifecycleMarker,
+      startedAutomatically = false,
+    ) => {
+      const automatic = recoveredMarker
+        ? recoveredMarker.automatic === true
+        : startedAutomatically;
+      const initialTitle = recoveredMarker
+        ? recoveredMarker.initialTitle
+        : session?.title;
+      const existingAudioPromise = recoveredMarker
+        ? Promise.resolve(recoveredMarker.preserveExistingAudio ?? true)
+        : automatic
+          ? fsSyncCommands
+              .audioExist(sessionId)
+              .then((result) => (result.status === "ok" ? result.data : true))
+              .catch(() => true)
+          : Promise.resolve(true);
       const transcriptId = recoveredMarker?.transcriptId ?? id();
       let transcriptCreated: boolean | null = recoveredMarker ? null : false;
       let transcriptTouched = false;
@@ -401,6 +419,9 @@ export function useCaptureLifecycle(sessionId: string) {
         createdAt,
         audioOffsetMs: await existingAudioDurationPromise,
         preserveExistingTranscript,
+        automatic,
+        preserveExistingAudio: await existingAudioPromise,
+        initialTitle,
         ownerUserId,
         memo: memoMd,
         ...(provider ? { provider } : {}),
@@ -478,6 +499,32 @@ export function useCaptureLifecycle(sessionId: string) {
         };
         cancelMeetingRecordingDisclosure(sessionId);
         await stopMeetingChatTasks();
+        await transcriptPersistence.flush();
+        if (
+          details.audioPath &&
+          (await discardEmptyAutomaticCapture({
+            sessionId,
+            automatic,
+            preserveExistingAudio: await existingAudioPromise,
+            preserveExistingTranscript,
+            initialTitle,
+            transcriptTouched,
+            transcriptionComplete:
+              (!details.requestedLiveTranscription ||
+                details.liveTranscriptionActive) &&
+              !details.needsBatchRepair &&
+              !transcriptWriteError,
+          }))
+        ) {
+          await clearCaptureLifecycleMarker(sessionId, transcriptId);
+          recoveryPending = false;
+          recoveryStateCleared = true;
+          return;
+        }
+        trackSessionCompletion(
+          details,
+          recoveredMarker ? "recovered_capture_stopped" : "capture_stopped",
+        );
         if (details.audioPath) {
           try {
             await enqueueSessionAudioOperation(sessionId, () =>
@@ -487,7 +534,6 @@ export function useCaptureLifecycle(sessionId: string) {
             console.error("[listener] failed to catalog recorded audio", error);
           }
         }
-        await transcriptPersistence.flush();
         transcriptCreated ??= await transcriptExists(transcriptId);
         const useLocalBatchForSpeakerDiarization =
           shouldUseLocalBatchForSpeakerDiarization();
@@ -844,10 +890,6 @@ export function useCaptureLifecycle(sessionId: string) {
         }
       };
       const onStopped: OnStoppedCallback = (_sessionId, details) => {
-        trackSessionCompletion(
-          details,
-          recoveredMarker ? "recovered_capture_stopped" : "capture_stopped",
-        );
         recoveryPending = false;
         markExpectedPostStopBatch(details);
         return finalizeStopped(details, true);
@@ -867,7 +909,6 @@ export function useCaptureLifecycle(sessionId: string) {
         }
       };
       const recoverStopped: OnStoppedCallback = (_sessionId, details) => {
-        trackSessionCompletion(details, "recovered_capture_stopped");
         markExpectedPostStopBatch(details);
         return finalizeStopped(details, false);
       };
@@ -887,7 +928,10 @@ export function useCaptureLifecycle(sessionId: string) {
         handlePersist,
         onStopped,
         recoverStopped,
-        ready: existingAudioDurationPromise.then(() => undefined),
+        ready: Promise.all([
+          existingAudioDurationPromise,
+          existingAudioPromise,
+        ]).then(() => undefined),
         persistMarker: async () => {
           await persistTranscriptWrite(async () => {
             await saveCaptureLifecycleMarker(await marker());

@@ -172,6 +172,7 @@ export const sessions = sqliteTable(
     folderPath: text("folder_path").notNull().default(""),
     slug: text("slug").notNull().default(""),
     metadataJson: text("metadata_json").notNull().default("{}"),
+    deletionContext: text("deletion_context").notNull().default(""),
     deletedAt: text("deleted_at"),
   },
   (table) => [
@@ -201,6 +202,7 @@ export const sessionDocuments = sqliteTable(
     updatedBy: text("updated_by").notNull().default(""),
     createdAt: text("created_at").notNull().default(currentTimestamp),
     updatedAt: text("updated_at").notNull().default(currentTimestamp),
+    contentVersion: text("content_version").notNull().default(""),
     deletedAt: text("deleted_at"),
   },
   (table) => [
@@ -311,6 +313,7 @@ export const transcripts = sqliteTable(
     metadataJson: text("metadata_json").notNull().default("{}"),
     createdAt: text("created_at").notNull().default(currentTimestamp),
     updatedAt: text("updated_at").notNull().default(currentTimestamp),
+    contentVersion: text("content_version").notNull().default(""),
     deletedAt: text("deleted_at"),
   },
   (table) => [index("idx_transcripts_session_id").on(table.sessionId)],

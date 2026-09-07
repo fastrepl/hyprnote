@@ -13,6 +13,7 @@ anlg-audio-utils = { workspace = true }
 anlg-frontmatter = { workspace = true }
 anlg-fs-format = { workspace = true }
 anlg-tiptap = { workspace = true }
+anlg-vad = { workspace = true, features = ["earshot"] }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -23,6 +24,7 @@ tauri-specta = { workspace = true, optional = true, features = ["derive"] }
 
 glob = "0.3"
 rayon = { workspace = true }
+rodio = { workspace = true }
 
 chrono = { workspace = true }
 thiserror = { workspace = true }

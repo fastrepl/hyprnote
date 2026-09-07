@@ -7,6 +7,7 @@ mod e2ee;
 mod event_ops;
 mod event_types;
 mod legacy_import;
+mod session_deletion;
 mod session_ops;
 mod session_types;
 mod template_ops;
@@ -423,6 +424,65 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         id: "20260903120000_voiceprint_exemplars_isolated_mic",
         scope: anlg_db_migrate::MigrationScope::Plain,
         sql: include_str!("../migrations/20260903120000_voiceprint_exemplars_isolated_mic.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120000_session_documents_content_version",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "session_documents",
+        },
+        sql: include_str!("../migrations/20260907120000_session_documents_content_version.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120100_transcripts_content_version",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "transcripts",
+        },
+        sql: include_str!("../migrations/20260907120100_transcripts_content_version.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120200_session_content_observations",
+        scope: anlg_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20260907120200_session_content_observations.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120300_session_deletion_context",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "sessions",
+        },
+        sql: include_str!("../migrations/20260907120300_session_deletion_context.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120400_session_local_content_restoration",
+        scope: anlg_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20260907120400_session_local_content_restoration.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120500_session_documents_local_restoration",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "session_documents",
+        },
+        sql: include_str!("../migrations/20260907120500_session_documents_local_restoration.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120600_transcripts_local_restoration",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "transcripts",
+        },
+        sql: include_str!("../migrations/20260907120600_transcripts_local_restoration.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120700_session_attachments_local_restoration",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "session_attachments",
+        },
+        sql: include_str!("../migrations/20260907120700_session_attachments_local_restoration.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260907120800_sessions_local_restoration",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "sessions",
+        },
+        sql: include_str!("../migrations/20260907120800_sessions_local_restoration.sql"),
     },
 ];
 

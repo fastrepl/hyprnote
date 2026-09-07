@@ -41,5 +41,6 @@ mod dirty_rows;
 mod replica_apply;
 mod revision_conflicts;
 mod roundtrip;
+mod session_deletion;
 mod snapshots;
 mod witness_queue;

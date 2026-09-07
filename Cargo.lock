@@ -6005,6 +6005,7 @@ dependencies = [
  "glob",
  "predicates",
  "rayon",
+ "rodio",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -6016,6 +6017,7 @@ dependencies = [
  "tiptap",
  "tracing",
  "uuid",
+ "vad",
 ]
 
 [[package]]

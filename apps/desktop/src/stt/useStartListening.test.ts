@@ -13,6 +13,7 @@ import {
   sendMeetingRecordingDisclosure,
   useResumeListeningLifecycle,
   useStartListening,
+  useStartListeningState,
 } from "./useStartListening";
 
 import { enqueueSessionAudioOperation } from "~/session/audio-operations";
@@ -70,7 +71,9 @@ const {
   flushCanonicalSessionEditorChangesMock,
   idMock,
   openNewMock,
+  emptyCaptureMock,
 } = vi.hoisted(() => ({
+  emptyCaptureMock: vi.fn(),
   queueAutoEnhanceMock: vi.fn(),
   queueAutoEnhanceIfSummaryEmptyMock: vi.fn(),
   resetEnhanceTasksMock: vi.fn(),
@@ -156,8 +159,13 @@ vi.mock("./meeting-consent-store", () => ({
   persistParticipantConsent: vi.fn(async () => {}),
 }));
 
+vi.mock("./empty-automatic-capture", () => ({
+  discardEmptyAutomaticCapture: emptyCaptureMock,
+}));
+
 vi.mock("@anlg/plugin-fs-sync", () => ({
   commands: {
+    audioExist: vi.fn().mockResolvedValue({ status: "ok", data: false }),
     audioPath: audioPathMock,
     audioSourceMetadata: audioSourceMetadataMock,
   },
@@ -438,6 +446,7 @@ describe("getPostCaptureAction", () => {
 describe("useStartListening", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    emptyCaptureMock.mockResolvedValue(false);
     idMock.mockReturnValue("generated-id");
 
     getEnhancerServiceMock.mockImplementation(() => ({
@@ -899,6 +908,67 @@ describe("useStartListening", () => {
     );
     expect(saveCaptureLifecycleMarkerMock).toHaveBeenCalledBefore(startMock);
   });
+
+  test("manual recording stays manual while a scheduled start is waiting for the same note", async () => {
+    renderHook(() => useStartListeningState("session-1", { automatic: true }));
+    const { result } = renderHook(() => useStartListening("session-1"));
+    await act(async () => {
+      await result.current();
+    });
+    expect(saveCaptureLifecycleMarkerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        automatic: false,
+        preserveExistingAudio: true,
+      }),
+    );
+  });
+
+  test.each([true, false])(
+    "discards an empty scheduled capture before publishing audio or running batch transcription (live=%s)",
+    async (live) => {
+      emptyCaptureMock.mockResolvedValue(true);
+      useSessionMock.mockReturnValue({
+        id: "session-1",
+        user_id: "user-1",
+        raw_md: "",
+        title: "Standup",
+      });
+      const { result } = renderHook(
+        () =>
+          useStartListeningState("session-1", { automatic: true })
+            .startListening,
+      );
+      await act(async () => {
+        await result.current();
+      });
+      const onStopped = startMock.mock.calls[0]?.[1]?.onStopped;
+      await act(async () => {
+        await onStopped("session-1", {
+          durationSeconds: 42,
+          audioPath: "/tmp/session.wav",
+          requestedLiveTranscription: live,
+          liveTranscriptionActive: live,
+          needsBatchRepair: false,
+        });
+      });
+      expect(emptyCaptureMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          automatic: true,
+          preserveExistingAudio: false,
+          initialTitle: "Standup",
+          transcriptionComplete: true,
+        }),
+      );
+      expect(catalogLocalSessionAudioMock).not.toHaveBeenCalled();
+      expect(runBatchMock).not.toHaveBeenCalled();
+      expect(requestMainAutoEnhanceMock).not.toHaveBeenCalled();
+      expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledWith(
+        "session-1",
+        "generated-id",
+      );
+      expect(endCloudsyncActivityMock).toHaveBeenCalled();
+    },
+  );
 
   test("runs batch transcription after record-only capture stops", async () => {
     const { result } = renderHook(() => useStartListening("session-1"));

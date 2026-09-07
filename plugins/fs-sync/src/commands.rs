@@ -418,6 +418,19 @@ pub(crate) async fn audio_source_metadata(
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn audio_has_speech<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session_id: String,
+) -> Result<bool, String> {
+    let session_dir = resolve_session_dir(&app, &session_id)?;
+    spawn_blocking!({
+        let path = crate::audio::path(&session_dir).ok_or("audio_not_found")?;
+        crate::audio::has_speech(&path).map_err(|error| error.to_string())
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn audio_path<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,

@@ -5215,6 +5215,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "deeplink-core"
+version = "0.1.0"
+dependencies = [
+ "askama 0.15.6",
+ "serde",
+ "serde_qs",
+ "specta",
+ "thiserror 2.0.18",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "deflate64"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -19640,13 +19653,12 @@ dependencies = [
 name = "tauri-plugin-deeplink2"
 version = "0.1.0"
 dependencies = [
- "askama 0.15.6",
  "axum",
+ "deeplink-core",
  "docs",
  "open",
  "serde",
  "serde_json",
- "serde_qs",
  "serde_yaml",
  "specta",
  "specta-typescript",
@@ -19655,7 +19667,6 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-deep-link",
  "tauri-specta",
- "thiserror 2.0.18",
  "tokio",
  "tracing",
  "url",

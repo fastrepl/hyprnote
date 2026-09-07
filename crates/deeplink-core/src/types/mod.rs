@@ -26,9 +26,6 @@ const SHARE_OPEN_PREFIXES: [&str; 8] = [
 ];
 const MAX_SHARE_OPEN_URL_BYTES: usize = 512;
 
-#[derive(Debug, Clone, serde::Serialize, specta::Type, tauri_specta::Event)]
-pub struct DeepLinkEvent(pub DeepLink);
-
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 #[serde(tag = "to", content = "search")]
 pub enum DeepLink {
@@ -42,7 +39,8 @@ pub enum DeepLink {
     OnboardingDemoComplete(OnboardingDemoCompleteSearch),
 }
 
-pub(crate) enum IncomingDeepLink {
+/// A URL handed to the app by the OS: a routed deep link or a shared-note open.
+pub enum IncomingDeepLink {
     Existing(DeepLink),
     ShareOpen(ShareOpenRequest),
 }
@@ -122,7 +120,7 @@ impl FromStr for DeepLink {
         let full_path = if path.is_empty() {
             host.to_string()
         } else {
-            format!("{}/{}", host, path)
+            format!("{host}/{path}")
         };
 
         let query = parsed.query().unwrap_or("");

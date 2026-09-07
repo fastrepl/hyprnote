@@ -12,7 +12,7 @@ pub enum ShareOpenRequest {
 }
 
 impl ShareOpenRequest {
-    pub(crate) fn parse(parsed: &url::Url) -> Result<Self, crate::Error> {
+    pub fn parse(parsed: &url::Url) -> Result<Self, crate::Error> {
         if !matches!(
             parsed.scheme(),
             "anarlog"
@@ -86,11 +86,6 @@ impl fmt::Debug for ShareOpenRequest {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Type, tauri_specta::Event)]
-pub struct ShareOpenPendingEvent {
-    pub pending_id: String,
-}
-
 fn validate_uuid(value: &str) -> Result<(), crate::Error> {
     let parsed = Uuid::parse_str(value).map_err(|_| crate::Error::InvalidShareOpen)?;
     if parsed.is_nil() || parsed.get_version_num() != 4 || parsed.hyphenated().to_string() != value
@@ -151,7 +146,7 @@ mod tests {
             format!("hyprnote://share/open?mode=account&mode=handoff&share_id={SHARE_ID}"),
             format!("hyprnote://share/open?mode=account&request_id={REQUEST_ID}"),
             format!("hyprnote://share/open?mode=handoff&share_id={SHARE_ID}"),
-            format!("hyprnote://share/open?mode=public&public_slug=s_deadbeef"),
+            "hyprnote://share/open?mode=public&public_slug=s_deadbeef".to_string(),
             format!("hyprnote://share/open?mode=link&token=secret&share_id={SHARE_ID}"),
             "hyprnote://share/open?mode=account&share_id=00000000-0000-0000-0000-000000000000"
                 .to_string(),

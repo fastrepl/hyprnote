@@ -18,6 +18,7 @@ function runHook(t, platform, { ndk = true } = {}) {
   const scripts = join(root, "apps/mobile/scripts");
   const bin = join(root, "cargo/bin");
   const log = join(root, "commands.log");
+  const persistedPath = join(root, "path");
   mkdirSync(scripts, { recursive: true });
   mkdirSync(bin, { recursive: true });
   mkdirSync(join(root, "apps/mobile/ios"), { recursive: true });
@@ -34,6 +35,13 @@ function runHook(t, platform, { ndk = true } = {}) {
     join(scripts, "hook.sh"),
   );
   writeFileSync(log, "");
+  writeFileSync(persistedPath, "");
+  writeFileSync(
+    join(bin, "set-env"),
+    '#!/bin/bash\ntest "$1" = PATH || exit 1\nprintf "%s" "$2" > "$ANARLOG_TEST_PATH_FILE"\n',
+    { mode: 0o755 },
+  );
+  writeFileSync(join(bin, "sudo"), "#!/bin/bash\nexit 0\n", { mode: 0o755 });
   for (const command of ["rustup", "cargo", "pod"]) {
     writeFileSync(
       join(bin, command),
@@ -41,19 +49,25 @@ function runHook(t, platform, { ndk = true } = {}) {
       { mode: 0o755 },
     );
   }
+  const env = {
+    PATH: "/usr/bin:/bin",
+    CARGO_HOME: join(root, "cargo"),
+    EAS_BUILD_PLATFORM: platform,
+    ANDROID_HOME: join(root, "sdk"),
+    ANARLOG_TEST_COMMAND_LOG: log,
+    ANARLOG_TEST_PATH_FILE: persistedPath,
+  };
   const result = spawnSync("bash", [join(scripts, "hook.sh")], {
     encoding: "utf8",
-    env: {
-      PATH: "/usr/bin:/bin",
-      CARGO_HOME: join(root, "cargo"),
-      EAS_BUILD_PLATFORM: platform,
-      ANDROID_HOME: join(root, "sdk"),
-      ANARLOG_TEST_COMMAND_LOG: log,
-    },
+    env,
   });
   return {
     result,
     root,
+    nextPhaseEnv: {
+      ...env,
+      PATH: readFileSync(persistedPath, "utf8") || env.PATH,
+    },
     commands: readFileSync(log, "utf8")
       .trim()
       .split("\n")
@@ -63,7 +77,7 @@ function runHook(t, platform, { ndk = true } = {}) {
 }
 
 test("EAS Android generates every native bridge ABI before packaging", (t) => {
-  const { result, root, commands } = runHook(t, "android");
+  const { result, root, commands, nextPhaseEnv } = runHook(t, "android");
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(
     commands.map(([command, args]) => [command, args]),
@@ -78,6 +92,11 @@ test("EAS Android generates every native bridge ABI before packaging", (t) => {
   );
   assert.equal(commands.at(-1)[2], root);
   assert.equal(commands.at(-1)[3], join(root, "sdk/ndk/27.1.12297006"));
+  const nextPhase = spawnSync("bash", ["-c", "cargo --version"], {
+    encoding: "utf8",
+    env: nextPhaseEnv,
+  });
+  assert.equal(nextPhase.status, 0, nextPhase.stderr);
 });
 
 test("EAS iOS refreshes pods after generating frameworks", (t) => {

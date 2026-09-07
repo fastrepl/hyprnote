@@ -2,8 +2,9 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "anarlog-workspace-share-router",
   "main": "src/cloudflare/workspace-share-router.ts",
-  "compatibility_date": "2026-09-04",
+  "compatibility_date": "2026-08-04",
   "workers_dev": false,
+  // Set WORKSPACE_SHARE_PROXY_SECRET in this Worker and Netlify Functions.
   "routes": [
     {
       "pattern": "*.anarlog.so/*",

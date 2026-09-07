@@ -30,6 +30,8 @@ pub(crate) struct BatchState {
     pub phase: BatchPhase,
     pub percentage: Option<f64>,
     pub error: Option<String>,
+    /// `stop_transcription`: aborts the running `run_batch` task.
+    pub abort: Option<tokio::task::AbortHandle>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -248,8 +250,10 @@ impl Workspace {
                 phase: BatchPhase::Importing,
                 percentage: None,
                 error: None,
+                abort: None,
             },
         );
+        self.ensure_default_summary(cx);
         cx.notify();
         let (progress_tx, mut progress_rx) = tokio::sync::mpsc::unbounded_channel::<f64>();
         let import = self
@@ -307,6 +311,7 @@ impl Workspace {
                                 phase: BatchPhase::Importing,
                                 percentage: None,
                                 error: Some(error.to_string()),
+                                abort: None,
                             },
                         );
                     }
@@ -381,8 +386,10 @@ impl Workspace {
                 phase: BatchPhase::Transcribing,
                 percentage: Some(0.0),
                 error: None,
+                abort: None,
             },
         );
+        self.ensure_default_summary(cx);
         cx.notify();
         let languages = self.transcription_languages();
         let context = self.store.batch_session_context(session_id.clone());
@@ -436,6 +443,13 @@ impl Workspace {
                 std::sync::Arc::new(Runtime(events_tx)),
                 params,
             ));
+            let abort = run.abort_handle();
+            this.update(cx, |this, _| {
+                if let Some(batch) = this.recording.batch.get_mut(&session_id) {
+                    batch.abort = Some(abort);
+                }
+            })
+            .ok();
             // `SYNTHETIC_BATCH_PROGRESS_*`: eased progress until the first
             // streamed event or the terminal event arrives.
             let synthetic_started = std::time::Instant::now();
@@ -590,6 +604,21 @@ impl Workspace {
         .detach();
     }
 
+    /// `stopTranscription(sessionId)`: abort the batch job, then
+    /// `handleBatchStopped` leaves the "Transcription stopped." error behind.
+    pub(super) fn stop_transcription(&mut self, session_id: String, cx: &mut Context<Self>) {
+        let Some(batch) = self.recording.batch.get_mut(&session_id) else {
+            return;
+        };
+        if batch.error.is_some() {
+            return;
+        }
+        if let Some(abort) = batch.abort.take() {
+            abort.abort();
+        }
+        self.fail_batch(session_id, "Transcription stopped.".to_string(), cx);
+    }
+
     /// `handleBatchFailed(sessionId, error)`
     fn fail_batch(&mut self, session_id: String, error: String, cx: &mut Context<Self>) {
         self.recording.batch.insert(
@@ -598,8 +627,10 @@ impl Workspace {
                 phase: BatchPhase::Transcribing,
                 percentage: None,
                 error: Some(error),
+                abort: None,
             },
         );
+        self.ensure_default_summary(cx);
         cx.notify();
     }
 
@@ -1297,8 +1328,9 @@ impl Workspace {
                             24.0,
                             window,
                         ))
-                        .child(self.transcript_button(
+                        .child(self.transcript_icon_button(
                             "transcript-retranscribe",
+                            Some(("arrows-clockwise", 16.0)),
                             "Re-transcribe",
                             true,
                             cx,
@@ -1309,6 +1341,9 @@ impl Workspace {
             }
             // `running_batch`
             let has_progress = batch.percentage.is_some_and(|p| p > 0.0);
+            // `onStopTranscription` is withheld while importing.
+            let can_stop = batch.phase == BatchPhase::Transcribing;
+            let session_id = session_id.to_string();
             return Some(
                 transcript_screen()
                     .child(div().mb_5().child(crate::ui::icon(
@@ -1321,6 +1356,7 @@ impl Workspace {
                             .flex()
                             .flex_col()
                             .items_center()
+                            .when(can_stop, |c| c.mb_6())
                             .child(
                                 div()
                                     .tw_text_base()
@@ -1346,6 +1382,16 @@ impl Workspace {
                                 )
                             }),
                     )
+                    .when(can_stop, |screen| {
+                        screen.child(self.transcript_icon_button(
+                            "transcript-stop-transcription",
+                            Some(("square", 12.0)),
+                            "Stop transcription",
+                            false,
+                            cx,
+                            move |this, _, cx| this.stop_transcription(session_id.clone(), cx),
+                        ))
+                    })
                     .into_any_element(),
             );
         }
@@ -1485,8 +1531,9 @@ impl Workspace {
                     .items_center()
                     .gap_2()
                     .when(has_audio, |row| {
-                        row.child(self.transcript_button(
+                        row.child(self.transcript_icon_button(
                             "transcript-retranscribe",
+                            Some(("arrows-clockwise", 16.0)),
                             "Re-transcribe",
                             true,
                             cx,
@@ -1523,7 +1570,25 @@ impl Workspace {
         cx: &Context<Self>,
         on_click: impl Fn(&mut Workspace, &mut Window, &mut Context<Workspace>) + 'static,
     ) -> gpui::Stateful<Div> {
+        self.transcript_icon_button(id, None, label, primary, cx, on_click)
+    }
+
+    /// `Button size="sm"` with an optional leading icon of the given size.
+    fn transcript_icon_button(
+        &self,
+        id: &'static str,
+        icon: Option<(&'static str, f32)>,
+        label: &'static str,
+        primary: bool,
+        cx: &Context<Self>,
+        on_click: impl Fn(&mut Workspace, &mut Window, &mut Context<Workspace>) + 'static,
+    ) -> gpui::Stateful<Div> {
         let theme = self.theme;
+        let foreground = if primary {
+            theme.primary_foreground
+        } else {
+            theme.foreground
+        };
         div()
             .id(id)
             .relative()
@@ -1544,17 +1609,21 @@ impl Workspace {
                 }),
                 (!primary).then_some((1.0, theme.border)),
             ))
-            .text_color(if primary {
-                theme.primary_foreground
-            } else {
-                theme.foreground
-            })
+            .text_color(foreground)
             .on_click(
                 cx.listener(move |this, _: &gpui::ClickEvent, window, cx| {
                     on_click(this, window, cx)
                 }),
             )
-            .child(div().relative().flex().items_center().gap_2().child(label))
+            .child(
+                div()
+                    .relative()
+                    .flex()
+                    .items_center()
+                    .gap_2()
+                    .children(icon.map(|(icon, size)| crate::ui::icon(icon, px(size), foreground)))
+                    .child(label),
+            )
     }
     /// `flex max-w-md flex-col gap-2` with the `text-base font-medium` title
     /// and the centred `text-sm leading-relaxed` description, wrapped the

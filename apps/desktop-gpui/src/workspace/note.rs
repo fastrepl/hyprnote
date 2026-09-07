@@ -575,6 +575,11 @@ impl Workspace {
         let can_edit = self.can_edit_transcript(preview);
         let edit_mode = self.transcript_edit_mode(&preview.session.id);
         let session_id = preview.session.id.clone();
+        // `shouldShowTranscriptTabSpinner`: finalizing or a running batch.
+        let transcribing = matches!(
+            self.session_mode(&session_id),
+            super::recording::SessionMode::Finalizing | super::recording::SessionMode::RunningBatch
+        );
 
         div()
             .flex()
@@ -677,16 +682,19 @@ impl Workspace {
                                 t.child(self.render_dancing_sticks(live))
                             }
                             // `HeaderViewEnhanced*`: the spinner while the summary
-                            // generates, red while its task failed.
-                            _ if generating => t.child(crate::ui::spinner(
-                                ("enhance-spinner", index),
-                                px(16.0),
-                                if active {
-                                    theme.foreground
-                                } else {
-                                    alpha(theme.muted_foreground, 0.7)
-                                },
-                            )),
+                            // generates, red while its task failed; the transcript
+                            // pill spins while finalizing or batch transcribing.
+                            _ if generating || (transcribing && glyph == "waveform") => {
+                                t.child(crate::ui::spinner(
+                                    ("enhance-spinner", index),
+                                    px(16.0),
+                                    if active {
+                                        theme.foreground
+                                    } else {
+                                        alpha(theme.muted_foreground, 0.7)
+                                    },
+                                ))
+                            }
                             _ => t.child(icon(
                                 glyph,
                                 px(16.0),

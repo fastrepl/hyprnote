@@ -928,6 +928,29 @@ impl Workspace {
         .detach();
     }
 
+    /// `useEnsureDefaultSummary`: outside a live capture, a session with a
+    /// transcript, a running batch, or a failed batch and no enhanced note
+    /// gets its Summary document created.
+    pub(crate) fn ensure_default_summary(&mut self, cx: &mut Context<Self>) {
+        let Note::Ready { preview, .. } = &self.note else {
+            return;
+        };
+        if !preview.enhanced.is_empty() {
+            return;
+        }
+        let session_id = preview.session.id.clone();
+        let mode = self.session_mode(&session_id);
+        if matches!(
+            mode,
+            recording::SessionMode::Active | recording::SessionMode::Finalizing
+        ) {
+            return;
+        }
+        if preview.has_transcript || self.batch_state(&session_id).is_some() {
+            self.ensure_summary(session_id, cx);
+        }
+    }
+
     fn ensure_summary(&mut self, session_id: String, cx: &mut Context<Self>) {
         let task = self.store.ensure_summary_document(session_id.clone());
         cx.spawn(async move |this, cx| {
@@ -964,11 +987,6 @@ impl Workspace {
                 }
                 this.note = match result {
                     Ok(Ok(Some(preview))) => {
-                        // `useEnsureDefaultSummary`: a transcript without an
-                        // enhanced note gets its Summary document created.
-                        if preview.has_transcript && preview.enhanced.is_empty() {
-                            this.ensure_summary(session_id.clone(), cx);
-                        }
                         let tab = this.current_tab_for(&preview);
                         // `title = draftTitle ?? storeTitle`
                         let title = preview.session.title.clone();
@@ -997,6 +1015,7 @@ impl Workspace {
                     Ok(Err(error)) => Note::Failed(error.to_string()),
                     Err(error) => Note::Failed(error.to_string()),
                 };
+                this.ensure_default_summary(cx);
                 cx.notify();
             })
             .ok();
@@ -1029,7 +1048,14 @@ impl Workspace {
             Note::Ready {
                 tab: NoteTab::Transcript,
                 ..
-            } if preview.has_transcript => NoteTab::Transcript,
+            } if self.can_show_transcript(preview) => NoteTab::Transcript,
+            // A remembered transcript tab that no longer applies falls back to
+            // the memo; a missing enhanced note or a fresh open lands on the
+            // first enhanced note.
+            Note::Ready {
+                tab: NoteTab::Transcript,
+                ..
+            } => NoteTab::Memo,
             _ => first_enhanced.unwrap_or(NoteTab::Memo),
         }
     }

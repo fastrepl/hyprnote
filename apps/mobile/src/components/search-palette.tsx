@@ -59,7 +59,8 @@ export function SearchPalette({
   const sidebarPreferences = useSidebarItemPreferences();
   const [query, setQuery] = useState("");
   const [settledQuery, setSettledQuery] = useState("");
-  const search = useSessionSearch(query);
+  const isSettled = settledQuery === query.trim();
+  const search = useSessionSearch(isSettled ? settledQuery : "");
   const inputRef = useRef<TextInput>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasQuery = query.trim() !== "";
@@ -151,6 +152,7 @@ export function SearchPalette({
             </View>
             {settledQuery !== "" &&
               settledQuery === query.trim() &&
+              !search.error &&
               !search.isLoading && (
                 <SearchAnalytics
                   key={settledQuery}
@@ -164,13 +166,23 @@ export function SearchPalette({
               keyboardDismissMode="on-drag"
               style={styles.results}
               contentContainerStyle={styles.resultContent}
+              ListFooterComponent={
+                search.hasMore ? (
+                  <Text style={styles.empty}>
+                    Showing the first 50 matches. Narrow your search to find
+                    more.
+                  </Text>
+                ) : null
+              }
               ListEmptyComponent={
                 <Text style={styles.empty} accessibilityLiveRegion="polite">
                   {!hasQuery
                     ? "Search by title or note content"
-                    : search.isLoading
+                    : !isSettled || search.isLoading
                       ? "Searching…"
-                      : "No matches"}
+                      : search.error
+                        ? "Couldn't search meetings. Try again."
+                        : "No matches"}
                 </Text>
               }
               renderItem={({ item }) => (

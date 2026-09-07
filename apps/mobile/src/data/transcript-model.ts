@@ -8,6 +8,10 @@ export const SESSION_TRANSCRIPTS_SQL = `SELECT transcript.id, transcript.started
 
 export const SESSION_SPEAKERS_SQL = `SELECT id, name FROM humans WHERE workspace_id = (SELECT workspace_id FROM sessions WHERE id = ?) AND deleted_at IS NULL`;
 
+export const SESSION_HAS_TRANSCRIPT_SQL = `SELECT EXISTS (
+  SELECT 1 FROM transcripts WHERE session_id = ? AND deleted_at IS NULL
+) AS has_transcript`;
+
 export type TranscriptRow = {
   id: string;
   started_at_ms: number;

@@ -1,4 +1,4 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { useLiveQuery } from "@/db";
 
@@ -6,37 +6,12 @@ import {
   buildSessionList,
   mapTimelineRows,
   nextTimelineRefreshAt,
-  type SessionListItem,
   type TimelineRow,
   type TimelineSession,
 } from "./timeline-model";
+import { TIMELINE_PAGE_SIZE, TIMELINE_SQL } from "./timeline-query";
 
 export * from "./timeline-model";
-
-const TIMELINE_SQL = `
-SELECT
-  sessions.id,
-  sessions.title,
-  sessions.created_at,
-  sessions.event_json,
-  sessions.folder_path,
-  COALESCE((
-    SELECT json_group_array(name)
-    FROM (
-      SELECT DISTINCT tags.name AS name
-      FROM session_tags
-      JOIN tags ON tags.id = session_tags.tag_id
-      WHERE session_tags.session_id = sessions.id
-        AND session_tags.deleted_at IS NULL
-        AND tags.deleted_at IS NULL
-        AND trim(tags.name) <> ''
-      ORDER BY tags.name COLLATE NOCASE
-    )
-  ), '[]') AS tags_json
-FROM sessions
-WHERE sessions.deleted_at IS NULL
-ORDER BY sessions.created_at DESC
-`;
 
 const MAX_TIMER_DELAY_MS = 2_147_483_647;
 
@@ -74,15 +49,22 @@ function createTimelineClock(sessions: TimelineSession[]) {
   };
 }
 
-export function useTimelineSessions(): {
-  items: SessionListItem[];
-  isLoading: boolean;
-} {
-  const { data, isLoading } = useLiveQuery<TimelineRow, TimelineSession[]>({
+export function useTimelineSessions() {
+  const [limit, setLimit] = useState(TIMELINE_PAGE_SIZE);
+  const [orderedAt, setOrderedAt] = useState(Date.now);
+  const previousData = useRef<TimelineSession[]>([]);
+  const { data, isLoading, error } = useLiveQuery<
+    TimelineRow,
+    TimelineSession[]
+  >({
     sql: TIMELINE_SQL,
+    params: [new Date(orderedAt).toISOString(), limit + 1],
     mapRows: mapTimelineRows,
   });
-  const sessions = useMemo(() => data ?? [], [data]);
+  // Keep the current rows mounted while the larger live query subscribes.
+  if (data !== undefined) previousData.current = data;
+  const rows = data ?? previousData.current;
+  const sessions = useMemo(() => rows.slice(0, limit), [rows, limit]);
   const clock = useMemo(() => createTimelineClock(sessions), [sessions]);
   const now = useSyncExternalStore(
     clock.subscribe,
@@ -90,5 +72,25 @@ export function useTimelineSessions(): {
     clock.getSnapshot,
   );
   const items = useMemo(() => buildSessionList(sessions, now), [sessions, now]);
-  return { items, isLoading };
+  const hasMore = rows.length > limit;
+
+  // A meeting crossing into the past can change which rows belong in the window.
+  if (
+    sessions.some((session) => {
+      const startedAt = new Date(session.startedAt).getTime();
+      return startedAt > orderedAt && startedAt <= now;
+    })
+  )
+    setOrderedAt(now);
+
+  return {
+    items,
+    isLoading,
+    error,
+    hasMore,
+    loadMore: () => {
+      if (!isLoading && !error && hasMore) setLimit(limit + TIMELINE_PAGE_SIZE);
+    },
+    retry: () => setOrderedAt(Date.now()),
+  };
 }

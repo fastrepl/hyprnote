@@ -24,6 +24,7 @@ import { ActionButtonCard } from "@/components/action-button-card";
 import { SearchPalette } from "@/components/search-palette";
 import { SessionCard } from "@/components/session-card";
 import { StartListeningButton } from "@/components/start-listening-button";
+import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { UserAvatarButton } from "@/components/user-avatar";
 import {
@@ -46,7 +47,8 @@ export default function HomeScreen() {
   const styles = useStyles();
   const router = useRouter();
   const auth = useAuth();
-  const { items, isLoading } = useTimelineSessions();
+  const { items, isLoading, error, hasMore, loadMore, retry } =
+    useTimelineSessions();
   const sidebarPreferences = useSidebarItemPreferences();
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
@@ -203,7 +205,14 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.timeline}>
-        <Animated.ScrollView
+        <Animated.FlatList
+          data={items}
+          keyExtractor={(item) => item.key}
+          initialNumToRender={12}
+          maxToRenderPerBatch={12}
+          windowSize={7}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
           style={styles.list}
           contentContainerStyle={[
             styles.listContent,
@@ -216,32 +225,52 @@ export default function HomeScreen() {
           }
           onScroll={onScroll}
           scrollEventThrottle={16}
-        >
-          {showActionButtonCard && (
-            <ActionButtonCard
-              onConfigure={() => router.push("/action-button")}
-              onDismiss={dismissActionButtonCard}
-            />
-          )}
-          {!isLoading && items.length === 0 && (
+          ListHeaderComponent={
+            showActionButtonCard ? (
+              <ActionButtonCard
+                onConfigure={() => router.push("/action-button")}
+                onDismiss={dismissActionButtonCard}
+              />
+            ) : null
+          }
+          ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>No meetings yet</Text>
-              <Text style={styles.emptyBody}>
-                Start listening or create a new note.
+              <Text style={styles.emptyTitle}>
+                {isLoading
+                  ? "Loading meetings…"
+                  : error
+                    ? "Couldn't load meetings"
+                    : "No meetings yet"}
               </Text>
-            </View>
-          )}
-          {items.map((item) => {
-            if (item.type === "header") {
-              return (
-                <Text key={item.key} style={styles.sectionLabel}>
-                  {item.label}
+              {!isLoading && !error && (
+                <Text style={styles.emptyBody}>
+                  Start listening or create a new note.
                 </Text>
-              );
+              )}
+            </View>
+          }
+          ListFooterComponent={
+            error ? (
+              <Button
+                label="Retry loading meetings"
+                onPress={retry}
+                variant="ghost"
+              />
+            ) : items.length > 0 && (isLoading || hasMore) ? (
+              <Button
+                label="Load more meetings"
+                onPress={loadMore}
+                loading={isLoading}
+                variant="ghost"
+              />
+            ) : null
+          }
+          renderItem={({ item }) => {
+            if (item.type === "header") {
+              return <Text style={styles.sectionLabel}>{item.label}</Text>;
             }
             return (
               <SessionCard
-                key={item.key}
                 session={item.session}
                 showFolder={sidebarPreferences.showFolder}
                 showTags={sidebarPreferences.showTags}
@@ -249,8 +278,8 @@ export default function HomeScreen() {
                 onDelete={() => void handleDelete(item.session)}
               />
             );
-          })}
-        </Animated.ScrollView>
+          }}
+        />
 
         <Animated.View
           style={[styles.listeningButton, buttonStyle]}

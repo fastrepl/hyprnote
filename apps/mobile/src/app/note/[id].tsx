@@ -55,7 +55,10 @@ import {
 } from "@/data/session";
 import { summarizeSession, useSessionSummaryState } from "@/data/summarize";
 import { transcribeSession, useTranscriptionState } from "@/data/transcribe";
-import { useSessionTranscripts } from "@/data/transcripts";
+import {
+  loadSessionTranscripts,
+  useSessionHasTranscript,
+} from "@/data/transcripts";
 import { captureAnalytics } from "@/lib/analytics";
 import { confirmDestructive } from "@/lib/confirm";
 import { applyEditorFormat, type EditorFormat } from "@/lib/editor-format";
@@ -257,7 +260,7 @@ export default function NoteScreen() {
   const { data, isLoading } = useSessionDetail(id);
   const audio = useSessionAudio(id);
   const noteAttachments = useNoteAttachments(id);
-  const transcripts = useSessionTranscripts(id);
+  const transcriptState = useSessionHasTranscript(id);
   const summaryState = useSessionSummaryState(id);
   const [selectedTab, setSelectedTab] = useState(0);
   const transcription = useTranscriptionState(id);
@@ -286,7 +289,8 @@ export default function NoteScreen() {
     : null;
   const localAudioAvailable =
     audio.data?.availableLocally === true && localAudioFile?.exists === true;
-  const hasRecordingHistory = audio.data !== null || transcripts.length > 0;
+  const hasRecordingHistory =
+    audio.data !== null || transcriptState.data === true;
   const active = listening && recorder.phase !== "saved";
   const showTabs = !active && (hasRecordingHistory || Boolean(data?.summary));
   const showMemos = !showTabs || selectedTab === 1;
@@ -314,6 +318,8 @@ export default function NoteScreen() {
     !active &&
     !editorFocused &&
     !audio.isLoading &&
+    !transcriptState.isLoading &&
+    !transcriptState.error &&
     data !== null &&
     data.title.trim() === "" &&
     data.noteText.trim() === "" &&
@@ -659,20 +665,21 @@ export default function NoteScreen() {
 
     const title = (draft.title ?? current.title).trim() || "Untitled";
     const note = (draft.body ?? current.noteText).trim();
-    const transcript = transcripts
-      .map((segment) => `${segment.speaker}: ${segment.text}`)
-      .join("\n\n")
-      .trim();
-    const sections = [`# ${title}`];
-    if (current.summary) {
-      sections.push(
-        `## ${current.summary.title}\n\n${current.summary.text}`.trim(),
-      );
-    }
-    if (note) sections.push(`## Notes\n\n${note}`);
-    if (transcript) sections.push(`## Transcript\n\n${transcript}`);
-
     try {
+      const transcripts = await loadSessionTranscripts(id);
+      const transcript = transcripts
+        .map((segment) => `${segment.speaker}: ${segment.text}`)
+        .join("\n\n")
+        .trim();
+      const sections = [`# ${title}`];
+      if (current.summary) {
+        sections.push(
+          `## ${current.summary.title}\n\n${current.summary.text}`.trim(),
+        );
+      }
+      if (note) sections.push(`## Notes\n\n${note}`);
+      if (transcript) sections.push(`## Transcript\n\n${transcript}`);
+
       await Share.share({
         title,
         message: sections.join("\n\n"),
@@ -687,7 +694,12 @@ export default function NoteScreen() {
 
   const handleListeningAction = () => {
     if (active) void handleStop();
-    else if (!audio.isLoading && !hasRecordingHistory) {
+    else if (
+      !audio.isLoading &&
+      !transcriptState.isLoading &&
+      !transcriptState.error &&
+      !hasRecordingHistory
+    ) {
       setListening(true);
       void recorder.start();
     }
@@ -875,7 +887,7 @@ export default function NoteScreen() {
       {(active || hasRecordingHistory) && (
         <ListeningSheet
           active={active}
-          transcripts={transcripts}
+          sessionId={id}
           recordingDetails={
             <>
               {audio.data && localAudioAvailable && localAudioFile && (
@@ -905,7 +917,7 @@ export default function NoteScreen() {
               {audio.data &&
                 localAudioAvailable &&
                 audio.data.transcriptStatus !== "complete" &&
-                transcripts.length === 0 &&
+                transcriptState.data === false &&
                 (transcription === "running" ? (
                   <Text style={styles.transcribeStatus}>Transcribing…</Text>
                 ) : (

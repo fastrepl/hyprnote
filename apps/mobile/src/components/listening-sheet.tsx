@@ -1,9 +1,8 @@
 import { BottomSheet, RNHostView } from "@expo/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { useRef, useState, type ReactNode } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   Keyboard,
   Pressable,
   StyleSheet,
@@ -16,6 +15,7 @@ import type {
   RecorderPhase,
 } from "@/audio/use-session-recorder";
 import { DancingSticks } from "@/components/dancing-sticks";
+import { SessionTranscript } from "@/components/session-transcript";
 import {
   CornerCurve,
   LISTENING_CONTROL_HEIGHT,
@@ -23,10 +23,6 @@ import {
   Spacing,
   Typography,
 } from "@/constants/theme";
-import {
-  useSessionTranscripts,
-  type TranscriptSegment,
-} from "@/data/transcripts";
 import { createStyleHook, useColors } from "@/settings/theme-provider";
 
 function formatDuration(ms: number): string {
@@ -69,7 +65,6 @@ function transcriptionLabel(status: "connecting" | "live" | "fallback") {
 }
 
 export function ListeningSheet({
-  active,
   phase,
   failure,
   amplitude,
@@ -77,12 +72,10 @@ export function ListeningSheet({
   liveStatus,
   liveTranscript,
   sessionId,
-  recordingDetails,
   onStop,
   onRetry,
   onOpenSettings,
 }: {
-  active: boolean;
   phase: RecorderPhase;
   failure: RecorderFailure | null;
   amplitude: number;
@@ -90,7 +83,6 @@ export function ListeningSheet({
   liveStatus: "connecting" | "live" | "fallback";
   liveTranscript: string;
   sessionId: string;
-  recordingDetails: ReactNode;
   onStop: () => void;
   onRetry: () => void;
   onOpenSettings: () => void;
@@ -98,13 +90,6 @@ export function ListeningSheet({
   const styles = useStyles();
   const Colors = useColors();
   const [expanded, setExpanded] = useState(false);
-  const {
-    segments: transcripts,
-    isLoading,
-    error,
-  } = useSessionTranscripts(sessionId, expanded);
-  const listRef = useRef<FlatList<TranscriptSegment>>(null);
-  const following = useRef(active);
   const permissionDenied =
     phase === "unavailable" &&
     (failure === "permission_denied" ||
@@ -167,7 +152,7 @@ export function ListeningSheet({
       )}
     </Pressable>
   );
-  const label = active ? statusLabel(phase, durationMs) : "Transcript";
+  const label = statusLabel(phase, durationMs);
 
   return (
     <>
@@ -177,16 +162,15 @@ export function ListeningSheet({
           accessibilityLabel="Open full transcript"
           onPress={() => {
             Keyboard.dismiss();
-            following.current = active;
             setExpanded(true);
           }}
           style={styles.heading}
         >
-          {active && <View style={styles.recordingDot} />}
+          <View style={styles.recordingDot} />
           <Text style={styles.headingText}>{label}</Text>
           <Ionicons name="chevron-up" size={20} color={Colors.muted} />
         </Pressable>
-        {active && control}
+        {control}
       </View>
       <BottomSheet
         isPresented={expanded}
@@ -197,7 +181,7 @@ export function ListeningSheet({
         <RNHostView>
           <View style={styles.content}>
             <View style={styles.heading}>
-              {active && <View style={styles.recordingDot} />}
+              <View style={styles.recordingDot} />
               <Text style={styles.headingText}>{label}</Text>
               <Pressable
                 accessibilityRole="button"
@@ -208,69 +192,16 @@ export function ListeningSheet({
                 <Ionicons name="chevron-down" size={22} color={Colors.muted} />
               </Pressable>
             </View>
-            <FlatList
-              ref={listRef}
-              style={styles.list}
-              contentContainerStyle={styles.transcriptContent}
-              data={transcripts}
-              keyExtractor={(item) => item.id}
-              onScroll={({
-                nativeEvent: { contentOffset, contentSize, layoutMeasurement },
-              }) => {
-                following.current =
-                  contentSize.height -
-                    layoutMeasurement.height -
-                    contentOffset.y <
-                  80;
-              }}
-              scrollEventThrottle={100}
-              onContentSizeChange={() => {
-                if (active && following.current)
-                  listRef.current?.scrollToEnd({ animated: true });
-              }}
-              renderItem={({ item }) => (
-                <View style={styles.turn}>
-                  <Text style={styles.speaker}>{item.speaker}</Text>
-                  <Text selectable style={styles.transcriptText}>
-                    {item.text}
-                  </Text>
-                </View>
-              )}
-              ListEmptyComponent={
-                !liveTranscript ? (
-                  <Text style={styles.hint}>
-                    {isLoading
-                      ? "Loading transcript…"
-                      : error
-                        ? "Couldn't load the transcript. Close and reopen to retry."
-                        : active
-                          ? liveStatus === "fallback"
-                            ? "Your recording will be transcribed after you stop listening."
-                            : "Your transcript will appear here as you speak."
-                          : "No transcript yet."}
-                  </Text>
-                ) : null
-              }
-              ListFooterComponent={
-                <View>
-                  {active && liveTranscript !== "" && (
-                    <View style={styles.turn}>
-                      <Text style={styles.speaker}>Speaking…</Text>
-                      <Text style={styles.hint}>{liveTranscript}</Text>
-                    </View>
-                  )}
-                  {!active && recordingDetails}
-                </View>
-              }
-            />
-            {active && (
-              <View style={styles.controls}>
-                <Text style={styles.hint}>
-                  {transcriptionLabel(liveStatus)}
-                </Text>
-                {control}
-              </View>
+            {expanded && (
+              <SessionTranscript
+                sessionId={sessionId}
+                live={{ status: liveStatus, text: liveTranscript }}
+              />
             )}
+            <View style={styles.controls}>
+              <Text style={styles.hint}>{transcriptionLabel(liveStatus)}</Text>
+              {control}
+            </View>
           </View>
         </RNHostView>
       </BottomSheet>
@@ -293,14 +224,6 @@ const useStyles = createStyleHook((Colors) => ({
     padding: Spacing.md,
   },
   headingText: { flex: 1, ...Typography.bodyStrong, color: Colors.ink },
-  list: { flex: 1 },
-  transcriptContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  turn: { paddingVertical: Spacing.sm, gap: Spacing.xs },
-  speaker: { ...Typography.captionStrong, color: Colors.muted },
-  transcriptText: { ...Typography.body, color: Colors.ink },
   hint: { ...Typography.caption, color: Colors.muted },
   controls: { padding: Spacing.md, gap: Spacing.sm },
   recordingDot: {

@@ -27,6 +27,7 @@ import { NoteActionsSheet } from "@/components/note-actions-sheet";
 import { NoteAttachmentCard } from "@/components/note-attachment-card";
 import { RecordingSyncCard } from "@/components/recording-sync-card";
 import { RemoteAudioCard } from "@/components/remote-audio-card";
+import { SessionTranscript } from "@/components/session-transcript";
 import { StartListeningButton } from "@/components/start-listening-button";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -745,7 +746,7 @@ export default function NoteScreen() {
           {showTabs && (
             <View style={styles.tabs}>
               <SegmentedControl
-                values={["Summary", "Memos"]}
+                values={["Summary", "Memos", "Transcript"]}
                 selectedIndex={selectedTab}
                 onChange={(event) => {
                   void flush();
@@ -756,7 +757,7 @@ export default function NoteScreen() {
               />
             </View>
           )}
-          {showTabs && !showMemos && (
+          {showTabs && selectedTab === 0 && (
             <ScrollView
               style={styles.summaryScroll}
               contentContainerStyle={styles.summary}
@@ -810,6 +811,68 @@ export default function NoteScreen() {
                 }
               />
             </ScrollView>
+          )}
+          {showTabs && selectedTab === 2 && (
+            <SessionTranscript
+              sessionId={id}
+              recordingDetails={
+                <>
+                  {audio.data && localAudioAvailable && localAudioFile && (
+                    <View
+                      key={`${audio.data.filename}:${audio.data.createdAt}`}
+                    >
+                      <AudioChip
+                        uri={localAudioFile.uri}
+                        filename={audio.data.filename}
+                        sizeBytes={audio.data.sizeBytes}
+                      />
+                      <RecordingSyncCard audio={audio.data} />
+                    </View>
+                  )}
+                  {audio.data && !localAudioAvailable && (
+                    <RemoteAudioCard
+                      cloudAvailable={Boolean(
+                        audio.data.cloudObjectKey &&
+                        auth.billing.isPro &&
+                        auth.session?.access_token &&
+                        env.supabaseUrl,
+                      )}
+                      errorMessage={audioRestoreError}
+                      loading={restoringAudio}
+                      onDownloadRecording={() => void handleDownloadRecording()}
+                      onChooseRecording={() => void handleChooseRecording()}
+                    />
+                  )}
+                  {audio.data &&
+                    localAudioAvailable &&
+                    audio.data.transcriptStatus !== "complete" &&
+                    transcriptState.data === false &&
+                    (transcription === "running" ? (
+                      <Text style={styles.transcribeStatus}>Transcribing…</Text>
+                    ) : (
+                      <Pressable
+                        hitSlop={4}
+                        onPress={() =>
+                          canTranscribe
+                            ? void transcribeSession(id)
+                            : router.push("/settings/transcription-provider")
+                        }
+                        style={({ pressed }) =>
+                          pressed && styles.transcribePressed
+                        }
+                      >
+                        <Text style={styles.transcribeAction}>
+                          {!canTranscribe
+                            ? "Choose transcription provider"
+                            : transcription === "failed"
+                              ? "Transcription failed — tap to retry"
+                              : "Tap to transcribe"}
+                        </Text>
+                      </Pressable>
+                    ))}
+                </>
+              }
+            />
           )}
           <View style={[styles.editor, !showMemos && styles.hidden]}>
             {localNoteAttachments.length > 0 && (
@@ -884,63 +947,9 @@ export default function NoteScreen() {
         visible={actionsOpen}
       />
 
-      {(active || hasRecordingHistory) && (
+      {active && (
         <ListeningSheet
-          active={active}
           sessionId={id}
-          recordingDetails={
-            <>
-              {audio.data && localAudioAvailable && localAudioFile && (
-                <View key={`${audio.data.filename}:${audio.data.createdAt}`}>
-                  <AudioChip
-                    uri={localAudioFile.uri}
-                    filename={audio.data.filename}
-                    sizeBytes={audio.data.sizeBytes}
-                  />
-                  <RecordingSyncCard audio={audio.data} />
-                </View>
-              )}
-              {audio.data && !localAudioAvailable && (
-                <RemoteAudioCard
-                  cloudAvailable={Boolean(
-                    audio.data.cloudObjectKey &&
-                    auth.billing.isPro &&
-                    auth.session?.access_token &&
-                    env.supabaseUrl,
-                  )}
-                  errorMessage={audioRestoreError}
-                  loading={restoringAudio}
-                  onDownloadRecording={() => void handleDownloadRecording()}
-                  onChooseRecording={() => void handleChooseRecording()}
-                />
-              )}
-              {audio.data &&
-                localAudioAvailable &&
-                audio.data.transcriptStatus !== "complete" &&
-                transcriptState.data === false &&
-                (transcription === "running" ? (
-                  <Text style={styles.transcribeStatus}>Transcribing…</Text>
-                ) : (
-                  <Pressable
-                    hitSlop={4}
-                    onPress={() =>
-                      canTranscribe
-                        ? void transcribeSession(id)
-                        : router.push("/settings/transcription-provider")
-                    }
-                    style={({ pressed }) => pressed && styles.transcribePressed}
-                  >
-                    <Text style={styles.transcribeAction}>
-                      {!canTranscribe
-                        ? "Choose transcription provider"
-                        : transcription === "failed"
-                          ? "Transcription failed — tap to retry"
-                          : "Tap to transcribe"}
-                    </Text>
-                  </Pressable>
-                ))}
-            </>
-          }
           phase={recorder.phase}
           failure={recorder.failure}
           amplitude={recorder.amplitude}

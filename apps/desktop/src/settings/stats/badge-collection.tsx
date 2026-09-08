@@ -2,19 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-import {
-  BookOpen,
-  CalendarDots,
-  Check,
-  Compass,
-  Crown,
-  Handshake,
-  Headphones,
-  type Icon,
-  Microphone,
-  Rocket,
-  Sparkle,
-} from "@anlg/ui/components/icons";
+import { Check } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import {
   Dialog,
@@ -158,65 +146,38 @@ export function BadgeGallery({
     hello: {
       name: t`Hello, Anarlog`,
       description: t`Create your Anarlog account. A place for your conversations to call home.`,
-      icon: Handshake,
-      color:
-        "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800",
     },
     "all-set": {
       name: t`All Set`,
       description: t`Complete onboarding. You're ready for your next conversation.`,
-      icon: Rocket,
-      color:
-        "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
     },
     "first-words": {
       name: t`First Words`,
       description: t`Capture your first conversation. Every collection starts somewhere.`,
-      icon: Microphone,
-      color:
-        "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800",
     },
     "good-listener": {
       name: t`Good Listener`,
       description: t`Capture 10 conversations. More moments you can return to.`,
-      icon: Headphones,
-      color:
-        "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800",
     },
     "memory-keeper": {
       name: t`Memory Keeper`,
       description: t`Capture 50 conversations. A growing collection of ideas and decisions.`,
-      icon: BookOpen,
-      color:
-        "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800",
     },
     "story-collector": {
       name: t`Story Collector`,
       description: t`Capture 100 conversations. A hundred stories, saved in your own words.`,
-      icon: Sparkle,
-      color:
-        "bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950 dark:text-cyan-300 dark:border-cyan-800",
     },
     "living-library": {
       name: t`Living Library`,
       description: t`Capture 250 conversations. Your own library of shared knowledge.`,
-      icon: Crown,
-      color:
-        "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-800",
     },
     "finding-rhythm": {
       name: t`Finding Your Rhythm`,
       description: t`Capture conversations in 4 different weeks. They don't need to be consecutive.`,
-      icon: Compass,
-      color:
-        "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
     },
     "familiar-face": {
       name: t`Familiar Face`,
       description: t`Capture conversations in 12 different weeks. A little at a time, at your own pace.`,
-      icon: CalendarDots,
-      color:
-        "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800",
     },
   };
   const number = new Intl.NumberFormat(i18n.locale);
@@ -267,13 +228,9 @@ export function BadgeGallery({
               type="button"
               onClick={() => setSelectedId(badge.id)}
               aria-label={badge.name}
-              className="border-border hover:bg-muted/50 focus-visible:outline-ring flex h-full w-full cursor-pointer flex-col items-center gap-3 rounded-2xl border px-3 py-5 text-center focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="bg-background border-border hover:bg-muted focus-visible:outline-ring isolate flex h-full w-full cursor-pointer flex-col items-center gap-3 rounded-2xl border px-3 py-5 text-center focus-visible:outline-2 focus-visible:outline-offset-2"
             >
-              <BadgeEmblem
-                icon={badge.icon}
-                color={badge.color}
-                collected={!!badge.collectedAt}
-              />
+              <BadgeEmblem id={badge.id} collected={!!badge.collectedAt} />
               <span className="flex flex-col gap-1">
                 <span className="text-sm font-medium">{badge.name}</span>
                 <span className="text-muted-foreground text-xs">
@@ -302,11 +259,11 @@ export function BadgeGallery({
         }}
       >
         {selected && (
-          <DialogContent className="max-w-sm rounded-2xl">
+          <DialogContent className="isolate max-w-sm rounded-2xl">
             <div className="flex justify-center py-2">
               <BadgeEmblem
-                icon={selected.icon}
-                color={selected.color}
+                id={selected.id}
+                large
                 collected={!!selected.collectedAt}
               />
             </div>
@@ -343,26 +300,33 @@ export function BadgeGallery({
 }
 
 function BadgeEmblem({
-  icon: IconComponent,
-  color,
+  id,
   collected,
+  large = false,
 }: {
-  icon: Icon;
-  color: string;
+  id: BadgeId;
   collected: boolean;
+  large?: boolean;
 }) {
   return (
-    <span className="relative inline-flex size-16 shrink-0" aria-hidden="true">
-      <span
+    <span
+      className={cn([
+        "relative inline-flex shrink-0",
+        large ? "size-36" : "size-24",
+      ])}
+      aria-hidden="true"
+    >
+      <img
+        src={`/assets/badges/${id}.webp`}
+        alt=""
+        width={512}
+        height={512}
+        draggable={false}
         className={cn([
-          "rounded-pill flex size-full items-center justify-center border-2",
-          collected
-            ? color
-            : "border-border bg-muted text-muted-foreground border-dashed",
+          "size-full object-contain mix-blend-multiply dark:mix-blend-screen dark:invert",
+          !collected && "opacity-30",
         ])}
-      >
-        <IconComponent className="size-7" />
-      </span>
+      />
       {collected && (
         <span className="bg-background border-border rounded-pill absolute right-0 bottom-0 flex size-5 items-center justify-center border">
           <Check className="size-3" />

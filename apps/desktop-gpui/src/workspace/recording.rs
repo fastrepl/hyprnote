@@ -32,6 +32,9 @@ pub(crate) struct BatchState {
     pub error: Option<String>,
     /// `stop_transcription`: aborts the running `run_batch` task.
     pub abort: Option<tokio::task::AbortHandle>,
+    /// The capture marker's transcript id when this is a post-stop repair,
+    /// so a stop can clear the recovery it would otherwise leave behind.
+    pub lifecycle_transcript_id: Option<String>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -330,6 +333,9 @@ pub(crate) struct RecordingState {
     /// Captures whose final transcript flush and `Inactive` event are still
     /// meeting up for `finalizeStopped`, by session id.
     pub pending_post_capture: std::collections::HashMap<String, PendingPostCapture>,
+    /// Sessions whose batch `useRegenerateTranscript` started: its failure
+    /// raises the `Re-transcription failed` toast.
+    pub retranscribing: std::collections::HashSet<String>,
 }
 
 /// `onStopped` waits for both the transcript persistence flush and the
@@ -506,6 +512,7 @@ impl Workspace {
                 percentage: None,
                 error: None,
                 abort: None,
+                lifecycle_transcript_id: None,
             },
         );
         self.ensure_default_summary(cx);
@@ -567,6 +574,7 @@ impl Workspace {
                                 percentage: None,
                                 error: Some(error.to_string()),
                                 abort: None,
+                                lifecycle_transcript_id: None,
                             },
                         );
                     }
@@ -643,6 +651,12 @@ impl Workspace {
                 percentage: Some(0.0),
                 error: None,
                 abort: None,
+                lifecycle_transcript_id: match &batch_run.after {
+                    BatchFollowUp::CaptureLifecycle { marker, .. } => {
+                        Some(marker.transcript_id.clone())
+                    }
+                    BatchFollowUp::Standalone => None,
+                },
             },
         );
         self.ensure_default_summary(cx);
@@ -958,6 +972,7 @@ impl Workspace {
                                     if this.selected.as_deref() == Some(session_id.as_str()) {
                                         this.reload_note(session_id.clone(), cx);
                                     }
+                                    this.recording.retranscribing.remove(&session_id);
                                     match after {
                                         // `triggerEnhanceIfSummaryEmpty`; then
                                         // `runBatch`'s completion notification,
@@ -1610,6 +1625,9 @@ impl Workspace {
 
     /// `stopTranscription(sessionId)`: abort the batch job, then
     /// `handleBatchStopped` leaves the "Transcription stopped." error behind.
+    /// A stopped post-stop repair also clears its capture marker (#7473), so
+    /// the cancellation holds across a relaunch; the audio and the saved
+    /// transcripts stay.
     pub(super) fn stop_transcription(&mut self, session_id: String, cx: &mut Context<Self>) {
         let Some(batch) = self.recording.batch.get_mut(&session_id) else {
             return;
@@ -1620,7 +1638,13 @@ impl Workspace {
         if let Some(abort) = batch.abort.take() {
             abort.abort();
         }
-        self.fail_batch(session_id, "Transcription stopped.".to_string(), cx);
+        let lifecycle_transcript_id = batch.lifecycle_transcript_id.take();
+        // `isStoppedTranscriptionError`: no failure toast for a stop.
+        self.recording.retranscribing.remove(&session_id);
+        self.fail_batch(session_id.clone(), "Transcription stopped.".to_string(), cx);
+        if let Some(transcript_id) = lifecycle_transcript_id {
+            self.clear_capture_marker(session_id, transcript_id);
+        }
     }
 
     /// A failed post-stop repair (`finalizeStopped`'s `requestRecovery`):
@@ -1685,6 +1709,16 @@ impl Workspace {
 
     /// `handleBatchFailed(sessionId, error)`
     fn fail_batch(&mut self, session_id: String, error: String, cx: &mut Context<Self>) {
+        // `useRegenerateTranscript`'s catch: `handleBatchFailed` plus the toast
+        // with the message as its description (a stop stays quiet).
+        if self.recording.retranscribing.remove(&session_id) {
+            self.flash_with_description(
+                super::toast::FlashVariant::Error,
+                "Re-transcription failed",
+                error.clone(),
+                cx,
+            );
+        }
         self.recording.batch.insert(
             session_id,
             BatchState {
@@ -1692,6 +1726,7 @@ impl Workspace {
                 percentage: None,
                 error: Some(error),
                 abort: None,
+                lifecycle_transcript_id: None,
             },
         );
         self.ensure_default_summary(cx);
@@ -2582,7 +2617,12 @@ impl Workspace {
         let mode = self.session_mode(session_id);
         if let Some(batch) = self.batch_state(session_id) {
             if let Some(error) = &batch.error {
-                // `TranscriptEmptyState` with `error`.
+                // `useTranscriptScreen`: with words the viewer stays (`ready`);
+                // the `TranscriptEmptyState` with `error` is for a session
+                // without them.
+                if has_words {
+                    return None;
+                }
                 return Some(
                     transcript_screen()
                         .child(div().mb_5().child(crate::ui::icon(
@@ -2944,10 +2984,21 @@ impl Workspace {
     /// `useRegenerateTranscript` runs the batch pipeline over the stored
     /// audio, which needs a configured provider; the batch pipeline is not
     /// ported yet, so the missing-provider outcome is reported directly.
+    /// `useRegenerateTranscript`: `fsSyncCommands.audioPath` first (its
+    /// error toasts `Recording not found`), then the `whole_session` batch.
     pub(crate) fn retranscribe(&mut self, cx: &mut Context<Self>) {
         let Some(session_id) = self.selected.clone() else {
             return;
         };
+        if !self.store.audio_exists(&session_id) {
+            self.flash(
+                super::toast::FlashVariant::Error,
+                "Recording not found. It may have been deleted.",
+                cx,
+            );
+            return;
+        }
+        self.recording.retranscribing.insert(session_id.clone());
         let connection = self.store.stt_connection(&self.provider_settings);
         cx.spawn(async move |this, cx| {
             let connection = connection.await.ok().flatten();

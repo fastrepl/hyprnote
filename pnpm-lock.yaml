@@ -462,6 +462,9 @@ importers:
       '@anlg/user-error':
         specifier: workspace:*
         version: link:../../packages/user-error
+      '@anlg/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@expo/material-symbols':
         specifier: ^0.1.1
         version: 0.1.1

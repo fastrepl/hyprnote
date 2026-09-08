@@ -54,7 +54,12 @@ import {
   saveSessionTitle,
   useSessionDetail,
 } from "@/data/session";
-import { summarizeSession, useSessionSummaryState } from "@/data/summarize";
+import { sessionView, type SessionViewSelection } from "@/data/session-view";
+import {
+  summarizeSession,
+  useAutomaticSummary,
+  useSessionSummaryState,
+} from "@/data/summarize";
 import { transcribeSession, useTranscriptionState } from "@/data/transcribe";
 import {
   loadSessionTranscripts,
@@ -263,7 +268,7 @@ export default function NoteScreen() {
   const noteAttachments = useNoteAttachments(id);
   const transcriptState = useSessionHasTranscript(id);
   const summaryState = useSessionSummaryState(id);
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selection, setSelection] = useState<SessionViewSelection | null>(null);
   const transcription = useTranscriptionState(id);
   const [listening, setListening] = useState(listen === "1");
   const [editorFocused, setEditorFocused] = useState(false);
@@ -291,12 +296,34 @@ export default function NoteScreen() {
   const localAudioAvailable =
     audio.data?.availableLocally === true && localAudioFile?.exists === true;
   const hasRecordingHistory =
-    audio.data !== null || transcriptState.data === true;
+    Boolean(audio.data) || transcriptState.data === true;
   const active = listening && recorder.phase !== "saved";
-  const showTabs = !active && (hasRecordingHistory || Boolean(data?.summary));
-  const showMemos = !showTabs || selectedTab === 1;
-  const summaryPending = summaryState?.status === "pending";
+  const { tabs, current, selectedIndex } = sessionView({
+    sessionId: id,
+    active,
+    hasRecordingHistory,
+    hasSummary: Boolean(data?.summary),
+    hasTranscript: transcriptState.data === true,
+    selection,
+  });
+  const showMemos = current.type === "raw";
+  const automaticSummary = useAutomaticSummary(
+    id,
+    !active &&
+      !isLoading &&
+      Boolean(data) &&
+      !data?.summary &&
+      canSummarize &&
+      audio.data?.transcriptStatus === "complete" &&
+      transcriptState.data === true &&
+      transcription !== "running" &&
+      summaryState?.status !== "error",
+  );
+  const summaryPending =
+    summaryState?.status === "pending" || automaticSummary.isFetching;
   const summaryError = summaryState?.error;
+  const needsTranscription =
+    Boolean(audio.data) && audio.data?.transcriptStatus !== "complete";
   const localNoteAttachments = noteAttachments.map((attachment) => {
     const file = attachment.localRelativePath
       ? new File(Paths.document, "sessions", id, attachment.localRelativePath)
@@ -743,21 +770,28 @@ export default function NoteScreen() {
             onChangeText={(title) => onEdit({ title })}
             onFocus={() => setEditorFocused(true)}
           />
-          {showTabs && (
+          {tabs.length > 1 && (
             <View style={styles.tabs}>
               <SegmentedControl
-                values={["Summary", "Memos", "Transcript"]}
-                selectedIndex={selectedTab}
+                values={tabs.map((tab) =>
+                  tab.type === "enhanced"
+                    ? "Summary"
+                    : tab.type === "raw"
+                      ? "Memos"
+                      : "Transcript",
+                )}
+                selectedIndex={selectedIndex}
                 onChange={(event) => {
                   void flush();
                   Keyboard.dismiss();
                   setEditorFocused(false);
-                  setSelectedTab(event.nativeEvent.selectedSegmentIndex);
+                  const view = tabs[event.nativeEvent.selectedSegmentIndex];
+                  if (view) setSelection({ sessionId: id, active, view });
                 }}
               />
             </View>
           )}
-          {showTabs && selectedTab === 0 && (
+          {current.type === "enhanced" && (
             <ScrollView
               style={styles.summaryScroll}
               contentContainerStyle={styles.summary}
@@ -776,63 +810,23 @@ export default function NoteScreen() {
               )}
               {!data.summary && (
                 <Text style={styles.summaryText}>
-                  {summaryPending
-                    ? "Generating summary…"
-                    : transcription === "running"
-                      ? "Your summary will be generated when transcription finishes."
-                      : "Your meeting summary will appear here. Your memos are in the Memos tab."}
+                  {active
+                    ? "Your summary will be generated after the meeting."
+                    : summaryPending
+                      ? "Generating summary…"
+                      : transcription === "running"
+                        ? "Finishing transcription. Your summary will follow automatically."
+                        : needsTranscription
+                          ? "Your recording is saved. Finish transcription to get your summary."
+                          : "Your meeting summary will appear here. Your memos are in the Memos tab."}
                 </Text>
               )}
-              {summaryError && (
-                <Text accessibilityRole="alert" style={styles.summaryError}>
-                  {summaryError.message}
-                </Text>
-              )}
-              <Button
-                label={
-                  !canSummarize
-                    ? "Choose summary provider"
-                    : summaryError
-                      ? "Retry summary"
-                      : data.summary
-                        ? "Regenerate summary"
-                        : "Generate summary"
-                }
-                loading={summaryPending}
-                disabled={transcription === "running"}
-                variant="ghost"
-                size="small"
-                onPress={() =>
-                  canSummarize
-                    ? void summarizeSession(id, {
-                        beforeGenerate: () => flush(true),
-                      }).catch(() => {})
-                    : router.push("/settings/summary-provider")
-                }
-              />
-            </ScrollView>
-          )}
-          {showTabs && selectedTab === 2 && (
-            <SessionTranscript
-              sessionId={id}
-              recordingDetails={
+              {!active && needsTranscription && transcription !== "running" && (
                 <>
-                  {audio.data && localAudioAvailable && localAudioFile && (
-                    <View
-                      key={`${audio.data.filename}:${audio.data.createdAt}`}
-                    >
-                      <AudioChip
-                        uri={localAudioFile.uri}
-                        filename={audio.data.filename}
-                        sizeBytes={audio.data.sizeBytes}
-                      />
-                      <RecordingSyncCard audio={audio.data} />
-                    </View>
-                  )}
-                  {audio.data && !localAudioAvailable && (
+                  {!localAudioAvailable && (
                     <RemoteAudioCard
                       cloudAvailable={Boolean(
-                        audio.data.cloudObjectKey &&
+                        audio.data?.cloudObjectKey &&
                         auth.billing.isPro &&
                         auth.session?.access_token &&
                         env.supabaseUrl,
@@ -843,34 +837,133 @@ export default function NoteScreen() {
                       onChooseRecording={() => void handleChooseRecording()}
                     />
                   )}
-                  {audio.data &&
-                    localAudioAvailable &&
-                    audio.data.transcriptStatus !== "complete" &&
-                    transcriptState.data === false &&
-                    (transcription === "running" ? (
-                      <Text style={styles.transcribeStatus}>Transcribing…</Text>
-                    ) : (
-                      <Pressable
-                        hitSlop={4}
-                        onPress={() =>
-                          canTranscribe
-                            ? void transcribeSession(id)
-                            : router.push("/settings/transcription-provider")
-                        }
-                        style={({ pressed }) =>
-                          pressed && styles.transcribePressed
-                        }
-                      >
-                        <Text style={styles.transcribeAction}>
-                          {!canTranscribe
-                            ? "Choose transcription provider"
-                            : transcription === "failed"
-                              ? "Transcription failed — tap to retry"
-                              : "Tap to transcribe"}
-                        </Text>
-                      </Pressable>
-                    ))}
+                  {localAudioAvailable && (
+                    <Button
+                      label={
+                        canTranscribe
+                          ? "Retry transcription"
+                          : "Choose transcription provider"
+                      }
+                      variant="ghost"
+                      size="small"
+                      onPress={() =>
+                        canTranscribe
+                          ? void transcribeSession(id)
+                          : router.push("/settings/transcription-provider")
+                      }
+                    />
+                  )}
                 </>
+              )}
+              {summaryError && (
+                <Text accessibilityRole="alert" style={styles.summaryError}>
+                  {summaryError.message}
+                </Text>
+              )}
+              {!active &&
+                !needsTranscription &&
+                (!canSummarize ||
+                  summaryError ||
+                  data.summary ||
+                  (!audio.data && transcriptState.data)) && (
+                  <Button
+                    label={
+                      !canSummarize
+                        ? "Choose summary provider"
+                        : summaryError
+                          ? "Retry summary"
+                          : data.summary
+                            ? "Regenerate summary"
+                            : "Generate summary"
+                    }
+                    loading={summaryPending}
+                    disabled={transcription === "running"}
+                    variant="ghost"
+                    size="small"
+                    onPress={() =>
+                      canSummarize
+                        ? void summarizeSession(id, {
+                            beforeGenerate: () => flush(true),
+                          }).catch(() => {})
+                        : router.push("/settings/summary-provider")
+                    }
+                  />
+                )}
+            </ScrollView>
+          )}
+          {current.type === "transcript" && (
+            <SessionTranscript
+              sessionId={id}
+              live={
+                active
+                  ? {
+                      status: recorder.liveStatus,
+                      text: recorder.liveTranscript,
+                    }
+                  : undefined
+              }
+              recordingDetails={
+                !active && (
+                  <>
+                    {audio.data && localAudioAvailable && localAudioFile && (
+                      <View
+                        key={`${audio.data.filename}:${audio.data.createdAt}`}
+                      >
+                        <AudioChip
+                          uri={localAudioFile.uri}
+                          filename={audio.data.filename}
+                          sizeBytes={audio.data.sizeBytes}
+                        />
+                        <RecordingSyncCard audio={audio.data} />
+                      </View>
+                    )}
+                    {audio.data && !localAudioAvailable && (
+                      <RemoteAudioCard
+                        cloudAvailable={Boolean(
+                          audio.data.cloudObjectKey &&
+                          auth.billing.isPro &&
+                          auth.session?.access_token &&
+                          env.supabaseUrl,
+                        )}
+                        errorMessage={audioRestoreError}
+                        loading={restoringAudio}
+                        onDownloadRecording={() =>
+                          void handleDownloadRecording()
+                        }
+                        onChooseRecording={() => void handleChooseRecording()}
+                      />
+                    )}
+                    {audio.data &&
+                      localAudioAvailable &&
+                      audio.data.transcriptStatus !== "complete" &&
+                      transcriptState.data === false &&
+                      (transcription === "running" ? (
+                        <Text style={styles.transcribeStatus}>
+                          Transcribing…
+                        </Text>
+                      ) : (
+                        <Pressable
+                          hitSlop={4}
+                          onPress={() =>
+                            canTranscribe
+                              ? void transcribeSession(id)
+                              : router.push("/settings/transcription-provider")
+                          }
+                          style={({ pressed }) =>
+                            pressed && styles.transcribePressed
+                          }
+                        >
+                          <Text style={styles.transcribeAction}>
+                            {!canTranscribe
+                              ? "Choose transcription provider"
+                              : transcription === "failed"
+                                ? "Transcription failed — tap to retry"
+                                : "Tap to transcribe"}
+                          </Text>
+                        </Pressable>
+                      ))}
+                  </>
+                )
               }
             />
           )}
@@ -949,13 +1042,10 @@ export default function NoteScreen() {
 
       {active && (
         <ListeningSheet
-          sessionId={id}
           phase={recorder.phase}
           failure={recorder.failure}
           amplitude={recorder.amplitude}
           durationMs={recorder.durationMs}
-          liveStatus={recorder.liveStatus}
-          liveTranscript={recorder.liveTranscript}
           onStop={() => void handleStop()}
           onRetry={() => void handleRetryRecording()}
           onOpenSettings={() => void handleOpenSettings()}

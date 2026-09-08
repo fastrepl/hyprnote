@@ -119,7 +119,12 @@ const {
 } = await import("./providers.ts");
 const { requestProviderTranscription } =
   await import("../data/provider-transcription.ts");
-const { summarizeSession } = await import("../data/summarize.ts");
+const {
+  summarizeSession,
+  generateSummaryAfterTranscription,
+  automaticSummaryOptions,
+} = await import("../data/summarize.ts");
+const { queryClient } = await import("../lib/query-client.ts");
 const { loadSessionTranscripts } = await import("../data/transcripts.ts");
 const { Platform } = await import("react-native");
 
@@ -131,6 +136,7 @@ function signedInWith(claims) {
 }
 
 beforeEach(() => {
+  queryClient.clear();
   Platform.OS = "ios";
   fixture.nativeRequest = null;
   fixture.nativeError = null;
@@ -1679,6 +1685,111 @@ test("automatic and manual summary requests share an in-flight generation", asyn
       )
       .get().count,
     1,
+  );
+});
+
+test("completed transcription fills an empty desktop summary without creating a duplicate", async () => {
+  createNote();
+  signedInWith({
+    subscription_status: "active",
+    entitlements: ["hyprnote_pro"],
+  });
+  fixture.db
+    .prepare("UPDATE sessions SET title = 'Planning' WHERE id = 'note-1'")
+    .run();
+  const placeholder = JSON.stringify({
+    type: "doc",
+    content: [
+      {
+        type: "heading",
+        attrs: { level: 1 },
+        content: [{ type: "text", text: "Planning" }],
+      },
+      { type: "paragraph" },
+    ],
+  });
+  fixture.db
+    .prepare(
+      "INSERT INTO session_documents (id, session_id, kind, title, body_format, body) VALUES ('desktop-summary', 'note-1', ?, 'Key decisions', 'prosemirror_json', ?)",
+    )
+    .run("summary", placeholder);
+  generateSummaryAfterTranscription("note-1");
+  await summarizeSession("note-1", { automatic: true });
+  assert.equal(fixture.requests.length, 1);
+  const documents = fixture.db
+    .prepare(
+      "SELECT id, title, body, body_format FROM session_documents WHERE kind IN ('summary', 'template_output')",
+    )
+    .all();
+  assert.equal(documents.length, 1);
+  assert.equal(documents[0].id, "desktop-summary");
+  assert.equal(documents[0].title, "Key decisions");
+  assert.equal(documents[0].body, "## Decisions\nShip the mobile app.");
+  assert.equal(documents[0].body_format, "markdown");
+});
+
+test("reopening a completed recording recovers its missing summary and reuses an in-flight generation", async () => {
+  createNote();
+  signedInWith({
+    subscription_status: "active",
+    entitlements: ["hyprnote_pro"],
+  });
+  let release;
+  fixture.respond = () =>
+    new Promise((resolve) => {
+      release = resolve;
+    });
+  generateSummaryAfterTranscription("note-1");
+  const recovering = queryClient.fetchQuery(automaticSummaryOptions("note-1"));
+  while (!release) await new Promise((resolve) => setImmediate(resolve));
+  release(
+    Response.json({
+      choices: [{ message: { content: "Recovered after stopping" } }],
+    }),
+  );
+  await recovering;
+  assert.equal(fixture.requests.length, 1);
+  queryClient.clear();
+  await queryClient.fetchQuery(automaticSummaryOptions("note-1"));
+  assert.equal(fixture.requests.length, 1);
+  assert.equal(
+    fixture.db
+      .prepare("SELECT body FROM session_documents WHERE kind = 'summary'")
+      .get().body,
+    "Recovered after stopping",
+  );
+});
+
+test("automatic generation preserves a summary edited during generation even when its timestamp is unchanged", async () => {
+  createNote();
+  signedInWith({
+    subscription_status: "active",
+    entitlements: ["hyprnote_pro"],
+  });
+  fixture.db
+    .prepare(
+      "INSERT INTO session_documents (id, session_id, kind, body, updated_at) VALUES ('summary-1', 'note-1', 'summary', '', 'same-time')",
+    )
+    .run();
+  fixture.respond = () => {
+    fixture.db
+      .prepare(
+        "UPDATE session_documents SET body = 'Edited on desktop' WHERE id = 'summary-1'",
+      )
+      .run();
+    return Response.json({
+      choices: [{ message: { content: "Generated summary" } }],
+    });
+  };
+  await assert.rejects(
+    summarizeSession("note-1", { automatic: true }),
+    /note changed/,
+  );
+  assert.equal(
+    fixture.db
+      .prepare("SELECT body FROM session_documents WHERE id = 'summary-1'")
+      .get().body,
+    "Edited on desktop",
   );
 });
 

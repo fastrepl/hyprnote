@@ -23,6 +23,7 @@ on:
       - packages/db-react/**
       - packages/db-runtime/**
       - packages/provider-validation/**
+      - packages/utils/**
       - patches/expo-audio*.patch
       - package.json
       - pnpm-lock.yaml
@@ -47,6 +48,7 @@ on:
       - packages/db-react/**
       - packages/db-runtime/**
       - packages/provider-validation/**
+      - packages/utils/**
       - patches/expo-audio*.patch
       - package.json
       - pnpm-lock.yaml

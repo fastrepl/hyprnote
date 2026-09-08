@@ -1,9 +1,5 @@
-import { BottomSheet, RNHostView } from "@expo/ui";
-import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
 import {
   ActivityIndicator,
-  Keyboard,
   Pressable,
   StyleSheet,
   Text,
@@ -15,7 +11,6 @@ import type {
   RecorderPhase,
 } from "@/audio/use-session-recorder";
 import { DancingSticks } from "@/components/dancing-sticks";
-import { SessionTranscript } from "@/components/session-transcript";
 import {
   CornerCurve,
   LISTENING_CONTROL_HEIGHT,
@@ -53,25 +48,11 @@ function statusLabel(phase: RecorderPhase, durationMs: number): string {
   }
 }
 
-function transcriptionLabel(status: "connecting" | "live" | "fallback") {
-  switch (status) {
-    case "live":
-      return "Live transcription";
-    case "fallback":
-      return "Recording on this device";
-    default:
-      return "Connecting live transcript…";
-  }
-}
-
 export function ListeningSheet({
   phase,
   failure,
   amplitude,
   durationMs,
-  liveStatus,
-  liveTranscript,
-  sessionId,
   onStop,
   onRetry,
   onOpenSettings,
@@ -80,16 +61,12 @@ export function ListeningSheet({
   failure: RecorderFailure | null;
   amplitude: number;
   durationMs: number;
-  liveStatus: "connecting" | "live" | "fallback";
-  liveTranscript: string;
-  sessionId: string;
   onStop: () => void;
   onRetry: () => void;
   onOpenSettings: () => void;
 }) {
   const styles = useStyles();
   const Colors = useColors();
-  const [expanded, setExpanded] = useState(false);
   const permissionDenied =
     phase === "unavailable" &&
     (failure === "permission_denied" ||
@@ -155,57 +132,13 @@ export function ListeningSheet({
   const label = statusLabel(phase, durationMs);
 
   return (
-    <>
-      <View style={styles.dock}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open full transcript"
-          onPress={() => {
-            Keyboard.dismiss();
-            setExpanded(true);
-          }}
-          style={styles.heading}
-        >
-          <View style={styles.recordingDot} />
-          <Text style={styles.headingText}>{label}</Text>
-          <Ionicons name="chevron-up" size={20} color={Colors.muted} />
-        </Pressable>
-        {control}
+    <View style={styles.dock}>
+      <View style={styles.heading}>
+        <View style={styles.recordingDot} />
+        <Text style={styles.headingText}>{label}</Text>
       </View>
-      <BottomSheet
-        isPresented={expanded}
-        onDismiss={() => setExpanded(false)}
-        snapPoints={["half", "full"]}
-        contentPadding={0}
-      >
-        <RNHostView>
-          <View style={styles.content}>
-            <View style={styles.heading}>
-              <View style={styles.recordingDot} />
-              <Text style={styles.headingText}>{label}</Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Close transcript"
-                hitSlop={12}
-                onPress={() => setExpanded(false)}
-              >
-                <Ionicons name="chevron-down" size={22} color={Colors.muted} />
-              </Pressable>
-            </View>
-            {expanded && (
-              <SessionTranscript
-                sessionId={sessionId}
-                live={{ status: liveStatus, text: liveTranscript }}
-              />
-            )}
-            <View style={styles.controls}>
-              <Text style={styles.hint}>{transcriptionLabel(liveStatus)}</Text>
-              {control}
-            </View>
-          </View>
-        </RNHostView>
-      </BottomSheet>
-    </>
+      {control}
+    </View>
   );
 }
 
@@ -216,7 +149,6 @@ const useStyles = createStyleHook((Colors) => ({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.border,
   },
-  content: { flex: 1 },
   heading: {
     flexDirection: "row",
     alignItems: "center",
@@ -224,8 +156,6 @@ const useStyles = createStyleHook((Colors) => ({
     padding: Spacing.md,
   },
   headingText: { flex: 1, ...Typography.bodyStrong, color: Colors.ink },
-  hint: { ...Typography.caption, color: Colors.muted },
-  controls: { padding: Spacing.md, gap: Spacing.sm },
   recordingDot: {
     width: 10,
     height: 10,

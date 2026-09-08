@@ -1,5 +1,7 @@
 import type { LanguageModel } from "ai";
 
+import { hasSummaryContent } from "@anlg/utils/session";
+
 import { type EnhanceEligibilitySkipCode, getEligibility } from "./eligibility";
 import {
   discardPendingAutoEnhanceJob,
@@ -72,89 +74,6 @@ const PENDING_AUTO_ENHANCE_RECOVERY_INTERVAL_MS = 5_000;
 const MAX_AUTO_ENHANCE_FAILURES = 8;
 const AUTO_ENHANCE_BACKOFF_BASE_MS = 30_000;
 const AUTO_ENHANCE_BACKOFF_MAX_MS = 15 * 60_000;
-const TEXT_CONTAINER_TYPES = new Set([
-  "doc",
-  "heading",
-  "paragraph",
-  "text",
-  "codeBlock",
-  "blockquote",
-  "bulletList",
-  "orderedList",
-  "listItem",
-]);
-
-type TiptapNode = {
-  type?: string;
-  attrs?: Record<string, unknown>;
-  content?: TiptapNode[];
-  marks?: Array<{ type?: string; attrs?: Record<string, unknown> }>;
-  text?: string;
-};
-
-function hasMeaningfulTiptapContent(node: TiptapNode): boolean {
-  if (typeof node.text === "string" && node.text.trim()) {
-    return true;
-  }
-
-  if (!node.type || !TEXT_CONTAINER_TYPES.has(node.type)) {
-    return true;
-  }
-
-  return node.content?.some(hasMeaningfulTiptapContent) ?? false;
-}
-
-function collectTiptapText(node: TiptapNode): string {
-  const text = typeof node.text === "string" ? node.text : "";
-  return text + (node.content?.map(collectTiptapText).join("") ?? "");
-}
-
-function hasSummaryContent(value: unknown, sessionTitle?: string): boolean {
-  if (typeof value !== "string") {
-    return false;
-  }
-
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return false;
-  }
-
-  if (!trimmed.startsWith("{")) {
-    return true;
-  }
-
-  try {
-    const parsed = JSON.parse(trimmed);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      (parsed as { type?: unknown }).type === "doc"
-    ) {
-      const document = parsed as TiptapNode;
-      const blocks = document.content ?? [];
-      const firstBlock = blocks[0];
-      const firstBlockAttrs = firstBlock?.attrs ?? {};
-      const synthesizedTitle =
-        sessionTitle?.trim() &&
-        firstBlock?.type === "heading" &&
-        firstBlockAttrs.level === 1 &&
-        Object.keys(firstBlockAttrs).length === 1 &&
-        collectTiptapText(firstBlock).trim() === sessionTitle.trim() &&
-        !firstBlock.content?.some(
-          (child) =>
-            child.type !== "text" ||
-            !child.text?.trim() ||
-            Boolean(child.marks?.length),
-        );
-      return (synthesizedTitle ? blocks.slice(1) : blocks).some(
-        hasMeaningfulTiptapContent,
-      );
-    }
-    return true;
-  } catch {
-    return true;
-  }
-}
 
 function shouldHydrateTemplateTitle(
   currentTitle: string | null | undefined,

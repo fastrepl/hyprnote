@@ -2385,20 +2385,7 @@ impl Workspace {
                                 cx,
                             ),
                         ))
-                        .child(self.switch_setting_row(
-                SwitchRow {
-                    id: "setting-remember-speakers",
-                    title: "Remember speakers",
-                    description: Some(
-                                "Build voiceprints from meeting audio so speakers you name in a transcript are recognized in later meetings. Voiceprints never leave this device, and unnamed ones are deleted after 45 days.",
-                            ),
-                    key: "remember_speakers",
-                    legacy_path: &["general", "remember_speakers"],
-                    default: true,
-                    disabled: false,
-                },
-                cx,
-            ))
+                        // `AudioSettings`: Microphone, Audio file retention, Remember speakers.
                         .child(setting_row(
                             theme,
                             "Audio file retention",
@@ -2420,6 +2407,20 @@ impl Workspace {
                                 ),
                                 cx,
                             ),
+                        ))
+                        .child(self.switch_setting_row(
+                            SwitchRow {
+                                id: "setting-remember-speakers",
+                                title: "Remember speakers",
+                                description: Some(
+                                    "Build voiceprints from meeting audio so speakers you name in a transcript are recognized in later meetings. Voiceprints never leave this device, and unnamed ones are deleted after 45 days.",
+                                ),
+                                key: "remember_speakers",
+                                legacy_path: &["general", "remember_speakers"],
+                                default: true,
+                                disabled: false,
+                            },
+                            cx,
                         )),
                 ),
             )
@@ -3069,12 +3070,14 @@ pub(super) fn setting_row(
                         .child(title),
                 )
                 .when_some(description, |column, description| {
-                    column.child(
-                        div()
-                            .tw_text_xs()
-                            .text_color(theme.muted_foreground)
-                            .child(description),
-                    )
+                    // `<p className="text-muted-foreground text-xs">`: `pretty`,
+                    // on WebKit's floored 15px line.
+                    column.child(div().w_full().child(crate::ui::pretty_paragraph(
+                        description,
+                        px(12.0),
+                        px(15.0),
+                        theme.muted_foreground,
+                    )))
                 }),
         )
         .child(

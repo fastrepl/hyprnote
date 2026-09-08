@@ -420,6 +420,7 @@ impl Workspace {
         cx: &mut Context<Self>,
     ) -> Self {
         let font_family = crate::theme::ui_font_family(cx.text_system()).map(SharedString::from);
+        crate::ui::set_ui_font(font_family.clone());
         let mono_font_family =
             crate::theme::mono_font_family(cx.text_system()).map(SharedString::from);
         let diff_font_family =

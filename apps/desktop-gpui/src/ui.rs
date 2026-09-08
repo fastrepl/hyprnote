@@ -7,6 +7,38 @@ use gpui::{
 
 use crate::theme::{Theme, alpha};
 
+/// The resolved `system-ui` family, recorded once so free functions that
+/// shape text (`setting_row`'s description) use the workspace's font.
+static UI_FONT: std::sync::OnceLock<Option<SharedString>> = std::sync::OnceLock::new();
+
+pub fn set_ui_font(family: Option<SharedString>) {
+    let _ = UI_FONT.set(family);
+}
+
+pub fn ui_font() -> Option<SharedString> {
+    UI_FONT.get().cloned().flatten()
+}
+
+/// A `p` in the UI font: the app's global `p { text-wrap: pretty }` applies,
+/// so the paragraph wraps like WebKit's pretty algorithm rather than greedily.
+pub fn pretty_paragraph(
+    text: &str,
+    size: Pixels,
+    line_height: Pixels,
+    color: impl Into<gpui::Hsla>,
+) -> crate::prose_text::ProseText {
+    let font = gpui::font(ui_font().unwrap_or_else(|| "sans-serif".into()));
+    let run = gpui::TextRun {
+        len: text.len(),
+        font,
+        color: color.into(),
+        background_color: None,
+        underline: None,
+        strikethrough: None,
+    };
+    crate::prose_text::ProseText::new(text.to_string(), vec![run], size, line_height).pretty()
+}
+
 /// Tailwind font-size utilities set a line height too (12/16, 14/20, 16/24);
 /// GPUI's `text_xs`/`text_sm`/`text_base` only set the size and keep a φ line
 /// height, which makes every row taller than the web app's.

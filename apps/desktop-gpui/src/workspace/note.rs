@@ -218,16 +218,14 @@ impl Workspace {
         cx: &Context<Self>,
     ) -> Div {
         let theme = self.theme;
-        // `width: calc(${max(title.length, "Untitled".length)}ch + 2px)`
-        let title_chars = self
-            .title_input
-            .read(cx)
-            .text()
-            .chars()
-            .count()
-            .max("Untitled".len());
-        let ch = self.measure_text("0", px(14.0), window);
-        let title_width = ch * title_chars as f32 + px(2.0);
+        // #7397: the `w-fit` grid cell holds two invisible `px-px whitespace-pre`
+        // spans — the title and `Untitled` — so the field is as wide as the
+        // wider rendered text plus 2px, capped by `max-w-full`.
+        let title_text = self.title_input.read(cx).text().to_string();
+        let title_width = self
+            .measure_text(&title_text, px(14.0), window)
+            .max(self.measure_text("Untitled", px(14.0), window))
+            + px(2.0);
 
         // `showSidebarTimelineHeaderGutter` (sidebar collapsed) widens the
         // left padding to `pl-[32px]`; otherwise `pl-2`.

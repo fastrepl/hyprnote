@@ -72,7 +72,7 @@ export function ShareRecapOverflowMenu({
           <DotsThree className="size-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent variant="app" align="end" className="w-44">
+      <DropdownMenuContent variant="app" align="end">
         <AppFloatingPanel className={appFloatingMenuPanelClassName}>
           <DropdownMenuItem
             onSelect={() => onValueChange("email")}

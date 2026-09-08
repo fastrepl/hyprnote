@@ -617,6 +617,7 @@ impl Workspace {
                                             placeholder: "Search or create new",
                                             empty_message: "No models available.",
                                             width: None,
+                                            placement: super::settings::PanelPlacement::Select,
                                         }
                                     }),
                                     on_select: Rc::new(move |this, value, _, cx| {

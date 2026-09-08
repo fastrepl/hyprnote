@@ -33,6 +33,7 @@ mod live_transcript;
 mod llm_stream;
 mod mention;
 mod note_search;
+mod notification_apps;
 mod notifications;
 mod pre_meeting;
 mod prose_text;

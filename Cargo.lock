@@ -5467,6 +5467,7 @@ dependencies = [
  "db-app",
  "db-core",
  "deeplink-core",
+ "detect",
  "dirs 6.0.0",
  "export-core",
  "fs-sync-core",

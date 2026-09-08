@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use gpui::{
     AnyElement, ClickEvent, Context, Div, Focusable as _, MouseButton, SharedString, Stateful,
-    Window, div, prelude::*, px, rgb,
+    Window, div, prelude::*, px, relative, rgb,
 };
 
 use super::Workspace;
@@ -392,6 +392,7 @@ impl Workspace {
             }
             SettingsTab::Developers => self.ensure_developers(window, cx),
             SettingsTab::Stats | SettingsTab::Insights => self.ensure_stats(cx),
+            SettingsTab::Notifications => self.ensure_installed_apps(cx),
             _ => {}
         }
         self.settings_tab = Some(tab);
@@ -518,8 +519,9 @@ impl Workspace {
                         Some(theme.muted),
                         None,
                     ))
-                    .px_2()
-                    .py(px(2.0))
+                    // `border border-transparent px-2 py-0.5` as padding.
+                    .px(px(9.0))
+                    .py(px(3.0))
                     .tw_text_xs()
                     .font_weight(gpui::FontWeight::SEMIBOLD)
                     .text_color(theme.foreground)
@@ -1002,7 +1004,7 @@ impl Workspace {
                 .flex_col()
                 .gap_6()
                 .child(title)
-                .child(self.render_notification_settings(cx)),
+                .child(self.render_notification_settings(window, cx)),
             SettingsTab::Transcription => {
                 self.render_ai_settings(super::ai_settings::ProviderKind::Stt, title, window, cx)
             }
@@ -1149,7 +1151,7 @@ impl Workspace {
     /// disabled while notifications are off. Platform gating follows the web
     /// view: no Dock bounce row on macOS without the Dock icon, and no
     /// microphone detection on Windows.
-    fn render_notification_settings(&self, cx: &Context<Self>) -> Div {
+    fn render_notification_settings(&self, window: &Window, cx: &Context<Self>) -> Div {
         let theme = self.theme;
         let settings = &self.provider_settings;
         let disabled_all = settings.bool_setting(
@@ -1438,16 +1440,244 @@ impl Workspace {
                                         )
                                         .child(
                                             div()
+                                                .mb_3()
                                                 .tw_text_xs()
                                                 .text_color(theme.muted_foreground)
                                                 .child("Prevent selected apps from triggering meeting detection."),
-                                        ),
+                                        )
+                                        .child(self.render_excluded_apps(window, cx)),
                                 ),
                         )
                     }),
             );
         }
         page
+    }
+
+    /// `ignored_platforms` / `included_platforms`: JSON arrays stored as
+    /// strings, `[]` by default.
+    fn platform_setting(&self, key: &str) -> Vec<String> {
+        crate::notification_apps::parse_platforms(
+            self.provider_settings
+                .string_setting(key, &["notification", key])
+                .as_deref(),
+        )
+    }
+
+    /// `handleToggleIgnoredApp`: rewrite both lists and close the picker.
+    fn toggle_ignored_app(&mut self, bundle_id: &str, cx: &mut Context<Self>) {
+        if bundle_id.is_empty() {
+            return;
+        }
+        let (ignored, included) = crate::notification_apps::toggle_ignored_app(
+            bundle_id,
+            &self.platform_setting("ignored_platforms"),
+            &self.platform_setting("included_platforms"),
+            &self.default_ignored_apps,
+        );
+        let encode = |list: Vec<String>| {
+            serde_json::Value::String(serde_json::to_string(&list).unwrap_or_else(|_| "[]".into()))
+        };
+        self.set_setting("ignored_platforms", encode(ignored), cx);
+        self.set_setting("included_platforms", encode(included), cx);
+        self.close_select(cx);
+    }
+
+    /// `listInstalledApplications` once the page opens (a `useQuery`).
+    pub(super) fn ensure_installed_apps(&mut self, cx: &mut Context<Self>) {
+        if self.installed_apps.is_some() {
+            return;
+        }
+        self.installed_apps = Some(Rc::new(Vec::new()));
+        let task = self
+            .store
+            .runtime()
+            .spawn_blocking(anlg_detect::list_installed_apps);
+        cx.spawn(async move |this, cx| {
+            let Ok(apps) = task.await else {
+                return;
+            };
+            this.update(cx, |this, cx| {
+                this.installed_apps = Some(Rc::new(apps));
+                cx.notify();
+            })
+            .ok();
+        })
+        .detach();
+    }
+
+    /// The excluded-apps `Popover`: a `min-h-[38px] rounded-2xl border p-2`
+    /// chip box (the ignored apps as `Badge`s — `bg-accent text-muted-foreground`
+    /// with `(default)` for the default ignores, `bg-muted` otherwise — and the
+    /// `Search installed apps...` prompt) opening the cmdk panel of the apps
+    /// still excludable.
+    fn render_excluded_apps(&self, window: &Window, cx: &Context<Self>) -> Div {
+        let theme = self.theme;
+        let installed = self
+            .installed_apps
+            .clone()
+            .unwrap_or_else(|| Rc::new(Vec::new()));
+        let ignored_platforms = self.platform_setting("ignored_platforms");
+        let included_platforms = self.platform_setting("included_platforms");
+        let defaults = &self.default_ignored_apps;
+        let ignored_ids = crate::notification_apps::ignored_bundle_ids(
+            &installed,
+            &ignored_platforms,
+            &included_platforms,
+            defaults,
+        );
+        let options: Vec<SelectOption> = crate::notification_apps::ignorable_apps(
+            &installed,
+            &ignored_platforms,
+            &included_platforms,
+            "",
+            defaults,
+        )
+        .into_iter()
+        .map(|app| SelectOption {
+            value: app.id.clone(),
+            label: app.name.clone(),
+            detail: None,
+            glyph: None,
+        })
+        .collect();
+        // Radix `avoidCollisions`: the popover flips above the trigger when
+        // its input, padding and up to 250px of rows would not fit below it.
+        let panel_height = 46.0 + (8.0 + options.len() as f32 * 32.0).min(250.0);
+        let placement = match self.excluded_apps_bounds.get() {
+            Some(bounds)
+                if f32::from(bounds.bottom()) + 4.0 + panel_height
+                    > f32::from(window.viewport_size().height) - 8.0 =>
+            {
+                PanelPlacement::Above
+            }
+            _ => PanelPlacement::Below,
+        };
+        let spec = Rc::new(SelectSpec {
+            id: "excluded-apps",
+            current: None,
+            placeholder: "Search installed apps...",
+            options: Rc::new(options),
+            search: Some(SearchSpec {
+                placeholder: "Search installed apps...",
+                empty_message: "No apps found.",
+                width: None,
+                placement,
+            }),
+            on_select: Rc::new(|this, value, _, cx| this.toggle_ignored_app(&value, cx)),
+            combobox: None,
+        });
+        let open = self.open_select.as_ref().filter(|open| open.id == spec.id);
+        let spec_for_click = spec.clone();
+
+        let mut trigger = div()
+            .id("excluded-apps-trigger")
+            .flex()
+            .flex_wrap()
+            .items_center()
+            .gap_2()
+            .min_h(px(38.0))
+            .w_full()
+            .rounded(px(16.0))
+            .border_1()
+            .border_color(theme.border)
+            .p_2()
+            .cursor_text()
+            .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+            .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
+                if this
+                    .open_select
+                    .as_ref()
+                    .is_some_and(|open| open.id == spec_for_click.id)
+                {
+                    this.close_select(cx);
+                } else {
+                    this.open_select(&spec_for_click, window, cx);
+                }
+            }));
+        for bundle_id in ignored_ids {
+            let is_default = defaults.contains(&bundle_id);
+            let name = installed
+                .iter()
+                .find(|app| app.id == bundle_id)
+                .map(|app| app.name.clone())
+                .unwrap_or_else(|| bundle_id.clone());
+            let id_for_click = bundle_id.clone();
+            trigger = trigger.child(
+                // `Badge variant="secondary"` in `px-2 py-0.5 text-xs`; the
+                // control squircle stands in for its `rounded-full`.
+                div()
+                    .id(SharedString::from(format!("excluded-app-{bundle_id}")))
+                    .relative()
+                    .flex()
+                    .items_center()
+                    .gap_1()
+                    .child(crate::squircle::squircle(
+                        crate::squircle::CONTROL_RADIUS,
+                        Some(if is_default {
+                            theme.accent
+                        } else {
+                            theme.muted
+                        }),
+                        None,
+                    ))
+                    // `border border-transparent px-2 py-0.5`: the fill runs
+                    // under the transparent border, so it is padding here.
+                    .px(px(9.0))
+                    .py(px(3.0))
+                    .tw_text_xs()
+                    .font_weight(gpui::FontWeight::SEMIBOLD)
+                    .text_color(if is_default {
+                        theme.muted_foreground
+                    } else {
+                        theme.foreground
+                    })
+                    .child(SharedString::from(name))
+                    .when(is_default, |badge| {
+                        badge.child(div().text_size(px(10.0)).opacity(0.7).child("(default)"))
+                    })
+                    .child(
+                        // `Button variant="ghost" size="sm" className="ml-0.5 h-3 w-3 p-0"`
+                        div()
+                            .id(SharedString::from(format!(
+                                "excluded-app-remove-{bundle_id}"
+                            )))
+                            .ml(px(2.0))
+                            .size(px(12.0))
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .cursor_pointer()
+                            .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                            .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                                this.toggle_ignored_app(&id_for_click, cx);
+                            }))
+                            .child(icon("x", px(10.0), theme.foreground)),
+                    ),
+            );
+        }
+        trigger = trigger.child(
+            div()
+                .tw_text_sm()
+                .text_color(theme.muted_foreground)
+                .child("Search installed apps..."),
+        );
+
+        let bounds_cell = self.excluded_apps_bounds.clone();
+        div()
+            .relative()
+            .w_full()
+            .on_children_prepainted(move |bounds, _, _| {
+                if let Some(trigger) = bounds.first() {
+                    bounds_cell.set(Some(*trigger));
+                }
+            })
+            .child(trigger)
+            .when_some(open, |wrapper, open| {
+                let search = spec.search.as_ref().expect("the picker is searchable");
+                let panel = self.render_searchable_panel(&spec, search, open, cx);
+                wrapper.child(gpui::deferred(panel).with_priority(1))
+            })
     }
 
     /// `buildWebAppUrl("/auth")` with the desktop flow and deep-link scheme.
@@ -2349,6 +2579,7 @@ impl Workspace {
                                             placeholder: "Search language...",
                                             empty_message: "No matching languages found",
                                             width: None,
+                                            placement: PanelPlacement::Select,
                                         }),
                                         on_select: Rc::new(|this, value, _, cx| {
                                             // Changing the main language also drops it from
@@ -2412,6 +2643,7 @@ impl Workspace {
                                             placeholder: "Search timezone...",
                                             empty_message: "No results found.",
                                             width: Some(288.0),
+                                            placement: PanelPlacement::Select,
                                         }),
                                         on_select: Rc::new(|this, value, _, cx| {
                                             // Picking the system zone stores "" (`handleChange`).
@@ -3122,6 +3354,18 @@ pub(crate) struct SearchSpec {
     pub empty_message: &'static str,
     /// `dropdownClassName="w-72"`; otherwise the trigger width.
     pub width: Option<f32>,
+    pub placement: PanelPlacement,
+}
+
+/// Where the searchable panel sits relative to its anchor.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum PanelPlacement {
+    /// `SelectContent position="popper"`: 40px under the 36px select trigger.
+    Select,
+    /// A Radix popover under a trigger of any height (`sideOffset` 4).
+    Below,
+    /// The popover flipped above its trigger when it would leave the window.
+    Above,
 }
 
 type OnSelect = Rc<dyn Fn(&mut Workspace, String, &mut Window, &mut Context<Workspace>)>;
@@ -3567,7 +3811,6 @@ impl Workspace {
             .id(SharedString::from(format!("select-content-{id}")))
             .occlude()
             .absolute()
-            .top(px(40.0))
             .left_0()
             .flex()
             .flex_col()
@@ -3583,6 +3826,11 @@ impl Workspace {
         panel = match search.width {
             Some(width) => panel.w(px(width)),
             None => panel.w_full(),
+        };
+        panel = match search.placement {
+            PanelPlacement::Select => panel.top(px(40.0)),
+            PanelPlacement::Below => panel.top(relative(1.0)).mt(px(4.0)),
+            PanelPlacement::Above => panel.bottom(relative(1.0)).mb(px(4.0)),
         };
 
         let mut list = div()

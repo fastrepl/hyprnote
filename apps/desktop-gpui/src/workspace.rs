@@ -357,6 +357,12 @@ pub struct Workspace {
     /// `pre-meeting-brief-job.ts`'s `generating`: sessions whose brief is
     /// being written.
     brief_jobs: std::collections::HashSet<String>,
+    /// `listInstalledApplications`, loaded when the Notifications page opens.
+    installed_apps: Option<std::rc::Rc<Vec<anlg_detect::InstalledApp>>>,
+    /// `listDefaultIgnoredBundleIds`
+    default_ignored_apps: Vec<String>,
+    /// The excluded-apps trigger's last painted bounds, for the popover flip.
+    excluded_apps_bounds: std::rc::Rc<std::cell::Cell<Option<gpui::Bounds<gpui::Pixels>>>>,
 }
 
 impl Workspace {
@@ -528,6 +534,9 @@ impl Workspace {
             anchor_scrolled_once: false,
             hovered: None,
             brief_jobs: std::collections::HashSet::new(),
+            installed_apps: None,
+            default_ignored_apps: anlg_detect::default_ignored_bundle_ids(),
+            excluded_apps_bounds: std::rc::Rc::default(),
         };
         // Chips and the bottom fade depend on the scroll position.
         this.list_state

@@ -26,6 +26,7 @@ anlg-local-api-core = { workspace = true }
 anlg-notification = { workspace = true }
 anlg-search-index = { workspace = true }
 anlg-storage = { workspace = true }
+anlg-detect = { workspace = true, features = ["list"] }
 anlg-template-app = { workspace = true }
 anlg-template-app-legacy = { workspace = true }
 anlg-tiptap = { workspace = true }

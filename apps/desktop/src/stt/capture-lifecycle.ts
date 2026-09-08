@@ -646,7 +646,11 @@ export function useCaptureLifecycle(sessionId: string) {
             });
           } catch (error) {
             if (isStoppedTranscriptionError(error)) {
-              await requestRecovery();
+              await persistTranscriptWrite(() =>
+                clearCaptureLifecycleMarker(sessionId, transcriptId),
+              );
+              recoveryPending = false;
+              recoveryStateCleared = true;
               return;
             }
             console.error("[listener] post-stop transcript repair failed", {

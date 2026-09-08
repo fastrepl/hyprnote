@@ -2760,8 +2760,13 @@ describe("useStartListening", () => {
         ]);
         expect(resetEnhanceTasksMock).not.toHaveBeenCalled();
         expect(deleteProcessedAudioForRetentionMock).not.toHaveBeenCalled();
-        expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
-        expect(requestCaptureRecoveryMock).toHaveBeenCalledWith("session-1");
+        if (message === "Transcription stopped.") {
+          expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledOnce();
+          expect(requestCaptureRecoveryMock).not.toHaveBeenCalled();
+        } else {
+          expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
+          expect(requestCaptureRecoveryMock).toHaveBeenCalledWith("session-1");
+        }
         expect(
           saveCaptureLifecycleMarkerMock.mock.calls.slice(-1)[0]?.[0],
         ).toMatchObject({
@@ -3161,7 +3166,7 @@ describe("useStartListening", () => {
     expect(requestMainAutoEnhanceMock).not.toHaveBeenCalled();
   });
 
-  test("does not auto-enhance after the user cancels the batch repair", async () => {
+  test("ends automatic recovery after the user cancels the batch repair", async () => {
     useSessionHasTranscriptMock.mockReturnValue(true);
     runBatchMock.mockRejectedValueOnce(new Error("Transcription stopped."));
 
@@ -3188,8 +3193,68 @@ describe("useStartListening", () => {
     expect(saveCaptureLifecycleMarkerMock).not.toHaveBeenCalledWith(
       expect.objectContaining({ phase: "finalizing" }),
     );
-    expect(endCloudsyncActivityMock).not.toHaveBeenCalled();
-    expect(requestCaptureRecoveryMock).toHaveBeenCalledWith("session-1");
+    expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledWith(
+      "session-1",
+      "generated-id",
+    );
+    expect(endCloudsyncActivityMock).toHaveBeenCalledWith(
+      "capture",
+      "session-1:generated-id",
+    );
+    expect(requestCaptureRecoveryMock).not.toHaveBeenCalled();
+    expect(markSessionAudioTranscriptionCompleteMock).not.toHaveBeenCalled();
+    expect(deleteProcessedAudioForRetentionMock).not.toHaveBeenCalled();
+    expect(softDeleteTranscriptMock).not.toHaveBeenCalled();
+    expect(setBatchTranscriptionPendingMock).toHaveBeenLastCalledWith(
+      "session-1",
+      false,
+    );
+  });
+
+  test("does not restart cancelled recovery after reattaching or reloading", async () => {
+    attachLiveSessionMock.mockResolvedValue("inactive");
+    const marker = {
+      version: 1 as const,
+      sessionId: "session-1",
+      transcriptId: "transcript-before-reload",
+      startedAt: 1_000,
+      createdAt: "2026-07-24T00:00:00.000Z",
+      audioOffsetMs: 10_000,
+      preserveExistingTranscript: true,
+      ownerUserId: "user-1",
+      memo: "Existing memo",
+    };
+    let pendingMarker: typeof marker | null = marker;
+    loadCaptureLifecycleMarkerMock.mockImplementation(
+      async () => pendingMarker,
+    );
+    clearCaptureLifecycleMarkerMock.mockImplementation(async () => {
+      pendingMarker = null;
+    });
+    runBatchMock.mockRejectedValueOnce(new Error("Transcription stopped."));
+    const recovery = renderHook(() => useResumeListeningLifecycle("session-1"));
+
+    await act(async () => {
+      await expect(recovery.result.current()).resolves.toBe("inactive");
+      await expect(recovery.result.current()).resolves.toBe("inactive");
+    });
+    recovery.unmount();
+    const reloaded = renderHook(() => useResumeListeningLifecycle("session-1"));
+    await act(async () => {
+      await expect(reloaded.result.current()).resolves.toBe("inactive");
+    });
+
+    expect(runBatchMock).toHaveBeenCalledOnce();
+    expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledWith(
+      "session-1",
+      marker.transcriptId,
+    );
+    expect(finishCaptureRecoveryFinalizationMock).toHaveBeenCalledOnce();
+    expect(requestCaptureRecoveryMock).not.toHaveBeenCalled();
+    expect(requestAutoEnhanceMock).not.toHaveBeenCalled();
+    expect(markSessionAudioTranscriptionCompleteMock).not.toHaveBeenCalled();
+    expect(deleteProcessedAudioForRetentionMock).not.toHaveBeenCalled();
+    expect(softDeleteTranscriptMock).not.toHaveBeenCalled();
   });
 
   test("forwards auto-enhance to the main window when no enhancer service exists", async () => {

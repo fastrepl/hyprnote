@@ -387,6 +387,130 @@ pub async fn soft_delete(pool: &SqlitePool, table: &'static str, id: &str) -> an
     Ok(())
 }
 
+/// `mergeHumans(selectedHumanId, duplicateHumanId)`: the self contact (or the
+/// default user) stays primary, the duplicate's participants move over, its
+/// text fields are appended, and it is tombstoned.
+pub async fn merge_humans(
+    pool: &SqlitePool,
+    selected_human_id: &str,
+    duplicate_human_id: &str,
+) -> anyhow::Result<String> {
+    #[derive(sqlx::FromRow)]
+    struct Row {
+        id: String,
+        owner_user_id: String,
+        organization_id: String,
+        phone: String,
+        job_title: String,
+        linkedin_username: String,
+        memo: String,
+    }
+    let rows = sqlx::query_as::<_, Row>(
+        "SELECT id, owner_user_id, organization_id, phone, job_title, linkedin_username, memo \
+         FROM humans WHERE id IN (?, ?) AND deleted_at IS NULL",
+    )
+    .bind(selected_human_id)
+    .bind(duplicate_human_id)
+    .fetch_all(pool)
+    .await?;
+    let self_human_id = rows
+        .iter()
+        .find(|row| row.id == row.owner_user_id)
+        .map(|row| row.id.as_str())
+        .unwrap_or(if duplicate_human_id == crate::db::DEFAULT_USER_ID {
+            duplicate_human_id
+        } else {
+            selected_human_id
+        });
+    let primary_id = if self_human_id == duplicate_human_id {
+        duplicate_human_id
+    } else {
+        selected_human_id
+    };
+    let duplicate_id = if primary_id == selected_human_id {
+        duplicate_human_id
+    } else {
+        selected_human_id
+    };
+    let (Some(primary), Some(duplicate)) = (
+        rows.iter().find(|row| row.id == primary_id),
+        rows.iter().find(|row| row.id == duplicate_id),
+    ) else {
+        anyhow::bail!("Both contacts must exist before they can be merged");
+    };
+
+    let now = now_iso();
+    let mut tx = pool.begin().await?;
+    sqlx::query(
+        "UPDATE session_participants AS duplicate_mapping \
+         SET deleted_at = ?, updated_at = ? \
+         WHERE duplicate_mapping.human_id = ? \
+           AND duplicate_mapping.deleted_at IS NULL \
+           AND EXISTS ( \
+             SELECT 1 FROM session_participants AS primary_mapping \
+             WHERE primary_mapping.session_id = duplicate_mapping.session_id \
+               AND primary_mapping.human_id = ? \
+               AND primary_mapping.deleted_at IS NULL \
+           )",
+    )
+    .bind(&now)
+    .bind(&now)
+    .bind(duplicate_id)
+    .bind(primary_id)
+    .execute(&mut *tx)
+    .await?;
+    sqlx::query(
+        "UPDATE session_participants SET human_id = ?, updated_at = ? \
+         WHERE human_id = ? AND deleted_at IS NULL",
+    )
+    .bind(primary_id)
+    .bind(&now)
+    .bind(duplicate_id)
+    .execute(&mut *tx)
+    .await?;
+    sqlx::query(
+        "UPDATE humans SET job_title = ?, linkedin_username = ?, phone = ?, memo = ?, \
+         organization_id = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL",
+    )
+    .bind(merge_text(&primary.job_title, &duplicate.job_title))
+    .bind(merge_text(
+        &primary.linkedin_username,
+        &duplicate.linkedin_username,
+    ))
+    .bind(merge_text(&primary.phone, &duplicate.phone))
+    .bind(merge_text(&primary.memo, &duplicate.memo))
+    .bind(if primary.organization_id.is_empty() {
+        &duplicate.organization_id
+    } else {
+        &primary.organization_id
+    })
+    .bind(&now)
+    .bind(primary_id)
+    .execute(&mut *tx)
+    .await?;
+    sqlx::query(
+        "UPDATE humans SET deleted_at = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL",
+    )
+    .bind(&now)
+    .bind(&now)
+    .bind(duplicate_id)
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(primary_id.to_string())
+}
+
+/// `mergeText`
+fn merge_text(primary: &str, duplicate: &str) -> String {
+    if duplicate.is_empty() {
+        primary.to_string()
+    } else if primary.is_empty() {
+        duplicate.to_string()
+    } else {
+        format!("{primary}, {duplicate}")
+    }
+}
+
 /// `toggleContactPin`
 /// `updateOrganization(organizationId, { name })`
 pub async fn update_organization_name(
@@ -739,6 +863,64 @@ pub fn sort_and_filter_related_notes(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn merging_keeps_the_self_contact_and_moves_participants() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = anlg_db_core::Db::connect_local_plain(&dir.path().join("app.db"))
+            .await
+            .unwrap();
+        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let pool = db.pool();
+        sqlx::raw_sql(
+            "INSERT INTO humans (id, owner_user_id, organization_id, name, email, phone, job_title, linkedin_username, memo, created_at, updated_at)
+             VALUES ('me', 'me', '', 'Me', 'a@x.com', '', 'Founder', '', 'primary memo', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z'),
+                    ('dup', 'owner', 'org-1', 'Me too', 'a@x.com', '+1 555', 'CEO', 'me-too', 'dup memo', '2026-01-02T00:00:00Z', '2026-01-02T00:00:00Z');
+             INSERT INTO sessions (id, title, created_at) VALUES ('s1', 'Shared', '2026-01-03T00:00:00Z'), ('s2', 'Dup only', '2026-01-04T00:00:00Z');
+             INSERT INTO session_participants (id, session_id, human_id, created_at, updated_at)
+             VALUES ('p1', 's1', 'me', '2026-01-03T00:00:00Z', '2026-01-03T00:00:00Z'),
+                    ('p2', 's1', 'dup', '2026-01-03T00:00:00Z', '2026-01-03T00:00:00Z'),
+                    ('p3', 's2', 'dup', '2026-01-04T00:00:00Z', '2026-01-04T00:00:00Z');",
+        )
+        .execute(pool)
+        .await
+        .unwrap();
+
+        // Selecting the duplicate still keeps the self contact as primary.
+        assert_eq!(merge_humans(pool, "dup", "me").await.unwrap(), "me");
+
+        let (job_title, linkedin, phone, memo, organization_id): (String, String, String, String, String) =
+            sqlx::query_as(
+                "SELECT job_title, linkedin_username, phone, memo, organization_id FROM humans WHERE id = 'me' AND deleted_at IS NULL",
+            )
+            .fetch_one(pool)
+            .await
+            .unwrap();
+        assert_eq!(job_title, "Founder, CEO");
+        assert_eq!(linkedin, "me-too");
+        assert_eq!(phone, "+1 555");
+        assert_eq!(memo, "primary memo, dup memo");
+        assert_eq!(organization_id, "org-1");
+        let dup_deleted: Option<String> =
+            sqlx::query_scalar("SELECT deleted_at FROM humans WHERE id = 'dup'")
+                .fetch_one(pool)
+                .await
+                .unwrap();
+        assert!(dup_deleted.is_some());
+        let live: Vec<(String, String)> = sqlx::query_as(
+            "SELECT session_id, human_id FROM session_participants WHERE deleted_at IS NULL ORDER BY session_id",
+        )
+        .fetch_all(pool)
+        .await
+        .unwrap();
+        assert_eq!(
+            live,
+            vec![
+                ("s1".to_string(), "me".to_string()),
+                ("s2".to_string(), "me".to_string())
+            ]
+        );
+    }
 
     #[test]
     fn hash_matches_the_javascript_fnv() {

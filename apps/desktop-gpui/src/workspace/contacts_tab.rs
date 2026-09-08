@@ -626,6 +626,175 @@ impl Workspace {
         .detach();
     }
 
+    /// `handleMergeContacts(duplicateId)`: `mergeHumans(human.id, duplicateId)`;
+    /// the merged (possibly primary-swapped) contact stays selected by id.
+    fn merge_contacts(
+        &mut self,
+        selected_id: String,
+        duplicate_id: String,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let task = self.store.merge_humans(selected_id, duplicate_id);
+        cx.spawn_in(window, async move |this, cx| {
+            let result = task.await.map_err(anyhow::Error::from).and_then(|r| r);
+            this.update_in(cx, |this, window, cx| {
+                match result {
+                    // The surviving contact stays open with its merged fields.
+                    Ok(primary_id) => {
+                        if let Some(state) = this.contacts.as_mut() {
+                            state.selected = Some(Selection::Person(primary_id));
+                            state.details = None;
+                        }
+                    }
+                    Err(error) => {
+                        tracing::error!("[contacts] failed to merge contacts: {error}");
+                    }
+                }
+                this.reload_contacts(window, cx);
+            })
+            .ok();
+        })
+        .detach();
+    }
+
+    /// The `bg-red-50 border-b px-6 py-4` duplicate-contacts banner: one
+    /// `bg-muted rounded-md border p-2` row per human sharing the email, each
+    /// with a `size="sm"` Merge button.
+    fn render_duplicate_contacts(
+        &self,
+        human: &Human,
+        duplicates: &[Human],
+        window: &Window,
+        cx: &Context<Self>,
+    ) -> AnyElement {
+        let theme = self.theme;
+        let plural = duplicates.len() > 1;
+        // A `p`, so it wraps `pretty` like every paragraph in the app.
+        let description = {
+            let mut style = window.text_style();
+            style.font_size = px(14.0).into();
+            style.color = gpui::rgb(0x991b1b).into();
+            if let Some(font) = &self.font_family {
+                style.font_family = font.clone();
+            }
+            let text = format!(
+                "{} with the same email address {}. Merge to consolidate all related notes and information.",
+                if plural {
+                    format!("{} contacts", duplicates.len())
+                } else {
+                    "Another contact".to_string()
+                },
+                if plural { "exist" } else { "exists" }
+            );
+            let len = text.len();
+            crate::prose_text::ProseText::new(text, vec![style.to_run(len)], px(14.0), px(20.0))
+                .pretty()
+        };
+        div()
+            .border_b_1()
+            .border_color(theme.border)
+            .bg(gpui::rgb(0xfef2f2))
+            .px_6()
+            .py_4()
+            .child(
+                div()
+                    .mb_1()
+                    .tw_text_sm()
+                    .font_weight(gpui::FontWeight::SEMIBOLD)
+                    .text_color(gpui::rgb(0x7f1d1d))
+                    .child(if plural {
+                        "Duplicate Contacts Found"
+                    } else {
+                        "Duplicate Contact Found"
+                    }),
+            )
+            .child(div().mb_3().child(description))
+            .child(
+                div()
+                    .flex()
+                    .flex_col()
+                    .gap_2()
+                    .children(duplicates.iter().map(|dup| {
+                        let (selected_id, duplicate_id) = (human.id.clone(), dup.id.clone());
+                        div()
+                            .flex()
+                            .items_center()
+                            .justify_between()
+                            .rounded_md()
+                            .border_1()
+                            .border_color(theme.border)
+                            .bg(theme.muted)
+                            .p_2()
+                            .child(
+                                div()
+                                    .flex()
+                                    .items_center()
+                                    .gap_2()
+                                    .child(self.render_human_avatar(dup, 32.0))
+                                    .child(
+                                        div()
+                                            .child(
+                                                div()
+                                                    .tw_text_sm()
+                                                    .font_weight(gpui::FontWeight::MEDIUM)
+                                                    .text_color(theme.foreground)
+                                                    .child(SharedString::from(
+                                                        if dup.name.is_empty() {
+                                                            "Unnamed Contact".to_string()
+                                                        } else {
+                                                            dup.name.clone()
+                                                        },
+                                                    )),
+                                            )
+                                            .child(
+                                                div()
+                                                    .tw_text_xs()
+                                                    .text_color(theme.muted_foreground)
+                                                    .child(SharedString::from(dup.email.clone())),
+                                            ),
+                                    ),
+                            )
+                            .child(
+                                // `Button size="sm" variant="default"`: `h-7 px-2 text-xs`.
+                                div()
+                                    .id(SharedString::from(format!("merge-{}", dup.id)))
+                                    .relative()
+                                    .flex()
+                                    .h(px(28.0))
+                                    .flex_shrink_0()
+                                    .items_center()
+                                    .px_2()
+                                    .child(crate::squircle::squircle(
+                                        crate::squircle::CONTROL_RADIUS,
+                                        Some(theme.primary),
+                                        None,
+                                    ))
+                                    .hover(move |style| style.opacity(0.9))
+                                    .tw_text_xs()
+                                    .font_weight(gpui::FontWeight::MEDIUM)
+                                    .text_color(theme.primary_foreground)
+                                    .cursor_pointer()
+                                    .on_mouse_down(MouseButton::Left, |_, _, cx| {
+                                        cx.stop_propagation()
+                                    })
+                                    .on_click(cx.listener(
+                                        move |this, _: &ClickEvent, window, cx| {
+                                            this.merge_contacts(
+                                                selected_id.clone(),
+                                                duplicate_id.clone(),
+                                                window,
+                                                cx,
+                                            );
+                                        },
+                                    ))
+                                    .child("Merge"),
+                            )
+                    })),
+            )
+            .into_any_element()
+    }
+
     /// `NewPersonForm` Enter: `createHuman({ name })`, then select it.
     fn submit_new_person(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let Some(state) = self.contacts.as_mut() else {
@@ -1515,6 +1684,17 @@ impl Workspace {
             .iter()
             .find(|o| o.id == human.organization_id)
             .cloned();
+        // `duplicatesWithData`: other humans sharing a non-empty email.
+        let duplicates: Vec<Human> = if human.email.is_empty() {
+            Vec::new()
+        } else {
+            state
+                .humans
+                .iter()
+                .filter(|candidate| candidate.id != human.id && candidate.email == human.email)
+                .cloned()
+                .collect()
+        };
 
         let (pin_id, del_id) = (id.clone(), id.clone());
         let menu = MenuSpec {
@@ -1657,6 +1837,9 @@ impl Workspace {
                         cx,
                     )),
             )
+            .when(!duplicates.is_empty(), |body| {
+                body.child(self.render_duplicate_contacts(human, &duplicates, window, cx))
+            })
             .child(
                 div()
                     .child(row("Name", field("contact-name", &details.name)))

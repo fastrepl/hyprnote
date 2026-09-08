@@ -2816,6 +2816,18 @@ impl Store {
             .spawn(async move { crate::contacts::toggle_pin(db.pool(), table, &id).await })
     }
 
+    /// `mergeHumans(selectedHumanId, duplicateHumanId)`
+    pub fn merge_humans(
+        &self,
+        selected_human_id: String,
+        duplicate_human_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<String>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            crate::contacts::merge_humans(db.pool(), &selected_human_id, &duplicate_human_id).await
+        })
+    }
+
     /// `deleteHuman` / `deleteOrganization`
     pub fn delete_contact(
         &self,

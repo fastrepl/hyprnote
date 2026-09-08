@@ -1442,38 +1442,63 @@ impl Workspace {
             .into_any_element()
         } else if let Some(editor) = state.editor.as_ref().filter(|editor| editor.deleting) {
             let busy = editor.busy;
+            // `DialogDescription`: a `p` at `text-[13px] leading-[1.36]` (17px in
+            // WebKit), centred, wrapped `pretty` like every `p` in the app.
+            let description = {
+                let mut style = window.text_style();
+                style.font_size = px(13.0).into();
+                style.color = theme.foreground.into();
+                if let Some(font) = &self.font_family {
+                    style.font_family = font.clone();
+                }
+                let text = "Notes stay in All notes. This folder, its nested folders, and all their materials will be deleted.";
+                crate::prose_text::ProseText::new(
+                    text.to_string(),
+                    vec![style.to_run(text.len())],
+                    px(13.0),
+                    px(17.0),
+                )
+                .centered()
+                .pretty()
+            };
             card(vec![
                 title("Delete folder")
-                    .child(
-                        div()
-                            .w_full()
-                            .text_center()
-                            .text_size(px(13.0))
-                            .line_height(px(17.0))
-                            .text_color(theme.foreground)
-                            .child("Notes stay in All notes. This folder, its nested folders, and all their materials will be deleted."),
-                    )
+                    .child(div().w_full().child(description))
                     .into_any_element(),
                 div()
                     .flex()
                     .gap_2()
                     .child(
                         div().flex_1().child(
-                            glass_button("delete-folder-cancel", "Cancel", GlassButton::Cancel, busy)
-                                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                            glass_button(
+                                "delete-folder-cancel",
+                                "Cancel",
+                                GlassButton::Cancel,
+                                busy,
+                            )
+                            .on_click(cx.listener(
+                                |this, _: &ClickEvent, _, cx| {
                                     if let Some(editor) = this.folder_editor_mut() {
                                         editor.deleting = false;
                                         cx.notify();
                                     }
-                                })),
+                                },
+                            )),
                         ),
                     )
                     .child(
                         div().flex_1().child(
-                            glass_button("delete-folder-confirm", "Delete folder", GlassButton::Destructive, busy)
-                                .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                            glass_button(
+                                "delete-folder-confirm",
+                                "Delete folder",
+                                GlassButton::Destructive,
+                                busy,
+                            )
+                            .on_click(cx.listener(
+                                |this, _: &ClickEvent, window, cx| {
                                     this.confirm_delete_folder(window, cx);
-                                })),
+                                },
+                            )),
                         ),
                     )
                     .into_any_element(),

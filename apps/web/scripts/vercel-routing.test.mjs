@@ -84,3 +84,28 @@ test("public asset redirects and legacy host redirects preserve suffixes", () =>
   );
   assert.equal(routeFor("https://anarlog.so/blog/old-article/"), undefined);
 });
+
+// Canonical navigation uses trailingSlash: "always". CDN redirects run first.
+test("exact page redirects accept canonical trailing slashes", () => {
+  for (const [host, path, destination] of [
+    ["anarlog.so", "/faq", "/"],
+    ["anarlog.so", "/about", "/"],
+    ["anarlog.so", "/roadmap", "/changelog/"],
+    ["anarlog.so", "/skill", "/skill.md"],
+    ["anarlog.so", "/skills", "https://docs.anarlog.so/agents/skills"],
+    ["anarlog.so", "/docs", "https://docs.anarlog.so"],
+    ["anarlog.so", "/blog/filesystem-is-coretex", "/blog/"],
+    ["hyprnote.com", "/auth", "https://char.com/auth"],
+    ["hyprnote.com", "/download", "https://char.com/download"],
+    ["hyprnote.com", "/pricing", "https://char.com/pricing"],
+    ["char.com", "/privacy", "https://anarlog.so/privacy"],
+    ["www.char.com", "/terms", "https://anarlog.so/terms"],
+  ]) {
+    for (const suffix of ["", "/"]) {
+      const url = `https://${host}${path}${suffix}`;
+      const route = routeFor(url);
+      assert.equal(route?.status, 301, url);
+      assert.equal(route?.destination, destination, url);
+    }
+  }
+});

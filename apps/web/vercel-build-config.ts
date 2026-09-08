@@ -101,7 +101,7 @@ const routes = [
     },
   },
   {
-    src: "^/skill$",
+    src: "^/skill/?$",
     status: 301,
     headers: {
       Location: "/skill.md",
@@ -122,7 +122,7 @@ const routes = [
     ],
   },
   {
-    src: "^/skills$",
+    src: "^/skills/?$",
     status: 301,
     headers: {
       Location: "https://docs.anarlog.so/agents/skills",
@@ -171,7 +171,7 @@ const routes = [
     ],
   },
   {
-    src: "^/docs$",
+    src: "^/docs/?$",
     status: 301,
     headers: {
       Location: "https://docs.anarlog.so",
@@ -185,7 +185,7 @@ const routes = [
     },
   },
   {
-    src: "^/auth$",
+    src: "^/auth/?$",
     has: [
       {
         type: "host",
@@ -289,28 +289,28 @@ const routes = [
     },
   },
   {
-    src: "^/blog/filesystem-is-coretex$",
+    src: "^/blog/filesystem-is-coretex/?$",
     status: 301,
     headers: {
       Location: "/blog/",
     },
   },
   {
-    src: "^/faq$",
+    src: "^/faq/?$",
     status: 301,
     headers: {
       Location: "/",
     },
   },
   {
-    src: "^/about$",
+    src: "^/about/?$",
     status: 301,
     headers: {
       Location: "/",
     },
   },
   {
-    src: "^/roadmap$",
+    src: "^/roadmap/?$",
     status: 301,
     headers: {
       Location: "/changelog/",
@@ -324,7 +324,7 @@ const routes = [
     },
   },
   {
-    src: "^/roadmap$",
+    src: "^/roadmap/?$",
     has: [
       {
         type: "host",
@@ -415,7 +415,7 @@ const routes = [
     },
   },
   {
-    src: "^/download$",
+    src: "^/download/?$",
     has: [
       {
         type: "host",
@@ -428,7 +428,7 @@ const routes = [
     },
   },
   {
-    src: "^/pricing$",
+    src: "^/pricing/?$",
     has: [
       {
         type: "host",
@@ -441,7 +441,7 @@ const routes = [
     },
   },
   {
-    src: "^/about$",
+    src: "^/about/?$",
     has: [
       {
         type: "host",
@@ -454,7 +454,7 @@ const routes = [
     },
   },
   {
-    src: "^/opensource$",
+    src: "^/opensource/?$",
     has: [
       {
         type: "host",
@@ -467,7 +467,7 @@ const routes = [
     },
   },
   {
-    src: "^/enterprise$",
+    src: "^/enterprise/?$",
     has: [
       {
         type: "host",
@@ -480,7 +480,7 @@ const routes = [
     },
   },
   {
-    src: "^/security$",
+    src: "^/security/?$",
     has: [
       {
         type: "host",
@@ -493,7 +493,7 @@ const routes = [
     },
   },
   {
-    src: "^/free$",
+    src: "^/free/?$",
     has: [
       {
         type: "host",
@@ -506,7 +506,7 @@ const routes = [
     },
   },
   {
-    src: "^/contact$",
+    src: "^/contact/?$",
     has: [
       {
         type: "host",
@@ -643,7 +643,7 @@ const routes = [
     },
   },
   {
-    src: "^/privacy$",
+    src: "^/privacy/?$",
     has: [
       {
         type: "host",
@@ -656,7 +656,7 @@ const routes = [
     },
   },
   {
-    src: "^/privacy$",
+    src: "^/privacy/?$",
     has: [
       {
         type: "host",
@@ -669,7 +669,7 @@ const routes = [
     },
   },
   {
-    src: "^/terms$",
+    src: "^/terms/?$",
     has: [
       {
         type: "host",
@@ -682,7 +682,7 @@ const routes = [
     },
   },
   {
-    src: "^/terms$",
+    src: "^/terms/?$",
     has: [
       {
         type: "host",

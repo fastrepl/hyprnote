@@ -40,15 +40,26 @@ impl Workspace {
     pub(crate) fn set_group_by(&mut self, group_by: GroupBy, cx: &mut Context<Self>) {
         if self.group_by != group_by {
             self.group_by = group_by;
-            self.rebuild_timeline(cx);
+            self.rebuild_timeline_for_view_change(cx);
         }
     }
 
     pub(crate) fn set_sort_order(&mut self, order: SortOrder, cx: &mut Context<Self>) {
         if self.sort_order != order {
             self.sort_order = order;
-            self.rebuild_timeline(cx);
+            self.rebuild_timeline_for_view_change(cx);
         }
+    }
+
+    /// A grouping or ordering change re-keys the web view's list, which
+    /// comes back at `scrollTop` 0, unlike the live-query refreshes that keep
+    /// their place.
+    fn rebuild_timeline_for_view_change(&mut self, cx: &mut Context<Self>) {
+        self.rebuild_timeline(cx);
+        self.list_state.scroll_to(gpui::ListOffset {
+            item_ix: 0,
+            offset_in_item: gpui::px(0.0),
+        });
     }
 
     pub(super) fn render_filter_menu(

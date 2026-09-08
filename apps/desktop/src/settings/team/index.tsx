@@ -62,6 +62,7 @@ import {
   type WorkspacePolicy,
   type WorkspaceRole,
 } from "./client";
+import { WorkspaceEmailAutoJoin } from "./email-auto-join";
 import {
   deliverWorkspaceInvitation,
   getTeamSenderName,
@@ -637,6 +638,10 @@ function WorkspacePanel({
             </Button>
           ) : null}
         </div>
+
+        {workspaceRole === "owner" && canManageMembers ? (
+          <WorkspaceEmailAutoJoin workspaceId={workspaceId} />
+        ) : null}
 
         {members.isPending ? (
           <TeamSkeleton />

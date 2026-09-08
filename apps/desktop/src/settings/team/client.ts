@@ -512,6 +512,35 @@ export async function claimWorkspaceDomain(
   });
 }
 
+export async function getWorkspaceEmailAutoJoin(
+  context: TeamContext,
+  workspaceId: string,
+) {
+  assertWorkspaceId(workspaceId);
+  const row = rows(
+    await callRpc(context, "get_workspace_email_auto_join", {
+      p_workspace_id: workspaceId,
+    }),
+  )[0];
+  if (!row) throw new TeamError();
+  return {
+    domain: typeof row.domain === "string" ? row.domain : null,
+    enabled: row.enabled === true,
+  };
+}
+
+export async function setWorkspaceEmailAutoJoin(
+  context: TeamContext,
+  workspaceId: string,
+  enabled: boolean,
+) {
+  assertWorkspaceId(workspaceId);
+  await callRpc(context, "set_workspace_email_auto_join", {
+    p_workspace_id: workspaceId,
+    p_enabled: enabled,
+  });
+}
+
 export async function setWorkspaceShareSlug(
   context: TeamContext,
   workspaceId: string,

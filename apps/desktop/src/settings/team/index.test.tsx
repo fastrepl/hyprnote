@@ -82,6 +82,8 @@ const mocks = vi.hoisted(() => ({
         requireSso: false,
       }),
     ),
+    getWorkspaceEmailAutoJoin: vi.fn(),
+    setWorkspaceEmailAutoJoin: vi.fn(),
     setWorkspaceShareSlug: vi.fn(() =>
       Promise.resolve({
         shareSlug: "fastrepl",
@@ -180,6 +182,8 @@ vi.mock("./client", () => ({
   getWorkspaceUsageOverview: () => Promise.resolve(mocks.client.usage),
   getWorkspaceAccess: mocks.client.getWorkspaceAccess,
   getWorkspacePolicy: mocks.client.getWorkspacePolicy,
+  getWorkspaceEmailAutoJoin: mocks.client.getWorkspaceEmailAutoJoin,
+  setWorkspaceEmailAutoJoin: mocks.client.setWorkspaceEmailAutoJoin,
   setWorkspacePolicy: vi.fn(() => Promise.resolve()),
   setWorkspaceShareSlug: mocks.client.setWorkspaceShareSlug,
   checkWorkspaceShareSlugAvailability:
@@ -247,6 +251,13 @@ describe("SettingsTeam", () => {
     mocks.client.renameWorkspace.mockClear();
     mocks.client.setWorkspaceLogo.mockClear();
     mocks.client.getWorkspacePolicy.mockClear();
+    mocks.client.getWorkspaceEmailAutoJoin.mockReset();
+    mocks.client.getWorkspaceEmailAutoJoin.mockResolvedValue({
+      domain: "fastrepl.com",
+      enabled: false,
+    });
+    mocks.client.setWorkspaceEmailAutoJoin.mockReset();
+    mocks.client.setWorkspaceEmailAutoJoin.mockResolvedValue(undefined);
     mocks.client.setWorkspaceShareSlug.mockClear();
     mocks.invitation.deliverWorkspaceInvitation.mockClear();
     mocks.billingCheckout.buildWebAppUrl.mockClear();
@@ -261,6 +272,115 @@ describe("SettingsTeam", () => {
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
+  });
+
+  it("lets a Team owner enable joining for the verified company domain", async () => {
+    mocks.workspaces.data = [
+      {
+        workspaceId: "ws",
+        name: "Fastrepl",
+        ownerUserId: "user-1",
+        role: "owner",
+      },
+    ];
+    renderTeam();
+    openWorkspace("Fastrepl");
+    const toggle = await screen.findByRole("switch", {
+      name: "Join automatically with a work email",
+    });
+    await waitFor(() => expect(toggle.hasAttribute("disabled")).toBe(false));
+    expect(screen.getByText(/verified @fastrepl.com email/)).toBeTruthy();
+    mocks.client.setWorkspaceEmailAutoJoin.mockImplementation(async () => {
+      mocks.client.getWorkspaceEmailAutoJoin.mockResolvedValue({
+        domain: "fastrepl.com",
+        enabled: true,
+      });
+    });
+    fireEvent.click(toggle);
+    await waitFor(() =>
+      expect(mocks.client.setWorkspaceEmailAutoJoin).toHaveBeenCalledWith(
+        expect.anything(),
+        "ws",
+        true,
+      ),
+    );
+    await waitFor(() =>
+      expect(toggle.getAttribute("aria-checked")).toBe("true"),
+    );
+  });
+
+  it("keeps the toggle off and reports a failed domain setting change", async () => {
+    mocks.workspaces.data = [
+      {
+        workspaceId: "ws",
+        name: "Fastrepl",
+        ownerUserId: "user-1",
+        role: "owner",
+      },
+    ];
+    mocks.client.setWorkspaceEmailAutoJoin.mockRejectedValue(
+      new Error("email domain is already used by another workspace"),
+    );
+    renderTeam();
+    openWorkspace("Fastrepl");
+    const toggle = await screen.findByRole("switch", {
+      name: "Join automatically with a work email",
+    });
+    await waitFor(() => expect(toggle.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(toggle);
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "email domain is already used by another workspace",
+    );
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+  });
+
+  it("disables company-domain joining for a personal-email owner", async () => {
+    mocks.workspaces.data = [
+      {
+        workspaceId: "ws",
+        name: "Fastrepl",
+        ownerUserId: "user-1",
+        role: "owner",
+      },
+    ];
+    mocks.client.getWorkspaceEmailAutoJoin.mockResolvedValue({
+      domain: null,
+      enabled: false,
+    });
+    renderTeam();
+    openWorkspace("Fastrepl");
+    expect(
+      await screen.findByText(
+        /Personal email providers such as Gmail are excluded/,
+      ),
+    ).toBeTruthy();
+    expect(
+      screen
+        .getByRole("switch", {
+          name: "Join automatically with a work email",
+        })
+        .hasAttribute("disabled"),
+    ).toBe(true);
+  });
+
+  it("does not offer the owner-only domain setting to an admin", async () => {
+    mocks.workspaces.data = [
+      {
+        workspaceId: "ws",
+        name: "Fastrepl",
+        ownerUserId: "someone-else",
+        role: "admin",
+      },
+    ];
+    renderTeam();
+    openWorkspace("Fastrepl");
+    await screen.findByRole("button", { name: "Add members" });
+    expect(
+      screen.queryByRole("switch", {
+        name: "Join automatically with a work email",
+      }),
+    ).toBeNull();
+    expect(mocks.client.getWorkspaceEmailAutoJoin).not.toHaveBeenCalled();
   });
 
   it("shows the create workspace form on the free plan without creating", () => {

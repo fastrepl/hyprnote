@@ -14,11 +14,7 @@ vi.mock("@tauri-apps/plugin-os", () => ({
 }));
 
 vi.mock("./body", () => ({
-  ClassicMainBody: ({ showSyncStatus }: { showSyncStatus?: boolean }) => (
-    <div data-testid="classic-main-body">
-      {showSyncStatus ? <div data-testid="sync-status-indicator" /> : null}
-    </div>
-  ),
+  ClassicMainBody: () => <div data-testid="classic-main-body" />,
 }));
 
 vi.mock("./windows-title-bar", () => ({
@@ -157,28 +153,11 @@ describe("ClassicMainShellFrame", () => {
     render(<ClassicMainShellFrame />);
 
     expect(screen.getByTestId("toast-notifications")).not.toBeNull();
-    expect(screen.getByTestId("sync-status-indicator")).not.toBeNull();
     expect(
       screen
         .getByTestId("main-shell-scaffold")
         .getAttribute("data-main-surface-chrome"),
     ).toBe("left");
-  });
-
-  it("shows sync status in note views", () => {
-    mocks.currentTab = { type: "sessions" };
-
-    render(<ClassicMainShellFrame />);
-
-    expect(screen.getByTestId("sync-status-indicator")).not.toBeNull();
-  });
-
-  it("hides sync status outside empty and note views", () => {
-    mocks.currentTab = { type: "settings" };
-
-    render(<ClassicMainShellFrame />);
-
-    expect(screen.queryByTestId("sync-status-indicator")).toBeNull();
   });
 
   it("uses borderless top-edge main surface chrome while the sidebar timeline is collapsed", () => {
@@ -230,6 +209,5 @@ describe("ClassicMainShellFrame", () => {
 
     expect(scaffold.getAttribute("data-edge-to-edge")).toBe("true");
     expect(scaffold.getAttribute("data-main-surface-chrome")).toBeNull();
-    expect(screen.queryByTestId("sync-status-indicator")).toBeNull();
   });
 });

@@ -2662,6 +2662,10 @@ msgstr "Job Title"
 msgid "Join & record"
 msgstr "Join & record"
 
+#: src/settings/team/email-auto-join.tsx
+msgid "Join automatically with a work email"
+msgstr "Join automatically with a work email"
+
 #: src/session/components/outer-header/index.tsx
 msgid "Join meeting and record"
 msgstr "Join meeting and record"
@@ -3685,6 +3689,10 @@ msgstr "People"
 #: src/settings/general/default-share-access.tsx
 msgid "People in the meeting"
 msgstr "People in the meeting"
+
+#: src/settings/team/email-auto-join.tsx
+msgid "People with a verified @{domain} email join this team when they sign in, while seats are available."
+msgstr "People with a verified @{domain} email join this team when they sign in, while seats are available."
 
 #: src/session-sharing/draft-panel.tsx
 #: src/session-sharing/management-panel.tsx
@@ -5557,6 +5565,10 @@ msgstr "Use 3–63 lowercase letters, numbers, or hyphens."
 #: src/automations/starters.tsx
 msgid "Use a stable filename in the configured export directory."
 msgstr "Use a stable filename in the configured export directory."
+
+#: src/settings/team/email-auto-join.tsx
+msgid "Use a verified work email to enable automatic joining. Personal email providers such as Gmail are excluded."
+msgstr "Use a verified work email to enable automatic joining. Personal email providers such as Gmail are excluded."
 
 #: src/settings/general/e2ee-setup.tsx
 msgid "Use an existing key"

@@ -6,6 +6,7 @@ import {
   createWorkspaceInvitation,
   getSeatUsage,
   getWorkspaceAccess,
+  getWorkspaceEmailAutoJoin,
   getWorkspacePolicy,
   intersectAllowedShareScopes,
   listWorkspaceInvitations,
@@ -15,6 +16,7 @@ import {
   resendWorkspaceInvitation,
   sendWorkspaceInvitationEmail,
   setWorkspaceLogo,
+  setWorkspaceEmailAutoJoin,
   setWorkspaceShareSlug,
   TeamError,
   type TeamContext,
@@ -49,6 +51,36 @@ describe("requireTeamContext", () => {
 });
 
 describe("workspace reads", () => {
+  it("uses the server-verified email domain for automatic joining", async () => {
+    const { context: ctx } = context([
+      { domain: "fastrepl.com", enabled: true },
+    ]);
+    await expect(getWorkspaceEmailAutoJoin(ctx, WORKSPACE_ID)).resolves.toEqual(
+      { domain: "fastrepl.com", enabled: true },
+    );
+    const personal = context([{ domain: null, enabled: false }]);
+    await expect(
+      getWorkspaceEmailAutoJoin(personal.context, WORKSPACE_ID),
+    ).resolves.toEqual({ domain: null, enabled: false });
+  });
+
+  it("changes auto-join without sending a client-selected domain", async () => {
+    const { context: ctx, rpc } = context(null);
+    await setWorkspaceEmailAutoJoin(ctx, WORKSPACE_ID, true);
+    expect(rpc).toHaveBeenCalledWith("set_workspace_email_auto_join", {
+      p_workspace_id: WORKSPACE_ID,
+      p_enabled: true,
+    });
+  });
+
+  it("reports rejected auto-join changes", async () => {
+    const { context: ctx } = context(null, {
+      message: "a verified work email is required",
+    });
+    await expect(
+      setWorkspaceEmailAutoJoin(ctx, WORKSPACE_ID, true),
+    ).rejects.toThrow("a verified work email is required");
+  });
   it("parses workspace-scoped capabilities and ignores future additions", async () => {
     const { context: ctx } = context([
       {

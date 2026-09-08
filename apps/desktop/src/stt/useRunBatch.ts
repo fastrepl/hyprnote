@@ -23,6 +23,7 @@ import { markSessionAudioTranscriptionComplete } from "~/session/attachments";
 import { useSession, useSessionParticipants } from "~/session/queries";
 import { useConfigValue } from "~/shared/config";
 import { id } from "~/shared/utils";
+import { notifyBatchCompleted } from "~/store/zustand/listener/general-batch";
 import type { BatchPersistCallback } from "~/store/zustand/listener/transcript";
 import {
   getTranscriptionLanguages,
@@ -33,6 +34,7 @@ import {
 } from "~/stt/capabilities";
 import {
   createTranscript,
+  getSessionTranscriptRecords,
   getTranscriptRecord,
   type TranscriptRecord,
 } from "~/stt/queries";
@@ -100,6 +102,10 @@ const DIRECT_BATCH_PROVIDERS: Set<TranscriptionParams["provider"]> = new Set([
 export const STOPPED_TRANSCRIPTION_ERROR_MESSAGE = "Transcription stopped.";
 export const EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE =
   "Batch transcription did not include the current recording.";
+export const INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE =
+  "The new transcription returned much less text. Your saved transcript and recording were kept. Try transcribing again.";
+const MIN_TRANSCRIPT_CHARACTER_LOSS = 200;
+const MIN_TRANSCRIPT_RETAINED_RATIO = 0.5;
 const MIN_REFINED_SPEAKER_OVERLAP_RATIO = 0.6;
 const LOCAL_SONIQO_BATCH_TARGET = {
   provider: "soniqo",
@@ -242,6 +248,28 @@ function prepareTranscriptPromotion(
     replaceTranscriptId: promotion.replaceTranscriptId,
     startedAt: promotion.startedAt,
   };
+}
+
+function assertTranscriptNotTruncated(
+  previous: WordWithId[],
+  replacement: WordWithId[],
+) {
+  // Character counts tolerate provider tokenization differences and languages
+  // without spaces; the absolute margin allows small transcription corrections.
+  const characterCount = (words: WordWithId[]) =>
+    words.reduce(
+      (count, word) =>
+        count + (word.text ?? "").replace(/[^\p{L}\p{N}]/gu, "").length,
+      0,
+    );
+  const previousLength = characterCount(previous);
+  const replacementLength = characterCount(replacement);
+  if (
+    previousLength - replacementLength >= MIN_TRANSCRIPT_CHARACTER_LOSS &&
+    replacementLength < previousLength * MIN_TRANSCRIPT_RETAINED_RATIO
+  ) {
+    throw new Error(INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE);
+  }
 }
 
 function parseHintValue(value: string): Record<string, unknown> | null {
@@ -508,6 +536,7 @@ export function isTerminalTranscriptionError(error: unknown) {
   return (
     error instanceof BatchResponseProcessingError ||
     message === EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE ||
+    message === INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE ||
     isTranscriptionAuthenticationError(error) ||
     /corrupt or unsupported|unsupported (?:audio|data)|invalid audio|no speech|empty transcript/i.test(
       message,
@@ -638,20 +667,6 @@ export const useRunBatch = (sessionId: string) => {
         });
       }
 
-      let refinedTranscriptSource: TranscriptRecord | null = null;
-      const replaceTranscriptId =
-        options?.promotion?.scope === "current_capture"
-          ? options.promotion.replaceTranscriptId
-          : undefined;
-      if (replaceTranscriptId) {
-        try {
-          refinedTranscriptSource =
-            await getTranscriptRecord(replaceTranscriptId);
-        } catch (error) {
-          console.warn("[runBatch] failed to load refined transcript", error);
-        }
-      }
-
       const createdAt = new Date().toISOString();
       const startedAt = Date.now();
       const memoMd = session?.raw_md ?? "";
@@ -770,7 +785,7 @@ export const useRunBatch = (sessionId: string) => {
           try {
             await startTranscription(params, {
               handlePersist: persist,
-              notifyOnCompletion: options?.notifyOnCompletion,
+              notifyOnCompletion: false,
             });
           } catch (error) {
             if (
@@ -793,7 +808,7 @@ export const useRunBatch = (sessionId: string) => {
               { ...params, api_key: refreshedSession.access_token },
               {
                 handlePersist: persist,
-                notifyOnCompletion: options?.notifyOnCompletion,
+                notifyOnCompletion: false,
               },
             );
           }
@@ -811,6 +826,18 @@ export const useRunBatch = (sessionId: string) => {
               ) {
                 throw new Error(EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE);
               }
+              const refinedTranscriptSource = promoted.replaceTranscriptId
+                ? await getTranscriptRecord(promoted.replaceTranscriptId)
+                : null;
+              const previousTranscripts = promoted.replaceSession
+                ? await getSessionTranscriptRecords(sessionId)
+                : refinedTranscriptSource
+                  ? [refinedTranscriptSource]
+                  : [];
+              assertTranscriptNotTruncated(
+                previousTranscripts.flatMap((transcript) => transcript.words),
+                promoted.words,
+              );
               if (transcriptId) {
                 const completedTranscriptId = transcriptId;
                 if (promoted.words.length > 0) {
@@ -866,12 +893,16 @@ export const useRunBatch = (sessionId: string) => {
             if (
               error instanceof BatchResponseProcessingError ||
               (error instanceof Error &&
-                error.message ===
-                  EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE)
+                (error.message ===
+                  EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE ||
+                  error.message === INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE))
             ) {
               throw error;
             }
             throw new BatchResponseProcessingError(error);
+          }
+          if (options?.notifyOnCompletion !== false) {
+            await notifyBatchCompleted(sessionId);
           }
         },
       );

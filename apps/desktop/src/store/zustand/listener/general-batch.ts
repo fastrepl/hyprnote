@@ -83,6 +83,12 @@ export async function showBatchCompletedNotification(
   }
 }
 
+export async function notifyBatchCompleted(sessionId: string) {
+  await showBatchCompletedNotification(sessionId);
+  void playCompletionSound();
+  void requestAppAttention();
+}
+
 export const runBatchSession = async <T extends BatchStore>(
   get: StoreApi<T>["getState"],
   sessionId: string,
@@ -283,9 +289,7 @@ export const runBatchSession = async <T extends BatchStore>(
   });
 
   if (options?.notifyOnCompletion !== false) {
-    await showBatchCompletedNotification(sessionId);
-    void playCompletionSound();
-    void requestAppAttention();
+    await notifyBatchCompleted(sessionId);
   }
 };
 

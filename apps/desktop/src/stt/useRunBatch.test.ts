@@ -32,6 +32,8 @@ const {
   markSessionAudioTranscriptionCompleteMock,
   createTranscriptMock,
   getTranscriptRecordMock,
+  getSessionTranscriptRecordsMock,
+  notifyBatchCompletedMock,
   idMock,
   archMock,
   platformMock,
@@ -52,6 +54,8 @@ const {
   markSessionAudioTranscriptionCompleteMock: vi.fn(),
   createTranscriptMock: vi.fn(),
   getTranscriptRecordMock: vi.fn(),
+  getSessionTranscriptRecordsMock: vi.fn(),
+  notifyBatchCompletedMock: vi.fn(),
   idMock: vi.fn(),
   archMock: vi.fn(),
   platformMock: vi.fn(),
@@ -173,6 +177,11 @@ vi.mock("~/stt/capabilities", () => {
 vi.mock("~/stt/queries", () => ({
   createTranscript: createTranscriptMock,
   getTranscriptRecord: getTranscriptRecordMock,
+  getSessionTranscriptRecords: getSessionTranscriptRecordsMock,
+}));
+
+vi.mock("~/store/zustand/listener/general-batch", () => ({
+  notifyBatchCompleted: notifyBatchCompletedMock,
 }));
 
 describe("getBatchProvider", () => {
@@ -596,6 +605,8 @@ describe("useRunBatch", () => {
     idMock.mockImplementation(() => `generated-${++nextId}`);
     createTranscriptMock.mockResolvedValue(undefined);
     getTranscriptRecordMock.mockResolvedValue(null);
+    getSessionTranscriptRecordsMock.mockResolvedValue([]);
+    notifyBatchCompletedMock.mockResolvedValue(undefined);
     deleteProcessedAudioForRetentionMock.mockResolvedValue(undefined);
     markSessionAudioTranscriptionCompleteMock.mockResolvedValue(undefined);
     isSupportedLanguagesBatchMock.mockResolvedValue(true);
@@ -659,6 +670,8 @@ describe("useRunBatch", () => {
 
     expect(createTranscriptMock).not.toHaveBeenCalled();
     expect(deleteProcessedAudioForRetentionMock).not.toHaveBeenCalled();
+    expect(getSessionTranscriptRecordsMock).not.toHaveBeenCalled();
+    expect(notifyBatchCompletedMock).not.toHaveBeenCalled();
 
     finishTranscription?.();
     await act(async () => await run);
@@ -681,6 +694,13 @@ describe("useRunBatch", () => {
       "session-1",
     );
     expect(deleteProcessedAudioForRetentionMock).toHaveBeenCalledTimes(1);
+    expect(startTranscriptionMock.mock.calls[0]?.[1]?.notifyOnCompletion).toBe(
+      false,
+    );
+    expect(notifyBatchCompletedMock).toHaveBeenCalledWith("session-1");
+    expect(createTranscriptMock.mock.invocationCallOrder[0]).toBeLessThan(
+      notifyBatchCompletedMock.mock.invocationCallOrder[0],
+    );
     expect(
       markSessionAudioTranscriptionCompleteMock.mock.invocationCallOrder[0],
     ).toBeLessThan(
@@ -902,6 +922,212 @@ describe("useRunBatch", () => {
     });
   });
 
+  test.each(["current_capture", "whole_session"] as const)(
+    "keeps the saved transcript and audio when %s processing returns only a few lines",
+    async (scope) => {
+      const saved = {
+        id: "transcript-current-live",
+        sessionId: "session-1",
+        ownerUserId: "user-1",
+        startedAt: 123_000,
+        words: Array.from({ length: 300 }, (_, index) => ({
+          id: `live-${index}`,
+          text: index % 2 ? "megbeszélés" : "meeting",
+          start_ms: index * 6_000,
+          end_ms: index * 6_000 + 500,
+          channel: 0,
+        })),
+        speakerHints: [],
+      };
+      getTranscriptRecordMock.mockResolvedValue(saved);
+      getSessionTranscriptRecordsMock.mockResolvedValue([saved]);
+      startTranscriptionMock.mockImplementation(async (_params, options) => {
+        options.handlePersist(
+          [
+            ...(scope === "current_capture"
+              ? [
+                  {
+                    text: "earlier capture ".repeat(1_000),
+                    start_ms: 0,
+                    end_ms: 59_000,
+                    channel: 0,
+                  },
+                ]
+              : []),
+            {
+              text: "Thank you for the meeting.",
+              start_ms: 60_100,
+              end_ms: 61_000,
+              channel: 0,
+            },
+          ],
+          [],
+          { mode: "replace" },
+        );
+      });
+
+      const { result } = renderHook(() => useRunBatch("session-1"));
+      let error: unknown;
+      await act(async () => {
+        try {
+          await result.current("/tmp/session.wav", {
+            promotion:
+              scope === "current_capture"
+                ? {
+                    scope,
+                    audioOffsetMs: 60_000,
+                    replaceTranscriptId: saved.id,
+                    startedAt: saved.startedAt,
+                  }
+                : { scope },
+          });
+        } catch (caught) {
+          error = caught;
+        }
+      });
+
+      expect(error).toMatchObject({
+        message:
+          "The new transcription returned much less text. Your saved transcript and recording were kept. Try transcribing again.",
+      });
+      expect(isTerminalTranscriptionError(error)).toBe(true);
+      expect(createTranscriptMock).not.toHaveBeenCalled();
+      expect(markSessionAudioTranscriptionCompleteMock).not.toHaveBeenCalled();
+      expect(deleteProcessedAudioForRetentionMock).not.toHaveBeenCalled();
+      expect(notifyBatchCompletedMock).not.toHaveBeenCalled();
+      expect(startTranscriptionMock).toHaveBeenCalledOnce();
+    },
+  );
+
+  test.each([
+    {
+      name: "provider tokenization changes",
+      previousText: "meeting ".repeat(100),
+      replacementText: "meeting ".repeat(100),
+    },
+    {
+      name: "languages without spaces",
+      previousText: "会议记录".repeat(100),
+      replacementText: "会议记录".repeat(100),
+    },
+    {
+      name: "ordinary corrections",
+      previousText: "meeting ".repeat(100),
+      replacementText: "meeting ".repeat(70),
+    },
+    {
+      name: "small captures",
+      previousText: "meeting ".repeat(10),
+      replacementText: "hello",
+    },
+  ])(
+    "accepts $name without comparing earlier captures",
+    async ({ previousText, replacementText }) => {
+      getTranscriptRecordMock.mockResolvedValue({
+        id: "live-current",
+        sessionId: "session-1",
+        ownerUserId: "user-1",
+        startedAt: 123_000,
+        words: [
+          { id: "empty", channel: 0, start_ms: 0, end_ms: 0 },
+          ...previousText.split("").map((text, index) => ({
+            id: `live-${index}`,
+            text,
+            channel: 0,
+            start_ms: 0,
+            end_ms: 100,
+          })),
+        ],
+        speakerHints: [],
+      });
+      startTranscriptionMock.mockImplementation(async (_params, options) => {
+        options.handlePersist(
+          [
+            {
+              text: "An earlier capture ".repeat(1_000),
+              start_ms: 0,
+              end_ms: 59_000,
+              channel: 0,
+            },
+            {
+              text: replacementText,
+              start_ms: 60_000,
+              end_ms: 61_000,
+              channel: 0,
+            },
+          ],
+          [],
+          { mode: "replace" },
+        );
+      });
+
+      const { result } = renderHook(() => useRunBatch("session-1"));
+      await act(async () => {
+        await result.current("/tmp/session.wav", {
+          promotion: {
+            scope: "current_capture",
+            audioOffsetMs: 60_000,
+            replaceTranscriptId: "live-current",
+            startedAt: 123_000,
+          },
+        });
+      });
+
+      expect(getSessionTranscriptRecordsMock).not.toHaveBeenCalled();
+      expect(createTranscriptMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          replaceTranscriptId: "live-current",
+          words: [
+            expect.objectContaining({
+              text: replacementText,
+              start_ms: 0,
+              end_ms: 1_000,
+            }),
+          ],
+        }),
+      );
+      expect(markSessionAudioTranscriptionCompleteMock).toHaveBeenCalledOnce();
+    },
+  );
+
+  test.each(["current_capture", "whole_session"] as const)(
+    "keeps existing data when the %s transcript cannot be checked",
+    async (scope) => {
+      getTranscriptRecordMock.mockRejectedValue(new Error("read failed"));
+      getSessionTranscriptRecordsMock.mockRejectedValue(
+        new Error("read failed"),
+      );
+      startTranscriptionMock.mockImplementation(async (_params, options) => {
+        options.handlePersist(
+          [{ text: "replacement", start_ms: 0, end_ms: 100, channel: 0 }],
+          [],
+        );
+      });
+      const { result } = renderHook(() => useRunBatch("session-1"));
+
+      await expect(
+        act(async () => {
+          await result.current("/tmp/session.wav", {
+            promotion:
+              scope === "current_capture"
+                ? {
+                    scope,
+                    audioOffsetMs: 0,
+                    replaceTranscriptId: "live-current",
+                    startedAt: 123_000,
+                  }
+                : { scope },
+          });
+        }),
+      ).rejects.toBeInstanceOf(BatchResponseProcessingError);
+
+      expect(createTranscriptMock).not.toHaveBeenCalled();
+      expect(markSessionAudioTranscriptionCompleteMock).not.toHaveBeenCalled();
+      expect(deleteProcessedAudioForRetentionMock).not.toHaveBeenCalled();
+      expect(notifyBatchCompletedMock).not.toHaveBeenCalled();
+    },
+  );
+
   test("retains recovery audio when the batch has no current-capture words", async () => {
     startTranscriptionMock.mockImplementation(async (_params, options) => {
       options.handlePersist(
@@ -1030,6 +1256,7 @@ describe("useRunBatch", () => {
       expect.objectContaining({ notifyOnCompletion: false }),
     );
     expect(sonnerToastWarningMock).not.toHaveBeenCalled();
+    expect(notifyBatchCompletedMock).not.toHaveBeenCalled();
   });
 
   test("uses custom Deepgram-compatible endpoints for batch transcription", async () => {

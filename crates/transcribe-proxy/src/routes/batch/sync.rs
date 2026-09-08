@@ -112,9 +112,7 @@ pub(super) async fn handle_anarlog_batch(
     content_type: &str,
     max_response_bytes: Option<usize>,
 ) -> Response {
-    let mut provider_chain =
-        state.resolve_anarlog_provider_chain_for_mode(RoutingMode::Batch, params);
-    append_deepgram_batch_detection_fallback(state, &mut provider_chain, &listen_params);
+    let provider_chain = state.resolve_anarlog_provider_chain_for_mode(RoutingMode::Batch, params);
 
     if provider_chain.is_empty() {
         return (
@@ -216,25 +214,6 @@ pub(super) async fn handle_anarlog_batch(
         })),
     )
         .into_response()
-}
-
-fn append_deepgram_batch_detection_fallback(
-    state: &AppState,
-    provider_chain: &mut Vec<SelectedProvider>,
-    listen_params: &ListenParams,
-) {
-    if listen_params.languages.len() <= 1
-        || provider_chain
-            .iter()
-            .any(|selected| selected.provider() == Provider::Deepgram)
-        || !DeepgramAdapter::supports_batch_language_detection(&listen_params.languages)
-    {
-        return;
-    }
-
-    if let Ok(selected) = state.selector.select(Some(Provider::Deepgram)) {
-        provider_chain.push(selected);
-    }
 }
 
 pub(super) async fn transcribe_with_retry(
@@ -438,6 +417,60 @@ fn classify_audio_processing_message(message: String) -> BatchAttemptError {
 mod tests {
     use super::*;
     use anlg_language::ISO639;
+
+    #[tokio::test]
+    async fn mixed_hungarian_english_does_not_fall_back_to_single_language_detection() {
+        use crate::config::{CallbackConfig, SttProxyConfig, SupabaseConfig};
+        use crate::query_params::QueryValue;
+
+        let state = super::super::super::make_state(
+            SttProxyConfig {
+                api_keys: [(Provider::Deepgram, "test-key".to_string())].into(),
+                default_provider: Provider::Deepgram,
+                connect_timeout: Duration::from_secs(1),
+                analytics: None,
+                upstream_urls: Default::default(),
+                anarlog_routing: Some(Default::default()),
+                supabase: SupabaseConfig {
+                    url: None,
+                    service_role_key: None,
+                },
+                callback: CallbackConfig {
+                    api_base_url: None,
+                    secret: None,
+                },
+            },
+            Default::default(),
+        );
+        let mut params = QueryParams::default();
+        params.insert(
+            "language".to_string(),
+            QueryValue::Multi(vec!["hu".into(), "en".into()]),
+        );
+
+        // Detection accepts both hints but transcribes only the dominant language.
+        // Reject this chain before opening audio or sending any provider request.
+        let response = handle_anarlog_batch(
+            &state,
+            &params,
+            ListenParams {
+                languages: vec![ISO639::Hu.into(), ISO639::En.into()],
+                ..Default::default()
+            },
+            Path::new("missing-mixed-language-recording.wav"),
+            0,
+            "audio/wav",
+            None,
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        let body = axum::body::to_bytes(response.into_body(), 1024)
+            .await
+            .unwrap();
+        let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body["error"], "no_providers_available");
+    }
 
     #[test]
     fn test_resolve_listen_params_for_provider_resolves_meta_model_per_provider() {

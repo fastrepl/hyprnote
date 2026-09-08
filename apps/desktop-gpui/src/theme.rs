@@ -24,6 +24,8 @@ pub struct Theme {
     pub red: Rgba,
     /// Tailwind `neutral-700` (`dark:text-white`), the breadcrumb title colour.
     pub title: Rgba,
+    /// The folder picker's path: `text-neutral-600` / `dark:text-neutral-300`.
+    pub folder_label: Rgba,
     /// Windows-style close button hover.
     pub close_hover: Rgba,
     /// `--color-blue-600` from `note-typography.css`.
@@ -66,6 +68,7 @@ impl Theme {
             destructive: rgb(0xef4444),
             red: rgb(0xfb2c36),
             title: rgb(0x404040),
+            folder_label: rgb(0x525252),
             close_hover: rgb(0xc42b1c),
             link: rgb(0x2563eb),
             white: rgb(0xffffff),
@@ -101,6 +104,7 @@ impl Theme {
             destructive: rgb(0x7f1d1d),
             red: rgb(0xfb2c36),
             title: rgb(0xffffff),
+            folder_label: rgb(0xd4d4d4),
             close_hover: rgb(0xc42b1c),
             link: rgb(0x2563eb),
             white: rgb(0xffffff),

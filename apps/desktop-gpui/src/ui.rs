@@ -115,13 +115,14 @@ pub fn chrome_button(id: impl Into<ElementId>, theme: Theme, hovered: bool) -> S
         })
 }
 
-/// `Button size="icon" variant="ghost"` as used by the header overflow menu.
+/// `Button variant="ghost" size="icon"` as used by the header overflow menu:
+/// the `size-7 rounded-full` button whose hover fill is the control squircle.
 pub fn ghost_icon_button(id: impl Into<ElementId>, theme: Theme, hovered: bool) -> Stateful<Div> {
     div()
         .id(id)
         .relative()
         .flex()
-        .size(px(36.0))
+        .size(px(28.0))
         .flex_shrink_0()
         .items_center()
         .justify_center()

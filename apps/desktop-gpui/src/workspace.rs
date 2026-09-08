@@ -45,6 +45,7 @@ pub(crate) use settings::SettingsTab;
 mod share;
 mod speaker_assign;
 pub(crate) use overflow::find_session_dir;
+mod folder_picker;
 mod sidebar;
 mod stats_page;
 mod template_picker;
@@ -273,6 +274,11 @@ pub struct Workspace {
     contacts: Option<contacts_tab::ContactsState>,
     /// The enhanced tab's template picker while open.
     template_picker: Option<template_picker::TemplatePicker>,
+    folder_picker: Option<folder_picker::FolderPicker>,
+    /// `useFolderPaths` / `useFolderIcons` for the header's folder button.
+    folder_catalog: crate::folders::Catalog,
+    /// `setSelectedPath` for the Folders tab the picker opens next.
+    pending_folder_selection: Option<String>,
     /// `EnhancerService` and the `enhance` / `title` task states.
     enhancer: enhance::EnhancerState,
     /// `auto-enhance-started`: switch to this enhanced note on the next reload.
@@ -491,6 +497,9 @@ impl Workspace {
             automations: None,
             contacts: None,
             template_picker: None,
+            folder_picker: None,
+            folder_catalog: crate::folders::Catalog::default(),
+            pending_folder_selection: None,
             enhancer: enhance::EnhancerState::default(),
             pending_enhanced_tab: None,
             icon_picker: None,
@@ -1931,6 +1940,8 @@ impl Render for Workspace {
                     this.close_icon_picker(window, cx);
                 } else if this.template_picker_open() {
                     this.close_template_picker(window, cx);
+                } else if this.folder_picker_open() {
+                    this.close_folder_picker(window, cx);
                 } else if this.overlay_tab_open() {
                     // `useMainEscapeShortcutAction` → `leaveOverlayTab`.
                     this.leave_overlay_tab(window, cx);

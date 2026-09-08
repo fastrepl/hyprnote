@@ -159,15 +159,6 @@ impl Workspace {
             on_close: Self::close_overflow_menu,
             entries: vec![
                 Entry::Item {
-                    icon: Some("folder"),
-                    dim_icon: false,
-                    label: "Folder".into(),
-                    trailing: Trailing::Submenu,
-                    destructive: false,
-                    on_select: None,
-                    submenu: Some(Submenu::Entries(self.folder_submenu_entries())),
-                },
-                Entry::Item {
                     icon: Some("calendar-blank"),
                     dim_icon: false,
                     label: "Meeting info".into(),
@@ -301,78 +292,6 @@ impl Workspace {
             if let Ok(Err(error)) = task.await {
                 tracing::error!(%error, "[upload] transcript failed");
             }
-        })
-        .detach();
-    }
-
-    /// `FolderPickerSubmenu`: every folder in use plus "No folder", the
-    /// current one checked; picking runs `updateSession({ folder_id })`.
-    fn folder_submenu_entries(&self) -> Vec<Entry> {
-        let current = match &self.note {
-            super::Note::Ready { preview, .. } => {
-                crate::timeline::normalize_folder_path(&preview.session.folder_id)
-                    .unwrap_or_default()
-            }
-            _ => String::new(),
-        };
-        let mut folders: Vec<String> = self
-            .session_rows
-            .iter()
-            .filter_map(|row| crate::timeline::normalize_folder_path(&row.folder_id))
-            .filter(|folder| !folder.is_empty())
-            .collect();
-        folders.sort();
-        folders.dedup();
-        let mut entries: Vec<Entry> = folders
-            .into_iter()
-            .map(|folder| {
-                let checked = folder == current;
-                let target = folder.clone();
-                Entry::Item {
-                    icon: Some("folder"),
-                    dim_icon: true,
-                    label: folder.into(),
-                    trailing: Trailing::Check(checked),
-                    destructive: false,
-                    on_select: Some(Box::new(move |this, _, cx| {
-                        this.move_current_note_to_folder(target.clone(), cx)
-                    })),
-                    submenu: None,
-                }
-            })
-            .collect();
-        if !entries.is_empty() {
-            entries.push(Entry::Separator);
-        }
-        entries.push(Entry::Item {
-            icon: None,
-            dim_icon: false,
-            label: "No folder".into(),
-            trailing: Trailing::Check(current.is_empty()),
-            destructive: false,
-            on_select: Some(Box::new(|this, _, cx| {
-                this.move_current_note_to_folder(String::new(), cx)
-            })),
-            submenu: None,
-        });
-        entries
-    }
-
-    fn move_current_note_to_folder(&mut self, folder: String, cx: &mut Context<Self>) {
-        let Some(session_id) = self.selected.clone() else {
-            return;
-        };
-        let task = self.store.update_folder(session_id.clone(), folder);
-        cx.spawn(async move |this, cx| match task.await {
-            Ok(Ok(())) => {
-                this.update(cx, |this, cx| {
-                    this.reload_sessions(cx);
-                    this.reload_note(session_id, cx);
-                })
-                .ok();
-            }
-            Ok(Err(error)) => tracing::error!(%error, "failed to move note"),
-            Err(error) => tracing::error!(%error, "failed to move note"),
         })
         .detach();
     }

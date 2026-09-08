@@ -274,21 +274,36 @@ impl Workspace {
                 },
             )
             .child(div().flex_1())
-            .child(self.render_meeting_cta(preview, window, cx))
             .child(
-                ghost_icon_button("overflow", theme, self.hovered == Some("overflow"))
-                    .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-                    .on_hover(cx.listener(|this, hovered: &bool, _, cx| {
-                        this.set_hovered("overflow", *hovered, cx);
-                    }))
-                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
-                        this.toggle_overflow_menu(window, cx)
-                    }))
-                    .child(icon(
-                        "more-horizontal",
-                        px(16.0),
-                        self.chrome_icon_color("overflow"),
-                    )),
+                // The `flex shrink-0 items-center pr-1` actions group: the
+                // folder picker (#7476), the meeting control in its `mr-1`
+                // wrapper, then the `size-7` overflow button.
+                div()
+                    .flex()
+                    .flex_shrink_0()
+                    .items_center()
+                    .pr_1()
+                    .child(self.render_folder_picker_trigger(preview, window, cx))
+                    .child(
+                        div()
+                            .mr_1()
+                            .child(self.render_meeting_cta(preview, window, cx)),
+                    )
+                    .child(
+                        ghost_icon_button("overflow", theme, self.hovered == Some("overflow"))
+                            .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                            .on_hover(cx.listener(|this, hovered: &bool, _, cx| {
+                                this.set_hovered("overflow", *hovered, cx);
+                            }))
+                            .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                                this.toggle_overflow_menu(window, cx)
+                            }))
+                            .child(icon(
+                                "more-horizontal",
+                                px(16.0),
+                                self.chrome_icon_color("overflow"),
+                            )),
+                    ),
             )
     }
 
@@ -370,7 +385,7 @@ impl Workspace {
             ),
         };
 
-        // `Button size="sm" variant="outline"`: `h-8 rounded-md border
+        // `Button size="sm" variant="outline"`: `h-7 rounded-full border
         // border-border bg-transparent gap-1.5 pl-1.5 pr-2.5 text-sm`.
         let label_width = self.measure_text(label, px(14.0), window);
         let cta_width = 1.0 + 6.0 + 14.0 + 6.0 + f32::from(label_width) + 10.0 + 1.0;
@@ -387,7 +402,7 @@ impl Workspace {
             .id("meeting-cta")
             .relative()
             .flex()
-            .h(px(32.0))
+            .h(px(28.0))
             .max_w(px(224.0))
             .flex_shrink_0()
             .items_center()

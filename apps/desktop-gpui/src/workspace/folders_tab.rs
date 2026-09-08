@@ -87,6 +87,9 @@ impl Workspace {
                 editor: None,
             });
         }
+        if let Some(path) = self.pending_folder_selection.take() {
+            self.select_folder(Some(path), window, cx);
+        }
         self.reload_folders(window, cx);
         cx.notify();
     }

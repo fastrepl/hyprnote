@@ -30,7 +30,7 @@ impl Workspace {
             _ if self.settings_open() => {
                 self.render_settings_content(window, cx).into_any_element()
             }
-            Note::Empty => self.render_empty_view().into_any_element(),
+            Note::Empty => self.render_empty_view(cx).into_any_element(),
             Note::Loading => div().flex_1().into_any_element(),
             Note::Failed(error) => div()
                 .p_4()
@@ -134,11 +134,23 @@ impl Workspace {
     }
 
     /// `EmptyView`: three centred actions with their shortcuts.
-    fn render_empty_view(&self) -> Div {
+    /// `main/empty.tsx`: the `ActionItem` rows — label, then one `Kbd` with
+    /// the shortcut's keys joined by spaces, lifted 2px while the row is
+    /// hovered (`group-hover:-translate-y-0.5` with the 2px shadow).
+    fn render_empty_view(&self, cx: &Context<Self>) -> Div {
         let theme = self.theme;
-        let action = |label: &'static str,
-                      keys: &'static [&'static str],
+        let mono = self.mono_font_family.clone();
+        // `primaryModifier`
+        let modifier: &'static str = if cfg!(target_os = "macos") {
+            "⌘"
+        } else {
+            "Ctrl"
+        };
+        let action = |id: &'static str,
+                      label: &'static str,
+                      keys: &[&str],
                       action: Option<Box<dyn gpui::Action>>| {
+            let hovered = self.hovered == Some(id);
             div()
                 .id(SharedString::from(format!("empty-action-{label}")))
                 .when_some(action, |item, action| {
@@ -146,6 +158,9 @@ impl Workspace {
                         window.dispatch_action(action.boxed_clone(), cx);
                     })
                 })
+                .on_hover(cx.listener(move |this, hovering: &bool, _, cx| {
+                    this.set_hovered(id, *hovering, cx);
+                }))
                 .flex()
                 .items_center()
                 .justify_between()
@@ -157,25 +172,9 @@ impl Workspace {
                 .tw_text_sm()
                 .text_color(theme.foreground)
                 .cursor_pointer()
-                .hover(move |style| style.bg(theme.accent))
+                .when(hovered, |row| row.bg(theme.accent))
                 .child(label)
-                .child(
-                    div()
-                        .flex()
-                        .items_center()
-                        .gap_1()
-                        .tw_text_xs()
-                        .text_color(theme.muted_foreground)
-                        .children(keys.iter().map(|key| {
-                            div()
-                                .px(px(6.0))
-                                .py(px(1.0))
-                                .rounded_md()
-                                .border_1()
-                                .border_color(theme.border)
-                                .child(*key)
-                        })),
-                )
+                .child(crate::ui::kbd(theme, mono.clone(), keys.join(" "), hovered))
         };
         div()
             .flex()
@@ -191,19 +190,22 @@ impl Workspace {
                     .flex_col()
                     .gap_1()
                     .child(action(
+                        "empty-new-note",
                         "New Note",
-                        &["Ctrl", "N"],
+                        &[modifier, "N"],
                         Some(Box::new(crate::actions::NewNote)),
                     ))
                     .child(action(
+                        "empty-start-recording",
                         "Start Recording",
-                        &["Ctrl", "⇧", "N"],
+                        &[modifier, "⇧", "N"],
                         Some(Box::new(crate::actions::StartRecording)),
                     ))
                     .child(div().my_1().h(px(1.0)).bg(theme.accent))
                     .child(action(
+                        "empty-settings",
                         "Settings",
-                        &["Ctrl", ","],
+                        &[modifier, ","],
                         Some(Box::new(crate::actions::OpenSettings)),
                     )),
             )

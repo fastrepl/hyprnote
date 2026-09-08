@@ -25,6 +25,23 @@ pub enum IgnoreReason {
     ContextTooSmall,
 }
 
+impl IgnoreReason {
+    /// `formatIgnoreReason`
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::CommonKeyword => "Contains common ignore keyword",
+            Self::OldModel => "Old or deprecated model",
+            Self::DateSnapshot => "Date-specific snapshot",
+            Self::NoTool => "No tool support",
+            Self::NoTextInput => "No text input support",
+            Self::NoCompletion => "No completion support",
+            Self::NotLlm => "Not an LLM type",
+            Self::NotChatModel => "Not a chat model",
+            Self::ContextTooSmall => "Context length too small",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IgnoredModel {
     pub id: String,

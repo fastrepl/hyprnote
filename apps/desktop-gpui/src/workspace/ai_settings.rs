@@ -517,6 +517,11 @@ impl Workspace {
                                     model
                                         .reasons
                                         .contains(&crate::ai_models::IgnoreReason::OldModel),
+                                    model
+                                        .reasons
+                                        .iter()
+                                        .map(|reason| reason.label().to_string())
+                                        .collect(),
                                 )
                             })
                             .collect(),
@@ -526,7 +531,7 @@ impl Workspace {
                 let selected_deprecated = current_model.as_deref().is_some_and(|model| {
                     ignored
                         .iter()
-                        .any(|(id, _, deprecated)| id == model && *deprecated)
+                        .any(|(id, _, deprecated, _)| id == model && *deprecated)
                 });
                 let health = self.llm_health_status();
                 Some(Rc::new(super::settings::ComboboxExtras {
@@ -878,7 +883,26 @@ impl Workspace {
                                     .hover(|style| style.text_decoration_1())
                                     .child(SharedString::from(provider.display_name)),
                             )
-                            .children(provider.badge.map(|badge| provider_badge(theme, badge))),
+                            .children(provider.badge.map(|badge| {
+                                let chip = provider_badge(theme, badge);
+                                if badge == "After recording" {
+                                    // `Tooltip delayDuration={100}` / `side="top"` / `max-w-64`.
+                                    self.tooltip_trigger(
+                                        super::tooltip::TooltipSpec::text(
+                                            format!("provider-badge-{}-{}", kind.key(), provider.id),
+                                            "Runs after the recording finishes, not during the meeting.",
+                                            super::tooltip::Side::Top,
+                                        )
+                                        .delay(100)
+                                        .max_width(256.0),
+                                        chip,
+                                        cx,
+                                    )
+                                    .into_any_element()
+                                } else {
+                                    chip.into_any_element()
+                                }
+                            })),
                     )
                     // `[&[data-state=open]>svg]:rotate-180`
                     .child(icon(

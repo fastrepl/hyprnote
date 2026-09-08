@@ -1,7 +1,9 @@
 //! Small element helpers mirroring the Tailwind utility combinations the Tauri
 //! app uses repeatedly.
 
-use gpui::{Div, ElementId, Pixels, Rgba, SharedString, Stateful, Svg, div, prelude::*, px, svg};
+use gpui::{
+    Div, ElementId, FontWeight, Pixels, Rgba, SharedString, Stateful, Svg, div, prelude::*, px, svg,
+};
 
 use crate::theme::{Theme, alpha};
 
@@ -134,6 +136,76 @@ pub fn ghost_icon_button(id: impl Into<ElementId>, theme: Theme, hovered: bool) 
                 None,
             ))
         })
+}
+
+/// `Kbd`: `inline-flex h-5 min-w-5 items-center justify-center rounded px-1
+/// font-mono text-xs leading-none font-medium border border-border bg-muted
+/// text-muted-foreground` under a 1px `--kbd-shadow-outer` drop and a 1px
+/// `--kbd-shadow-inset` highlight (GPUI paints no zero-blur shadow, so both
+/// are drawn as bands). `lifted` is the empty state's `group-hover`:
+/// `-translate-y-0.5` with the shadow grown to 2px.
+pub fn kbd(
+    theme: Theme,
+    mono: Option<SharedString>,
+    text: impl Into<SharedString>,
+    lifted: bool,
+) -> Div {
+    let (outer_shadow, inset) = if theme.dark {
+        (
+            crate::theme::alpha(gpui::rgb(0x000000), 0.35),
+            crate::theme::alpha(gpui::rgb(0xffffff), 0.1),
+        )
+    } else {
+        (
+            crate::theme::alpha(gpui::rgb(0x000000), 0.1),
+            crate::theme::alpha(gpui::rgb(0xffffff), 0.8),
+        )
+    };
+    let drop = if lifted { 2.0 } else { 1.0 };
+    div()
+        .relative()
+        .flex_shrink_0()
+        .when(lifted, |chip| chip.mt(px(-2.0)).mb(px(2.0)))
+        .child(
+            div()
+                .absolute()
+                .left_0()
+                .right_0()
+                .top(px(drop))
+                .bottom(px(-drop))
+                .rounded(px(4.0))
+                .bg(outer_shadow),
+        )
+        .child(
+            div()
+                .relative()
+                .flex()
+                .h(px(20.0))
+                .min_w(px(20.0))
+                .items_center()
+                .justify_center()
+                .rounded(px(4.0))
+                .border_1()
+                .border_color(theme.border)
+                .bg(theme.muted)
+                .px_1()
+                .text_size(px(12.0))
+                .line_height(px(12.0))
+                .font_weight(FontWeight::MEDIUM)
+                .text_color(theme.muted_foreground)
+                .when_some(mono, |chip, family| chip.font_family(family))
+                .child(
+                    div()
+                        .absolute()
+                        .left_0()
+                        .right_0()
+                        .top_0()
+                        .h(px(1.0))
+                        .rounded_t(px(3.0))
+                        .bg(inset),
+                )
+                .child(text.into()),
+        )
 }
 
 /// Windows-style title bar control: `h-10 w-[46px]`, `hover:bg-foreground/10`,

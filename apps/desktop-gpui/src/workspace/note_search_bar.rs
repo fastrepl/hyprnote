@@ -9,6 +9,7 @@ use gpui::{
     div, prelude::*, px,
 };
 
+use super::tooltip::{Side, TooltipSpec};
 use super::{Note, NoteTab, Workspace};
 use crate::db::NotePreview;
 use crate::editor::SearchSpec;
@@ -490,6 +491,12 @@ impl Workspace {
         };
         let hovered = search.hovered;
         let can_step = total > 0;
+        // `primaryModifier`
+        let modifier = if cfg!(target_os = "macos") {
+            "⌘"
+        } else {
+            "Ctrl"
+        };
         // `ToggleButton` / `IconButton`: `rounded-sm p-0.5` around a 14px
         // glyph, `bg-accent` while active or hovered, `text-muted-foreground`
         // (`/70` and no hover when disabled).
@@ -563,35 +570,70 @@ impl Workspace {
                     .items_center()
                     .gap(px(2.0))
                     .child(
-                        small_button("note-search-case", "text-aa", search.case_sensitive, false)
-                            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
-                                if let Some(search) = this.note_search.as_mut() {
-                                    search.case_sensitive = !search.case_sensitive;
-                                }
-                                this.note_search_changed(true, cx);
-                            })),
+                        self.tooltip_trigger(
+                            TooltipSpec::text("note-search-case", "Match case", Side::Bottom),
+                            small_button(
+                                "note-search-case",
+                                "text-aa",
+                                search.case_sensitive,
+                                false,
+                            )
+                            .on_click(cx.listener(
+                                |this, _: &ClickEvent, _, cx| {
+                                    if let Some(search) = this.note_search.as_mut() {
+                                        search.case_sensitive = !search.case_sensitive;
+                                    }
+                                    this.note_search_changed(true, cx);
+                                },
+                            )),
+                            cx,
+                        ),
                     )
                     .child(
-                        small_button("note-search-word", "textbox", search.whole_word, false)
-                            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
-                                if let Some(search) = this.note_search.as_mut() {
-                                    search.whole_word = !search.whole_word;
-                                }
-                                this.note_search_changed(true, cx);
-                            })),
+                        self.tooltip_trigger(
+                            TooltipSpec::text("note-search-word", "Match whole word", Side::Bottom),
+                            small_button("note-search-word", "textbox", search.whole_word, false)
+                                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                                    if let Some(search) = this.note_search.as_mut() {
+                                        search.whole_word = !search.whole_word;
+                                    }
+                                    this.note_search_changed(true, cx);
+                                })),
+                            cx,
+                        ),
                     )
                     .when(allow_replace, |buttons| {
                         buttons.child(
-                            small_button("note-search-replace", "swap", search.show_replace, false)
-                                .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
-                                    if let Some(search) = this.note_search.as_mut() {
-                                        search.show_replace = !search.show_replace;
-                                        if search.show_replace {
-                                            search.replace.read(cx).focus_handle(cx).focus(window);
+                            self.tooltip_trigger(
+                                TooltipSpec::kbd(
+                                    "note-search-replace",
+                                    "Replace",
+                                    format!("{modifier} H"),
+                                    Side::Bottom,
+                                ),
+                                small_button(
+                                    "note-search-replace",
+                                    "swap",
+                                    search.show_replace,
+                                    false,
+                                )
+                                .on_click(cx.listener(
+                                    |this, _: &ClickEvent, window, cx| {
+                                        if let Some(search) = this.note_search.as_mut() {
+                                            search.show_replace = !search.show_replace;
+                                            if search.show_replace {
+                                                search
+                                                    .replace
+                                                    .read(cx)
+                                                    .focus_handle(cx)
+                                                    .focus(window);
+                                            }
+                                            cx.notify();
                                         }
-                                        cx.notify();
-                                    }
-                                })),
+                                    },
+                                )),
+                                cx,
+                            ),
                         )
                     }),
             )
@@ -609,26 +651,35 @@ impl Workspace {
                     .relative()
                     .flex()
                     .items_center()
-                    .child(
+                    // `IconButton` skips the tooltip while disabled.
+                    .child(self.tooltip_trigger_if(
+                        can_step,
+                        TooltipSpec::kbd("note-search-prev", "Previous match", "⇧ ↵", Side::Bottom),
                         small_button("note-search-prev", "caret-up", false, !can_step).on_click(
                             cx.listener(|this, _: &ClickEvent, _, cx| {
                                 this.step_note_search(-1, cx)
                             }),
                         ),
-                    )
-                    .child(
+                        cx,
+                    ))
+                    .child(self.tooltip_trigger_if(
+                        can_step,
+                        TooltipSpec::kbd("note-search-next", "Next match", "↵", Side::Bottom),
                         small_button("note-search-next", "caret-down", false, !can_step).on_click(
                             cx.listener(|this, _: &ClickEvent, _, cx| this.step_note_search(1, cx)),
                         ),
-                    ),
+                        cx,
+                    )),
             )
-            .child(div().relative().child(
+            .child(div().relative().child(self.tooltip_trigger(
+                TooltipSpec::kbd("note-search-close", "Close", "Esc", Side::Bottom),
                 small_button("note-search-close", "x", false, false).on_click(cx.listener(
                     |this, _: &ClickEvent, _, cx| {
                         this.close_note_search(Some(cx));
                     },
                 )),
-            ));
+                cx,
+            )));
 
         let replace_row = (allow_replace && search.show_replace).then(|| {
             row().child(field(search.replace.clone())).child(
@@ -637,20 +688,29 @@ impl Workspace {
                     .flex()
                     .items_center()
                     .gap(px(2.0))
-                    .child(
+                    .child(self.tooltip_trigger(
+                        TooltipSpec::kbd("note-search-replace-one", "Replace", "↵", Side::Bottom),
                         small_button("note-search-replace-one", "swap", false, false).on_click(
                             cx.listener(|this, _: &ClickEvent, _, cx| {
                                 this.replace_note_search(false, cx)
                             }),
                         ),
-                    )
-                    .child(
+                        cx,
+                    ))
+                    .child(self.tooltip_trigger(
+                        TooltipSpec::kbd(
+                            "note-search-replace-all",
+                            "Replace all",
+                            format!("{modifier} ↵"),
+                            Side::Bottom,
+                        ),
                         small_button("note-search-replace-all", "repeat", false, false).on_click(
                             cx.listener(|this, _: &ClickEvent, _, cx| {
                                 this.replace_note_search(true, cx)
                             }),
                         ),
-                    ),
+                        cx,
+                    )),
             )
         });
 

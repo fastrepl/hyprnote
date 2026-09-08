@@ -3392,8 +3392,9 @@ pub(crate) struct ComboboxExtras {
     pub pending: bool,
     /// `getDisplayName(value)` for a selected model missing from the list.
     pub current_label: Option<String>,
-    /// `(id, display name, deprecated)` of the ignored models.
-    pub ignored: Vec<(String, String, bool)>,
+    /// `(id, display name, deprecated, formatted ignore reasons)` of the
+    /// ignored models.
+    pub ignored: Vec<(String, String, bool, Vec<String>)>,
     /// The selected value is an ignored `old_model`.
     pub selected_deprecated: bool,
     pub on_refresh: OnRefresh,
@@ -3781,7 +3782,7 @@ impl Workspace {
                 .options
                 .iter()
                 .any(|option| option.value.to_lowercase() == trimmed_query.to_lowercase());
-        let ignored_rows: Vec<(String, String, bool)> = combobox
+        let ignored_rows: Vec<(String, String, bool, Vec<String>)> = combobox
             .as_ref()
             .filter(|_| open.show_ignored)
             .map(|extras| {
@@ -3789,7 +3790,7 @@ impl Workspace {
                 extras
                     .ignored
                     .iter()
-                    .filter(|(id, label, _)| {
+                    .filter(|(id, label, _, _)| {
                         lower.is_empty() || format!("{id} {label}").to_lowercase().contains(&lower)
                     })
                     .cloned()
@@ -3911,8 +3912,16 @@ impl Workspace {
             // `showIgnored`: the filtered-out models at half opacity, the
             // deprecated ones badged.
             list = list.children(ignored_rows.into_iter().enumerate().map(
-                |(index, (value, label, deprecated))| {
+                |(index, (value, label, deprecated, reasons))| {
                     let on_select = spec.on_select.clone();
+                    // `Tooltip delayDuration={10}` / `side="right"`: one
+                    // `• reason` line per `formatIgnoreReason`.
+                    let tooltip = super::tooltip::TooltipSpec::lines(
+                        format!("select-ignored-{id}-{index}"),
+                        reasons.iter().map(|reason| format!("• {reason}")).collect(),
+                        super::tooltip::Side::Right,
+                    )
+                    .delay(10);
                     div()
                         .id(SharedString::from(format!("select-ignored-{id}-{index}")))
                         .flex()
@@ -3933,8 +3942,22 @@ impl Workspace {
                             this.focus_handle.focus(window);
                             on_select(this, value.clone(), window, cx);
                         }))
-                        .child(div().min_w_0().truncate().child(SharedString::from(label)))
-                        .when(deprecated, |row| row.child(deprecated_badge()))
+                        .child(
+                            self.tooltip_trigger(
+                                tooltip,
+                                div()
+                                    .flex()
+                                    .w_full()
+                                    .min_w_0()
+                                    .items_center()
+                                    .gap_2()
+                                    .child(
+                                        div().min_w_0().truncate().child(SharedString::from(label)),
+                                    )
+                                    .when(deprecated, |row| row.child(deprecated_badge())),
+                                cx,
+                            ),
+                        )
                 },
             ));
             // `Select "query"`

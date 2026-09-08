@@ -53,6 +53,7 @@ mod templates_tab;
 mod timeline_selection;
 mod title_bar;
 mod toast;
+mod tooltip;
 mod transcript_edit;
 mod transcript_selection;
 mod transcript_tab;
@@ -371,6 +372,12 @@ pub struct Workspace {
     excluded_apps_bounds: std::rc::Rc<std::cell::Cell<Option<gpui::Bounds<gpui::Pixels>>>>,
     /// The window's height as of the last frame, for `vh`-sized panels.
     viewport_height: f32,
+    /// The open (or opening) Radix-style tooltip.
+    tooltip: Option<tooltip::TooltipState>,
+    tooltip_bounds: tooltip::TriggerBounds,
+    /// When the last shown tooltip closed, for `skipDelayDuration`.
+    tooltip_closed_at: Option<std::time::Instant>,
+    tooltip_generation: u64,
 }
 
 impl Workspace {
@@ -549,6 +556,10 @@ impl Workspace {
             default_ignored_apps: anlg_detect::default_ignored_bundle_ids(),
             excluded_apps_bounds: std::rc::Rc::default(),
             viewport_height: 0.0,
+            tooltip: None,
+            tooltip_bounds: Default::default(),
+            tooltip_closed_at: None,
+            tooltip_generation: 0,
         };
         // Chips and the bottom fade depend on the scroll position.
         this.list_state
@@ -1966,6 +1977,9 @@ impl Render for Workspace {
             // `shouldClearTimelineSelectionOnPointerDown`: any press outside the
             // timeline root, its dialog, or its (OS-level in Tauri) context menu
             // drops the selection, whatever element claims the pointer.
+            .capture_any_mouse_down(cx.listener(|this, _: &gpui::MouseDownEvent, _, cx| {
+                this.dismiss_tooltip(cx);
+            }))
             .capture_any_mouse_down(cx.listener(|this, event: &gpui::MouseDownEvent, _, cx| {
                 if this.timeline_menu.is_some()
                     || !this.pending_delete_selected.is_empty()
@@ -2082,6 +2096,7 @@ impl Render for Workspace {
                     .map(|toast| gpui::deferred(toast).with_priority(10)),
             )
             .children(self.render_overflow_menu(window, cx))
+            .children(self.render_tooltip(window))
             .children(self.render_filter_menu(window, cx))
             .children(self.render_audio_player_menu(window, cx))
             .children(self.render_calendar_context_menu(window, cx))

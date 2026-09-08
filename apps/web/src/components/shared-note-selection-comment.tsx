@@ -78,7 +78,7 @@ export function SharedNoteSelectionComment({
       className={cn([
         "z-50 inline-flex items-center gap-1.5",
         "surface border-color-subtle rounded-full border px-3 py-1.5 shadow-md",
-        "text-color font-mono text-xs font-medium",
+        "text-color text-xs font-medium",
         "hover:bg-surface-subtle transition-colors",
         "focus-visible:ring-2 focus-visible:ring-stone-500 focus-visible:outline-hidden",
       ])}

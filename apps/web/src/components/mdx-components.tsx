@@ -55,7 +55,7 @@ function CtaCard({
       className="my-6 block rounded-md border border-neutral-200 p-6 no-underline transition-colors hover:border-stone-400 hover:bg-stone-50"
     >
       {title && (
-        <div className="mb-1 font-mono text-base text-stone-800">{title}</div>
+        <div className="mb-1 text-base text-stone-800">{title}</div>
       )}
       {description && (
         <div className="mb-3 text-sm text-neutral-600">{description}</div>

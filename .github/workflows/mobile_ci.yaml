@@ -11,6 +11,8 @@ on:
       - .github/actions/pnpm_install/**
       - .github/workflows/mobile_ci.yaml
       - apps/mobile/**
+      - release-version.json
+      - scripts/release-version.mjs
       - apps/watch/apple/**
       - crates/db-app/**
       - crates/db-core/**
@@ -36,6 +38,8 @@ on:
       - .github/actions/pnpm_install/**
       - .github/workflows/mobile_ci.yaml
       - apps/mobile/**
+      - release-version.json
+      - scripts/release-version.mjs
       - apps/watch/apple/**
       - crates/db-app/**
       - crates/db-core/**

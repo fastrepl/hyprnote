@@ -1,5 +1,7 @@
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
+import releaseVersion from "../../release-version.json" with { type: "json" };
+
 type AppVariant = "dev" | "staging" | "stable";
 
 const variants = {
@@ -50,12 +52,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
+    version: releaseVersion.version,
     name: variant.name,
     slug: config.slug ?? "anarlog-mobile",
     icon: variant.icon,
     scheme: variant.scheme,
     ios: {
       ...config.ios,
+      version: releaseVersion.version,
       icon: variant.icon,
       bundleIdentifier: variant.bundleIdentifier,
       infoPlist: {
@@ -65,6 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     android: {
       ...config.android,
+      version: releaseVersion.version,
       icon: variant.icon,
       package: variant.bundleIdentifier,
       adaptiveIcon: {

@@ -19,6 +19,7 @@
 		A2000003 /* RecordingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingController.swift; sourceTree = "<group>"; };
 		A2000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A2000005 /* WatchSyncController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSyncController.swift; sourceTree = "<group>"; };
+		A2000006 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 		A2000010 /* AnarlogWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AnarlogWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -36,6 +37,7 @@
 		A4000001 /* Root */ = {
 			isa = PBXGroup;
 			children = (
+				A2000006 /* Version.xcconfig */,
 				A4000002 /* AnarlogWatch */,
 				A4000003 /* Products */,
 			);
@@ -130,6 +132,7 @@
 /* Begin XCBuildConfiguration section */
 		A9000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000006 /* Version.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -140,7 +143,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = so.anarlog.mobile.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -155,6 +157,7 @@
 		};
 		A9000002 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000006 /* Version.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -165,7 +168,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = so.anarlog.mobile.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;

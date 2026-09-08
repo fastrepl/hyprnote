@@ -45,12 +45,6 @@ msgstr "{0} is ready to use"
 msgid "{0} min"
 msgstr "{0} min"
 
-#. placeholder {0}: stats.totalConversations
-#. placeholder {1}: stats.nextMilestone
-#: src/settings/stats/index.tsx
-msgid "{0} of {1} conversations captured"
-msgstr "{0} of {1} conversations captured"
-
 #. placeholder {0}: issue.user?.login
 #: src/task/resource-view.tsx
 msgid "{0} opened on"
@@ -69,6 +63,10 @@ msgstr "{0}% complete"
 #: src/sidebar/timeline/utils/index.ts
 msgid "{absDays} days ago"
 msgstr "{absDays} days ago"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "{count} of {total} collected"
+msgstr "{count} of {total} collected"
 
 #: src/settings/stats/index.tsx
 msgid "{date}. Conversations: {count}"
@@ -110,6 +108,14 @@ msgstr "{trialDaysRemaining} day left"
 #: src/settings/general/account.tsx
 msgid "{trialDaysRemaining} days left"
 msgstr "{trialDaysRemaining} days left"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "{value} / {target} active weeks"
+msgstr "{value} / {target} active weeks"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "{value} / {target} conversations"
+msgstr "{value} / {target} conversations"
 
 #: src/sidebar/timeline/utils/index.ts
 msgid "{weeks} weeks ago"
@@ -418,6 +424,10 @@ msgstr "All events"
 #: src/shared/open-note-dialog.tsx
 msgid "All Notes"
 msgstr "All Notes"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "All Set"
+msgstr "All Set"
 
 #: src/settings/stats/date-range.tsx
 msgid "All time"
@@ -878,21 +888,41 @@ msgstr "Cancel date edit"
 msgid "Cancel invitation"
 msgstr "Cancel invitation"
 
-#: src/settings/stats/index.tsx
-msgid "Capture a conversation each week to keep your streak going."
-msgstr "Capture a conversation each week to keep your streak going."
+#: src/settings/stats/badge-collection.tsx
+msgid "Capture 10 conversations. More moments you can return to."
+msgstr "Capture 10 conversations. More moments you can return to."
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Capture 100 conversations. A hundred stories, saved in your own words."
+msgstr "Capture 100 conversations. A hundred stories, saved in your own words."
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Capture 250 conversations. Your own library of shared knowledge."
+msgstr "Capture 250 conversations. Your own library of shared knowledge."
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Capture 50 conversations. A growing collection of ideas and decisions."
+msgstr "Capture 50 conversations. A growing collection of ideas and decisions."
 
 #: src/settings/stats/insights.tsx
 msgid "Capture at least 5 conversations in this period to see patterns."
 msgstr "Capture at least 5 conversations in this period to see patterns."
 
+#: src/settings/stats/badge-collection.tsx
+msgid "Capture conversations in 12 different weeks. A little at a time, at your own pace."
+msgstr "Capture conversations in 12 different weeks. A little at a time, at your own pace."
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Capture conversations in 4 different weeks. They don't need to be consecutive."
+msgstr "Capture conversations in 4 different weeks. They don't need to be consecutive."
+
 #: src/settings/general/meeting-settings.tsx
 msgid "Capture meeting chat in Memos"
 msgstr "Capture meeting chat in Memos"
 
-#: src/settings/stats/index.tsx
-msgid "Capture your first conversation"
-msgstr "Capture your first conversation"
+#: src/settings/stats/badge-collection.tsx
+msgid "Capture your first conversation. Every collection starts somewhere."
+msgstr "Capture your first conversation. Every collection starts somewhere."
 
 #: src/onboarding/folder-location.tsx
 #: src/settings/general/storage/index.tsx
@@ -1255,6 +1285,19 @@ msgstr "Collaborator"
 msgid "Collect action items"
 msgstr "Collect action items"
 
+#: src/settings/stats/badge-collection.tsx
+msgid "Collected"
+msgstr "Collected"
+
+#. placeholder {0}: new Intl.DateTimeFormat(i18n.locale, { dateStyle: "medium", }).format(new Date(selected.collectedAt))
+#: src/settings/stats/badge-collection.tsx
+msgid "Collected {0}"
+msgstr "Collected {0}"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome demo doesn't."
+msgstr "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome demo doesn't."
+
 #: src/settings/appearance/theme.tsx
 msgid "Color theme"
 msgstr "Color theme"
@@ -1298,6 +1341,14 @@ msgstr "Company"
 #: src/settings/general/account.tsx
 msgid "Compare Free, Pro, Team, and Enterprise."
 msgstr "Compare Free, Pro, Team, and Enterprise."
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Complete onboarding"
+msgstr "Complete onboarding"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Complete onboarding. You're ready for your next conversation."
+msgstr "Complete onboarding. You're ready for your next conversation."
 
 #: src/instruction/index.tsx
 msgid "Complete sign-in in your browser, then return to Anarlog."
@@ -1654,6 +1705,10 @@ msgstr "Could not use the selected model"
 msgid "Couldn’t check availability. You can still try Save."
 msgstr "Couldn’t check availability. You can still try Save."
 
+#: src/settings/stats/badge-collection.tsx
+msgid "Couldn't load your badges. Reopen this page to try again."
+msgstr "Couldn't load your badges. Reopen this page to try again."
+
 #: src/settings/stats/insights.tsx
 msgid "Couldn't load your insights. Reopen this page to try again."
 msgstr "Couldn't load your insights. Reopen this page to try again."
@@ -1661,6 +1716,10 @@ msgstr "Couldn't load your insights. Reopen this page to try again."
 #: src/settings/stats/index.tsx
 msgid "Couldn't load your stats. Reopen this page to try again."
 msgstr "Couldn't load your stats. Reopen this page to try again."
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Couldn't save your new badges."
+msgstr "Couldn't save your new badges."
 
 #: src/folders/sidebar.tsx
 #: src/settings/team/index.tsx
@@ -1714,6 +1773,14 @@ msgstr "Create or enter your recovery key in Sync settings to start syncing."
 #: src/templates/details.tsx
 msgid "Create template"
 msgstr "Create template"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Create your account"
+msgstr "Create your account"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Create your Anarlog account. A place for your conversations to call home."
+msgstr "Create your Anarlog account. A place for your conversations to call home."
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Created"
@@ -2119,6 +2186,10 @@ msgstr "Esc to dismiss"
 msgid "Event notifications"
 msgstr "Event notifications"
 
+#: src/settings/stats/index.tsx
+msgid "Every conversation adds to your story."
+msgstr "Every conversation adds to your story."
+
 #. placeholder {0}: owned.workspaceName
 #. placeholder {0}: workspace.name
 #: src/resource-sharing/share-dialog.tsx
@@ -2204,6 +2275,10 @@ msgstr "Failed to load Outlook Calendar"
 msgid "Failed to load pull request"
 msgstr "Failed to load pull request"
 
+#: src/settings/stats/badge-collection.tsx
+msgid "Familiar Face"
+msgstr "Familiar Face"
+
 #: src/templates/details.tsx
 msgid "Favorite template"
 msgstr "Favorite template"
@@ -2232,6 +2307,10 @@ msgstr "Find a note..."
 msgid "Find key decisions."
 msgstr "Find key decisions."
 
+#: src/settings/stats/badge-collection.tsx
+msgid "Finding Your Rhythm"
+msgstr "Finding Your Rhythm"
+
 #: src/instruction/index.tsx
 msgid "Finish checkout in your browser to unlock more, then return to Anarlog."
 msgstr "Finish checkout in your browser to unlock more, then return to Anarlog."
@@ -2247,6 +2326,10 @@ msgstr "Finish sign-in"
 #: src/settings/ai/llm/subscriptions/connect.tsx
 msgid "Finishing connection…"
 msgstr "Finishing connection…"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "First Words"
+msgstr "First Words"
 
 #: src/templates/template-icon-picker.tsx
 msgid "Flags"
@@ -2372,6 +2455,10 @@ msgstr "Go to previous section"
 msgid "Go to recent"
 msgstr "Go to recent"
 
+#: src/settings/stats/badge-collection.tsx
+msgid "Good Listener"
+msgstr "Good Listener"
+
 #: src/billing/trial-started-dialog.tsx
 #: src/settings/ai/stt/select.tsx
 msgid "Got it"
@@ -2412,6 +2499,10 @@ msgstr "Having trouble?"
 #: src/settings/ai/llm/subscriptions/connect.tsx
 msgid "Having trouble? Paste the redirect URL"
 msgstr "Having trouble? Paste the redirect URL"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Hello, Anarlog"
+msgstr "Hello, Anarlog"
 
 #: src/main/windows-title-bar.tsx
 msgid "Help"
@@ -2773,9 +2864,17 @@ msgstr "LinkedIn"
 msgid "List action items."
 msgstr "List action items."
 
+#: src/settings/stats/badge-collection.tsx
+msgid "Little steps worth keeping. Collect them at your own pace."
+msgstr "Little steps worth keeping. Collect them at your own pace."
+
 #: src/settings/ai/stt/select.tsx
 msgid "Live"
 msgstr "Live"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Living Library"
+msgstr "Living Library"
 
 #: src/templates/auto-form.tsx
 msgid "Loading Auto format..."
@@ -2822,6 +2921,10 @@ msgstr "Loading sync settings"
 #: src/settings/automations/starter-config.tsx
 msgid "Loading teams…"
 msgstr "Loading teams…"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Loading your badges…"
+msgstr "Loading your badges…"
 
 #: src/settings/stats/insights.tsx
 msgid "Loading your insights…"
@@ -3009,6 +3112,10 @@ msgstr "Members on a claimed email domain must sign in with SSO instead of Googl
 msgid "Memo"
 msgstr "Memo"
 
+#: src/settings/stats/badge-collection.tsx
+msgid "Memory Keeper"
+msgstr "Memory Keeper"
+
 #: src/session/components/note-input/header-raw.tsx
 msgid "Memos"
 msgstr "Memos"
@@ -3054,10 +3161,6 @@ msgstr "Migration needs attention"
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "Migration status unavailable"
 msgstr "Migration status unavailable"
-
-#: src/settings/stats/index.tsx
-msgid "Milestones"
-msgstr "Milestones"
 
 #: src/main/windows-title-bar.tsx
 msgid "Minimize"
@@ -3141,17 +3244,9 @@ msgstr "New template"
 msgid "Newest"
 msgstr "Newest"
 
-#: src/settings/stats/index.tsx
-msgid "Next conversation milestone"
-msgstr "Next conversation milestone"
-
 #: src/session/components/note-input/search/bar.tsx
 msgid "Next match"
 msgstr "Next match"
-
-#: src/settings/stats/index.tsx
-msgid "Next milestone"
-msgstr "Next milestone"
 
 #: src/sidebar/timeline/utils/index.ts
 msgid "next month"
@@ -3793,10 +3888,6 @@ msgstr "Re-transcribe this audio, or upload a transcript file."
 #: src/session/components/note-input/transcript/actions.ts
 msgid "Re-transcription failed"
 msgstr "Re-transcription failed"
-
-#: src/settings/stats/index.tsx
-msgid "Reached:"
-msgstr "Reached:"
 
 #: src/onboarding/permissions.tsx
 msgid "Read meeting controls and visible chat"
@@ -4957,6 +5048,10 @@ msgstr "Storage configured"
 msgid "Storage Updated"
 msgstr "Storage Updated"
 
+#: src/settings/stats/badge-collection.tsx
+msgid "Story Collector"
+msgstr "Story Collector"
+
 #: src/instruction/index.tsx
 msgid "Submit callback URL"
 msgstr "Submit callback URL"
@@ -5354,6 +5449,7 @@ msgstr "Trigger"
 #: src/onboarding/permissions.tsx
 #: src/session-sharing/management-panel.tsx
 #: src/settings/general/permissions.tsx
+#: src/settings/stats/badge-collection.tsx
 msgid "Try again"
 msgstr "Try again"
 
@@ -5478,10 +5574,6 @@ msgstr "Upcoming bot attendance"
 #: src/services/event-notification/index.ts
 msgid "Upcoming Event"
 msgstr "Upcoming Event"
-
-#: src/settings/stats/index.tsx
-msgid "Upcoming:"
-msgstr "Upcoming:"
 
 #: src/resource-sharing/share-dialog.tsx
 msgid "Update"
@@ -5791,6 +5883,10 @@ msgstr "Your {days}-day Pro trial starts now. Pro will continue automatically wh
 #: src/settings/general/account.tsx
 msgid "Your Account"
 msgstr "Your Account"
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Your badges"
+msgstr "Your badges"
 
 #: src/settings/stats/insights.tsx
 msgid "Your busiest weekdays are tied at {peakCount} conversations each in the selected period."

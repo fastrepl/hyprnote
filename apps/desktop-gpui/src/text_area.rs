@@ -39,6 +39,8 @@ actions!(
         SelectAll,
         Home,
         End,
+        SelectHome,
+        SelectEnd,
         Paste,
         Cut,
         Copy,
@@ -91,6 +93,8 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new("shift-down", SelectDown, ctx),
         KeyBinding::new("home", Home, ctx),
         KeyBinding::new("end", End, ctx),
+        KeyBinding::new("shift-home", SelectHome, ctx),
+        KeyBinding::new("shift-end", SelectEnd, ctx),
         KeyBinding::new(&format!("{m}-a"), SelectAll, ctx),
         KeyBinding::new(&format!("{m}-v"), Paste, ctx),
         KeyBinding::new(&format!("{m}-c"), Copy, ctx),
@@ -831,6 +835,16 @@ impl TextArea {
         self.move_to(self.line_end(self.cursor_offset()), cx);
     }
 
+    fn select_home(&mut self, _: &SelectHome, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = self.line_start(self.cursor_offset());
+        self.select_to(offset, cx);
+    }
+
+    fn select_end(&mut self, _: &SelectEnd, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = self.line_end(self.cursor_offset());
+        self.select_to(offset, cx);
+    }
+
     /// Ctrl/Alt-Left/Right: WebKit's word movement.
     fn word_left(&mut self, _: &WordLeft, _: &mut Window, cx: &mut Context<Self>) {
         let offset = if self.selected_range.is_empty() {
@@ -1257,6 +1271,8 @@ impl Render for TextArea {
             .on_action(cx.listener(Self::select_all))
             .on_action(cx.listener(Self::home))
             .on_action(cx.listener(Self::end))
+            .on_action(cx.listener(Self::select_home))
+            .on_action(cx.listener(Self::select_end))
             .on_action(cx.listener(Self::paste))
             .on_action(cx.listener(Self::cut))
             .on_action(cx.listener(Self::copy))

@@ -39,6 +39,8 @@ pub(crate) struct FlashToast {
     description: Option<SharedString>,
     /// sonner's `action` button.
     action: Option<(&'static str, Box<dyn gpui::Action>)>,
+    /// sonner's `id`, for a later `toast.dismiss(id)`.
+    id: Option<&'static str>,
     generation: u64,
 }
 
@@ -285,6 +287,40 @@ impl Workspace {
         }
     }
 
+    /// `sonnerToast.dismiss(id)`: only the toast with that id goes away.
+    pub(crate) fn dismiss_flash_with_id(&mut self, id: &str, cx: &mut Context<Self>) {
+        if self
+            .flash
+            .as_ref()
+            .is_some_and(|flash| flash.id == Some(id))
+            && self.flash.take().is_some()
+        {
+            cx.notify();
+        }
+    }
+
+    /// `sonnerToast.<variant>(message, { id, duration: Infinity, description })`:
+    /// stays until dismissed by id or the close button.
+    pub(crate) fn flash_persistent(
+        &mut self,
+        variant: FlashVariant,
+        id: &'static str,
+        message: impl Into<SharedString>,
+        description: impl Into<SharedString>,
+        cx: &mut Context<Self>,
+    ) {
+        let generation = self.flash.as_ref().map_or(0, |flash| flash.generation + 1);
+        self.flash = Some(FlashToast {
+            variant,
+            message: message.into(),
+            description: Some(description.into()),
+            action: None,
+            id: Some(id),
+            generation,
+        });
+        cx.notify();
+    }
+
     /// `dismissToast(dismissalId)`: remembered in `store.json` like
     /// `setDismissedToasts`, so neither shell shows the promotion again.
     pub(crate) fn dismiss_toast(&mut self, dismissal_id: &str, cx: &mut Context<Self>) {
@@ -323,6 +359,7 @@ impl Workspace {
             message,
             description,
             action,
+            id: None,
             generation,
         });
         cx.notify();

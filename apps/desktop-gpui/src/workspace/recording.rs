@@ -198,7 +198,23 @@ pub(crate) struct LiveCapture {
     pub mic_isolated: Option<bool>,
     /// `createCaptureLifecycle`'s post-capture inputs.
     pub lifecycle: CaptureLifecycle,
+    /// `tickTranscriptionStallWatchdog`'s counters: audible seconds since any
+    /// live transcript activity, and since the last finalized words.
+    pub stall_audible_seconds: u32,
+    pub final_stall_audible_seconds: u32,
+    /// `live.transcriptionStalled`
+    pub transcription_stalled: bool,
 }
+
+/// `TRANSCRIPTION_STALL_AMPLITUDE_THRESHOLD`: quieter seconds do not count.
+const TRANSCRIPTION_STALL_AMPLITUDE_THRESHOLD: f32 = 0.05;
+/// `TRANSCRIPTION_STALL_AUDIBLE_SECONDS`: audible seconds without any words.
+const TRANSCRIPTION_STALL_AUDIBLE_SECONDS: u32 = 45;
+/// `TRANSCRIPTION_FINAL_STALL_AUDIBLE_SECONDS`: audible seconds with partials
+/// but no finalized words.
+const TRANSCRIPTION_FINAL_STALL_AUDIBLE_SECONDS: u32 = 90;
+/// The persistent warning's sonner id.
+pub(crate) const STALLED_TOAST_ID: &str = "live-transcription-stalled";
 
 /// `createCaptureLifecycle`: what the capture knew at start plus what the
 /// live stream reported, deciding `getPostCaptureAction` at stop.
@@ -1775,6 +1791,9 @@ impl Workspace {
                             segments: Vec::new(),
                             label_context: None,
                             mic_isolated: None,
+                            stall_audible_seconds: 0,
+                            final_stall_audible_seconds: 0,
+                            transcription_stalled: false,
                             lifecycle: CaptureLifecycle {
                                 preserve_existing_transcript: context.preserve_existing_transcript,
                                 existing_audio_ms: context.existing_audio_ms,
@@ -1895,6 +1914,9 @@ impl Workspace {
                             segments: Vec::new(),
                             label_context: None,
                             mic_isolated: None,
+                            stall_audible_seconds: 0,
+                            final_stall_audible_seconds: 0,
+                            transcription_stalled: false,
                             lifecycle: CaptureLifecycle::default(),
                         });
                         self.on_live_session_started(cx);
@@ -2012,6 +2034,26 @@ impl Workspace {
                 }
             }
             Event::Data(SessionDataEvent::TranscriptDelta { session_id, delta }) => {
+                // `noteLiveTranscriptActivity`: partials prove the stream is
+                // alive; finalized words mark the pipeline healthy again and
+                // put the stalled warning away (#7466).
+                let has_final_words = !delta.new_words.is_empty();
+                if (has_final_words || !delta.partials.is_empty())
+                    && let Some(live) = self
+                        .recording
+                        .live
+                        .as_mut()
+                        .filter(|live| live.session_id == session_id)
+                {
+                    live.stall_audible_seconds = 0;
+                    if has_final_words {
+                        live.final_stall_audible_seconds = 0;
+                        if live.transcription_stalled {
+                            live.transcription_stalled = false;
+                            self.dismiss_flash_with_id(STALLED_TOAST_ID, cx);
+                        }
+                    }
+                }
                 // `handlePersist`: empty deltas are ignored; the rest are
                 // queued whether the capture is live or already finalizing.
                 if delta.new_words.is_empty() && delta.replaced_ids.is_empty() {
@@ -2041,6 +2083,83 @@ impl Workspace {
         }
         self.sync_floating_bar(cx);
         cx.notify();
+    }
+
+    /// `createLiveSecondsInterval`: once a second while this capture is live,
+    /// run the stall watchdog.
+    pub(crate) fn start_transcription_stall_watchdog(&mut self, cx: &mut Context<Self>) {
+        let Some(session_id) = self
+            .recording
+            .live
+            .as_ref()
+            .map(|live| live.session_id.clone())
+        else {
+            return;
+        };
+        cx.spawn(async move |this, cx| {
+            loop {
+                cx.background_executor()
+                    .timer(std::time::Duration::from_secs(1))
+                    .await;
+                let alive = this
+                    .update(cx, |this, cx| {
+                        this.tick_transcription_stall_watchdog(&session_id, cx)
+                    })
+                    .unwrap_or(false);
+                if !alive {
+                    break;
+                }
+            }
+        })
+        .detach();
+    }
+
+    /// `tickTranscriptionStallWatchdog`: live STT can hang without any error
+    /// or degraded event — nothing arrives, or partials never finalize. Count
+    /// audible seconds since the last activity of each kind; past either
+    /// threshold, flag the session so the stop runs a batch repair from the
+    /// recording, and warn. Returns whether the capture is still live.
+    fn tick_transcription_stall_watchdog(
+        &mut self,
+        session_id: &str,
+        cx: &mut Context<Self>,
+    ) -> bool {
+        let Some(live) = self
+            .recording
+            .live
+            .as_mut()
+            .filter(|live| live.session_id == session_id)
+        else {
+            return false;
+        };
+        if !live.requested_live || !live.live_active || live.transcription_stalled {
+            return true;
+        }
+        // Mic mute must not disable the watchdog: speaker audio keeps feeding
+        // live STT, and the amplitude gate ignores silent stretches.
+        if live.mic.max(live.speaker) < TRANSCRIPTION_STALL_AMPLITUDE_THRESHOLD {
+            return true;
+        }
+        live.stall_audible_seconds += 1;
+        live.final_stall_audible_seconds += 1;
+        if live.stall_audible_seconds < TRANSCRIPTION_STALL_AUDIBLE_SECONDS
+            && live.final_stall_audible_seconds < TRANSCRIPTION_FINAL_STALL_AUDIBLE_SECONDS
+        {
+            return true;
+        }
+        live.transcription_stalled = true;
+        live.lifecycle.needs_batch_repair = true;
+        tracing::warn!(session_id, "[listener] live transcription stalled");
+        // `notifyTranscriptionStalled`: `sonnerToast.warning` with
+        // `duration: Infinity`.
+        self.flash_persistent(
+            super::toast::FlashVariant::Warning,
+            STALLED_TOAST_ID,
+            "Live transcription stalled",
+            "Anarlog keeps recording while live transcription reconnects. Any missing text will be rebuilt from the recording after you stop listening.",
+            cx,
+        );
+        true
     }
 
     /// `FloatingMeetingWindowSync`: while `floating_bar_enabled` holds and a
@@ -2133,6 +2252,7 @@ impl Workspace {
         {
             self.enhancer_on_live_started(&session_id);
         }
+        self.start_transcription_stall_watchdog(cx);
         let Some(session_id) = self
             .recording
             .live

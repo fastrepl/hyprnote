@@ -172,8 +172,14 @@ impl Workspace {
                         return;
                     }
                 };
-                // `canStartLiveSession`: another capture or a running batch
-                // on the session blocks the start; the next tick retries.
+                // A recording that started meanwhile makes this meeting an
+                // overlapping one: `ignored`, claimed for good (#7466).
+                if this.scheduled_live_status() == LiveStatus::Active {
+                    this.auto_start.fired.insert(next.id);
+                    return;
+                }
+                // `canStartLiveSession`: a finalizing capture or a running
+                // batch on the session blocks the start; the next tick retries.
                 if this.scheduled_live_status() != LiveStatus::Inactive
                     || this.session_mode(&session_id) != super::recording::SessionMode::Inactive
                 {

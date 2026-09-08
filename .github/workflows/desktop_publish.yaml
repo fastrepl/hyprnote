@@ -734,7 +734,7 @@ jobs:
     needs: linux-package-bump
     permissions:
       contents: write
-    uses: $/.github/workflows/web_cd.yaml
+    uses: ./.github/workflows/web_cd.yaml
     with:
       sha: ${{ needs.linux-package-bump.outputs.sha }}
     secrets:

@@ -113,7 +113,7 @@ test("the release deploys and verifies the merged metadata commit", async () => 
     .split("\n  linux-apt-verify:\n")[0];
   const verify = publish.split("\n  linux-apt-verify:\n")[1];
   assert.match(deploy, /needs: linux-package-bump/);
-  assert.match(deploy, /uses: \$\/\.github\/workflows\/web_cd\.yaml/);
+  assert.match(deploy, /uses: \.\/\.github\/workflows\/web_cd\.yaml/);
   assert.match(
     deploy,
     /sha: \$\{\{ needs\.linux-package-bump\.outputs\.sha \}\}/,

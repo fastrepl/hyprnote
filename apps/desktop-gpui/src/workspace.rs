@@ -624,6 +624,15 @@ impl Workspace {
         }
     }
 
+    /// Closing the main window saves its frame first, like the window-state
+    /// plugin's `ExitRequested` save (on X11 the last window ends the run).
+    pub(crate) fn close_window(&self, window: &mut Window) {
+        if !self.is_standalone() {
+            crate::window_state::save_main(self.store.identifier(), window.window_bounds());
+        }
+        window.remove_window();
+    }
+
     pub(crate) fn is_standalone(&self) -> bool {
         matches!(self.mode, Mode::StandaloneNote(_))
     }
@@ -1910,7 +1919,9 @@ impl Render for Workspace {
             .on_action(cx.listener(|this, _: &actions::PreviousView, _, cx| this.step_view(-1, cx)))
             .on_action(cx.listener(|this, _: &actions::NextView, _, cx| this.step_view(1, cx)))
             .on_action(|_: &actions::ToggleFullscreen, window, _| window.toggle_fullscreen())
-            .on_action(|_: &actions::CloseWindow, window, _| window.remove_window())
+            .on_action(
+                cx.listener(|this, _: &actions::CloseWindow, window, _| this.close_window(window)),
+            )
             // `useCloseStandaloneNoteWindowOnEscape`
             .on_action(cx.listener(|this, _: &actions::ToggleChat, _, cx| this.toggle_chat(cx)))
             .on_action(cx.listener(|this, _: &actions::SelectAll, _, cx| {

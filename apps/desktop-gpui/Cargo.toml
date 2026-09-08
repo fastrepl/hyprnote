@@ -72,6 +72,7 @@ uuid = { workspace = true, features = ["v4"] }
 gtk = "0.18"
 libloading = { workspace = true }
 tray-icon = { version = "0.24.2", default-features = false, features = ["gtk"] }
+x11rb = "0.13.1"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "macros"] }

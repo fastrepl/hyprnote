@@ -251,7 +251,7 @@ impl Workspace {
                             .on_hover(cx.listener(|this, hovered: &bool, _, cx| {
                                 this.set_hovered("close", *hovered, cx);
                             }))
-                            .on_click(|_, window, _| window.remove_window())
+                            .on_click(cx.listener(|this, _, window, _| this.close_window(window)))
                             .child(icon(
                                 "close-x",
                                 px(12.0),

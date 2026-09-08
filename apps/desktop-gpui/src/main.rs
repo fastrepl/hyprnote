@@ -61,7 +61,10 @@ mod ui;
 mod unified_diff;
 mod voiceprint;
 mod webkit_local_storage;
+mod window_state;
 mod workspace;
+#[cfg(target_os = "linux")]
+mod x11;
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -121,14 +124,41 @@ fn handle_deep_link_url(url: &str, store: &Arc<Store>, cx: &mut App) {
         .ok();
 }
 
+/// The main window's frame as `tauri-plugin-window-state` saved it (and
+/// `true`), when there is one; otherwise `MAIN_WINDOW_WIDTH` ×
+/// `MAIN_WINDOW_HEIGHT` centred.
+fn main_window_bounds(identifier: &str, cx: &App) -> (WindowBounds, bool) {
+    let saved = window_state::path(identifier)
+        .and_then(|path| window_state::load(&path, window_state::MAIN_LABEL));
+    match saved {
+        Some(frame) => {
+            let bounds = Bounds::new(
+                point(px(frame.x as f32), px(frame.y as f32)),
+                size(px(frame.width as f32), px(frame.height as f32)),
+            );
+            let bounds = if frame.maximized {
+                WindowBounds::Maximized(bounds)
+            } else {
+                WindowBounds::Windowed(bounds)
+            };
+            (bounds, true)
+        }
+        None => (
+            WindowBounds::Windowed(Bounds::centered(None, size(px(910.0), px(600.0)), cx)),
+            false,
+        ),
+    }
+}
+
 fn open_main_window(store: Arc<Store>, cx: &mut App) -> anyhow::Result<WindowHandle<Workspace>> {
-    let bounds = Bounds::centered(None, size(px(1100.0), px(720.0)), cx);
+    let identifier = store.identifier().to_string();
+    let (bounds, restored) = main_window_bounds(&identifier, cx);
     // Tauri ships `decorations: false` with its own title bar on Windows
     // and Linux, and a transparent title bar with inset traffic lights on
     // macOS (`tauri.macos.conf.json`).
     let window = cx.open_window(
         WindowOptions {
-            window_bounds: Some(WindowBounds::Windowed(bounds)),
+            window_bounds: Some(bounds),
             titlebar: Some(TitlebarOptions {
                 title: Some("Anarlog".into()),
                 appears_transparent: cfg!(target_os = "macos"),
@@ -141,7 +171,8 @@ fn open_main_window(store: Arc<Store>, cx: &mut App) -> anyhow::Result<WindowHan
                 WindowDecorations::Server
             }),
             app_id: Some(APP_ID.to_string()),
-            window_min_size: Some(size(px(640.0), px(400.0))),
+            // `min_inner_size(500.0, 500.0)` on the Tauri main window.
+            window_min_size: Some(size(px(500.0), px(500.0))),
             ..Default::default()
         },
         |window, cx| {
@@ -151,6 +182,28 @@ fn open_main_window(store: Arc<Store>, cx: &mut App) -> anyhow::Result<WindowHan
             workspace
         },
     )?;
+    #[cfg(target_os = "linux")]
+    if let WindowBounds::Windowed(rect) | WindowBounds::Maximized(rect) = bounds
+        && restored
+    {
+        x11::move_window_when_mapped(
+            f32::from(rect.size.width) as u32,
+            f32::from(rect.size.height) as u32,
+            f32::from(rect.origin.x) as i32,
+            f32::from(rect.origin.y) as i32,
+        );
+    }
+    // The plugin saves on `ExitRequested`; the shell saves as the main
+    // window closes (which ends the process on X11) and on quit.
+    let close_identifier = identifier.clone();
+    window
+        .update(cx, |_, window, cx| {
+            window.on_window_should_close(cx, move |window, _| {
+                window_state::save_main(&close_identifier, window.window_bounds());
+                true
+            });
+        })
+        .ok();
     cx.global_mut::<MainWindow>().handle = Some(window);
     Ok(window)
 }
@@ -374,6 +427,18 @@ fn main() -> anyhow::Result<()> {
         text_input::bind_keys(cx);
         text_area::bind_keys(cx);
         editor::bind_keys(cx);
+        // The plugin saves on `ExitRequested`: the open main window's frame
+        // is written when the app quits (the tray's Quit, the shell switch).
+        let quit_identifier = identifier.clone();
+        cx.on_app_quit(move |cx| {
+            if let Some(handle) = cx.global::<MainWindow>().handle
+                && let Ok(bounds) = handle.update(cx, |_, window, _| window.window_bounds())
+            {
+                window_state::save_main(&quit_identifier, bounds);
+            }
+            async {}
+        })
+        .detach();
         cx.on_window_closed(|cx| {
             if cx.windows().is_empty() {
                 // gpui 0.2.2's X11 client still holds its state borrow while

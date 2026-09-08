@@ -5514,6 +5514,7 @@ dependencies = [
  "url",
  "uuid",
  "voiceprint-service",
+ "x11rb",
 ]
 
 [[package]]

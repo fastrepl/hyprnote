@@ -172,6 +172,27 @@ describe("useCreatePreMeetingBrief", () => {
     expect(result.current.visible).toBe(true);
   });
 
+  it("hides and disables create brief when the meeting ends even with participants", () => {
+    mocks.participants = [
+      {
+        humanId: "ada",
+        source: "manual",
+        name: "Ada",
+        email: "ada@example.com",
+      },
+    ];
+    mocks.now = new Date("2026-08-21T09:59:00.000Z");
+    const { result, rerender } = renderBriefHook();
+    expect(result.current.visible).toBe(true);
+
+    mocks.now = new Date("2026-08-21T10:00:00.000Z");
+    rerender();
+    expect(result.current.visible).toBe(false);
+
+    act(() => result.current.createBrief());
+    expect(mocks.streamPreMeetingBrief).not.toHaveBeenCalled();
+  });
+
   it("hides after the memo has content and returns when the memo is cleared", () => {
     const { result, rerender } = renderBriefHook();
 

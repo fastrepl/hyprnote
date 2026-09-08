@@ -120,7 +120,38 @@ describe("pre-meeting brief visibility", () => {
     ).toBe(true);
   });
 
-  it("requires an upcoming event or added participants, plus usable prior meetings", () => {
+  it.each(["2026-08-21T07:59:00.000Z", "2026-08-21T08:00:00.000Z"])(
+    "hides short meetings at or after their end time %s",
+    (ended_at) => {
+      expect(
+        shouldShowPreMeetingBrief(
+          {
+            started_at: "2026-08-21T07:58:00.000Z",
+            ended_at,
+            is_all_day: false,
+          },
+          nowMs,
+        ),
+      ).toBe(false);
+    },
+  );
+
+  it("does not let added participants make an ended meeting eligible", () => {
+    expect(
+      canCreatePreMeetingBrief({
+        event: {
+          started_at: "2026-08-21T07:00:00.000Z",
+          ended_at: "2026-08-21T07:30:00.000Z",
+          is_all_day: false,
+        },
+        nowMs,
+        notes: [makeNote({ sessionId: "previous" })],
+        hasParticipants: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("requires an upcoming event or participants without an event, plus usable prior meetings", () => {
     const event = {
       started_at: "2026-08-21T09:00:00.000Z",
       ended_at: "2026-08-21T10:00:00.000Z",

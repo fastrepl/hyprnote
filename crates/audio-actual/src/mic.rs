@@ -366,6 +366,14 @@ impl MicInput {
                     continue;
                 };
 
+                if is_unusable_input_device_with_id(
+                    get_device_id(&device).as_deref(),
+                    &get_device_name(&device),
+                ) {
+                    drop_quietly(device);
+                    continue;
+                }
+
                 match device.default_input_config() {
                     Ok(config) => {
                         opened = Some((device, config, name));

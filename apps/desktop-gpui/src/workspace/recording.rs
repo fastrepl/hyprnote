@@ -417,8 +417,8 @@ pub(crate) fn current_capture_audio_offset_ms(
 }
 
 pub(crate) struct RecordingToast {
-    pub title: &'static str,
-    pub description: &'static str,
+    pub title: SharedString,
+    pub description: SharedString,
     pub action: &'static str,
 }
 
@@ -1804,7 +1804,7 @@ impl Workspace {
         // `useSTTConnection`: the provider's base URL and credential-store
         // key; `None` (no `conn`) records without a transcription endpoint.
         let connection = self.store.stt_connection(&self.provider_settings);
-        let languages = self.transcription_languages();
+        let requested_languages = self.transcription_languages();
         // `memoMd = session?.raw_md ?? ""`
         let memo = match &self.note {
             super::Note::Ready { preview, .. } if preview.session.id == session_id => {
@@ -1827,6 +1827,16 @@ impl Workspace {
         cx.notify();
         cx.spawn(async move |this, cx| {
             let connection = connection.await.ok().flatten();
+            // `getLiveTranscriptionConfig`: a batch-only model records without a
+            // live session, and a provider that cannot carry every language live
+            // keeps the primary one.
+            let live_config = crate::stt_capabilities::live_transcription_config(
+                connection.as_ref().map(|c| c.provider.as_str()),
+                connection.as_ref().map(|c| c.model.as_str()),
+                &requested_languages,
+            );
+            let languages = live_config.languages.clone();
+            let requested_live = live_config.mode == TranscriptionMode::Live;
             let keywords = keywords.await.unwrap_or_default();
             let context = match context.await.map_err(anyhow::Error::from).and_then(|r| r) {
                 Ok(context) => context,
@@ -1842,7 +1852,7 @@ impl Workspace {
                 session_id: session_id.clone(),
                 languages,
                 onboarding: false,
-                transcription_mode: TranscriptionMode::Live,
+                transcription_mode: live_config.mode,
                 model: connection.as_ref().map(|c| c.model.clone()).unwrap_or_default(),
                 base_url: connection.as_ref().map(|c| c.base_url.clone()).unwrap_or_default(),
                 api_key: connection.as_ref().map(|c| c.api_key.clone()).unwrap_or_default(),
@@ -1879,8 +1889,8 @@ impl Workspace {
                                 pending: Vec::new(),
                                 finishing: false,
                             },
-                            requested_live: true,
-                            live_active: has_provider,
+                            requested_live,
+                            live_active: has_provider && requested_live,
                             error: None,
                             mic: 0.0,
                             speaker: 0.0,
@@ -1900,7 +1910,7 @@ impl Workspace {
                                 initial_title: context.initial_title.clone(),
                                 automatic,
                                 preserve_existing_audio,
-                                requested_live: true,
+                                requested_live,
                             },
                         });
                         // `lifecycle.persistMarker()`: the durable capture state
@@ -1917,10 +1927,33 @@ impl Workspace {
                         this.on_live_session_started(cx);
                         // `setLeftSidebarExpanded(false)`
                         this.sidebar_expanded = false;
-                        if !has_provider {
+                        // `Live transcription is using <primary>` when the provider
+                        // dropped languages, `not configured` without a provider.
+                        if has_provider
+                            && let Some(primary) = live_config.languages.first()
+                            && !live_config.omitted_languages.is_empty()
+                        {
+                            let name = |language: &anlg_language::Language| {
+                                super::settings::base_language_display_name(&language.to_string())
+                            };
+                            let omitted = live_config
+                                .omitted_languages
+                                .iter()
+                                .map(name)
+                                .collect::<Vec<_>>()
+                                .join(", ");
                             this.recording.toast = Some(RecordingToast {
-                                title: "Live transcription is not configured",
-                                description: "Audio is being saved. Choose a transcription provider to ensure this recording can be transcribed.",
+                                title: format!("Live transcription is using {}", name(primary)).into(),
+                                description: format!(
+                                    "Live transcription won't include {omitted}. Audio is still being saved."
+                                )
+                                .into(),
+                                action: "Change",
+                            });
+                        } else if !has_provider {
+                            this.recording.toast = Some(RecordingToast {
+                                title: "Live transcription is not configured".into(),
+                                description: "Audio is being saved. Choose a transcription provider to ensure this recording can be transcribed.".into(),
                                 action: "Configure",
                             });
                         }
@@ -3074,13 +3107,13 @@ impl Workspace {
                                 .text_size(px(13.0))
                                 .line_height(px(19.0))
                                 .font_weight(gpui::FontWeight::MEDIUM)
-                                .child(SharedString::from(toast.title)),
+                                .child(toast.title.clone()),
                         )
                         .child(
                             div()
                                 .text_size(px(13.0))
                                 .line_height(px(19.0))
-                                .child(SharedString::from(toast.description)),
+                                .child(toast.description.clone()),
                         ),
                 )
                 .child(

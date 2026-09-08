@@ -51,6 +51,7 @@ mod speaker_assignment;
 mod squircle;
 mod stats;
 mod store_file;
+mod stt_capabilities;
 mod templates;
 mod text_area;
 mod text_input;

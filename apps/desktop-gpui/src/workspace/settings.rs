@@ -3216,6 +3216,17 @@ pub(super) fn base_language_code(code: &str) -> String {
     code.split(['-', '_']).next().unwrap_or(code).to_lowercase()
 }
 
+/// `getBaseLanguageDisplayName`: the English `Intl.DisplayNames` label of
+/// the code's language, the code itself when it is not a core language.
+pub(super) fn base_language_display_name(code: &str) -> String {
+    let base = base_language_code(code);
+    CORE_LANGUAGES
+        .iter()
+        .find(|(candidate, _)| *candidate == base)
+        .map(|(_, label)| (*label).to_string())
+        .unwrap_or_else(|| code.to_string())
+}
+
 /// `getAdditionalSpokenLanguages`: the stored list minus the main language,
 /// de-duplicated by base code.
 fn additional_spoken_languages(main: &str, spoken: &[String]) -> Vec<String> {

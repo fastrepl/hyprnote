@@ -8,6 +8,7 @@ on:
         type: choice
         options:
           - staging
+          - nightly
           - stable
       candidate_sha:
         description: "Immutable candidate commit to check out"
@@ -28,6 +29,25 @@ on:
         type: string
         default: ""
 
+  workflow_call:
+    inputs:
+      channel:
+        required: true
+        type: string
+      candidate_sha:
+        required: false
+        type: string
+        default: ""
+      include_linux:
+        type: boolean
+        default: true
+      include_windows:
+        type: boolean
+        default: true
+      version:
+        type: string
+        default: ""
+
 concurrency:
   group: ${{ inputs.channel == 'stable' && 'desktop-stable-release' || format('{0}-{1}-{2}', github.workflow, github.ref, inputs.channel) }}
   cancel-in-progress: ${{ inputs.channel != 'stable' }}
@@ -35,6 +55,7 @@ env:
   CN_APPLICATION: "fastrepl/hyprnote2"
   RELEASE_CHANNEL: ${{ inputs.channel }}
   TAURI_CONF_PATH: ./src-tauri/tauri.conf.${{ inputs.channel }}.json
+  APP_BINARY: ${{ inputs.channel == 'stable' && 'anarlog' || format('anarlog-{0}', inputs.channel) }}
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
@@ -52,16 +73,17 @@ jobs:
       - run: |
           git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
           git fetch --tags --force
-      - if: ${{ inputs.channel == 'stable' }}
+      - env:
+          CHANNEL: ${{ inputs.channel }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha || github.sha }}
         run: |
-          git fetch origin main --no-tags
-
-          TARGET=$(git rev-parse HEAD)
-          MAIN=$(git rev-parse origin/main)
-
-          if [[ "$TARGET" != "$MAIN" ]]; then
-            echo "::error::Stable releases must run from the current main commit ($MAIN), got $TARGET"
-            exit 1
+          case "$CHANNEL" in stable|staging|nightly) ;; *) exit 1 ;; esac
+          if [[ "$CHANNEL" != "staging" ]]; then
+            git fetch origin main --no-tags
+            bash scripts/verify-release-candidate.sh "$CANDIDATE_SHA"
+          fi
+          if [[ "$CHANNEL" == "nightly" ]]; then
+            test -s packages/changelog/nightly.md
           fi
       - uses: ./.github/actions/doxxer_install
       - id: version
@@ -80,6 +102,9 @@ jobs:
               echo "::error::Missing changelog for stable version $VERSION"
               exit 1
             fi
+          elif [[ "$RELEASE_CHANNEL" == "nightly" ]]; then
+            BASE=$(node -p 'require("./release-version.json").version')
+            VERSION="$BASE-nightly.$GITHUB_RUN_ID"
           elif [[ -n "$INPUT_VERSION" ]]; then
             VERSION="$INPUT_VERSION"
           elif [[ "$RELEASE_CHANNEL" == "staging" ]]; then
@@ -96,7 +121,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.candidate_sha || github.sha }}
-      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "$APP_VERSION"
+        env:
+          APP_VERSION: ${{ needs.compute-version.outputs.version }}
       - if: ${{ inputs.include_windows }}
         name: Verify stable signing configuration
         env:
@@ -154,7 +181,9 @@ jobs:
           git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
           git fetch --tags --force
       - uses: ./.github/actions/macos_tcc
-      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "$APP_VERSION"
+        env:
+          APP_VERSION: ${{ needs.compute-version.outputs.version }}
       - uses: ./.github/actions/install_desktop_deps
         with:
           target: macos
@@ -166,9 +195,9 @@ jobs:
       - run: pnpm -F ui build
       - run: |
           TAURI_ENV_TARGET_TRIPLE=${{ matrix.target }} cargo xtask prepare-binaries
-          ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/char-chrome-native-host"
-          ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/check-permissions"
-          ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/cli/anarlog-cli"
+          ./scripts/sidecar.sh "./apps/desktop/$TAURI_CONF_PATH" "binaries/char-chrome-native-host"
+          ./scripts/sidecar.sh "./apps/desktop/$TAURI_CONF_PATH" "binaries/check-permissions"
+          ./scripts/sidecar.sh "./apps/desktop/$TAURI_CONF_PATH" "resources/cli/anarlog-cli"
         env:
           APP_VERSION: ${{ needs.compute-version.outputs.version }}
       - uses: ./.github/actions/apple_cert
@@ -183,11 +212,14 @@ jobs:
           codesign --verify --strict --verbose=2 "$CLOUDSYNC_DYLIB"
         working-directory: ./apps/desktop
       - run: |
-          BUILD_ARGS=(--target "${{ matrix.target }}" --config "${{ env.TAURI_CONF_PATH }}" --verbose)
+          BUILD_ARGS=(--target "${{ matrix.target }}" --config "$TAURI_CONF_PATH" --verbose)
+          if [[ "$RELEASE_CHANNEL" != "staging" ]]; then
+            BUILD_ARGS+=(--config ./src-tauri/tauri.conf.$RELEASE_CHANNEL-macos.json)
+          fi
           if [[ "${{ matrix.target }}" == "x86_64-apple-darwin" ]]; then
             BUILD_ARGS+=(--config ./src-tauri/tauri.conf.macos-intel.json)
           fi
-          if [[ "${{ inputs.channel }}" == "staging" ]]; then
+          if [[ "$RELEASE_CHANNEL" == "staging" ]]; then
             BUILD_ARGS+=(--features devtools)
           fi
           pnpm -F desktop tauri build "${BUILD_ARGS[@]}"
@@ -214,7 +246,7 @@ jobs:
           VITE_API_URL: "https://api.anarlog.so"
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
           VITE_APP_VERSION: ${{ needs.compute-version.outputs.version }}
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         id: macos-symbols
         name: Generate and verify macOS debug symbols
         run: |
@@ -226,8 +258,8 @@ jobs:
             exit 1
           fi
 
-          binary="${apps[0]}/Contents/MacOS/anarlog"
-          dsym="apps/desktop/src-tauri/target/${{ matrix.target }}/release/anarlog.dSYM"
+          binary="${apps[0]}/Contents/MacOS/$APP_BINARY"
+          dsym="apps/desktop/src-tauri/target/${{ matrix.target }}/release/$APP_BINARY.dSYM"
           dsymutil "$binary" -o "$dsym"
 
           binary_uuid=$(dwarfdump --uuid "$binary" | awk '{print $2}')
@@ -239,9 +271,9 @@ jobs:
 
           echo "Verified dSYM UUID $dsym_uuid"
           echo "path=$dsym" >> "$GITHUB_OUTPUT"
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/sentry_cli
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         name: Upload macOS debug symbols to Sentry
         env:
           INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
@@ -267,7 +299,7 @@ jobs:
             --project anarlog \
             --include-sources \
             "${{ steps.macos-symbols.outputs.path }}"
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         name: Verify macOS updater signature
         run: |
           shopt -s nullglob
@@ -384,7 +416,9 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
           submodules: recursive
-      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "$APP_VERSION"
+        env:
+          APP_VERSION: ${{ needs.compute-version.outputs.version }}
       - uses: ./.github/actions/install_desktop_deps
         with:
           target: linux
@@ -395,8 +429,8 @@ jobs:
       - run: pnpm -F ui build
       - run: |
           TAURI_ENV_TARGET_TRIPLE=${{ matrix.target }} cargo xtask prepare-binaries
-          ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/char-chrome-native-host"
-          ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/cli/anarlog-cli"
+          ./scripts/sidecar.sh "./apps/desktop/$TAURI_CONF_PATH" "binaries/char-chrome-native-host"
+          ./scripts/sidecar.sh "./apps/desktop/$TAURI_CONF_PATH" "resources/cli/anarlog-cli"
         env:
           APP_VERSION: ${{ needs.compute-version.outputs.version }}
       - run: |
@@ -404,10 +438,10 @@ jobs:
             --ci
             --bundles appimage,deb
             --target "${{ matrix.target }}"
-            --config "${{ env.TAURI_CONF_PATH }}"
+            --config "$TAURI_CONF_PATH"
             --verbose
           )
-          if [[ "${{ inputs.channel }}" == "staging" ]]; then
+          if [[ "$RELEASE_CHANNEL" == "staging" ]]; then
             BUILD_ARGS+=(--features devtools)
           fi
           pnpm -F desktop tauri build "${BUILD_ARGS[@]}"
@@ -430,15 +464,15 @@ jobs:
           ARCH: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64' || 'x86_64' }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/sentry_cli
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         name: Upload Linux debug symbols to Sentry
         env:
           INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_SENTRY_TOKEN }}
         run: |
-          binary="apps/desktop/src-tauri/target/${{ matrix.target }}/release/anarlog"
+          binary="apps/desktop/src-tauri/target/${{ matrix.target }}/release/$APP_BINARY"
           sentry-cli debug-files check "$binary"
 
           response=$(
@@ -498,7 +532,7 @@ jobs:
             echo "AppImage architecture does not match ${{ matrix.target }}"
             exit 1
           fi
-          if [[ "${{ inputs.channel }}" == "stable" ]]; then
+          if [[ "$RELEASE_CHANNEL" != "staging" ]]; then
             cargo run --locked -p updater-core --bin verify-updater-signature -- \
               "${appimages[0]}" \
               "${appimage_signatures[0]}" \
@@ -524,7 +558,7 @@ jobs:
           done
       - run: |
           deb=$(find "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/deb" -maxdepth 1 -name '*.deb' -type f -print -quit)
-          binary_name="${{ inputs.channel == 'staging' && 'anarlog-staging' || 'anarlog' }}"
+          binary_name="$APP_BINARY"
           docker run --rm \
             --platform linux/${{ matrix.docker_arch }} \
             --volume "$PWD:/workspace:ro" \
@@ -606,7 +640,9 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
           submodules: recursive
-      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "$APP_VERSION"
+        env:
+          APP_VERSION: ${{ needs.compute-version.outputs.version }}
         shell: bash
       - uses: ./.github/actions/rust_install
         with:
@@ -620,7 +656,7 @@ jobs:
             target/x86_64-pc-windows-msvc/release/anarlog.exe \
             apps/desktop/src-tauri/resources/cli/anarlog-cli-x86_64-pc-windows-msvc.exe
           ./scripts/sidecar.sh \
-            "./apps/desktop/${{ env.TAURI_CONF_PATH }}" \
+            "./apps/desktop/$TAURI_CONF_PATH" \
             resources/cli/anarlog-cli
         env:
           APP_VERSION: ${{ needs.compute-version.outputs.version }}
@@ -630,10 +666,10 @@ jobs:
           BUILD_ARGS=(
             --ci
             --target x86_64-pc-windows-msvc
-            --config "${{ env.TAURI_CONF_PATH }}"
+            --config "$TAURI_CONF_PATH"
             --verbose
           )
-          if [[ "${{ inputs.channel }}" == "staging" ]]; then
+          if [[ "$RELEASE_CHANNEL" == "staging" ]]; then
             BUILD_ARGS+=(--bundles nsis --features devtools --no-sign)
           else
             BUILD_ARGS+=(--no-bundle --no-sign)
@@ -654,9 +690,9 @@ jobs:
           VITE_API_URL: https://api.anarlog.so
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
           VITE_APP_VERSION: ${{ needs.compute-version.outputs.version }}
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/sentry_cli
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         name: Upload Windows debug symbols to Sentry
         shell: bash
         env:
@@ -697,16 +733,16 @@ jobs:
             --org fastrepl \
             --project anarlog \
             --include-sources \
-            "$release_dir/anarlog.exe" \
+            "$release_dir/$APP_BINARY.exe" \
             "${pdbs[@]}"
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         name: Sign in to Azure
         uses: azure/login@v3
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         name: Sign Windows binaries
         uses: azure/artifact-signing-action@v2
         with:
@@ -714,12 +750,12 @@ jobs:
           signing-account-name: ${{ vars.AZURE_ARTIFACT_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.AZURE_ARTIFACT_SIGNING_CERTIFICATE_PROFILE_NAME }}
           files: |
-            ${{ github.workspace }}\apps\desktop\src-tauri\target\x86_64-pc-windows-msvc\release\anarlog.exe
+            ${{ github.workspace }}\apps\desktop\src-tauri\target\x86_64-pc-windows-msvc\release\${{ env.APP_BINARY }}.exe
             ${{ github.workspace }}\apps\desktop\src-tauri\resources\cli\anarlog-cli-x86_64-pc-windows-msvc.exe
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         name: Bundle signed Windows app
         shell: bash
         env:
@@ -730,10 +766,10 @@ jobs:
             --ci \
             --bundles nsis \
             --target x86_64-pc-windows-msvc \
-            --config "${{ env.TAURI_CONF_PATH }}" \
+            --config "$TAURI_CONF_PATH" \
             --verbose \
             --no-sign
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         id: windows-installer
         name: Locate Windows installer
         shell: pwsh
@@ -745,7 +781,7 @@ jobs:
           }
           "path=$($installers[0].FullName)" |
             Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         name: Sign Windows installer
         uses: azure/artifact-signing-action@v2
         with:
@@ -756,14 +792,15 @@ jobs:
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         name: Sign Windows updater artifact
         shell: pwsh
         env:
+          INSTALLER_PATH: ${{ steps.windows-installer.outputs.path }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
-          $installer = "${{ steps.windows-installer.outputs.path }}"
+          $installer = $env:INSTALLER_PATH
           $signaturePath = "$installer.sig"
           Remove-Item $signaturePath -Force -ErrorAction SilentlyContinue
           pnpm -F desktop tauri signer sign $installer
@@ -781,8 +818,8 @@ jobs:
             throw "Expected app version $env:EXPECTED_VERSION, got $($config.version)"
           }
 
-          if ($env:RELEASE_CHANNEL -eq "stable") {
-            $stableConfig = Get-Content "apps/desktop/src-tauri/tauri.conf.stable.json" | ConvertFrom-Json
+          if ($env:RELEASE_CHANNEL -ne "staging") {
+            $stableConfig = Get-Content "apps/desktop/src-tauri/tauri.conf.$env:RELEASE_CHANNEL.json" | ConvertFrom-Json
             if ($stableConfig.bundle.windows.webviewInstallMode.type -ne "offlineInstaller") {
               throw "Stable Windows releases must bundle the offline WebView2 installer for Microsoft Store compatibility"
             }
@@ -797,7 +834,7 @@ jobs:
             throw "Installer filename does not contain version $env:EXPECTED_VERSION"
           }
 
-          if ($env:RELEASE_CHANNEL -eq "stable") {
+          if ($env:RELEASE_CHANNEL -ne "staging") {
             $updaterSignatures = @(Get-ChildItem $bundleDir -Filter "*.exe.sig")
             $expectedUpdaterSignature = "$($installers[0].FullName).sig"
             if (
@@ -807,7 +844,7 @@ jobs:
               throw "Expected the NSIS installer and its updater signature for the stable release"
             }
 
-            $appBinary = "apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/anarlog.exe"
+            $appBinary = "apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/$env:APP_BINARY.exe"
             $sidecarBinary = "apps/desktop/src-tauri/resources/cli/anarlog-cli-x86_64-pc-windows-msvc.exe"
             foreach ($signedFile in @($appBinary, $sidecarBinary, $installers[0].FullName)) {
               $signature = Get-AuthenticodeSignature $signedFile
@@ -857,7 +894,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             throw "Packaged Windows CLI verification failed"
           }
-      - if: ${{ inputs.channel == 'stable' }}
+      - if: ${{ inputs.channel != 'staging' }}
         name: Verify Windows updater signature
         shell: bash
         run: |
@@ -891,6 +928,8 @@ jobs:
           working-directory: ./apps/desktop
 
   verify-cn-release:
+    permissions:
+      contents: write
     if: ${{ inputs.channel != 'staging' && !cancelled() && needs.build-macos.result == 'success' && (!inputs.include_linux || needs.build-linux.result == 'success') && (!inputs.include_windows || needs.build-windows.result == 'success') }}
     needs: [compute-version, build-macos, build-windows, build-linux]
     runs-on: ubuntu-latest
@@ -973,6 +1012,7 @@ jobs:
             exit 1
           fi
       - name: Record release provenance
+        if: inputs.channel == 'stable'
         env:
           CN_ASSET_ID: ${{ steps.release.outputs.cli-asset-id }}
           CN_SHA256: ${{ steps.release.outputs.cli-sha256 }}
@@ -992,8 +1032,29 @@ jobs:
             --cn-asset-id "$CN_ASSET_ID" \
             --cn-sha256 "$CN_SHA256"
       - uses: actions/upload-artifact@v4
+        if: inputs.channel == 'stable'
         with:
           name: desktop-release-provenance-${{ needs.compute-version.outputs.version }}-${{ github.sha }}
           path: release-provenance/manifest.json
           if-no-files-found: error
           retention-days: 30
+
+      # Use the checked-out candidate's release action, as in the build steps above.
+      - if: inputs.channel == 'nightly'
+        uses: ./.github/actions/cn_release # zizmor: ignore[self-repository]
+        with:
+          cmd: publish
+          app: ${{ env.CN_APPLICATION }}
+          version: ${{ needs.compute-version.outputs.version }}
+          channel: nightly
+          key: ${{ secrets.CN_API_KEY }}
+      - if: inputs.channel == 'nightly'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.compute-version.outputs.version }}
+        run: |
+          gh release create "desktop_nightly_v$VERSION" \
+            --target "$GITHUB_SHA" \
+            --title "Anarlog Nightly $VERSION" \
+            --notes-file packages/changelog/nightly.md \
+            --prerelease --latest=false

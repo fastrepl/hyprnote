@@ -70,8 +70,8 @@ jobs:
 
           VERSION="$INPUT_VERSION"
           CANDIDATE_SHA="${INPUT_CANDIDATE_SHA,,}"
-          if [[ "$EXECUTION_REF" != "refs/heads/main" ]]; then
-            echo "::error::Stable publication must run from refs/heads/main, not $EXECUTION_REF"
+          if [[ "$EXECUTION_REF" != "refs/heads/main" && ! "$EXECUTION_REF" =~ ^refs/tags/desktop_nightly_v[0-9]+\.[0-9]+\.[0-9]+-nightly\.[0-9]+$ ]]; then
+            echo "::error::Stable publication requires main or an immutable Nightly tag, got $EXECUTION_REF"
             exit 1
           fi
           if [[ "${EXECUTION_SHA,,}" != "$CANDIDATE_SHA" ]]; then
@@ -109,10 +109,7 @@ jobs:
             exit 1
           fi
 
-          if [[ "$MAIN" != "$EXPECTED_SHA" ]]; then
-            echo "::error::Candidate $EXPECTED_SHA is not the current main commit ($MAIN)"
-            exit 1
-          fi
+          bash scripts/verify-release-candidate.sh "$EXPECTED_SHA"
 
           if [[ ! -f "packages/changelog/content/$VERSION.md" ]]; then
             echo "::error::Missing changelog for $VERSION at candidate $EXPECTED_SHA"
@@ -275,7 +272,8 @@ jobs:
           TAG="desktop_v$VERSION"
           EXISTING=$(git rev-parse -q --verify "refs/tags/$TAG" || true)
 
-          if [[ "$TARGET" != "$EXPECTED_SHA" || "$MAIN" != "$EXPECTED_SHA" ]]; then
+          bash scripts/verify-release-candidate.sh "$EXPECTED_SHA"
+          if [[ "$TARGET" != "$EXPECTED_SHA" ]]; then
             echo "::error::Candidate moved before publication (candidate=$EXPECTED_SHA, checkout=$TARGET, main=$MAIN)"
             exit 1
           fi
@@ -303,7 +301,8 @@ jobs:
           TARGET=$(git rev-parse HEAD)
           MAIN=$(git rev-parse origin/main)
           TAG_TARGET=$(git rev-parse "desktop_v$VERSION^{commit}")
-          if [[ "$TARGET" != "$EXPECTED_SHA" || "$MAIN" != "$EXPECTED_SHA" || "$TAG_TARGET" != "$EXPECTED_SHA" ]]; then
+          bash scripts/verify-release-candidate.sh "$EXPECTED_SHA"
+          if [[ "$TARGET" != "$EXPECTED_SHA" || "$TAG_TARGET" != "$EXPECTED_SHA" ]]; then
             echo "::error::Candidate moved before publication (candidate=$EXPECTED_SHA, checkout=$TARGET, main=$MAIN, tag=$TAG_TARGET)"
             exit 1
           fi

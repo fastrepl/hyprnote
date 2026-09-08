@@ -1,6 +1,11 @@
 # https://github.com/tauri-apps/tauri-action/blob/3013cac/examples/test-build-only.yml
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      rebuild_cloudsync:
+        type: boolean
+        default: false
   schedule:
     - cron: "0 9 * * *"
   push:
@@ -78,16 +83,16 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           platform: ${{ matrix.platform }}
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         run: crates/cloudsync/scripts/rebuild-macos.sh
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         uses: actions/upload-artifact@v4
         with:
           name: cloudsync-macos-aarch64-${{ github.sha }}
           path: crates/cloudsync/vendor/cloudsync/macos/aarch64/cloudsync.dylib
           if-no-files-found: error
           retention-days: 7
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         uses: actions/upload-artifact@v4
         with:
           name: cloudsync-macos-x86_64-${{ github.sha }}
@@ -196,16 +201,16 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           platform: windows
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
           install: git make mingw-w64-ucrt-x86_64-gcc
           update: true
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         shell: "msys2 {0}"
         run: crates/cloudsync/scripts/rebuild-windows.sh
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         uses: actions/upload-artifact@v4
         with:
           name: cloudsync-windows-x86_64-${{ github.sha }}
@@ -217,9 +222,9 @@ jobs:
       - run: cargo test --locked -p tauri-plugin-notification --lib
       - run: cargo test --locked -p cloudsync
       - run: "cargo test --locked -p db-core 'cloudsync::' -- --test-threads=1"
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         uses: ./.github/actions/pnpm_install
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         shell: bash
         run: |
           cargo build --locked --release -p anarlog-cli --target x86_64-pc-windows-msvc
@@ -229,9 +234,9 @@ jobs:
           ./scripts/sidecar.sh \
             ./apps/desktop/src-tauri/tauri.conf.staging.json \
             resources/cli/anarlog-cli
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         run: pnpm -F ui build
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         run: pnpm -F desktop tauri build --ci --bundles nsis --no-sign --target x86_64-pc-windows-msvc --config ./src-tauri/tauri.conf.staging.json --features devtools --verbose
         env:
           POSTHOG_API_KEY: phc_windows_ci
@@ -242,7 +247,7 @@ jobs:
           VITE_APP_URL: https://anarlog.so
           VITE_API_URL: https://api.anarlog.so
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         shell: pwsh
         run: |
           $bundleDir = "apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis"
@@ -254,7 +259,7 @@ jobs:
           $hash = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash.ToLowerInvariant()
           "$hash  $($installer.Name)" |
             Out-File "$($installer.FullName).sha256" -Encoding ascii -NoNewline
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         shell: pwsh
         timeout-minutes: 10
         run: |
@@ -388,7 +393,7 @@ jobs:
               Wait-ForSuccessfulExit $cleanupProcess 120 "NSIS cleanup uninstallation"
             }
           }
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         uses: actions/upload-artifact@v4
         with:
           name: anarlog-windows-x64-nsis-${{ github.sha }}
@@ -435,9 +440,9 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           platform: ${{ matrix.rust_platform }}
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         run: crates/cloudsync/scripts/rebuild-linux.sh
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         uses: actions/upload-artifact@v4
         with:
           name: cloudsync-linux-gnu-${{ matrix.cloudsync_arch }}-${{ github.sha }}
@@ -448,17 +453,17 @@ jobs:
       - run: cargo test --locked --target ${{ matrix.target }} -p desktop embedded_cli --lib
       - run: cargo test --locked --target ${{ matrix.target }} -p cloudsync
       - run: "cargo test --locked --target ${{ matrix.target }} -p db-core 'cloudsync::' -- --test-threads=1"
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         uses: ./.github/actions/pnpm_install
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         run: |
           TAURI_ENV_TARGET_TRIPLE=${{ matrix.target }} cargo xtask prepare-binaries
           ./scripts/sidecar.sh \
             ./apps/desktop/src-tauri/tauri.conf.staging.json \
             resources/cli/anarlog-cli
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         run: pnpm -F ui build
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         run: pnpm -F desktop tauri build --ci --bundles appimage,deb --target ${{ matrix.target }} --config ./src-tauri/tauri.conf.staging.json --features devtools --verbose
         env:
           POSTHOG_API_KEY: phc_linux_ci
@@ -471,13 +476,13 @@ jobs:
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         run: node scripts/repack-linux-appimage.mjs "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/appimage"
         env:
           ARCH: ${{ matrix.target == 'aarch64-unknown-linux-gnu' && 'aarch64' || 'x86_64' }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         run: |
           shopt -s nullglob
           appimage_dir="apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/appimage"
@@ -516,7 +521,7 @@ jobs:
             name=$(basename "$bundle")
             (cd "$(dirname "$bundle")" && sha256sum "$name" > "$name.sha256")
           done
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         timeout-minutes: 10
         run: |
           sudo apt-get update
@@ -583,7 +588,7 @@ jobs:
               exit 1
               ;;
           esac
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         run: |
           deb=$(find "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/deb" -maxdepth 1 -name '*.deb' -type f -print -quit)
           docker run --rm \
@@ -607,7 +612,7 @@ jobs:
                 exit 1
               fi
             '
-      - if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch' || inputs.rebuild_cloudsync
         uses: actions/upload-artifact@v4
         with:
           name: anarlog-linux-${{ matrix.artifact_name }}-${{ github.sha }}

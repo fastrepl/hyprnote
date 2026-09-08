@@ -68,13 +68,15 @@ Cloud API & Connectors is a separate, optional feature. If you enable it under *
 
 ## Don't combine sync with a cloud-storage folder
 
-Keep your Anarlog storage location out of folders managed by a file-syncing service such as iCloud Drive, Dropbox, Google Drive, or OneDrive. Two sync systems changing the same files can cause:
+<Warning>
+  Keep your Anarlog storage location out of folders managed by a file-syncing service such as iCloud Drive, Dropbox, Google Drive, or OneDrive. This includes Obsidian vaults stored in iCloud Drive.
+</Warning>
+
+Two sync systems changing the same files can cause:
 
 - Conflicted or duplicate copies of recordings and attachments
 - Incomplete audio files when a service uploads a recording while Anarlog is still writing it
 - Files that are offloaded to the cloud and unavailable offline
-
-This includes Obsidian vaults stored in iCloud Drive.
 
 Anarlog shows a warning in **Settings → Sync** when your storage location is inside a known cloud-storage folder. Backup tools that snapshot files without continuously syncing them back are fine.
 

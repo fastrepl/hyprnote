@@ -34,6 +34,7 @@ mod llm_stream;
 mod mention;
 mod note_search;
 mod notifications;
+mod pre_meeting;
 mod prose_text;
 mod recording;
 mod scheduled_auto_start;

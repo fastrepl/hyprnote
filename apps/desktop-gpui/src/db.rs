@@ -1337,6 +1337,172 @@ async fn transcript_humans(
     Ok(query.fetch_all(pool).await?)
 }
 
+/// `useSessionCalendarEvent`: the event the session links to (by id, or by
+/// the tracking id and calendar of its `event_json`).
+const SESSION_CALENDAR_EVENT_SQL: &str = "
+    SELECT
+        event.title, event.started_at, event.ended_at, event.is_all_day,
+        event.location, event.description, event.participants_json
+    FROM sessions AS session
+    JOIN events AS event
+      ON event.deleted_at IS NULL
+      AND (
+        event.id = session.event_id
+        OR (
+          event.tracking_id_event = CASE
+            WHEN json_valid(session.event_json)
+            THEN json_extract(session.event_json, '$.tracking_id')
+            ELSE ''
+          END
+          AND event.calendar_id = CASE
+            WHEN json_valid(session.event_json)
+            THEN json_extract(session.event_json, '$.calendar_id')
+            ELSE ''
+          END
+        )
+      )
+    WHERE session.id = ? AND session.deleted_at IS NULL
+    ORDER BY event.started_at, event.id
+    LIMIT 1
+";
+
+/// The inputs of `useCreatePreMeetingBrief` for one session.
+async fn load_brief_inputs(
+    pool: &sqlx::SqlitePool,
+    session_id: &str,
+) -> anyhow::Result<crate::pre_meeting::BriefInputs> {
+    use crate::pre_meeting::*;
+    let event = sqlx::query_as::<_, (String, String, String, i64, String, String, String)>(
+        SESSION_CALENDAR_EVENT_SQL,
+    )
+    .bind(session_id)
+    .fetch_optional(pool)
+    .await?
+    .map(
+        |(title, started_at, ended_at, is_all_day, location, description, participants_json)| {
+            let participants = serde_json::from_str::<Vec<serde_json::Value>>(&participants_json)
+                .unwrap_or_default()
+                .into_iter()
+                .map(|participant| BriefParticipant {
+                    name: participant
+                        .get("name")
+                        .and_then(|v| v.as_str())
+                        .map(str::to_string),
+                    email: participant
+                        .get("email")
+                        .and_then(|v| v.as_str())
+                        .map(str::to_string),
+                    is_current_user: participant
+                        .get("is_current_user")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false),
+                })
+                .collect();
+            BriefEvent {
+                title: Some(title),
+                started_at: Some(started_at),
+                ended_at: Some(ended_at),
+                is_all_day: is_all_day != 0,
+                location: Some(location),
+                description: Some(description),
+                participants,
+            }
+        },
+    );
+    let sessions: Vec<(String, String, String, String, String)> = sqlx::query_as(
+        "SELECT id, owner_user_id, title, created_at, event_json FROM sessions \
+         WHERE deleted_at IS NULL AND locked = 0 ORDER BY created_at, id",
+    )
+    .fetch_all(pool)
+    .await?;
+    let participants: Vec<(String, String, String, String, String)> = sqlx::query_as(
+        "SELECT participant.session_id, participant.human_id, participant.owner_user_id, participant.source, \
+           COALESCE(NULLIF(human.name, ''), NULLIF(participant.display_name, ''), participant.human_id) AS name \
+         FROM session_participants AS participant \
+         LEFT JOIN humans AS human ON human.id = participant.human_id AND human.deleted_at IS NULL \
+         WHERE participant.deleted_at IS NULL \
+         ORDER BY participant.session_id, participant.created_at, participant.id",
+    )
+    .fetch_all(pool)
+    .await?;
+    let enhanced_notes: Vec<(String, String, i64)> = sqlx::query_as(
+        "SELECT session_id, body, sort_order FROM session_documents \
+         WHERE kind IN ('summary', 'template_output') AND deleted_at IS NULL \
+           AND session_id IN (SELECT id FROM sessions WHERE deleted_at IS NULL AND locked = 0) \
+         ORDER BY session_id, sort_order, created_at, id",
+    )
+    .fetch_all(pool)
+    .await?;
+    let key_facts: Vec<(String, String, String)> = sqlx::query_as(
+        "SELECT session_id, body, source_hash FROM session_documents \
+         WHERE kind = 'key_facts' AND deleted_at IS NULL \
+           AND session_id IN (SELECT id FROM sessions WHERE deleted_at IS NULL AND locked = 0) \
+         ORDER BY updated_at, id",
+    )
+    .fetch_all(pool)
+    .await?;
+    let user_id = sessions
+        .iter()
+        .find(|row| row.0 == session_id)
+        .map(|row| row.1.clone())
+        .filter(|id| !id.is_empty());
+    // `hasParticipants`: attached people other than the session's owner.
+    let has_participants = participants.iter().any(|(sid, human_id, _, source, _)| {
+        sid == session_id
+            && source != "excluded"
+            && !human_id.is_empty()
+            && Some(human_id) != user_id.as_ref()
+    });
+    let data = PastSessionNotesData {
+        sessions: sessions
+            .into_iter()
+            .map(
+                |(id, user_id, title, created_at, event_json)| PastSessionRow {
+                    id,
+                    user_id,
+                    title,
+                    created_at,
+                    event_json,
+                },
+            )
+            .collect(),
+        participants: participants
+            .into_iter()
+            .map(
+                |(session_id, human_id, user_id, source, name)| PastParticipantRow {
+                    session_id,
+                    human_id,
+                    user_id,
+                    source,
+                    name,
+                },
+            )
+            .collect(),
+        enhanced_notes: enhanced_notes
+            .into_iter()
+            .map(|(session_id, content, position)| PastEnhancedNoteRow {
+                session_id,
+                content,
+                position,
+            })
+            .collect(),
+        key_facts: key_facts
+            .into_iter()
+            .map(|(session_id, content, source_hash)| PastKeyFactsRow {
+                session_id,
+                content,
+                source_hash,
+            })
+            .collect(),
+    };
+    let notes = build_past_session_notes(&data, session_id, user_id.as_deref());
+    Ok(BriefInputs {
+        event,
+        notes,
+        has_participants,
+    })
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct NotePreview {
     pub session: SessionRow,
@@ -1355,6 +1521,9 @@ pub struct NotePreview {
     /// `usePendingSessionProposals`: `(id, kind)` of the pending
     /// `session_proposals`, newest first, for the banner.
     pub pending_proposals: Vec<(String, String)>,
+    /// What `useCreatePreMeetingBrief` reads: the linked calendar event, the
+    /// related earlier meetings, and whether other people are attached.
+    pub brief: crate::pre_meeting::BriefInputs,
 }
 
 /// Who a transcript speaker is assigned to: an existing human or one to
@@ -2814,6 +2983,32 @@ impl Store {
         let db = self.db.clone();
         self.runtime
             .spawn(async move { crate::contacts::toggle_pin(db.pool(), table, &id).await })
+    }
+
+    /// `useSessionParticipants` minus the excluded ones and the owner, as the
+    /// `(name, email)` pairs the brief's fallback event lists.
+    pub fn brief_participants(
+        &self,
+        session_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<Vec<(String, String)>>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let rows: Vec<(String, String)> = sqlx::query_as(
+                "SELECT COALESCE(NULLIF(human.name, ''), participant.display_name) AS name, \
+                        COALESCE(NULLIF(human.email, ''), participant.email) AS email \
+                 FROM session_participants AS participant \
+                 JOIN sessions AS session ON session.id = participant.session_id \
+                 LEFT JOIN humans AS human ON human.id = participant.human_id AND human.deleted_at IS NULL \
+                 WHERE participant.session_id = ? AND participant.deleted_at IS NULL \
+                   AND participant.source <> 'excluded' \
+                   AND participant.human_id <> session.owner_user_id \
+                 ORDER BY participant.created_at, participant.id",
+            )
+            .bind(&session_id)
+            .fetch_all(db.pool())
+            .await?;
+            Ok(rows)
+        })
     }
 
     /// `mergeHumans(selectedHumanId, duplicateHumanId)`
@@ -4481,11 +4676,13 @@ impl Store {
                 Vec::new()
             };
             let pending_proposals = proposals::pending_for_session(db.pool(), &session_id).await?;
+            let brief = load_brief_inputs(db.pool(), &session_id).await?;
             Ok(Some(NotePreview {
                 has_transcript,
                 audio_exists,
                 transcripts,
                 pending_proposals,
+                brief,
                 session: SessionRow {
                     id: session.id,
                     title: session.title,

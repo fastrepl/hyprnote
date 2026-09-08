@@ -36,6 +36,7 @@ mod notifications;
 pub(crate) mod onboarding;
 mod open_note;
 mod overflow;
+mod pre_meeting_brief;
 mod recording;
 mod scheduled_auto_start;
 mod session_drag;
@@ -353,6 +354,9 @@ pub struct Workspace {
     /// Id of the chrome button under the pointer, so icons can take the
     /// `hover:text-foreground` colour their container cannot pass down.
     hovered: Option<&'static str>,
+    /// `pre-meeting-brief-job.ts`'s `generating`: sessions whose brief is
+    /// being written.
+    brief_jobs: std::collections::HashSet<String>,
 }
 
 impl Workspace {
@@ -523,6 +527,7 @@ impl Workspace {
             reveal_session: None,
             anchor_scrolled_once: false,
             hovered: None,
+            brief_jobs: std::collections::HashSet::new(),
         };
         // Chips and the bottom fade depend on the scroll position.
         this.list_state

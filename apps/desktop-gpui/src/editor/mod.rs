@@ -591,6 +591,37 @@ impl BodyEditor {
         self.apply_external_body(body, cx);
     }
 
+    /// `editor.commands.replaceContent(content)` from a generation job: the
+    /// document is replaced whatever the focus or dirty state; the first
+    /// replacement of a job is one undo step, later partials extend it.
+    pub fn replace_body_generated(&mut self, body: &str, first: bool, cx: &mut Context<Self>) {
+        let mut doc = Doc::parse(body);
+        if self.enforce_title_heading {
+            doc.enforce_title_heading();
+        }
+        if doc.to_json() == self.doc.to_json() {
+            return;
+        }
+        if first {
+            self.undo_stack.push(Snapshot {
+                json: self.doc.to_json(),
+                caret: self.caret,
+            });
+            if self.undo_stack.len() > 200 {
+                self.undo_stack.remove(0);
+            }
+            self.redo_stack.clear();
+        }
+        self.last_edit = None;
+        self.pending_external = None;
+        self.doc = doc;
+        self.layouts = vec![None; self.doc.textblock_count()];
+        self.clamp_caret();
+        // The replaced content is the editor's own change: `flush` persists it.
+        self.dirty_since.get_or_insert_with(std::time::Instant::now);
+        cx.notify();
+    }
+
     /// The workspace reports the focus state every frame: a body parked while
     /// focused is applied once focus leaves (`syncContent` on `blur`).
     pub fn sync_focus(&mut self, focused: bool, cx: &mut Context<Self>) {

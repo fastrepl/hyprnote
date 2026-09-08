@@ -5500,6 +5500,7 @@ dependencies = [
  "storage",
  "tempfile",
  "template-app",
+ "template-app-legacy",
  "tiptap",
  "tokio",
  "tracing",

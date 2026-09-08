@@ -855,9 +855,17 @@ impl Workspace {
 
         if let Some(editor) = editor {
             // The memo is live: render the editor's document, not the snapshot.
-            let renderer = self
+            let brief_generating = self.brief_generating(&preview.session.id);
+            let mut renderer = self
                 .document_editor_renderer(editor.clone(), window, cx)
                 .for_session(&self.store.session_dir(&preview.session.id));
+            // `placeholderComponent`: `Creating brief...` while the job runs.
+            if brief_generating {
+                renderer.placeholder = renderer
+                    .placeholder
+                    .take()
+                    .map(|(block, _)| (block, SharedString::from("Creating brief...")));
+            }
             let (mut blocks, pristine) = {
                 let editor = editor.read(cx);
                 (
@@ -872,10 +880,13 @@ impl Workspace {
             }
             let children = renderer.blocks(&blocks, 0);
             let root = editor.update(cx, |editor, cx| editor.render_root(cx));
-            // `isMemoEmpty && audioExistsResolved && !canShowTranscript`: the
-            // template suggestions float `top-8` over the empty editor.
-            let suggestions = (pristine && !preview.has_transcript)
-                .then(|| self.render_template_suggestions(preview, cx));
+            // `isMemoEmpty && !isGenerating`: the brief suggestion and, with
+            // audio but no transcript, the template suggestions float `top-8`
+            // over the empty editor.
+            let show_brief = pristine && !brief_generating && self.brief_visible(preview, pristine);
+            let show_templates = pristine && !brief_generating && !preview.has_transcript;
+            let suggestions = (show_brief || show_templates)
+                .then(|| self.render_template_suggestions(preview, show_brief, show_templates, cx));
             return with_search(
                 body.child(
                     div()
@@ -1072,8 +1083,15 @@ impl Workspace {
     /// `TemplateEmptyState`: `absolute inset-x-0 top-8 flex-col` with the
     /// favorite and suggested sections (`h-8 text-xs` labels, `h-8 -ml-2 px-2
     /// gap-2 rounded-md` rows in muted foreground) and the New template row.
-    fn render_template_suggestions(&self, preview: &NotePreview, cx: &mut Context<Self>) -> Div {
+    fn render_template_suggestions(
+        &self,
+        preview: &NotePreview,
+        show_brief: bool,
+        show_templates: bool,
+        cx: &mut Context<Self>,
+    ) -> Div {
         let theme = self.theme;
+        let brief = show_brief.then(|| self.render_brief_suggestion(&preview.session.id, cx));
         let event = preview.session_event();
         let event_title = event
             .as_ref()
@@ -1083,7 +1101,10 @@ impl Workspace {
             .as_ref()
             .and_then(|event| event.description.clone())
             .unwrap_or_default();
-        let participant_count = event
+        // `useSessionEventParticipants`: the linked calendar event's attendees.
+        let participant_count = preview
+            .brief
+            .event
             .as_ref()
             .map(|event| event.participants.len())
             .unwrap_or(0);
@@ -1181,32 +1202,40 @@ impl Workspace {
             .right_0()
             .flex()
             .flex_col()
-            .children(section("Start with a favorite template", &favorites))
-            .children(section("Suggested templates", &suggested))
-            .child(
-                row(
-                    "template-new".into(),
-                    icon("plus", px(16.0), theme.muted_foreground).into_any_element(),
-                    "New template".into(),
-                )
-                .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
-                    // `useCreateTemplate("session_note")` then `openNew({ type: "templates" })`
-                    // selecting the new template.
-                    let task = this.store.create_template();
-                    cx.spawn_in(window, async move |this, cx| match task.await {
-                        Ok(Ok(template_id)) => {
-                            this.update_in(cx, |this, window, cx| {
-                                this.reload_settings(cx);
-                                this.open_templates(Some(template_id), window, cx);
+            .children(brief)
+            .when(show_templates, |container| {
+                container
+                    .children(section("Start with a favorite template", &favorites))
+                    .children(section("Suggested templates", &suggested))
+            })
+            .when(show_templates, |container| {
+                container.child(
+                    row(
+                        "template-new".into(),
+                        icon("plus", px(16.0), theme.muted_foreground).into_any_element(),
+                        "New template".into(),
+                    )
+                    .on_click(cx.listener(
+                        |this, _: &ClickEvent, window, cx| {
+                            // `useCreateTemplate("session_note")` then `openNew({ type: "templates" })`
+                            // selecting the new template.
+                            let task = this.store.create_template();
+                            cx.spawn_in(window, async move |this, cx| match task.await {
+                                Ok(Ok(template_id)) => {
+                                    this.update_in(cx, |this, window, cx| {
+                                        this.reload_settings(cx);
+                                        this.open_templates(Some(template_id), window, cx);
+                                    })
+                                    .ok();
+                                }
+                                Ok(Err(error)) => tracing::error!(%error, "[useCreateTemplate]"),
+                                Err(error) => tracing::error!(%error, "[useCreateTemplate]"),
                             })
-                            .ok();
-                        }
-                        Ok(Err(error)) => tracing::error!(%error, "[useCreateTemplate]"),
-                        Err(error) => tracing::error!(%error, "[useCreateTemplate]"),
-                    })
-                    .detach();
-                })),
-            )
+                            .detach();
+                        },
+                    )),
+                )
+            })
     }
 
     /// `ConfigError`: centred copy with the `Get Pro` (default) and `Add API

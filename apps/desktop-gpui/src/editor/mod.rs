@@ -52,6 +52,16 @@ actions!(
         ShiftTab,
         Undo,
         Redo,
+        WordLeft,
+        WordRight,
+        SelectWordLeft,
+        SelectWordRight,
+        DeleteWordBackward,
+        DeleteWordForward,
+        DocumentStart,
+        DocumentEnd,
+        SelectDocumentStart,
+        SelectDocumentEnd,
     ]
 );
 
@@ -66,6 +76,31 @@ pub fn bind_keys(cx: &mut App) {
     } else {
         "ctrl"
     };
+    // Word movement modifier.
+    let w = if cfg!(target_os = "macos") {
+        "alt"
+    } else {
+        "ctrl"
+    };
+    if cfg!(target_os = "macos") {
+        cx.bind_keys([
+            KeyBinding::new("cmd-left", Home, ctx),
+            KeyBinding::new("cmd-right", End, ctx),
+            KeyBinding::new("cmd-shift-left", SelectHome, ctx),
+            KeyBinding::new("cmd-shift-right", SelectEnd, ctx),
+            KeyBinding::new("cmd-up", DocumentStart, ctx),
+            KeyBinding::new("cmd-down", DocumentEnd, ctx),
+            KeyBinding::new("cmd-shift-up", SelectDocumentStart, ctx),
+            KeyBinding::new("cmd-shift-down", SelectDocumentEnd, ctx),
+        ]);
+    } else {
+        cx.bind_keys([
+            KeyBinding::new("ctrl-home", DocumentStart, ctx),
+            KeyBinding::new("ctrl-end", DocumentEnd, ctx),
+            KeyBinding::new("ctrl-shift-home", SelectDocumentStart, ctx),
+            KeyBinding::new("ctrl-shift-end", SelectDocumentEnd, ctx),
+        ]);
+    }
     cx.bind_keys([
         KeyBinding::new("left", Left, ctx),
         KeyBinding::new("right", Right, ctx),
@@ -97,6 +132,15 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new(&format!("{m}-z"), Undo, ctx),
         KeyBinding::new(&format!("{m}-shift-z"), Redo, ctx),
         KeyBinding::new(&format!("{m}-y"), Redo, ctx),
+        // The webview's own word and document movement: Alt on macOS, Ctrl
+        // elsewhere, with Cmd-Left/Right as Home/End and Cmd-Up/Down as the
+        // document's ends on macOS.
+        KeyBinding::new(&format!("{w}-left"), WordLeft, ctx),
+        KeyBinding::new(&format!("{w}-right"), WordRight, ctx),
+        KeyBinding::new(&format!("{w}-shift-left"), SelectWordLeft, ctx),
+        KeyBinding::new(&format!("{w}-shift-right"), SelectWordRight, ctx),
+        KeyBinding::new(&format!("{w}-backspace"), DeleteWordBackward, ctx),
+        KeyBinding::new(&format!("{w}-delete"), DeleteWordForward, ctx),
     ]);
 }
 
@@ -1226,6 +1270,177 @@ impl BodyEditor {
         self.move_to_line_edge(true, true, cx);
     }
 
+    /// Ctrl/Alt-Left/Right: WebKit's word movement, crossing into the
+    /// neighbouring textblock from an edge like a plain arrow does.
+    fn move_by_word(&mut self, forward: bool, extend: bool, cx: &mut Context<Self>) {
+        let Some(caret) = self.caret else {
+            return;
+        };
+        if !extend && let Some((from, to)) = self.selection() {
+            self.set_head(if forward { to } else { from }, false, cx);
+            return;
+        }
+        let Some(next) = self.word_target(caret, forward) else {
+            return;
+        };
+        self.set_head(next, extend, cx);
+    }
+
+    /// Where a word step from `caret` lands, `None` at the document's edge.
+    fn word_target(&self, caret: Caret, forward: bool) -> Option<Caret> {
+        let text = self.doc.text(caret.block);
+        if forward {
+            if caret.offset >= text.len() {
+                return (caret.block + 1 < self.doc.textblock_count()).then(|| Caret {
+                    block: caret.block + 1,
+                    offset: 0,
+                });
+            }
+            let offset = crate::text_input::next_word_end(&text, caret.offset);
+            Some(Caret {
+                block: caret.block,
+                offset: self.doc.snap_out_of_atoms(caret.block, offset, 1),
+            })
+        } else {
+            if caret.offset == 0 {
+                return (caret.block > 0).then(|| Caret {
+                    block: caret.block - 1,
+                    offset: self.doc.text(caret.block - 1).len(),
+                });
+            }
+            let offset = crate::text_input::previous_word_start(&text, caret.offset);
+            Some(Caret {
+                block: caret.block,
+                offset: self.doc.snap_out_of_atoms(caret.block, offset, -1),
+            })
+        }
+    }
+
+    fn on_word_left(&mut self, _: &WordLeft, _: &mut Window, cx: &mut Context<Self>) {
+        self.move_by_word(false, false, cx);
+    }
+
+    fn on_word_right(&mut self, _: &WordRight, _: &mut Window, cx: &mut Context<Self>) {
+        self.move_by_word(true, false, cx);
+    }
+
+    fn on_select_word_left(&mut self, _: &SelectWordLeft, _: &mut Window, cx: &mut Context<Self>) {
+        self.move_by_word(false, true, cx);
+    }
+
+    fn on_select_word_right(
+        &mut self,
+        _: &SelectWordRight,
+        _: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.move_by_word(true, true, cx);
+    }
+
+    /// Ctrl/Alt-Backspace and -Delete: the browser's `deleteWordBackward` /
+    /// `deleteWordForward` within the textblock (a selection is deleted, and
+    /// at a textblock edge the plain key's join applies).
+    fn delete_by_word(&mut self, forward: bool, window: &mut Window, cx: &mut Context<Self>) {
+        if self.selection().is_some() {
+            self.record_edit(EditKind::Structural);
+            self.delete_selection();
+            self.changed(cx);
+            return;
+        }
+        let Some(caret) = self.caret else {
+            return;
+        };
+        let text = self.doc.text(caret.block);
+        if (forward && caret.offset >= text.len()) || (!forward && caret.offset == 0) {
+            if forward {
+                self.on_delete(&Delete, window, cx);
+            } else {
+                self.on_backspace(&Backspace, window, cx);
+            }
+            return;
+        }
+        let Some(target) = self.word_target(caret, forward) else {
+            return;
+        };
+        let range = if forward {
+            caret.offset..target.offset
+        } else {
+            target.offset..caret.offset
+        };
+        self.record_edit(EditKind::Deleting);
+        self.doc.delete_range(caret.block, range.clone());
+        self.caret = Some(Caret {
+            block: caret.block,
+            offset: range.start,
+        });
+        self.anchor = None;
+        self.changed(cx);
+    }
+
+    fn on_delete_word_backward(
+        &mut self,
+        _: &DeleteWordBackward,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.delete_by_word(false, window, cx);
+    }
+
+    fn on_delete_word_forward(
+        &mut self,
+        _: &DeleteWordForward,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.delete_by_word(true, window, cx);
+    }
+
+    /// Ctrl-Home / Ctrl-End (Cmd-Up / Cmd-Down): the document's ends.
+    fn move_to_document_edge(&mut self, end: bool, extend: bool, cx: &mut Context<Self>) {
+        let count = self.doc.textblock_count();
+        if count == 0 {
+            return;
+        }
+        let target = if end {
+            Caret {
+                block: count - 1,
+                offset: self.doc.text(count - 1).len(),
+            }
+        } else {
+            Caret {
+                block: 0,
+                offset: 0,
+            }
+        };
+        self.set_head(target, extend, cx);
+    }
+
+    fn on_document_start(&mut self, _: &DocumentStart, _: &mut Window, cx: &mut Context<Self>) {
+        self.move_to_document_edge(false, false, cx);
+    }
+
+    fn on_document_end(&mut self, _: &DocumentEnd, _: &mut Window, cx: &mut Context<Self>) {
+        self.move_to_document_edge(true, false, cx);
+    }
+
+    fn on_select_document_start(
+        &mut self,
+        _: &SelectDocumentStart,
+        _: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.move_to_document_edge(false, true, cx);
+    }
+
+    fn on_select_document_end(
+        &mut self,
+        _: &SelectDocumentEnd,
+        _: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.move_to_document_edge(true, true, cx);
+    }
+
     /// Home / End (with Shift extending) to the textblock's edge.
     fn move_to_line_edge(&mut self, end: bool, extend: bool, cx: &mut Context<Self>) {
         if let Some(caret) = self.caret {
@@ -1806,6 +2021,16 @@ impl BodyEditor {
             .on_action(cx.listener(Self::on_escape))
             .on_action(cx.listener(Self::on_undo))
             .on_action(cx.listener(Self::on_redo))
+            .on_action(cx.listener(Self::on_word_left))
+            .on_action(cx.listener(Self::on_word_right))
+            .on_action(cx.listener(Self::on_select_word_left))
+            .on_action(cx.listener(Self::on_select_word_right))
+            .on_action(cx.listener(Self::on_delete_word_backward))
+            .on_action(cx.listener(Self::on_delete_word_forward))
+            .on_action(cx.listener(Self::on_document_start))
+            .on_action(cx.listener(Self::on_document_end))
+            .on_action(cx.listener(Self::on_select_document_start))
+            .on_action(cx.listener(Self::on_select_document_end))
             // The title bar's Edit menu (`runEditCommand`) targets the editor
             // that had focus with the app-level actions.
             .on_action(cx.listener(|this, _: &crate::actions::Undo, window, cx| {

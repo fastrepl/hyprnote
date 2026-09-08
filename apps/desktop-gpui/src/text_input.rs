@@ -19,6 +19,12 @@ actions!(
     [
         Backspace,
         Delete,
+        WordLeft,
+        WordRight,
+        SelectWordLeft,
+        SelectWordRight,
+        DeleteWordBackward,
+        DeleteWordForward,
         Left,
         Right,
         SelectLeft,
@@ -47,9 +53,21 @@ pub fn bind_keys(cx: &mut App) {
         "ctrl"
     };
     let ctx = Some(KEY_CONTEXT);
+    // The webview's word movement modifier: Alt on macOS, Ctrl elsewhere.
+    let w = if cfg!(target_os = "macos") {
+        "alt"
+    } else {
+        "ctrl"
+    };
     cx.bind_keys([
         KeyBinding::new("backspace", Backspace, ctx),
         KeyBinding::new("delete", Delete, ctx),
+        KeyBinding::new(&format!("{w}-left"), WordLeft, ctx),
+        KeyBinding::new(&format!("{w}-right"), WordRight, ctx),
+        KeyBinding::new(&format!("{w}-shift-left"), SelectWordLeft, ctx),
+        KeyBinding::new(&format!("{w}-shift-right"), SelectWordRight, ctx),
+        KeyBinding::new(&format!("{w}-backspace"), DeleteWordBackward, ctx),
+        KeyBinding::new(&format!("{w}-delete"), DeleteWordForward, ctx),
         KeyBinding::new("left", Left, ctx),
         KeyBinding::new("right", Right, ctx),
         KeyBinding::new("shift-left", SelectLeft, ctx),
@@ -67,6 +85,35 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new("down", Down, ctx),
         KeyBinding::new("escape", Escape, ctx),
     ]);
+}
+
+/// WebKit's `previousWordPosition` (`startWordBoundary`): the start of the
+/// word before `offset`, spaces and punctuation between skipped; 0 when
+/// there is none.
+pub fn previous_word_start(text: &str, offset: usize) -> usize {
+    let mut start = 0;
+    for (index, word) in text.split_word_bound_indices() {
+        if index >= offset {
+            break;
+        }
+        if word.chars().any(char::is_alphanumeric) {
+            start = index;
+        }
+    }
+    start
+}
+
+/// WebKit's `nextWordPosition` on macOS and Unix (`endWordBoundary`, no
+/// `shouldSkipSpaceWhenMovingRight`): the end of the word after `offset`,
+/// `text.len()` when there is none.
+pub fn next_word_end(text: &str, offset: usize) -> usize {
+    for (index, word) in text.split_word_bound_indices() {
+        let end = index + word.len();
+        if end > offset && word.chars().any(char::is_alphanumeric) {
+            return end;
+        }
+    }
+    text.len()
 }
 
 /// WebKit's double-click selection: the UAX #29 word (or the run of spaces
@@ -295,6 +342,64 @@ impl TextInput {
 
     fn end(&mut self, _: &End, _: &mut Window, cx: &mut Context<Self>) {
         self.move_to(self.content.len(), cx);
+    }
+
+    /// Ctrl/Alt-Left/Right: WebKit's word movement.
+    fn word_left(&mut self, _: &WordLeft, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = if self.selected_range.is_empty() {
+            previous_word_start(&self.content, self.cursor_offset())
+        } else {
+            self.selected_range.start
+        };
+        self.move_to(offset, cx);
+    }
+
+    fn word_right(&mut self, _: &WordRight, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = if self.selected_range.is_empty() {
+            next_word_end(&self.content, self.cursor_offset())
+        } else {
+            self.selected_range.end
+        };
+        self.move_to(offset, cx);
+    }
+
+    fn select_word_left(&mut self, _: &SelectWordLeft, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = previous_word_start(&self.content, self.cursor_offset());
+        self.select_to(offset, cx);
+    }
+
+    fn select_word_right(&mut self, _: &SelectWordRight, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = next_word_end(&self.content, self.cursor_offset());
+        self.select_to(offset, cx);
+    }
+
+    /// Ctrl/Alt-Backspace / -Delete: `deleteWordBackward` / `deleteWordForward`.
+    fn delete_word_backward(
+        &mut self,
+        _: &DeleteWordBackward,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.selected_range.is_empty() {
+            let start = previous_word_start(&self.content, self.cursor_offset());
+            self.selected_range = start..self.cursor_offset();
+            self.selection_reversed = false;
+        }
+        self.replace_text_in_range(None, "", window, cx)
+    }
+
+    fn delete_word_forward(
+        &mut self,
+        _: &DeleteWordForward,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.selected_range.is_empty() {
+            let end = next_word_end(&self.content, self.cursor_offset());
+            self.selected_range = self.cursor_offset()..end;
+            self.selection_reversed = false;
+        }
+        self.replace_text_in_range(None, "", window, cx)
     }
 
     fn backspace(&mut self, _: &Backspace, window: &mut Window, cx: &mut Context<Self>) {
@@ -847,6 +952,12 @@ impl Render for TextInput {
             .cursor(CursorStyle::IBeam)
             .on_action(cx.listener(Self::backspace))
             .on_action(cx.listener(Self::delete))
+            .on_action(cx.listener(Self::word_left))
+            .on_action(cx.listener(Self::word_right))
+            .on_action(cx.listener(Self::select_word_left))
+            .on_action(cx.listener(Self::select_word_right))
+            .on_action(cx.listener(Self::delete_word_backward))
+            .on_action(cx.listener(Self::delete_word_forward))
             .on_action(cx.listener(Self::left))
             .on_action(cx.listener(Self::right))
             .on_action(cx.listener(Self::select_left))
@@ -902,6 +1013,23 @@ impl Focusable for TextInput {
 #[cfg(test)]
 mod tests {
     use super::word_range_at;
+
+    #[test]
+    fn word_movement_skips_spaces_and_marks_like_webkit() {
+        use super::{next_word_end, previous_word_start};
+        let text = "one, two  three";
+        // Backward from the end lands on the start of `three`, then `two`, then `one`.
+        assert_eq!(previous_word_start(text, text.len()), 10);
+        assert_eq!(previous_word_start(text, 10), 5);
+        assert_eq!(previous_word_start(text, 7), 5);
+        assert_eq!(previous_word_start(text, 5), 0);
+        assert_eq!(previous_word_start(text, 0), 0);
+        // Forward lands on word ends: `one|,`, `two|`, `three|`.
+        assert_eq!(next_word_end(text, 0), 3);
+        assert_eq!(next_word_end(text, 3), 8);
+        assert_eq!(next_word_end(text, 8), 15);
+        assert_eq!(next_word_end(text, 15), 15);
+    }
 
     #[test]
     fn double_click_selects_the_word_space_run_or_mark_under_the_offset() {

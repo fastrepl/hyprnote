@@ -22,6 +22,12 @@ actions!(
     [
         Backspace,
         Delete,
+        WordLeft,
+        WordRight,
+        SelectWordLeft,
+        SelectWordRight,
+        DeleteWordBackward,
+        DeleteWordForward,
         Left,
         Right,
         Up,
@@ -60,9 +66,21 @@ pub fn bind_keys(cx: &mut App) {
         "ctrl"
     };
     let ctx = Some(KEY_CONTEXT);
+    // The webview's word movement modifier: Alt on macOS, Ctrl elsewhere.
+    let w = if cfg!(target_os = "macos") {
+        "alt"
+    } else {
+        "ctrl"
+    };
     cx.bind_keys([
         KeyBinding::new("backspace", Backspace, ctx),
         KeyBinding::new("delete", Delete, ctx),
+        KeyBinding::new(&format!("{w}-left"), WordLeft, ctx),
+        KeyBinding::new(&format!("{w}-right"), WordRight, ctx),
+        KeyBinding::new(&format!("{w}-shift-left"), SelectWordLeft, ctx),
+        KeyBinding::new(&format!("{w}-shift-right"), SelectWordRight, ctx),
+        KeyBinding::new(&format!("{w}-backspace"), DeleteWordBackward, ctx),
+        KeyBinding::new(&format!("{w}-delete"), DeleteWordForward, ctx),
         KeyBinding::new("left", Left, ctx),
         KeyBinding::new("right", Right, ctx),
         KeyBinding::new("up", Up, ctx),
@@ -813,6 +831,64 @@ impl TextArea {
         self.move_to(self.line_end(self.cursor_offset()), cx);
     }
 
+    /// Ctrl/Alt-Left/Right: WebKit's word movement.
+    fn word_left(&mut self, _: &WordLeft, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = if self.selected_range.is_empty() {
+            crate::text_input::previous_word_start(&self.content, self.cursor_offset())
+        } else {
+            self.selected_range.start
+        };
+        self.move_to(offset, cx);
+    }
+
+    fn word_right(&mut self, _: &WordRight, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = if self.selected_range.is_empty() {
+            crate::text_input::next_word_end(&self.content, self.cursor_offset())
+        } else {
+            self.selected_range.end
+        };
+        self.move_to(offset, cx);
+    }
+
+    fn select_word_left(&mut self, _: &SelectWordLeft, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = crate::text_input::previous_word_start(&self.content, self.cursor_offset());
+        self.select_to(offset, cx);
+    }
+
+    fn select_word_right(&mut self, _: &SelectWordRight, _: &mut Window, cx: &mut Context<Self>) {
+        let offset = crate::text_input::next_word_end(&self.content, self.cursor_offset());
+        self.select_to(offset, cx);
+    }
+
+    /// Ctrl/Alt-Backspace / -Delete: `deleteWordBackward` / `deleteWordForward`.
+    fn delete_word_backward(
+        &mut self,
+        _: &DeleteWordBackward,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.selected_range.is_empty() {
+            let start = crate::text_input::previous_word_start(&self.content, self.cursor_offset());
+            self.selected_range = start..self.cursor_offset();
+            self.selection_reversed = false;
+        }
+        self.replace_text_in_range(None, "", window, cx)
+    }
+
+    fn delete_word_forward(
+        &mut self,
+        _: &DeleteWordForward,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.selected_range.is_empty() {
+            let end = crate::text_input::next_word_end(&self.content, self.cursor_offset());
+            self.selected_range = self.cursor_offset()..end;
+            self.selection_reversed = false;
+        }
+        self.replace_text_in_range(None, "", window, cx)
+    }
+
     fn backspace(&mut self, _: &Backspace, window: &mut Window, cx: &mut Context<Self>) {
         if self.selected_range.is_empty() {
             let start = self.previous_boundary(self.cursor_offset());
@@ -1164,6 +1240,12 @@ impl Render for TextArea {
             .cursor(CursorStyle::IBeam)
             .on_action(cx.listener(Self::backspace))
             .on_action(cx.listener(Self::delete))
+            .on_action(cx.listener(Self::word_left))
+            .on_action(cx.listener(Self::word_right))
+            .on_action(cx.listener(Self::select_word_left))
+            .on_action(cx.listener(Self::select_word_right))
+            .on_action(cx.listener(Self::delete_word_backward))
+            .on_action(cx.listener(Self::delete_word_forward))
             .on_action(cx.listener(Self::left))
             .on_action(cx.listener(Self::right))
             .on_action(cx.listener(Self::up))

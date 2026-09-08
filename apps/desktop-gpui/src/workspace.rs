@@ -405,6 +405,8 @@ pub struct Workspace {
     /// The pointer's last position over a `title` trigger; the platform
     /// tooltip opens below it.
     tooltip_pointer: gpui::Point<gpui::Pixels>,
+    /// The frame being rendered, stamped on the triggers' painted bounds.
+    tooltip_frame: u64,
 }
 
 impl Workspace {
@@ -600,6 +602,7 @@ impl Workspace {
             tooltip_closed_at: None,
             tooltip_generation: 0,
             tooltip_pointer: gpui::Point::default(),
+            tooltip_frame: 0,
         };
         // Chips and the bottom fade depend on the scroll position.
         this.list_state
@@ -1831,6 +1834,7 @@ impl Render for Workspace {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         self.viewport_height = f32::from(window.viewport_size().height);
         self.viewport_width = f32::from(window.viewport_size().width);
+        self.begin_tooltip_frame(window, cx);
         // `MainChatPanels` lays out the body before the sidebar group inside
         // it; the width guard then reacts to what fits.
         let main_layout = self.main_layout(window);
@@ -2062,6 +2066,14 @@ impl Render for Workspace {
             .capture_any_mouse_down(cx.listener(|this, _: &gpui::MouseDownEvent, _, cx| {
                 this.dismiss_tooltip(cx);
             }))
+            .capture_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, _, cx| {
+                this.tooltip_key_down(event, cx);
+            }))
+            .on_modifiers_changed(cx.listener(
+                |this, event: &gpui::ModifiersChangedEvent, _, cx| {
+                    this.tooltip_modifiers_changed(event, cx);
+                },
+            ))
             .capture_any_mouse_down(cx.listener(|this, event: &gpui::MouseDownEvent, _, cx| {
                 if this.timeline_menu.is_some()
                     || !this.pending_delete_selected.is_empty()

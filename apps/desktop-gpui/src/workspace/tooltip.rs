@@ -7,9 +7,12 @@
 //! leave or any press.
 //!
 //! A DOM `title` attribute is the platform's own tooltip instead: the
-//! webview shows it below the pointer after the system hover delay, in the
-//! toolkit's style (GTK's dark rounded box on Linux, the light system tip on
-//! macOS and Windows), and hides it on leave or press.
+//! webview shows it below the pointer once it rests for the system hover
+//! delay, in the toolkit's style (GTK's dark rounded box on Linux, the light
+//! system tip on macOS and Windows), and hides it on leave, press or any key
+//! — after which motion over the element brings it back.
+//!
+//! Either kind goes when its trigger leaves the tree.
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -154,17 +157,18 @@ pub(crate) struct TooltipState {
     pointer: Point<Pixels>,
 }
 
-/// The triggers' last painted bounds by id, written during prepaint and read
-/// when the open tooltip is placed.
-pub(crate) type TriggerBounds = Rc<RefCell<HashMap<SharedString, Bounds<Pixels>>>>;
+/// The triggers' last painted bounds by id with the frame they were painted
+/// in, written during prepaint and read when the open tooltip is placed.
+pub(crate) type TriggerBounds = Rc<RefCell<HashMap<SharedString, (Bounds<Pixels>, u64)>>>;
 
-/// What a trigger needs to open a tooltip: the workspace holding the state
-/// and the bounds map. Renderers that run outside `Workspace`'s render
-/// (the document renderer) carry one.
+/// What a trigger needs to open a tooltip: the workspace holding the state,
+/// the bounds map and the frame being rendered. Renderers that run outside
+/// `Workspace`'s render (the document renderer) carry one.
 #[derive(Clone)]
 pub(crate) struct TooltipHost {
     workspace: WeakEntity<Workspace>,
     bounds: TriggerBounds,
+    frame: u64,
 }
 
 impl TooltipHost {
@@ -173,6 +177,7 @@ impl TooltipHost {
         let id = spec.id.clone();
         let bounds_id = id.clone();
         let bounds = self.bounds.clone();
+        let frame = self.frame;
         let native = spec.style == Style::Native;
         let workspace = self.workspace.clone();
         let hover_workspace = workspace.clone();
@@ -180,14 +185,20 @@ impl TooltipHost {
             .flex()
             .on_children_prepainted(move |children, _, _| {
                 if let Some(first) = children.first() {
-                    bounds.borrow_mut().insert(bounds_id.clone(), *first);
+                    bounds
+                        .borrow_mut()
+                        .insert(bounds_id.clone(), (*first, frame));
                 }
             })
             .id(SharedString::from(format!("{id}-tooltip-trigger")))
             .when(native, |trigger| {
+                let spec = spec.clone();
                 trigger.on_mouse_move(move |event: &MouseMoveEvent, _, cx| {
                     workspace
-                        .update(cx, |this, _| this.tooltip_pointer = event.position)
+                        .update(cx, |this, cx| {
+                            this.tooltip_pointer = event.position;
+                            this.native_tooltip_motion(spec.clone(), cx);
+                        })
                         .ok();
                 })
             })
@@ -206,11 +217,80 @@ impl TooltipHost {
     }
 }
 
+/// GTK's `gtk-tooltip-browse-mode-timeout`: for this long after a tip hid,
+/// the next one opens after `gtk-tooltip-browse-timeout` instead of the
+/// full delay.
+const GTK_BROWSE_MODE: Duration = Duration::from_millis(500);
+const GTK_BROWSE_DELAY_MS: u64 = 60;
+
 impl Workspace {
     pub(crate) fn tooltip_host(&self, cx: &Context<Self>) -> TooltipHost {
         TooltipHost {
             workspace: cx.entity().downgrade(),
             bounds: self.tooltip_bounds.clone(),
+            frame: self.tooltip_frame,
+        }
+    }
+
+    /// Called at the top of `render`: numbers the frame, and once it is
+    /// drawn drops a tooltip whose trigger was not painted in it — the
+    /// element left the tree (a tab switch, a scrolled-away row), which
+    /// unmounts Radix's content and takes the toolkit's tip with it, while
+    /// no hover-leave ever reaches the gone element.
+    pub(crate) fn begin_tooltip_frame(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.tooltip_frame = self.tooltip_frame.wrapping_add(1);
+        let Some(id) = self.tooltip.as_ref().map(|state| state.spec.id.clone()) else {
+            return;
+        };
+        let frame = self.tooltip_frame;
+        let bounds = self.tooltip_bounds.clone();
+        let workspace = cx.entity().downgrade();
+        window.on_next_frame(move |_, cx| {
+            let painted = bounds
+                .borrow()
+                .get(&id)
+                .is_some_and(|(_, painted_in)| *painted_in == frame);
+            if !painted {
+                workspace
+                    .update(cx, |this, cx| {
+                        if this
+                            .tooltip
+                            .as_ref()
+                            .is_some_and(|state| state.spec.id == id)
+                        {
+                            this.tooltip = None;
+                            cx.notify();
+                        }
+                    })
+                    .ok();
+            }
+        });
+    }
+
+    /// A key press: GTK hides its tooltip on any key, Radix's closes on
+    /// Escape (`useEscapeKeydown`); neither swallows the key.
+    pub(crate) fn tooltip_key_down(&mut self, event: &gpui::KeyDownEvent, cx: &mut Context<Self>) {
+        let Some(state) = self.tooltip.as_ref() else {
+            return;
+        };
+        if state.spec.style == Style::Native || event.keystroke.key == "escape" {
+            self.dismiss_tooltip(cx);
+        }
+    }
+
+    /// A modifier going down is a key press to GTK as well.
+    pub(crate) fn tooltip_modifiers_changed(
+        &mut self,
+        event: &gpui::ModifiersChangedEvent,
+        cx: &mut Context<Self>,
+    ) {
+        if event.modifiers.modified()
+            && self
+                .tooltip
+                .as_ref()
+                .is_some_and(|state| state.spec.style == Style::Native)
+        {
+            self.dismiss_tooltip(cx);
         }
     }
 
@@ -243,6 +323,19 @@ impl Workspace {
         }
     }
 
+    /// GTK's motion handling over a `title` element: a shown tip stays, a
+    /// pending one restarts its delay so the tip opens once the pointer
+    /// rests, and none (after a key press hid it) starts a new one — where
+    /// Radix's trigger opens once per enter.
+    fn native_tooltip_motion(&mut self, spec: TooltipSpec, cx: &mut Context<Self>) {
+        match self.tooltip.as_ref() {
+            Some(state) if state.spec.id == spec.id && state.shown => return,
+            Some(state) if state.spec.id == spec.id => self.tooltip = None,
+            _ => {}
+        }
+        self.open_tooltip(spec, cx);
+    }
+
     fn open_tooltip(&mut self, spec: TooltipSpec, cx: &mut Context<Self>) {
         if self
             .tooltip
@@ -251,17 +344,17 @@ impl Workspace {
         {
             return;
         }
-        // Radix skips the delay while another tooltip closed moments ago.
-        let skip = self
-            .tooltip_closed_at
-            .is_some_and(|at| at.elapsed() < SKIP_DELAY);
+        let since_close = self.tooltip_closed_at.map(|at| at.elapsed());
+        let delay = match spec.style {
+            // Radix skips the delay while another tooltip closed moments ago.
+            Style::Radix if since_close.is_some_and(|since| since < SKIP_DELAY) => Duration::ZERO,
+            Style::Native if since_close.is_some_and(|since| since < GTK_BROWSE_MODE) => {
+                Duration::from_millis(GTK_BROWSE_DELAY_MS)
+            }
+            _ => Duration::from_millis(spec.delay_ms),
+        };
         let generation = self.tooltip_generation.wrapping_add(1);
         self.tooltip_generation = generation;
-        let delay = if skip {
-            Duration::ZERO
-        } else {
-            Duration::from_millis(spec.delay_ms)
-        };
         self.tooltip = Some(TooltipState {
             spec,
             shown: delay.is_zero(),
@@ -365,7 +458,7 @@ impl Workspace {
         if spec.style == Style::Native {
             return self.render_native_tooltip(state, window);
         }
-        let anchor = *self.tooltip_bounds.borrow().get(&spec.id)?;
+        let (anchor, _) = *self.tooltip_bounds.borrow().get(&spec.id)?;
         let theme = self.theme;
 
         // `px-3 py-1.5` inside a 1px border; `text-xs` lines are 16px.

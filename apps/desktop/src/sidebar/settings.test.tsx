@@ -257,6 +257,20 @@ describe("SettingsNav", () => {
     );
   });
 
+  it("finds and opens Insights for free users", () => {
+    mocks.isPro = false;
+    render(<SettingsNav />);
+    fireEvent.change(screen.getByPlaceholderText("Search settings..."), {
+      target: { value: "insights" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Insights" }));
+    expect(mocks.updateSettingsTabState).toHaveBeenCalledWith(
+      mocks.currentTab,
+      { tab: "insights" },
+    );
+    expect(screen.queryByRole("button", { name: "Stats" })).toBeNull();
+  });
+
   it("opens Meetings inside settings", () => {
     render(<SettingsNav />);
 

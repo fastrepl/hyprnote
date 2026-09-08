@@ -16,6 +16,72 @@ const record = (
 });
 
 describe("personal activity", () => {
+  it("counts each conversation on its earliest capture weekday, regardless of transcript order", () => {
+    const stats = summarizeActivity(
+      [
+        record("resumed", "2026-09-03T09:00:00Z", 30 * 60_000),
+        record("resumed", "2026-09-02T09:00:00Z", 30 * 60_000),
+        record("resumed", "2026-09-02T09:15:00Z", 30 * 60_000),
+        record("second", "2026-09-02T14:00:00Z", 15 * 60_000),
+        record("untimed", "2026-09-04T14:00:00Z", 0),
+      ],
+      now,
+      "UTC",
+      1,
+    );
+    expect(stats.weekdayCounts.map((day) => day.weekday)).toEqual([
+      1, 2, 3, 4, 5, 6, 0,
+    ]);
+    expect(stats.weekdayCounts.map((day) => day.count)).toEqual([
+      0, 0, 2, 0, 1, 0, 0,
+    ]);
+    expect(stats).toMatchObject({
+      conversations: 3,
+      conversationDays: 2,
+      timedConversations: 2,
+      medianMinutes: 45,
+    });
+  });
+
+  it("uses the selected period and timezone for weekdays and typical length", () => {
+    const stats = summarizeActivity(
+      [
+        record("resumed", "2026-08-01T09:00:00Z", 3_600_000),
+        record("resumed", "2026-08-29T15:00:00Z", 600_000),
+        record("old", "2026-08-29T14:59:00Z"),
+        record("seoul-wednesday", "2026-09-01T16:00:00Z", 1_200_000),
+        record("third", "2026-09-04T16:00:00Z", 1_800_000),
+      ],
+      now,
+      "Asia/Seoul",
+      0,
+      "7d",
+    );
+    expect(stats.weekdayCounts.map((day) => day.count)).toEqual([
+      1, 0, 0, 1, 0, 0, 1,
+    ]);
+    expect(stats.medianMinutes).toBe(20);
+    expect(stats.conversations).toBe(3);
+  });
+
+  it("does not turn missing or unfinished timing into a zero-minute median", () => {
+    const stats = summarizeActivity(
+      [
+        record("missing", "2026-09-02T09:00:00Z", NaN),
+        record("negative", "2026-09-03T09:00:00Z", -1),
+        record("just-started", now.toISOString()),
+        record("future", "2026-10-01T09:00:00Z"),
+      ],
+      now,
+      "UTC",
+    );
+    expect(stats.medianMinutes).toBeNull();
+    expect(stats.timedConversations).toBe(0);
+    expect(stats.weekdayCounts.reduce((sum, day) => sum + day.count, 0)).toBe(
+      3,
+    );
+  });
+
   it("starts empty with a first-conversation milestone and a complete calendar", () => {
     const stats = summarizeActivity([], now, "UTC");
     expect(stats).toMatchObject({

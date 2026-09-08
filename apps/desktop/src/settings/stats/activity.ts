@@ -24,6 +24,7 @@ export function summarizeActivity(
   const dailySessions = new Map<string, Set<string>>();
   const weeks = new Set<string>();
   const intervals = new Map<string, Array<[number, number]>>();
+  const sessionStarts = new Map<string, Date>();
 
   for (const record of records) {
     const startedAt =
@@ -42,6 +43,10 @@ export function summarizeActivity(
     weeks.add(format(startOfWeek(date, { weekStartsOn }), "yyyy-MM-dd"));
     if (day < cutoff) continue;
     sessions.add(record.session_id);
+    const firstStart = sessionStarts.get(record.session_id);
+    if (!firstStart || date < firstStart) {
+      sessionStarts.set(record.session_id, date);
+    }
     if (!Number.isFinite(record.duration_ms) || record.duration_ms <= 0)
       continue;
     const end = Math.min(startedAt + record.duration_ms, now.getTime());
@@ -51,13 +56,31 @@ export function summarizeActivity(
   }
 
   let durationMs = 0;
+  const durations: number[] = [];
   for (const spans of intervals.values()) {
     spans.sort((a, b) => a[0] - b[0]);
     let previousEnd = 0;
+    let sessionDurationMs = 0;
     for (const [start, end] of spans) {
-      durationMs += Math.max(0, end - Math.max(start, previousEnd));
+      sessionDurationMs += Math.max(0, end - Math.max(start, previousEnd));
       previousEnd = Math.max(previousEnd, end);
     }
+    durationMs += sessionDurationMs;
+    if (sessionDurationMs > 0) durations.push(sessionDurationMs);
+  }
+  durations.sort((a, b) => a - b);
+  const middle = Math.floor(durations.length / 2);
+  const medianMinutes = durations.length
+    ? (durations.length % 2
+        ? durations[middle]
+        : (durations[middle - 1] + durations[middle]) / 2) / 60_000
+    : null;
+  const weekdayCounts = Array.from({ length: 7 }, (_, index) => ({
+    weekday: (index + weekStartsOn) % 7,
+    count: 0,
+  }));
+  for (const date of sessionStarts.values()) {
+    weekdayCounts[(date.getDay() - weekStartsOn + 7) % 7].count += 1;
   }
 
   let currentWeek = startOfWeek(localNow, { weekStartsOn });
@@ -93,5 +116,11 @@ export function summarizeActivity(
     streak,
     days,
     nextMilestone,
+    weekdayCounts,
+    medianMinutes,
+    timedConversations: durations.length,
+    conversationDays: new Set(
+      [...sessionStarts.values()].map((date) => format(date, "yyyy-MM-dd")),
+    ).size,
   };
 }

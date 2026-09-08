@@ -628,13 +628,20 @@ impl Workspace {
         }
     }
 
-    /// Closing the main window saves its frame first, like the window-state
-    /// plugin's `ExitRequested` save (on X11 the last window ends the run).
+    /// `on_window_event`'s `CloseRequested` for `AppWindow::Main`: the window
+    /// leaves fullscreen and hides while the app stays alive behind the tray
+    /// (its frame saved first, like the window-state plugin's save); gpui has
+    /// no hide, so the window iconifies. A standalone note window closes.
     pub(crate) fn close_window(&self, window: &mut Window) {
-        if !self.is_standalone() {
-            crate::window_state::save_main(self.store.identifier(), window.window_bounds());
+        if self.is_standalone() {
+            window.remove_window();
+            return;
         }
-        window.remove_window();
+        crate::window_state::save_main(self.store.identifier(), window.window_bounds());
+        if window.is_fullscreen() {
+            window.toggle_fullscreen();
+        }
+        window.minimize_window();
     }
 
     pub(crate) fn is_standalone(&self) -> bool {

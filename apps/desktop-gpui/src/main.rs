@@ -193,14 +193,19 @@ fn open_main_window(store: Arc<Store>, cx: &mut App) -> anyhow::Result<WindowHan
             f32::from(rect.origin.y) as i32,
         );
     }
-    // The plugin saves on `ExitRequested`; the shell saves as the main
-    // window closes (which ends the process on X11) and on quit.
+    // The window manager's close (`CloseRequested` on `AppWindow::Main`):
+    // the frame is saved and the window hides behind the tray instead of
+    // closing (iconified, since gpui has no hide), like `Workspace::close_window`.
     let close_identifier = identifier.clone();
     window
         .update(cx, |_, window, cx| {
             window.on_window_should_close(cx, move |window, _| {
                 window_state::save_main(&close_identifier, window.window_bounds());
-                true
+                if window.is_fullscreen() {
+                    window.toggle_fullscreen();
+                }
+                window.minimize_window();
+                false
             });
         })
         .ok();

@@ -12,6 +12,7 @@ mod automations_engine;
 mod batch;
 mod capture_marker;
 mod chat;
+mod chat_panel_layout;
 mod chat_tools;
 mod contact_summary;
 mod contacts;

@@ -72,13 +72,6 @@ pub(crate) struct AutomationsState {
     context_menu: Option<(ContextTarget, Point<Pixels>)>,
 }
 
-/// `AUTOMATIONS_SURFACE_MIN_WIDTH_PX`
-const SURFACE_MIN_WIDTH: f32 = 600.0;
-/// `RIGHT_CHAT_PANEL_MIN_WIDTH_PX`
-const RIGHT_PANEL_MIN_WIDTH: f32 = 320.0;
-/// The `ResizablePanel defaultSize={30}` share of the body.
-const RIGHT_PANEL_SHARE: f32 = 0.3;
-
 /// Stable element ids for the per-step selects (`SelectSpec.id` is static).
 const STEP_SELECT_IDS: [&str; 12] = [
     "automation-step-0",
@@ -1036,7 +1029,6 @@ impl Workspace {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> AnyElement {
-        let theme = self.theme;
         let selection = self.effective_automation_selection();
         let content = match selection {
             Some(Selection::Starter(id)) => self.render_starter_details(id, window, cx),
@@ -1100,37 +1092,9 @@ impl Workspace {
             None => self.render_automations_overview(window),
         };
 
-        // `ResizablePanelGroup`: the body at 70% (at least the surface min
-        // width) and the right chat panel at 30% (at least its min width).
-        let total = f32::from(window.viewport_size().width)
-            - if self.sidebar_expanded {
-                self.custom_sidebar_width() + 4.0
-            } else {
-                4.0
-            };
-        // The body's `min-width` wins over the panel's when both cannot fit.
-        let right = (total * RIGHT_PANEL_SHARE)
-            .max(RIGHT_PANEL_MIN_WIDTH)
-            .min(total - SURFACE_MIN_WIDTH)
-            .max(0.0);
-        div()
-            .flex()
-            .size_full()
-            .min_h_0()
-            .child(
-                div()
-                    .flex()
-                    .flex_1()
-                    .min_w_0()
-                    .min_h_0()
-                    .flex_col()
-                    .overflow_hidden()
-                    .bg(theme.card)
-                    .child(content),
-            )
-            // `[data-chat-right-panel]`: the automations-scoped chat.
-            .child(self.render_chat_right_panel(right, window, cx))
-            .into_any_element()
+        // `MainChatPanels`: the automations tab always docks its chat, with
+        // the body at least `AUTOMATIONS_SURFACE_MIN_WIDTH_PX` wide.
+        self.render_with_chat_panel(content, window, cx)
     }
 
     /// `AutomationsOverview`

@@ -8,6 +8,7 @@ mod billing;
 mod calendar_tab;
 mod chat;
 mod chat_cta;
+mod chat_panels;
 mod chat_tool_cards;
 mod contact_summary;
 mod contacts_tab;
@@ -191,6 +192,15 @@ pub struct Workspace {
     /// The panel group width the last frame laid out.
     sidebar_group_width: f32,
     sidebar_drag: Option<SidebarDrag>,
+    /// `autoSaveId="main-chat"`'s persisted layout: the chat panel's share of
+    /// the panel group, `None` until a drag or a saved layout sets it.
+    chat_panel_fraction: Option<f64>,
+    chat_panel_drag: Option<chat_panels::ChatPanelDrag>,
+    /// `useNoteSurfaceWindowWidthGuard`'s previous panel state, its resize
+    /// baseline, and the window expansions still to restore.
+    width_guard_state: crate::chat_panel_layout::PanelState,
+    width_guard_last_body: Option<f32>,
+    width_expansions: Vec<(f32, f32)>,
     /// `isAppWindowInactive`'s complement, kept current by the activation observer.
     window_active: bool,
     open_menu: Option<Menu>,
@@ -397,6 +407,7 @@ impl Workspace {
         .detach();
         let store_file = StoreFile::next_to(store.path());
         let sidebar_fraction = Self::load_sidebar_fraction(&store, &store_file);
+        let chat_panel_fraction = Self::load_chat_panel_fraction(&store, &store_file);
         let mut this = Self {
             mode: mode.clone(),
             store,
@@ -424,6 +435,11 @@ impl Workspace {
             sidebar_fraction,
             sidebar_group_width: 0.0,
             sidebar_drag: None,
+            chat_panel_fraction,
+            chat_panel_drag: None,
+            width_guard_state: Default::default(),
+            width_guard_last_body: None,
+            width_expansions: Vec::new(),
             window_active: true,
             open_menu: None,
             open_note: None,
@@ -1641,13 +1657,12 @@ impl Workspace {
     }
 
     /// `createLeftSidebarPanelConstraints` + the panel's percentage layout on
-    /// every frame: the share of the panel group (the window minus `pl-1`),
-    /// clamped to the pixel constraints; the first frame sets the 200px
-    /// default when nothing was saved.
-    fn sync_sidebar_width(&mut self, window: &Window) {
-        let group = (f32::from(window.viewport_size().width)
-            - crate::sidebar_layout::GROUP_INSET_PX)
-            .max(1.0);
+    /// every frame: the share of the panel group (the main body: the window
+    /// minus `pl-1`, less the docked chat panel), clamped to the pixel
+    /// constraints; the first frame sets the 200px default when nothing was
+    /// saved.
+    fn sync_sidebar_width(&mut self, group: f32) {
+        let group = group.max(1.0);
         self.sidebar_group_width = group;
         let fraction = *self
             .sidebar_fraction
@@ -1713,7 +1728,13 @@ impl Workspace {
 
 impl Render for Workspace {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        self.sync_sidebar_width(window);
+        // `MainChatPanels` lays out the body before the sidebar group inside
+        // it; the width guard then reacts to what fits.
+        let main_layout = self.main_layout(window);
+        self.sync_sidebar_width(main_layout.body);
+        if !self.onboarding_open() {
+            self.run_width_guard(main_layout, window, cx);
+        }
         // `resolveIsDarkMode` on every frame: the setting or the system
         // appearance may have changed since the last one.
         if let Some(editor) = self.pending_editor_focus.take() {
@@ -1780,7 +1801,8 @@ impl Render for Workspace {
 
         // `ShellFrame`: title bar (Windows/Linux) above the `shell-scaffold`
         // row of sidebar + main surface, all on `bg-background`.
-        let dragging = self.sidebar_drag.is_some();
+        let sidebar_dragging = self.sidebar_drag.is_some();
+        let chat_panel_dragging = self.chat_panel_dragging();
         div()
             .id("window")
             .track_focus(&self.focus_handle)
@@ -1905,7 +1927,7 @@ impl Render for Workspace {
             .when_some(self.font_family.clone(), |root, family| {
                 root.font_family(family)
             })
-            .when(dragging, |root| {
+            .when(sidebar_dragging, |root| {
                 root.cursor_col_resize()
                     .on_mouse_move(cx.listener(|this, event: &MouseMoveEvent, _, cx| {
                         this.update_sidebar_drag(event.position.x, cx);
@@ -1913,6 +1935,16 @@ impl Render for Workspace {
                     .on_mouse_up(
                         MouseButton::Left,
                         cx.listener(|this, _: &MouseUpEvent, _, cx| this.end_sidebar_drag(cx)),
+                    )
+            })
+            .when(chat_panel_dragging, |root| {
+                root.cursor_col_resize()
+                    .on_mouse_move(cx.listener(|this, event: &MouseMoveEvent, _, cx| {
+                        this.update_chat_panel_drag(event.position.x, cx);
+                    }))
+                    .on_mouse_up(
+                        MouseButton::Left,
+                        cx.listener(|this, _: &MouseUpEvent, _, cx| this.end_chat_panel_drag(cx)),
                     )
             })
             .when(client_decorations, |root| {

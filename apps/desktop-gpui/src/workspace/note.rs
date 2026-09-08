@@ -69,34 +69,13 @@ impl Workspace {
                     .into_any_element()
             }
         };
-        // `MainChatPanels`: in `RightPanelOpen` the body keeps 70% (at least
-        // the note surface's min width) and the chat panel takes the rest.
+        // `MainChatPanels`: in `RightPanelOpen` the body and the chat panel
+        // split the group by the persisted share (the automations tab docks
+        // its own chat inside its content).
         let content = if self.chat_mode == super::chat::ChatMode::RightPanelOpen
             && !self.automations_open()
         {
-            let total = f32::from(window.viewport_size().width)
-                - if self.sidebar_expanded {
-                    self.custom_sidebar_width() + 4.0
-                } else {
-                    4.0
-                };
-            let right = (total * 0.3).max(320.0).min(total - 500.0).max(0.0);
-            div()
-                .flex()
-                .size_full()
-                .min_h_0()
-                .child(
-                    div()
-                        .flex()
-                        .flex_1()
-                        .min_w_0()
-                        .min_h_0()
-                        .flex_col()
-                        .overflow_hidden()
-                        .child(content),
-                )
-                .child(self.render_chat_right_panel(right, window, cx))
-                .into_any_element()
+            self.render_with_chat_panel(content, window, cx)
         } else {
             content
         };
@@ -522,7 +501,8 @@ impl Workspace {
                 div()
                     .relative()
                     .mt(px(2.0))
-                    .line_height(px(19.25))
+                    // `leading-snug`: 19.25px, laid out as 19px by WebKit.
+                    .line_height(px(19.0))
                     .text_color(theme.muted_foreground)
                     .child(
                         "This is a prerecorded demo, so your camera stays off. Click Join & record to see Anarlog in action.",

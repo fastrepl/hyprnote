@@ -530,114 +530,21 @@ pub struct Webhook {
 
 impl From<anlg_db_app::WebhookEndpointRow> for Webhook {
     fn from(row: anlg_db_app::WebhookEndpointRow) -> Self {
+        anlg_local_api_core::WebhookInfo::from(row).into()
+    }
+}
+
+impl From<anlg_local_api_core::WebhookInfo> for Webhook {
+    fn from(info: anlg_local_api_core::WebhookInfo) -> Self {
         Self {
-            id: row.id,
-            url: row.url,
-            events: serde_json::from_str(&row.events_json).unwrap_or_default(),
-            active: row.active,
-            last_delivery_at: row.last_delivery_at,
-            last_delivery_status: row.last_delivery_status,
+            id: info.id,
+            url: info.url,
+            events: info.events,
+            active: info.active,
+            last_delivery_at: info.last_delivery_at,
+            last_delivery_status: info.last_delivery_status,
         }
     }
-}
-
-pub const MAX_WEBHOOK_ENDPOINTS: usize = 64;
-const DELIVERY_TIMEOUT_SECS: u64 = 10;
-const MAX_STATUS_LEN: usize = 200;
-
-/// `dispatch::create_endpoint` for the settings form (no event filter).
-pub async fn create_webhook(
-    pool: &sqlx::SqlitePool,
-    url: &str,
-) -> Result<(Webhook, String), String> {
-    let url = url.trim();
-    if !url.starts_with("http://") && !url.starts_with("https://") {
-        return Err("url must start with http:// or https://".to_string());
-    }
-    let count = anlg_db_app::list_webhook_endpoints(pool)
-        .await
-        .map_err(|error| error.to_string())?
-        .len();
-    if count >= MAX_WEBHOOK_ENDPOINTS {
-        return Err(format!(
-            "at most {MAX_WEBHOOK_ENDPOINTS} webhook endpoints can be configured"
-        ));
-    }
-    let secret = anlg_db_app::generate_webhook_secret();
-    let row = anlg_db_app::insert_webhook_endpoint(
-        pool,
-        &uuid::Uuid::new_v4().to_string(),
-        url,
-        &secret,
-        "[]",
-    )
-    .await
-    .map_err(|error| error.to_string())?;
-    Ok((Webhook::from(row), secret))
-}
-
-fn sign_payload(secret: &str, body: &[u8]) -> String {
-    use hmac::{Hmac, KeyInit, Mac};
-    let mut mac = <Hmac<sha2::Sha256> as KeyInit>::new_from_slice(secret.as_bytes())
-        .expect("hmac accepts keys of any length");
-    mac.update(body);
-    mac.finalize()
-        .into_bytes()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
-}
-
-/// `dispatch::send_test`: one signed `webhook.test` delivery, recorded on the
-/// endpoint.
-pub async fn send_test_webhook(
-    pool: &sqlx::SqlitePool,
-    endpoint: &anlg_db_app::WebhookEndpointRow,
-) -> Result<(bool, String), String> {
-    let body = serde_json::json!({
-        "id": format!("evt_{}", uuid::Uuid::new_v4().simple()),
-        "event": "webhook.test",
-        "created_at": chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true),
-        "data": { "message": "This is a test delivery from Anarlog." },
-    })
-    .to_string();
-    let delivery_id = format!("dlv_{}", uuid::Uuid::new_v4().simple());
-    let (delivered, status) = match reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(DELIVERY_TIMEOUT_SECS))
-        .build()
-    {
-        Ok(client) => {
-            let response = client
-                .post(&endpoint.url)
-                .header("content-type", "application/json")
-                .header("x-anarlog-event", "webhook.test")
-                .header("x-anarlog-delivery", delivery_id)
-                .header(
-                    "x-anarlog-timestamp",
-                    chrono::Utc::now().timestamp().to_string(),
-                )
-                .header(
-                    "x-anarlog-signature",
-                    format!("sha256={}", sign_payload(&endpoint.secret, body.as_bytes())),
-                )
-                .body(body)
-                .send()
-                .await;
-            match response {
-                Ok(response) => (
-                    response.status().is_success(),
-                    response.status().to_string(),
-                ),
-                Err(error) => (false, format!("error: {error}")),
-            }
-        }
-        Err(error) => (false, format!("error: {error}")),
-    };
-    let status: String = status.chars().take(MAX_STATUS_LEN).collect();
-    if let Err(error) = anlg_db_app::record_webhook_delivery(pool, &endpoint.id, &status).await {
-        tracing::warn!("failed to record webhook delivery: {error}");
-    }
-    Ok((delivered, status))
 }
 
 #[cfg(test)]
@@ -665,15 +572,6 @@ mod tests {
         assert_eq!(
             command_name_from_identifier("so.anarlog.Anarlog"),
             "anarlog"
-        );
-    }
-
-    #[test]
-    fn signature_matches_reference_hmac() {
-        // Precomputed with python hmac: key=whsec_test, message={"a":1}
-        assert_eq!(
-            sign_payload("whsec_test", br#"{"a":1}"#),
-            "51426af50a41dd7ff2cd3f116594734766d4018d15d6fb07169aee5d2959adf5"
         );
     }
 

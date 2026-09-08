@@ -270,13 +270,16 @@ impl Workspace {
         cx.spawn(async move |this, cx| {
             let result = task.await.map_err(anyhow::Error::from).and_then(|r| r);
             this.update(cx, |this, cx| {
+                // `Test delivered (${delivery.status})` / `Test failed (${delivery.status})`
                 match result {
-                    Ok((true, _)) => this.flash(FlashVariant::Success, "Test delivery sent", cx),
-                    Ok((false, status)) => this.flash(
-                        FlashVariant::Error,
-                        format!("Test delivery failed: {status}"),
+                    Ok((true, status)) => this.flash(
+                        FlashVariant::Success,
+                        format!("Test delivered ({status})"),
                         cx,
                     ),
+                    Ok((false, status)) => {
+                        this.flash(FlashVariant::Error, format!("Test failed ({status})"), cx)
+                    }
                     Err(error) => this.flash(FlashVariant::Error, error.to_string(), cx),
                 }
                 if let Some(state) = this.developers.as_mut() {
@@ -320,7 +323,7 @@ impl Workspace {
                             div()
                                 .flex()
                                 .items_center()
-                                .gap(px(6.0))
+                                .gap_2()
                                 .child("Guide")
                                 .child(icon("external-link", px(14.0), theme.foreground))
                                 .into_any_element(),
@@ -336,7 +339,7 @@ impl Workspace {
     }
 
     /// `Button size="sm" variant="outline"` (or `default` when `primary`):
-    /// `h-8 px-3 gap-1.5 text-xs font-medium` under the control squircle.
+    /// `h-7 px-2 gap-2 text-xs font-medium` under the control squircle.
     #[allow(clippy::type_complexity)]
     pub(super) fn outline_button(
         &self,
@@ -353,11 +356,11 @@ impl Workspace {
             .id(id)
             .relative()
             .flex()
-            .h(px(32.0))
+            .h(px(28.0))
             .flex_shrink_0()
             .items_center()
-            .gap(px(6.0))
-            .px_3()
+            .gap_2()
+            .px_2()
             .child(crate::squircle::squircle(
                 crate::squircle::CONTROL_RADIUS,
                 Some(if hovered && !disabled {
@@ -401,10 +404,10 @@ impl Workspace {
             .id(id)
             .relative()
             .flex()
-            .h(px(32.0))
+            .h(px(28.0))
             .flex_shrink_0()
             .items_center()
-            .px_3()
+            .px_2()
             .child(crate::squircle::squircle(
                 crate::squircle::CONTROL_RADIUS,
                 Some(if hovered && !disabled {
@@ -598,7 +601,7 @@ impl Workspace {
                                 div()
                                     .flex()
                                     .items_center()
-                                    .gap(px(6.0))
+                                    .gap_2()
                                     .child(icon("copy", px(14.0), theme.foreground))
                                     .child("Copy config")
                                     .into_any_element(),
@@ -637,7 +640,7 @@ impl Workspace {
                                         div()
                                             .flex()
                                             .items_center()
-                                            .gap(px(6.0))
+                                            .gap_2()
                                             .child(if skills_installing { "Installing…" } else { "Add skill to…" })
                                             .when(!skills_installing, |row| {
                                                 row.child(icon("caret-down", px(14.0), theme.foreground))
@@ -771,7 +774,7 @@ impl Workspace {
             .read(cx)
             .focus_handle(cx)
             .is_focused(window);
-        let mut body = div().child(
+        let mut body = div().flex().flex_col().child(
             div()
                 .flex()
                 .gap_2()
@@ -854,7 +857,7 @@ impl Workspace {
                                     .h(px(28.0))
                                     .flex_shrink_0()
                                     .items_center()
-                                    .gap(px(6.0))
+                                    .gap_2()
                                     .px_2()
                                     .tw_text_xs()
                                     .font_weight(gpui::FontWeight::MEDIUM)
@@ -907,6 +910,7 @@ impl Workspace {
         let theme = self.theme;
         let mut parts: Vec<String> = Vec::new();
         if !webhook.active {
+            parts.push("Paused".to_string());
             parts.push("not receiving events".to_string());
         }
         parts.push(if webhook.events.is_empty() {
@@ -919,7 +923,7 @@ impl Workspace {
         }
         let testing = state.testing.as_deref() == Some(webhook.id.as_str());
         let ghost = |id: SharedString,
-                     label: &'static str,
+                     label: AnyElement,
                      destructive: bool,
                      disabled: bool,
                      on_click: RowAction| {
@@ -960,8 +964,11 @@ impl Workspace {
             .gap_3()
             .tw_text_sm()
             .child(
+                // `flex min-w-0 flex-col`: the column takes the remaining width
+                // so the url truncates instead of being measured at min-content.
                 div()
                     .flex()
+                    .flex_1()
                     .min_w_0()
                     .flex_col()
                     .child(
@@ -990,7 +997,9 @@ impl Workspace {
                     .gap_1()
                     .child(ghost(
                         format!("webhook-toggle-{id}").into(),
-                        if active { "Pause" } else { "Enable" },
+                        div()
+                            .child(if active { "Pause" } else { "Enable" })
+                            .into_any_element(),
                         false,
                         false,
                         Box::new(move |this, cx| {
@@ -999,14 +1008,15 @@ impl Workspace {
                     ))
                     .child(ghost(
                         format!("webhook-test-{id}").into(),
-                        "Test",
+                        div().child("Test").into_any_element(),
                         false,
                         testing,
                         Box::new(move |this, cx| this.test_webhook(test_id.clone(), cx)),
                     ))
                     .child(ghost(
                         format!("webhook-delete-{id}").into(),
-                        "Delete",
+                        // `<Trash className="size-3.5" />` in `text-destructive`
+                        icon("trash", px(14.0), theme.destructive).into_any_element(),
                         true,
                         false,
                         Box::new(move |this, cx| this.delete_webhook(delete_id.clone(), cx)),

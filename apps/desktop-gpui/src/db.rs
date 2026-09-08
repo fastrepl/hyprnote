@@ -2882,9 +2882,10 @@ impl Store {
     ) -> tokio::task::JoinHandle<anyhow::Result<(crate::developers::Webhook, String)>> {
         let db = self.db.clone();
         self.runtime.spawn(async move {
-            crate::developers::create_webhook(db.pool(), &url)
+            let created = anlg_local_api_core::dispatch::create_endpoint(db.pool(), &url, &[])
                 .await
-                .map_err(anyhow::Error::msg)
+                .map_err(anyhow::Error::msg)?;
+            Ok((created.info.into(), created.secret))
         })
     }
 
@@ -2918,9 +2919,10 @@ impl Store {
             let endpoint = anlg_db_app::get_webhook_endpoint(db.pool(), &id)
                 .await?
                 .ok_or_else(|| anyhow::anyhow!("webhook not found"))?;
-            crate::developers::send_test_webhook(db.pool(), &endpoint)
+            let delivery = anlg_local_api_core::dispatch::send_test(db.pool(), &endpoint)
                 .await
-                .map_err(anyhow::Error::msg)
+                .map_err(anyhow::Error::msg)?;
+            Ok((delivery.delivered, delivery.status))
         })
     }
 

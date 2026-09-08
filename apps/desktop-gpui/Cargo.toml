@@ -43,7 +43,6 @@ chrono-tz = { workspace = true }
 dirs = { workspace = true }
 futures-util = { workspace = true }
 gpui = { workspace = true }
-hmac = { workspace = true }
 hound = { workspace = true }
 iana-time-zone = "0.1"
 image = { workspace = true, features = ["gif", "jpeg", "png"] }

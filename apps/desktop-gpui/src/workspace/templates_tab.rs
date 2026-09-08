@@ -2218,7 +2218,7 @@ impl Workspace {
                                 div()
                                     .flex()
                                     .items_center()
-                                    .gap(px(6.0))
+                                    .gap_2()
                                     .child(icon("magic-wand", px(16.0), theme.foreground))
                                     .child("Improve with examples")
                                     .into_any_element(),

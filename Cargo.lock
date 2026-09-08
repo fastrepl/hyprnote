@@ -5473,7 +5473,6 @@ dependencies = [
  "futures-util",
  "gpui",
  "gtk",
- "hmac 0.13.0",
  "hound",
  "iana-time-zone",
  "image",

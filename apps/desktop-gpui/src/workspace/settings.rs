@@ -2433,8 +2433,13 @@ impl Workspace {
                                 .py_2()
                                 .child(icon("folder", px(16.0), theme.muted_foreground))
                                 .child(
+                                    // `min-w-0` alone makes Taffy size the
+                                    // column at its min-content width and wrap
+                                    // the label; `flex-1` keeps the web view's
+                                    // max-content layout with the path truncating.
                                     div()
                                         .min_w_0()
+                                        .flex_1()
                                         .child(
                                             div()
                                                 .tw_text_sm()

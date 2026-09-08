@@ -557,15 +557,19 @@ impl Workspace {
                     .pr_1()
                     .pl_2()
                     .child(
-                        self.tracked_chrome_button("calendar-back", cx)
-                            .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
-                                this.leave_overlay_tab(window, cx)
-                            }))
-                            .child(icon(
-                                "arrow-left",
-                                px(16.0),
-                                self.chrome_icon_color("calendar-back"),
-                            )),
+                        self.tooltip_trigger(
+                            super::tooltip::TooltipSpec::title("calendar-back", "Back"),
+                            self.tracked_chrome_button("calendar-back", cx)
+                                .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                                    this.leave_overlay_tab(window, cx)
+                                }))
+                                .child(icon(
+                                    "arrow-left",
+                                    px(16.0),
+                                    self.chrome_icon_color("calendar-back"),
+                                )),
+                            cx,
+                        ),
                     ),
             )
             .child(

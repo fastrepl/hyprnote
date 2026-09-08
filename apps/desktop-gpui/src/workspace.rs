@@ -384,6 +384,9 @@ pub struct Workspace {
     /// When the last shown tooltip closed, for `skipDelayDuration`.
     tooltip_closed_at: Option<std::time::Instant>,
     tooltip_generation: u64,
+    /// The pointer's last position over a `title` trigger; the platform
+    /// tooltip opens below it.
+    tooltip_pointer: gpui::Point<gpui::Pixels>,
 }
 
 impl Workspace {
@@ -569,6 +572,7 @@ impl Workspace {
             tooltip_bounds: Default::default(),
             tooltip_closed_at: None,
             tooltip_generation: 0,
+            tooltip_pointer: gpui::Point::default(),
         };
         // Chips and the bottom fade depend on the scroll position.
         this.list_state

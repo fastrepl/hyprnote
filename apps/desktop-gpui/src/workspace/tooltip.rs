@@ -5,6 +5,11 @@
 //! `TooltipProvider`'s 700ms (or the trigger's own `delayDuration`) with the
 //! provider's 300ms `skipDelayDuration` between triggers, and closing on
 //! leave or any press.
+//!
+//! A DOM `title` attribute is the platform's own tooltip instead: the
+//! webview shows it below the pointer after the system hover delay, in the
+//! toolkit's style (GTK's dark rounded box on Linux, the light system tip on
+//! macOS and Windows), and hides it on leave or press.
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -12,7 +17,8 @@ use std::rc::Rc;
 use std::time::{Duration, Instant};
 
 use gpui::{
-    AnyElement, Bounds, Context, Div, Pixels, SharedString, Stateful, Window, div, prelude::*, px,
+    AnyElement, Bounds, Context, Div, MouseMoveEvent, Pixels, Point, SharedString, Stateful,
+    Window, div, prelude::*, px,
 };
 
 use super::Workspace;
@@ -39,6 +45,14 @@ pub(crate) enum Body {
     Lines(Vec<SharedString>),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Style {
+    /// `@anlg/ui`'s `TooltipContent`, anchored to the trigger.
+    Radix,
+    /// A `title` attribute: the toolkit's tooltip, anchored to the pointer.
+    Native,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct TooltipSpec {
     pub id: SharedString,
@@ -50,6 +64,7 @@ pub(crate) struct TooltipSpec {
     pub max_width: Option<f32>,
     /// `rounded-md` (6) unless a class overrides it.
     pub radius: f32,
+    pub style: Style,
 }
 
 impl TooltipSpec {
@@ -61,6 +76,20 @@ impl TooltipSpec {
             delay_ms: DEFAULT_DELAY_MS,
             max_width: None,
             radius: 6.0,
+            style: Style::Radix,
+        }
+    }
+
+    /// `title="…"` on a button: the platform tooltip.
+    pub fn title(id: impl Into<SharedString>, text: impl Into<SharedString>) -> Self {
+        Self {
+            id: id.into(),
+            body: Body::Text(text.into()),
+            side: Side::Bottom,
+            delay_ms: NATIVE_DELAY_MS,
+            max_width: None,
+            radius: 0.0,
+            style: Style::Native,
         }
     }
 
@@ -80,6 +109,7 @@ impl TooltipSpec {
             delay_ms: DEFAULT_DELAY_MS,
             max_width: None,
             radius: 6.0,
+            style: Style::Radix,
         }
     }
 
@@ -91,6 +121,7 @@ impl TooltipSpec {
             delay_ms: DEFAULT_DELAY_MS,
             max_width: None,
             radius: 6.0,
+            style: Style::Radix,
         }
     }
 
@@ -111,11 +142,16 @@ pub(crate) const DEFAULT_DELAY_MS: u64 = 700;
 const SKIP_DELAY: Duration = Duration::from_millis(300);
 /// `sideOffset`
 const SIDE_OFFSET: f32 = 4.0;
+/// The system's tooltip hover delay: GTK's `gtk-tooltip-timeout` is 500ms,
+/// AppKit rests about a second before an `NSToolTip`.
+pub(crate) const NATIVE_DELAY_MS: u64 = if cfg!(target_os = "macos") { 1000 } else { 500 };
 
 pub(crate) struct TooltipState {
     spec: TooltipSpec,
     shown: bool,
     generation: u64,
+    /// Where the pointer rested when a `title` tooltip opened.
+    pointer: Point<Pixels>,
 }
 
 /// The triggers' last painted bounds by id, written during prepaint and read
@@ -133,6 +169,7 @@ impl Workspace {
         let id = spec.id.clone();
         let bounds_id = id.clone();
         let bounds = self.tooltip_bounds.clone();
+        let native = spec.style == Style::Native;
         div()
             .flex()
             .on_children_prepainted(move |children, _, _| {
@@ -141,6 +178,11 @@ impl Workspace {
                 }
             })
             .id(SharedString::from(format!("{id}-tooltip-trigger")))
+            .when(native, |trigger| {
+                trigger.on_mouse_move(cx.listener(|this, event: &MouseMoveEvent, _, _| {
+                    this.tooltip_pointer = event.position;
+                }))
+            })
             .on_hover(cx.listener(move |this, hovering: &bool, _, cx| {
                 if *hovering {
                     this.open_tooltip(spec.clone(), cx);
@@ -193,6 +235,7 @@ impl Workspace {
             spec,
             shown: delay.is_zero(),
             generation,
+            pointer: self.tooltip_pointer,
         });
         cx.notify();
         if delay.is_zero() {
@@ -201,11 +244,13 @@ impl Workspace {
         cx.spawn(async move |this, cx| {
             cx.background_executor().timer(delay).await;
             this.update(cx, |this, cx| {
+                let pointer = this.tooltip_pointer;
                 if let Some(state) = this.tooltip.as_mut()
                     && state.generation == generation
                     && !state.shown
                 {
                     state.shown = true;
+                    state.pointer = pointer;
                     cx.notify();
                 }
             })
@@ -286,6 +331,9 @@ impl Workspace {
     pub(crate) fn render_tooltip(&self, window: &Window) -> Option<AnyElement> {
         let state = self.tooltip.as_ref().filter(|state| state.shown)?;
         let spec = &state.spec;
+        if spec.style == Style::Native {
+            return self.render_native_tooltip(state, window);
+        }
         let anchor = *self.tooltip_bounds.borrow().get(&spec.id)?;
         let theme = self.theme;
 
@@ -408,6 +456,82 @@ impl Workspace {
                         tip.font_family(family)
                     })
                     .child(body),
+            )
+            .with_priority(4)
+            .into_any_element(),
+        )
+    }
+
+    /// The toolkit's tooltip for a `title`: GTK draws a dark rounded box
+    /// (`#323232` fill, `#515151` hairline, 12px corners, 12×10 padding) in
+    /// the UI font centred under the pointer's cursor; AppKit and Windows
+    /// show a light box with 11px text below-right of the pointer.
+    fn render_native_tooltip(&self, state: &TooltipState, window: &Window) -> Option<AnyElement> {
+        let Body::Text(text) = &state.spec.body else {
+            return None;
+        };
+        let gtk = cfg!(target_os = "linux");
+        let (font_size, line, pad_x, pad_y, radius) = if gtk {
+            (px(14.67), 21.0, 12.0, 10.0, 12.0)
+        } else {
+            (px(11.0), 14.0, 6.0, 3.0, 4.0)
+        };
+        let width = (self.measure_in(text, font_size, false, window) + 2.0 * pad_x).ceil();
+        let height = line + 2.0 * pad_y;
+
+        let viewport = window.viewport_size();
+        let (viewport_w, viewport_h) = (f32::from(viewport.width), f32::from(viewport.height));
+        let (pointer_x, pointer_y) = (f32::from(state.pointer.x), f32::from(state.pointer.y));
+        // GTK centres the tip under the cursor image (16px wide, hotspot at
+        // its left) and leaves a 5px gap below it.
+        let (mut x, mut y) = if gtk {
+            (pointer_x + 8.0 - width / 2.0, pointer_y + 21.0)
+        } else {
+            (pointer_x, pointer_y + 18.0)
+        };
+        if y + height > viewport_h {
+            y = pointer_y - 4.0 - height;
+        }
+        x = x.clamp(0.0, (viewport_w - width).max(0.0)).round();
+        y = y.clamp(0.0, (viewport_h - height).max(0.0)).round();
+
+        let (fill, border, color) = if gtk {
+            (
+                gpui::rgb(0x323232),
+                gpui::rgb(0x515151),
+                gpui::rgb(0xfafaf9),
+            )
+        } else {
+            (
+                gpui::rgb(0xf2f2f2),
+                gpui::rgb(0xc8c8c8),
+                gpui::rgb(0x262626),
+            )
+        };
+        Some(
+            gpui::deferred(
+                div()
+                    .id(SharedString::from(format!("{}-tooltip", state.spec.id)))
+                    .absolute()
+                    .left(px(x))
+                    .top(px(y))
+                    .w(px(width))
+                    .h(px(height))
+                    .flex()
+                    .items_center()
+                    .justify_center()
+                    .rounded(px(radius))
+                    .border_1()
+                    .border_color(border)
+                    .bg(fill)
+                    .when(!gtk, |tip| tip.shadow_sm())
+                    .text_size(font_size)
+                    .line_height(px(line))
+                    .text_color(color)
+                    .when_some(self.font_family.clone(), |tip, family| {
+                        tip.font_family(family)
+                    })
+                    .child(text.clone()),
             )
             .with_priority(4)
             .into_any_element(),

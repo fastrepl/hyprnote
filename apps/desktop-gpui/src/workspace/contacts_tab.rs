@@ -1351,15 +1351,21 @@ impl Workspace {
                             .items_center()
                             .gap_1()
                             .child(
-                                self.tracked_chrome_button("contacts-back", cx)
-                                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
-                                        this.leave_overlay_tab(window, cx)
-                                    }))
-                                    .child(icon(
-                                        "arrow-left",
-                                        px(16.0),
-                                        self.chrome_icon_color("contacts-back"),
-                                    )),
+                                self.tooltip_trigger(
+                                    super::tooltip::TooltipSpec::title("contacts-back", "Back"),
+                                    self.tracked_chrome_button("contacts-back", cx)
+                                        .on_click(cx.listener(
+                                            |this, _: &ClickEvent, window, cx| {
+                                                this.leave_overlay_tab(window, cx)
+                                            },
+                                        ))
+                                        .child(icon(
+                                            "arrow-left",
+                                            px(16.0),
+                                            self.chrome_icon_color("contacts-back"),
+                                        )),
+                                    cx,
+                                ),
                             )
                             .child(div().flex_1())
                             // `hidden @[220px]:block`: the sort menu needs a 220px column.
@@ -1425,11 +1431,22 @@ impl Workspace {
                                 )
                             })
                             .child(
-                                self.tracked_chrome_button("contacts-add", cx)
-                                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
-                                        this.show_new_person(window, cx);
-                                    }))
-                                    .child(icon("plus", px(16.0), self.chrome_icon_color("contacts-add"))),
+                                // `title="Add"`
+                                self.tooltip_trigger(
+                                    super::tooltip::TooltipSpec::title("contacts-add", "Add"),
+                                    self.tracked_chrome_button("contacts-add", cx)
+                                        .on_click(cx.listener(
+                                            |this, _: &ClickEvent, window, cx| {
+                                                this.show_new_person(window, cx);
+                                            },
+                                        ))
+                                        .child(icon(
+                                            "plus",
+                                            px(16.0),
+                                            self.chrome_icon_color("contacts-add"),
+                                        )),
+                                    cx,
+                                ),
                             ),
                     ),
             )
@@ -2639,23 +2656,41 @@ impl Workspace {
                     .flex()
                     .gap_2()
                     .when_some(email, |row, email| {
-                        row.child(icon_button(
-                            "member-email",
-                            icon("envelope", px(16.0), theme.foreground).into_any_element(),
-                            format!("mailto:{email}"),
+                        // `title="Send email"`
+                        row.child(self.tooltip_trigger(
+                            super::tooltip::TooltipSpec::title(
+                                format!("member-email-{}", human.id),
+                                "Send email",
+                            ),
+                            icon_button(
+                                "member-email",
+                                icon("envelope", px(16.0), theme.foreground).into_any_element(),
+                                format!("mailto:{email}"),
+                            ),
+                            cx,
                         ))
                     })
                     .when_some(linkedin, |row, href| {
-                        row.child(icon_button(
-                            "member-linkedin",
-                            img(ImageSource::Resource(Resource::Embedded(
-                                "brands/linkedin.svg".into(),
-                            )))
-                            .size(px(16.0))
-                            .flex_shrink_0()
-                            .into_any_element(),
-                            href,
-                        ))
+                        // `title="View LinkedIn profile"`
+                        row.child(
+                            self.tooltip_trigger(
+                                super::tooltip::TooltipSpec::title(
+                                    format!("member-linkedin-{}", human.id),
+                                    "View LinkedIn profile",
+                                ),
+                                icon_button(
+                                    "member-linkedin",
+                                    img(ImageSource::Resource(Resource::Embedded(
+                                        "brands/linkedin.svg".into(),
+                                    )))
+                                    .size(px(16.0))
+                                    .flex_shrink_0()
+                                    .into_any_element(),
+                                    href,
+                                ),
+                                cx,
+                            ),
+                        )
                     }),
             )
             .into_any_element()

@@ -820,15 +820,21 @@ impl Workspace {
                             .items_center()
                             .gap_1()
                             .child(
-                                self.tracked_chrome_button("automations-back", cx)
-                                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
-                                        this.leave_overlay_tab(window, cx);
-                                    }))
-                                    .child(icon(
-                                        "arrow-left",
-                                        px(16.0),
-                                        self.chrome_icon_color("automations-back"),
-                                    )),
+                                self.tooltip_trigger(
+                                    super::tooltip::TooltipSpec::title("automations-back", "Back"),
+                                    self.tracked_chrome_button("automations-back", cx)
+                                        .on_click(cx.listener(
+                                            |this, _: &ClickEvent, window, cx| {
+                                                this.leave_overlay_tab(window, cx);
+                                            },
+                                        ))
+                                        .child(icon(
+                                            "arrow-left",
+                                            px(16.0),
+                                            self.chrome_icon_color("automations-back"),
+                                        )),
+                                    cx,
+                                ),
                             )
                             .child(div().flex_1())
                             .child(
@@ -1864,15 +1870,22 @@ impl Workspace {
                                 },
                                 cx,
                             ))
-                            .child(self.small_button(
-                                SmallButton {
-                                    id: "automation-starter-test",
-                                    outline: true,
-                                    glyph: Some("play"),
-                                    label: "Test",
-                                    disabled: true,
-                                    on_click: None,
-                                },
+                            .child(self.tooltip_trigger(
+                                super::tooltip::TooltipSpec::title(
+                                    "automation-starter-test",
+                                    "Test runs are not available yet.",
+                                ),
+                                self.small_button(
+                                    SmallButton {
+                                        id: "automation-starter-test",
+                                        outline: true,
+                                        glyph: Some("play"),
+                                        label: "Test",
+                                        disabled: true,
+                                        on_click: None,
+                                    },
+                                    cx,
+                                ),
                                 cx,
                             ))
                             .child(self.small_button(

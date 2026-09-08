@@ -930,15 +930,21 @@ impl Workspace {
                             .items_center()
                             .gap_1()
                             .child(
-                                self.tracked_chrome_button("templates-back", cx)
-                                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
-                                        this.leave_overlay_tab(window, cx);
-                                    }))
-                                    .child(icon(
-                                        "arrow-left",
-                                        px(16.0),
-                                        self.chrome_icon_color("templates-back"),
-                                    )),
+                                self.tooltip_trigger(
+                                    super::tooltip::TooltipSpec::title("templates-back", "Back"),
+                                    self.tracked_chrome_button("templates-back", cx)
+                                        .on_click(cx.listener(
+                                            |this, _: &ClickEvent, window, cx| {
+                                                this.leave_overlay_tab(window, cx);
+                                            },
+                                        ))
+                                        .child(icon(
+                                            "arrow-left",
+                                            px(16.0),
+                                            self.chrome_icon_color("templates-back"),
+                                        )),
+                                    cx,
+                                ),
                             )
                             .child(div().flex_1())
                             .child(header_actions),
@@ -1333,19 +1339,27 @@ impl Workspace {
                     .child({
                         let id = id.clone();
                         let pinned = template.pinned;
-                        self.ghost_icon_button(
-                            "template-favorite".into(),
-                            // `weight={template.pinned ? "bold" : "regular"}`
-                            if pinned { "heart-bold" } else { "heart" },
-                            if pinned {
-                                gpui::rgb(0xff2056)
-                            } else {
-                                theme.muted_foreground
-                            },
-                            false,
-                            move |this, window, cx| {
-                                this.toggle_template_favorite(id.clone(), window, cx)
-                            },
+                        // `title="Favorite template"`
+                        self.tooltip_trigger(
+                            super::tooltip::TooltipSpec::title(
+                                "template-favorite",
+                                "Favorite template",
+                            ),
+                            self.ghost_icon_button(
+                                "template-favorite".into(),
+                                // `weight={template.pinned ? "bold" : "regular"}`
+                                if pinned { "heart-bold" } else { "heart" },
+                                if pinned {
+                                    gpui::rgb(0xff2056)
+                                } else {
+                                    theme.muted_foreground
+                                },
+                                false,
+                                move |this, window, cx| {
+                                    this.toggle_template_favorite(id.clone(), window, cx)
+                                },
+                                cx,
+                            ),
                             cx,
                         )
                     })

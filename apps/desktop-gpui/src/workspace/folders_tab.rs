@@ -664,15 +664,21 @@ impl Workspace {
                             .items_center()
                             .gap_1()
                             .child(
-                                self.tracked_chrome_button("folders-back", cx)
-                                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
-                                        this.leave_overlay_tab(window, cx);
-                                    }))
-                                    .child(icon(
-                                        "arrow-left",
-                                        px(16.0),
-                                        self.chrome_icon_color("folders-back"),
-                                    )),
+                                self.tooltip_trigger(
+                                    super::tooltip::TooltipSpec::title("folders-back", "Back"),
+                                    self.tracked_chrome_button("folders-back", cx)
+                                        .on_click(cx.listener(
+                                            |this, _: &ClickEvent, window, cx| {
+                                                this.leave_overlay_tab(window, cx);
+                                            },
+                                        ))
+                                        .child(icon(
+                                            "arrow-left",
+                                            px(16.0),
+                                            self.chrome_icon_color("folders-back"),
+                                        )),
+                                    cx,
+                                ),
                             )
                             .child(div().flex_1())
                             .child(

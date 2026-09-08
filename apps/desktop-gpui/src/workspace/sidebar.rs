@@ -554,25 +554,29 @@ impl Workspace {
                     )),
             )
             .child(
-                // `!isDefaultView && "text-foreground"`, the funnel
-                // `fill-current` for a changed grouping or ordering.
-                self.tracked_chrome_button("sort-notes", cx)
-                    .on_click(
-                        cx.listener(|this, _: &ClickEvent, _, cx| this.toggle_filter_menu(cx)),
-                    )
-                    .child(icon(
-                        if self.is_default_notes_view() {
-                            "filter"
-                        } else {
-                            "filter-fill"
-                        },
-                        px(15.0),
-                        if self.is_default_notes_view() {
-                            self.chrome_icon_color("sort-notes")
-                        } else {
-                            theme.foreground
-                        },
-                    )),
+                // `title="Sort notes"`; `!isDefaultView && "text-foreground"`,
+                // the funnel `fill-current` for a changed grouping or ordering.
+                self.tooltip_trigger(
+                    super::tooltip::TooltipSpec::title("sort-notes", "Sort notes"),
+                    self.tracked_chrome_button("sort-notes", cx)
+                        .on_click(
+                            cx.listener(|this, _: &ClickEvent, _, cx| this.toggle_filter_menu(cx)),
+                        )
+                        .child(icon(
+                            if self.is_default_notes_view() {
+                                "filter"
+                            } else {
+                                "filter-fill"
+                            },
+                            px(15.0),
+                            if self.is_default_notes_view() {
+                                self.chrome_icon_color("sort-notes")
+                            } else {
+                                theme.foreground
+                            },
+                        )),
+                    cx,
+                ),
             )
     }
 

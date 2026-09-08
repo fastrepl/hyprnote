@@ -268,6 +268,8 @@ jobs:
             "${{ steps.macos-symbols.outputs.path }}"
       - if: ${{ inputs.channel == 'stable' }}
         name: Verify macOS updater signature
+        env:
+          EXPECTED_VERSION: ${{ needs.compute-version.outputs.version }}
         run: |
           shopt -s nullglob
           updater_dir="apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/macos"
@@ -287,6 +289,8 @@ jobs:
             "${artifacts[0]}" \
             "${signatures[0]}" \
             apps/desktop/src-tauri/tauri.conf.json
+          python3 scripts/verify-packaged-cli.py \
+            "${apps[0]}" "$EXPECTED_VERSION"
       - id: find-dmg
         shell: bash
         run: |
@@ -495,6 +499,11 @@ jobs:
               "${deb_signatures[0]}" \
               apps/desktop/src-tauri/tauri.conf.json
           fi
+
+          cli_package="$RUNNER_TEMP/anarlog-cli-package"
+          dpkg-deb --extract "${debs[0]}" "$cli_package"
+          python3 scripts/verify-packaged-cli.py \
+            "$cli_package" "$package_version"
 
           bundles=("$appimage_dir"/* "$deb_dir"/*)
           for bundle in "${bundles[@]}"; do
@@ -815,6 +824,30 @@ jobs:
           $hash = (Get-FileHash -Algorithm SHA256 $installers[0].FullName).Hash.ToLowerInvariant()
           "$hash  $($installers[0].Name)" |
             Out-File "$($installers[0].FullName).sha256" -Encoding ascii -NoNewline
+      - name: Verify installed Windows CLI and MCP
+        shell: pwsh
+        env:
+          EXPECTED_VERSION: ${{ needs.compute-version.outputs.version }}
+        run: |
+          $bundleDir = "apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis"
+          $installer = @(Get-ChildItem $bundleDir -Filter "*.exe")
+          if ($installer.Count -ne 1) {
+            throw "Expected one Windows installer"
+          }
+          $installRoot = Join-Path $env:RUNNER_TEMP "anarlog-cli-package"
+          $installation = Start-Process -FilePath $installer[0].FullName `
+            -ArgumentList @("/S", "/D=$installRoot") -PassThru
+          if (-not $installation.WaitForExit(120000)) {
+            $installation.Kill()
+            throw "Windows package installation timed out"
+          }
+          if ($installation.ExitCode -ne 0) {
+            throw "Windows package installation failed: $($installation.ExitCode)"
+          }
+          python scripts/verify-packaged-cli.py $installRoot $env:EXPECTED_VERSION
+          if ($LASTEXITCODE -ne 0) {
+            throw "Packaged Windows CLI verification failed"
+          }
       - if: ${{ inputs.channel == 'stable' }}
         name: Verify Windows updater signature
         shell: bash

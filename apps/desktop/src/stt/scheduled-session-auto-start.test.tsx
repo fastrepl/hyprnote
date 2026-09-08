@@ -8,6 +8,7 @@ import { useAppLock } from "~/lock/store";
 const mocks = vi.hoisted(() => ({
   beginScheduledAutoStart: vi.fn(),
   canStart: true,
+  liveStatus: "inactive",
   finishScheduledAutoStart: vi.fn(),
   inFlight: false,
   connectionReady: true,
@@ -56,7 +57,10 @@ vi.mock("~/store/zustand/tabs", () => ({
 
 vi.mock("~/stt/contexts", () => ({
   useListener: (selector: (state: any) => unknown) =>
-    selector({ canStartLiveSession: () => mocks.canStart }),
+    selector({
+      canStartLiveSession: () => mocks.canStart,
+      live: { status: mocks.liveStatus },
+    }),
 }));
 
 vi.mock("~/session/queries", () => ({
@@ -78,6 +82,7 @@ vi.mock("~/stt/useStartListening", () => ({
 
 beforeEach(() => {
   mocks.canStart = true;
+  mocks.liveStatus = "inactive";
   mocks.inFlight = false;
   mocks.session = {
     id: "session-1",
@@ -139,6 +144,35 @@ test("starts when capture readiness becomes available", () => {
   view.rerender(<ScheduledSessionAutoStart sessionId="session-1" />);
 
   expect(mocks.startListening).toHaveBeenCalledTimes(1);
+});
+
+test("abandons an armed auto-start immediately while another meeting is recording", () => {
+  mocks.canStart = false;
+  mocks.liveStatus = "active";
+
+  render(<ScheduledSessionAutoStart sessionId="session-1" />);
+
+  expect(mocks.startListening).not.toHaveBeenCalled();
+  expect(mocks.beginScheduledAutoStart).not.toHaveBeenCalled();
+  expect(mocks.updateSessionTabState).toHaveBeenCalledWith(tab, {
+    view: null,
+    autoStart: null,
+  });
+});
+
+test("abandons a pending auto-start when another meeting becomes active", () => {
+  mocks.connectionReady = false;
+  const view = render(<ScheduledSessionAutoStart sessionId="session-1" />);
+  mocks.liveStatus = "active";
+  mocks.canStart = false;
+
+  view.rerender(<ScheduledSessionAutoStart sessionId="session-1" />);
+
+  expect(mocks.startListening).not.toHaveBeenCalled();
+  expect(mocks.updateSessionTabState).toHaveBeenCalledWith(tab, {
+    view: null,
+    autoStart: null,
+  });
 });
 
 test("starts when the session record becomes available", () => {

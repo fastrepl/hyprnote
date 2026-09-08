@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 pub const VAULT_CONFIG_FILENAME: &str = "global.json";
 const STAGING_BUNDLE_ID: &str = "com.hyprnote.staging";
+const NIGHTLY_BUNDLE_ID: &str = "com.hyprnote.nightly";
 const RELEASE_APP_FOLDER: &str = "anarlog";
 const LEGACY_RELEASE_APP_FOLDER: &str = "hyprnote";
 
@@ -16,7 +17,7 @@ pub fn compute_default_base(bundle_id: &str) -> Option<PathBuf> {
 }
 
 fn resolve_app_folder<'a>(data_dir: &Path, bundle_id: &'a str, is_debug: bool) -> &'a str {
-    if is_debug || bundle_id == STAGING_BUNDLE_ID {
+    if is_debug || matches!(bundle_id, STAGING_BUNDLE_ID | NIGHTLY_BUNDLE_ID) {
         bundle_id
     } else if has_app_data(&data_dir.join(LEGACY_RELEASE_APP_FOLDER))
         && !has_app_data(&data_dir.join(RELEASE_APP_FOLDER))
@@ -95,6 +96,19 @@ mod tests {
         assert_eq!(
             resolve_app_folder(temp.path(), "com.hyprnote.Hyprnote", false),
             RELEASE_APP_FOLDER
+        );
+    }
+
+    #[test]
+    fn nightly_does_not_reuse_stable_or_legacy_data() {
+        let temp = tempfile::tempdir().unwrap();
+        for folder in [RELEASE_APP_FOLDER, LEGACY_RELEASE_APP_FOLDER] {
+            std::fs::create_dir(temp.path().join(folder)).unwrap();
+            std::fs::write(temp.path().join(folder).join("app.db"), "stable data").unwrap();
+        }
+        assert_eq!(
+            resolve_app_folder(temp.path(), NIGHTLY_BUNDLE_ID, false),
+            NIGHTLY_BUNDLE_ID
         );
     }
 

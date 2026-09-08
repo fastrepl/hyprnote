@@ -22,6 +22,9 @@ describe("app icon preference", () => {
 
   it("resolves the default icon from the app channel", () => {
     expect(resolveAppIconName("default", "com.hyprnote.stable")).toBe("stable");
+    expect(resolveAppIconName("default", "com.hyprnote.nightly")).toBe(
+      "staging",
+    );
     expect(resolveAppIconName("default", "com.hyprnote.staging")).toBe(
       "staging",
     );

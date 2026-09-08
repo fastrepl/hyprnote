@@ -19,6 +19,7 @@ describe("getScheme", () => {
     ["com.hyprnote.stable", "anarlog"],
     ["com.hyprnote.Hyprnote", "anarlog"],
     ["com.hyprnote.staging", "anarlog-staging"],
+    ["com.hyprnote.nightly", "anarlog-nightly"],
     ["com.hyprnote.dev", "anarlog-dev"],
     ["so.anarlog.Anarlog", "anarlog"],
     ["unknown", "anarlog"],

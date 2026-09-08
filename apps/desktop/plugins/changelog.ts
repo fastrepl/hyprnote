@@ -11,8 +11,8 @@ const RESOLVED_ID = "\0" + VIRTUAL_ID;
 
 function getLatestVersion(): string | null {
   try {
-    const files = readdirSync(changelogDir).filter(
-      (f) => f.endsWith(".md") && /^\d/.test(f),
+    const files = readdirSync(changelogDir).filter((f) =>
+      /^\d+\.\d+\.\d+\.md$/.test(f),
     );
     const versions = files.map((f) => f.replace(".md", ""));
     versions.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
@@ -23,12 +23,18 @@ function getLatestVersion(): string | null {
 }
 
 function buildModule(): string {
-  const latest = getLatestVersion();
+  const nightly = process.env.RELEASE_CHANNEL === "nightly";
+  const latest = nightly
+    ? (process.env.VITE_APP_VERSION ?? null)
+    : process.env.VITE_APP_VERSION || getLatestVersion();
   let content: string | null = null;
 
   if (latest) {
     try {
-      content = readFileSync(resolve(changelogDir, `${latest}.md`), "utf-8");
+      content = readFileSync(
+        resolve(changelogDir, nightly ? "../nightly.md" : `${latest}.md`),
+        "utf-8",
+      );
     } catch {}
   }
 
@@ -53,7 +59,7 @@ export function changelog(): Plugin {
       }
 
       try {
-        watch(changelogDir, { recursive: true }, () => {
+        watch(resolve(changelogDir, ".."), { recursive: true }, () => {
           const mod = server.moduleGraph.getModuleById(RESOLVED_ID);
           if (mod) {
             server.moduleGraph.invalidateModule(mod);

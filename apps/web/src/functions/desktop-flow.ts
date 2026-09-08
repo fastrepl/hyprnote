@@ -3,10 +3,12 @@ import { z } from "zod";
 export const DESKTOP_SCHEMES = [
   "anarlog",
   "anarlog-staging",
+  "anarlog-nightly",
   "anarlog-dev",
   "hypr",
   "hyprnote",
   "hyprnote-staging",
+  "hyprnote-nightly",
   "char",
   "char-staging",
 ] as const;

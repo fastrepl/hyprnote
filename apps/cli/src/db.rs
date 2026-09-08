@@ -54,6 +54,7 @@ fn resolve_default_path_for_command(data_dir: &Path, command_name: Option<&OsStr
     let channel_identifier = match command_name {
         Some("anarlog-dev") => Some("com.hyprnote.dev"),
         Some("anarlog-staging") => Some("com.hyprnote.staging"),
+        Some("anarlog-nightly") => Some("com.hyprnote.nightly"),
         _ => None,
     };
     if let Some(identifier) = channel_identifier {
@@ -123,6 +124,12 @@ mod tests {
     #[test]
     fn channel_commands_target_their_channel_database() {
         let dir = tempfile::tempdir().unwrap();
+        for command in ["anarlog-nightly", "anarlog-nightly.exe"] {
+            assert_eq!(
+                resolve_default_path_for_command(dir.path(), Some(OsStr::new(command))),
+                dir.path().join("com.hyprnote.nightly/app.db")
+            );
+        }
         let stable = dir.path().join("anarlog/app.db");
         std::fs::create_dir_all(stable.parent().unwrap()).unwrap();
         std::fs::write(stable, "").unwrap();

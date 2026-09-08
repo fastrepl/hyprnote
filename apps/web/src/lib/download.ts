@@ -132,3 +132,18 @@ export function getOrderedDesktopDownloadSections(
     ),
   ];
 }
+
+export const nightlyDownloadSections = desktopDownloadSections.map(
+  (section) => ({
+    name: section.name,
+    downloads: section.downloads
+      .filter(
+        (download) => new URL(download.url).hostname === "desktop.anarlog.so",
+      )
+      .map((download) => {
+        const url = new URL(download.url);
+        url.searchParams.set("channel", "nightly");
+        return { name: download.name, url: url.toString() };
+      }),
+  }),
+);

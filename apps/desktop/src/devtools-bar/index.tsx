@@ -42,9 +42,10 @@ import { useBillingAccess } from "~/auth/billing-context";
 import { useMountEffect } from "~/shared/hooks/useMountEffect";
 import { commands } from "~/types/tauri.gen";
 
-export type BuildChannel = "dev" | "staging" | "stable";
+export type BuildChannel = "dev" | "staging" | "nightly" | "stable";
 
 export function resolveBuildChannel(identifier: string): BuildChannel {
+  if (identifier.endsWith(".nightly")) return "nightly";
   if (identifier.endsWith(".staging")) return "staging";
   if (identifier.endsWith(".dev")) return "dev";
   return "stable";
@@ -53,12 +54,14 @@ export function resolveBuildChannel(identifier: string): BuildChannel {
 const CHANNEL_DOT: Record<BuildChannel, string> = {
   dev: "bg-sky-400",
   staging: "bg-amber-400",
+  nightly: "bg-violet-400",
   stable: "bg-neutral-400",
 };
 
 const CHANNEL_TEXT: Record<BuildChannel, string> = {
   dev: "text-sky-300",
   staging: "text-amber-300",
+  nightly: "text-violet-300",
   stable: "text-neutral-200",
 };
 

@@ -126,7 +126,11 @@ function withDesktopScheme(
   if (!desktopScheme || desktopScheme === "anarlog") {
     return url;
   }
-  if (desktopScheme !== "anarlog-staging" && desktopScheme !== "anarlog-dev") {
+  if (
+    desktopScheme !== "anarlog-staging" &&
+    desktopScheme !== "anarlog-nightly" &&
+    desktopScheme !== "anarlog-dev"
+  ) {
     throw invalidUrl();
   }
   url.searchParams.set("scheme", desktopScheme);

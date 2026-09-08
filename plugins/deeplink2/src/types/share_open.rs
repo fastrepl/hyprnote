@@ -17,9 +17,11 @@ impl ShareOpenRequest {
             parsed.scheme(),
             "anarlog"
                 | "anarlog-staging"
+                | "anarlog-nightly"
                 | "anarlog-dev"
                 | "hyprnote"
                 | "hyprnote-staging"
+                | "hyprnote-nightly"
                 | "hypr"
         ) || parsed.host_str() != Some("share")
             || parsed.path() != "/open"
@@ -115,9 +117,11 @@ mod tests {
         for scheme in [
             "anarlog",
             "anarlog-staging",
+            "anarlog-nightly",
             "anarlog-dev",
             "hyprnote",
             "hyprnote-staging",
+            "hyprnote-nightly",
             "hypr",
         ] {
             assert!(matches!(

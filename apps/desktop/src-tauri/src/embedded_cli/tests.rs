@@ -14,6 +14,10 @@ fn maps_bundle_id_to_command_name() {
         command_name_from_identifier(STAGING_BUNDLE_ID),
         "anarlog-staging"
     );
+    assert_eq!(
+        command_name_from_identifier(NIGHTLY_BUNDLE_ID),
+        "anarlog-nightly"
+    );
     assert_eq!(command_name_from_identifier(DEV_BUNDLE_ID), "anarlog-dev");
     assert_eq!(command_name_from_identifier("unknown"), "anarlog");
 }

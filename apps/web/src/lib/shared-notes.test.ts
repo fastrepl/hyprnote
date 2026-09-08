@@ -680,3 +680,10 @@ test("parses handoff responses and rejects invalid timestamps", () => {
     }),
   );
 });
+
+test("Nightly share links preserve the selected app", () => {
+  assert.equal(
+    buildSharedNoteWebPath("/share/example/", "anarlog-nightly"),
+    "/share/example/?scheme=anarlog-nightly",
+  );
+});

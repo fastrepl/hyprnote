@@ -1401,6 +1401,10 @@ msgstr ""
 msgid "Connected · New meetings are imported automatically while Anarlog is running."
 msgstr ""
 
+#: src/settings/general/account.tsx
+msgid "Connected accounts"
+msgstr ""
+
 #. placeholder {0}: subscriptionProvider.displayName
 #: src/settings/ai/shared/index.tsx
 msgid "Connected with your {0} subscription."
@@ -1660,6 +1664,10 @@ msgstr ""
 
 #: src/settings/stats/index.tsx
 msgid "Couldn't load your stats. Reopen this page to try again."
+msgstr ""
+
+#: src/settings/general/account.tsx
+msgid "Couldn't open connected accounts. Try again."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
@@ -2924,8 +2932,16 @@ msgstr ""
 msgid "Manage billing"
 msgstr ""
 
+#: src/settings/general/account.tsx
+msgid "Manage sign-in methods"
+msgstr ""
+
 #: src/settings/team/index.tsx
 msgid "Manage Team billing"
+msgstr ""
+
+#: src/settings/general/account.tsx
+msgid "Manage your sign-in methods on the Anarlog website."
 msgstr ""
 
 #: src/settings/sync/index.tsx

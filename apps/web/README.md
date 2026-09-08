@@ -5,6 +5,9 @@
 The TanStack Start web app deploys to Vercel using Nitro. The Rust API and billing
 service keep their separate Fly deployments. Set the Vercel project root to
 `apps/web`; GitHub Actions owns production deployments and release tags.
+Successful web CI runs on `main` deploy automatically. Pull requests run checks
+without deploying production. Manual dispatch and desktop-release APT publishing
+use the same workflow; version calculation, deployment, and tagging are serialized.
 
 `vercel-build-config.ts` owns CDN redirects, documentation proxies, image widths,
 and the three five-minute cron schedules. The build preserves prerendered pages,

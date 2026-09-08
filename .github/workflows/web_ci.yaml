@@ -9,14 +9,35 @@ on:
     paths:
       - apps/web/**
       - packages/**
+      - .github/workflows/web_ci.yaml
+      - .github/workflows/web_cd.yaml
+      - .github/actions/pnpm_install/**
+      - .github/actions/doxxer_install/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - turbo.json
+      - doxxer.web.toml
   pull_request:
     paths:
       - apps/web/**
       - packages/**
+      - .github/workflows/web_ci.yaml
+      - .github/workflows/web_cd.yaml
+      - .github/actions/pnpm_install/**
+      - .github/actions/doxxer_install/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - turbo.json
+      - doxxer.web.toml
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   ci:
@@ -34,3 +55,16 @@ jobs:
       # A declared-but-ungenerated figure only warns; use --strict to gate on it.
       # Public HEAD requests only, so no Napkin or Supabase credentials needed.
       - run: pnpm -F web media:figures:check
+
+  deploy:
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    uses: $/.github/workflows/web_cd.yaml
+    with:
+      sha: ${{ github.sha }}
+    secrets:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+      INFISICAL_SENTRY_TOKEN: ${{ secrets.INFISICAL_SENTRY_TOKEN }}

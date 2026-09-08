@@ -1,4 +1,3 @@
-import { fetchWithCache, HOUR } from "@netlify/cache";
 import { createServerFn } from "@tanstack/react-start";
 
 import { env } from "../env";
@@ -6,7 +5,7 @@ import { env } from "../env";
 const GITHUB_ORG_REPO = "fastrepl/anarlog";
 const GITHUB_REPO_URL = `https://github.com/${GITHUB_ORG_REPO}`;
 const GITHUB_REPO_API_URL = `https://api.github.com/repos/${GITHUB_ORG_REPO}`;
-const CACHE_TTL = HOUR;
+const CACHE_TTL = 60 * 60 * 1000;
 
 type GitHubStats = {
   stars: number | null;
@@ -26,11 +25,7 @@ function getGitHubHeaders(accept = "application/vnd.github+json") {
 }
 
 async function fetchGitHub(url: string, accept?: string): Promise<Response> {
-  return fetchWithCache(
-    url,
-    { headers: getGitHubHeaders(accept) },
-    { ttl: CACHE_TTL, durable: true },
-  );
+  return fetch(url, { headers: getGitHubHeaders(accept) });
 }
 
 function parseGitHubCounter(value: string | undefined) {
@@ -120,11 +115,16 @@ async function fetchGitHubStatsFromRepoPage(): Promise<GitHubStats | null> {
   }
 }
 
+let cachedStats: { value: GitHubStats; expiresAt: number } | undefined;
+
 export const getGitHubStats = createServerFn({ method: "GET" }).handler(
   async () => {
-    return (
+    if (cachedStats && cachedStats.expiresAt > Date.now())
+      return cachedStats.value;
+    const value =
       (await fetchGitHubStatsFromApi()) ??
-      (await fetchGitHubStatsFromRepoPage()) ?? { stars: null, forks: null }
-    );
+      (await fetchGitHubStatsFromRepoPage());
+    if (value) cachedStats = { value, expiresAt: Date.now() + CACHE_TTL };
+    return value ?? { stars: null, forks: null };
   },
 );

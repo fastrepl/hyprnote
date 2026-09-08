@@ -738,8 +738,7 @@ jobs:
     with:
       sha: ${{ needs.linux-package-bump.outputs.sha }}
     secrets:
-      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
       INFISICAL_SENTRY_TOKEN: ${{ secrets.INFISICAL_SENTRY_TOKEN }}
 

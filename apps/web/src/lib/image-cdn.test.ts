@@ -6,25 +6,25 @@ import { getResizedImageSrcSet, getResizedImageUrl } from "./image-cdn.ts";
 test("routes local assets through the image cdn", () => {
   assert.equal(
     getResizedImageUrl("/api/assets/team/john.png", { width: 30 }),
-    "/.netlify/images?url=%2Fapi%2Fassets%2Fteam%2Fjohn.png&w=30&fm=webp",
+    "/_vercel/image?url=%2Fapi%2Fassets%2Fteam%2Fjohn.png&w=30&q=75",
   );
 });
 
-test("crops when a height is supplied", () => {
+test("uses width-based optimization when the element supplies a crop height", () => {
   const url = getResizedImageUrl("/api/assets/team/john.png", {
     width: 30,
     height: 30,
   });
 
-  assert.match(url, /h=30/);
-  assert.match(url, /fit=cover/);
+  assert.match(url, /w=30/);
+  assert.doesNotMatch(url, /[?&]h=/);
 });
 
 test("leaves remote and already-transformed urls alone", () => {
   const remote = "https://example.com/a.png";
   assert.equal(getResizedImageUrl(remote, { width: 30 }), remote);
 
-  const transformed = "/.netlify/images?url=%2Fa.png&w=30";
+  const transformed = "/_vercel/image?url=%2Fa.png&w=30&q=75";
   assert.equal(getResizedImageUrl(transformed, { width: 30 }), transformed);
 });
 
@@ -42,4 +42,16 @@ test("skips srcset for remote urls", () => {
     getResizedImageSrcSet("https://example.com/a.png", 30),
     undefined,
   );
+});
+
+test("snaps image widths to the CDN allowlist", () => {
+  assert.match(getResizedImageUrl("/image.png", { width: 31 }), /w=32&/);
+  assert.match(getResizedImageUrl("/image.png", { width: 9000 }), /w=3840&/);
+});
+
+test("leaves SVG, animated GIF, and protocol-relative URLs untouched", () => {
+  for (const src of ["/logo.svg", "/demo.gif?v=1", "//example.com/image.png"]) {
+    assert.equal(getResizedImageUrl(src, { width: 30 }), src);
+    assert.equal(getResizedImageSrcSet(src, 30), undefined);
+  }
 });

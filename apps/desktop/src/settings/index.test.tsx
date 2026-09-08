@@ -25,6 +25,9 @@ vi.mock("~/settings/privacy", () => ({ SettingsPrivacy: () => null }));
 vi.mock("~/settings/stats", () => ({
   SettingsStats: () => <div>Personal stats</div>,
 }));
+vi.mock("~/settings/stats/insights", () => ({
+  SettingsInsights: () => <div>Personal insights</div>,
+}));
 vi.mock("~/settings/sync", () => ({ SettingsSync: () => null }));
 vi.mock("~/settings/team", () => ({ SettingsTeam: () => null }));
 vi.mock("~/shared/main", () => ({
@@ -38,6 +41,15 @@ import { createSettingsTab } from "~/store/zustand/tabs/test-utils";
 
 describe("TabContentSettings", () => {
   afterEach(cleanup);
+
+  it("opens personal insights from its settings destination", () => {
+    render(
+      <TabContentSettings
+        tab={createSettingsTab({ state: { tab: "insights" } })}
+      />,
+    );
+    expect(screen.getByText("Personal insights")).toBeTruthy();
+  });
 
   it("opens personal stats from its settings destination", () => {
     render(

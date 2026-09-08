@@ -9,6 +9,7 @@ import {
   Brain,
   CalendarDots,
   ChartBar,
+  ChartLineUp,
   Code,
   DownloadSimple,
   FileText,
@@ -87,6 +88,7 @@ export function SettingsNav() {
         { id: "app", label: t`General`, icon: Gear },
         { id: "account", label: t`Account`, icon: User },
         { id: "stats", label: t`Stats`, icon: ChartBar },
+        { id: "insights", label: t`Insights`, icon: ChartLineUp },
         {
           id: "team",
           label: t`Teams`,

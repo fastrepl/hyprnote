@@ -42,6 +42,7 @@ export const isTabInputSupported = (
 export type SettingsTab =
   | "account"
   | "stats"
+  | "insights"
   | "app"
   | "meetings"
   | "audio"
@@ -63,6 +64,7 @@ export const normalizeSettingsTab = (
 ): Exclude<SettingsTab, "account"> => {
   switch (tab) {
     case "stats":
+    case "insights":
     case "app":
     case "meetings":
     case "appearance":

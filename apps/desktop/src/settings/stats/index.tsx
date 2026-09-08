@@ -2,12 +2,12 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { type ComponentProps, useState } from "react";
 
 import { Check, Trophy } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
 import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { chipSquircle, panelSquircle } from "@anlg/ui/lib/squircle";
 import { cn } from "@anlg/utils";
 
 import { CONVERSATION_MILESTONES, summarizeActivity } from "./activity";
+import { DateRangeFilter } from "./date-range";
 import { useActivity } from "./queries";
 import { ProgressBar } from "./tremor/progress-bar";
 import { Tracker } from "./tremor/tracker";
@@ -55,11 +55,6 @@ export function SettingsStats() {
     timeZone: timezone,
   });
   const columns = stats.days.filter((_, index) => index % 7 === 0);
-  const ranges = [
-    { id: "all", label: t`All time` },
-    { id: "30d", label: t`30 days` },
-    { id: "7d", label: t`7 days` },
-  ] as const;
   const metrics = [
     { label: t`Conversations`, value: number.format(stats.conversations) },
     {
@@ -94,30 +89,7 @@ export function SettingsStats() {
               <h3 className="text-sm font-medium">
                 <Trans>Overview</Trans>
               </h3>
-              <DateRangeGroup
-                className="bg-muted flex gap-1 rounded-lg p-1"
-                role="group"
-                aria-label={t`Date range`}
-              >
-                {ranges.map((option) => (
-                  <Button
-                    key={option.id}
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    aria-pressed={range === option.id}
-                    onClick={() => setRange(option.id)}
-                    className={cn([
-                      "px-3 py-1.5 text-xs",
-                      range === option.id
-                        ? "bg-background text-foreground shadow-xs"
-                        : "text-muted-foreground hover:text-foreground",
-                    ])}
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-              </DateRangeGroup>
+              <DateRangeFilter value={range} onChange={setRange} />
             </div>
             <dl className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-3">
               {metrics.map((metric) => (
@@ -296,11 +268,6 @@ function StatCard({ label, value }: { label: string; value: string }) {
       </dd>
     </div>
   );
-}
-
-function DateRangeGroup({ ref, ...props }: ComponentProps<"div">) {
-  const squircleRef = useSquircleRef<HTMLDivElement>(ref);
-  return <div {...props} ref={squircleRef} />;
 }
 
 function MilestonePanel({ ref, ...props }: ComponentProps<"section">) {

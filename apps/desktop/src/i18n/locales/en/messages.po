@@ -40,6 +40,11 @@ msgstr "{0} could not be installed"
 msgid "{0} is ready to use"
 msgstr "{0} is ready to use"
 
+#. placeholder {0}: number.format(stats.medianMinutes)
+#: src/settings/stats/insights.tsx
+msgid "{0} min"
+msgstr "{0} min"
+
 #. placeholder {0}: stats.totalConversations
 #. placeholder {1}: stats.nextMilestone
 #: src/settings/stats/index.tsx
@@ -86,6 +91,10 @@ msgstr "{model} can't transcribe all selected languages together. Try another mo
 msgid "{months} months ago"
 msgstr "{months} months ago"
 
+#: src/settings/stats/insights.tsx
+msgid "{peakCount} of {total} conversations ({share}) started on this weekday in the selected period."
+msgstr "{peakCount} of {total} conversations ({share}) started on this weekday in the selected period."
+
 #: src/composer/index.tsx
 msgid "{primaryModifier} ↩ to send"
 msgstr "{primaryModifier} ↩ to send"
@@ -126,11 +135,11 @@ msgstr "1 week"
 msgid "3 days"
 msgstr "3 days"
 
-#: src/settings/stats/index.tsx
+#: src/settings/stats/date-range.tsx
 msgid "30 days"
 msgstr "30 days"
 
-#: src/settings/stats/index.tsx
+#: src/settings/stats/date-range.tsx
 msgid "7 days"
 msgstr "7 days"
 
@@ -145,6 +154,10 @@ msgstr "A folder with this name already exists."
 #: src/resource-sharing/share-dialog.tsx
 msgid "A guest can access one shared item for free. Add them to your Team when they need more."
 msgstr "A guest can access one shared item for free. Add them to your Team when they need more."
+
+#: src/settings/stats/insights.tsx
+msgid "A little more history will help"
+msgstr "A little more history will help"
 
 #: src/automations/starters.tsx
 msgid "A Markdown file with the note, summary, and transcript."
@@ -406,7 +419,7 @@ msgstr "All events"
 msgid "All Notes"
 msgstr "All Notes"
 
-#: src/settings/stats/index.tsx
+#: src/settings/stats/date-range.tsx
 msgid "All time"
 msgstr "All time"
 
@@ -733,6 +746,10 @@ msgstr "Automations"
 msgid "Available"
 msgstr "Available"
 
+#: src/settings/stats/insights.tsx
+msgid "Average across the capture days counted above."
+msgstr "Average across the capture days counted above."
+
 #: src/calendar/components/apple/permission.tsx
 #: src/instruction/index.tsx
 #: src/session-sharing/delivery-panel.tsx
@@ -752,6 +769,10 @@ msgstr "Balanced"
 #: src/settings/ai/shared/index.tsx
 msgid "Base URL"
 msgstr "Base URL"
+
+#: src/settings/stats/insights.tsx
+msgid "Based on captured conversations, including imported transcripts. Each conversation is counted once, on its first capture day in the selected period, using your calendar timezone. Deleted conversations are excluded."
+msgstr "Based on captured conversations, including imported transcripts. Each conversation is counted once, on its first capture day in the selected period, using your calendar timezone. Deleted conversations are excluded."
 
 #: src/settings/ai/stt/select.tsx
 msgid "Best for this Mac"
@@ -794,6 +815,10 @@ msgstr "Browser handoff not working? Paste the callback link instead"
 #: src/settings/general/audio-settings.tsx
 msgid "Build voiceprints from meeting audio so speakers you name in a transcript are recognized in later meetings. Voiceprints never leave this device, and unnamed ones are deleted after 45 days."
 msgstr "Build voiceprints from meeting audio so speakers you name in a transcript are recognized in later meetings. Voiceprints never leave this device, and unnamed ones are deleted after 45 days."
+
+#: src/settings/stats/insights.tsx
+msgid "Busiest day"
+msgstr "Busiest day"
 
 #: src/settings/general/permissions.tsx
 #: src/sidebar/settings.tsx
@@ -856,6 +881,10 @@ msgstr "Cancel invitation"
 #: src/settings/stats/index.tsx
 msgid "Capture a conversation each week to keep your streak going."
 msgstr "Capture a conversation each week to keep your streak going."
+
+#: src/settings/stats/insights.tsx
+msgid "Capture at least 5 conversations in this period to see patterns."
+msgstr "Capture at least 5 conversations in this period to see patterns."
 
 #: src/settings/general/meeting-settings.tsx
 msgid "Capture meeting chat in Memos"
@@ -1426,6 +1455,18 @@ msgstr "Control listening without reopening Anarlog."
 msgid "Conversations"
 msgstr "Conversations"
 
+#: src/settings/stats/insights.tsx
+msgid "Conversations by weekday"
+msgstr "Conversations by weekday"
+
+#: src/settings/stats/insights.tsx
+msgid "Conversations per active day"
+msgstr "Conversations per active day"
+
+#: src/settings/stats/insights.tsx
+msgid "Conversations: {total}"
+msgstr "Conversations: {total}"
+
 #: src/main/windows-title-bar.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/llm/subscriptions/connect.tsx
@@ -1613,6 +1654,10 @@ msgstr "Could not use the selected model"
 msgid "Couldn’t check availability. You can still try Save."
 msgstr "Couldn’t check availability. You can still try Save."
 
+#: src/settings/stats/insights.tsx
+msgid "Couldn't load your insights. Reopen this page to try again."
+msgstr "Couldn't load your insights. Reopen this page to try again."
+
 #: src/settings/stats/index.tsx
 msgid "Couldn't load your stats. Reopen this page to try again."
 msgstr "Couldn't load your stats. Reopen this page to try again."
@@ -1732,7 +1777,7 @@ msgstr "Date"
 msgid "Date and time are required"
 msgstr "Date and time are required"
 
-#: src/settings/stats/index.tsx
+#: src/settings/stats/date-range.tsx
 msgid "Date range"
 msgstr "Date range"
 
@@ -2515,6 +2560,10 @@ msgstr "Insert above"
 msgid "Insert below"
 msgstr "Insert below"
 
+#: src/sidebar/settings.tsx
+msgid "Insights"
+msgstr "Insights"
+
 #: src/settings/developers/cli.tsx
 msgid "Install"
 msgstr "Install"
@@ -2774,6 +2823,10 @@ msgstr "Loading sync settings"
 msgid "Loading teams…"
 msgstr "Loading teams…"
 
+#: src/settings/stats/insights.tsx
+msgid "Loading your insights…"
+msgstr "Loading your insights…"
+
 #: src/settings/stats/index.tsx
 msgid "Loading your stats…"
 msgstr "Loading your stats…"
@@ -2871,6 +2924,11 @@ msgstr "MCP configuration copied"
 #: src/settings/developers/cli.tsx
 msgid "MCP server"
 msgstr "MCP server"
+
+#. placeholder {0}: number.format(stats.timedConversations)
+#: src/settings/stats/insights.tsx
+msgid "Median transcribed time. Conversations with timing: {0}."
+msgstr "Median transcribed time. Conversations with timing: {0}."
 
 #: src/settings/ai/llm/select.tsx
 msgid "Medium"
@@ -3030,6 +3088,10 @@ msgstr "More"
 #: src/session/components/floating/options-menu.tsx
 msgid "More options"
 msgstr "More options"
+
+#: src/settings/stats/insights.tsx
+msgid "Most conversations: {busiestDay}"
+msgstr "Most conversations: {busiestDay}"
 
 #: src/templates/sections-editor.tsx
 msgid "Move down"
@@ -3253,6 +3315,10 @@ msgstr "No results found."
 msgid "No shared notes"
 msgstr "No shared notes"
 
+#: src/settings/stats/insights.tsx
+msgid "No single busiest day"
+msgstr "No single busiest day"
+
 #: src/chat/components/input/use-dictation.ts
 msgid "No speech detected"
 msgstr "No speech detected"
@@ -3276,6 +3342,10 @@ msgstr "No transcript available"
 #: src/settings/team/index.tsx
 msgid "No upcoming bots."
 msgstr "No upcoming bots."
+
+#: src/settings/stats/insights.tsx
+msgid "Not available"
+msgstr "Not available"
 
 #: src/settings/developers/cli.tsx
 msgid "Not installed"
@@ -3559,6 +3629,10 @@ msgstr "Paste the browser URL here if the browser button did not reopen Anarlog.
 #: src/settings/ai/llm/subscriptions/connect.tsx
 msgid "Paste the localhost redirect URL"
 msgstr "Paste the localhost redirect URL"
+
+#: src/settings/stats/insights.tsx
+msgid "Patterns in your captured conversations."
+msgstr "Patterns in your captured conversations."
 
 #: src/settings/developers/webhooks.tsx
 msgid "Pause"
@@ -5311,6 +5385,10 @@ msgstr "Turn on sync to create or enter your recovery key."
 msgid "Typewriter Key"
 msgstr "Typewriter Key"
 
+#: src/settings/stats/insights.tsx
+msgid "Typical conversation length"
+msgstr "Typical conversation length"
+
 #: src/settings/developers/cli.tsx
 msgid "Unavailable"
 msgstr "Unavailable"
@@ -5714,6 +5792,10 @@ msgstr "Your {days}-day Pro trial starts now. Pro will continue automatically wh
 msgid "Your Account"
 msgstr "Your Account"
 
+#: src/settings/stats/insights.tsx
+msgid "Your busiest weekdays are tied at {peakCount} conversations each in the selected period."
+msgstr "Your busiest weekdays are tied at {peakCount} conversations each in the selected period."
+
 #: src/session-sharing/comments.tsx
 msgid "Your comment couldn’t be added. Try again."
 msgstr "Your comment couldn’t be added. Try again."
@@ -5722,9 +5804,17 @@ msgstr "Your comment couldn’t be added. Try again."
 msgid "Your conversation history."
 msgstr "Your conversation history."
 
+#: src/settings/stats/insights.tsx
+msgid "Your conversation patterns"
+msgstr "Your conversation patterns"
+
 #: src/settings/dictionary/index.tsx
 msgid "Your dictionary is empty"
 msgstr "Your dictionary is empty"
+
+#: src/settings/stats/insights.tsx
+msgid "Your insights"
+msgstr "Your insights"
 
 #: src/billing/trial-ended-dialog.tsx
 msgid "Your notes and recordings are safe. Free local transcription still works. Upgrade anytime to keep Pro features."
@@ -5787,6 +5877,10 @@ msgstr "Your summary is ready."
 #: src/store/zustand/listener/general-batch.ts
 msgid "Your transcript is ready."
 msgstr "Your transcript is ready."
+
+#: src/settings/stats/insights.tsx
+msgid "Your week at a glance"
+msgstr "Your week at a glance"
 
 #: src/templates/template-sidebar.tsx
 msgid "Z to A"

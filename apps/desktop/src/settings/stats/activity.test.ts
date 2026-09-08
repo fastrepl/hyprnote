@@ -82,14 +82,13 @@ describe("personal activity", () => {
     );
   });
 
-  it("starts empty with a first-conversation milestone and a complete calendar", () => {
+  it("starts empty with a complete calendar", () => {
     const stats = summarizeActivity([], now, "UTC");
     expect(stats).toMatchObject({
       conversations: 0,
       activeDays: 0,
       hours: 0,
       streak: 0,
-      nextMilestone: 1,
     });
     expect(stats.days[0].date.getDay()).toBe(0);
     expect(stats.days[stats.days.length - 1]?.key).toBe("2026-09-05");
@@ -111,7 +110,6 @@ describe("personal activity", () => {
       conversations: 2,
       activeDays: 1,
       hours: 3.5,
-      nextMilestone: 10,
     });
     expect(stats.days.find((day) => day.key === "2026-09-04")?.count).toBe(2);
   });
@@ -176,22 +174,5 @@ describe("personal activity", () => {
       "UTC",
     );
     expect(stats).toMatchObject({ conversations: 2, hours: 1.5 });
-  });
-
-  it("advances milestone targets at thresholds and beyond the last badge", () => {
-    for (const [total, nextMilestone] of [
-      [10, 25],
-      [1000, 2000],
-      [2000, 3000],
-    ]) {
-      const stats = summarizeActivity(
-        Array.from({ length: total }, (_, index) =>
-          record(String(index), "2026-09-04T00:00:00Z"),
-        ),
-        now,
-        "UTC",
-      );
-      expect(stats.nextMilestone).toBe(nextMilestone);
-    }
   });
 });

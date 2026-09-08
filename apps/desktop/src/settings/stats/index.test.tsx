@@ -18,6 +18,13 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("./queries", () => ({ useActivity: () => mocks.activity }));
+vi.mock("./badge-collection", () => ({
+  BadgeCollection: ({ records }: { records: ActivityRecord[] }) => (
+    <section aria-label="Your badges">
+      Lifetime records: {records.length}
+    </section>
+  ),
+}));
 vi.mock("~/calendar/hooks", () => ({
   useNow: () => new Date("2026-09-05T12:00:00Z"),
   useTimezone: () => "UTC",
@@ -32,30 +39,22 @@ describe("personal stats page", () => {
     mocks.activity = { data: [], isLoading: false, error: null };
   });
 
-  it("shows the first milestone without presenting a loading state as zero activity", () => {
+  it("waits for activity before showing the badge collection", () => {
     mocks.activity.isLoading = true;
     const { rerender } = render(<SettingsStats />);
     expect(screen.getByRole("status").textContent).toContain("Loading");
     expect(screen.queryByRole("progressbar")).toBeNull();
     mocks.activity.isLoading = false;
     rerender(<SettingsStats />);
-    expect(screen.getByText("Capture your first conversation")).toBeTruthy();
-    expect(screen.getByRole("progressbar").getAttribute("aria-valuemax")).toBe(
-      "1",
-    );
+    expect(screen.getByRole("region", { name: "Your badges" })).toBeTruthy();
     expect(
       screen
         .getByRole("group", { name: "Date range" })
         .getAttribute("data-slot"),
     ).toBe("smooth-corners");
-    expect(
-      screen
-        .getByRole("region", { name: "Milestones" })
-        .getAttribute("data-slot"),
-    ).toBe("smooth-corners");
   });
 
-  it("filters totals without resetting lifetime milestones or the yearly heatmap", async () => {
+  it("filters totals without filtering badge history or the yearly heatmap", async () => {
     mocks.activity.data = ["2026-08-01T12:00:00Z", "2026-09-04T12:00:00Z"].map(
       (date, index) => ({
         session_id: String(index),
@@ -80,9 +79,7 @@ describe("personal stats page", () => {
         .getByRole("button", { name: "7 days" })
         .getAttribute("aria-pressed"),
     ).toBe("true");
-    expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe(
-      "2",
-    );
+    expect(screen.getByText("Lifetime records: 2")).toBeTruthy();
     const day = screen.getByRole("listitem", {
       name: "August 1, 2026. Conversations: 1",
     });

@@ -933,6 +933,7 @@ impl Workspace {
                                                 Some(audio_path),
                                                 *marker,
                                                 Some(summary_mode),
+                                                recovery_attempt,
                                                 cx,
                                             );
                                             // The awaited `runBatch` resolved
@@ -1234,6 +1235,7 @@ impl Workspace {
                     audio_path,
                     marker,
                     summary_mode,
+                    pending.recovery_attempt,
                     cx,
                 );
                 if pending.recovery_attempt.is_none() {
@@ -1271,6 +1273,7 @@ impl Workspace {
     /// `complete_session_audio`: the marker turns `finalizing` carrying the
     /// summary mode, the summary is scheduled, the audio is finished, and
     /// the marker clears.
+    #[allow(clippy::too_many_arguments)]
     fn finish_capture(
         &mut self,
         session_id: String,
@@ -1278,30 +1281,73 @@ impl Workspace {
         audio_path: Option<String>,
         mut marker: crate::capture_marker::Marker,
         summary_mode: Option<super::enhance::AutoEnhanceMode>,
+        recovery_attempt: Option<u32>,
         cx: &mut Context<Self>,
     ) {
         marker.phase = Some(crate::capture_marker::Phase::Finalizing);
         marker.summary_mode = summary_mode.map(summary_mode_marker);
-        // The frontend awaits this write before it clears the marker; the
-        // clear must not race ahead of the `finalizing` save.
-        let saved = self.save_capture_marker(marker);
-        if let Some(mode) = summary_mode {
-            self.request_auto_enhance_with(session_id.clone(), mode, cx);
-        }
-        match audio_path {
-            Some(audio_path) => {
-                self.complete_session_audio(session_id, transcript_id, audio_path, saved, cx)
-            }
-            None => {
-                let clear = self.store.clear_capture_marker(session_id, transcript_id);
-                self.store.runtime().spawn(async move {
-                    let _ = saved.await;
-                    if let Ok(Err(error)) = clear.await {
-                        tracing::error!(%error, "[listener] failed to clear capture recovery state");
+        // The frontend awaits this write before it schedules the summary or
+        // clears the marker: a failed save means the summary is not started,
+        // the user hears about it, and the recovery retries the stop.
+        let saved = self.store.save_capture_marker(marker);
+        cx.spawn(async move |this, cx| {
+            let saved = match saved.await {
+                Ok(Ok(())) => Ok(()),
+                Ok(Err(error)) => Err(error.to_string()),
+                Err(error) => Err(error.to_string()),
+            };
+            this.update(cx, |this, cx| {
+                if let Err(error) = saved {
+                    tracing::error!(%error, "[listener] failed to persist summary recovery state");
+                    if summary_mode.is_some() {
+                        this.notify_capture_failure(
+                            &session_id,
+                            "The transcript was saved, but Anarlog could not start the summary. Try generating it again.",
+                            recovery_attempt,
+                            cx,
+                        );
+                        this.retry_capture_recovery(session_id, recovery_attempt, cx);
+                        return;
                     }
-                });
-            }
+                }
+                if let Some(mode) = summary_mode {
+                    this.request_auto_enhance_with(session_id.clone(), mode, cx);
+                }
+                match audio_path {
+                    Some(audio_path) => {
+                        this.complete_session_audio(session_id, transcript_id, audio_path, cx)
+                    }
+                    None => this.clear_capture_marker(session_id, transcript_id),
+                }
+            })
+            .ok();
+        })
+        .detach();
+    }
+
+    /// `notifyFailure(message)`: a toast for a fresh stop's failure unless the
+    /// note was deleted meanwhile; the recovery retries stay quiet.
+    fn notify_capture_failure(
+        &mut self,
+        session_id: &str,
+        message: &'static str,
+        recovery_attempt: Option<u32>,
+        cx: &mut Context<Self>,
+    ) {
+        if recovery_attempt.is_some() {
+            return;
         }
+        let deleted = self.store.session_deleted(session_id.to_string());
+        cx.spawn(async move |this, cx| {
+            if matches!(deleted.await, Ok(Ok(true))) {
+                return;
+            }
+            this.update(cx, |this, cx| {
+                this.flash(super::toast::FlashVariant::Error, message, cx)
+            })
+            .ok();
+        })
+        .detach();
     }
 
     fn save_capture_marker(
@@ -1462,7 +1508,6 @@ impl Workspace {
         session_id: String,
         transcript_id: String,
         audio_path: String,
-        marker_saved: tokio::task::JoinHandle<()>,
         cx: &mut Context<Self>,
     ) {
         let mic_isolated = self
@@ -1486,7 +1531,6 @@ impl Workspace {
                 tracing::error!(%error, session_id, "[listener] failed to mark session audio as processed");
                 return;
             }
-            let _ = marker_saved.await;
             this.update(cx, |this, cx| {
                 // `clearCaptureLifecycleMarker`, then the retention policy.
                 this.clear_capture_marker(session_id.clone(), transcript_id);

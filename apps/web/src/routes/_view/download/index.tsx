@@ -5,14 +5,25 @@ import { ArrowSquareOut, DownloadSimple } from "@anlg/ui/components/icons";
 
 import { SiteFooter } from "@/components/site-footer";
 import { useAnalytics } from "@/hooks/use-posthog";
-import { comingSoonPlatforms, desktopDownloadSections } from "@/lib/download";
+import {
+  comingSoonPlatforms,
+  desktopDownloadSections,
+  mobileDownloadSections,
+} from "@/lib/download";
 import { getCanonicalUrl } from "@/lib/seo";
 
 const platformIcons = {
   macOS: "simple-icons:apple",
   Windows: "simple-icons:windows",
   Linux: "simple-icons:linux",
+  iOS: "simple-icons:apple",
+  Android: "simple-icons:android",
 } as const;
+
+const downloadSections = [
+  ...desktopDownloadSections,
+  ...mobileDownloadSections,
+];
 
 export const Route = createFileRoute("/_view/download/")({
   component: Component,
@@ -23,7 +34,7 @@ export const Route = createFileRoute("/_view/download/")({
       {
         name: "description",
         content:
-          "Download Anarlog for macOS, Windows, or Linux. Every desktop build uses the same release version.",
+          "Download Anarlog for macOS, Windows, or Linux. Join the iOS beta on TestFlight or the Android open beta on Google Play.",
       },
       { property: "og:title", content: "Download Anarlog" },
       { property: "og:url", content: getCanonicalUrl("/download") },
@@ -50,7 +61,7 @@ function Component() {
         </section>
 
         <div className="grid gap-14 pb-12">
-          {desktopDownloadSections.map((section) => {
+          {downloadSections.map((section) => {
             const headingId = `${section.name.toLowerCase()}-downloads`;
 
             return (
@@ -71,6 +82,13 @@ function Component() {
                     </span>
                   )}
                 </h2>
+
+                {(section.platform === "ios" ||
+                  section.platform === "android") && (
+                  <p className="text-color-muted mb-4 text-sm leading-6">
+                    {section.description}
+                  </p>
+                )}
 
                 <ul className="border-color-subtle divide-y divide-[var(--color-border-subtle)] border-y">
                   {section.downloads.map((download) => (

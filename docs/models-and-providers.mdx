@@ -34,7 +34,7 @@ The managed Transcription route chooses a provider from the meeting's languages 
 
 - Deepgram currently resolves the route to **Nova 3** or **Nova 2**, depending on language support.
 - Soniox currently resolves it to **Soniox 5**: `stt-rt-v5` for live transcription and `stt-async-v5` after recording.
-- AssemblyAI currently resolves it to **Universal 3.5 Pro** (`universal-3-5-pro`) for live and after-recording transcription.
+- AssemblyAI currently resolves it to **Universal 3.5 Pro**: `universal-3-5-pro-realtime` for live transcription and `universal-3-5-pro` after recording.
 - After-recording transcription prefers Soniox when it supports the selected languages.
 - The eligible fallback pool also includes configured routes for Gladia (currently **Solaria 1**), ElevenLabs, OpenAI, Mistral, and Alibaba Cloud Model Studio.
 
@@ -87,7 +87,9 @@ Not every AI-adjacent feature is controlled by AI Settings:
 | Speaker voiceprints | `wespeaker-embedding-onnx-1` voice embeddings | On your computer |
 | Audio cleanup and speech detection | Bundled ONNX models | On your computer |
 
-When chat uses web search, Anarlog sends the search query to its hosted research endpoint, which currently uses Exa. The returned text can then become context for your selected Intelligence model.
+<Note>
+  When chat uses web search, Anarlog sends the search query to its hosted research endpoint, which currently uses Exa, even when your Transcription and Intelligence models are local. The returned text can then become context for your selected Intelligence model.
+</Note>
 
 ## Your own provider
 

@@ -18,6 +18,10 @@ To read meeting data instead of receiving it, use the [CLI](/reference/cli), the
 3. Copy the signing secret (`whsec_...`). It is shown once.
 4. Click **Test** to send one `webhook.test` delivery and confirm your endpoint responds.
 
+<Note>
+  The signing secret is shown once during setup. Store it before leaving the page — Anarlog does not display it again.
+</Note>
+
 A new endpoint is subscribed to all events. One installation can configure at most 64 endpoints.
 
 ## Events
@@ -74,4 +78,8 @@ Verify the raw body before parsing it. For replay protection, reject stale signe
 
 ## Limits
 
-Deliveries only run while the desktop app is open; events that occur while it is closed are not queued for later. Anarlog delivers to at most 64 endpoints per event and runs at most 4 deliveries at a time.
+<Warning>
+  Deliveries only run while the desktop app is open. Events that occur while it is closed are dropped, not queued for later delivery.
+</Warning>
+
+Anarlog delivers to at most 64 endpoints per event and runs at most 4 deliveries at a time.

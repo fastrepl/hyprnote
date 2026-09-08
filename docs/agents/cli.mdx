@@ -38,7 +38,9 @@ anarlog --json proposals show PROPOSAL_ID
 anarlog --json proposals decline PROPOSAL_ID
 ```
 
-The create command returns a pending proposal. Do not claim the meeting changed. Open the meeting in the desktop app to apply it, or decline it from the CLI or desktop app. Only pending proposals can be declined.
+<Note>
+  The create command returns a pending proposal. Do not claim the meeting changed. Open the meeting in the desktop app to apply it, or decline it from the CLI or desktop app. Only pending proposals can be declined.
+</Note>
 
 ## Transcripts
 
@@ -66,6 +68,8 @@ anarlog meetings export MEETING_ID --format json --output meeting.json
 anarlog meetings --source cloud export MEETING_ID --format json --output meeting.json
 ```
 
-Export refuses to replace an existing file. Use `--force` only after the user explicitly approves overwriting that exact path.
+<Warning>
+  Export refuses to replace an existing file. Use `--force` only after the user explicitly approves overwriting that exact path.
+</Warning>
 
 See the [CLI reference](/reference/cli) for every option.

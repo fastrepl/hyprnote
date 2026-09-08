@@ -19,4 +19,6 @@ Cloud meeting commands preserve hosted error codes: `unauthorized`, `insufficien
 
 MCP maps missing meetings and proposals to invalid parameters. Validation and conflict failures—such as empty proposal content, multiple summaries without `target_id`, or declining a non-pending proposal—are reported as internal MCP errors. Database and serialization failures are also internal errors.
 
-Do not recover by creating tables, running migrations, or issuing SQL. The desktop app owns schema initialization and migrations.
+<Warning>
+  Do not recover by creating tables, running migrations, or issuing SQL. The desktop app owns schema initialization and migrations, and manual changes can corrupt the database.
+</Warning>

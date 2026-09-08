@@ -441,18 +441,19 @@ describe("browser-safe editor controls", () => {
     );
     const view = ref.current!.view!;
 
+    const incoming: JSONContent = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "https://example.com" }],
+        },
+      ],
+    };
     rendered.rerender(
       createElement(NoteEditor, {
         ...props,
-        initialContent: {
-          type: "doc",
-          content: [
-            {
-              type: "paragraph",
-              content: [{ type: "text", text: "https://example.com" }],
-            },
-          ],
-        },
+        initialContent: incoming,
       }),
     );
 
@@ -465,9 +466,26 @@ describe("browser-safe editor controls", () => {
     await act(() => vi.advanceTimersByTimeAsync(500));
     expect(handleChange).not.toHaveBeenCalled();
 
+    rendered.rerender(
+      createElement(NoteEditor, {
+        ...props,
+        initialContent: structuredClone(incoming),
+      }),
+    );
+    expect(onDocumentChange).toHaveBeenCalledOnce();
+
     act(() => view.dispatch(view.state.tr.insertText(" more", 20)));
     await act(() => vi.advanceTimersByTimeAsync(500));
     expect(handleChange).toHaveBeenLastCalledWith(view.state.doc.toJSON());
+    act(() => {
+      expect(undo(view.state, view.dispatch)).toBe(true);
+    });
+    expect(view.state.doc.textContent).toBe("https://example.com");
+    expect(view.state.doc.firstChild?.firstChild?.marks).toHaveLength(1);
+    act(() => {
+      expect(undo(view.state, view.dispatch)).toBe(true);
+    });
+    expect(view.state.doc.textContent).toBe("old");
   });
 
   it("keeps external content deferred while focus is in editor popups", async () => {

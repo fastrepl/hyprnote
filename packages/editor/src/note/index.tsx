@@ -840,6 +840,12 @@ export const NoteEditor = forwardRef<NoteEditorRef, NoteEditorProps>(
         const view = viewRef.current;
         if (!view) return;
         if (previousContentRef.current === reconciledInitialContent) return;
+        if (
+          isSameContent(previousContentRef.current, reconciledInitialContent)
+        ) {
+          previousContentRef.current = reconciledInitialContent;
+          return;
+        }
 
         if (
           !reconciledInitialContent ||
@@ -896,9 +902,7 @@ export const NoteEditor = forwardRef<NoteEditorRef, NoteEditorProps>(
               closeHistory(
                 view.state.tr
                   .replaceWith(0, view.state.doc.content.size, doc.content)
-                  .setMeta("externalContentSync", true)
-                  // A zero history timestamp also separates subsequent typing.
-                  .setTime(0),
+                  .setMeta("externalContentSync", true),
               ),
             );
           }

@@ -1144,7 +1144,8 @@ impl Workspace {
                                 div()
                                     .max_w(px(672.0))
                                     .tw_text_sm()
-                                    .line_height(px(22.75))
+                                    // `leading-relaxed`: 22.75px, laid out as 22px by WebKit.
+                                    .line_height(px(22.0))
                                     .text_color(theme.muted_foreground)
                                     .child("Automate what happens before, during, or after meetings based on the conditions you choose."),
                             ),
@@ -1189,7 +1190,7 @@ impl Workspace {
                                     .mt_1()
                                     .max_w(px(384.0))
                                     .tw_text_xs()
-                                    .line_height(px(19.5))
+                                    .line_height(px(19.0))
                                     .text_color(theme.muted_foreground)
                                     .child(
                                         crate::prose_text::ProseText::new(
@@ -1286,7 +1287,7 @@ impl Workspace {
                                     div()
                                         .max_w(px(672.0))
                                         .tw_text_sm()
-                                        .line_height(px(22.75))
+                                        .line_height(px(22.0))
                                         .text_color(theme.muted_foreground)
                                         .child(SharedString::from(description)),
                                 )
@@ -1717,7 +1718,7 @@ impl Workspace {
                                         div()
                                             .mt_1()
                                             .tw_text_xs()
-                                            .line_height(px(19.5))
+                                            .line_height(px(19.0))
                                             .text_color(theme.muted_foreground)
                                             .child(step.detail),
                                     ),
@@ -1931,7 +1932,7 @@ impl Workspace {
                                             div()
                                                 .mt_1()
                                                 .tw_text_xs()
-                                                .line_height(px(19.5))
+                                                .line_height(px(19.0))
                                                 .text_color(theme.muted_foreground)
                                                 .child(starter.preview),
                                         ),

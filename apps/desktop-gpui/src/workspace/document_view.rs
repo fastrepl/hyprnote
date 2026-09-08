@@ -688,7 +688,9 @@ impl DocumentRenderer {
 
     fn preview_block(&self, block: &Block, color: gpui::Rgba) -> AnyElement {
         const PREVIEW_PX: f32 = 13.0;
-        let line = px(PREVIEW_PX * 1.625);
+        // `leading-relaxed` at 13px is 21.125px, laid out as 21px by WebKit.
+        const PREVIEW_LINE_PX: f32 = 21.0;
+        let line = px(PREVIEW_LINE_PX);
         let mut style = self.base.clone();
         style.font_size = px(PREVIEW_PX).into();
         style.line_height = line.into();
@@ -705,7 +707,7 @@ impl DocumentRenderer {
                     3 => (20.0, 28.0),
                     4 => (18.0, 28.0),
                     5 => (16.0, 24.0),
-                    _ => (PREVIEW_PX, PREVIEW_PX * 1.625),
+                    _ => (PREVIEW_PX, PREVIEW_LINE_PX),
                 };
                 let line = px(line_px);
                 let mut style = style.clone();

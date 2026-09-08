@@ -348,7 +348,7 @@ embedded!(
     "icons/x-circle.svg",
     "icons/x.svg",
     "anarlog-icon.png",
-    "onboarding-frame.png",
+    "onboarding-video.webp",
     "google-meet.svg",
     "teams.png",
     "webex.png",

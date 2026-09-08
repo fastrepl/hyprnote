@@ -175,7 +175,7 @@ impl Workspace {
         .detach();
     }
 
-    /// The whole window while onboarding: the video backdrop stand-in, the
+    /// The whole window while onboarding: the looping video backdrop, the
     /// `h-12` mute row, the `font-hand text-4xl` title, and the sections.
     pub(super) fn render_onboarding(&self, window: &Window, cx: &Context<Self>) -> AnyElement {
         let theme = self.theme;
@@ -194,9 +194,12 @@ impl Workspace {
             .inset_0()
             .overflow_hidden()
             .child(
-                // The video's opening frame, blurred, at `opacity-28`; GPUI has
-                // no video playback or backdrop blur.
-                img(super::note::embedded("onboarding-frame.png"))
+                // `onboarding-video.mp4` (832×464, 24fps, looping) as an
+                // animated WebP GPUI plays frame by frame, pre-blurred at half
+                // size because GPUI has no backdrop blur, at `opacity-28`.
+                img(super::note::embedded("onboarding-video.webp"))
+                    // The element id keeps the frame clock between frames.
+                    .id("onboarding-video")
                     .absolute()
                     .left(px((width - frame_w) / 2.0))
                     .top(px(height - frame_h))

@@ -54,6 +54,7 @@ import {
   createLiveTranscript,
   createTranscript,
   flushLiveTranscriptDeltasToDatabase,
+  getSessionTranscriptRecords,
   mergeTranscriptSegments,
   removeHumanSpeakerAssignments,
   updateTranscriptSegmentText,
@@ -115,7 +116,7 @@ describe("transcript SQLite queries", () => {
     );
   });
 
-  it("materializes ordered live journal chunks on read", () => {
+  it("materializes ordered live journal chunks on read", async () => {
     mocks.transcriptRows = [
       {
         id: "transcript-1",
@@ -168,6 +169,19 @@ describe("transcript SQLite queries", () => {
       "word-final",
       "word-next",
     ]);
+
+    mocks.execute.mockResolvedValueOnce(mocks.transcriptRows);
+    const records = await getSessionTranscriptRecords("session-1");
+    expect(records[0]?.words.map((word) => word.id)).toEqual([
+      "word-final",
+      "word-next",
+    ]);
+    expect(mocks.execute).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "transcript.session_id = ? AND transcript.deleted_at IS NULL",
+      ),
+      ["session-1"],
+    );
   });
 
   it("skips live journal replay for an active renderer baseline", () => {

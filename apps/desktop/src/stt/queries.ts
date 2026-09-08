@@ -265,6 +265,22 @@ export async function getTranscriptRecord(
   return rows[0] ? mapTranscriptRow(rows[0]) : null;
 }
 
+export async function getSessionTranscriptRecords(
+  sessionId: string,
+): Promise<TranscriptRecord[]> {
+  const rows = await liveQueryClient.execute<TranscriptSqlRow>(
+    `
+      SELECT ${TRANSCRIPT_COLUMNS}
+      FROM transcripts AS transcript
+      WHERE transcript.session_id = ? AND transcript.deleted_at IS NULL
+      ORDER BY transcript.started_at_ms, transcript.created_at, transcript.id
+    `,
+    [sessionId],
+  );
+
+  return rows.map(mapTranscriptRow);
+}
+
 export function useSessionParticipantHumanIds(sessionId: string): string[] {
   const { data = EMPTY_IDS } = useLiveQuery<ParticipantHumanSqlRow, string[]>({
     // Drop excluded people and any contact that is the current user (or a

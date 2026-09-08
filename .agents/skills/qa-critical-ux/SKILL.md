@@ -80,29 +80,45 @@ helper's preflight enforces this.
 When Dev or staging QA is requested from first launch, reset that channel
 before the run:
 
-1. Quit the app, then delete its app data so `app.db` is gone:
+1. Fully quit the selected app, then reset its macOS permissions from outside
+   the app. Run only the command for the requested channel:
+
+   ```bash
+   .agents/skills/qa-critical-ux/scripts/reset-native-qa-permissions.sh dev
+   .agents/skills/qa-critical-ux/scripts/reset-native-qa-permissions.sh staging
+   ```
+
+   The helper refuses a running app or a stable channel and waits for every
+   `tccutil` reset to succeed. Do not continue if it fails.
+
+2. With the app still closed, back up any needed QA data, then delete that
+   channel's app data so `app.db`, auth, settings, and the store are gone:
 
    ```bash
    rm -rf ~/Library/Application\ Support/com.hyprnote.dev      # Dev
    rm -rf ~/Library/Application\ Support/com.hyprnote.staging  # staging
    ```
 
-2. Launch with the onboarding flag, which clears auth, settings, and the
-   store and resets microphone, system-audio, screen-recording,
-   accessibility, calendar, and reminders permission state (it does not
-   touch `app.db` — that is why step 1 deletes the directory):
+3. Launch normally through LaunchServices, without `--onboarding` or an
+   `ONBOARDING` value. Missing app data starts onboarding by default:
 
    ```bash
-   ONBOARDING=1 .agents/skills/qa-critical-ux/scripts/run-native-dev-qa.sh --launch-only
+   .agents/skills/qa-critical-ux/scripts/run-native-dev-qa.sh --launch-only
    ```
 
    For the installed staging app:
 
    ```bash
-   open -a "Anarlog Staging" --args --onboarding 1
+   open -a "Anarlog Staging" --env ONBOARDING=
    ```
 
-3. Complete onboarding for real: grant each permission when prompted, sign in
+   The old `--onboarding 1` / `ONBOARDING=1` path resets permissions
+   asynchronously after app initialization. Testing in that same process can
+   leave a missing microphone prompt and does not reproduce normal first
+   launch. Keep permission reset and onboarding in separate processes; do not
+   work around a failed grant by editing permission databases.
+
+4. Complete onboarding for real: grant each permission when prompted, sign in
    with the **Pro (or trialing)** test account, and select Anarlog cloud
    (`anarlog` provider) in Settings → AI.
 

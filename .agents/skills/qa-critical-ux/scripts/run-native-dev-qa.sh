@@ -3,6 +3,11 @@
 set -euo pipefail
 umask 077
 
+[[ -z "${ONBOARDING:-}" ]] || {
+  echo "Reset QA permissions while the app is closed with reset-native-qa-permissions.sh dev, then run without ONBOARDING. See the skill's Start from onboarding steps for the data reset." >&2
+  exit 2
+}
+
 qa_repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 qa_target_dir="${ANARLOG_QA_TARGET_DIR:-$HOME/Library/Caches/anarlog/native-dev-qa-target-v2}"
 qa_target_parent="$(dirname "$qa_target_dir")"

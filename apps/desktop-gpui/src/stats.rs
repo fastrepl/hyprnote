@@ -11,6 +11,10 @@ pub struct ActivityRecord {
     pub session_id: String,
     pub started_at_ms: i64,
     pub created_at: String,
+    /// The welcome demo's session (`WELCOME_NOTE_TRACKING_ID`), which the
+    /// badges leave out.
+    #[sqlx(default)]
+    pub is_demo: i64,
     pub duration_ms: i64,
 }
 
@@ -21,6 +25,9 @@ pub const ACTIVITY_SQL: &str = "
     transcript.session_id,
     transcript.started_at_ms,
     transcript.created_at,
+    CASE WHEN json_valid(session.event_json)
+      THEN COALESCE(json_extract(session.event_json, '$.tracking_id') = 'anarlog-onboarding-demo-v1', 0)
+      ELSE 0 END AS is_demo,
     MAX(CASE
       WHEN word.type = 'object'
         AND json_type(word.value, '$.end_ms') IN ('integer', 'real')
@@ -44,9 +51,6 @@ pub const ACTIVITY_SQL: &str = "
   GROUP BY transcript.id
 ";
 
-/// `CONVERSATION_MILESTONES`
-pub const CONVERSATION_MILESTONES: [u64; 8] = [1, 10, 25, 50, 100, 250, 500, 1000];
-
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Range {
     All,
@@ -69,7 +73,16 @@ pub struct Summary {
     pub streak: usize,
     /// Every calendar day from the week containing a year ago to today.
     pub days: Vec<Day>,
-    pub next_milestone: u64,
+    /// `weekdayCounts`: the week's days from `weekStartsOn`, each with the
+    /// conversations that first started on it in the selected period.
+    pub weekday_counts: Vec<(Weekday, usize)>,
+    /// `medianMinutes`: the median transcribed length of the timed
+    /// conversations, `None` without any.
+    pub median_minutes: Option<f64>,
+    pub timed_conversations: usize,
+    /// `conversationDays`: the distinct days the period's conversations
+    /// first started on.
+    pub conversation_days: usize,
 }
 
 /// date-fns `startOfWeek`
@@ -101,6 +114,8 @@ pub fn summarize<Tz: TimeZone>(
     let mut daily_sessions: BTreeMap<NaiveDate, BTreeSet<&str>> = BTreeMap::new();
     let mut weeks: BTreeSet<NaiveDate> = BTreeSet::new();
     let mut intervals: HashMap<&str, Vec<(i64, i64)>> = HashMap::new();
+    // `sessionStarts`: each period conversation's earliest local start.
+    let mut session_starts: HashMap<&str, DateTime<Tz>> = HashMap::new();
 
     for record in records {
         let started_at = if record.started_at_ms > 0 {
@@ -117,7 +132,8 @@ pub fn summarize<Tz: TimeZone>(
         let Some(date) = Utc.timestamp_millis_opt(started_at).single() else {
             continue;
         };
-        let day = date.with_timezone(tz).date_naive();
+        let local = date.with_timezone(tz);
+        let day = local.date_naive();
         all_sessions.insert(&record.session_id);
         daily_sessions
             .entry(day)
@@ -128,6 +144,12 @@ pub fn summarize<Tz: TimeZone>(
             continue;
         }
         sessions.insert(&record.session_id);
+        let first = session_starts
+            .entry(&record.session_id)
+            .or_insert_with(|| local.clone());
+        if local < *first {
+            *first = local;
+        }
         if record.duration_ms <= 0 {
             continue;
         }
@@ -139,14 +161,48 @@ pub fn summarize<Tz: TimeZone>(
     }
 
     let mut duration_ms: i64 = 0;
+    let mut durations: Vec<i64> = Vec::new();
     for spans in intervals.values_mut() {
         spans.sort_by_key(|span| span.0);
         let mut previous_end = 0;
+        let mut session_duration_ms = 0;
         for &(start, end) in spans.iter() {
-            duration_ms += (end - start.max(previous_end)).max(0);
+            session_duration_ms += (end - start.max(previous_end)).max(0);
             previous_end = previous_end.max(end);
         }
+        duration_ms += session_duration_ms;
+        if session_duration_ms > 0 {
+            durations.push(session_duration_ms);
+        }
     }
+    durations.sort_unstable();
+    let middle = durations.len() / 2;
+    let median_minutes = if durations.is_empty() {
+        None
+    } else if durations.len() % 2 == 1 {
+        Some(durations[middle] as f64 / 60_000.0)
+    } else {
+        Some((durations[middle - 1] + durations[middle]) as f64 / 2.0 / 60_000.0)
+    };
+    let mut weekday_counts: Vec<(Weekday, usize)> = (0..7)
+        .map(|index| {
+            let mut weekday = week_starts_on;
+            for _ in 0..index {
+                weekday = weekday.succ();
+            }
+            (weekday, 0)
+        })
+        .collect();
+    for start in session_starts.values() {
+        let offset = (7 + start.weekday().num_days_from_sunday() as usize
+            - week_starts_on.num_days_from_sunday() as usize)
+            % 7;
+        weekday_counts[offset].1 += 1;
+    }
+    let conversation_days: BTreeSet<NaiveDate> = session_starts
+        .values()
+        .map(|start| start.date_naive())
+        .collect();
 
     let mut current_week = start_of_week(local_now, week_starts_on);
     if !weeks.contains(&current_week) {
@@ -169,21 +225,17 @@ pub fn summarize<Tz: TimeZone>(
         date += Duration::days(1);
     }
 
-    let total = all_sessions.len();
-    let next_milestone = CONVERSATION_MILESTONES
-        .iter()
-        .copied()
-        .find(|target| *target > total as u64)
-        .unwrap_or((total as u64 / 1000 + 1) * 1000);
-
     Summary {
         conversations: sessions.len(),
-        total_conversations: total,
+        total_conversations: all_sessions.len(),
         hours: duration_ms as f64 / 3_600_000.0,
         active_days: daily_sessions.keys().filter(|day| in_range(**day)).count(),
         streak,
         days,
-        next_milestone,
+        weekday_counts,
+        median_minutes,
+        timed_conversations: durations.len(),
+        conversation_days: conversation_days.len(),
     }
 }
 
@@ -203,7 +255,15 @@ mod tests {
                 .map(|d| d.timestamp_millis())
                 .unwrap_or(0),
             created_at: date.to_string(),
+            is_demo: 0,
             duration_ms: 3_600_000,
+        }
+    }
+
+    fn timed(session: &str, date: &str, duration_ms: i64) -> ActivityRecord {
+        ActivityRecord {
+            duration_ms,
+            ..record(session, date)
         }
     }
 
@@ -217,13 +277,15 @@ mod tests {
     }
 
     #[test]
-    fn starts_empty_with_a_first_conversation_milestone_and_a_complete_calendar() {
+    fn starts_empty_with_a_complete_calendar() {
         let stats = summarize(&[], now(), &Utc, Weekday::Sun, Range::All);
         assert_eq!(stats.conversations, 0);
         assert_eq!(stats.active_days, 0);
         assert_eq!(stats.hours, 0.0);
         assert_eq!(stats.streak, 0);
-        assert_eq!(stats.next_milestone, 1);
+        assert_eq!(stats.median_minutes, None);
+        assert_eq!(stats.timed_conversations, 0);
+        assert_eq!(stats.conversation_days, 0);
         assert_eq!(stats.days[0].date.weekday(), Weekday::Sun);
         assert_eq!(stats.days.last().unwrap().date.to_string(), "2026-09-05");
         assert!(stats.days.len() >= 365);
@@ -246,7 +308,6 @@ mod tests {
         assert_eq!(stats.conversations, 2);
         assert_eq!(stats.active_days, 1);
         assert_eq!(stats.hours, 3.5);
-        assert_eq!(stats.next_milestone, 10);
         assert_eq!(day(&stats, "2026-09-04"), Some(2));
     }
 
@@ -325,13 +386,87 @@ mod tests {
     }
 
     #[test]
-    fn advances_milestone_targets_at_thresholds_and_beyond_the_last_badge() {
-        for (total, next) in [(10, 25), (1000, 2000), (2000, 3000)] {
-            let records: Vec<ActivityRecord> = (0..total)
-                .map(|index| record(&index.to_string(), "2026-09-04T00:00:00Z"))
-                .collect();
-            let stats = summarize(&records, now(), &Utc, Weekday::Sun, Range::All);
-            assert_eq!(stats.next_milestone, next, "{total}");
-        }
+    fn counts_each_conversation_on_its_earliest_capture_weekday_regardless_of_transcript_order() {
+        let stats = summarize(
+            &[
+                timed("resumed", "2026-09-03T09:00:00Z", 30 * 60_000),
+                timed("resumed", "2026-09-02T09:00:00Z", 30 * 60_000),
+                timed("resumed", "2026-09-02T09:15:00Z", 30 * 60_000),
+                timed("second", "2026-09-02T14:00:00Z", 15 * 60_000),
+                timed("untimed", "2026-09-04T14:00:00Z", 0),
+            ],
+            now(),
+            &Utc,
+            Weekday::Mon,
+            Range::All,
+        );
+        let weekdays: Vec<Weekday> = stats.weekday_counts.iter().map(|(day, _)| *day).collect();
+        assert_eq!(
+            weekdays,
+            [
+                Weekday::Mon,
+                Weekday::Tue,
+                Weekday::Wed,
+                Weekday::Thu,
+                Weekday::Fri,
+                Weekday::Sat,
+                Weekday::Sun
+            ]
+        );
+        let counts: Vec<usize> = stats
+            .weekday_counts
+            .iter()
+            .map(|(_, count)| *count)
+            .collect();
+        assert_eq!(counts, [0, 0, 2, 0, 1, 0, 0]);
+        assert_eq!(stats.conversations, 3);
+        assert_eq!(stats.conversation_days, 2);
+        assert_eq!(stats.timed_conversations, 2);
+        assert_eq!(stats.median_minutes, Some(45.0));
+    }
+
+    #[test]
+    fn uses_the_selected_period_and_timezone_for_weekdays_and_typical_length() {
+        let stats = summarize(
+            &[
+                timed("resumed", "2026-08-01T09:00:00Z", 3_600_000),
+                timed("resumed", "2026-08-29T15:00:00Z", 600_000),
+                record("old", "2026-08-29T14:59:00Z"),
+                timed("seoul-wednesday", "2026-09-01T16:00:00Z", 1_200_000),
+                timed("third", "2026-09-04T16:00:00Z", 1_800_000),
+            ],
+            now(),
+            &chrono_tz::Asia::Seoul,
+            Weekday::Sun,
+            Range::Days7,
+        );
+        let counts: Vec<usize> = stats
+            .weekday_counts
+            .iter()
+            .map(|(_, count)| *count)
+            .collect();
+        assert_eq!(counts, [1, 0, 0, 1, 0, 0, 1]);
+        assert_eq!(stats.median_minutes, Some(20.0));
+        assert_eq!(stats.conversations, 3);
+    }
+
+    #[test]
+    fn does_not_turn_missing_or_unfinished_timing_into_a_zero_minute_median() {
+        let stats = summarize(
+            &[
+                timed("negative", "2026-09-03T09:00:00Z", -1),
+                timed("zero", "2026-09-02T09:00:00Z", 0),
+                record("just-started", "2026-09-05T12:00:00Z"),
+                record("future", "2026-10-01T09:00:00Z"),
+            ],
+            now(),
+            &Utc,
+            Weekday::Sun,
+            Range::All,
+        );
+        assert_eq!(stats.median_minutes, None);
+        assert_eq!(stats.timed_conversations, 0);
+        let total: usize = stats.weekday_counts.iter().map(|(_, count)| count).sum();
+        assert_eq!(total, 3);
     }
 }

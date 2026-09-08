@@ -1897,6 +1897,8 @@ impl Render for Workspace {
                     this.close_share_popover(cx);
                 } else if this.export_dialog.is_some() {
                     this.close_export_dialog(cx);
+                } else if this.badge_dialog_open() {
+                    this.close_badge_dialog(cx);
                 } else if this.folder_dialog_open() {
                     this.close_folder_dialogs(cx);
                 } else if this.calendar_popover_open() {
@@ -2052,6 +2054,7 @@ impl Render for Workspace {
             .children(self.render_delete_selected_dialog(cx))
             .children(self.render_open_menu(window, cx))
             .children(self.render_export_dialog(cx))
+            .children(self.render_badge_dialog(window, cx))
             .children(self.render_folder_dialogs(window, cx))
             .children(
                 self.render_recording_toast(cx)

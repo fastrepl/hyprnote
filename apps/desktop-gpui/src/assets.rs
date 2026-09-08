@@ -347,6 +347,8 @@ embedded!(
     "icons/warning-circle.svg",
     "icons/audio-lines.svg",
     "icons/textarea-resizer.svg",
+    "icons/chart-line-up.svg",
+    "icons/filter-fill.svg",
     "icons/waveform.svg",
     "icons/x-logo.svg",
     "icons/wrench.svg",
@@ -354,6 +356,24 @@ embedded!(
     "icons/x.svg",
     "anarlog-icon.png",
     "onboarding-video.webp",
+    "badges/hello.webp",
+    "badges/hello-dark.webp",
+    "badges/all-set.webp",
+    "badges/all-set-dark.webp",
+    "badges/first-words.webp",
+    "badges/first-words-dark.webp",
+    "badges/good-listener.webp",
+    "badges/good-listener-dark.webp",
+    "badges/memory-keeper.webp",
+    "badges/memory-keeper-dark.webp",
+    "badges/story-collector.webp",
+    "badges/story-collector-dark.webp",
+    "badges/living-library.webp",
+    "badges/living-library-dark.webp",
+    "badges/finding-rhythm.webp",
+    "badges/finding-rhythm-dark.webp",
+    "badges/familiar-face.webp",
+    "badges/familiar-face-dark.webp",
     "google-meet.svg",
     "teams.png",
     "webex.png",
@@ -389,6 +409,6 @@ mod tests {
         }
         assert!(Assets.load("icons/search.svg").unwrap().is_some());
         assert!(Assets.load("icons/missing.svg").unwrap().is_none());
-        assert_eq!(Assets.list("icons/").unwrap().len(), 208);
+        assert_eq!(Assets.list("icons/").unwrap().len(), 210);
     }
 }

@@ -554,27 +554,17 @@ impl Workspace {
                     )),
             )
             .child(
-                // `!isDefaultView && "bg-accent text-foreground"`
+                // `!isDefaultView && "text-foreground"`, the funnel
+                // `fill-current` for a changed grouping or ordering.
                 self.tracked_chrome_button("sort-notes", cx)
-                    .when(
-                        !self.is_default_notes_view() && self.hovered != Some("sort-notes"),
-                        |button| {
-                            button.child(crate::squircle::squircle(
-                                crate::squircle::CONTROL_RADIUS,
-                                Some(theme.accent),
-                                None,
-                            ))
-                        },
-                    )
                     .on_click(
                         cx.listener(|this, _: &ClickEvent, _, cx| this.toggle_filter_menu(cx)),
                     )
                     .child(icon(
-                        // `weight={isDefaultView ? "regular" : "bold"}`
                         if self.is_default_notes_view() {
                             "filter"
                         } else {
-                            "filter-bold"
+                            "filter-fill"
                         },
                         px(15.0),
                         if self.is_default_notes_view() {

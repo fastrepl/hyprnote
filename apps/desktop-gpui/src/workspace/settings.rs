@@ -20,6 +20,7 @@ pub(crate) enum SettingsTab {
     App,
     Account,
     Stats,
+    Insights,
     Team,
     Appearance,
     Notifications,
@@ -40,6 +41,7 @@ impl SettingsTab {
             Self::App => "General",
             Self::Account => "Account",
             Self::Stats => "Your stats",
+            Self::Insights => "Your insights",
             Self::Team => "Teams",
             Self::Appearance => "Appearance",
             Self::Notifications => "Notifications",
@@ -103,6 +105,12 @@ fn nav_groups() -> Vec<(&'static str, Vec<NavItem>)> {
                     tab: SettingsTab::Stats,
                     label: "Stats",
                     icon: "chart-bar",
+                    requires_pro: false,
+                },
+                NavItem::Tab {
+                    tab: SettingsTab::Insights,
+                    label: "Insights",
+                    icon: "chart-line-up",
                     requires_pro: false,
                 },
                 NavItem::Tab {
@@ -383,7 +391,7 @@ impl Workspace {
                 }
             }
             SettingsTab::Developers => self.ensure_developers(window, cx),
-            SettingsTab::Stats => self.ensure_stats(cx),
+            SettingsTab::Stats | SettingsTab::Insights => self.ensure_stats(cx),
             _ => {}
         }
         self.settings_tab = Some(tab);
@@ -1070,6 +1078,7 @@ impl Workspace {
                 .child(self.render_account_signed_out(cx))
                 .child(self.render_guest_plans()),
             SettingsTab::Stats => self.render_stats_settings(title, window, cx),
+            SettingsTab::Insights => self.render_insights_settings(title, window, cx),
             SettingsTab::Permissions => div()
                 .flex()
                 .flex_col()

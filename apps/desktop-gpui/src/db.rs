@@ -110,7 +110,7 @@ pub struct NoteDocument {
 }
 
 /// `DEFAULT_USER_ID` in `apps/desktop/src/shared/utils.ts`.
-const DEFAULT_USER_ID: &str = "00000000-0000-0000-0000-000000000000";
+pub(crate) const DEFAULT_USER_ID: &str = "00000000-0000-0000-0000-000000000000";
 
 // apps/desktop/src/session/queries/creation.ts, `createSession`.
 const CREATE_SESSION_SQL: &str = "
@@ -2458,6 +2458,65 @@ impl Store {
                     .fetch_all(db.pool())
                     .await?,
             )
+        })
+    }
+
+    /// `useCollectedBadges`: the `value_json` rows under the owner's prefix.
+    pub fn load_collected_badges(
+        &self,
+        owner_id: String,
+    ) -> tokio::task::JoinHandle<anyhow::Result<Vec<String>>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let prefix = crate::badges::collection_prefix(&owner_id);
+            let rows: Vec<(String,)> = sqlx::query_as(
+                "SELECT value_json FROM app_settings WHERE substr(id, 1, length(?)) = ?",
+            )
+            .bind(&prefix)
+            .bind(&prefix)
+            .fetch_all(db.pool())
+            .await?;
+            Ok(rows.into_iter().map(|(value,)| value).collect())
+        })
+    }
+
+    /// `collectBadges`: one `{"id","collectedAt"}` row per new badge, in one
+    /// transaction, never overwriting a badge collected earlier.
+    pub fn collect_badges(
+        &self,
+        owner_id: String,
+        ids: Vec<&'static str>,
+    ) -> tokio::task::JoinHandle<anyhow::Result<()>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let collected_at =
+                chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
+            let prefix = crate::badges::collection_prefix(&owner_id);
+            let mut unique: Vec<&'static str> = Vec::new();
+            for id in ids {
+                if crate::badges::BADGES.iter().any(|badge| badge.id == id) && !unique.contains(&id)
+                {
+                    unique.push(id);
+                }
+            }
+            if unique.is_empty() {
+                return Ok(());
+            }
+            let mut tx = db.pool().begin().await?;
+            for id in unique {
+                sqlx::query(
+                    "INSERT INTO app_settings (id, value_json, updated_at)
+                     VALUES (?, ?, ?)
+                     ON CONFLICT(id) DO NOTHING",
+                )
+                .bind(format!("{prefix}{id}"))
+                .bind(crate::badges::collected_value(id, &collected_at))
+                .bind(&collected_at)
+                .execute(&mut *tx)
+                .await?;
+            }
+            tx.commit().await?;
+            Ok(())
         })
     }
 

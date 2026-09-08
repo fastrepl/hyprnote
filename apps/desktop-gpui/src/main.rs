@@ -9,6 +9,7 @@ mod audio_player;
 mod audio_retention;
 mod automations;
 mod automations_engine;
+mod badges;
 mod batch;
 mod capture_marker;
 mod chat;

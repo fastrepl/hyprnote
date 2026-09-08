@@ -597,9 +597,15 @@ impl Workspace {
             .unwrap_or_default()
     }
 
-    /// `notifyPlanRequired("pro")`
+    /// `notifyPlanRequired("pro")`: the warning toast with its `Upgrade`
+    /// action (`upgradeToPro`).
     pub(crate) fn notify_pro_required(&mut self, cx: &mut Context<Self>) {
-        self.flash(FlashVariant::Warning, "This requires Anarlog Pro", cx);
+        self.flash_with_action(
+            FlashVariant::Warning,
+            "This requires Anarlog Pro",
+            ("Upgrade", Box::new(crate::actions::UpgradeToPro)),
+            cx,
+        );
     }
 
     fn ensure_auto_form(&mut self, window: &mut Window, cx: &mut Context<Self>) {

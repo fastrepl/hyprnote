@@ -28,9 +28,9 @@ pub struct ProseText {
     /// sized by its content (an intrinsically sized flex item) and offers no
     /// definite width to wrap at.
     max_width: Option<Pixels>,
-    /// `text-wrap: pretty` (the app's global rule for `p`): WebKit's
-    /// constrained line breaking that avoids orphans.
-    pretty: bool,
+    /// `text-wrap: pretty` (the app's global rule for `p`) or `balance` (its
+    /// rule for headings): WebKit's constrained line breaking.
+    wrap: WrapMode,
     /// Backgrounds painted behind byte ranges at the inline box's height
     /// (`<mark>`): the line box's half-leading is left uncovered above and
     /// below, unlike a run background.
@@ -77,7 +77,7 @@ impl ProseText {
             line_height,
             centered: false,
             max_width: None,
-            pretty: false,
+            wrap: WrapMode::Greedy,
             inline_backgrounds: Vec::new(),
             inline_inset_y: px(0.0),
             layout: ProseLayout::default(),
@@ -106,7 +106,13 @@ impl ProseText {
     }
 
     pub fn pretty(mut self) -> Self {
-        self.pretty = true;
+        self.wrap = WrapMode::Pretty;
+        self
+    }
+
+    /// `text-wrap: balance` (the app's global rule for `h1`–`h6`).
+    pub fn balance(mut self) -> Self {
+        self.wrap = WrapMode::Balance;
         self
     }
 
@@ -299,7 +305,7 @@ impl Element for ProseText {
         let line_height = self.line_height;
         let layout = self.layout.clone();
         let max_width = self.max_width;
-        let pretty = self.pretty;
+        let wrap = self.wrap;
         let layout_id = window.request_measured_layout(
             Style::default(),
             move |known_dimensions, available_space, window, _cx| {
@@ -316,7 +322,7 @@ impl Element for ProseText {
                 {
                     return inner.size;
                 }
-                let lines = break_lines(&text, &runs, font_size, wrap_width, pretty, window);
+                let lines = break_lines(&text, &runs, font_size, wrap_width, wrap, window);
                 let width = wrap_width.unwrap_or_else(|| {
                     lines
                         .iter()
@@ -525,12 +531,21 @@ impl IntoElement for HighlightedProseText {
 
 /// Shape the paragraph once, choose the break offsets, then shape each line
 /// for painting and hit testing.
+/// How a paragraph's line breaks are chosen once the greedy opportunities are
+/// known: `text-wrap: auto`, `pretty`, or `balance`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WrapMode {
+    Greedy,
+    Pretty,
+    Balance,
+}
+
 fn break_lines(
     text: &str,
     runs: &[TextRun],
     font_size: Pixels,
     wrap_width: Option<Pixels>,
-    pretty: bool,
+    wrap: WrapMode,
     window: &Window,
 ) -> Vec<Line> {
     let text_system = window.text_system();
@@ -547,8 +562,9 @@ fn break_lines(
         return Vec::new();
     };
     let x_for_index = |index| whole.unwrapped_layout.x_for_index(index);
-    let breaks = match wrap_width {
-        Some(width) if pretty => pretty_break_offsets(text, width, x_for_index),
+    let breaks = match (wrap_width, wrap) {
+        (Some(width), WrapMode::Pretty) => pretty_break_offsets(text, width, x_for_index),
+        (Some(width), WrapMode::Balance) => balance_break_offsets(text, width, x_for_index),
         _ => break_offsets(text, wrap_width, x_for_index),
     };
 
@@ -662,29 +678,7 @@ pub(crate) fn pretty_break_offsets(
     for chunk in text.split_inclusive('\n') {
         let chunk_end = chunk_start + chunk.len();
         let content_end = chunk_end - usize::from(chunk.ends_with('\n'));
-        // Break opportunities inside the chunk, then the chunk end.
-        let mut opportunities = vec![chunk_start];
-        let graphemes: Vec<(usize, &str)> = text[chunk_start..content_end]
-            .grapheme_indices(true)
-            .map(|(offset, grapheme)| (chunk_start + offset, grapheme))
-            .collect();
-        for (ix, (offset, grapheme)) in graphemes.iter().enumerate() {
-            let following = graphemes.get(ix + 1).map(|(_, g)| *g);
-            let next_offset = graphemes
-                .get(ix + 1)
-                .map(|(o, _)| *o)
-                .unwrap_or(content_end);
-            if following.is_some()
-                && is_break_opportunity(grapheme, following)
-                && next_offset < content_end
-            {
-                // One opportunity per run of spaces: the position after it.
-                if !is_space(following.unwrap_or("")) && *offset + grapheme.len() == next_offset {
-                    opportunities.push(next_offset);
-                }
-            }
-        }
-        opportunities.push(content_end);
+        let opportunities = break_opportunities(text, chunk_start, content_end);
         let count = opportunities.len();
         // Visible width of a line from opportunity `a` to `b`: hanging
         // trailing spaces excluded.
@@ -760,6 +754,129 @@ pub(crate) fn pretty_break_offsets(
         if result.last().copied() != Some(text.len()) || text.is_empty() {
             result.push(text.len());
         }
+    }
+    result
+}
+
+/// Break opportunities inside a forced-break chunk: the chunk start, the
+/// position after every run of spaces (or other UAX #14 opportunity), and
+/// the chunk's content end.
+fn break_opportunities(text: &str, chunk_start: usize, content_end: usize) -> Vec<usize> {
+    let mut opportunities = vec![chunk_start];
+    let graphemes: Vec<(usize, &str)> = text[chunk_start..content_end]
+        .grapheme_indices(true)
+        .map(|(offset, grapheme)| (chunk_start + offset, grapheme))
+        .collect();
+    for (ix, (offset, grapheme)) in graphemes.iter().enumerate() {
+        let following = graphemes.get(ix + 1).map(|(_, g)| *g);
+        let next_offset = graphemes
+            .get(ix + 1)
+            .map(|(o, _)| *o)
+            .unwrap_or(content_end);
+        if following.is_some()
+            && is_break_opportunity(grapheme, following)
+            && next_offset < content_end
+        {
+            // One opportunity per run of spaces: the position after it.
+            if !is_space(following.unwrap_or("")) && *offset + grapheme.len() == next_offset {
+                opportunities.push(next_offset);
+            }
+        }
+    }
+    opportunities.push(content_end);
+    opportunities
+}
+
+/// WebKit's `text-wrap: balance` (`InlineContentBalancer::
+/// balanceRangeWithLineRequirement`): a chunk keeps the number of lines the
+/// greedy breaker gave it, the ideal line width is the greedy lines' total
+/// width over that count, and among the break sequences with that many lines
+/// (none wider than the wrap width) the one with the least
+/// `Σ (ideal - width)²` wins. Single-line chunks and chunks without a
+/// feasible sequence stay greedy.
+pub(crate) fn balance_break_offsets(
+    text: &str,
+    max_width: Pixels,
+    x_for_index: impl Fn(usize) -> Pixels,
+) -> Vec<usize> {
+    let max = f32::from(max_width);
+    let greedy = break_offsets(text, Some(max_width), &x_for_index);
+    let x = |index: usize| f32::from(x_for_index(index));
+
+    let mut result = Vec::new();
+    let mut chunk_start = 0;
+    for chunk in text.split_inclusive('\n') {
+        let chunk_end = chunk_start + chunk.len();
+        let content_end = chunk_end - usize::from(chunk.ends_with('\n'));
+        let greedy_chunk: Vec<usize> = greedy
+            .iter()
+            .copied()
+            .filter(|end| *end > chunk_start && *end <= chunk_end)
+            .collect();
+        let line_count = greedy_chunk.len();
+        let opportunities = break_opportunities(text, chunk_start, content_end);
+        let count = opportunities.len();
+        let width_between = |start: usize, end: usize| -> f32 {
+            let trimmed = end - hanging_len(&text[start..end]);
+            (x(trimmed) - x(start)).max(0.0)
+        };
+        if line_count < 2 || count <= 2 {
+            result.extend(greedy_chunk);
+            chunk_start = chunk_end;
+            continue;
+        }
+        let mut greedy_total = 0.0;
+        let mut start = chunk_start;
+        for end in &greedy_chunk {
+            greedy_total += width_between(start, (*end).min(content_end));
+            start = *end;
+        }
+        let ideal = greedy_total / line_count as f32;
+        let cost = |width: f32| (ideal - width) * (ideal - width);
+        // best[lines][b]: the least cost ending line `lines` at opportunity `b`.
+        let mut best = vec![vec![(f32::INFINITY, 0usize); count]; line_count + 1];
+        best[0][0] = (0.0, 0);
+        for lines in 1..=line_count {
+            for b in 1..count {
+                for a in (0..b).rev() {
+                    let width = width_between(opportunities[a], opportunities[b]);
+                    if width > max {
+                        break;
+                    }
+                    let previous = best[lines - 1][a].0;
+                    if !previous.is_finite() {
+                        continue;
+                    }
+                    let total = previous + cost(width);
+                    if total < best[lines][b].0 {
+                        best[lines][b] = (total, a);
+                    }
+                }
+            }
+        }
+        if !best[line_count][count - 1].0.is_finite() {
+            result.extend(greedy_chunk);
+            chunk_start = chunk_end;
+            continue;
+        }
+        let mut ends = Vec::with_capacity(line_count);
+        let mut b = count - 1;
+        for lines in (1..=line_count).rev() {
+            ends.push(opportunities[b]);
+            b = best[lines][b].1;
+        }
+        ends.reverse();
+        if let Some(last) = ends.last_mut() {
+            *last = chunk_end;
+        }
+        result.extend(ends);
+        chunk_start = chunk_end;
+    }
+    // Match the greedy breaker: an empty trailing line after a newline.
+    if (text.is_empty() || text.ends_with('\n'))
+        && (result.last().copied() != Some(text.len()) || text.is_empty())
+    {
+        result.push(text.len());
     }
     result
 }
@@ -869,6 +986,44 @@ mod tests {
                 len
             })
             .collect()
+    }
+
+    fn balanced_lines(text: &str, width: f32) -> Vec<usize> {
+        let breaks = balance_break_offsets(text, px(width), mono6);
+        let mut start = 0;
+        breaks
+            .into_iter()
+            .map(|end| {
+                let len = text[start..end].trim_end().len();
+                start = end;
+                len
+            })
+            .collect()
+    }
+
+    #[test]
+    fn balance_evens_the_lines_without_adding_one() {
+        // Greedy at 90px (15 characters): "Sign in to your" / "account".
+        // Balanced: the ideal is the two lines' total over two, so the break
+        // moves up to "Sign in to" / "your account".
+        assert_eq!(
+            balanced_lines("Sign in to your account", 90.0),
+            vec![10, 12]
+        );
+        // A single greedy line is left alone, as is a forced break.
+        assert_eq!(balanced_lines("Sign in", 90.0), vec![7]);
+        assert_eq!(balanced_lines("ab cd\nef gh ij kl", 30.0), vec![5, 5, 5]);
+        // Three greedy lines stay three, evened out.
+        assert_eq!(
+            balanced_lines("aaaa bbbb cccc dddd eeee ffff gggg hhhh", 90.0),
+            vec![14, 14, 9]
+        );
+        // Greedy 14 / 14 / 2 (an ideal of 10 characters): the squared
+        // deviations favour 9 / 9 / 12 over the lopsided split.
+        assert_eq!(
+            balanced_lines("aaaa bbbb cccc dddd eeee ffff gg", 90.0),
+            vec![9, 9, 12]
+        );
     }
 
     #[test]

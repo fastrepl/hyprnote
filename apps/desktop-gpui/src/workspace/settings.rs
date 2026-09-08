@@ -1451,12 +1451,11 @@ impl Workspace {
     }
 
     /// `SettingsAccount` while signed out: the sign-in section with the
-    /// `rounded-pill h-10 border-2 px-6` primary button that opens
-    /// `buildWebAppUrl("/auth")` in the browser.
+    /// `rounded-pill h-10 border-2 px-6` primary button that runs `signIn`
+    /// (the browser hand-off behind the instruction screen).
     fn render_account_signed_out(&self, cx: &Context<Self>) -> Div {
         let theme = self.theme;
         let hovered = self.hovered == Some("account-get-started");
-        let url = self.auth_url();
         div()
             .flex()
             .min_w_0()
@@ -1513,7 +1512,9 @@ impl Workspace {
                         this.set_hovered("account-get-started", *hovering, cx);
                     }))
                     .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-                    .on_click(move |_, _, cx| cx.open_url(&url))
+                    .on_click(
+                        cx.listener(|this, _: &ClickEvent, window, cx| this.sign_in(window, cx)),
+                    )
                     .child("Get started"),
             )
     }
@@ -3088,7 +3089,7 @@ fn plan_tiers() -> [PlanTier; 4] {
 }
 
 /// `env.VITE_APP_URL`: the dev default, or the CD build's value.
-fn web_app_url() -> &'static str {
+pub(super) fn web_app_url() -> &'static str {
     if cfg!(debug_assertions) {
         "http://localhost:3000"
     } else {

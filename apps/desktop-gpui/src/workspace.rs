@@ -25,6 +25,7 @@ pub(crate) mod floating_bar;
 mod folders_tab;
 mod format_toolbar;
 mod icon_picker;
+mod instruction;
 mod llm_models;
 mod meeting_info;
 mod mention_popup;
@@ -192,6 +193,8 @@ pub struct Workspace {
     /// The panel group width the last frame laid out.
     sidebar_group_width: f32,
     sidebar_drag: Option<SidebarDrag>,
+    /// `/app/instruction`: the browser hand-off screen replacing the shell.
+    instruction: Option<instruction::Instruction>,
     /// `autoSaveId="main-chat"`'s persisted layout: the chat panel's share of
     /// the panel group, `None` until a drag or a saved layout sets it.
     chat_panel_fraction: Option<f64>,
@@ -435,6 +438,7 @@ impl Workspace {
             sidebar_fraction,
             sidebar_group_width: 0.0,
             sidebar_drag: None,
+            instruction: None,
             chat_panel_fraction,
             chat_panel_drag: None,
             width_guard_state: Default::default(),
@@ -1781,6 +1785,11 @@ impl Render for Workspace {
         let theme = self.theme;
         let client_decorations = matches!(window.window_decorations(), Decorations::Client { .. });
 
+        // `/app/instruction` sits outside the shell layout: no title bar,
+        // sidebar or toasts while the browser hand-off is pending.
+        if self.instruction_open() {
+            return self.render_instruction(window, cx);
+        }
         // `isOnboarding`: the onboarding tab takes the whole shell surface,
         // without the title bar or sidebar.
         if self.onboarding_open() {
@@ -1821,6 +1830,12 @@ impl Render for Workspace {
             }))
             .on_action(cx.listener(|this, _: &actions::OpenSettings, window, cx| {
                 this.open_settings(settings::SettingsTab::App, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &actions::SignIn, window, cx| this.sign_in(window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &actions::UpgradeToPro, window, cx| {
+                this.upgrade_to_pro(window, cx)
             }))
             .on_action(
                 cx.listener(|this, _: &actions::OpenTranscriptionSettings, window, cx| {
@@ -2043,7 +2058,7 @@ impl Render for Workspace {
                     .map(|toast| gpui::deferred(toast).with_priority(10)),
             )
             .children(
-                self.render_flash_toast()
+                self.render_flash_toast(cx)
                     .map(|toast| gpui::deferred(toast).with_priority(11)),
             )
             .children(self.render_open_note_dialog(window, cx))

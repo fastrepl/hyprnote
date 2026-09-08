@@ -90,8 +90,8 @@ pub struct PastSessionNote {
     pub summary: Option<String>,
 }
 
-/// `shouldShowPreMeetingBrief`: an upcoming timed event, or one that started
-/// less than five minutes ago (or is still running).
+/// `shouldShowPreMeetingBrief`: an upcoming timed event, or one still
+/// running (until its end; five minutes past the start without one, #7478).
 pub fn should_show_pre_meeting_brief(event: Option<&BriefEvent>, now_ms: i64) -> bool {
     let Some(event) = event else {
         return false;
@@ -115,10 +115,7 @@ pub fn should_show_pre_meeting_brief(event: Option<&BriefEvent>, now_ms: i64) ->
         .as_deref()
         .and_then(crate::scheduled_auto_start::parse_event_instant)
         .map(|instant| instant.timestamp_millis());
-    let hide_after_ms = match end_ms {
-        None => start_ms + AFTER_START_GRACE_MS,
-        Some(end_ms) => end_ms.max(start_ms + AFTER_START_GRACE_MS),
-    };
+    let hide_after_ms = end_ms.unwrap_or(start_ms + AFTER_START_GRACE_MS);
     hide_after_ms > now_ms
 }
 
@@ -131,15 +128,19 @@ pub fn select_brief_source_notes(notes: &[PastSessionNote]) -> Vec<&PastSessionN
         .collect()
 }
 
-/// `canCreatePreMeetingBrief`
+/// `canCreatePreMeetingBrief`: with an event, its window decides; without
+/// one, added participants do (#7478 — an ended meeting stays ineligible).
 pub fn can_create_pre_meeting_brief(
     event: Option<&BriefEvent>,
     now_ms: i64,
     notes: &[PastSessionNote],
     has_participants: bool,
 ) -> bool {
-    (should_show_pre_meeting_brief(event, now_ms) || has_participants)
-        && !select_brief_source_notes(notes).is_empty()
+    let eligible = match event {
+        Some(event) => should_show_pre_meeting_brief(Some(event), now_ms),
+        None => has_participants,
+    };
+    eligible && !select_brief_source_notes(notes).is_empty()
 }
 
 /// `getBriefEventParticipantNames`
@@ -1024,6 +1025,13 @@ mod tests {
             )),
             now_ms
         ));
+        // #7478: a short meeting hides at or after its end time, grace or not.
+        for ended_at in ["2026-08-21T07:59:00.000Z", "2026-08-21T08:00:00.000Z"] {
+            assert!(!should_show_pre_meeting_brief(
+                Some(&timed("2026-08-21T07:58:00.000Z", ended_at, false)),
+                now_ms
+            ));
+        }
     }
 
     #[test]
@@ -1052,6 +1060,18 @@ mod tests {
         assert!(!can_create_pre_meeting_brief(None, now_ms, &notes, false));
         assert!(can_create_pre_meeting_brief(None, now_ms, &notes, true));
         assert!(!can_create_pre_meeting_brief(None, now_ms, &[], true));
+        // #7478: participants do not make an ended meeting eligible.
+        let ended = timed(
+            "2026-08-21T07:00:00.000Z",
+            "2026-08-21T07:30:00.000Z",
+            false,
+        );
+        assert!(!can_create_pre_meeting_brief(
+            Some(&ended),
+            now_ms,
+            &notes,
+            true
+        ));
     }
 
     #[test]

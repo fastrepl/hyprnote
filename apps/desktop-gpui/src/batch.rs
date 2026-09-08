@@ -262,6 +262,62 @@ pub fn stage_words(words: &[BatchWord], provider: &str) -> (Vec<Value>, Vec<Valu
 pub const EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR: &str =
     "Batch transcription did not include the current recording.";
 
+/// `INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE` (#7480)
+pub const INCOMPLETE_BATCH_TRANSCRIPT_ERROR: &str = "The new transcription returned much less text. Your saved transcript and recording were kept. Try transcribing again.";
+
+/// `isTranscriptionAuthenticationError`
+pub fn is_transcription_authentication_error(message: &str) -> bool {
+    static AUTH: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
+        regex::Regex::new(r"(?i)authentication failed|invalid_token|unauthorized|\b401\b").unwrap()
+    });
+    AUTH.is_match(message)
+}
+
+/// `isTerminalTranscriptionError`: a failure another attempt cannot fix, so
+/// the capture recovery stops instead of retrying (`BatchResponseProcessingError`
+/// — a response the app could not persist — is reported by the caller).
+pub fn is_terminal_transcription_error(message: &str) -> bool {
+    static UNUSABLE: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
+        regex::Regex::new(
+            r"(?i)corrupt or unsupported|unsupported (?:audio|data)|invalid audio|no speech|empty transcript",
+        )
+        .unwrap()
+    });
+    static REJECTED: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
+        regex::Regex::new(r"(?i)\b(?:400|403|404|413|415|422)\b|bad request|invalid api key")
+            .unwrap()
+    });
+    message == EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR
+        || message == INCOMPLETE_BATCH_TRANSCRIPT_ERROR
+        || is_transcription_authentication_error(message)
+        || UNUSABLE.is_match(message)
+        || REJECTED.is_match(message)
+}
+
+const MIN_TRANSCRIPT_CHARACTER_LOSS: usize = 200;
+const MIN_TRANSCRIPT_RETAINED_RATIO: f64 = 0.5;
+
+/// `assertTranscriptNotTruncated`: a replacement that drops at least 200
+/// letters or digits and keeps under half of the saved text is rejected.
+/// Character counts tolerate provider tokenization differences and languages
+/// without spaces; the absolute margin allows small transcription corrections.
+pub fn transcript_truncated(previous_texts: &[&str], replacement_texts: &[&str]) -> bool {
+    let count = |texts: &[&str]| -> usize {
+        texts
+            .iter()
+            .map(|text| {
+                text.chars()
+                    .filter(|ch| ch.is_alphabetic() || ch.is_numeric())
+                    .count()
+            })
+            .sum()
+    };
+    let previous = count(previous_texts);
+    let replacement = count(replacement_texts);
+    previous.saturating_sub(replacement) >= MIN_TRANSCRIPT_CHARACTER_LOSS
+        && (replacement as f64) < previous as f64 * MIN_TRANSCRIPT_RETAINED_RATIO
+}
+
 /// `prepareTranscriptPromotion` for `current_capture`: drop the words that
 /// end before the existing audio's offset and re-base the rest to the
 /// capture's start.
@@ -341,6 +397,58 @@ pub fn session_speaker_count<'a>(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn truncation_guard_follows_the_character_rules() {
+        use super::transcript_truncated;
+        // Tokenization changes and languages without spaces keep their text.
+        let same = "meeting ".repeat(100);
+        assert!(!transcript_truncated(&[&same], &[&same]));
+        let cjk = "会议记录".repeat(100);
+        assert!(!transcript_truncated(&[&cjk], &[&cjk]));
+        // Ordinary corrections and small captures pass.
+        let seventy = "meeting ".repeat(70);
+        assert!(!transcript_truncated(&[&same], &[&seventy]));
+        let ten = "meeting ".repeat(10);
+        assert!(!transcript_truncated(&[&ten], &["hello"]));
+        // A long saved transcript replaced by a fragment is rejected.
+        let long = "earlier capture ".repeat(1_000);
+        assert!(transcript_truncated(
+            &[&long],
+            &["Thank you for the meeting."]
+        ));
+        // The words of several transcripts count together.
+        let half = "meeting ".repeat(50);
+        assert!(!transcript_truncated(&[&half, &half], &[&half, &half]));
+        assert!(transcript_truncated(&[&half, &half], &["meeting"]));
+    }
+
+    #[test]
+    fn terminal_errors_stop_the_recovery() {
+        use super::{
+            EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR, INCOMPLETE_BATCH_TRANSCRIPT_ERROR,
+            is_terminal_transcription_error,
+        };
+        for terminal in [
+            EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR,
+            INCOMPLETE_BATCH_TRANSCRIPT_ERROR,
+            "Authentication failed for the provider",
+            "HTTP 401 from the provider",
+            "The file is corrupt or unsupported",
+            "No speech detected",
+            "422 Unprocessable Entity",
+            "Invalid API key",
+        ] {
+            assert!(is_terminal_transcription_error(terminal), "{terminal}");
+        }
+        for transient in [
+            "error sending request for url",
+            "HTTP 500 Internal Server Error",
+            "connection reset by peer",
+        ] {
+            assert!(!is_terminal_transcription_error(transient), "{transient}");
+        }
+    }
+
     #[test]
     fn current_capture_promotion_drops_and_rebases_words() {
         let word = |start_ms: i64, end_ms: i64| super::BatchWord {

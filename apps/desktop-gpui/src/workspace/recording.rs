@@ -617,14 +617,11 @@ impl Workspace {
                 .as_ref()
                 .map(|conn| conn.model.clone())
                 .unwrap_or_else(|| "the selected speech-to-text provider".to_string());
-            self.fail_batch(
-                session_id.clone(),
-                format!(
-                    "{label} is not available for batch transcription on this platform. Configure a batch-capable speech-to-text provider."
-                ),
-                cx,
+            let message = format!(
+                "{label} is not available for batch transcription on this platform. Configure a batch-capable speech-to-text provider."
             );
-            self.after_lifecycle_batch_failed(&session_id, &batch_run.after, cx);
+            self.fail_batch(session_id.clone(), message.clone(), cx);
+            self.after_lifecycle_batch_failed(&session_id, &message, &batch_run.after, cx);
             return;
         };
         let Ok(provider) = serde_json::from_value::<anlg_listener2_core::BatchProvider>(
@@ -796,7 +793,12 @@ impl Workspace {
                                     crate::batch::EMPTY_BATCH_TRANSCRIPT_ERROR.to_string(),
                                     cx,
                                 );
-                                this.after_lifecycle_batch_failed(&session_id, &after, cx);
+                                this.after_lifecycle_batch_failed(
+                                    &session_id,
+                                    crate::batch::EMPTY_BATCH_TRANSCRIPT_ERROR,
+                                    &after,
+                                    cx,
+                                );
                             })
                             .ok();
                             break;
@@ -840,7 +842,50 @@ impl Workspace {
                                         .to_string(),
                                     cx,
                                 );
-                                this.after_lifecycle_batch_failed(&session_id, &after, cx);
+                                this.after_lifecycle_batch_failed(
+                                    &session_id,
+                                    crate::batch::EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR,
+                                    &after,
+                                    cx,
+                                );
+                            })
+                            .ok();
+                            break;
+                        }
+                        // `assertTranscriptNotTruncated` (#7480): a replacement
+                        // that lost most of the saved text keeps the saved
+                        // transcript and the recording; a failed read of the
+                        // saved words fails the batch too.
+                        let previous = this
+                            .update(cx, |this, _| {
+                                this.store.replaced_transcript_texts(
+                                    session_id.clone(),
+                                    replace_session,
+                                    replace_transcript_id.clone(),
+                                )
+                            })
+                            .ok();
+                        let previous = match previous {
+                            Some(task) => task.await.map_err(anyhow::Error::from).and_then(|r| r),
+                            None => return,
+                        };
+                        let truncation = match previous {
+                            Ok(previous_texts) => {
+                                let previous: Vec<&str> =
+                                    previous_texts.iter().map(String::as_str).collect();
+                                let replacement: Vec<&str> =
+                                    words.iter().map(|word| word.text.as_str()).collect();
+                                crate::batch::transcript_truncated(&previous, &replacement).then(
+                                    || crate::batch::INCOMPLETE_BATCH_TRANSCRIPT_ERROR.to_string(),
+                                )
+                            }
+                            Err(error) => Some(error.to_string()),
+                        };
+                        if let Some(error) = truncation {
+                            let after = batch_run.after.clone();
+                            this.update(cx, |this, cx| {
+                                this.fail_batch(session_id.clone(), error.clone(), cx);
+                                this.after_lifecycle_batch_failed(&session_id, &error, &after, cx);
                             })
                             .ok();
                             break;
@@ -967,8 +1012,14 @@ impl Workspace {
                                 tracing::error!(%error, "[runBatch] error handling batch response");
                                 let after = batch_run.after.clone();
                                 this.update(cx, |this, cx| {
-                                    this.fail_batch(session_id.clone(), error.to_string(), cx);
-                                    this.after_lifecycle_batch_failed(&session_id, &after, cx);
+                                    let message = error.to_string();
+                                    this.fail_batch(session_id.clone(), message.clone(), cx);
+                                    this.after_lifecycle_batch_failed(
+                                        &session_id,
+                                        &message,
+                                        &after,
+                                        cx,
+                                    );
                                 })
                                 .ok();
                             }
@@ -980,8 +1031,8 @@ impl Workspace {
                         synthetic_active.store(false, std::sync::atomic::Ordering::Relaxed);
                         let after = batch_run.after.clone();
                         this.update(cx, |this, cx| {
-                            this.fail_batch(session_id.clone(), error, cx);
-                            this.after_lifecycle_batch_failed(&session_id, &after, cx);
+                            this.fail_batch(session_id.clone(), error.clone(), cx);
+                            this.after_lifecycle_batch_failed(&session_id, &error, &after, cx);
                         })
                         .ok();
                     }
@@ -1579,6 +1630,7 @@ impl Workspace {
     fn after_lifecycle_batch_failed(
         &mut self,
         session_id: &str,
+        error: &str,
         after: &BatchFollowUp,
         cx: &mut Context<Self>,
     ) {
@@ -1586,6 +1638,7 @@ impl Workspace {
             recovery_attempt,
             live_active,
             transcript_write_failed,
+            marker,
             ..
         } = after
         {
@@ -1608,7 +1661,13 @@ impl Workspace {
                 })
                 .detach();
             }
-            self.retry_capture_recovery(session_id.to_string(), *recovery_attempt, cx);
+            // `isTerminalTranscriptionError`: another attempt cannot fix it, so
+            // the marker clears and the recovery stops.
+            if crate::batch::is_terminal_transcription_error(error) {
+                self.clear_capture_marker(session_id.to_string(), marker.transcript_id.clone());
+            } else {
+                self.retry_capture_recovery(session_id.to_string(), *recovery_attempt, cx);
+            }
             // `finishPostStopProcessing` runs on the rejection too.
             if recovery_attempt.is_none() {
                 self.meeting_completed(session_id);

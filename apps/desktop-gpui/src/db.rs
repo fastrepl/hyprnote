@@ -3308,6 +3308,57 @@ impl Store {
         })
     }
 
+    /// The saved words a batch promotion replaces (`getSessionTranscriptRecords`
+    /// for `whole_session`, `getTranscriptRecord` for a refined capture): their
+    /// texts, for `assertTranscriptNotTruncated`.
+    pub fn replaced_transcript_texts(
+        &self,
+        session_id: String,
+        replace_session: bool,
+        replace_transcript_id: Option<String>,
+    ) -> tokio::task::JoinHandle<anyhow::Result<Vec<String>>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            let rows: Vec<String> = if replace_session {
+                sqlx::query_scalar(
+                    "SELECT words_json FROM transcripts
+                     WHERE session_id = ? AND deleted_at IS NULL
+                     ORDER BY started_at_ms, created_at, id",
+                )
+                .bind(&session_id)
+                .fetch_all(db.pool())
+                .await?
+            } else if let Some(transcript_id) = replace_transcript_id {
+                let words_json: Option<String> = sqlx::query_scalar(
+                    "SELECT words_json FROM transcripts WHERE id = ? AND deleted_at IS NULL",
+                )
+                .bind(&transcript_id)
+                .fetch_optional(db.pool())
+                .await?;
+                let Some(words_json) = words_json else {
+                    anyhow::bail!("Transcript {transcript_id} not found");
+                };
+                vec![words_json]
+            } else {
+                Vec::new()
+            };
+            Ok(rows
+                .iter()
+                .flat_map(|words_json| {
+                    serde_json::from_str::<Vec<serde_json::Value>>(words_json)
+                        .unwrap_or_default()
+                        .into_iter()
+                        .map(|word| {
+                            word.get("text")
+                                .and_then(|text| text.as_str())
+                                .unwrap_or("")
+                                .to_string()
+                        })
+                })
+                .collect())
+        })
+    }
+
     /// `useRunBatch`'s completion: `createTranscript` with
     /// `source: "batch_transcription"` (tombstoning the session's other
     /// transcripts for the `whole_session` promotion) and

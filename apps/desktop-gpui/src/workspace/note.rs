@@ -897,11 +897,16 @@ impl Workspace {
             }
             let children = renderer.blocks(&blocks, 0);
             let root = editor.update(cx, |editor, cx| editor.render_root(cx));
-            // `isMemoEmpty && !isGenerating`: the brief suggestion and, with
-            // audio but no transcript, the template suggestions float `top-8`
-            // over the empty editor.
-            let show_brief = pristine && !brief_generating && self.brief_visible(preview, pristine);
-            let show_templates = pristine && !brief_generating && !preview.has_transcript;
+            // `isMemoEmpty && !isGenerating`: the brief suggestion and the
+            // template suggestions float `top-8` over the empty editor, both
+            // only while `!canShowTranscript` — no transcript, recording or
+            // audio yet (#7478 hides the brief once the meeting has either).
+            let transcript_view = self.can_show_transcript(preview);
+            let show_brief = pristine
+                && !brief_generating
+                && !transcript_view
+                && self.brief_visible(preview, pristine);
+            let show_templates = pristine && !brief_generating && !transcript_view;
             let suggestions = (show_brief || show_templates)
                 .then(|| self.render_template_suggestions(preview, show_brief, show_templates, cx));
             return with_search(

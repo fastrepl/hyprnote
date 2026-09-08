@@ -3,7 +3,12 @@ import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ fetch: vi.fn(), key: 0, baseUrl: "" }));
+const mocks = vi.hoisted(() => ({
+  fetch: vi.fn(),
+  key: 0,
+  baseUrl: "",
+  provider: "openai",
+}));
 
 vi.mock("@tauri-apps/plugin-http", () => ({ fetch: mocks.fetch }));
 vi.mock("~/auth/billing-context", () => ({
@@ -11,7 +16,7 @@ vi.mock("~/auth/billing-context", () => ({
 }));
 vi.mock("~/settings/providers", () => ({
   useAiProviders: (type: string) => ({
-    [`${type}:openai`]: {
+    [`${type}:${mocks.provider}`]: {
       api_key: `saved-key-${mocks.key}`,
       base_url: mocks.baseUrl,
     },
@@ -24,6 +29,7 @@ beforeEach(() => {
   mocks.fetch.mockReset();
   mocks.key++;
   mocks.baseUrl = "";
+  mocks.provider = "openai";
 });
 afterEach(cleanup);
 
@@ -60,6 +66,28 @@ test.each([
   },
 );
 
+test("keeps a saved Custom STT endpoint available without model-list verification", async () => {
+  mocks.provider = "custom";
+  mocks.baseUrl = "http://127.0.0.1:8000/v1";
+  mocks.fetch.mockResolvedValue(new Response(null, { status: 404 }));
+  const { result, client, unmount } = setup("stt");
+  await waitFor(() => expect(result.current.custom).toBe(true));
+  expect(mocks.fetch).not.toHaveBeenCalled();
+  unmount();
+  client.clear();
+});
+
+test("still probes Custom LLM credentials and rejects an unsupported model-list endpoint", async () => {
+  mocks.provider = "custom";
+  mocks.baseUrl = "http://127.0.0.1:8000/v1";
+  mocks.fetch.mockResolvedValue(new Response(null, { status: 401 }));
+  const { result, client, unmount } = setup("llm");
+  await waitFor(() => expect(result.current.custom).toBe(false));
+  expect(mocks.fetch).toHaveBeenCalled();
+  unmount();
+  client.clear();
+});
+
 function setup(type: "stt" | "llm") {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -68,7 +96,7 @@ function setup(type: "stt" | "llm") {
     () =>
       useProviderAvailability(type, [
         {
-          id: "openai",
+          id: mocks.provider,
           displayName: "OpenAI",
           icon: null,
           baseUrl: "https://api.openai.com/v1",

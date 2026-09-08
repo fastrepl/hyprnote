@@ -223,6 +223,7 @@ export function useSetAiProvider(
           defaultBaseUrl.trim();
         await verifyProviderCredentials(
           {
+            type,
             provider: providerId,
             baseUrl,
             apiKey,

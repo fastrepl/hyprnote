@@ -5,7 +5,7 @@ author:
   - "John Jeong"
 featured: false
 category: "Engineering"
-date: "2026-03-06"
+date: "2026-09-08"
 ---
 
 Mistral makes some of the best open-weight models available. Getting an API key takes about two minutes, and you don't need a credit card.
@@ -14,44 +14,53 @@ Mistral makes some of the best open-weight models available. Getting an API key 
 
 You need:
 
-- An email address
-- A phone number that can receive SMS (for verification)
+- An email address (or a Google, GitHub, Microsoft, or Apple account to sign up faster)
+- A phone number that can receive SMS, if you sign up with email
 
-No credit card required for the free Experiment plan.
+No credit card required for Mistral's default Free mode.
 
-One thing worth knowing upfront: on the free Experiment plan, your API requests may be used to train Mistral's models. If you're working with sensitive data, you'll want to upgrade to a paid plan, which comes with data isolation.
+One thing worth knowing upfront: on Free mode, Mistral may use your API inputs and outputs to train its models unless you opt out. Pay-as-you-go accounts get a training opt-out toggle and can request Zero Data Retention for supported stateless endpoints. See [how Mistral retains your data](/blog/mistral-data-retention-policy) for the full breakdown before you send anything sensitive.
 
 ## **How to generate your Mistral API key (step by step)**
 
-1. Go to [console.mistral.ai](https://console.mistral.ai) and create an account
-2. Verify your phone number when prompted. This is how Mistral gates the free tier
-3. Once inside the console, navigate to **API Keys** in the left sidebar
-4. Click **Create new key**, give it a name, and hit confirm
-5. Copy the key immediately and store it somewhere safe. Mistral won't show it again
+1. Go to [console.mistral.ai](https://console.mistral.ai), Mistral's Studio console, and create an account
+2. Verify your phone number if prompted. This is how Mistral gates Free mode for email signups
+3. Once inside Studio, navigate to **API Keys** in the left sidebar
+4. Click **Create new key**
+
+![Mistral Studio API Keys page with the Create new key button highlighted](/images/blog/library/products/mistral/console/2026-09-08-api-keys-create-button.png)
+Source: [Mistral Docs, Activate Studio and generate an API key](https://docs.mistral.ai/getting-started/quickstarts/studio/activate-and-generate-api-key/), captured September 2026
+
+5. Give the key a name, set an expiration date (Mistral now prompts for one on every new key), choose a connector access scope, and confirm
+
+![Mistral's create new API key dialog with name and expiration fields](/images/blog/library/products/mistral/console/2026-09-08-create-key-modal.png)
+Source: [Mistral Docs, Activate Studio and generate an API key](https://docs.mistral.ai/getting-started/quickstarts/studio/activate-and-generate-api-key/), captured September 2026
+
+6. Copy the key immediately and store it somewhere safe. Mistral won't show it again
 
 ## **Mistral API rate limits on the free plan**
 
-On the free Experiment plan, every model is capped at 500,000 tokens per minute and 1,000,000,000 tokens per month. That's a billion tokens a month, which sounds like a lot until you're running something in a loop.
+Mistral no longer publishes fixed free-tier numbers on its docs. Free mode enforces three limits per Organization: requests per second, tokens per minute, and tokens per month, and Mistral says these are intentionally conservative, meant for evaluation and prototyping rather than production traffic. Check your exact numbers anytime on the [Limits page](https://admin.mistral.ai/plateforme/limits) in the Studio Admin Panel.
 
-The per-minute limit is the one you'll actually hit. 500k tokens per minute works out to roughly 375,000 words per minute, which is fast, but easy to saturate if you're processing batches or running concurrent requests. If a request gets rate limited, the API returns a 429 and you'll need to retry with backoff.
+In practice, tokens per minute is the one you'll hit first if you're batching requests or running anything concurrent. If a request gets rate limited, the API returns a 429 and you'll need to retry with backoff.
 
-The monthly cap of 1B tokens is genuinely generous for individual use. At typical usage, most developers won't come close. If you're building something at scale or need guaranteed throughput, upgrading to the Scale plan removes these ceilings and adds data isolation.
+If you outgrow Free mode, switching on pay-as-you-go removes the evaluation-tier ceilings. Limits then scale automatically with usage tiers (Tier 1 through Tier 4+) based on your cumulative billed amount, not a flat upgrade to a named plan. Enabling pay-as-you-go unlocks Tier 1 immediately; crossing $20, $100, and $500 billed lifts you to Tiers 2 through 4.
 
 ## **Mistral API pricing: how much does it cost**
 
 Mistral charges per million tokens, counting both input (what you send) and output (what comes back). There's no subscription fee on the API side. You pay for what you use.
 
 
-| &nbsp;            | &nbsp;           | &nbsp;           |
-| ----------------- | ---------------- | ---------------- |
-| **Model**         | **Input**        | **Output**       |
-| Mistral Small 3.2 | $0.10 / M tokens | $0.30 / M tokens |
-| Mistral Large 3   | $0.50 / M tokens | $1.50 / M tokens |
+| &nbsp;          | &nbsp;           | &nbsp;           |
+| --------------- | ---------------- | ---------------- |
+| **Model**       | **Input**        | **Output**       |
+| Mistral Small 4 | $0.15 / M tokens | $0.60 / M tokens |
+| Mistral Large 3 | $0.50 / M tokens | $1.50 / M tokens |
 
 
-To put those numbers in context: a million input tokens is roughly 750,000 words, or about 1,500 pages of text. At Mistral Small's rates, that costs ten cents. For most personal or small-team use, the monthly bill is negligible.
+To put those numbers in context: a million input tokens is roughly 750,000 words, or about 1,500 pages of text. At Mistral Small's rates, that costs fifteen cents. For most personal or small-team use, the monthly bill is negligible.
 
-If you're running batch jobs that don't need an immediate response, Mistral offers a 50% discount on batch API requests. Worth using if latency isn't a concern.
+Mistral raised Small's per-token rate in July 2026 alongside the Small 3.2 to Small 4 upgrade, so budget a little higher than older guides suggest. Two ways to cut the bill further: batch API requests that don't need an immediate response get a 50% discount, and cached input tokens (repeated prompt prefixes) can cost up to 90% less than fresh input tokens.
 
 ## **Which Mistral model should you use**
 
@@ -59,7 +68,7 @@ If you're not sure, use mistral-small-latest.
 
 It's fast, cheap, multimodal, multilingual, and Apache 2.0 licensed. The Apache 2.0 license matters if you're building something commercial. No usage restrictions, no license fees.
 
-Step up to mistral-large-latest if you need heavier reasoning: complex multi-step tasks, nuanced analysis, or anything where output quality is worth paying more for. It's five times the price of Small, so it's worth being deliberate about when you actually need it.
+Step up to mistral-large-latest if you need heavier reasoning: complex multi-step tasks, nuanced analysis, or anything where output quality is worth paying more for. It's now a little over three times Small's input price and 2.5x its output price, closer than it used to be, but still worth being deliberate about when you actually need it.
 
 ## **How to use your Mistral API key in your project**
 

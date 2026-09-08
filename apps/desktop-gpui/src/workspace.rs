@@ -684,7 +684,7 @@ impl Workspace {
             gpui::WindowOptions {
                 window_bounds: Some(gpui::WindowBounds::Windowed(bounds)),
                 titlebar: Some(gpui::TitlebarOptions {
-                    title: Some("Anarlog".into()),
+                    title: Some(crate::tray::app_name(self.store.identifier()).into()),
                     ..Default::default()
                 }),
                 window_decorations: Some(gpui::WindowDecorations::Server),

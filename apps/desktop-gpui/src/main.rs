@@ -161,7 +161,8 @@ fn open_main_window(store: Arc<Store>, cx: &mut App) -> anyhow::Result<WindowHan
         WindowOptions {
             window_bounds: Some(bounds),
             titlebar: Some(TitlebarOptions {
-                title: Some("Anarlog".into()),
+                // `productName` per channel, the title every Tauri window carries.
+                title: Some(tray::app_name(&identifier).into()),
                 appears_transparent: cfg!(target_os = "macos"),
                 traffic_light_position: cfg!(target_os = "macos")
                     .then(|| point(px(12.0), px(12.0))),

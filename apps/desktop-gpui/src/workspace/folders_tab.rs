@@ -268,6 +268,7 @@ impl Workspace {
                     font_size: px(14.0),
                     line_height: px(20.0),
                     rows: 4,
+                    paragraph_gap: px(0.0),
                 },
                 window,
                 cx,

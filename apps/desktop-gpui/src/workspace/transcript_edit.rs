@@ -312,6 +312,7 @@ impl Workspace {
             // `leading-relaxed` = 1.625 * 14 = 22.75, laid out as 22px by WebKit.
             line_height: px(22.0),
             rows: 1,
+            paragraph_gap: px(0.0),
         };
         let area = cx.new(|cx| {
             let mut area = TextArea::new("", style, window, cx);

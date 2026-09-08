@@ -143,6 +143,82 @@ pub struct TextAreaStyle {
     pub line_height: Pixels,
     /// `rows`: the minimum height in lines.
     pub rows: usize,
+    /// The `margin-bottom` between paragraphs when the field stands in for
+    /// a ProseMirror editor (`.prompt-editor p { margin: 0 0 4px }`); zero
+    /// for a plain `<textarea>`.
+    pub paragraph_gap: Pixels,
+}
+
+/// The laid-out text: one `TextLayout` per paragraph when the paragraphs are
+/// spaced (a `\n` ends a paragraph, the gap follows it), or a single one for
+/// the whole text. Offsets are global byte offsets into the content.
+#[derive(Clone, Default)]
+struct AreaLayout {
+    parts: Vec<(Range<usize>, TextLayout)>,
+    gap: Pixels,
+}
+
+impl AreaLayout {
+    fn part_for_index(&self, index: usize) -> Option<&(Range<usize>, TextLayout)> {
+        self.parts
+            .iter()
+            .find(|(range, _)| index >= range.start && index <= range.end)
+            .or(self.parts.last())
+    }
+
+    fn position_for_index(&self, index: usize) -> Option<Point<Pixels>> {
+        let (range, layout) = self.part_for_index(index)?;
+        layout.position_for_index(index.clamp(range.start, range.end) - range.start)
+    }
+
+    /// The paragraph under `position.y`, the gap after a paragraph counting
+    /// as that paragraph, then the layout's own hit test clamped into it.
+    fn index_for_position(&self, position: Point<Pixels>) -> Result<usize, usize> {
+        let mut chosen = None;
+        for (ix, (_, layout)) in self.parts.iter().enumerate() {
+            let bounds = layout.bounds();
+            if position.y < bounds.bottom() + self.gap || ix == self.parts.len() - 1 {
+                chosen = Some(ix);
+                break;
+            }
+        }
+        let Some(ix) = chosen else {
+            return Err(0);
+        };
+        let (range, layout) = &self.parts[ix];
+        let bounds = layout.bounds();
+        let y = position.y.max(bounds.top()).min(bounds.bottom() - px(1.0));
+        match layout.index_for_position(point(position.x, y)) {
+            Ok(index) => Ok((range.start + index).min(range.end)),
+            Err(index) => Err((range.start + index).min(range.end)),
+        }
+    }
+
+    fn bounds(&self) -> Bounds<Pixels> {
+        let mut iter = self.parts.iter().map(|(_, layout)| layout.bounds());
+        let Some(first) = iter.next() else {
+            return Bounds::default();
+        };
+        iter.fold(first, |acc, bounds| acc.union(&bounds))
+    }
+}
+
+/// The paragraph byte ranges of `text` (without their trailing `\n`), or
+/// the whole text as one when `split` is false.
+fn paragraph_ranges(text: &str, split: bool) -> Vec<Range<usize>> {
+    if !split {
+        return std::iter::once(0..text.len()).collect();
+    }
+    let mut ranges = Vec::new();
+    let mut start = 0;
+    for (ix, ch) in text.char_indices() {
+        if ch == '\n' {
+            ranges.push(start..ix);
+            start = ix + 1;
+        }
+    }
+    ranges.push(start..text.len());
+    ranges
 }
 
 pub struct TextArea {
@@ -153,7 +229,7 @@ pub struct TextArea {
     selected_range: Range<usize>,
     selection_reversed: bool,
     marked_range: Option<Range<usize>>,
-    layout: TextLayout,
+    layout: AreaLayout,
     last_bounds: Option<Bounds<Pixels>>,
     is_selecting: bool,
     /// `submitShortcut="enter"`: Enter submits and Shift+Enter breaks the line.
@@ -196,7 +272,7 @@ impl TextArea {
             selected_range: 0..0,
             selection_reversed: false,
             marked_range: None,
-            layout: TextLayout::default(),
+            layout: AreaLayout::default(),
             last_bounds: None,
             is_selecting: false,
             enter_submits: false,
@@ -1002,8 +1078,38 @@ impl Render for TextArea {
             }
             highlights.sort_by_key(|(range, _)| range.start);
         }
-        let styled = StyledText::new(text).with_default_highlights(&text_style, highlights);
-        self.layout = styled.layout().clone();
+        // One `StyledText` per paragraph when they are spaced, each with the
+        // highlights that fall inside it, stacked with the gap between.
+        let split = style.paragraph_gap > px(0.0) && !empty;
+        let ranges = paragraph_ranges(&text, split);
+        let mut parts = Vec::with_capacity(ranges.len());
+        let mut children = Vec::with_capacity(ranges.len());
+        for range in ranges {
+            let local: Vec<(Range<usize>, HighlightStyle)> = highlights
+                .iter()
+                .filter(|(highlight, _)| highlight.start < range.end && highlight.end > range.start)
+                .map(|(highlight, style)| {
+                    (
+                        highlight.start.max(range.start) - range.start
+                            ..highlight.end.min(range.end) - range.start,
+                        *style,
+                    )
+                })
+                .collect();
+            let paragraph: SharedString = if split {
+                text[range.clone()].to_string().into()
+            } else {
+                text.clone()
+            };
+            let styled = StyledText::new(paragraph).with_default_highlights(&text_style, local);
+            parts.push((range, styled.layout().clone()));
+            // An empty paragraph still takes a line, as an empty `<p>` does.
+            children.push(div().min_h(style.line_height).child(styled));
+        }
+        self.layout = AreaLayout {
+            parts,
+            gap: style.paragraph_gap,
+        };
         let layout = self.layout.clone();
         let entity = cx.entity();
         let handler_entity = entity.clone();
@@ -1059,7 +1165,13 @@ impl Render for TextArea {
             .on_mouse_up(MouseButton::Left, cx.listener(Self::on_mouse_up))
             .on_mouse_up_out(MouseButton::Left, cx.listener(Self::on_mouse_up))
             .on_mouse_move(cx.listener(Self::on_mouse_move))
-            .child(styled)
+            .child(
+                div()
+                    .flex()
+                    .flex_col()
+                    .gap(style.paragraph_gap)
+                    .children(children),
+            )
             .child(
                 canvas(
                     |_, _, _| (),
@@ -1184,7 +1296,7 @@ fn splice_atoms(atoms: &mut Vec<Atom>, mut range: Range<usize>, new_len: usize) 
 
 /// One quad per wrapped line the byte range covers.
 fn paint_selection(
-    layout: &TextLayout,
+    layout: &AreaLayout,
     range: Range<usize>,
     color: Rgba,
     line_height: Pixels,
@@ -1226,6 +1338,35 @@ fn paint_selection(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn paragraphs_split_on_newlines_and_keep_empty_ones() {
+        assert_eq!(
+            paragraph_ranges("a\nbb\n\nc", true),
+            [0..1, 2..4, 5..5, 6..7]
+        );
+        assert_eq!(paragraph_ranges("a\nbb", false), vec![0..4usize]);
+        assert_eq!(paragraph_ranges("", true), vec![0..0usize]);
+        // A trailing newline ends with an empty paragraph, like a trailing `<p>`.
+        assert_eq!(paragraph_ranges("a\n", true), [0..1, 2..2]);
+    }
+
+    #[test]
+    fn a_paragraph_owns_its_newline_offset() {
+        let layout = AreaLayout {
+            parts: vec![
+                (0..1, TextLayout::default()),
+                (2..4, TextLayout::default()),
+                (5..5, TextLayout::default()),
+            ],
+            gap: px(4.0),
+        };
+        assert_eq!(layout.part_for_index(0).map(|(r, _)| r.clone()), Some(0..1));
+        assert_eq!(layout.part_for_index(1).map(|(r, _)| r.clone()), Some(0..1));
+        assert_eq!(layout.part_for_index(2).map(|(r, _)| r.clone()), Some(2..4));
+        assert_eq!(layout.part_for_index(5).map(|(r, _)| r.clone()), Some(5..5));
+        assert_eq!(layout.part_for_index(9).map(|(r, _)| r.clone()), Some(5..5));
+    }
 
     fn chip(text: &mut String, kind: &str, id: &str, label: &str) -> Atom {
         let display = crate::mention::display_text(label);

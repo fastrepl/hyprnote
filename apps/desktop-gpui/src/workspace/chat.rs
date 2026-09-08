@@ -270,6 +270,7 @@ impl Workspace {
             font_size: px(14.0),
             line_height: px(20.0),
             rows: 1,
+            paragraph_gap: px(0.0),
         };
         // `useMentionConfig`: the same `@` candidates the note editor offers.
         let candidates = self.mention_candidates.clone();

@@ -1,17 +1,17 @@
 ---
 name: release-new-version
-description: Release Anarlog desktop stable versions and, when requested, distribute iOS and Android builds through TestFlight, the App Store, or Google Play. Validate and merge the changelog before releasing.
+description: Prepare and release Anarlog desktop stable versions with current CLI, local and hosted MCP, API, agent packages, and documentation. Validate and merge release updates before publishing. Distribute mobile builds when requested.
 metadata:
   internal: true
 ---
 
 # Release a New Version
 
-Use this for stable desktop releases and requested mobile store distribution. A stable desktop release must come from `main`, after the changelog for the explicit version is present, accurate, validated, and merged. Mobile uses its own app version and build numbers.
+Use this for stable desktop releases and requested mobile store distribution. A stable desktop release must come from `main`, after the changelog and required CLI, MCP, API, agent-package, and documentation updates are accurate, validated, and merged. Mobile uses its own app version and build numbers.
 
 ## Core Rule
 
-Do not trigger a stable release from an unmerged branch. First make the changelog up to date, merge that changelog change to `main`, then run the stable release from `main`.
+Do not trigger a stable release from an unmerged branch. Complete the release surface review and changelog below, merge the required changes to `main`, then freeze the candidate and release from `main`.
 
 ## Scope Boundary
 
@@ -25,9 +25,23 @@ do not ask again for an approved destination.
 App Store here means the iOS app. The repository deliberately has no Mac App
 Store release lane; do not recreate one as part of a desktop or mobile release.
 
+Every desktop release includes the CLI, local and hosted MCP, API, agent-package,
+and documentation freshness review below. The CLI and local MCP ship inside the
+desktop package; hosted services, plugin catalogs, and docs have separate
+publication paths. Keep their versions independent and record their source SHAs.
+An unchanged surface needs evidence that its published version still covers the
+candidate; it does not need an artificial version bump or redeployment.
+
+Honor existing authorization for service and documentation publication. If a
+required external action is not authorized, finish preparing and validating the
+concrete change before asking for that action. Do not call the complete release
+finished while a required surface is stale or awaiting publication.
+
 Release and QA are separate, explicitly requested workflows. Do not read or
 run `qa-critical-ux` or `qa-cli-mcp-api` solely because the user asked for a
 release. A release does not require a QA report or QA PASS.
+The contract, packaging, and publication checks in this skill are required
+release verification; they do not invoke either optional QA workflow.
 
 If the user explicitly asks for both release and QA, follow the requested
 order and report the outcomes separately. Do not infer that a QA result
@@ -61,6 +75,11 @@ cat .github/workflows/desktop_cd.yaml
 cat .github/workflows/desktop_ci.yaml
 cat .github/workflows/desktop_publish.yaml
 cat .github/workflows/desktop_store_publish.yaml
+cat .github/workflows/cli_ci.yaml
+cat .github/workflows/api_ci.yaml
+cat .github/workflows/api_cd.yaml
+cat .github/workflows/web_ci.yaml
+cat .github/workflows/web_cd.yaml
 ```
 
 2. Validate the explicit stable version requested by the user:
@@ -88,9 +107,72 @@ for the complete changelog review. Use read-only `git` commands for inspection.
 Use the `but` skill for local version control, and GitHub tools for PR metadata
 and merges. Do not force-fetch tags or force-push to prepare a release.
 
+## Release Surface Review
+
+Complete this before freezing the candidate, including when only preparing a
+release. Review the full product diff since the last stable desktop tag, not
+just CLI/API paths. Also compare each independently published surface with its
+last published source SHA so previously unshipped changes are not missed.
+
+For each user-facing change, record the affected surfaces, required updates,
+validation, and publication status in the release task or PR. Use `unchanged`
+or `not applicable` only with a concrete reason. Check that supported agent
+workflows expose the new or changed product behavior. Fix drift before release;
+an intentional capability difference must be documented. A missing capability
+that needs a product decision requires an explicit deferral, not a silent skip.
+
+| Surface                     | Review against the candidate                                                                                                                                                                                                                                                                                                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CLI and shared agent access | `apps/cli`, `crates/agent-access`, and CLI contract snapshots: commands, flags, JSON fields/errors, pagination, exports, local/cloud selection, and supported data formats. Trace changed product behavior through these implementations; rebuilding alone does not establish coverage.                                                                                                           |
+| Local and hosted MCP        | `apps/cli/src/mcp.rs`, `crates/api-cloud/src/mcp.rs`, and `crates/mcp`: tool/resource schemas, output, protocol compatibility, and authentication. Derive expectations from current source and snapshots, never a hardcoded historical tool count. Preserve documented local proposal approval and hosted read-only boundaries.                                                                   |
+| API and generated client    | `apps/api`, `crates/api-cloud`, and affected auth/sync crates; `apps/api/openapi.gen.json` and `packages/api-client/src/generated`. Check routes, payloads, errors, auth scopes, and compatibility with already shipped desktop/mobile/CLI clients.                                                                                                                                               |
+| Agent skills and plugins    | Authored `skills/anarlog`, generated `agent-plugins/anarlog` and `docs/skill.md`, native manifests, and repository marketplace entries. Update instructions and examples, bump the plugin's own version when its package changes, and keep manifests and their tests aligned.                                                                                                                     |
+| Documentation and discovery | Read `docs/AGENTS.md`; review affected product guides, installation/upgrade instructions, CLI/MCP/Cloud references, examples, troubleshooting, screenshots, `docs/docs.json`, and `apps/web/public/llms.txt`. Include the public skill, Mintlify's `llms.txt`/`llms-full.txt`, and the website changelog in publication verification. Document shipped behavior and actual platform availability. |
+
+Review related release dependencies when affected: SQLite/CloudSync and hosted
+schema migrations, downgrade compatibility, native bindings, mobile/watch
+consumers, billing/auth configuration, installer/updater and package channels,
+and release version attribution in error reporting. Record backend-first rollout
+and rollback requirements before publishing a client that depends on them.
+Follow each component's instructions; this review does not authorize mobile
+submission or unrelated infrastructure changes.
+
+### Validate and synchronize
+
+Run the full locally reproducible jobs from `cli_ci.yaml` and `api_ci.yaml` for
+affected code, plus consumer checks from root `AGENTS.md`. CLI CI includes
+command/MCP contract snapshots, documentation coverage, Linux/Windows smoke
+tests, plugin checks, and Mintlify validation. API CI checks hosted MCP/auth and
+OpenAPI generation. A passing snapshot or docs check does not prove that a new
+product feature was considered; retain the surface review above.
+
+When the API contract changes, regenerate the spec and client, review the diff,
+and typecheck the client and affected consumers:
+
+```bash
+cargo test -p api gen_openapi_json
+pnpm -F @anlg/api-client openapi
+pnpm -F @anlg/api-client typecheck
+```
+
+Edit the authored agent skill and references, then generate their mirrors with
+`node scripts/publish-anarlog-skill.mjs`. The script writes repository files; it
+does not publish a website or install a plugin. Before every release, run:
+
+```bash
+node scripts/publish-anarlog-skill.mjs --check
+node --test scripts/publish-anarlog-skill.test.mjs
+```
+
+Use the Mintlify version pinned in `cli_ci.yaml` to run `validate` and
+`broken-links --check-anchors --check-redirects` from `docs/`. Run affected web
+checks when changing website content or discovery files. Regenerate again to
+confirm generated output is stable, and include all intended generated changes
+before freezing the candidate.
+
 ## Changelog Gate
 
-The changelog is the release gate. Before releasing:
+The changelog is required alongside the release surface review. Before releasing:
 
 1. Open `packages/changelog/content/AGENTS.md` and follow its instructions.
 2. Confirm `packages/changelog/content/<version>.md` exists.
@@ -118,13 +200,14 @@ pnpm -F @anlg/changelog typecheck
 
 ## Merge to Main
 
-Only after the changelog is accurate and validation passes:
+Only after the changelog and required release surface updates are accurate and
+validation passes:
 
-1. Commit the changelog change.
-2. Open or update the changelog PR.
+1. Commit the changelog and surface updates in coherent commits.
+2. Open or update their PRs.
 3. Wait for CI and required review state to be clear.
-4. Merge the changelog PR to `main`.
-5. Verify `main` contains `packages/changelog/content/<version>.md`.
+4. Merge the release preparation PRs to `main`.
+5. Verify `main` contains the changelog and all required surface updates.
 6. Record the resulting `main` SHA as the release candidate.
 
 If using GitButler, prefer:
@@ -141,16 +224,21 @@ Use actual IDs from `but diff` / `but status -fv`; do not invent IDs.
 
 ## Trigger Stable Release
 
-Dispatch the native verification workflow from `main`, then identify its run and
-verify `headSha` equals the recorded candidate before accepting any job:
+Dispatch desktop, CLI, and API verification from `main`, then identify each run
+and verify `headSha` equals the recorded candidate before accepting any job.
+Reuse an existing successful run only if it covers the exact SHA and all
+required jobs; path-filtered or skipped jobs are not coverage:
 
 ```bash
 gh workflow run desktop_ci.yaml --ref main
+gh workflow run cli_ci.yaml --ref main
+gh workflow run api_ci.yaml --ref main
 ```
 
 Verify every native job and the source-rebuilt CloudSync artifacts, including
-both macOS architectures, Windows, and both Linux architectures. A green
-pull-request run skips these jobs. Keep the candidate fixed through publication.
+both macOS architectures, Windows, and both Linux architectures. Pull-request
+runs skip the desktop native jobs. Require both CLI jobs and the API job to pass
+for this candidate as well. Keep the candidate fixed through publication.
 
 After the changelog merge, verify `main` has not moved, then build the stable
 candidate without publishing:
@@ -189,6 +277,19 @@ The dry-run workflow must:
 - upload `desktop-release-provenance-<version>-<sha>`, including the exact
   artifact hashes and pinned CrabNebula CLI version, asset ID, and SHA-256
 
+Verify the bundled CLI in the candidate artifacts on every shipped platform,
+using the platform runner when necessary. Confirm `APP_VERSION` reached the
+CLI build and the packaged executable's `--version` reports the explicit desktop
+version. Check its help and a real stdio MCP initialize/discovery exchange
+against the reviewed contract, using an isolated fixture database. Keep stdout
+protocol-only and verify clean shutdown. A developer binary on `PATH` is not
+evidence for the packaged CLI. After updating, verify the supported CLI installer
+resolves to the new bundled executable; record unavailable platform checks.
+
+Before the desktop publish dispatch, complete any backend deployment required
+by the candidate, following the publication steps below. Do not publish a client
+whose required server behavior is still unavailable.
+
 After the exact dry-run artifacts pass the required platform gates and `main`
 still points to the candidate SHA, publish only through the provenance
 workflow. Do not run `desktop_linux_audio_qa` as a publish gate; Linux is
@@ -221,6 +322,36 @@ a metadata PR or successful merge alone is not APT publication. Failed checks
 leave the PR open and fail the release workflow for follow-up. Arch `PKGBUILD`
 and `.SRCINFO` updates ship in this repository; there is no AUR publication
 workflow. Check the AUR registry before claiming an AUR release.
+
+## Publish and Verify Related Surfaces
+
+1. **API and hosted MCP:** verify the target environment is Anarlog before any
+   service access; never access `*-char`. Inspect recent `api_cd.yaml` runs and
+   the deployed `api_v*` tag. Reuse a deployment that contains the required changes;
+   otherwise deploy the merged, verified candidate through `api_cd.yaml` within
+   existing authorization. Dispatch on `main`, check the run's `headSha` against
+   the intended SHA, and wait for deployment and tagging. Confirm `/health` reports the deployed
+   API version, MCP authentication discovery and OAuth resource metadata are
+   correct, and an authenticated read exercises the affected contract when
+   credentials are available. Health or an unauthenticated `401` alone does not
+   verify tool behavior; report unavailable authenticated checks explicitly.
+2. **Docs and website:** verify the configured Mintlify deployment includes the
+   merged docs changes, then check affected live pages, examples, navigation,
+   `https://docs.anarlog.so/skill.md`, and its LLM indexes for the changed content.
+   Verify website/changelog/discovery updates through `web_cd.yaml` and the live
+   URLs. Reuse the desktop Linux APT web deployment when it already includes
+   them. Mintlify and Netlify are separate deployments; a merge, HTTP 200, or a
+   successful web build does not establish that the docs content is current.
+3. **Agent packages:** verify the published repository manifests and skill
+   mirrors, and any affected external catalog's accepted version. Check the
+   supported install/update path resolves the expected version. An existing
+   installed plugin cache may remain older; record that separately and provide
+   update instructions rather than claiming all installations updated.
+
+Record each publication's source SHA, version (where applicable), run/deployment
+URL, and observed result. Preserve independent API/plugin/mobile versions;
+compatible behavior is the requirement, not identical version numbers. If a
+required surface is deferred, state its impact and the user's explicit deferral.
 
 ## Mobile Store Distribution
 
@@ -351,6 +482,13 @@ Before reporting success, capture:
 - GitHub release URL
 - whether CrabNebula publish completed
 - changelog URL
+- CLI version from each platform's packaged artifact and installer/update result
+- CLI/API candidate CI runs and contract checks, including stdio MCP discovery
+- hosted API/MCP deployed version, source SHA, deployment URL, and live checks
+- published docs, skill, LLM indexes, and website content verification
+- plugin package/catalog version and install/update result when affected
+- release surface review, with reasons for unchanged/not-applicable surfaces and
+  explicit deferrals or pending publications
 - stable DMG SHA-256
 - Microsoft Store submission/certification state and Linux package publication state
 - mobile version, build IDs/numbers, candidate SHA, artifact hashes, submission

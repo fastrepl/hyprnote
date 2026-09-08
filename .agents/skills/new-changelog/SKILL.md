@@ -14,6 +14,13 @@ doxxer --config doxxer.desktop.toml next patch
 
 Create the new markdown file in `packages/changelog/content` for that version.
 
+When preparing a release, also follow the
+[release surface review](../release-new-version/SKILL.md#release-surface-review).
+Check the product changes for CLI, local and hosted MCP, API, agent-package, and
+documentation updates before freezing the release candidate. Record any gaps
+in the release task; a changelog alone does not establish release readiness.
+Creating a changelog does not itself dispatch or publish a release.
+
 Each changelog file must start with frontmatter that includes both `date` and
 `summary`:
 

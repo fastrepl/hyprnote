@@ -251,10 +251,46 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
         }
     }))
     .unwrap();
-    let outcome = anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &result)
+    let mut pending_records: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM e2ee_replica_pending")
+        .fetch_one(db.pool())
         .await
         .unwrap();
-    assert!(!outcome.local_work_remaining);
+    loop {
+        let outcome = anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &result)
+            .await
+            .unwrap();
+        if !outcome.local_work_remaining {
+            break;
+        }
+        // Schema growth can make the fixture span multiple bounded apply batches.
+        let remaining: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM e2ee_replica_pending")
+            .fetch_one(db.pool())
+            .await
+            .unwrap();
+        assert!(
+            remaining < pending_records,
+            "replica reconciliation must make progress"
+        );
+        pending_records = remaining;
+    }
+    let remaining_dirty: Vec<(String, String)> = sqlx::query_as(
+        "SELECT table_name, row_id FROM e2ee_dirty_rows ORDER BY table_name, row_id",
+    )
+    .fetch_all(db.pool())
+    .await
+    .unwrap();
+    assert_eq!(
+        remaining_dirty,
+        vec![("transcripts".to_string(), "transcript-1".to_string())]
+    );
+    let protected_records: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM e2ee_local_state
+         WHERE table_name = 'transcripts' AND row_id = 'transcript-1'",
+    )
+    .fetch_one(db.pool())
+    .await
+    .unwrap();
+    assert_eq!(protected_records, 0);
     let keys = hook.snapshot();
 
     sqlx::query(

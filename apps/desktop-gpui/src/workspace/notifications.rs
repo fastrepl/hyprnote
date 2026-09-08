@@ -12,6 +12,16 @@ impl Workspace {
         self.window_active = window.is_window_active();
         cx.observe_window_activation(window, |this, window, _| {
             this.window_active = window.is_window_active();
+            // Focusing the window answers the attention request.
+            if this.window_active && this.attention_requested {
+                this.attention_requested = false;
+                #[cfg(target_os = "linux")]
+                crate::x11::set_urgent(
+                    this.viewport_width as u32,
+                    this.viewport_height as u32,
+                    false,
+                );
+            }
         })
         .detach();
     }
@@ -24,6 +34,34 @@ impl Workspace {
             &["notification", "disabled"],
             false,
         ) && settings.bool_setting(key, path, true)
+    }
+
+    /// `requestAppAttention`: with notifications on, `notification_bounce`
+    /// and `show_app_in_dock` on, and the window inactive, ask for the user's
+    /// attention — `requestUserAttention(Informational)`, which GTK turns
+    /// into the `WM_HINTS` urgency flag (the Dock bounce on macOS is not
+    /// available through gpui).
+    pub(crate) fn request_app_attention(&mut self) {
+        let settings = &self.provider_settings;
+        if settings.bool_setting(
+            "notification_disabled",
+            &["notification", "disabled"],
+            false,
+        ) || !settings.bool_setting("notification_bounce", &["notification", "bounce"], true)
+            || !settings.bool_setting("show_app_in_dock", &["general", "show_app_in_dock"], true)
+            || self.window_active
+        {
+            return;
+        }
+        self.attention_requested = true;
+        #[cfg(target_os = "linux")]
+        crate::x11::set_urgent(
+            self.viewport_width as u32,
+            self.viewport_height as u32,
+            true,
+        );
+        #[cfg(not(target_os = "linux"))]
+        tracing::debug!("app attention request is not available on this platform");
     }
 
     /// `showBatchCompletedNotification(sessionId)`: only while the window is

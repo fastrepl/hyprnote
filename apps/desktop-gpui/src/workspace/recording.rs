@@ -984,6 +984,7 @@ impl Workspace {
                                             );
                                             this.notify_batch_completed(&session_id);
                                             this.play_completion_sound(cx);
+                                            this.request_app_attention();
                                         }
                                         BatchFollowUp::CaptureLifecycle {
                                             summary_mode,
@@ -1002,6 +1003,7 @@ impl Workspace {
                                             if !live_active {
                                                 this.notify_batch_completed(&session_id);
                                                 this.play_completion_sound(cx);
+                                                this.request_app_attention();
                                             }
                                             this.finish_capture(
                                                 session_id.clone(),
@@ -1298,6 +1300,7 @@ impl Workspace {
                     && (lifecycle.transcript_touched || lifecycle.preserve_existing_transcript)
                 {
                     self.play_completion_sound(cx);
+                    self.request_app_attention();
                 }
                 let has_transcript_evidence = pending.recovered_summary_mode.is_some()
                     || lifecycle.preserve_existing_transcript

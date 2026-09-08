@@ -1507,13 +1507,13 @@ async fn enhance_success(
     tracing::info!(session_id = %args.session_id, "note.enhanced");
     // `dispatchEvent("note.enhanced")` + `runNoteEnhancedAutomations`.
     store.run_note_enhanced_automations(args.session_id.clone());
-    // `showSummaryReadyNotification(sessionId, trimmedTitle)` and
-    // `playCompletionSound` (`requestAppAttention` needs a window attention
-    // API GPUI does not expose).
+    // `showSummaryReadyNotification(sessionId, trimmedTitle)`,
+    // `playCompletionSound` and `requestAppAttention`.
     let session_id = args.session_id.clone();
     this.update(cx, |this, cx| {
         this.notify_summary_ready(&session_id, Some(&trimmed_title));
         this.play_completion_sound(cx);
+        this.request_app_attention();
     })
     .ok();
     Ok(())

@@ -8,6 +8,7 @@
 use std::time::Duration;
 
 use x11rb::connection::Connection;
+use x11rb::properties::WmHints;
 use x11rb::protocol::xproto::{AtomEnum, ConfigureWindowAux, ConnectionExt, MapState, Window};
 
 /// Moves this process's mapped top-level window of `width` × `height` to
@@ -46,6 +47,39 @@ fn try_move(width: u32, height: u32, x: i32, y: i32) -> anyhow::Result<bool> {
     conn.configure_window(window, &ConfigureWindowAux::new().x(x).y(y))?;
     conn.flush()?;
     Ok(true)
+}
+
+/// `requestUserAttention(Informational)` as GTK does it: the `WM_HINTS`
+/// urgency flag on this process's mapped `width` × `height` window, which
+/// the window manager shows as a demanding taskbar entry; `false` clears it
+/// again once the window is active. Runs off the UI thread.
+pub fn set_urgent(width: u32, height: u32, urgent: bool) {
+    std::thread::Builder::new()
+        .name("x11-attention".into())
+        .spawn(move || {
+            if let Err(error) = try_set_urgent(width, height, urgent) {
+                tracing::debug!(%error, urgent, "x11 urgency hint unavailable");
+            }
+        })
+        .ok();
+}
+
+fn try_set_urgent(width: u32, height: u32, urgent: bool) -> anyhow::Result<()> {
+    let (conn, screen) = x11rb::connect(None)?;
+    let root = conn.setup().roots[screen].root;
+    let pid_atom = conn.intern_atom(false, b"_NET_WM_PID")?.reply()?.atom;
+    let pid = std::process::id();
+    let Some(window) = find_window(&conn, root, pid_atom, pid, width, height)? else {
+        anyhow::bail!("main window not found");
+    };
+    let mut hints = WmHints::get(&conn, window)?.reply()?.unwrap_or_default();
+    if hints.urgent == urgent {
+        return Ok(());
+    }
+    hints.urgent = urgent;
+    hints.set(&conn, window)?;
+    conn.flush()?;
+    Ok(())
 }
 
 fn find_window(

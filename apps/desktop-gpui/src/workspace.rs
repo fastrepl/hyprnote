@@ -209,6 +209,8 @@ pub struct Workspace {
     width_expansions: Vec<(f32, f32)>,
     /// `isAppWindowInactive`'s complement, kept current by the activation observer.
     window_active: bool,
+    /// A `requestAppAttention` is outstanding until the window is focused.
+    attention_requested: bool,
     open_menu: Option<Menu>,
     /// `editTargetRef`: the element focused when a title bar menu opened, so
     /// an Edit item runs on it after the press moved focus.
@@ -378,6 +380,7 @@ pub struct Workspace {
     excluded_apps_bounds: std::rc::Rc<std::cell::Cell<Option<gpui::Bounds<gpui::Pixels>>>>,
     /// The window's height as of the last frame, for `vh`-sized panels.
     viewport_height: f32,
+    viewport_width: f32,
     /// The participant chip whose `Enhance contact` button is hovered.
     hovered_participant: Option<String>,
     /// The meeting info panel's and its participant row's last painted
@@ -485,6 +488,7 @@ impl Workspace {
             width_guard_last_body: None,
             width_expansions: Vec::new(),
             window_active: true,
+            attention_requested: false,
             open_menu: None,
             menu_edit_target: None,
             edit_context_menu: None,
@@ -573,6 +577,7 @@ impl Workspace {
             default_ignored_apps: anlg_detect::default_ignored_bundle_ids(),
             excluded_apps_bounds: std::rc::Rc::default(),
             viewport_height: 0.0,
+            viewport_width: 0.0,
             hovered_participant: None,
             meeting_panel_bounds: std::rc::Rc::default(),
             participant_input_bounds: std::rc::Rc::default(),
@@ -1811,6 +1816,7 @@ impl Workspace {
 impl Render for Workspace {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         self.viewport_height = f32::from(window.viewport_size().height);
+        self.viewport_width = f32::from(window.viewport_size().width);
         // `MainChatPanels` lays out the body before the sidebar group inside
         // it; the width guard then reacts to what fits.
         let main_layout = self.main_layout(window);

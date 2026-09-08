@@ -2,9 +2,12 @@
 //! sections-editor,auto-form}.tsx` in the user-templates mode (community
 //! templates need the web API).
 
+use std::cell::Cell;
+use std::rc::Rc;
+
 use gpui::{
-    AnyElement, ClickEvent, Context, Div, Entity, Focusable as _, MouseButton, SharedString,
-    Window, div, prelude::*, px,
+    AnyElement, ClickEvent, Context, Div, Entity, Focusable as _, MouseButton, Pixels,
+    SharedString, Window, canvas, div, prelude::*, px,
 };
 
 use super::Workspace;
@@ -26,6 +29,7 @@ pub(crate) struct TemplatesState {
     search: Entity<TextInput>,
     form: Option<TemplateForm>,
     auto: Option<AutoForm>,
+    section_resize: Option<SectionResize>,
 }
 
 /// `TemplateForm` inputs, keyed by the template id.
@@ -45,7 +49,22 @@ struct SectionForm {
     title: Entity<TextInput>,
     description: Entity<TextArea>,
     menu_open: bool,
+    /// The height the `resize-y` grip was dragged to, if any, and the height
+    /// the field was last laid out at (the drag's starting point).
+    resized_height: Option<f32>,
+    measured_height: Rc<Cell<f32>>,
 }
+
+/// A drag of a section textarea's resizer: which section, where it started
+/// and how tall the field was.
+pub(crate) struct SectionResize {
+    key: u64,
+    start_y: Pixels,
+    start_height: f32,
+}
+
+/// `min-h-[100px]` of the section textareas.
+const SECTION_MIN_HEIGHT: f32 = 100.0;
 
 /// `AutoFormatForm`
 struct AutoForm {
@@ -102,6 +121,7 @@ impl Workspace {
                 search,
                 form: None,
                 auto: None,
+                section_resize: None,
             });
         }
         if let (Some(state), Some(select)) = (self.templates_tab.as_mut(), select) {
@@ -129,6 +149,71 @@ impl Workspace {
 
     pub(crate) fn templates_open(&self) -> bool {
         self.templates_tab.is_some()
+    }
+
+    pub(super) fn section_resizing(&self) -> bool {
+        self.templates_tab
+            .as_ref()
+            .is_some_and(|state| state.section_resize.is_some())
+    }
+
+    /// A press on the resizer focuses the textarea, as WebKit's does.
+    fn begin_section_resize(
+        &mut self,
+        key: u64,
+        y: Pixels,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(state) = self.templates_tab.as_mut() else {
+            return;
+        };
+        let Some(section) = state
+            .form
+            .as_ref()
+            .and_then(|form| form.sections.iter().find(|section| section.key == key))
+        else {
+            return;
+        };
+        let start_height = section
+            .resized_height
+            .unwrap_or_else(|| section.measured_height.get());
+        section.description.read(cx).focus_handle(cx).focus(window);
+        state.section_resize = Some(SectionResize {
+            key,
+            start_y: y,
+            start_height,
+        });
+        cx.notify();
+    }
+
+    /// The textarea follows the pointer vertically, never under `min-h`.
+    pub(super) fn update_section_resize(&mut self, y: Pixels, cx: &mut Context<Self>) {
+        let Some(state) = self.templates_tab.as_mut() else {
+            return;
+        };
+        let Some(resize) = state.section_resize.as_ref() else {
+            return;
+        };
+        let height = (resize.start_height + f32::from(y - resize.start_y)).max(SECTION_MIN_HEIGHT);
+        let key = resize.key;
+        if let Some(section) = state
+            .form
+            .as_mut()
+            .and_then(|form| form.sections.iter_mut().find(|section| section.key == key))
+            && section.resized_height != Some(height)
+        {
+            section.resized_height = Some(height);
+            cx.notify();
+        }
+    }
+
+    pub(super) fn end_section_resize(&mut self, cx: &mut Context<Self>) {
+        if let Some(state) = self.templates_tab.as_mut()
+            && state.section_resize.take().is_some()
+        {
+            cx.notify();
+        }
     }
 
     pub(crate) fn reload_templates_tab(&mut self, window: &mut Window, cx: &mut Context<Self>) {
@@ -334,6 +419,8 @@ impl Workspace {
             title,
             description,
             menu_open: false,
+            resized_height: None,
+            measured_height: Rc::new(Cell::new(SECTION_MIN_HEIGHT)),
         }
     }
 
@@ -1626,7 +1713,11 @@ impl Workspace {
                             .child(
                                 div()
                                     .id(SharedString::from(format!("section-description-{key}")))
-                                    .min_h(px(100.0))
+                                    .relative()
+                                    .min_h(px(SECTION_MIN_HEIGHT))
+                                    .when_some(section.resized_height, |area, height| {
+                                        area.h(px(height)).overflow_hidden()
+                                    })
                                     .w_full()
                                     .rounded_xl()
                                     .border_1()
@@ -1655,7 +1746,50 @@ impl Workspace {
                                     })
                                     .p_3()
                                     .tw_text_sm()
-                                    .child(section.description.clone()),
+                                    .child(section.description.clone())
+                                    .child({
+                                        let measured = section.measured_height.clone();
+                                        canvas(
+                                            move |bounds, _, _| {
+                                                measured.set(f32::from(bounds.size.height))
+                                            },
+                                            |_, _, _, _| {},
+                                        )
+                                        .absolute()
+                                        .inset_0()
+                                    })
+                                    // `resize-y`: WebKit's resizer grip in the
+                                    // corner, dragged to set the height.
+                                    .child(
+                                        div()
+                                            .id(SharedString::from(format!(
+                                                "section-resizer-{key}"
+                                            )))
+                                            .absolute()
+                                            .right_0()
+                                            .bottom_0()
+                                            .size(px(12.0))
+                                            .cursor_ns_resize()
+                                            .on_mouse_down(
+                                                MouseButton::Left,
+                                                cx.listener(
+                                                    move |this, event: &gpui::MouseDownEvent, window, cx| {
+                                                        cx.stop_propagation();
+                                                        this.begin_section_resize(
+                                                            key,
+                                                            event.position.y,
+                                                            window,
+                                                            cx,
+                                                        );
+                                                    },
+                                                ),
+                                            )
+                                            .child(icon(
+                                                "textarea-resizer",
+                                                px(12.0),
+                                                gpui::rgb(0x666666),
+                                            )),
+                                    ),
                             ),
                     )
                     .when(hovered || menu_open, |item| {

@@ -1803,6 +1803,7 @@ impl Render for Workspace {
         // row of sidebar + main surface, all on `bg-background`.
         let sidebar_dragging = self.sidebar_drag.is_some();
         let chat_panel_dragging = self.chat_panel_dragging();
+        let section_resizing = self.section_resizing();
         div()
             .id("window")
             .track_focus(&self.focus_handle)
@@ -1945,6 +1946,16 @@ impl Render for Workspace {
                     .on_mouse_up(
                         MouseButton::Left,
                         cx.listener(|this, _: &MouseUpEvent, _, cx| this.end_chat_panel_drag(cx)),
+                    )
+            })
+            .when(section_resizing, |root| {
+                root.cursor_ns_resize()
+                    .on_mouse_move(cx.listener(|this, event: &MouseMoveEvent, _, cx| {
+                        this.update_section_resize(event.position.y, cx);
+                    }))
+                    .on_mouse_up(
+                        MouseButton::Left,
+                        cx.listener(|this, _: &MouseUpEvent, _, cx| this.end_section_resize(cx)),
                     )
             })
             .when(client_decorations, |root| {

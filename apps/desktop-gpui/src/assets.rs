@@ -346,6 +346,7 @@ embedded!(
     "icons/view-sidebar-left.svg",
     "icons/warning-circle.svg",
     "icons/audio-lines.svg",
+    "icons/textarea-resizer.svg",
     "icons/waveform.svg",
     "icons/x-logo.svg",
     "icons/wrench.svg",
@@ -388,6 +389,6 @@ mod tests {
         }
         assert!(Assets.load("icons/search.svg").unwrap().is_some());
         assert!(Assets.load("icons/missing.svg").unwrap().is_none());
-        assert_eq!(Assets.list("icons/").unwrap().len(), 207);
+        assert_eq!(Assets.list("icons/").unwrap().len(), 208);
     }
 }

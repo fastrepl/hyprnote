@@ -106,8 +106,10 @@ impl Workspace {
                         .insert(key, Availability::Known(available))
                         != Some(Availability::Known(available));
                     if changed {
-                        if kind == ProviderKind::Llm {
-                            this.ensure_llm_models(false, cx);
+                        match kind {
+                            ProviderKind::Llm => this.ensure_llm_models(false, cx),
+                            // `PersistAiSelection` once a provider becomes usable.
+                            ProviderKind::Stt => this.apply_default_stt_selection(cx),
                         }
                         cx.notify();
                     }

@@ -2060,6 +2060,9 @@ impl Workspace {
                 label: trigger.label().to_string(),
                 detail: None,
                 glyph: None,
+                badges: Vec::new(),
+                lock: None,
+                heading: None,
             })
             .collect();
         let trigger_workflow = workflow.clone();
@@ -2076,6 +2079,7 @@ impl Workspace {
                     this.persist_workflow(next, cx);
                 }),
                 combobox: None,
+                align_end: false,
             },
             true,
             cx,
@@ -2111,6 +2115,9 @@ impl Workspace {
                     label: kind.label().to_string(),
                     detail: None,
                     glyph: None,
+                    badges: Vec::new(),
+                    lock: None,
+                    heading: None,
                 })
                 .collect();
             let select_workflow = workflow.clone();
@@ -2133,6 +2140,7 @@ impl Workspace {
                         this.persist_workflow(next, cx);
                     }),
                     combobox: None,
+                    align_end: false,
                 },
                 true,
                 cx,
@@ -2189,6 +2197,9 @@ impl Workspace {
                 label: kind.short_label().to_string(),
                 detail: None,
                 glyph: None,
+                badges: Vec::new(),
+                lock: None,
+                heading: None,
             })
             .collect();
         let add_workflow = workflow.clone();
@@ -2208,6 +2219,7 @@ impl Workspace {
                     this.persist_workflow(next, cx);
                 }),
                 combobox: None,
+                align_end: false,
             },
             true,
             cx,

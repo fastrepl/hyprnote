@@ -100,6 +100,9 @@ impl Workspace {
     ) {
         if self.ai_settings.contains_key(&kind) {
             self.ensure_ai_availability(kind, true, cx);
+            if kind == ProviderKind::Stt {
+                self.apply_default_stt_selection(cx);
+            }
             return;
         }
         let style = self.text_input_style(false);
@@ -438,12 +441,24 @@ impl Workspace {
     /// the chosen provider's models on the right.
     fn render_ai_model_selection(&self, kind: ProviderKind, cx: &Context<Self>) -> Div {
         let theme = self.theme;
-        let current_provider = self
-            .provider_settings
-            .string_setting(kind.provider_setting(), &["ai", kind.provider_setting()]);
-        let current_model = self
-            .provider_settings
-            .string_setting(kind.model_setting(), &["ai", kind.model_setting()]);
+        // `effectiveSelection`: a provider picked without a model to show
+        // (`pendingProvider`) stands in for the stored selection until a model
+        // is chosen.
+        let pending = (kind == ProviderKind::Stt)
+            .then(|| self.pending_stt_provider.clone())
+            .flatten();
+        let current_provider = match &pending {
+            Some(provider) => Some(provider.clone()),
+            None => self
+                .provider_settings
+                .string_setting(kind.provider_setting(), &["ai", kind.provider_setting()]),
+        };
+        let current_model = match &pending {
+            Some(_) => None,
+            None => self
+                .provider_settings
+                .string_setting(kind.model_setting(), &["ai", kind.model_setting()]),
+        };
         let configured: Vec<&'static Provider> = kind
             .providers()
             .iter()
@@ -456,7 +471,6 @@ impl Workspace {
                 .copied()
                 .find(|provider| provider.id == id)
         });
-        let provider_setting = kind.provider_setting();
         let model_setting = kind.model_setting();
 
         let provider_options: Vec<SelectOption> = configured
@@ -466,6 +480,9 @@ impl Workspace {
                 label: provider.display_name.to_string(),
                 detail: None,
                 glyph: Some(provider.icon),
+                badges: Vec::new(),
+                lock: None,
+                heading: None,
             })
             .collect();
         // The LLM page lists the provider's live catalogue (`ModelCombobox`
@@ -487,17 +504,53 @@ impl Workspace {
                     label: crate::ai_models::display_llm_model_id(provider.id, model),
                     detail: None,
                     glyph: None,
+                    badges: Vec::new(),
+                    lock: None,
+                    heading: None,
                 })
                 .collect(),
             (ProviderKind::Llm, Some(_), _) => Vec::new(),
+            // The STT rows: `displayModelLabel`, the `DeprecatedBadge` and the
+            // `ModelModeBadge` for the model's transcription mode; the Anarlog
+            // cloud model without a paid plan offers `Upgrade to use` instead.
+            (_, Some(provider), _) if provider.id == "anarlog" => vec![SelectOption {
+                value: "cloud".to_string(),
+                label: crate::stt_models::display_model_id("cloud"),
+                detail: None,
+                glyph: crate::stt_models::model_icon("cloud"),
+                badges: Vec::new(),
+                lock: (!self.is_pro()).then_some(super::settings::SelectLock::UpgradeToUse),
+                // `category: "latest"` → `Recommended`.
+                heading: Some("Recommended"),
+            }],
             (_, Some(provider), _) => provider
                 .models
                 .iter()
-                .map(|model| SelectOption {
-                    value: model.to_string(),
-                    label: model.to_string(),
-                    detail: None,
-                    glyph: None,
+                .map(|model| {
+                    let mut badges = Vec::new();
+                    if crate::stt_models::is_deprecated_stt_model(provider.id, model) {
+                        badges.push(super::settings::SelectBadge::Deprecated);
+                    }
+                    // `mode === "live" ? "realtime" : mode`; `ModelModeBadge`
+                    // renders nothing for a model without a known mode.
+                    match crate::stt_capabilities::model_transcription_mode(provider.id, model) {
+                        Some(anlg_listener_core::TranscriptionMode::Batch) => {
+                            badges.push(super::settings::SelectBadge::AfterRecording)
+                        }
+                        Some(anlg_listener_core::TranscriptionMode::Live) => {
+                            badges.push(super::settings::SelectBadge::Live)
+                        }
+                        None => {}
+                    }
+                    SelectOption {
+                        value: model.to_string(),
+                        label: crate::stt_models::display_model_id(model),
+                        detail: None,
+                        glyph: crate::stt_models::model_icon(model),
+                        badges,
+                        lock: None,
+                        heading: None,
+                    }
                 })
                 .collect(),
             (_, None, _) => Vec::new(),
@@ -547,6 +600,22 @@ impl Workspace {
                     on_refresh: Rc::new(|this, cx| this.ensure_llm_models(true, cx)),
                 }))
             }
+            // `{isConfigured && <HealthStatusIndicator />}` / the green check:
+            // the STT select carries the same suffixes from `useConnectionHealth`.
+            (ProviderKind::Stt, Some(_))
+                if current_model.as_deref().is_some_and(|m| !m.is_empty()) =>
+            {
+                let health = self.stt_health_status();
+                Some(Rc::new(super::settings::ComboboxExtras {
+                    loading: false,
+                    configured: matches!(health, Some(super::stt_selection::SttHealth::Success)),
+                    pending: matches!(health, Some(super::stt_selection::SttHealth::Pending)),
+                    current_label: None,
+                    ignored: Vec::new(),
+                    selected_deprecated: false,
+                    on_refresh: Rc::new(|_, _| {}),
+                }))
+            }
             _ => None,
         };
 
@@ -582,15 +651,12 @@ impl Workspace {
                                     on_select: Rc::new(move |this, value, _, cx| {
                                         if kind == ProviderKind::Llm {
                                             this.change_llm_provider(value, cx);
-                                            return;
+                                        } else {
+                                            this.change_stt_provider(value, cx);
                                         }
-                                        this.set_setting(
-                                            provider_setting,
-                                            serde_json::Value::String(value),
-                                            cx,
-                                        );
                                     }),
                                     combobox: None,
+                                    align_end: false,
                                 },
                                 cx,
                             )),
@@ -617,7 +683,8 @@ impl Workspace {
                                     current: selected_provider.and(current_model.clone()),
                                     placeholder: "Select a model",
                                     options: Rc::new(model_options),
-                                    search: combobox.as_ref().map(|_| {
+                                    // The LLM combobox searches; the STT select lists.
+                                    search: combobox.as_ref().filter(|_| kind == ProviderKind::Llm).map(|_| {
                                         super::settings::SearchSpec {
                                             placeholder: "Search or create new",
                                             empty_message: "No models available.",
@@ -626,13 +693,19 @@ impl Workspace {
                                         }
                                     }),
                                     on_select: Rc::new(move |this, value, _, cx| {
-                                        this.set_setting(
-                                            model_setting,
-                                            serde_json::Value::String(value),
-                                            cx,
-                                        );
+                                        if kind == ProviderKind::Stt {
+                                            this.change_stt_model(value, cx);
+                                        } else {
+                                            this.set_setting(
+                                                model_setting,
+                                                serde_json::Value::String(value),
+                                                cx,
+                                            );
+                                        }
                                     }),
                                     combobox,
+                                    // `<SelectContent align="end">` on the STT model list.
+                                    align_end: kind == ProviderKind::Stt,
                                 },
                                 cx,
                             )),
@@ -677,6 +750,9 @@ impl Workspace {
                                     label: label.to_string(),
                                     detail: None,
                                     glyph: None,
+                                    badges: Vec::new(),
+                                    lock: None,
+                                    heading: None,
                                 })
                                 .collect(),
                             ),
@@ -1382,7 +1458,11 @@ fn provider_badge(theme: crate::theme::Theme, badge: &'static str) -> Div {
 /// Soniox mark scaled by `--soniox-icon-scale` back to the full slot.
 pub(crate) fn provider_slot_icon(glyph: Icon, theme: crate::theme::Theme) -> AnyElement {
     let soniox = matches!(glyph, Icon::Image(path) if path.contains("soniox"));
-    let art = if soniox { px(20.0) } else { px(12.0) };
+    let art = if soniox || matches!(glyph, Icon::Model(_)) {
+        px(20.0)
+    } else {
+        px(12.0)
+    };
     div()
         .size(px(20.0))
         .flex_shrink_0()
@@ -1401,6 +1481,24 @@ pub(crate) fn provider_icon(
     match glyph {
         Icon::Image(path) => img(ImageSource::Resource(Resource::Embedded(path.into())))
             .size(size)
+            .flex_shrink_0()
+            .into_any_element(),
+        // `object-cover object-left` on the 164×30 NVIDIA wordmark shows its
+        // eye: the image scaled to the slot's height, its left edge kept.
+        Icon::Model(path) if path.contains("nvidia") => div()
+            .size(size)
+            .flex_shrink_0()
+            .overflow_hidden()
+            .child(
+                img(ImageSource::Resource(Resource::Embedded(path.into())))
+                    .h(size)
+                    .w(size * (164.0 / 30.0))
+                    .flex_shrink_0(),
+            )
+            .into_any_element(),
+        Icon::Model(path) => img(ImageSource::Resource(Resource::Embedded(path.into())))
+            .size(size)
+            .object_fit(gpui::ObjectFit::Contain)
             .flex_shrink_0()
             .into_any_element(),
         Icon::Mono(path, color) => {

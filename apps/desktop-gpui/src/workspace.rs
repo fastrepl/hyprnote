@@ -41,6 +41,7 @@ mod recording;
 mod scheduled_auto_start;
 mod session_drag;
 mod settings;
+mod stt_selection;
 pub(crate) use settings::SettingsTab;
 mod share;
 mod speaker_assign;
@@ -328,6 +329,14 @@ pub struct Workspace {
     availability_polls: std::collections::HashSet<ai_settings::ProviderKind>,
     /// `PersistAiSelection` is writing the default LLM selection.
     applying_llm_default: bool,
+    /// The Transcription page's `lastSelectedModelsRef`.
+    last_stt_models: std::collections::HashMap<String, String>,
+    /// `PersistAiSelection` is writing the default STT selection.
+    applying_stt_default: bool,
+    /// `pendingProvider`: an STT provider picked without a model to show.
+    pending_stt_provider: Option<String>,
+    /// `useDeepgramHealth` results by API key.
+    deepgram_health: std::collections::HashMap<String, stt_selection::SttHealth>,
     /// The Dictionary page's term field and the row being edited.
     dictionary_input: Option<gpui::Entity<TextInput>>,
     dictionary_edit: Option<dictionary::DictionaryEdit>,
@@ -551,6 +560,10 @@ impl Workspace {
             ai_availability: Default::default(),
             availability_polls: Default::default(),
             applying_llm_default: false,
+            last_stt_models: Default::default(),
+            applying_stt_default: false,
+            pending_stt_provider: None,
+            deepgram_health: Default::default(),
             dictionary_input: None,
             dictionary_edit: None,
             chat_mode: Default::default(),

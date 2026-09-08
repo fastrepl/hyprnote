@@ -226,7 +226,13 @@ impl Workspace {
                     self.provider_settings.stt_provider.as_deref(),
                     self.provider_settings.stt_model.as_deref(),
                 );
-                (!configured).then(|| "Choose a transcription model to start listening.".into())
+                if !configured {
+                    return Some("Choose a transcription model to start listening.".into());
+                }
+                match self.stt_health_status() {
+                    Some(super::stt_selection::SttHealth::Error(message)) => Some(message.into()),
+                    _ => None,
+                }
             }
             super::settings::SettingsTab::Intelligence => {
                 let configured = selection_configured(

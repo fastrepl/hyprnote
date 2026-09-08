@@ -7,6 +7,9 @@
 pub enum Icon {
     /// A multi-colour brand SVG (or bitmap), drawn as an image.
     Image(&'static str),
+    /// `getLocalModelIcon`'s `<img>` filling the 20px `AiIconSlot`
+    /// (`object-contain`; the NVIDIA wordmark `object-cover object-left`).
+    Model(&'static str),
     /// A single-colour glyph: `colorPrimary` unless it is a theme-tinted
     /// colour, in which case the foreground colour is used.
     Mono(&'static str, Option<u32>),

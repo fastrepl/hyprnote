@@ -395,12 +395,19 @@ impl Workspace {
             SettingsTab::Notifications => self.ensure_installed_apps(cx),
             _ => {}
         }
+        // `pendingProvider` is the page's own state.
+        if tab != SettingsTab::Transcription {
+            self.pending_stt_provider = None;
+        }
         self.settings_tab = Some(tab);
         if tab == SettingsTab::Intelligence {
             // `useModelMetadata` / `useQuery(["models", ...])` on mount, and the
             // `staleTime: 0` health probe refetching with it.
             self.ensure_llm_models(false, cx);
             self.ensure_llm_health(true, cx);
+        }
+        if tab == SettingsTab::Transcription {
+            self.ensure_deepgram_health(cx);
         }
         cx.notify();
     }
@@ -1289,6 +1296,9 @@ impl Workspace {
                                     label: label.to_string(),
                                     detail: None,
                                     glyph: None,
+                                    badges: Vec::new(),
+                                    lock: None,
+                                    heading: None,
                                 })
                                 .collect(),
                             ),
@@ -1403,6 +1413,9 @@ impl Workspace {
                                         label: label.to_string(),
                                         detail: None,
                                         glyph: None,
+                                        badges: Vec::new(),
+                                        lock: None,
+                                        heading: None,
                                     })
                                     .collect(),
                                 ),
@@ -1413,6 +1426,7 @@ impl Workspace {
                                     }
                                 }),
                                 combobox: None,
+                                align_end: false,
                             },
                             cx,
                         );
@@ -1543,6 +1557,9 @@ impl Workspace {
             label: app.name.clone(),
             detail: None,
             glyph: None,
+            badges: Vec::new(),
+            lock: None,
+            heading: None,
         })
         .collect();
         // Radix `avoidCollisions`: the popover flips above the trigger when
@@ -1570,6 +1587,7 @@ impl Workspace {
             }),
             on_select: Rc::new(|this, value, _, cx| this.toggle_ignored_app(&value, cx)),
             combobox: None,
+            align_end: false,
         });
         let open = self.open_select.as_ref().filter(|open| open.id == spec.id);
         let spec_for_click = spec.clone();
@@ -2219,6 +2237,9 @@ impl Workspace {
                     label: label.to_string(),
                     detail: None,
                     glyph: None,
+                    badges: Vec::new(),
+                    lock: None,
+                    heading: None,
                 })
                 .collect::<Vec<_>>()
         };
@@ -2373,12 +2394,18 @@ impl Workspace {
                                         label: "Current default".to_string(),
                                         detail: None,
                                         glyph: None,
+                                        badges: Vec::new(),
+                                        lock: None,
+                                        heading: None,
                                     })
                                     .chain((!microphone.is_empty()).then(|| SelectOption {
                                         value: microphone.clone(),
                                         label: format!("{microphone} (Unavailable — using current default)"),
                                         detail: None,
                                         glyph: None,
+                                        badges: Vec::new(),
+                                        lock: None,
+                                        heading: None,
                                     }))
                                     .collect(),
                                 ),
@@ -2577,6 +2604,9 @@ impl Workspace {
                                                     label: label.to_string(),
                                                     detail: None,
                                                     glyph: None,
+                                                    badges: Vec::new(),
+                                                    lock: None,
+                                                    heading: None,
                                                 })
                                                 .collect(),
                                         ),
@@ -2616,6 +2646,7 @@ impl Workspace {
                                             );
                                         }),
                                         combobox: None,
+                                        align_end: false,
                                     },
                                     cx,
                                 ),
@@ -2641,6 +2672,9 @@ impl Workspace {
                                                     label: label.to_string(),
                                                     detail: Some(detail),
                                                     glyph: None,
+                                                    badges: Vec::new(),
+                                                    lock: None,
+                                                    heading: None,
                                                 })
                                                 .collect(),
                                         ),
@@ -2664,6 +2698,7 @@ impl Workspace {
                                             );
                                         }),
                                         combobox: None,
+                                        align_end: false,
                                     },
                                     cx,
                                 ),
@@ -2684,12 +2719,18 @@ impl Workspace {
                                                 label: "Sunday".to_string(),
                                                 detail: None,
                                                 glyph: None,
+                                                badges: Vec::new(),
+                                                lock: None,
+                                                heading: None,
                                             },
                                             SelectOption {
                                                 value: "monday".to_string(),
                                                 label: "Monday".to_string(),
                                                 detail: None,
                                                 glyph: None,
+                                                badges: Vec::new(),
+                                                lock: None,
+                                                heading: None,
                                             },
                                         ],
                                     ),
@@ -3258,6 +3299,32 @@ pub(crate) struct SelectOption {
     pub detail: Option<&'static str>,
     /// `ProviderIconSlot` before the label (the AI provider selects).
     pub glyph: Option<crate::ai_providers::Icon>,
+    /// The STT model select's chips after the label (`DeprecatedBadge`,
+    /// `ModelModeBadge`); `Live` shows on the selected value only, as the
+    /// rows badge the batch models alone.
+    pub badges: Vec<SelectBadge>,
+    /// A row that cannot be picked yet: the STT page's undownloaded models
+    /// read muted and offer their action on hover instead of selecting.
+    pub lock: Option<SelectLock>,
+    /// `getModelCategoryLabel` above the row when its category starts
+    /// (`RECOMMENDED` over the Anarlog cloud model).
+    pub heading: Option<&'static str>,
+}
+
+/// What an unselectable STT model row offers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SelectLock {
+    /// `Upgrade to use` on the Anarlog cloud model without a paid plan
+    /// (`onStartTrial` → `upgradeToPro`).
+    UpgradeToUse,
+}
+
+/// The chips of the STT model rows and selected value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SelectBadge {
+    Deprecated,
+    Live,
+    AfterRecording,
 }
 
 /// `PlanTierData` from `packages/pricing/src/tiers.ts` (`PLAN_TIERS`: prices
@@ -3397,6 +3464,9 @@ pub(crate) struct SelectSpec {
     pub on_select: OnSelect,
     /// `ModelCombobox` extras over the searchable panel.
     pub combobox: Option<Rc<ComboboxExtras>>,
+    /// `SelectContent align="end"`: the panel grows past the trigger's width
+    /// to fit its widest row and keeps its right edge on the trigger's.
+    pub align_end: bool,
 }
 
 /// `ModelCombobox`: the freeform `Select "…"` row, the ignored models behind
@@ -3438,6 +3508,7 @@ impl SelectSpec {
                 this.set_setting(key, serde_json::Value::String(value), cx);
             }),
             combobox: None,
+            align_end: false,
         }
     }
 }
@@ -3540,11 +3611,24 @@ impl Workspace {
             input.read(cx).focus_handle(cx).focus(window);
             input
         });
+        // Radix `Select` focuses the selected item when the list opens.
+        let highlighted = match &search {
+            Some(_) => 0,
+            None => spec
+                .current
+                .as_ref()
+                .and_then(|value| {
+                    spec.options
+                        .iter()
+                        .position(|option| &option.value == value)
+                })
+                .unwrap_or(0),
+        };
         self.open_select = Some(OpenSelect {
             id: spec.id,
             options: spec.options.clone(),
             on_select: spec.on_select.clone(),
-            highlighted: 0,
+            highlighted,
             search,
             show_ignored: false,
         });
@@ -3607,6 +3691,16 @@ impl Workspace {
         let selected_deprecated = combobox
             .as_ref()
             .is_some_and(|extras| extras.selected_deprecated && spec.current.is_some());
+        // `ModelSelectedValue`: the label at `opacity-60 text-muted-foreground`
+        // for a deprecated model, then its `DeprecatedBadge` and `ModelModeBadge`.
+        let selected_badges: Vec<SelectBadge> = selected
+            .map(|option| option.badges.clone())
+            .unwrap_or_default();
+        let color = if selected_badges.contains(&SelectBadge::Deprecated) {
+            theme.muted_foreground
+        } else {
+            color
+        };
         let configured = combobox.as_ref().is_some_and(|extras| extras.configured);
         let pending = combobox.as_ref().is_some_and(|extras| extras.pending);
         let selected_glyph = selected.and_then(|option| option.glyph);
@@ -3675,8 +3769,20 @@ impl Workspace {
                                     super::ai_settings::provider_slot_icon(glyph, theme)
                                 }),
                             )
-                            .child(div().min_w_0().truncate().child(text))
+                            .child(
+                                div()
+                                    .min_w_0()
+                                    .truncate()
+                                    .when(
+                                        selected_badges.contains(&SelectBadge::Deprecated),
+                                        |label| label.opacity(0.6),
+                                    )
+                                    .child(text),
+                            )
                             .when(selected_deprecated, |row| row.child(deprecated_badge()))
+                            .children(selected_badges.iter().map(|badge| {
+                                self.select_badge(*badge, format!("select-value-{id}"), cx)
+                            }))
                             // `suffix={<HealthStatusIndicator />}`
                             .when(pending, |row| {
                                 row.child(div().ml_auto().child(crate::ui::spinner(
@@ -3713,14 +3819,21 @@ impl Workspace {
     ) -> AnyElement {
         let theme = self.theme;
         let id = spec.id;
+        let highlighted = self
+            .open_select
+            .as_ref()
+            .filter(|open| open.id == id)
+            .map(|open| open.highlighted);
         div()
             .id(SharedString::from(format!("select-content-{id}")))
             .occlude()
             .absolute()
             .top(px(if compact { 36.0 } else { 40.0 }))
-            .left_0()
-            .w_full()
-            .min_w(px(128.0))
+            .when(!spec.align_end, |panel| {
+                panel.left_0().w_full().min_w(px(128.0))
+            })
+            // `align="end"`: at least the trigger's width, wider for the rows.
+            .when(spec.align_end, |panel| panel.right_0().min_w_full())
             .flex()
             .flex_col()
             .p_1()
@@ -3736,37 +3849,161 @@ impl Workspace {
                 let selected = spec.current.as_deref() == Some(option.value.as_str());
                 let value = option.value.clone();
                 let on_select = spec.on_select.clone();
-                div()
+                let lock = option.lock;
+                // `text-muted-foreground px-2 pt-2 pb-1 text-[11px] font-medium
+                // tracking-wide uppercase` over the category's first row.
+                let heading = option.heading.map(|heading| {
+                    div()
+                        .px_2()
+                        .pt_2()
+                        .pb_1()
+                        .text_size(px(11.0))
+                        .line_height(px(15.0))
+                        .font_weight(gpui::FontWeight::MEDIUM)
+                        .text_color(theme.muted_foreground)
+                        .child(SharedString::from(heading.to_uppercase()))
+                });
+                let row = div()
                     .id(SharedString::from(format!("select-option-{id}-{index}")))
+                    .group(format!("select-option-{id}-{index}"))
                     .relative()
                     .flex()
-                    .w_full()
+                    // A content-sized panel stretches its rows to the widest one;
+                    // a percentage width would size each to its own content.
+                    .when(!spec.align_end, |row| row.w_full())
                     .items_center()
                     .py(px(6.0))
-                    .pr_8()
+                    // The locked row keeps `pr-1.5` for its action button.
+                    .when(lock.is_none(), |row| row.pr_8())
+                    .when(lock.is_some(), |row| row.pr(px(6.0)))
                     .pl_2()
                     .rounded(px(14.0))
                     .tw_text_sm()
-                    .text_color(theme.foreground)
+                    .text_color(if lock.is_some() {
+                        theme.muted_foreground
+                    } else {
+                        theme.foreground
+                    })
                     .cursor_default()
-                    .hover(move |style| style.bg(theme.accent))
+                    .when(lock.is_some(), |row| row.cursor_pointer())
+                    // `focus:bg-accent`: the focused item, which the pointer moves.
+                    .when(highlighted == Some(index), |row| row.bg(theme.accent))
+                    .on_hover(cx.listener(move |this, hovered: &bool, _, cx| {
+                        if let Some(open) = this.open_select.as_mut()
+                            && *hovered
+                            && open.highlighted != index
+                        {
+                            open.highlighted = index;
+                            cx.notify();
+                        }
+                    }))
                     .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
                     .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
+                        // `handleAction`: the whole row runs the action.
+                        if let Some(lock) = lock {
+                            this.close_select(cx);
+                            this.run_select_lock(lock, window, cx);
+                            return;
+                        }
                         this.close_select(cx);
                         on_select(this, value.clone(), window, cx);
                     }))
+                    .when_some(lock, |row, lock| {
+                        // `Upgrade to use`: `bg-primary text-primary-foreground rounded-full
+                        // px-2 py-1 text-[11px] font-medium shadow-xs`, shown on hover.
+                        row.child(
+                            div()
+                                .absolute()
+                                .right(px(6.0))
+                                .top_0()
+                                .bottom_0()
+                                .flex()
+                                .items_center()
+                                .child(
+                                    div()
+                                        .invisible()
+                                        .group_hover(
+                                            format!("select-option-{id}-{index}"),
+                                            |button| button.visible(),
+                                        )
+                                        .rounded(px(9999.0))
+                                        .px_2()
+                                        .py(px(4.0))
+                                        .text_size(px(11.0))
+                                        .line_height(px(16.0))
+                                        .font_weight(gpui::FontWeight::MEDIUM)
+                                        .bg(theme.primary)
+                                        .text_color(theme.primary_foreground)
+                                        .shadow_xs()
+                                        .child(match lock {
+                                            SelectLock::UpgradeToUse => "Upgrade to use",
+                                        }),
+                                ),
+                        )
+                    })
                     .when_some(option.glyph, |row, glyph| {
                         row.gap_2()
                             .child(super::ai_settings::provider_slot_icon(glyph, theme))
                     })
-                    .child(SharedString::from(option.label.clone()))
+                    // A deprecated model's row reads `text-muted-foreground`.
+                    .when(option.badges.contains(&SelectBadge::Deprecated), |row| {
+                        row.text_color(theme.muted_foreground)
+                    })
+                    .child(if option.badges.is_empty() {
+                        SharedString::from(option.label.clone()).into_any_element()
+                    } else {
+                        // `SelectItemText`'s inline span shrinks the `justify-between`
+                        // content to the label plus its `gap-3` chip group; the
+                        // rows badge deprecation and the batch mode only.
+                        div()
+                            .flex()
+                            .min_w_0()
+                            .items_center()
+                            .gap_3()
+                            .child(
+                                div()
+                                    .flex_shrink_0()
+                                    .whitespace_nowrap()
+                                    .child(SharedString::from(option.label.clone())),
+                            )
+                            .child(
+                                div()
+                                    .flex()
+                                    .flex_shrink_0()
+                                    .items_center()
+                                    .gap_2()
+                                    .children(
+                                        option
+                                            .badges
+                                            .iter()
+                                            .filter(|badge| **badge != SelectBadge::Live)
+                                            .map(|badge| {
+                                                self.select_badge(
+                                                    *badge,
+                                                    format!("select-option-{id}-{index}"),
+                                                    cx,
+                                                )
+                                            }),
+                                    ),
+                            )
+                            .into_any_element()
+                    })
                     .when(selected, |item| {
                         item.child(div().absolute().right_2().flex().items_center().child(icon(
                             "check",
                             px(16.0),
                             theme.foreground,
                         )))
-                    })
+                    });
+                match heading {
+                    Some(heading) => div()
+                        .flex()
+                        .flex_col()
+                        .child(heading)
+                        .child(row)
+                        .into_any_element(),
+                    None => row.into_any_element(),
+                }
             }))
             .into_any_element()
     }
@@ -3903,12 +4140,25 @@ impl Workspace {
                         this.focus_handle.focus(window);
                         on_select(this, value.clone(), window, cx);
                     }))
+                    .when(option.badges.contains(&SelectBadge::Deprecated), |row| {
+                        row.text_color(theme.muted_foreground)
+                    })
                     .child(
                         div()
                             .flex_1()
                             .min_w_0()
                             .truncate()
                             .child(SharedString::from(option.label.clone())),
+                    )
+                    // The rows badge deprecation and the batch mode only.
+                    .children(
+                        option
+                            .badges
+                            .iter()
+                            .filter(|badge| **badge != SelectBadge::Live)
+                            .map(|badge| {
+                                self.select_badge(*badge, format!("select-row-{id}-{index}"), cx)
+                            }),
                     )
                     .when_some(option.detail, |row, detail| {
                         row.child(
@@ -4115,6 +4365,59 @@ impl Workspace {
                     .children(footer),
             )
             .into_any_element()
+    }
+}
+
+impl Workspace {
+    /// The action behind a locked select row.
+    fn run_select_lock(&mut self, lock: SelectLock, window: &mut Window, cx: &mut Context<Self>) {
+        match lock {
+            SelectLock::UpgradeToUse => self.upgrade_to_pro(window, cx),
+        }
+    }
+
+    /// A `SelectBadge`: the `DeprecatedBadge`, or `ModelModeBadge`'s `Live`
+    /// (`bg-sky-50 text-sky-700`) / `After recording` (`bg-muted
+    /// text-muted-foreground`) chip with its `delayDuration={100}` tooltip.
+    fn select_badge(&self, badge: SelectBadge, id: String, cx: &Context<Self>) -> AnyElement {
+        let theme = self.theme;
+        match badge {
+            SelectBadge::Deprecated => deprecated_badge().into_any_element(),
+            SelectBadge::Live | SelectBadge::AfterRecording => {
+                let live = badge == SelectBadge::Live;
+                let chip = div()
+                    .flex_shrink_0()
+                    .rounded(px(6.0))
+                    .px(px(6.0))
+                    .py(px(2.0))
+                    .text_size(px(11.0))
+                    .line_height(px(16.0))
+                    .font_weight(gpui::FontWeight::MEDIUM)
+                    .when(live, |chip| {
+                        chip.bg(gpui::rgb(0xf0f9ff)).text_color(gpui::rgb(0x0369a1))
+                    })
+                    .when(!live, |chip| {
+                        chip.bg(theme.muted).text_color(theme.muted_foreground)
+                    })
+                    .child(if live { "Live" } else { "After recording" });
+                self.tooltip_trigger(
+                    super::tooltip::TooltipSpec::text(
+                        id,
+                        if live {
+                            "Can transcribe while the meeting is happening."
+                        } else {
+                            "Runs after the recording finishes, not during the meeting."
+                        },
+                        super::tooltip::Side::Top,
+                    )
+                    .max_width(256.0)
+                    .delay(100),
+                    chip,
+                    cx,
+                )
+                .into_any_element()
+            }
+        }
     }
 }
 

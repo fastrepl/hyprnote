@@ -52,6 +52,7 @@ mod squircle;
 mod stats;
 mod store_file;
 mod stt_capabilities;
+mod stt_models;
 mod templates;
 mod text_area;
 mod text_input;

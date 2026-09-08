@@ -11,13 +11,7 @@ import type {
   RecorderPhase,
 } from "@/audio/use-session-recorder";
 import { DancingSticks } from "@/components/dancing-sticks";
-import {
-  CornerCurve,
-  LISTENING_CONTROL_HEIGHT,
-  LISTENING_CONTROL_RADIUS,
-  Spacing,
-  Typography,
-} from "@/constants/theme";
+import { CornerCurve, Radius, Spacing, Typography } from "@/constants/theme";
 import { createStyleHook, useColors } from "@/settings/theme-provider";
 
 function formatDuration(ms: number): string {
@@ -77,100 +71,90 @@ export function ListeningSheet({
     : recoverable
       ? onRetry
       : onStop;
-  const control = (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={
-        permissionDenied
-          ? "Open recording settings"
-          : recoverable
-            ? "Recover recording"
-            : "Stop listening"
-      }
-      onPress={handlePanelPress}
-      disabled={phase === "saving"}
-      style={({ pressed }) => [styles.panel, pressed && styles.panelPressed]}
-    >
-      {phase === "saving" ? (
-        <View style={styles.panelCenter}>
-          <ActivityIndicator color={Colors.inkInverse} />
-        </View>
-      ) : permissionDenied ? (
-        <View style={styles.panelCenter}>
-          <Text style={styles.panelMessage}>
-            {failure === "notification_permission_denied"
-              ? "Allow recording notifications in Settings"
-              : "Microphone access is off — open Settings"}
-          </Text>
-        </View>
-      ) : phase === "interrupted" ? (
-        <View style={styles.panelCenter}>
-          <Text style={styles.panelMessage}>
-            Interrupted — tap to save or retry
-          </Text>
-        </View>
-      ) : phase === "save_error" ? (
-        <View style={styles.panelCenter}>
-          <Text style={styles.panelMessage}>Couldn't save — tap to retry</Text>
-        </View>
-      ) : phase === "error" ? (
-        <View style={styles.panelCenter}>
-          <Text style={styles.panelMessage}>Tap to recover recording</Text>
-        </View>
-      ) : (
-        <DancingSticks
-          amplitude={amplitude}
-          color={Colors.inkInverse}
-          height={36}
-          width={80}
-          stickWidth={3}
-          gap={3}
-        />
-      )}
-    </Pressable>
-  );
   const label = statusLabel(phase, durationMs);
+  const actionLabel = permissionDenied
+    ? "Settings"
+    : recoverable
+      ? "Retry"
+      : "Stop";
 
   return (
     <View style={styles.dock}>
-      <View style={styles.heading}>
-        <View style={styles.recordingDot} />
-        <Text style={styles.headingText}>{label}</Text>
+      <View style={styles.status}>
+        {phase === "recording" ? (
+          <DancingSticks
+            amplitude={amplitude}
+            color={Colors.accent}
+            height={20}
+            width={24}
+            stickWidth={2}
+            gap={2}
+          />
+        ) : phase === "saving" || phase === "starting" ? (
+          <ActivityIndicator color={Colors.muted} size="small" />
+        ) : null}
+        <Text style={styles.statusText}>{label}</Text>
       </View>
-      {control}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={
+          permissionDenied
+            ? "Open recording settings"
+            : recoverable
+              ? "Recover recording"
+              : "Stop listening"
+        }
+        accessibilityState={{ disabled: phase === "saving" }}
+        onPress={handlePanelPress}
+        disabled={phase === "saving"}
+        style={({ pressed }) => [styles.control, pressed && styles.pressed]}
+      >
+        {!permissionDenied && !recoverable && <View style={styles.stopIcon} />}
+        <Text style={styles.controlText}>{actionLabel}</Text>
+      </Pressable>
     </View>
   );
 }
 
 const useStyles = createStyleHook((Colors) => ({
   dock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
     paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.sm,
+    paddingVertical: Spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.border,
   },
-  heading: {
+  status: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    padding: Spacing.md,
   },
-  headingText: { flex: 1, ...Typography.bodyStrong, color: Colors.ink },
-  recordingDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.accent,
+  statusText: {
+    flexShrink: 1,
+    ...Typography.caption,
+    color: Colors.muted,
+    fontVariant: ["tabular-nums"],
   },
-  panel: {
-    height: LISTENING_CONTROL_HEIGHT,
+  control: {
+    minHeight: 44,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: LISTENING_CONTROL_RADIUS,
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.pill,
     borderCurve: CornerCurve.squircle,
+    backgroundColor: Colors.surface,
+  },
+  pressed: { backgroundColor: Colors.accentSurface },
+  controlText: { ...Typography.bodyStrong, color: Colors.ink },
+  stopIcon: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
     backgroundColor: Colors.accent,
   },
-  panelPressed: { opacity: 0.9 },
-  panelCenter: { flex: 1, alignItems: "center", justifyContent: "center" },
-  panelMessage: { ...Typography.label, color: Colors.inkInverse },
 }));

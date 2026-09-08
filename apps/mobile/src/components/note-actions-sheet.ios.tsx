@@ -32,6 +32,7 @@ export function NoteActionsSheet({
   onDelete,
   onExport,
   onImportRecording,
+  onSelectFolder,
   onToggleListening,
   visible,
 }: NoteActionsSheetProps) {
@@ -39,6 +40,7 @@ export function NoteActionsSheet({
   const colorScheme = useAppColorScheme();
   const pendingAction = useRef<(() => void) | null>(null);
   const actions = [
+    { label: "Folder", icon: "folder", onPress: onSelectFolder },
     { label: "Export", icon: "square.and.arrow.up", onPress: onExport },
     ...(!listening && !hasRecordingHistory
       ? [

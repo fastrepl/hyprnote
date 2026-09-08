@@ -12,6 +12,7 @@ export type NoteActionsSheetProps = {
   onDelete: () => void;
   onExport: () => void;
   onImportRecording: () => void;
+  onSelectFolder: () => void;
   onToggleListening: () => void;
   visible: boolean;
 };
@@ -23,6 +24,7 @@ export function NoteActionsSheet({
   onDelete,
   onExport,
   onImportRecording,
+  onSelectFolder,
   onToggleListening,
   visible,
 }: NoteActionsSheetProps) {
@@ -66,6 +68,18 @@ export function NoteActionsSheet({
             style={styles.handleTarget}
           >
             <View style={styles.handle} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => select(onSelectFolder)}
+            style={({ pressed }) => [
+              styles.action,
+              pressed && styles.actionPressed,
+            ]}
+          >
+            <Ionicons name="folder-outline" size={20} color={Colors.ink} />
+            <Text style={styles.actionLabel}>Folder</Text>
+            <Ionicons name="chevron-forward" size={18} color={Colors.muted} />
           </Pressable>
           <Pressable
             accessibilityRole="button"
@@ -186,6 +200,7 @@ const useStyles = createStyleHook((Colors) => ({
     backgroundColor: Colors.accentSurface,
   },
   actionLabel: {
+    flex: 1,
     ...Typography.bodyStrong,
     color: Colors.ink,
   },

@@ -72,10 +72,7 @@ export function shouldShowPreMeetingBrief(
   }
 
   const endMs = parseEventInstant(event.ended_at)?.getTime();
-  const hideAfterMs =
-    endMs == null
-      ? startMs + AFTER_START_GRACE_MS
-      : Math.max(endMs, startMs + AFTER_START_GRACE_MS);
+  const hideAfterMs = endMs ?? startMs + AFTER_START_GRACE_MS;
   return hideAfterMs > nowMs;
 }
 
@@ -99,7 +96,7 @@ export function canCreatePreMeetingBrief({
   hasParticipants?: boolean;
 }): boolean {
   return (
-    (shouldShowPreMeetingBrief(event, nowMs) || hasParticipants) &&
+    (event ? shouldShowPreMeetingBrief(event, nowMs) : hasParticipants) &&
     selectBriefSourceNotes(notes).length > 0
   );
 }

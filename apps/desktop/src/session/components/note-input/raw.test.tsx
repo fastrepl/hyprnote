@@ -709,7 +709,7 @@ describe("RawEditor", () => {
     expect(hoisted.createBrief).toHaveBeenCalledOnce();
   });
 
-  it("still offers a brief after the meeting when templates hide", () => {
+  it("hides the brief suggestion once the meeting has a recording or transcript", () => {
     hoisted.briefVisible = true;
     hoisted.canShowTranscript = true;
     hoisted.userTemplates = [
@@ -725,10 +725,10 @@ describe("RawEditor", () => {
     render(<RawEditor sessionId="session-1" />);
 
     expect(
-      screen.getByRole("button", {
+      screen.queryByRole("button", {
         name: "Create a brief to prepare this meeting",
       }),
-    ).not.toBeNull();
+    ).toBeNull();
     expect(screen.queryByText("Suggested templates")).toBeNull();
     expect(screen.queryByRole("button", { name: "Daily Standup" })).toBeNull();
   });

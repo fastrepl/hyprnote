@@ -7,6 +7,9 @@ import configureMobileApp, { resolveAppVariant } from "./app.config.ts";
 const baseConfig = JSON.parse(
   readFileSync(new URL("./app.json", import.meta.url), "utf8"),
 ).expo;
+const releaseVersion = JSON.parse(
+  readFileSync(new URL("../../release-version.json", import.meta.url), "utf8"),
+).version;
 
 const expectedVariants = {
   dev: {
@@ -43,6 +46,7 @@ test("configures distinct app identities for every build profile", () => {
       );
 
       assert.equal(config.name, expected.name);
+      assert.equal(config.version, releaseVersion);
       assert.equal(config.icon, expected.icon);
       assert.equal(config.scheme, expected.scheme);
       assert.equal(config.ios.bundleIdentifier, expected.bundleIdentifier);
@@ -110,4 +114,23 @@ test("defines dev, staging, and stable EAS build profiles", () => {
     assert.equal(easConfig.build[appVariant].env.APP_VARIANT, appVariant);
   }
   assert.deepEqual(Object.keys(easConfig.submit), ["stable"]);
+  assert.equal(easConfig.cli.appVersionSource, "remote");
+  assert.equal(easConfig.build.stable.autoIncrement, true);
+  assert.equal(easConfig.build.staging.autoIncrement, true);
+});
+
+test("the shared marketing version leaves store build counters intact", () => {
+  const config = configureMobileApp({
+    config: {
+      ...baseConfig,
+      version: "0.1.1",
+      ios: { ...baseConfig.ios, version: "0.1.1", buildNumber: "42" },
+      android: { ...baseConfig.android, version: "0.1.0", versionCode: 37 },
+    },
+  });
+  assert.equal(config.version, releaseVersion);
+  assert.equal(config.ios.version, releaseVersion);
+  assert.equal(config.android.version, releaseVersion);
+  assert.equal(config.ios.buildNumber, "42");
+  assert.equal(config.android.versionCode, 37);
 });

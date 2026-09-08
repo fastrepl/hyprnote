@@ -7,7 +7,7 @@ metadata:
 
 # Release a New Version
 
-Use this for stable desktop releases and requested mobile store distribution. A stable desktop release must come from `main`, after the changelog and required CLI, MCP, API, agent-package, and documentation updates are accurate, validated, and merged. Mobile uses its own app version and build numbers.
+Use this for stable desktop releases and requested mobile store distribution. A stable desktop release must come from `main`, after the changelog and required CLI, MCP, API, agent-package, and documentation updates are accurate, validated, and merged. Desktop, iOS, Android, and watchOS share the marketing version in `release-version.json`; platform build numbers and publication schedules remain independent.
 
 ## Core Rule
 
@@ -87,11 +87,16 @@ cat .github/workflows/web_cd.yaml
 ```bash
 VERSION=<version>
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+node scripts/release-version.mjs "$VERSION"
+node scripts/release-version.mjs --check "$VERSION"
 test -f "packages/changelog/content/$VERSION.md"
 ```
 
 Stable desktop releases never infer a version. The workflow requires the exact
-stable semantic version and a matching changelog file.
+stable semantic version to match `release-version.json` and a changelog file.
+The version command also regenerates `apps/watch/apple/Version.xcconfig`;
+commit both version files with the release preparation changes. Expo reads the
+shared version directly. Matching versions do not authorize mobile publication.
 
 3. Identify the latest stable desktop tag and the commits that will ship:
 
@@ -349,9 +354,10 @@ workflow. Check the AUR registry before claiming an AUR release.
    update instructions rather than claiming all installations updated.
 
 Record each publication's source SHA, version (where applicable), run/deployment
-URL, and observed result. Preserve independent API/plugin/mobile versions;
-compatible behavior is the requirement, not identical version numbers. If a
-required surface is deferred, state its impact and the user's explicit deferral.
+URL, and observed result. API and plugin versions remain independent. Desktop,
+mobile, and watchOS builds use the shared marketing version, but each store's
+actual availability must be verified separately. If a required surface is
+deferred, state its impact and the user's explicit deferral.
 
 ## Mobile Store Distribution
 
@@ -380,11 +386,14 @@ building or submitting. Current repository identities are:
 Re-read these values rather than treating this list as authority if configuration
 changes. Never access an environment whose name matches `*-char`.
 
-The mobile marketing version comes from `apps/mobile/app.json`; do not copy the
-desktop version into it. `appVersionSource: remote` and `autoIncrement: true`
-manage iOS build numbers and Android version codes. Check remote build history
-and store versions before selecting a build. Merge intentional version/profile
-changes before freezing the candidate.
+The mobile marketing version comes from `release-version.json` through
+`apps/mobile/app.config.ts`. Run `node scripts/release-version.mjs --check`
+before building. Use `node scripts/release-version.mjs <major.minor.patch>` to
+prepare a new shared version; do not edit the generated watch configuration.
+Keep `appVersionSource: remote` and `autoIncrement: true` for iOS build numbers
+and Android version codes, and never reset those counters to match the marketing
+version. Check remote build history and store versions before selecting a
+build. Merge intentional version/profile changes before freezing the candidate.
 
 Confirm signing and submission credential availability without printing secrets.
 Use credentials already managed by EAS where possible. Google Play submission

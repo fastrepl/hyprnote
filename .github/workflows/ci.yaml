@@ -12,8 +12,10 @@ jobs:
       - run: |
           python3 .github/scripts/test_check_license_boundary.py
           python3 .github/scripts/check_license_boundary.py
+      - run: node scripts/release-version.mjs --check
       - run: >-
           node --test
+          scripts/release-version.test.mjs
           .agents/skills/qa-critical-ux/scripts/launch-native-dev-qa.test.mjs
           scripts/desktop-release-provenance.test.mjs
           scripts/publish-anarlog-skill.test.mjs

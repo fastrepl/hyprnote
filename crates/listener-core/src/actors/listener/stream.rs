@@ -589,6 +589,33 @@ mod tests {
     }
 
     #[test]
+    fn advancing_single_word_finals_keep_an_active_stream_healthy() {
+        let now = Instant::now();
+        let mut progress = StreamProgress::new(now);
+        let mut engine = crate::LiveTranscriptEngine::new("anarlog", &[], None);
+        let mut response = transcript_response(true);
+        if let StreamResponse::TranscriptResponse { channel, .. } = &mut response {
+            channel.alternatives[0].words.truncate(1);
+            channel.alternatives[0].transcript = "hello".to_string();
+        }
+        assert!(engine.process(&response).is_none());
+
+        for second in 1..300 {
+            let time = now + Duration::from_secs(second);
+            if second % 20 == 0 {
+                let mut next = response.clone();
+                next.apply_offset(second as f64);
+                let update = engine
+                    .process(&next)
+                    .expect("the next single-word final must release the held word");
+                assert!(!update.transcript_delta.new_words.is_empty());
+                progress.observe_delta(&update.transcript_delta, time);
+            }
+            assert!(!progress.observe_audio(crate::actors::SAMPLE_RATE as usize, time));
+        }
+    }
+
+    #[test]
     fn finalized_words_keep_an_active_stream_healthy() {
         let now = Instant::now();
         let mut progress = StreamProgress::new(now);

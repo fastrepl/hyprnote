@@ -1,13 +1,14 @@
 import contentCollections from "@content-collections/vite";
-import netlify from "@netlify/vite-plugin-tanstack-start";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
 import { fileURLToPath } from "node:url";
 import { generateSitemap } from "tanstack-router-sitemap";
 import { defineConfig } from "vite";
 
 import { getSitemap } from "./src/utils/sitemap";
+import { vercelBuildConfig } from "./vercel-build-config";
 
 const config = defineConfig(() => {
   const generateSourceMaps = Boolean(
@@ -17,6 +18,7 @@ const config = defineConfig(() => {
   return {
     build: {
       sourcemap: generateSourceMaps ? ("hidden" as const) : false,
+      rolldownOptions: { external: ["sharp"] },
     },
     plugins: [
       contentCollections(),
@@ -45,16 +47,44 @@ const config = defineConfig(() => {
       }),
       viteReact(),
       generateSitemap(getSitemap()),
-      process.env.SKIP_NETLIFY === "1"
-        ? null
-        : netlify({
-            dev: {
-              images: { enabled: true },
-              edgeFunctions: { enabled: false },
-            },
-          }),
+      nitro({
+        sourcemap: generateSourceMaps,
+        vercel: {
+          config: vercelBuildConfig,
+          functions: {
+            runtime: "nodejs22.x",
+            regions: ["sfo1"],
+            maxDuration: 300,
+            environment: { APP_VERSION: process.env.VITE_APP_VERSION ?? "dev" },
+          },
+        },
+      }),
+      {
+        name: "local-image-redirect",
+        apply: "serve",
+        configureServer(server) {
+          server.middlewares.use("/_vercel/image", (request, response) => {
+            const source = new URL(
+              request.url ?? "/",
+              "http://localhost",
+            ).searchParams.get("url");
+            if (
+              !source?.startsWith("/") ||
+              source.startsWith("//") ||
+              source.startsWith("/_vercel/")
+            ) {
+              response.statusCode = 400;
+            } else {
+              response.statusCode = 307;
+              response.setHeader("Location", source);
+            }
+            response.end();
+          });
+        },
+      },
     ],
     ssr: {
+      external: ["sharp"],
       noExternal: ["posthog-js", "@posthog/react", "react-tweet"],
     },
     resolve: {

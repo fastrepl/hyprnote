@@ -1,7 +1,8 @@
 import { getWorkspaceShareSlug } from "../lib/workspace-share-host.ts";
 
-const APP_ORIGIN = "https://anarlog.netlify.app";
+const APP_ORIGIN = "https://anarlog.so";
 const PLATFORM_HOSTS = new Set([
+  "anarlog.so",
   "api.anarlog.so",
   "desktop.anarlog.so",
   "docs.anarlog.so",
@@ -16,14 +17,13 @@ export const createWorkspaceShareOriginRequest = (
   const incomingUrl = new URL(request.url);
   if (getWorkspaceShareSlug(incomingUrl.hostname) === null) return null;
 
-  const originUrl = new URL(
-    incomingUrl.pathname + incomingUrl.search,
-    APP_ORIGIN,
-  );
+  const originUrl = new URL(APP_ORIGIN);
+  originUrl.pathname = incomingUrl.pathname;
+  originUrl.search = incomingUrl.search;
   const originRequest = new Request(new Request(originUrl, request), {
     redirect: "manual",
   });
-  // Netlify replaces x-forwarded-host with the origin hostname.
+  // The hosting proxy can replace x-forwarded-host with its origin hostname.
   originRequest.headers.set("x-anarlog-workspace-share-host", incomingUrl.host);
   originRequest.headers.set("x-anarlog-workspace-share-token", proxySecret);
   originRequest.headers.set("x-forwarded-host", incomingUrl.host);

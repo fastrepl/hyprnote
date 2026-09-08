@@ -3,7 +3,7 @@
 Anarlog is a pnpm and Rust workspace. Read the nearest `AGENTS.md` before changing a component.
 
 - `apps/desktop/`: Tauri 2 with React, TypeScript, Vite, and Tailwind. Zustand owns UI state; TanStack Query/Form own queries, mutations, and forms.
-- `apps/web/`: React with TanStack Start/Router, Vite, and Tailwind; deployed through Netlify.
+- `apps/web/`: React with TanStack Start/Router, Vite, and Tailwind; deployed through Vercel.
 - `apps/mobile/` and `apps/watch/apple/`: Expo/React Native with a Rust UniFFI bridge, plus a native watchOS app. Use the versions in `apps/mobile/package.json` and the mobile instructions.
 - `apps/api/`: Rust/Axum API. `apps/stripe/`: Bun/Hono billing service. Both have separate deployment workflows.
 - `apps/cli/`: Rust CLI/TUI and MCP entry point (`anarlog-cli` package, `anarlog` binary).

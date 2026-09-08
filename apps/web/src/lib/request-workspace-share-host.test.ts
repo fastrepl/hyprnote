@@ -8,8 +8,8 @@ import {
 
 test("preserves the workspace host when Netlify replaces forwarded headers", () => {
   const headers = new Headers({
-    host: "anarlog.netlify.app",
-    "x-forwarded-host": "anarlog.netlify.app",
+    host: "anarlog.so",
+    "x-forwarded-host": "anarlog.so",
     "x-anarlog-workspace-share-host": "fastrepl.anarlog.so",
     "x-anarlog-workspace-share-token": "test-secret",
   });
@@ -22,7 +22,7 @@ test("preserves the workspace host when Netlify replaces forwarded headers", () 
 });
 
 test("ignores workspace headers without the configured proxy secret", () => {
-  for (const host of ["anarlog.so", "www.anarlog.so", "anarlog.netlify.app"]) {
+  for (const host of ["anarlog.so", "www.anarlog.so", "anarlog.vercel.app"]) {
     for (const token of [undefined, "wrong-secret"]) {
       const headers = new Headers({
         host,
@@ -48,7 +48,7 @@ test("ignores workspace headers without the configured proxy secret", () => {
 
 test("reads the workspace slug from the Cloudflare forwarded host", () => {
   const headers = new Headers({
-    host: "anarlog.netlify.app",
+    host: "anarlog.so",
     "x-forwarded-host": "fastrepl.anarlog.so",
   });
 
@@ -57,9 +57,7 @@ test("reads the workspace slug from the Cloudflare forwarded host", () => {
 
 test("does not treat the Netlify origin or reserved hosts as workspaces", () => {
   assert.equal(
-    getWorkspaceShareSlugFromHeaders(
-      new Headers({ host: "anarlog.netlify.app" }),
-    ),
+    getWorkspaceShareSlugFromHeaders(new Headers({ host: "anarlog.so" })),
     null,
   );
   assert.equal(

@@ -4,7 +4,9 @@
 use std::path::PathBuf;
 
 use chrono::{Datelike, Timelike};
-use gpui::{AnyElement, ClickEvent, Context, Div, MouseButton, SharedString, div, prelude::*, px};
+use gpui::{
+    AnyElement, ClickEvent, Context, Div, MouseButton, SharedString, Window, div, prelude::*, px,
+};
 
 use super::Workspace;
 use crate::theme::alpha;
@@ -220,7 +222,11 @@ impl Workspace {
 
     /// `DialogContent`: `bg-black/20` overlay, a `max-w-xs p-4` slot holding
     /// the `rounded-xl border bg-background p-5 gap-4 text-center` card.
-    pub(super) fn render_export_dialog(&self, cx: &Context<Self>) -> Option<AnyElement> {
+    pub(super) fn render_export_dialog(
+        &self,
+        window: &Window,
+        cx: &Context<Self>,
+    ) -> Option<AnyElement> {
         let dialog = self.export_dialog.as_ref()?;
         let theme = self.theme;
         let has_selection =
@@ -302,9 +308,24 @@ impl Workspace {
             }),
         );
 
+        // The card is a grid item of the 320px `max-w-xs` content with
+        // `p-4`, so `min-width: auto` keeps it at least as wide as its
+        // widest unwrappable row: the include row measures 265px on the
+        // web view, pushing the card from 288px to 305px.
+        let row_min = |labels: &[&str], control: f32| -> f32 {
+            let gaps = 16.0 * (labels.len() as f32 - 1.0);
+            labels
+                .iter()
+                .map(|label| control + 6.0 + f32::from(self.measure_text(label, px(14.0), window)))
+                .sum::<f32>()
+                + gaps
+        };
+        let content_min = row_min(&["Memo", "Summary", "Transcript"], 13.0)
+            .max(row_min(&["PDF", "TXT", "Markdown", "Org"], 13.0));
+        let card_width = (content_min + 40.0).max(288.0);
         let card = div()
             .id("export-card")
-            .w(px(288.0))
+            .w(px(card_width))
             .flex()
             .flex_col()
             .gap_4()
@@ -333,13 +354,27 @@ impl Workspace {
                             .text_color(theme.foreground)
                             .child("Export"),
                     )
-                    .child(
-                        div()
-                            .tw_text_sm()
-                            .text_color(theme.muted_foreground)
-                            .text_center()
-                            .child("Choose a file format and what to include."),
-                    ),
+                    .child({
+                        // `DialogDescription`: a centred `text-sm` p, wrapped pretty.
+                        let mut style = window.text_style();
+                        style.font_size = px(14.0).into();
+                        style.color = theme.muted_foreground.into();
+                        if let Some(font) = &self.font_family {
+                            style.font_family = font.clone();
+                        }
+                        let text = "Choose a file format and what to include.";
+                        div().w_full().child(
+                            crate::prose_text::ProseText::new(
+                                text.to_string(),
+                                vec![style.to_run(text.len())],
+                                px(14.0),
+                                px(20.0),
+                            )
+                            .centered()
+                            .pretty()
+                            .max_width(px(card_width - 40.0)),
+                        )
+                    }),
             )
             .child(
                 div()

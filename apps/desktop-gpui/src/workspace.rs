@@ -2063,7 +2063,7 @@ impl Render for Workspace {
             .children(self.render_format_toolbar(window, cx))
             .children(self.render_delete_selected_dialog(cx))
             .children(self.render_open_menu(window, cx))
-            .children(self.render_export_dialog(cx))
+            .children(self.render_export_dialog(window, cx))
             .children(self.render_badge_dialog(window, cx))
             .children(self.render_folder_dialogs(window, cx))
             .children(

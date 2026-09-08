@@ -1,4 +1,5 @@
 import argparse
+from contextlib import closing
 import json
 import os
 from pathlib import Path
@@ -27,7 +28,7 @@ def verify(package_root: Path, version: str):
     with tempfile.TemporaryDirectory(prefix="anarlog-cli-release-") as temporary:
         root = Path(temporary)
         database = root / "fixture.db"
-        with sqlite3.connect(database) as connection:
+        with closing(sqlite3.connect(database)) as connection:
             connection.execute("PRAGMA user_version = 0")
         env = {
             **os.environ,

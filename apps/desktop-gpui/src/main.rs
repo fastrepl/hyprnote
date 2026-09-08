@@ -26,6 +26,7 @@ mod document;
 mod editor;
 mod emoji;
 mod enhancer;
+mod event_contacts;
 mod folders;
 mod gtk_loop;
 mod keywords;

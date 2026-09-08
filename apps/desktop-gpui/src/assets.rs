@@ -208,6 +208,7 @@ embedded!(
     "icons/heart-bold.svg",
     "icons/highlighter.svg",
     "icons/image.svg",
+    "icons/info-circle.svg",
     "icons/lightning.svg",
     "icons/list-checks.svg",
     "icons/lock-key.svg",
@@ -409,6 +410,6 @@ mod tests {
         }
         assert!(Assets.load("icons/search.svg").unwrap().is_some());
         assert!(Assets.load("icons/missing.svg").unwrap().is_none());
-        assert_eq!(Assets.list("icons/").unwrap().len(), 210);
+        assert_eq!(Assets.list("icons/").unwrap().len(), 211);
     }
 }

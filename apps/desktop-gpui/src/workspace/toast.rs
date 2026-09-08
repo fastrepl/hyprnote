@@ -29,6 +29,7 @@ pub(crate) enum FlashVariant {
     Success,
     Error,
     Warning,
+    Info,
 }
 
 /// A transient sonner toast (`success` / `error` / `warning`).
@@ -367,6 +368,7 @@ impl Workspace {
             FlashVariant::Success => std::time::Duration::from_secs(3),
             FlashVariant::Error => std::time::Duration::from_secs(5),
             FlashVariant::Warning => std::time::Duration::from_secs(6),
+            FlashVariant::Info => std::time::Duration::from_secs(4),
         };
         cx.spawn(async move |this, cx| {
             cx.background_executor().timer(duration).await;
@@ -425,6 +427,19 @@ impl Workspace {
                 gpui::rgb(0x3d3d00),
                 gpui::rgb(0xf3cf58),
                 "alert-triangle",
+            ),
+            // sonner's `--info-bg` / `--info-border` / `--info-text`.
+            (FlashVariant::Info, false) => (
+                gpui::rgb(0xf0f8ff),
+                gpui::rgb(0xd3e3fd),
+                gpui::rgb(0x0973dc),
+                "info-circle",
+            ),
+            (FlashVariant::Info, true) => (
+                gpui::rgb(0x000d1f),
+                gpui::rgb(0x18283e),
+                gpui::rgb(0x589cf3),
+                "info-circle",
             ),
         };
         Some(

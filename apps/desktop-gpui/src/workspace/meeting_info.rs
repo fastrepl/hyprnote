@@ -31,6 +31,8 @@ pub(crate) struct MeetingInfo {
     date_error: Option<&'static str>,
     /// Masks the live `created_at` until it catches up with the save.
     pending_created_at: Option<String>,
+    /// `enhancingHumanId`: the chip whose `Enhance contact` is running.
+    enhancing_human_id: Option<String>,
 }
 
 /// A row of the picker dropdown (`useDropdownOptions`).
@@ -132,6 +134,7 @@ impl Workspace {
             date_editor: None,
             date_error: None,
             pending_created_at: None,
+            enhancing_human_id: None,
         });
         self.reload_meeting_info(cx);
     }
@@ -264,6 +267,87 @@ impl Workspace {
     }
 
     /// `useRemoveParticipant`: drop speaker assignments, then the mapping.
+    /// `useEventContactEnhancement`'s `mutate(humanId)` and its toasts.
+    fn enhance_contact(&mut self, human_id: String, cx: &mut Context<Self>) {
+        let (Some(info), super::Note::Ready { preview, .. }) =
+            (self.meeting_info.as_mut(), &self.note)
+        else {
+            return;
+        };
+        let session_id = info.session_id.clone();
+        info.enhancing_human_id = Some(human_id.clone());
+        cx.notify();
+        let event = preview
+            .session_event()
+            .map(|event| (event.title.clone(), event.description.clone()));
+        let attendees = preview
+            .brief
+            .event
+            .as_ref()
+            .map(|event| {
+                event
+                    .participants
+                    .iter()
+                    .map(|participant| crate::event_contacts::Attendee {
+                        name: participant.name.clone(),
+                        email: participant.email.clone(),
+                        is_current_user: participant.is_current_user,
+                        is_organizer: participant.is_organizer,
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        let task = self.store.enhance_event_contact(
+            session_id.clone(),
+            human_id.clone(),
+            event,
+            attendees,
+        );
+        cx.spawn(async move |this, cx| {
+            let result = task.await.map_err(anyhow::Error::from).and_then(|r| r);
+            this.update(cx, |this, cx| {
+                if let Some(info) = this
+                    .meeting_info
+                    .as_mut()
+                    .filter(|info| info.session_id == session_id)
+                {
+                    info.enhancing_human_id = None;
+                }
+                match result {
+                    Ok(applied) => {
+                        let changed = applied.created + applied.updated + applied.linked;
+                        let (variant, message) = if applied.created > 0 {
+                            (super::toast::FlashVariant::Success, "Contact created")
+                        } else if !applied.matched {
+                            (super::toast::FlashVariant::Info, "No contact detail found")
+                        } else if changed == 0 {
+                            (
+                                super::toast::FlashVariant::Info,
+                                "Contact already up to date",
+                            )
+                        } else {
+                            (super::toast::FlashVariant::Success, "Contact enhanced")
+                        };
+                        this.flash(variant, message.to_string(), cx);
+                        this.reload_meeting_info(cx);
+                    }
+                    Err(error) => {
+                        tracing::error!(%error, "failed to enhance contact");
+                        let message = if error.to_string() == "Language model needed" {
+                            "Language model needed"
+                        } else {
+                            "Could not enhance contact"
+                        };
+                        this.flash(super::toast::FlashVariant::Error, message.to_string(), cx);
+                    }
+                }
+                cx.notify();
+            })
+            .ok();
+        })
+        .detach();
+    }
+
     fn remove_meeting_participant(
         &mut self,
         participant: SessionParticipant,
@@ -750,6 +834,18 @@ impl Workspace {
         let Some(info) = self.meeting_info.as_ref() else {
             return div();
         };
+        // `showEnhancementButtons`: the session's event has a title or description.
+        let show_enhancement_buttons = match &self.note {
+            super::Note::Ready { preview, .. } => preview.session_event().is_some_and(|event| {
+                event.title.as_deref().is_some_and(|t| !t.trim().is_empty())
+                    || event
+                        .description
+                        .as_deref()
+                        .is_some_and(|d| !d.trim().is_empty())
+            }),
+            _ => false,
+        };
+        let enhancing = info.enhancing_human_id.clone();
         let chips = info
             .participants
             .iter()
@@ -765,6 +861,13 @@ impl Workspace {
                 }
                 let participant = participant.clone();
                 let hover_id: SharedString = format!("participant-{}", participant.id).into();
+                // `canEnhance = onEnhanceContact && assignedHumanId`
+                let can_enhance = show_enhancement_buttons && !participant.human_id.is_empty();
+                let is_enhancing = enhancing.as_deref() == Some(participant.human_id.as_str());
+                let enhance_disabled = enhancing.is_some();
+                let enhance_human_id = participant.human_id.clone();
+                let enhance_hovered = self.hovered == Some("enhance-contact")
+                    && self.hovered_participant.as_deref() == Some(participant.id.as_str());
                 Some(
                     // `Badge variant="secondary"`: `bg-foreground/10 px-2 py-0.5
                     // text-xs rounded-full` under the control squircle, with the
@@ -775,12 +878,15 @@ impl Workspace {
                         .flex()
                         .items_center()
                         .gap_1()
-                        .px_2()
-                        .py(px(2.0))
+                        // `border border-transparent px-2 py-0.5`: the fill runs
+                        // under the transparent border, so it is padding here.
+                        .px(px(9.0))
+                        .py(px(3.0))
                         .child(crate::squircle::squircle(
                             crate::squircle::CONTROL_RADIUS,
                             Some(alpha(theme.foreground, 0.1)),
-                            None,
+                            // `ring-ring/20 ring-1` while enhancing.
+                            is_enhancing.then_some((1.0, alpha(theme.ring, 0.2))),
                         ))
                         .tw_text_xs()
                         .font_weight(gpui::FontWeight::SEMIBOLD)
@@ -788,6 +894,67 @@ impl Workspace {
                         .cursor_pointer()
                         .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
                         .child(SharedString::from(name))
+                        .when(can_enhance, |chip| {
+                            // `EnhanceContactButton`: `ml-0.5 h-3.5 w-3.5 p-0` ghost
+                            // button with the 10px Sparkle (a spinner while running),
+                            // muted until hovered, under a `Tooltip delayDuration={0}`.
+                            let color = if enhance_hovered && !enhance_disabled {
+                                theme.foreground
+                            } else {
+                                theme.muted_foreground
+                            };
+                            let glyph: AnyElement = if is_enhancing {
+                                crate::ui::spinner(
+                                    SharedString::from(format!("enhance-spin-{}", participant.id)),
+                                    px(10.0),
+                                    theme.muted_foreground,
+                                )
+                                .into_any_element()
+                            } else {
+                                icon("sparkle", px(10.0), color).into_any_element()
+                            };
+                            let participant_id = participant.id.clone();
+                            let button = div()
+                                .id(SharedString::from(format!("enhance-{}", participant.id)))
+                                .relative()
+                                .ml(px(2.0))
+                                .size(px(14.0))
+                                .flex()
+                                .items_center()
+                                .justify_center()
+                                .when(enhance_disabled, |button| button.opacity(0.5))
+                                .when(!enhance_disabled, |button| button.cursor_pointer())
+                                .on_hover(cx.listener(move |this, hovering: &bool, _, cx| {
+                                    this.hovered_participant =
+                                        hovering.then(|| participant_id.clone());
+                                    this.set_hovered("enhance-contact", *hovering, cx);
+                                }))
+                                .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                                .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                                    cx.stop_propagation();
+                                    if this
+                                        .meeting_info
+                                        .as_ref()
+                                        .is_some_and(|info| info.enhancing_human_id.is_some())
+                                    {
+                                        return;
+                                    }
+                                    this.enhance_contact(enhance_human_id.clone(), cx);
+                                }))
+                                .child(glyph);
+                            chip.child(
+                                self.tooltip_trigger(
+                                    super::tooltip::TooltipSpec::text(
+                                        format!("enhance-{}", participant.id),
+                                        "Enhance contact",
+                                        super::tooltip::Side::Bottom,
+                                    )
+                                    .delay(0),
+                                    button,
+                                    cx,
+                                ),
+                            )
+                        })
                         .child(
                             div()
                                 .id(SharedString::from(format!("remove-{}", participant.id)))
@@ -813,8 +980,8 @@ impl Workspace {
                 .flex()
                 .items_center()
                 .gap_1()
-                .px_2()
-                .py(px(2.0))
+                .px(px(9.0))
+                .py(px(3.0))
                 .opacity(0.6)
                 .child(crate::squircle::squircle(
                     crate::squircle::CONTROL_RADIUS,

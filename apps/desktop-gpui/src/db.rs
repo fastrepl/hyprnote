@@ -1396,6 +1396,10 @@ async fn load_brief_inputs(
                         .get("is_current_user")
                         .and_then(|v| v.as_bool())
                         .unwrap_or(false),
+                    is_organizer: participant
+                        .get("is_organizer")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false),
                 })
                 .collect();
             BriefEvent {
@@ -3008,6 +3012,87 @@ impl Store {
             .fetch_all(db.pool())
             .await?;
             Ok(rows)
+        })
+    }
+
+    /// `useEventContactEnhancement`'s mutation for one participant: the
+    /// extraction context from the session's event text, its participants and
+    /// the calendar attendees, the plan for the human, and
+    /// `applyContactEnhancement` when it changes anything.
+    pub fn enhance_event_contact(
+        &self,
+        session_id: String,
+        human_id: String,
+        event: Option<(Option<String>, Option<String>)>,
+        attendees: Vec<crate::event_contacts::Attendee>,
+    ) -> tokio::task::JoinHandle<anyhow::Result<crate::event_contacts::Outcome>> {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            use crate::event_contacts::{self as extraction, HumanRecord, ParticipantRecord};
+            let Some((title, description)) = event else {
+                anyhow::bail!("Event unavailable");
+            };
+            let owner_user_id: Option<String> = sqlx::query_scalar(
+                "SELECT owner_user_id FROM sessions WHERE id = ? AND deleted_at IS NULL",
+            )
+            .bind(&session_id)
+            .fetch_optional(db.pool())
+            .await?;
+            let Some(user_id) = owner_user_id.filter(|id| !id.is_empty()) else {
+                anyhow::bail!("Event unavailable");
+            };
+            let participants: Vec<SessionParticipant> = sqlx::query_as(SESSION_PARTICIPANTS_SQL)
+                .bind(&session_id)
+                .fetch_all(db.pool())
+                .await?;
+            let humans: Vec<Human> = sqlx::query_as(HUMANS_SQL).fetch_all(db.pool()).await?;
+
+            let records: Vec<ParticipantRecord> = participants
+                .iter()
+                .map(|participant| ParticipantRecord {
+                    human_id: participant.human_id.clone(),
+                    name: participant.name.clone(),
+                    email: participant.email.clone(),
+                    source: participant.source.clone(),
+                })
+                .collect();
+            let context = extraction::build_context(
+                title.as_deref(),
+                description.as_deref(),
+                &user_id,
+                &records,
+                &attendees,
+            );
+            let contacts = extraction::extract_contacts(&context);
+            let participant = participants
+                .iter()
+                .find(|participant| participant.human_id == human_id);
+            let record = |human: &Human| HumanRecord {
+                name: human.name.clone(),
+                email: human.email.clone(),
+                organization_id: human.organization_id.clone(),
+            };
+            let human = humans.iter().find(|human| human.id == human_id).map(record);
+            let current_user = humans.iter().find(|human| human.id == user_id).map(record);
+            let (outcome, changes) = extraction::plan_for_human(
+                &human_id,
+                &user_id,
+                human.as_ref(),
+                current_user.as_ref(),
+                participant.map(|participant| participant.source.as_str()),
+                participant
+                    .map(|participant| (participant.name.as_str(), participant.email.as_str())),
+                &contacts,
+            );
+            crate::contacts::apply_contact_enhancement(
+                db.pool(),
+                &human_id,
+                &user_id,
+                &changes,
+                outcome.created > 0,
+            )
+            .await?;
+            Ok(outcome)
         })
     }
 

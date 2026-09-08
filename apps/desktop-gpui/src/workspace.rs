@@ -372,6 +372,8 @@ pub struct Workspace {
     excluded_apps_bounds: std::rc::Rc<std::cell::Cell<Option<gpui::Bounds<gpui::Pixels>>>>,
     /// The window's height as of the last frame, for `vh`-sized panels.
     viewport_height: f32,
+    /// The participant chip whose `Enhance contact` button is hovered.
+    hovered_participant: Option<String>,
     /// The open (or opening) Radix-style tooltip.
     tooltip: Option<tooltip::TooltipState>,
     tooltip_bounds: tooltip::TriggerBounds,
@@ -556,6 +558,7 @@ impl Workspace {
             default_ignored_apps: anlg_detect::default_ignored_bundle_ids(),
             excluded_apps_bounds: std::rc::Rc::default(),
             viewport_height: 0.0,
+            hovered_participant: None,
             tooltip: None,
             tooltip_bounds: Default::default(),
             tooltip_closed_at: None,

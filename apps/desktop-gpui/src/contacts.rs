@@ -643,6 +643,123 @@ pub async fn toggle_pin(pool: &SqlitePool, table: &'static str, id: &str) -> any
     Ok(())
 }
 
+/// `applyContactEnhancement`: the planned name / email / company changes
+/// for one human in a transaction — the human row itself when
+/// `create_if_missing`, a new organization when none carries the company
+/// name, and the human's fields (its `organization_id` only while empty).
+pub async fn apply_contact_enhancement(
+    pool: &SqlitePool,
+    human_id: &str,
+    owner_user_id: &str,
+    changes: &crate::event_contacts::Changes,
+    create_if_missing: bool,
+) -> anyhow::Result<()> {
+    let now = now_iso();
+    let mut tx = pool.begin().await?;
+    if create_if_missing {
+        sqlx::query(
+            "INSERT INTO humans (
+               id, workspace_id, owner_user_id, organization_id, name, email,
+               phone, job_title, linkedin_username, memo, pinned, pin_order,
+               metadata_json, created_at, updated_at, deleted_at
+             ) VALUES (
+               ?, NULLIF((
+                 SELECT json_extract(value_json, '$.workspace_id')
+                 FROM app_settings
+                 WHERE id = 'cloudsync_workspace_binding'
+               ), ''), COALESCE(
+                 NULLIF(NULLIF(?, ''), '00000000-0000-0000-0000-000000000000'),
+                 NULLIF((
+                   SELECT json_extract(value_json, '$.workspace_id')
+                   FROM app_settings
+                   WHERE id = 'cloudsync_workspace_binding'
+                 ), ''),
+                 '00000000-0000-0000-0000-000000000000'
+               ), '', ?, ?, '', '', '', '', 0, NULL, '{}', ?, ?, NULL
+             )
+             ON CONFLICT(id) DO UPDATE SET
+               deleted_at = NULL,
+               updated_at = excluded.updated_at
+             WHERE humans.deleted_at IS NOT NULL",
+        )
+        .bind(human_id)
+        .bind(owner_user_id)
+        .bind(changes.name.as_deref().unwrap_or(""))
+        .bind(changes.email.as_deref().unwrap_or(""))
+        .bind(&now)
+        .bind(&now)
+        .execute(&mut *tx)
+        .await?;
+    }
+    if let Some(company) = changes.company_name.as_deref() {
+        sqlx::query(
+            "INSERT INTO organizations (
+               id, workspace_id, owner_user_id, name, memo, pinned, pin_order,
+               metadata_json, created_at, updated_at, deleted_at
+             )
+             SELECT ?, NULLIF((
+               SELECT json_extract(value_json, '$.workspace_id')
+               FROM app_settings
+               WHERE id = 'cloudsync_workspace_binding'
+             ), ''), ?, ?, '', 0, NULL, '{}', ?, ?, NULL
+             WHERE NOT EXISTS (
+               SELECT 1
+               FROM organizations
+               WHERE lower(name) = lower(?) AND deleted_at IS NULL
+             )",
+        )
+        .bind(uuid::Uuid::new_v4().to_string())
+        .bind(owner_user_id)
+        .bind(company)
+        .bind(&now)
+        .bind(&now)
+        .bind(company)
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    let mut assignments: Vec<&str> = Vec::new();
+    if changes.name.is_some() {
+        assignments.push("name = ?");
+    }
+    if changes.email.is_some() {
+        assignments.push("email = ?");
+    }
+    if changes.company_name.is_some() {
+        assignments.push(
+            "organization_id = CASE
+               WHEN organization_id = '' THEN COALESCE((
+                 SELECT id
+                 FROM organizations
+                 WHERE lower(name) = lower(?) AND deleted_at IS NULL
+                 ORDER BY created_at, id
+                 LIMIT 1
+               ), organization_id)
+               ELSE organization_id
+             END",
+        );
+    }
+    if !assignments.is_empty() {
+        let sql = format!(
+            "UPDATE humans SET {}, updated_at = ? WHERE id = ? AND deleted_at IS NULL",
+            assignments.join(", ")
+        );
+        let mut query = sqlx::query(sqlx::AssertSqlSafe(sql.as_str()));
+        if let Some(name) = changes.name.as_deref() {
+            query = query.bind(name);
+        }
+        if let Some(email) = changes.email.as_deref() {
+            query = query.bind(email);
+        }
+        if let Some(company) = changes.company_name.as_deref() {
+            query = query.bind(company);
+        }
+        query.bind(&now).bind(human_id).execute(&mut *tx).await?;
+    }
+    tx.commit().await?;
+    Ok(())
+}
+
 /// `createOrganization`
 pub async fn create_organization(pool: &SqlitePool, name: &str) -> anyhow::Result<String> {
     let id = uuid::Uuid::new_v4().to_string();

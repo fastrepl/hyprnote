@@ -59,6 +59,7 @@ pub struct BriefParticipant {
     pub name: Option<String>,
     pub email: Option<String>,
     pub is_current_user: bool,
+    pub is_organizer: bool,
 }
 
 /// What `useCreatePreMeetingBrief` reads for one session.

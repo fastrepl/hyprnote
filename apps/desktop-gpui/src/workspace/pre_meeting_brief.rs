@@ -156,7 +156,7 @@ impl Workspace {
                             .map(|(name, email)| BriefParticipant {
                                 name: Some(name),
                                 email: Some(email),
-                                is_current_user: false,
+                                ..BriefParticipant::default()
                             })
                             .collect(),
                         ..BriefEvent::default()

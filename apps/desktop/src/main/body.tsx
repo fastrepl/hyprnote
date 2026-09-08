@@ -29,7 +29,6 @@ import {
 import { useMainAreaTopWindowDrag } from "./main-area-window-drag";
 import { ClassicMainSidebar } from "./shell-sidebar";
 import { SidebarTimelineChromeWithUpcomingMeeting } from "./sidebar-timeline-chrome";
-import { SyncStatusIndicator } from "./sync-status";
 import { ClassicMainTabContent } from "./tab-content";
 import { useClassicMainShortcuts } from "./useShortcuts";
 
@@ -57,11 +56,7 @@ type LeftSidebarSizeStyle = CSSProperties & {
   "--left-sidebar-panel-width": string;
 };
 
-export function ClassicMainBody({
-  showSyncStatus = false,
-}: {
-  showSyncStatus?: boolean;
-}) {
+export function ClassicMainBody() {
   const { leftsidebar } = useShell();
   const currentTab = useTabs((state) => state.currentTab);
   useClassicMainShortcuts();
@@ -566,7 +561,6 @@ export function ClassicMainBody({
                 tab={currentTab as Tab}
               />
             ) : null}
-            {showSyncStatus ? <SyncStatusIndicator /> : null}
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

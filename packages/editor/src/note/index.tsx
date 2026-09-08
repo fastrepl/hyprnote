@@ -10,7 +10,7 @@ import {
 } from "@handlewithcare/react-prosemirror";
 import { dropCursor } from "prosemirror-dropcursor";
 import { gapCursor } from "prosemirror-gapcursor";
-import { history } from "prosemirror-history";
+import { closeHistory, history } from "prosemirror-history";
 import { Node as PMNode } from "prosemirror-model";
 import {
   EditorState,
@@ -886,13 +886,23 @@ export const NoteEditor = forwardRef<NoteEditorRef, NoteEditorProps>(
           if (enforceTitleHeading) {
             doc = normalizeTitleHeadingDoc(doc);
           }
-          const state = EditorState.create({
-            doc,
-            plugins: view.state.plugins,
-          });
           onUpdate.cancel();
-          view.updateState(state);
-          notifyDocumentChange(view.state.doc);
+          if (readOnly) {
+            view.updateState(
+              EditorState.create({ doc, plugins: view.state.plugins }),
+            );
+          } else {
+            view.dispatch(
+              closeHistory(
+                view.state.tr
+                  .replaceWith(0, view.state.doc.content.size, doc.content)
+                  .setMeta("externalContentSync", true)
+                  // A zero history timestamp also separates subsequent typing.
+                  .setTime(0),
+              ),
+            );
+          }
+          notifyDocumentChange(doc);
           previousContentRef.current = reconciledInitialContent;
         } catch {
           // invalid content
@@ -912,6 +922,7 @@ export const NoteEditor = forwardRef<NoteEditorRef, NoteEditorProps>(
       reconciledInitialContent,
       syncContentWhenFocused,
       enforceTitleHeading,
+      readOnly,
       onUpdate,
       notifyDocumentChange,
     ]);

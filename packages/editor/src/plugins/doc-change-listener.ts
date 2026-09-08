@@ -10,7 +10,10 @@ export function docChangeListenerPlugin(onDocChanged: (doc: PMNode) => void) {
     key: docChangedByTransactionKey,
     state: {
       init: () => false,
-      apply: (transaction, previous) => transaction.docChanged || previous,
+      apply: (transaction, previous) =>
+        transaction.getMeta("externalContentSync")
+          ? false
+          : transaction.docChanged || previous,
     },
     view() {
       return {

@@ -8,6 +8,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import { redo, undo } from "prosemirror-history";
 import { Node as PMNode } from "prosemirror-model";
 import { EditorState, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
@@ -378,6 +379,50 @@ describe("browser-safe editor controls", () => {
 
     expect(ref.current?.view?.state.doc.textContent).toBe("new");
     toJSON.mockRestore();
+  });
+
+  it("preserves undo history across external edits without persisting the sync", async () => {
+    vi.useFakeTimers();
+    const ref = createRef<NoteEditorRef>();
+    const handleChange = vi.fn();
+    const props = { ref, handleChange, enforceTitleHeading: false };
+    const rendered = render(
+      createElement(NoteEditor, { ...props, initialContent: baseDoc }),
+    );
+    const view = ref.current!.view!;
+    act(() => view.dispatch(view.state.tr.insertText("!", 4)));
+    await act(() => vi.advanceTimersByTimeAsync(500));
+    handleChange.mockClear();
+
+    rendered.rerender(
+      createElement(NoteEditor, { ...props, initialContent: nextDoc }),
+    );
+    expect(view.state.doc.textContent).toBe("new");
+    await act(() => vi.advanceTimersByTimeAsync(500));
+    expect(handleChange).not.toHaveBeenCalled();
+
+    act(() => view.dispatch(view.state.tr.insertText("?", 4)));
+    act(() => {
+      expect(undo(view.state, view.dispatch)).toBe(true);
+    });
+    expect(view.state.doc.textContent).toBe("new");
+    act(() => {
+      expect(undo(view.state, view.dispatch)).toBe(true);
+    });
+    expect(view.state.doc.textContent).toBe("old!");
+    await act(() => vi.advanceTimersByTimeAsync(500));
+    expect(handleChange).toHaveBeenLastCalledWith(view.state.doc.toJSON());
+    act(() => {
+      expect(undo(view.state, view.dispatch)).toBe(true);
+    });
+    expect(view.state.doc.textContent).toBe("old");
+    act(() => {
+      expect(redo(view.state, view.dispatch)).toBe(true);
+    });
+    act(() => {
+      expect(redo(view.state, view.dispatch)).toBe(true);
+    });
+    expect(view.state.doc.textContent).toBe("new");
   });
 
   it("keeps external content deferred while focus is in editor popups", async () => {

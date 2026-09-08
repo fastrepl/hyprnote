@@ -136,6 +136,7 @@ pub async fn suggest_providers_for_languages_live<R: tauri::Runtime>(
         AdapterKind::ElevenLabs,
         AdapterKind::DashScope,
         AdapterKind::Mistral,
+        AdapterKind::Meta,
         AdapterKind::Xai,
         AdapterKind::SmallestAI,
         AdapterKind::GoogleGenerativeAi,

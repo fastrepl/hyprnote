@@ -28,6 +28,7 @@ describe("STT providers", () => {
       "azure_speech",
       "elevenlabs",
       "soniox",
+      "meta",
       "speechmatics",
       "groq",
       "mistral",

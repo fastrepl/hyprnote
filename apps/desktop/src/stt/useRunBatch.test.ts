@@ -223,6 +223,7 @@ describe("getBatchProvider", () => {
     ["together", "openai/whisper-large-v3"],
     ["xai", "xai-stt"],
     ["smallestai", "pulse"],
+    ["meta", "muse-voice-transcribe-1.0"],
   ] as const)("maps %s to its direct batch provider", (provider, model) => {
     expect(getBatchProvider(provider, model)).toBe(provider);
   });

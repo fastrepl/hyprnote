@@ -41,6 +41,7 @@ pub enum BatchProvider {
     Pyannote,
     DashScope,
     Mistral,
+    Meta,
     #[serde(alias = "hyprnote")]
     Anarlog,
     Am,
@@ -85,6 +86,7 @@ impl BatchProvider {
             Self::ElevenLabs => Some(AdapterKind::ElevenLabs),
             Self::Pyannote => Some(AdapterKind::Pyannote),
             Self::Mistral => Some(AdapterKind::Mistral),
+            Self::Meta => Some(AdapterKind::Meta),
             Self::Anarlog => Some(AdapterKind::Anarlog),
             Self::AquaVoice => Some(AdapterKind::AquaVoice),
             Self::Cartesia => Some(AdapterKind::Cartesia),

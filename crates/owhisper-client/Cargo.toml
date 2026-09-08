@@ -5,7 +5,7 @@ edition = "2024"
 
 [features]
 default = []
-local = ["anlg-audio-utils", "anlg-transcribe-soniqo", "anlg-transcribe-speechanalyzer"]
+local = ["anlg-audio-utils", "anlg-transcribe-soniqo", "anlg-transcribe-speechanalyzer", "hound"]
 
 [dependencies]
 anlg-am = { workspace = true }
@@ -31,6 +31,7 @@ tokio-stream = { workspace = true }
 backon = { workspace = true }
 base64 = { workspace = true }
 bytes = { workspace = true }
+hound = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 strum = { workspace = true, features = ["derive"] }

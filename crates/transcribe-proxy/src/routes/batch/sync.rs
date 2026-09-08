@@ -325,6 +325,7 @@ pub(super) async fn transcribe_with_provider(
         | Provider::Together
         | Provider::Xai
         | Provider::SmallestAI
+        | Provider::Meta
         | Provider::GoogleGenerativeAi => {
             return Err(BatchAttemptError::Unsupported(format!(
                 "{provider:?} is a direct BYOK provider",

@@ -146,6 +146,7 @@ pub fn suggest_providers_for_languages_batch(languages: &[anlg_language::Languag
         AdapterKind::ElevenLabs,
         AdapterKind::DashScope,
         AdapterKind::Mistral,
+        AdapterKind::Meta,
         AdapterKind::Cohere,
         AdapterKind::AwsTranscribe,
         AdapterKind::AzureSpeech,
@@ -220,6 +221,15 @@ mod tests {
         let languages = vec!["fr".parse().unwrap()];
 
         assert!(is_supported_languages_batch("anarlog", Some("cloud"), &languages).unwrap());
+    }
+
+    #[test]
+    fn meta_is_suggested_for_documented_languages_batch() {
+        let english = vec!["en-US".parse().unwrap()];
+        let swahili = vec!["sw".parse().unwrap()];
+
+        assert!(suggest_providers_for_languages_batch(&english).contains(&"meta".to_string()));
+        assert!(!suggest_providers_for_languages_batch(&swahili).contains(&"meta".to_string()));
     }
 
     #[test]

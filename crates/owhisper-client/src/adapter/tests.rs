@@ -248,6 +248,7 @@ fn test_has_live_mode() {
         AdapterKind::ElevenLabs,
         AdapterKind::DashScope,
         AdapterKind::Mistral,
+        AdapterKind::Meta,
         AdapterKind::Xai,
         AdapterKind::SmallestAI,
         AdapterKind::GoogleGenerativeAi,
@@ -449,6 +450,10 @@ fn test_direct_provider_urls_not_affected() {
     assert_eq!(
         AdapterKind::from_url_and_languages("https://api.soniox.com", &en, None),
         AdapterKind::Soniox,
+    );
+    assert_eq!(
+        AdapterKind::from_url_and_languages("https://api.meta.ai/v1", &en, None),
+        AdapterKind::Meta,
     );
     assert_eq!(
         AdapterKind::from_url_and_languages("https://api.pyannote.ai", &en, None),

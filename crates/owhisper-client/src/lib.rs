@@ -26,7 +26,7 @@ pub use adapter::{
     AwsTranscribeAdapter, AzureSpeechAdapter, BatchSttAdapter, BatchUploadLimit, CallbackResult,
     CallbackSttAdapter, CartesiaAdapter, CohereAdapter, DashScopeAdapter, DeepgramAdapter,
     DeepgramFluxAdapter, ElevenLabsAdapter, FireworksAdapter, GladiaAdapter, GoogleCloudAdapter,
-    GoogleGenerativeAiAdapter, GroqAdapter, LanguageQuality, LanguageSupport, MistralAdapter,
+    GoogleGenerativeAiAdapter, GroqAdapter, LanguageQuality, LanguageSupport, MetaAdapter, MistralAdapter,
     OpenAIAdapter, OpenRouterAdapter, PyannoteAdapter, RealtimeSttAdapter, RevAiAdapter,
     SiliconFlowAdapter, SmallestAIAdapter, SonioxAdapter, SpeechmaticsAdapter, TogetherAdapter,
     WhisperCppAdapter, XaiAdapter, ZaiAdapter, append_provider_param,

@@ -2360,10 +2360,11 @@ impl Workspace {
                                         .child(SharedString::from(group.title.clone())),
                                 )
                                 .child(
+                                    // `text-[11px]`: a 15.71px line box WebKit lays out at 15px.
                                     div()
                                         .mt(px(2.0))
                                         .text_size(px(11.0))
-                                        .line_height(px(16.0))
+                                        .line_height(px(15.0))
                                         .text_color(theme.muted_foreground)
                                         .child(SharedString::from(relative)),
                                 ),
@@ -2381,15 +2382,21 @@ impl Workspace {
             }))
             .child(panel);
         // The trigger is 56px wide (`px-2.5` around the two icons); the menu
-        // opens 4px past its right edge.
+        // opens 4px past its right edge, and Radix's `shift` slides it up to
+        // stay 8px inside the window rather than flipping it above the trigger.
         Some(
             div()
                 .absolute()
                 .top_0()
                 .left(px(56.0 - 8.0 + 4.0))
                 .child(
-                    gpui::deferred(gpui::anchored().anchor(gpui::Corner::TopLeft).child(menu))
-                        .with_priority(3),
+                    gpui::deferred(
+                        gpui::anchored()
+                            .anchor(gpui::Corner::TopLeft)
+                            .snap_to_window_with_margin(px(8.0))
+                            .child(menu),
+                    )
+                    .with_priority(3),
                 )
                 .into_any_element(),
         )

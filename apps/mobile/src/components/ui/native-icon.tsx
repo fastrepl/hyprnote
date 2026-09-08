@@ -1,5 +1,5 @@
 import { Host, Icon } from "@expo/ui";
-import type { ColorValue } from "react-native";
+import { View, type ColorValue } from "react-native";
 
 const nativeIcons = {
   back: Icon.select({
@@ -40,8 +40,10 @@ export function NativeIcon({
   size: number;
 }) {
   return (
-    <Host matchContents>
-      <Icon color={color} name={nativeIcons[name]} size={size} />
-    </Host>
+    <View pointerEvents="none">
+      <Host matchContents>
+        <Icon color={color} name={nativeIcons[name]} size={size} />
+      </Host>
+    </View>
   );
 }

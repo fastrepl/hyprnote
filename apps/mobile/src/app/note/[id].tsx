@@ -22,6 +22,7 @@ import { useSessionRecorder } from "@/audio/use-session-recorder";
 import { useAuth } from "@/auth/context";
 import { AudioChip } from "@/components/audio-chip";
 import { EditorAccessory } from "@/components/editor-accessory";
+import { FolderPickerSheet } from "@/components/folder-picker-sheet";
 import { ListeningSheet } from "@/components/listening-sheet";
 import { NoteActionsSheet } from "@/components/note-actions-sheet";
 import { NoteAttachmentCard } from "@/components/note-attachment-card";
@@ -70,6 +71,7 @@ import { confirmDestructive } from "@/lib/confirm";
 import { applyEditorFormat, type EditorFormat } from "@/lib/editor-format";
 import { env } from "@/lib/env";
 import { captureOperationalError } from "@/lib/error-reporting";
+import { useKeyboardVisible } from "@/lib/use-keyboard-visible";
 import { useMountEffect } from "@/lib/use-mount-effect";
 import { createStyleHook, useColors } from "@/settings/theme-provider";
 import { useProviderAccess } from "@/settings/use-provider-access";
@@ -273,6 +275,8 @@ export default function NoteScreen() {
   const [listening, setListening] = useState(listen === "1");
   const [editorFocused, setEditorFocused] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [foldersOpen, setFoldersOpen] = useState(false);
+  const keyboardVisible = useKeyboardVisible();
   const recorder = useSessionRecorder(id, listening);
   const [audioRestoreError, setAudioRestoreError] = useState<string | null>(
     null,
@@ -749,6 +753,26 @@ export default function NoteScreen() {
           iconSize={22}
           onPress={() => void handleBack()}
         />
+        {!isLoading && data ? (
+          <TextInput
+            key={data.id}
+            accessibilityLabel="Note title"
+            style={styles.title}
+            defaultValue={data.title}
+            placeholder="Untitled"
+            placeholderTextColor={Colors.muted}
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
+            onBlur={() => {
+              setEditorFocused(false);
+              void flush();
+            }}
+            onChangeText={(title) => onEdit({ title })}
+            onFocus={() => setEditorFocused(true)}
+          />
+        ) : (
+          <View style={styles.title} />
+        )}
         <IconButton
           accessibilityLabel="More actions"
           disabled={!data}
@@ -761,15 +785,6 @@ export default function NoteScreen() {
 
       {!isLoading && data && (
         <View key={data.id} style={styles.editor}>
-          <TextInput
-            style={styles.title}
-            defaultValue={data.title}
-            placeholder="Untitled"
-            placeholderTextColor={Colors.muted}
-            onBlur={() => setEditorFocused(false)}
-            onChangeText={(title) => onEdit({ title })}
-            onFocus={() => setEditorFocused(true)}
-          />
           {tabs.length > 1 && (
             <View style={styles.tabs}>
               <SegmentedControl
@@ -1035,12 +1050,19 @@ export default function NoteScreen() {
         onClose={() => setActionsOpen(false)}
         onDelete={() => void handleDelete()}
         onExport={() => void handleExport()}
+        onSelectFolder={() => setFoldersOpen(true)}
         onImportRecording={() => void handleImportRecording()}
         onToggleListening={handleListeningAction}
         visible={actionsOpen}
       />
 
-      {active && (
+      <FolderPickerSheet
+        sessionId={id}
+        visible={foldersOpen}
+        onClose={() => setFoldersOpen(false)}
+      />
+
+      {active && !keyboardVisible && (
         <ListeningSheet
           phase={recorder.phase}
           failure={recorder.failure}
@@ -1065,14 +1087,17 @@ const useStyles = createStyleHook((Colors) => ({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   editor: {
     flex: 1,
   },
   title: {
-    paddingHorizontal: Spacing.md,
-    ...Typography.title,
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: Spacing.sm,
+    ...Typography.bodyStrong,
+    textAlign: "center",
     color: Colors.ink,
   },
   tabs: { marginHorizontal: Spacing.md, marginVertical: Spacing.md },

@@ -2,7 +2,8 @@
   "name": "@anlg/utils",
   "exports": {
     ".": "./src/index.ts",
-    "./session": "./src/session.ts"
+    "./session": "./src/session.ts",
+    "./folders": "./src/folders.ts"
   },
   "dependencies": {
     "@date-fns/tz": "^1.4.1",

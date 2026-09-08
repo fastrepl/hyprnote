@@ -915,6 +915,7 @@ impl Workspace {
                                             audio_path,
                                             marker,
                                             live_active,
+                                            recovery_attempt,
                                             ..
                                         } => {
                                             tracing::info!(
@@ -934,6 +935,11 @@ impl Workspace {
                                                 Some(summary_mode),
                                                 cx,
                                             );
+                                            // The awaited `runBatch` resolved
+                                            // `finalizeStopped`.
+                                            if recovery_attempt.is_none() {
+                                                this.meeting_completed(&session_id);
+                                            }
                                         }
                                     }
                                     cx.notify();
@@ -997,7 +1003,9 @@ impl Workspace {
             .entry(session_id.to_string())
             .or_default()
             .snapshot = Some((live.live_active, live.lifecycle.clone(), marker));
-        self.finish_live_persistence(live.persistence, session_id.to_string(), cx);
+        // The engine keeps emitting deltas while it finalizes; the queue stays
+        // open until `Inactive`, where `onStopped` awaits the flush.
+        self.park_live_persistence(live.persistence, session_id.to_string(), cx);
     }
 
     /// `finalizeStopped`, once the transcript flush and the `Inactive`
@@ -1066,8 +1074,12 @@ impl Workspace {
                 };
                 if discarded {
                     tracing::info!(session_id, "[listener] discarded empty automatic capture");
+                    let fresh_stop = pending.recovery_attempt.is_none();
                     this.update(cx, |this, cx| {
                         this.clear_capture_marker(session_id.clone(), transcript_id);
+                        if fresh_stop {
+                            this.meeting_completed(&session_id);
+                        }
                         if this.selected.as_deref() == Some(session_id.as_str()) {
                             this.reload_note(session_id, cx);
                         }
@@ -1217,13 +1229,16 @@ impl Workspace {
                     )
                 });
                 self.finish_capture(
-                    session_id,
+                    session_id.clone(),
                     transcript_id,
                     audio_path,
                     marker,
                     summary_mode,
                     cx,
                 );
+                if pending.recovery_attempt.is_none() {
+                    self.meeting_completed(&session_id);
+                }
             }
             PostCaptureAction::None => {
                 // `transcriptIsComplete` only for an empty fresh capture; a
@@ -1234,7 +1249,7 @@ impl Workspace {
                     && !lifecycle.transcript_touched
                     && !transcript_write_failed;
                 if empty_fresh_capture {
-                    self.clear_capture_marker(session_id, transcript_id);
+                    self.clear_capture_marker(session_id.clone(), transcript_id);
                 } else {
                     // `requestRecovery`: the recovery component retries the
                     // finalization with backoff until its budget runs out.
@@ -1242,7 +1257,11 @@ impl Workspace {
                         session_id,
                         "[listener] capture ended without a complete transcript"
                     );
-                    self.retry_capture_recovery(session_id, pending.recovery_attempt, cx);
+                    self.retry_capture_recovery(session_id.clone(), pending.recovery_attempt, cx);
+                }
+                // `finalizeStopped` resolved either way; a fresh stop dispatches.
+                if pending.recovery_attempt.is_none() {
+                    self.meeting_completed(&session_id);
                 }
             }
         }
@@ -1530,7 +1549,19 @@ impl Workspace {
                 .detach();
             }
             self.retry_capture_recovery(session_id.to_string(), *recovery_attempt, cx);
+            // `finishPostStopProcessing` runs on the rejection too.
+            if recovery_attempt.is_none() {
+                self.meeting_completed(session_id);
+            }
         }
+    }
+
+    /// `dispatchMeetingCompleted`: the `meeting.completed` webhooks and
+    /// automations once a fresh stop's post-stop processing settled.
+    fn meeting_completed(&self, session_id: &str) {
+        tracing::info!(session_id, "meeting.completed");
+        self.store
+            .run_meeting_completed_automations(session_id.to_string());
     }
 
     /// `handleBatchFailed(sessionId, error)`
@@ -1862,6 +1893,7 @@ impl Workspace {
                 {
                     self.end_live_capture(live, &session_id, cx);
                 }
+                self.finish_live_persistence(session_id.clone(), cx);
                 self.recording.toast = None;
                 self.recording.finalizing.retain(|id| *id != session_id);
                 if let Some(error) = error {
@@ -1936,7 +1968,8 @@ impl Workspace {
                 }
             }
             Event::Data(SessionDataEvent::TranscriptDelta { session_id, delta }) => {
-                // `handlePersist`: empty deltas are ignored.
+                // `handlePersist`: empty deltas are ignored; the rest are
+                // queued whether the capture is live or already finalizing.
                 if delta.new_words.is_empty() && delta.replaced_ids.is_empty() {
                     return;
                 }
@@ -1947,7 +1980,16 @@ impl Workspace {
                     .filter(|live| live.session_id == session_id)
                 {
                     live.lifecycle.transcript_touched = true;
-                    live.persistence.pending.push(*delta);
+                } else if let Some((_, lifecycle, _)) = self
+                    .recording
+                    .pending_post_capture
+                    .get_mut(&session_id)
+                    .and_then(|pending| pending.snapshot.as_mut())
+                {
+                    lifecycle.transcript_touched = true;
+                }
+                if let Some(persistence) = self.persistence_mut(&session_id) {
+                    persistence.pending.push(*delta);
                     self.drain_live_persistence(session_id, cx);
                 }
             }
@@ -2223,19 +2265,34 @@ impl Workspace {
         .detach();
     }
 
-    /// The capture ended: move its queue aside, mark it finishing, and let
-    /// the drain write the tail and flush the journal in order.
-    fn finish_live_persistence(
+    /// The capture is finalizing: its queue moves aside, still taking the
+    /// engine's late deltas, and the drain keeps writing them.
+    fn park_live_persistence(
         &mut self,
-        mut persistence: LivePersistence,
+        persistence: LivePersistence,
         session_id: String,
         cx: &mut Context<Self>,
     ) {
-        persistence.finishing = true;
         self.recording.flushing.retain(|(id, _)| *id != session_id);
         self.recording
             .flushing
             .push((session_id.clone(), persistence));
+        self.drain_live_persistence(session_id, cx);
+    }
+
+    /// The engine is `Inactive`: no more deltas will come, so the queue is
+    /// marked finishing and the drain flushes the journal once it is empty
+    /// (`transcriptPersistence.flush()` in `onStopped`).
+    fn finish_live_persistence(&mut self, session_id: String, cx: &mut Context<Self>) {
+        let Some((_, persistence)) = self
+            .recording
+            .flushing
+            .iter_mut()
+            .find(|(id, _)| *id == session_id)
+        else {
+            return;
+        };
+        persistence.finishing = true;
         self.drain_live_persistence(session_id, cx);
     }
 

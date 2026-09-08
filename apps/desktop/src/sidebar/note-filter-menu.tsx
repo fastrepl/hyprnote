@@ -45,11 +45,14 @@ export function SidebarNoteFilterMenu() {
           className={cn([
             "pointer-events-auto relative flex size-7 items-center justify-center rounded-full",
             "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
-            "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
-            !isDefaultView && "bg-accent text-foreground",
+            "focus-visible:bg-accent focus-visible:text-foreground focus-visible:outline-hidden",
+            !isDefaultView && "text-foreground",
           ])}
         >
-          <FunnelSimple size={15} weight={isDefaultView ? "regular" : "bold"} />
+          <FunnelSimple
+            size={15}
+            className={cn([!isDefaultView && "fill-current"])}
+          />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent variant="app" align="start" className="w-56">

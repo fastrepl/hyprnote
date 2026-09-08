@@ -135,6 +135,134 @@ describe("General Listener Slice", () => {
     vaultBaseMock.mockResolvedValue({ status: "ok", data: "/tmp/anarlog" });
   });
 
+  test("keeps the next live transcript after the previous meeting finishes batch and summary work", async () => {
+    const previousPersist = vi.fn();
+    const nextPersist = vi.fn();
+    const batchPersist = vi.fn();
+    let finishSummary!: () => void;
+    const summaryDone = new Promise<void>((resolve) => {
+      finishSummary = resolve;
+    });
+    const onStopped = vi.fn(() => summaryDone);
+    getCaptureSnapshotMock.mockResolvedValueOnce({
+      status: "ok",
+      data: {
+        activeSessionId: "previous",
+        finalizingSessionIds: [],
+        liveTranscriptionActive: true,
+        requestedLiveTranscription: true,
+        state: "active",
+      },
+    });
+    await store.getState().attachLiveSession("previous", {
+      handlePersist: previousPersist,
+      onStopped,
+    });
+    const previousLifecycle = listenCaptureLifecycleMock.mock.calls[0][0];
+    const previousData = listenCaptureDataMock.mock.calls[0][0];
+    previousLifecycle({
+      payload: { type: "finalizing", session_id: "previous" },
+    });
+    getCaptureSnapshotMock.mockResolvedValueOnce({
+      status: "ok",
+      data: {
+        activeSessionId: "next",
+        finalizingSessionIds: ["previous"],
+        liveTranscriptionActive: true,
+        requestedLiveTranscription: true,
+        state: "active",
+      },
+    });
+    await store
+      .getState()
+      .attachLiveSession("next", { handlePersist: nextPersist });
+    const nextData = listenCaptureDataMock.mock.calls[1][0];
+    const word = (id: string) => ({
+      id,
+      text: id,
+      start_ms: 0,
+      end_ms: 500,
+      channel: 0,
+    });
+    const deliver = (handler: typeof nextData, sessionId: string, id: string) =>
+      handler({
+        payload: {
+          session_id: sessionId,
+          type: "transcript_delta",
+          delta: { new_words: [word(id)], replaced_ids: [], partials: [] },
+        },
+      });
+    try {
+      deliver(nextData, "next", "before");
+      deliver(previousData, "previous", "previous-final");
+      previousLifecycle({
+        payload: {
+          type: "stopped",
+          session_id: "previous",
+          audio_path: "/tmp/previous.wav",
+          requested_live_transcription: true,
+          live_transcription_active: true,
+          error: null,
+        },
+      });
+      expect(onStopped).toHaveBeenCalledOnce();
+      expect(store.getState().live.postStopProcessingBySession.previous).toBe(
+        true,
+      );
+      expect(store.getState().liveCaptionText).toBe("before");
+      store.getState().handleBatchStarted("previous");
+      store.getState().setBatchPersist("previous", batchPersist);
+      expect(
+        store.getState().handleBatchResponse("previous", {
+          metadata: null,
+          results: {
+            channels: [
+              {
+                alternatives: [
+                  {
+                    transcript: "previous batch",
+                    confidence: 1,
+                    words: [
+                      {
+                        word: "previous batch",
+                        start: 0,
+                        end: 1,
+                        confidence: 1,
+                        speaker: null,
+                        punctuated_word: null,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      ).toBe(true);
+      store.getState().clearBatchPersist("previous");
+      deliver(nextData, "next", "during");
+      finishSummary();
+      await vi.waitFor(() =>
+        expect(
+          store.getState().live.postStopProcessingBySession.previous,
+        ).toBeUndefined(),
+      );
+      deliver(nextData, "next", "after");
+      expect(store.getState().live.sessionId).toBe("next");
+      expect(store.getState().live.status).toBe("active");
+      expect(store.getState().live.liveTranscriptionActive).toBe(true);
+      expect(store.getState().handlePersistBySession.next).toBe(nextPersist);
+      expect(nextPersist).toHaveBeenCalledTimes(3);
+      expect(previousPersist).toHaveBeenCalledOnce();
+      expect(batchPersist).toHaveBeenCalledOnce();
+      expect(store.getState().liveCaptionText).toBe("beforeduringafter");
+      expect(stopCaptureMock).not.toHaveBeenCalled();
+    } finally {
+      finishSummary();
+      clearInterval(store.getState().live.intervalId);
+    }
+  });
+
   describe("Initial State", () => {
     test("initializes with correct default values", () => {
       const state = store.getState();

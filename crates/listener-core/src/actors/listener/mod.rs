@@ -89,8 +89,8 @@ pub(super) enum ChannelSender {
 pub struct ListenerActor;
 
 impl ListenerActor {
-    pub fn name() -> ActorName {
-        "listener_actor".into()
+    pub fn name(session_id: &str) -> ActorName {
+        format!("listener_actor_{session_id}")
     }
 }
 

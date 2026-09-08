@@ -69,8 +69,8 @@ impl RecorderActor {
         Self
     }
 
-    pub fn name() -> ActorName {
-        "recorder_actor".into()
+    pub fn name(session_id: &str) -> ActorName {
+        format!("recorder_actor_{session_id}")
     }
 }
 

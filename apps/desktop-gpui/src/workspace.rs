@@ -1946,12 +1946,20 @@ impl Render for Workspace {
                     cx.propagate();
                 }
             }))
-            // `mod+f` / `mod+h` of the note's `SearchProvider`.
+            // `mod+f` / `mod+h` of the note's `SearchProvider`; on the Contacts
+            // tab `mod+f` focuses and selects the sidebar's search field instead
+            // (`sidebar/contacts.tsx`), and the other overlay tabs bind nothing.
             .on_action(cx.listener(|this, _: &actions::FocusSearch, window, cx| {
-                this.toggle_note_search(false, window, cx);
+                if this.contacts_open() {
+                    this.focus_contacts_search(window, cx);
+                } else if !this.overlay_tab_open() {
+                    this.toggle_note_search(false, window, cx);
+                }
             }))
             .on_action(cx.listener(|this, _: &actions::ToggleReplace, window, cx| {
-                this.toggle_note_search(true, window, cx);
+                if !this.overlay_tab_open() {
+                    this.toggle_note_search(true, window, cx);
+                }
             }))
             .on_action(cx.listener(|this, _: &actions::Escape, window, cx| {
                 if this.close_open_menus(cx) {

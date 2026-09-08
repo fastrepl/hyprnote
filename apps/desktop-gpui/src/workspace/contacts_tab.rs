@@ -167,6 +167,17 @@ impl Workspace {
         self.contacts.is_some()
     }
 
+    /// `useHotkeys("mod+f")` on the contacts sidebar: `focus()` and `select()`
+    /// on its search input.
+    pub(crate) fn focus_contacts_search(&self, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(state) = self.contacts.as_ref() else {
+            return;
+        };
+        let search = state.search.clone();
+        search.read(cx).focus_handle(cx).focus(window);
+        search.update(cx, |input, cx| input.select_all_text(cx));
+    }
+
     fn contact_input_style(&self, text: gpui::Rgba) -> TextInputStyle {
         TextInputStyle {
             text,

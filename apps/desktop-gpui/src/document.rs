@@ -84,6 +84,26 @@ pub fn clamp_image_width(value: Option<f64>) -> u8 {
     }
 }
 
+/// `parseImageMetadata(title).title`: the `<img title>` the node view shows —
+/// a stored `char-editor-width=N|caption` keeps the caption alone, a bare
+/// `char-editor-width=N` has none, anything else is the title as stored.
+pub fn image_title(title: &str) -> Option<String> {
+    // `/^char-editor-width=(\d{1,3})(?:\|(.*))?$/s`
+    let shown = match title.strip_prefix("char-editor-width=") {
+        Some(rest) => {
+            let digits = rest.chars().take_while(char::is_ascii_digit).count();
+            match &rest[digits..] {
+                _ if !(1..=3).contains(&digits) => title,
+                "" => "",
+                tail => tail.strip_prefix('|').unwrap_or(title),
+            }
+        }
+        None => title,
+    };
+    // An empty `title` attribute shows no tooltip.
+    (!shown.is_empty()).then(|| shown.to_string())
+}
+
 /// `md2json(markdown)` serialised: the ProseMirror parser's JSON, an empty
 /// document becoming one empty paragraph.
 pub fn md2json(markdown: &str) -> String {
@@ -300,6 +320,29 @@ mod tests {
 
     fn text(t: &str) -> Value {
         serde_json::json!({ "type": "text", "text": t })
+    }
+
+    #[test]
+    fn image_titles_follow_parse_image_metadata() {
+        assert_eq!(
+            image_title("Quarterly chart"),
+            Some("Quarterly chart".into())
+        );
+        assert_eq!(image_title("char-editor-width=80"), None);
+        assert_eq!(
+            image_title("char-editor-width=80|Quarterly chart"),
+            Some("Quarterly chart".into())
+        );
+        assert_eq!(image_title("char-editor-width=80|"), None);
+        assert_eq!(
+            image_title("char-editor-width=8000"),
+            Some("char-editor-width=8000".into())
+        );
+        assert_eq!(
+            image_title("char-editor-width=80x"),
+            Some("char-editor-width=80x".into())
+        );
+        assert_eq!(image_title(""), None);
     }
 
     #[test]

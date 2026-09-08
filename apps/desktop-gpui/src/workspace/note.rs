@@ -875,7 +875,8 @@ impl Workspace {
             let brief_generating = self.brief_generating(&preview.session.id);
             let mut renderer = self
                 .document_editor_renderer(editor.clone(), window, cx)
-                .for_session(&self.store.session_dir(&preview.session.id));
+                .for_session(&self.store.session_dir(&preview.session.id))
+                .with_tooltips(self.tooltip_host(cx));
             // `placeholderComponent`: `Creating brief...` while the job runs.
             if brief_generating {
                 renderer.placeholder = renderer
@@ -938,7 +939,8 @@ impl Workspace {
         };
         let renderer = self
             .document_renderer(window)
-            .for_session(&self.store.session_dir(&preview.session.id));
+            .for_session(&self.store.session_dir(&preview.session.id))
+            .with_tooltips(self.tooltip_host(cx));
         let has_content = blocks.iter().any(super::document_view::has_visible_content);
         // `Enhanced`: the task's error / streaming views come first, then
         // `ConfigError` when there is no stored content and no way to generate
@@ -969,7 +971,8 @@ impl Workspace {
                 let renderer = self
                     .document_editor_renderer(editor.clone(), window, cx)
                     .for_title_document()
-                    .for_session(&self.store.session_dir(&preview.session.id));
+                    .for_session(&self.store.session_dir(&preview.session.id))
+                    .with_tooltips(self.tooltip_host(cx));
                 let mut blocks = crate::document::parse(editor.read(cx).doc().root());
                 if blocks.is_empty() {
                     blocks.push(crate::document::Block::Paragraph(Vec::new()));

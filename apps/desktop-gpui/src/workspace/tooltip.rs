@@ -18,7 +18,7 @@ use std::time::{Duration, Instant};
 
 use gpui::{
     AnyElement, Bounds, Context, Div, MouseMoveEvent, Pixels, Point, SharedString, Stateful,
-    Window, div, prelude::*, px,
+    WeakEntity, Window, div, prelude::*, px,
 };
 
 use super::Workspace;
@@ -158,18 +158,24 @@ pub(crate) struct TooltipState {
 /// when the open tooltip is placed.
 pub(crate) type TriggerBounds = Rc<RefCell<HashMap<SharedString, Bounds<Pixels>>>>;
 
-impl Workspace {
+/// What a trigger needs to open a tooltip: the workspace holding the state
+/// and the bounds map. Renderers that run outside `Workspace`'s render
+/// (the document renderer) carry one.
+#[derive(Clone)]
+pub(crate) struct TooltipHost {
+    workspace: WeakEntity<Workspace>,
+    bounds: TriggerBounds,
+}
+
+impl TooltipHost {
     /// Wraps a trigger so hovering it opens `spec` after its delay.
-    pub(crate) fn tooltip_trigger(
-        &self,
-        spec: TooltipSpec,
-        trigger: impl IntoElement,
-        cx: &Context<Self>,
-    ) -> Stateful<Div> {
+    pub(crate) fn trigger(&self, spec: TooltipSpec, trigger: impl IntoElement) -> Stateful<Div> {
         let id = spec.id.clone();
         let bounds_id = id.clone();
-        let bounds = self.tooltip_bounds.clone();
+        let bounds = self.bounds.clone();
         let native = spec.style == Style::Native;
+        let workspace = self.workspace.clone();
+        let hover_workspace = workspace.clone();
         div()
             .flex()
             .on_children_prepainted(move |children, _, _| {
@@ -179,18 +185,43 @@ impl Workspace {
             })
             .id(SharedString::from(format!("{id}-tooltip-trigger")))
             .when(native, |trigger| {
-                trigger.on_mouse_move(cx.listener(|this, event: &MouseMoveEvent, _, _| {
-                    this.tooltip_pointer = event.position;
-                }))
+                trigger.on_mouse_move(move |event: &MouseMoveEvent, _, cx| {
+                    workspace
+                        .update(cx, |this, _| this.tooltip_pointer = event.position)
+                        .ok();
+                })
             })
-            .on_hover(cx.listener(move |this, hovering: &bool, _, cx| {
-                if *hovering {
-                    this.open_tooltip(spec.clone(), cx);
-                } else {
-                    this.close_tooltip(&id, cx);
-                }
-            }))
+            .on_hover(move |hovering: &bool, _, cx| {
+                hover_workspace
+                    .update(cx, |this, cx| {
+                        if *hovering {
+                            this.open_tooltip(spec.clone(), cx);
+                        } else {
+                            this.close_tooltip(&id, cx);
+                        }
+                    })
+                    .ok();
+            })
             .child(trigger)
+    }
+}
+
+impl Workspace {
+    pub(crate) fn tooltip_host(&self, cx: &Context<Self>) -> TooltipHost {
+        TooltipHost {
+            workspace: cx.entity().downgrade(),
+            bounds: self.tooltip_bounds.clone(),
+        }
+    }
+
+    /// Wraps a trigger so hovering it opens `spec` after its delay.
+    pub(crate) fn tooltip_trigger(
+        &self,
+        spec: TooltipSpec,
+        trigger: impl IntoElement,
+        cx: &Context<Self>,
+    ) -> Stateful<Div> {
+        self.tooltip_host(cx).trigger(spec, trigger)
     }
 
     /// `tooltip_trigger` when `enabled`, the bare trigger otherwise (a

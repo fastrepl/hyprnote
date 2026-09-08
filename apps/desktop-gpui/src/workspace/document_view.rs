@@ -107,6 +107,8 @@ pub(super) struct DocumentRenderer {
     /// The body font's rounded ascent plus descent at 16px: the inline box
     /// height a `<mark>` background covers.
     inline_box_height: f32,
+    /// Lets the atoms open tooltips (an image's `title`).
+    tooltips: Option<super::tooltip::TooltipHost>,
 }
 
 impl Workspace {
@@ -162,6 +164,7 @@ impl Workspace {
             next_file: Cell::new(0),
             inline_block_gap,
             inline_box_height,
+            tooltips: None,
         }
     }
 
@@ -201,6 +204,12 @@ impl DocumentRenderer {
     /// Resolves attachment ids against the session's `attachments` folder.
     pub(super) fn for_session(mut self, session_dir: &std::path::Path) -> Self {
         self.attachments_dir = Some(anlg_fs_sync_core::attachments::dir(session_dir));
+        self
+    }
+
+    /// Enables the atoms' tooltips (the `title` of an image).
+    pub(super) fn with_tooltips(mut self, host: super::tooltip::TooltipHost) -> Self {
+        self.tooltips = Some(host);
         self
     }
 
@@ -1078,76 +1087,85 @@ impl DocumentRenderer {
                 )
         };
         let bounds_editor = editor.clone();
+        // `<img title>`: the toolkit's tooltip after the system hover delay.
+        let title = image
+            .title
+            .as_deref()
+            .and_then(crate::document::image_title)
+            .zip(self.tooltips.as_ref());
+        let frame = div()
+            .id(("note-image", nth))
+            .group("note-image")
+            .relative()
+            .map(|frame| match draft {
+                Some(width) => frame.w(width),
+                None => frame.w(relative(image.editor_width as f32 / 100.0)),
+            })
+            .max_w_full()
+            .rounded(px(6.0))
+            // `hover:ring-1 ring-border ring-offset-2 ring-offset-card`.
+            .child(
+                crate::ui::ring(theme.card, 2.0, 0.0, 0.0, 6.0)
+                    .invisible()
+                    .group_hover("note-image", |ring| ring.visible()),
+            )
+            .child(
+                crate::ui::ring(theme.border, 1.0, 2.0, 0.0, 6.0)
+                    .invisible()
+                    .group_hover("note-image", |ring| ring.visible()),
+            )
+            .map(|frame| match source {
+                Some(source) => frame.child(
+                    img(source)
+                        .w_full()
+                        .rounded(px(6.0))
+                        .bg(theme.card)
+                        .with_fallback({
+                            let alt = image.alt.clone();
+                            let color = theme.muted_foreground;
+                            move || {
+                                div()
+                                    .text_color(color)
+                                    .child(SharedString::from(alt.clone()))
+                                    .into_any_element()
+                            }
+                        }),
+                ),
+                None => frame.child(
+                    div()
+                        .text_color(theme.muted_foreground)
+                        .child(SharedString::from(image.alt.clone())),
+                ),
+            })
+            .when_some(bounds_editor, |frame, editor| {
+                frame.child(
+                    canvas(
+                        |_, _, _| (),
+                        move |bounds, _, _, cx| {
+                            editor.update(cx, |editor, _| editor.set_image_bounds(nth, bounds));
+                        },
+                    )
+                    .absolute()
+                    .top_0()
+                    .left_0()
+                    .size_full(),
+                )
+            })
+            .when(self.editor.is_some(), |frame| {
+                frame
+                    .child(handle(true, editor.clone()))
+                    .child(handle(false, editor.clone()))
+            });
         div()
             .pt(pad)
             .pb(pad + self.inline_block_gap)
-            .child(
-                div()
-                    .id(("note-image", nth))
-                    .group("note-image")
-                    .relative()
-                    .map(|frame| match draft {
-                        Some(width) => frame.w(width),
-                        None => frame.w(relative(image.editor_width as f32 / 100.0)),
-                    })
-                    .max_w_full()
-                    .rounded(px(6.0))
-                    // `hover:ring-1 ring-border ring-offset-2 ring-offset-card`.
-                    .child(
-                        crate::ui::ring(theme.card, 2.0, 0.0, 0.0, 6.0)
-                            .invisible()
-                            .group_hover("note-image", |ring| ring.visible()),
-                    )
-                    .child(
-                        crate::ui::ring(theme.border, 1.0, 2.0, 0.0, 6.0)
-                            .invisible()
-                            .group_hover("note-image", |ring| ring.visible()),
-                    )
-                    .map(|frame| match source {
-                        Some(source) => frame.child(
-                            img(source)
-                                .w_full()
-                                .rounded(px(6.0))
-                                .bg(theme.card)
-                                .with_fallback({
-                                    let alt = image.alt.clone();
-                                    let color = theme.muted_foreground;
-                                    move || {
-                                        div()
-                                            .text_color(color)
-                                            .child(SharedString::from(alt.clone()))
-                                            .into_any_element()
-                                    }
-                                }),
-                        ),
-                        None => frame.child(
-                            div()
-                                .text_color(theme.muted_foreground)
-                                .child(SharedString::from(image.alt.clone())),
-                        ),
-                    })
-                    .when_some(bounds_editor, |frame, editor| {
-                        frame.child(
-                            canvas(
-                                |_, _, _| (),
-                                move |bounds, _, _, cx| {
-                                    editor.update(cx, |editor, _| {
-                                        editor.set_image_bounds(nth, bounds)
-                                    });
-                                },
-                            )
-                            .absolute()
-                            .top_0()
-                            .left_0()
-                            .size_full(),
-                        )
-                    })
-                    .when(self.editor.is_some(), |frame| {
-                        frame
-                            .child(handle(true, editor.clone()))
-                            .child(handle(false, editor.clone()))
-                    }),
-            )
+            .map(|block| match title {
+                Some((title, host)) => block.child(host.trigger(
+                    super::tooltip::TooltipSpec::title(format!("note-image-title-{nth}"), title),
+                    frame,
+                )),
+                None => block.child(frame),
+            })
             .into_any_element()
     }
 
@@ -1451,6 +1469,7 @@ impl DocumentRenderer {
             next_file: Cell::new(0),
             inline_block_gap: self.inline_block_gap,
             inline_box_height: self.inline_box_height,
+            tooltips: None,
         };
         renderer.text(spans, &base)
     }

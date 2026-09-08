@@ -747,7 +747,7 @@ export const NoteEditor = forwardRef<NoteEditorRef, NoteEditorProps>(
             doc,
             ...(content ? { content } : {}),
           });
-        }),
+        }, notifyDocumentChange),
         buildInputRules(),
         ...(enforceTitleHeading ? [titleHeadingPlugin()] : []),
         taskIdentityPlugin(),
@@ -902,7 +902,6 @@ export const NoteEditor = forwardRef<NoteEditorRef, NoteEditorProps>(
               ),
             );
           }
-          notifyDocumentChange(doc);
           previousContentRef.current = reconciledInitialContent;
         } catch {
           // invalid content
@@ -924,7 +923,6 @@ export const NoteEditor = forwardRef<NoteEditorRef, NoteEditorProps>(
       enforceTitleHeading,
       readOnly,
       onUpdate,
-      notifyDocumentChange,
     ]);
 
     const onViewReady = useCallback(

@@ -5,13 +5,18 @@ const docChangedByTransactionKey = new PluginKey<boolean>(
   "docChangedByTransaction",
 );
 
-export function docChangeListenerPlugin(onDocChanged: (doc: PMNode) => void) {
+export function docChangeListenerPlugin(
+  onDocChanged: (doc: PMNode) => void,
+  onContentSynced?: (doc: PMNode) => void,
+) {
   return new Plugin({
     key: docChangedByTransactionKey,
     state: {
       init: () => false,
       apply: (transaction, previous) =>
-        transaction.getMeta("externalContentSync")
+        (transaction.getMeta("appendedTransaction") ?? transaction).getMeta(
+          "externalContentSync",
+        )
           ? false
           : transaction.docChanged || previous,
     },
@@ -23,6 +28,7 @@ export function docChangeListenerPlugin(onDocChanged: (doc: PMNode) => void) {
           }
 
           if (!docChangedByTransactionKey.getState(view.state)) {
+            onContentSynced?.(view.state.doc);
             return;
           }
 

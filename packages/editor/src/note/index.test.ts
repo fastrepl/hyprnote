@@ -425,6 +425,51 @@ describe("browser-safe editor controls", () => {
     expect(view.state.doc.textContent).toBe("new");
   });
 
+  it("reports the normalized synced document without persisting appended transactions", async () => {
+    vi.useFakeTimers();
+    const ref = createRef<NoteEditorRef>();
+    const handleChange = vi.fn();
+    const onDocumentChange = vi.fn();
+    const props = {
+      ref,
+      handleChange,
+      onDocumentChange,
+      enforceTitleHeading: false,
+    };
+    const rendered = render(
+      createElement(NoteEditor, { ...props, initialContent: baseDoc }),
+    );
+    const view = ref.current!.view!;
+
+    rendered.rerender(
+      createElement(NoteEditor, {
+        ...props,
+        initialContent: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "https://example.com" }],
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(view.state.doc.firstChild?.firstChild?.marks).toEqual([
+      expect.objectContaining({ type: schema.marks.link }),
+    ]);
+    expect(onDocumentChange).toHaveBeenCalledExactlyOnceWith(
+      view.state.doc.toJSON(),
+    );
+    await act(() => vi.advanceTimersByTimeAsync(500));
+    expect(handleChange).not.toHaveBeenCalled();
+
+    act(() => view.dispatch(view.state.tr.insertText(" more", 20)));
+    await act(() => vi.advanceTimersByTimeAsync(500));
+    expect(handleChange).toHaveBeenLastCalledWith(view.state.doc.toJSON());
+  });
+
   it("keeps external content deferred while focus is in editor popups", async () => {
     const ref = createRef<NoteEditorRef>();
     const props = {

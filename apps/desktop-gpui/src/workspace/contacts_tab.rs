@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use gpui::{
     AnyElement, ClickEvent, Context, Div, Entity, Focusable as _, ImageSource, MouseButton,
-    RenderImage, Resource, SharedString, Window, div, img, prelude::*, px,
+    RenderImage, Resource, SharedString, Window, div, img, prelude::*, px, relative,
 };
 
 use super::Workspace;
@@ -53,6 +53,10 @@ pub(crate) struct ContactsState {
     avatars: HashMap<String, Arc<RenderImage>>,
     /// Uploaded `avatarDataUrl` photos, decoded once per data URL.
     photos: HashMap<String, Option<Arc<RenderImage>>>,
+    /// The `overflow-y-auto` columns: the sidebar list and the details body,
+    /// each with WebKit's 6px scrollbar gutter once it overflows.
+    list_scroll: gpui::ScrollHandle,
+    body_scroll: gpui::ScrollHandle,
 }
 
 /// `OrganizationDetailsColumn`'s editable name field.
@@ -76,6 +80,8 @@ pub(super) struct PersonDetails {
     organization_search: Option<Entity<TextInput>>,
     related_newest: bool,
     related_sort_open: bool,
+    /// The `Related Notes` header's `Search...` field.
+    related_search: Entity<TextInput>,
 }
 
 impl Workspace {
@@ -114,6 +120,8 @@ impl Workspace {
                 actions_open: false,
                 avatars: HashMap::new(),
                 photos: HashMap::new(),
+                list_scroll: gpui::ScrollHandle::new(),
+                body_scroll: gpui::ScrollHandle::new(),
             });
         }
         self.reload_contacts(window, cx);
@@ -351,6 +359,29 @@ impl Workspace {
             }
         })
         .detach();
+        let related_search = cx.new(|cx| {
+            TextInput::new(
+                "Search...",
+                self.contact_input_style(self.theme.foreground),
+                window,
+                cx,
+            )
+        });
+        cx.subscribe(
+            &related_search,
+            |this, input, event: &TextInputEvent, cx| {
+                match event {
+                    // `onKeyDown`: Escape clears the search.
+                    TextInputEvent::Escape => input.update(cx, |input, cx| input.set_text("", cx)),
+                    TextInputEvent::Changed => {}
+                    _ => return,
+                }
+                if this.contacts.is_some() {
+                    cx.notify();
+                }
+            },
+        )
+        .detach();
         if let Some(state) = self.contacts.as_mut() {
             state.details = Some(PersonDetails {
                 id: id.clone(),
@@ -366,6 +397,7 @@ impl Workspace {
                 organization_search: None,
                 related_newest: true,
                 related_sort_open: false,
+                related_search,
             });
         }
         self.refresh_related_notes(id, cx);
@@ -1265,12 +1297,23 @@ impl Workspace {
             )
             .child(
                 div()
-                    .id("contacts-list")
+                    .relative()
                     .min_h_0()
                     .w_full()
                     .flex_1()
-                    .overflow_y_scroll()
-                    .child(list),
+                    .child(
+                        div()
+                            .id("contacts-list")
+                            .size_full()
+                            .pr(crate::ui::scrollbar_gutter(&state.list_scroll))
+                            .overflow_y_scroll()
+                            .track_scroll(&state.list_scroll)
+                            .child(list),
+                    )
+                    .child(crate::ui::webkit_scrollbar(
+                        state.list_scroll.clone(),
+                        theme.scrollbar_thumb,
+                    )),
             )
     }
 
@@ -1306,7 +1349,11 @@ impl Workspace {
 
     /// `ContactView`: `DetailsColumn` for a person, the organization details, or
     /// the empty prompt.
-    pub(super) fn render_contacts_main(&self, cx: &mut Context<Self>) -> AnyElement {
+    pub(super) fn render_contacts_main(
+        &self,
+        window: &Window,
+        cx: &mut Context<Self>,
+    ) -> AnyElement {
         let theme = self.theme;
         let Some(selection) = self.effective_contact() else {
             return div()
@@ -1338,7 +1385,7 @@ impl Workspace {
                 let Some(details) = state.details.as_ref().filter(|d| d.id == id) else {
                     return div().into_any_element();
                 };
-                self.render_person_details(&human, details, state, cx)
+                self.render_person_details(&human, details, state, window, cx)
             }
             Selection::Organization(id) => {
                 let Some(state) = self.contacts.as_ref() else {
@@ -1447,6 +1494,7 @@ impl Workspace {
         human: &Human,
         details: &PersonDetails,
         state: &ContactsState,
+        window: &Window,
         cx: &Context<Self>,
     ) -> AnyElement {
         let theme = self.theme;
@@ -1573,9 +1621,10 @@ impl Workspace {
         let memo_area = details.memo.clone();
         let body = div()
             .id("contact-body")
-            .flex_1()
-            .min_h_0()
+            .size_full()
+            .pr(crate::ui::scrollbar_gutter(&state.body_scroll))
             .overflow_y_scroll()
+            .track_scroll(&state.body_scroll)
             .child(
                 // The 64px avatar block: `border-b py-6`.
                 div()
@@ -1650,7 +1699,7 @@ impl Workspace {
             .when(!details.sessions.is_empty(), |body| {
                 body.child(self.render_contact_summary(human, &details.summary, cx))
             })
-            .child(self.render_related_notes(details, cx))
+            .child(self.render_related_notes(details, window, cx))
             .child(div().pb(px(384.0)));
 
         div()
@@ -1665,18 +1714,36 @@ impl Workspace {
                 menu,
                 cx,
             ))
-            .child(body)
+            .child(div().relative().flex_1().min_h_0().child(body).child(
+                crate::ui::webkit_scrollbar(state.body_scroll.clone(), theme.scrollbar_thumb),
+            ))
             .into_any_element()
     }
 
     /// `RelatedNotesSection`
-    fn render_related_notes(&self, details: &PersonDetails, cx: &Context<Self>) -> Div {
+    fn render_related_notes(
+        &self,
+        details: &PersonDetails,
+        window: &Window,
+        cx: &Context<Self>,
+    ) -> Div {
         let theme = self.theme;
-        let mut sessions = details.sessions.clone();
-        if !details.related_newest {
-            sessions.reverse();
-        }
+        let search = details.related_search.read(cx).text().to_string();
+        let searching = !search.is_empty();
+        let sessions = crate::contacts::sort_and_filter_related_notes(
+            &details.sessions,
+            &search,
+            details.related_newest,
+        );
         let sort_open = details.related_sort_open;
+        let search_input = details.related_search.clone();
+        let focus_input = details.related_search.clone();
+        let clear_input = details.related_search.clone();
+        let search_focused = details
+            .related_search
+            .read(cx)
+            .focus_handle(cx)
+            .is_focused(window);
         div()
             .p_6()
             .child(
@@ -1752,7 +1819,58 @@ impl Workspace {
                                     )
                                 }),
                         )
-                    }),
+                    })
+                    // `ml-auto` on the box: Taffy leaves 8px of the auto margin
+                    // unused after a gapped row, so a growing spacer does it.
+                    .child(div().flex_1())
+                    .child(
+                        // `flex h-8 w-52 max-w-[48%] items-center gap-2 rounded-lg
+                        // border bg-muted/50 focus-within:bg-accent px-2.5`
+                        div()
+                            .id("related-search")
+                            .relative()
+                            .flex()
+                            .h(px(32.0))
+                            .w(px(208.0))
+                            .max_w(relative(0.48))
+                            .flex_shrink_0()
+                            .items_center()
+                            .gap_2()
+                            .px(px(10.0))
+                            .cursor_text()
+                            .child(crate::squircle::squircle(
+                                crate::squircle::CONTROL_RADIUS,
+                                Some(if search_focused {
+                                    theme.accent
+                                } else {
+                                    alpha(theme.muted, 0.5)
+                                }),
+                                Some((1.0, theme.border)),
+                            ))
+                            .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                            .on_click(cx.listener(move |_, _: &ClickEvent, window, cx| {
+                                focus_input.read(cx).focus_handle(cx).focus(window);
+                            }))
+                            .child(icon("search", px(14.0), theme.muted_foreground))
+                            .child(div().min_w_0().flex_1().tw_text_sm().child(search_input))
+                            .when(searching, |row| {
+                                row.child(
+                                    div()
+                                        .id("related-search-clear")
+                                        .size(px(14.0))
+                                        .flex_shrink_0()
+                                        .cursor_pointer()
+                                        .on_mouse_down(MouseButton::Left, |_, _, cx| {
+                                            cx.stop_propagation()
+                                        })
+                                        .on_click(cx.listener(move |_, _: &ClickEvent, _, cx| {
+                                            clear_input
+                                                .update(cx, |input, cx| input.set_text("", cx));
+                                        }))
+                                        .child(icon("x", px(14.0), theme.muted_foreground)),
+                                )
+                            }),
+                    ),
             )
             .child(if sessions.is_empty() {
                 div()
@@ -1760,7 +1878,11 @@ impl Workspace {
                     .py_2()
                     .tw_text_sm()
                     .text_color(theme.muted_foreground)
-                    .child("No related notes found")
+                    .child(if details.sessions.is_empty() {
+                        "No related notes found"
+                    } else {
+                        "No results found."
+                    })
                     .into_any_element()
             } else {
                 div()
@@ -2139,64 +2261,85 @@ impl Workspace {
             ))
             .child(
                 div()
-                    .id("organization-body")
+                    .relative()
                     .flex_1()
                     .min_h_0()
-                    .overflow_y_scroll()
-                    .child(
-                        // `border-b py-6` with the `bg-accent h-16 w-16 rounded-full` mark.
-                        div()
-                            .flex()
-                            .items_center()
-                            .justify_center()
-                            .border_b_1()
-                            .border_color(theme.border)
-                            .py_6()
-                            .child(self.render_avatar_upload(
-                                "organizations",
-                                organization.id.clone(),
-                                self.render_organization_avatar(organization, 64.0, theme.accent),
-                                false,
-                                cx,
-                            )),
-                    )
-                    .child(detail_row(theme, "Name", name_field))
                     .child(
                         div()
-                            .p_6()
+                            .id("organization-body")
+                            .size_full()
+                            .pr(crate::ui::scrollbar_gutter(&state.body_scroll))
+                            .overflow_y_scroll()
+                            .track_scroll(&state.body_scroll)
                             .child(
-                                // `h3.text-muted-foreground mb-4 text-sm font-medium`
+                                // `border-b py-6` with the `bg-accent h-16 w-16 rounded-full` mark.
                                 div()
                                     .flex()
-                                    .mb_4()
-                                    .tw_text_sm()
-                                    .text_color(theme.muted_foreground)
-                                    .child(
-                                        div().font_weight(gpui::FontWeight::MEDIUM).child("People"),
-                                    )
-                                    .child(div().font_weight(gpui::FontWeight::NORMAL).child(
-                                        SharedString::from(format!(" \u{b7} {member_count}")),
+                                    .items_center()
+                                    .justify_center()
+                                    .border_b_1()
+                                    .border_color(theme.border)
+                                    .py_6()
+                                    .child(self.render_avatar_upload(
+                                        "organizations",
+                                        organization.id.clone(),
+                                        self.render_organization_avatar(
+                                            organization,
+                                            64.0,
+                                            theme.accent,
+                                        ),
+                                        false,
+                                        cx,
                                     )),
                             )
-                            .child(if members.is_empty() {
+                            .child(detail_row(theme, "Name", name_field))
+                            .child(
                                 div()
-                                    .tw_text_sm()
-                                    .text_color(theme.muted_foreground)
-                                    .child("No people in this organization")
-                                    .into_any_element()
-                            } else {
-                                div()
-                                    .grid()
-                                    .grid_cols(3)
-                                    .gap_4()
-                                    .children(
-                                        members
-                                            .iter()
-                                            .map(|human| self.render_member_card(human, cx)),
+                                    .p_6()
+                                    .child(
+                                        // `h3.text-muted-foreground mb-4 text-sm font-medium`
+                                        div()
+                                            .flex()
+                                            .mb_4()
+                                            .tw_text_sm()
+                                            .text_color(theme.muted_foreground)
+                                            .child(
+                                                div()
+                                                    .font_weight(gpui::FontWeight::MEDIUM)
+                                                    .child("People"),
+                                            )
+                                            .child(
+                                                div().font_weight(gpui::FontWeight::NORMAL).child(
+                                                    SharedString::from(format!(
+                                                        " \u{b7} {member_count}"
+                                                    )),
+                                                ),
+                                            ),
                                     )
-                                    .into_any_element()
-                            }),
-                    ),
+                                    .child(if members.is_empty() {
+                                        div()
+                                            .tw_text_sm()
+                                            .text_color(theme.muted_foreground)
+                                            .child("No people in this organization")
+                                            .into_any_element()
+                                    } else {
+                                        div()
+                                            .grid()
+                                            .grid_cols(3)
+                                            .gap_4()
+                                            .children(
+                                                members.iter().map(|human| {
+                                                    self.render_member_card(human, cx)
+                                                }),
+                                            )
+                                            .into_any_element()
+                                    }),
+                            ),
+                    )
+                    .child(crate::ui::webkit_scrollbar(
+                        state.body_scroll.clone(),
+                        theme.scrollbar_thumb,
+                    )),
             )
             .into_any_element()
     }

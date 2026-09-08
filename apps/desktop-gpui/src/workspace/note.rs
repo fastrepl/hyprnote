@@ -22,7 +22,7 @@ impl Workspace {
         let theme = self.theme;
         let content = match &self.note {
             _ if self.edit_review_open() => self.render_edit_review(window, cx),
-            _ if self.contacts_open() => self.render_contacts_main(cx),
+            _ if self.contacts_open() => self.render_contacts_main(window, cx),
             _ if self.automations_open() => self.render_automations_main(window, cx),
             _ if self.calendar_open() => self.render_calendar_main(window, cx),
             _ if self.templates_open() => self.render_templates_main(window, cx),

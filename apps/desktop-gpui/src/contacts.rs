@@ -708,6 +708,34 @@ pub fn avatar_initials(value: &str) -> String {
         .collect()
 }
 
+/// `sortAndFilterRelatedNotes`: the titles containing the trimmed,
+/// lower-cased search, by `Date.parse(createdAt)` (an unparsable date counts
+/// as 0) in the chosen direction, ties broken by the id in that direction.
+pub fn sort_and_filter_related_notes(
+    sessions: &[HumanSession],
+    search: &str,
+    newest_first: bool,
+) -> Vec<HumanSession> {
+    let query = search.trim().to_lowercase();
+    let timestamp = |value: &str| {
+        crate::timeline::parse_date(value, &chrono::Local)
+            .map(|date| date.timestamp_millis())
+            .unwrap_or(0)
+    };
+    let mut visible: Vec<HumanSession> = sessions
+        .iter()
+        .filter(|session| query.is_empty() || session.title.to_lowercase().contains(&query))
+        .cloned()
+        .collect();
+    visible.sort_by(|left, right| {
+        let order = timestamp(&left.created_at)
+            .cmp(&timestamp(&right.created_at))
+            .then_with(|| left.id.cmp(&right.id));
+        if newest_first { order.reverse() } else { order }
+    });
+    visible
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -777,5 +805,35 @@ mod tests {
         assert_eq!(avatar_initials("ada lovelace"), "AL");
         assert_eq!(avatar_initials("  john@example.com "), "J");
         assert_eq!(avatar_initials("Élodie   d'Arc"), "ÉD");
+    }
+
+    #[test]
+    fn related_notes_filter_and_sort_like_the_frontend() {
+        let session = |id: &str, title: &str, created_at: &str| HumanSession {
+            id: id.into(),
+            title: title.into(),
+            created_at: created_at.into(),
+            source_updated_at: String::new(),
+        };
+        let sessions = vec![
+            session("b", "Weekly sync", "2026-09-01T10:00:00.000Z"),
+            session("a", "Weekly sync", "2026-09-01T10:00:00.000Z"),
+            session("c", "Release review", "2026-09-03T10:00:00.000Z"),
+            session("d", "Undated", "not a date"),
+        ];
+        let ids = |list: &[HumanSession]| list.iter().map(|s| s.id.clone()).collect::<Vec<_>>();
+        assert_eq!(
+            ids(&sort_and_filter_related_notes(&sessions, "", true)),
+            ["c", "b", "a", "d"]
+        );
+        assert_eq!(
+            ids(&sort_and_filter_related_notes(&sessions, "", false)),
+            ["d", "a", "b", "c"]
+        );
+        assert_eq!(
+            ids(&sort_and_filter_related_notes(&sessions, "  WEEKLY ", true)),
+            ["b", "a"]
+        );
+        assert!(sort_and_filter_related_notes(&sessions, "nothing", true).is_empty());
     }
 }

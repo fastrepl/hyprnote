@@ -293,18 +293,18 @@ impl Workspace {
             .cursor_pointer()
             .hover(move |style| style.bg(theme.accent).text_color(theme.foreground))
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-            .on_hover(cx.listener(move |this, hovered: &bool, _, cx| {
+            .on_hover(cx.listener(move |this, hovered: &bool, window, cx| {
                 if *hovered && this.open_menu.is_some() {
-                    this.set_menu(Some(menu), cx);
+                    this.set_menu(Some(menu), window, cx);
                 }
             }))
-            .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+            .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
                 let next = if this.open_menu == Some(menu) {
                     None
                 } else {
                     Some(menu)
                 };
-                this.set_menu(next, cx);
+                this.set_menu(next, window, cx);
             }))
             .child(label)
     }
@@ -336,7 +336,7 @@ impl Workspace {
             .tw_text_sm()
             .text_color(theme.foreground)
             .on_mouse_down_out(
-                cx.listener(|this, _: &MouseDownEvent, _, cx| this.set_menu(None, cx)),
+                cx.listener(|this, _: &MouseDownEvent, window, cx| this.set_menu(None, window, cx)),
             )
             .children(entries.into_iter().enumerate().map(|(index, entry)| {
                 match entry {
@@ -362,11 +362,18 @@ impl Workspace {
                         .cursor_default()
                         .hover(move |style| style.bg(theme.accent))
                         .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
-                            this.set_menu(None, cx);
+                            this.set_menu(None, window, cx);
                             if let Some(url) = url {
                                 cx.open_url(url);
                             }
                             if let Some(action) = &action {
+                                // `runEditCommand`: the Edit items run on the
+                                // element that had focus when the menu opened.
+                                if menu == Menu::Edit
+                                    && let Some(target) = this.menu_edit_target.take()
+                                {
+                                    window.focus(&target);
+                                }
                                 window.dispatch_action(action.boxed_clone(), cx);
                             }
                         }))

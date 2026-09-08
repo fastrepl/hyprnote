@@ -1777,6 +1777,28 @@ impl BodyEditor {
             .on_action(cx.listener(Self::on_escape))
             .on_action(cx.listener(Self::on_undo))
             .on_action(cx.listener(Self::on_redo))
+            // The title bar's Edit menu (`runEditCommand`) targets the editor
+            // that had focus with the app-level actions.
+            .on_action(cx.listener(|this, _: &crate::actions::Undo, window, cx| {
+                this.on_undo(&Undo, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &crate::actions::Redo, window, cx| {
+                this.on_redo(&Redo, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &crate::actions::Cut, window, cx| {
+                this.on_cut(&Cut, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &crate::actions::Copy, window, cx| {
+                this.on_copy(&Copy, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &crate::actions::Paste, window, cx| {
+                this.on_paste(&Paste, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &crate::actions::SelectAll, window, cx| {
+                    this.on_select_all(&SelectAll, window, cx)
+                }),
+            )
             .on_mouse_move(cx.listener(|this, event: &gpui::MouseMoveEvent, _, cx| {
                 this.update_image_resize(event.position.x, cx)
             }))

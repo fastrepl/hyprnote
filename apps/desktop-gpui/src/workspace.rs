@@ -210,6 +210,9 @@ pub struct Workspace {
     /// `isAppWindowInactive`'s complement, kept current by the activation observer.
     window_active: bool,
     open_menu: Option<Menu>,
+    /// `editTargetRef`: the element focused when a title bar menu opened, so
+    /// an Edit item runs on it after the press moved focus.
+    menu_edit_target: Option<FocusHandle>,
     open_note: Option<open_note::OpenNoteDialog>,
     /// `recentlyOpenedSessionIds`, newest first, persisted to `store.json`.
     recently_opened: Vec<String>,
@@ -480,6 +483,7 @@ impl Workspace {
             width_expansions: Vec::new(),
             window_active: true,
             open_menu: None,
+            menu_edit_target: None,
             open_note: None,
             recently_opened: Vec::new(),
             store_file,
@@ -1644,8 +1648,12 @@ impl Workspace {
         .detach();
     }
 
-    fn set_menu(&mut self, menu: Option<Menu>, cx: &mut Context<Self>) {
+    fn set_menu(&mut self, menu: Option<Menu>, window: &Window, cx: &mut Context<Self>) {
         if self.open_menu != menu {
+            // `rememberEditTarget` on the trigger's pointer down.
+            if self.open_menu.is_none() {
+                self.menu_edit_target = window.focused(cx);
+            }
             self.open_menu = menu;
             cx.notify();
         }

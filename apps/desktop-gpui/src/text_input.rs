@@ -841,6 +841,21 @@ impl Render for TextInput {
             .on_action(cx.listener(Self::up))
             .on_action(cx.listener(Self::down))
             .on_action(cx.listener(Self::escape))
+            // The title bar's Edit menu (`runEditCommand`) on the focused field.
+            .on_action(
+                cx.listener(|this, _: &crate::actions::Cut, window, cx| this.cut(&Cut, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &crate::actions::Copy, window, cx| {
+                this.copy(&Copy, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &crate::actions::Paste, window, cx| {
+                this.paste(&Paste, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &crate::actions::SelectAll, window, cx| {
+                    this.select_all(&SelectAll, window, cx)
+                }),
+            )
             .on_mouse_down(MouseButton::Left, cx.listener(Self::on_mouse_down))
             .on_mouse_up(MouseButton::Left, cx.listener(Self::on_mouse_up))
             .on_mouse_up_out(MouseButton::Left, cx.listener(Self::on_mouse_up))

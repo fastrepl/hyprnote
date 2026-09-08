@@ -214,7 +214,7 @@ function SignInToCollaborate({ returnPath }: { returnPath: string }) {
   return (
     <div className="sm:flex sm:items-center sm:justify-between sm:gap-5">
       <div>
-        <p className="text-color font-mono text-sm font-medium">
+        <p className="text-color text-sm font-medium">
           Sign in to join the conversation
         </p>
         <p className="text-color-muted mt-1 text-sm leading-6">
@@ -271,7 +271,7 @@ function AccessRequestPanel({
   return (
     <div className="sm:flex sm:items-center sm:justify-between sm:gap-5">
       <div>
-        <p className="text-color flex items-center gap-2 font-mono text-sm font-medium">
+        <p className="text-color flex items-center gap-2 text-sm font-medium">
           {isPending && <Clock className="size-4" aria-hidden="true" />}
           {isApproved ? "Comment access approved" : "Want to comment?"}
         </p>
@@ -353,7 +353,7 @@ function ManagerRequests({
 
   return (
     <div>
-      <h2 className="text-color font-mono text-sm font-medium">
+      <h2 className="text-color text-sm font-medium">
         Comment access requests
       </h2>
       {requests.length > 0 && (

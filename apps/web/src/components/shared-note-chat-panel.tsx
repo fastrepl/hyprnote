@@ -198,7 +198,7 @@ export function SharedNoteChatPanel({
         <header className="border-color-subtle flex items-center gap-3 border-b px-5 py-4 pr-14">
           <div className="text-color flex items-center gap-2">
             <Sparkle className="size-4" aria-hidden="true" />
-            <DialogTitle className="font-mono text-sm font-medium">
+            <DialogTitle className="text-sm font-medium">
               Ask about this note
             </DialogTitle>
           </div>
@@ -332,7 +332,7 @@ function SignInToChat({ returnPath }: { returnPath: string }) {
   });
   return (
     <div className="surface-subtle border-color-subtle rounded-2xl border px-4 py-5">
-      <p className="text-color font-mono text-sm font-medium">
+      <p className="text-color text-sm font-medium">
         Sign in to ask about this note
       </p>
       <p className="text-color-muted mt-1 text-sm leading-6">

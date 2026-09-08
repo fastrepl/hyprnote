@@ -16,10 +16,10 @@ export function PricingSection({
   return (
     <section id="pricing" className="pt-24 pb-8 md:pt-28 md:pb-10">
       <div>
-        <h2 className="text-color-muted font-mono text-3xl leading-none font-semibold">
+        <h2 className="font-hand text-3xl leading-none font-semibold text-[#756b5d]">
           Simple pricing
         </h2>
-        <p className="text-color-secondary mx-auto mt-6 max-w-2xl text-lg leading-8">
+        <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#4f4940]">
           Start local for free, add personal cloud features with Pro, put
           collaboration on Team, and reserve organization-wide controls for
           Enterprise.
@@ -59,7 +59,7 @@ function PricingCard({ plan }: { plan: MarketingPlanData }) {
       ])}
     >
       <div className="flex items-start">
-        <h3 className="text-color font-mono text-2xl leading-none font-semibold">
+        <h3 className="font-hand text-2xl leading-none font-semibold text-[#181613]">
           {plan.name}
         </h3>
       </div>
@@ -80,7 +80,7 @@ function PricingCard({ plan }: { plan: MarketingPlanData }) {
         <Link
           to={plan.id === "enterprise" ? "/enterprise/" : "/download/"}
           className={cn([
-            "flex h-11 w-full items-center justify-center rounded-full font-mono text-sm font-medium transition-all hover:scale-[102%] active:scale-[98%]",
+            "flex h-11 w-full items-center justify-center rounded-full text-sm font-medium transition-all hover:scale-[102%] active:scale-[98%]",
             plan.popular
               ? "bg-linear-to-t from-stone-600 to-stone-500 text-white"
               : "surface-subtle text-color hover:bg-page",
@@ -97,7 +97,7 @@ function PlanPrice({ price }: { price: MarketingPlanPrice }) {
   if (price.kind === "custom") {
     return (
       <div className="flex flex-col gap-1">
-        <span className="text-color font-mono text-4xl leading-none font-semibold">
+        <span className="text-color text-4xl leading-none font-semibold">
           Custom
         </span>
         <span className="text-color-muted text-sm">Founder-led rollout</span>
@@ -108,7 +108,7 @@ function PlanPrice({ price }: { price: MarketingPlanPrice }) {
   if (price.kind === "free") {
     return (
       <div className="flex items-baseline gap-2">
-        <span className="text-color font-mono text-4xl leading-none font-semibold">
+        <span className="text-color text-4xl leading-none font-semibold">
           $0
         </span>
         <span className="text-color-muted text-sm">/month</span>
@@ -121,7 +121,7 @@ function PlanPrice({ price }: { price: MarketingPlanPrice }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="text-color font-mono text-4xl leading-none font-semibold">
+        <span className="text-color text-4xl leading-none font-semibold">
           ${price.monthly}
         </span>
         <span className="text-color-muted text-sm">{unit}/month</span>

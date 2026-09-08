@@ -267,7 +267,7 @@ export function SharedNotePrompt({
             {icon}
           </div>
         )}
-        <h1 className="text-color font-mono text-2xl font-medium">{title}</h1>
+        <h1 className="text-color text-2xl font-medium">{title}</h1>
         <p className="text-color-muted mx-auto mt-3 max-w-lg text-base leading-7">
           {description}
         </p>

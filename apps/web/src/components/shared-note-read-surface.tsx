@@ -388,7 +388,7 @@ export function SharedNoteReadSurface({
       </SharedReadAttachmentsContext.Provider>
       {unreferencedAttachments.length > 0 && (
         <section className="border-color-subtle mt-10 border-t pt-6">
-          <h2 className="mb-3 font-mono text-sm font-medium">Attachments</h2>
+          <h2 className="mb-3 text-sm font-medium">Attachments</h2>
           {unreferencedAttachments.map((attachment) => (
             <SharedReadAttachment
               key={attachment.id}

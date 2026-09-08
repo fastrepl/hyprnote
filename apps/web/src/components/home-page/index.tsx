@@ -163,7 +163,7 @@ function OpenSourceSection({
       <div className="mx-auto max-w-[700px] px-5 md:px-8">
         <h2
           id="open-source-heading"
-          className="text-color-muted font-mono text-3xl leading-none font-semibold"
+          className="font-hand text-3xl leading-none font-semibold text-[#756b5d]"
         >
           Open source by default
         </h2>

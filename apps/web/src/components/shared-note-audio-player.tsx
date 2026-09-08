@@ -224,7 +224,7 @@ export function SharedNoteAudioPlayer({
           <Play className="ml-0.5 size-3.5" aria-hidden="true" />
         )}
       </button>
-      <span className="flex shrink-0 gap-1 font-mono text-[10px] tabular-nums">
+      <span className="flex shrink-0 gap-1 text-[10px] tabular-nums">
         <span>{formatSharedNotePlaybackTime(currentTime)}</span>
         <span aria-hidden="true">/</span>
         <span>{formatSharedNotePlaybackTime(duration)}</span>

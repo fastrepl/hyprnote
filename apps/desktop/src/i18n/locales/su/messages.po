@@ -2279,7 +2279,6 @@ msgstr ""
 msgid "Float chat"
 msgstr ""
 
-#: src/session/components/folder-picker.tsx
 #: src/settings/appearance/sidebar-item-fields.tsx
 #: src/sidebar/note-filter-menu.tsx
 msgid "Folder"

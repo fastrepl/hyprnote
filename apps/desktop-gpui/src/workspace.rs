@@ -1721,10 +1721,15 @@ impl Render for Workspace {
         }
         self.prepare_contact_avatars();
         // The web view's shortcuts listen on `document`: when the focused
-        // field unmounts (the chat closes, an overlay swaps out), GPUI would
-        // dispatch keys to the bare root, past this element's bindings, so
-        // the workspace takes the focus back.
-        if window.focused(cx).is_none() {
+        // field unmounts (the chat closes, an overlay swaps out, the memo
+        // editor gives way to the summary tab), GPUI would dispatch keys to
+        // the bare root, past this element's bindings — the handle may still
+        // be alive while its element is gone — so the workspace takes the
+        // focus back whenever the focused handle is not under this element.
+        if window
+            .focused(cx)
+            .is_none_or(|focused| !self.focus_handle.contains(&focused, window))
+        {
             window.focus(&self.focus_handle);
         }
         let resolved = Theme::resolve(&self.theme_preference, window.appearance());

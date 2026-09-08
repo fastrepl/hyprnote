@@ -1758,6 +1758,13 @@ impl Render for Workspace {
                 .id("workspace-root")
                 .size_full()
                 .track_focus(&self.focus_handle)
+                .text_color(theme.foreground)
+                .tw_text_sm()
+                // `font-sans` on `body`: without the resolved family GPUI's
+                // fallback font ignores the semibold headings.
+                .when_some(self.font_family.clone(), |root, family| {
+                    root.font_family(family)
+                })
                 .child(self.render_onboarding(window, cx))
                 .into_any_element();
         }

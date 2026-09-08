@@ -1,15 +1,14 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { type ComponentProps, useState } from "react";
+import { useState } from "react";
 
-import { Check, Trophy } from "@anlg/ui/components/icons";
 import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { chipSquircle, panelSquircle } from "@anlg/ui/lib/squircle";
+import { panelSquircle } from "@anlg/ui/lib/squircle";
 import { cn } from "@anlg/utils";
 
-import { CONVERSATION_MILESTONES, summarizeActivity } from "./activity";
+import { summarizeActivity } from "./activity";
+import { BadgeCollection } from "./badge-collection";
 import { DateRangeFilter } from "./date-range";
 import { useActivity } from "./queries";
-import { ProgressBar } from "./tremor/progress-bar";
 import { Tracker } from "./tremor/tracker";
 
 import { useNow, useTimezone, useWeekStartsOn } from "~/calendar/hooks";
@@ -166,9 +165,7 @@ export function SettingsStats() {
             </div>
             <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-3 text-xs">
               <span>
-                <Trans>
-                  Capture a conversation each week to keep your streak going.
-                </Trans>
+                <Trans>Every conversation adds to your story.</Trans>
               </span>
               <div className="flex items-center gap-1.5" aria-hidden="true">
                 <span>
@@ -187,62 +184,12 @@ export function SettingsStats() {
             </div>
           </section>
 
-          <MilestonePanel
-            className="border-border flex flex-col gap-5 rounded-[20px] border p-5"
-            aria-label={t`Milestones`}
-          >
-            <div className="flex items-start gap-3">
-              <Trophy
-                className="text-muted-foreground mt-0.5 size-5 shrink-0"
-                aria-hidden="true"
-              />
-              <div className="flex flex-col gap-1">
-                <h3 className="text-sm font-medium">
-                  {stats.totalConversations === 0 ? (
-                    <Trans>Capture your first conversation</Trans>
-                  ) : (
-                    <Trans>Next milestone</Trans>
-                  )}
-                </h3>
-                <p className="text-muted-foreground text-xs">
-                  <Trans>
-                    {stats.totalConversations} of {stats.nextMilestone}{" "}
-                    conversations captured
-                  </Trans>
-                </p>
-              </div>
-            </div>
-            <ProgressBar
-              aria-label={t`Next conversation milestone`}
-              value={stats.totalConversations}
-              max={stats.nextMilestone}
-            />
-            <div className="flex flex-wrap gap-2">
-              {CONVERSATION_MILESTONES.map((target) => (
-                <MilestoneBadge
-                  key={target}
-                  className={cn([
-                    "inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs tabular-nums",
-                    stats.totalConversations >= target
-                      ? "border-border bg-muted text-foreground"
-                      : "border-border text-muted-foreground",
-                  ])}
-                >
-                  {stats.totalConversations >= target && (
-                    <Check className="size-3" aria-hidden="true" />
-                  )}
-                  <span className="sr-only">
-                    {stats.totalConversations >= target ? (
-                      <Trans>Reached:</Trans>
-                    ) : (
-                      <Trans>Upcoming:</Trans>
-                    )}
-                  </span>
-                  {number.format(target)}
-                </MilestoneBadge>
-              ))}
-            </div>
-          </MilestonePanel>
+          <BadgeCollection
+            records={activity.data ?? []}
+            now={now}
+            timezone={timezone}
+            weekStartsOn={weekStartsOn}
+          />
           <p className="text-muted-foreground text-xs">
             <Trans>
               Includes imported transcripts. Deleted conversations are excluded.
@@ -268,22 +215,4 @@ function StatCard({ label, value }: { label: string; value: string }) {
       </dd>
     </div>
   );
-}
-
-function MilestonePanel({ ref, ...props }: ComponentProps<"section">) {
-  const squircleRef = useSquircleRef<HTMLElement>(
-    ref,
-    panelSquircle,
-    STATS_BORDER,
-  );
-  return <section {...props} ref={squircleRef} />;
-}
-
-function MilestoneBadge({ ref, ...props }: ComponentProps<"span">) {
-  const squircleRef = useSquircleRef<HTMLSpanElement>(
-    ref,
-    chipSquircle,
-    STATS_BORDER,
-  );
-  return <span {...props} ref={squircleRef} />;
 }

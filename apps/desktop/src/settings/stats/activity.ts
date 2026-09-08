@@ -4,8 +4,6 @@ import { TZDate } from "@anlg/utils";
 
 import type { ActivityRecord } from "./queries";
 
-export const CONVERSATION_MILESTONES = [1, 10, 25, 50, 100, 250, 500, 1000];
-
 export function summarizeActivity(
   records: ActivityRecord[],
   now: Date,
@@ -104,9 +102,6 @@ export function summarizeActivity(
   }
 
   const total = allSessions.size;
-  const nextMilestone =
-    CONVERSATION_MILESTONES.find((target) => target > total) ??
-    Math.floor(total / 1000 + 1) * 1000;
 
   return {
     conversations: sessions.size,
@@ -115,7 +110,6 @@ export function summarizeActivity(
     activeDays: [...dailySessions.keys()].filter((day) => day >= cutoff).length,
     streak,
     days,
-    nextMilestone,
     weekdayCounts,
     medianMinutes,
     timedConversations: durations.length,

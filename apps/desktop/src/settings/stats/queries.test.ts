@@ -15,9 +15,9 @@ describe("personal activity query", () => {
     const db = new DatabaseSync(":memory:");
     try {
       db.exec(`
-        CREATE TABLE sessions (id TEXT PRIMARY KEY, owner_user_id TEXT, deleted_at TEXT);
+        CREATE TABLE sessions (id TEXT PRIMARY KEY, owner_user_id TEXT, deleted_at TEXT, event_json TEXT);
         CREATE TABLE transcripts (id TEXT PRIMARY KEY, session_id TEXT, started_at_ms INTEGER, created_at TEXT, words_json TEXT, deleted_at TEXT);
-        INSERT INTO sessions VALUES ('mine', 'user', NULL), ('theirs', 'another-user', NULL), ('deleted', 'user', '2026-01-01'), ('guest', NULL, NULL);
+        INSERT INTO sessions (id, owner_user_id, deleted_at) VALUES ('mine', 'user', NULL), ('theirs', 'another-user', NULL), ('deleted', 'user', '2026-01-01'), ('guest', NULL, NULL);
       `);
       const insert = db.prepare(
         "INSERT INTO transcripts VALUES (?, ?, 1000, '2026-09-04T00:00:00Z', ?, ?)",
@@ -51,6 +51,16 @@ describe("personal activity query", () => {
       expect(db.prepare(ACTIVITY_SQL).all("guest-user")).toEqual([
         expect.objectContaining({ session_id: "guest", duration_ms: 800 }),
       ]);
+      db.exec(
+        `UPDATE sessions SET event_json = '{"tracking_id":"anarlog-onboarding-demo-v1"}' WHERE id = 'mine'`,
+      );
+      db.exec(`UPDATE sessions SET event_json = 'invalid' WHERE id = 'guest'`);
+      expect(db.prepare(ACTIVITY_SQL).all("user")).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ session_id: "mine", is_demo: 1 }),
+          expect.objectContaining({ session_id: "guest", is_demo: 0 }),
+        ]),
+      );
     } finally {
       db.close();
     }

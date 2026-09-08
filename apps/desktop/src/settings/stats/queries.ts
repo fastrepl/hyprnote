@@ -1,5 +1,6 @@
 import { useAuth } from "~/auth";
 import { useLiveQuery } from "~/db";
+import { WELCOME_NOTE_TRACKING_ID } from "~/onboarding/welcome-note.constants";
 import { DEFAULT_USER_ID } from "~/shared/utils";
 
 export type ActivityRecord = {
@@ -7,6 +8,7 @@ export type ActivityRecord = {
   started_at_ms: number;
   created_at: string;
   duration_ms: number;
+  is_demo?: number;
 };
 
 export const ACTIVITY_SQL = `
@@ -14,6 +16,9 @@ export const ACTIVITY_SQL = `
     transcript.session_id,
     transcript.started_at_ms,
     transcript.created_at,
+    CASE WHEN json_valid(session.event_json)
+      THEN COALESCE(json_extract(session.event_json, '$.tracking_id') = '${WELCOME_NOTE_TRACKING_ID}', 0)
+      ELSE 0 END AS is_demo,
     MAX(CASE
       WHEN word.type = 'object'
         AND json_type(word.value, '$.end_ms') IN ('integer', 'real')

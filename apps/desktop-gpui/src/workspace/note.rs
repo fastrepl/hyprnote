@@ -600,10 +600,12 @@ impl Workspace {
             .as_ref()
             .filter(|live| live.session_id == preview.session.id);
         if self.can_show_transcript(preview) {
+            // `TranscriptAudioIcon`: the tab keeps its Lucide audio-lines glyph
+            // (#7398), unlike the `Waveform` the transcript screens use.
             tabs.push((
                 NoteTab::Transcript,
                 "Transcript".into(),
-                "waveform",
+                "audio-lines",
                 String::new(),
             ));
         }
@@ -675,18 +677,21 @@ impl Workspace {
                         // The active live transcript tab: `w-[98px] gap-1.5 px-2`
                         // on `bg-amber-50 text-amber-500` (degraded) or
                         // `bg-red-50 text-red-500`.
-                        .when_some(live.filter(|_| active && glyph == "waveform"), |t, live| {
-                            let (bg, fg) = if live.degraded() {
-                                (gpui::rgb(0xfffbeb), gpui::rgb(0xfd9a00))
-                            } else {
-                                (gpui::rgb(0xfef2f2), gpui::rgb(0xfb2c36))
-                            };
-                            t.w(px(98.0))
-                                .min_w(px(98.0))
-                                .gap(px(6.0))
-                                .bg(bg)
-                                .text_color(fg)
-                        })
+                        .when_some(
+                            live.filter(|_| active && glyph == "audio-lines"),
+                            |t, live| {
+                                let (bg, fg) = if live.degraded() {
+                                    (gpui::rgb(0xfffbeb), gpui::rgb(0xfd9a00))
+                                } else {
+                                    (gpui::rgb(0xfef2f2), gpui::rgb(0xfb2c36))
+                                };
+                                t.w(px(98.0))
+                                    .min_w(px(98.0))
+                                    .gap(px(6.0))
+                                    .bg(bg)
+                                    .text_color(fg)
+                            },
+                        )
                         .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
                         .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
                             // The active enhanced pill is the template picker
@@ -714,13 +719,13 @@ impl Workspace {
                         .map(|t| match live {
                             // `HeaderViewTranscriptLiveIcon`: DancingSticks in place
                             // of the waveform while capturing.
-                            Some(live) if glyph == "waveform" => {
+                            Some(live) if glyph == "audio-lines" => {
                                 t.child(self.render_dancing_sticks(live))
                             }
                             // `HeaderViewEnhanced*`: the spinner while the summary
                             // generates, red while its task failed; the transcript
                             // pill spins while finalizing or batch transcribing.
-                            _ if generating || (transcribing && glyph == "waveform") => {
+                            _ if generating || (transcribing && glyph == "audio-lines") => {
                                 t.child(crate::ui::spinner(
                                     ("enhance-spinner", index),
                                     px(16.0),
@@ -757,7 +762,7 @@ impl Workspace {
                                 // `HeaderViewTranscriptActive`: an inactive session with a
                                 // stored transcript can enter edit mode, shown by the
                                 // pencil, and the check while editing.
-                                .when(glyph == "waveform" && can_edit, |t| {
+                                .when(glyph == "audio-lines" && can_edit, |t| {
                                     t.child(icon(
                                         if edit_mode {
                                             "check-circle"

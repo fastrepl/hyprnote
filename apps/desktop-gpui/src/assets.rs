@@ -196,6 +196,7 @@ embedded!(
     "icons/file-text.svg",
     "icons/file.svg",
     "icons/filter.svg",
+    "icons/filter-bold.svg",
     "icons/floppy-disk.svg",
     "icons/folder-open.svg",
     "icons/folder.svg",
@@ -204,6 +205,7 @@ embedded!(
     "icons/grip-vertical.svg",
     "icons/headset.svg",
     "icons/heart.svg",
+    "icons/heart-bold.svg",
     "icons/highlighter.svg",
     "icons/image.svg",
     "icons/lightning.svg",
@@ -233,6 +235,7 @@ embedded!(
     "icons/popover-tail-border.svg",
     "icons/popover-tail.svg",
     "icons/push-pin.svg",
+    "icons/push-pin-bold.svg",
     "icons/search.svg",
     "icons/share-network.svg",
     "icons/share.svg",
@@ -342,6 +345,7 @@ embedded!(
     "icons/video-camera.svg",
     "icons/view-sidebar-left.svg",
     "icons/warning-circle.svg",
+    "icons/audio-lines.svg",
     "icons/waveform.svg",
     "icons/x-logo.svg",
     "icons/wrench.svg",
@@ -384,6 +388,6 @@ mod tests {
         }
         assert!(Assets.load("icons/search.svg").unwrap().is_some());
         assert!(Assets.load("icons/missing.svg").unwrap().is_none());
-        assert_eq!(Assets.list("icons/").unwrap().len(), 203);
+        assert_eq!(Assets.list("icons/").unwrap().len(), 207);
     }
 }

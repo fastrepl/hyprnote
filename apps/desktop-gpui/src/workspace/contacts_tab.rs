@@ -1005,7 +1005,12 @@ impl Workspace {
                                     this.contact_pin("humans", pin_id.clone(), window, cx);
                                 }))
                                 .child(icon(
-                                    "push-pin",
+                                    // `weight={isPinned ? "bold" : "regular"}`
+                                    if human.pinned {
+                                        "push-pin-bold"
+                                    } else {
+                                        "push-pin"
+                                    },
                                     px(14.0),
                                     if human.pinned {
                                         gpui::rgb(0x155dfc)
@@ -1084,7 +1089,11 @@ impl Workspace {
                                     this.contact_pin("organizations", pin_id.clone(), window, cx);
                                 }))
                                 .child(icon(
-                                    "push-pin",
+                                    if organization.pinned {
+                                        "push-pin-bold"
+                                    } else {
+                                        "push-pin"
+                                    },
                                     px(14.0),
                                     if organization.pinned {
                                         gpui::rgb(0x155dfc)
@@ -1511,7 +1520,11 @@ impl Workspace {
             width: 192.0,
             entries: {
                 let mut entries = vec![Entry::Item {
-                    icon: Some("push-pin"),
+                    icon: Some(if human.pinned {
+                        "push-pin-bold"
+                    } else {
+                        "push-pin"
+                    }),
                     dim_icon: false,
                     label: if human.pinned {
                         "Unpin".into()
@@ -2181,7 +2194,11 @@ impl Workspace {
             width: 192.0,
             entries: {
                 let mut entries = vec![Entry::Item {
-                    icon: Some("push-pin"),
+                    icon: Some(if organization.pinned {
+                        "push-pin-bold"
+                    } else {
+                        "push-pin"
+                    }),
                     dim_icon: false,
                     label: if organization.pinned {
                         "Unpin".into()

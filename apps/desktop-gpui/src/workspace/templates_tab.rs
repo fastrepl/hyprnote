@@ -1232,7 +1232,8 @@ impl Workspace {
                         let pinned = template.pinned;
                         self.ghost_icon_button(
                             "template-favorite".into(),
-                            "heart",
+                            // `weight={template.pinned ? "bold" : "regular"}`
+                            if pinned { "heart-bold" } else { "heart" },
                             if pinned {
                                 gpui::rgb(0xff2056)
                             } else {

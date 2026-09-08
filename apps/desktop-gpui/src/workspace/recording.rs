@@ -2375,7 +2375,8 @@ impl Workspace {
             gpui::rgb(0xfb2c36)
         };
         if live.muted {
-            return crate::ui::icon("waveform", px(16.0), self.theme.foreground).into_any_element();
+            return crate::ui::icon("audio-lines", px(16.0), self.theme.foreground)
+                .into_any_element();
         }
         dancing_sticks(
             live.mic.hypot(live.speaker).min(1.0),

@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+[[ -z "${ONBOARDING:-}" ]] || {
+  echo "Reset QA permissions while the app is closed with reset-native-qa-permissions.sh dev, then launch without ONBOARDING. See the skill's Start from onboarding steps for the data reset." >&2
+  exit 2
+}
+
 [[ $# -eq 1 ]] || {
   echo "Usage: $0 <app-bundle>" >&2
   exit 2
@@ -14,10 +19,7 @@ qa_open_args=(
   --env AUDIO_SYNC_PROBE=1
   --env LISTENER_DEBUG=1
   --env NO_AEC=
+  --env ONBOARDING=
 )
-
-if [[ -n "${ONBOARDING+x}" ]]; then
-  qa_open_args+=(--env "ONBOARDING=$ONBOARDING")
-fi
 
 exec "$qa_open_executable" "${qa_open_args[@]}" "$qa_bundle_dir"

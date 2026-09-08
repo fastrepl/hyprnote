@@ -540,6 +540,36 @@ def test_resume_only_signals_supported_draining_machines():
     assert signaled == ["supported"]
 
 
+def test_drain_leaves_already_stopping_cordoned_machines_alone():
+    with (
+        patch.object(
+            deploy_api_drain,
+            "get_machine",
+            return_value={"state": "stopping", "cordoned": True},
+        ),
+        patch.object(deploy_api_drain, "signal_machine") as signal,
+        patch.object(deploy_api_drain, "destroy_machine") as destroy,
+    ):
+        deploy_api_drain.drain_old_machines("anarlog-ai", ["old"])
+
+    signal.assert_not_called()
+    destroy.assert_not_called()
+
+
+def test_drain_rejects_unexpected_machine_states():
+    for machine in (
+        {"state": "stopping", "cordoned": False},
+        {"state": "starting", "cordoned": True},
+    ):
+        with patch.object(deploy_api_drain, "get_machine", return_value=machine):
+            try:
+                deploy_api_drain.drain_old_machines("anarlog-ai", ["old"])
+            except DeployError as error:
+                assert f"old is {machine['state']}" in str(error)
+            else:
+                raise AssertionError("expected the unexpected state to fail deployment")
+
+
 if __name__ == "__main__":
     test_classifies_serving_and_drained_machines()
     test_reads_cordon_from_metadata_when_top_level_flag_is_absent()
@@ -559,4 +589,6 @@ if __name__ == "__main__":
     test_partial_replacement_failure_destroys_created_machines()
     test_drain_only_signals_machines_with_protocol_support()
     test_resume_only_signals_supported_draining_machines()
+    test_drain_leaves_already_stopping_cordoned_machines_alone()
+    test_drain_rejects_unexpected_machine_states()
     print("ok")

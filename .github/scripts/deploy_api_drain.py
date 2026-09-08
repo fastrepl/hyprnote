@@ -483,6 +483,11 @@ def drain_old_machines(app: str, machine_ids: list[str]) -> None:
                 )
             elif is_stopped(machine):
                 destroy_machine(app, machine_id)
+            elif machine.get("state") == "stopping" and is_cordoned(machine):
+                print(
+                    f"leaving cordoned machine {machine_id} to finish stopping",
+                    file=sys.stderr,
+                )
             else:
                 failures.append(f"{machine_id} is {machine.get('state')}")
         except Exception as error:

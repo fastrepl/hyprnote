@@ -1228,7 +1228,7 @@ impl Workspace {
                                         };
                                         let spec = MenuSpec {
                                             id: "contacts-sort-menu",
-                                            width: 160.0,
+                                            width: 128.0,
                                             entries: vec![
                                                 option("A-Z", Sort::Alphabetical),
                                                 option("Z-A", Sort::ReverseAlphabetical),
@@ -1813,7 +1813,7 @@ impl Workspace {
                                     };
                                     let spec = MenuSpec {
                                         id: "related-sort-menu",
-                                        width: 160.0,
+                                        width: 128.0,
                                         entries: vec![option("Newest", true), option("Oldest", false)],
                                         open_sub: None,
                                         on_hover_sub: |_, _, _| {},

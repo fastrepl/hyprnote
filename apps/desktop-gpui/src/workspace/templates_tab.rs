@@ -42,6 +42,9 @@ struct TemplateForm {
     sections: Vec<SectionForm>,
     next_key: u64,
     actions_open: bool,
+    /// The `scroll-fade-y overflow-y-auto` body, for WebKit's 6px scrollbar
+    /// gutter once it overflows.
+    scroll: gpui::ScrollHandle,
 }
 
 struct SectionForm {
@@ -72,6 +75,7 @@ struct AutoForm {
     /// The value the editor was reset to (`form.reset`).
     baseline: String,
     actions_open: bool,
+    scroll: gpui::ScrollHandle,
 }
 
 impl Workspace {
@@ -357,6 +361,7 @@ impl Workspace {
             sections: Vec::new(),
             next_key: 0,
             actions_open: false,
+            scroll: gpui::ScrollHandle::new(),
         };
         for section in &template.sections {
             let section_form = self.new_section_form(section, &mut form.next_key, window, cx);
@@ -644,6 +649,7 @@ impl Workspace {
                 editor,
                 baseline: initial,
                 actions_open: false,
+                scroll: gpui::ScrollHandle::new(),
             });
         }
     }
@@ -820,7 +826,7 @@ impl Workspace {
                     .when(state.sort_menu_open, |anchor| {
                         let spec = MenuSpec {
                             id: "templates-sort-menu",
-                            width: 160.0,
+                            width: 128.0,
                             entries: vec![
                                 Entry::Item {
                                     icon: None,
@@ -1336,12 +1342,15 @@ impl Workspace {
                     .child(self.render_template_actions(&id, form.actions_open, cx)),
             );
 
+        let form_scroll = form.scroll.clone();
         let body = div()
             .id("template-body")
-            .min_h_0()
-            .flex_1()
+            .size_full()
             .overflow_y_scroll()
+            .track_scroll(&form_scroll)
             .px_6()
+            // The scrollbar takes its 6px off the scroller, outside `px-6`.
+            .pr(px(24.0) + crate::ui::scrollbar_gutter(&form_scroll))
             .pt_3()
             .pb_6()
             .child(
@@ -1376,7 +1385,9 @@ impl Workspace {
             .flex_1()
             .flex_col()
             .child(header)
-            .child(body)
+            .child(div().relative().flex_1().min_h_0().child(body).child(
+                crate::ui::webkit_scrollbar(form_scroll, theme.scrollbar_thumb),
+            ))
             .into_any_element()
     }
 
@@ -1408,7 +1419,7 @@ impl Workspace {
             .when(open, |anchor| {
                 let spec = MenuSpec {
                     id: "template-actions-menu",
-                    width: 160.0,
+                    width: 128.0,
                     entries: vec![
                         Entry::Item {
                             icon: None,
@@ -1845,7 +1856,7 @@ impl Workspace {
                                 .when(menu_open, |anchor| {
                                     let spec = MenuSpec {
                                         id: "section-actions-menu",
-                                        width: 160.0,
+                                        width: 128.0,
                                         entries: vec![
                                             entry(
                                                 "Insert above",
@@ -1924,48 +1935,52 @@ impl Workspace {
             );
         }
         div().flex().flex_col().gap_3().child(list).child(
-            // `Add Section`: `rounded-full px-4 py-2.5 text-sm border bg-card` with the soft shadow.
-            div()
-                .id("template-add-section")
-                .flex()
-                .w_auto()
-                .items_center()
-                .gap_2()
-                .rounded(px(8.0))
-                .border_1()
-                .border_color(theme.border)
-                .bg(theme.card)
-                .px_4()
-                .py(px(10.0))
-                .tw_text_sm()
-                .text_color(theme.foreground)
-                .shadow(vec![
-                    gpui::BoxShadow {
-                        color: alpha(gpui::rgb(0x57534e), 0.08).into(),
-                        offset: gpui::point(px(0.0), px(2.0)),
-                        blur_radius: px(6.0),
-                        spread_radius: px(0.0),
-                    },
-                    gpui::BoxShadow {
-                        color: alpha(gpui::rgb(0x57534e), 0.22).into(),
-                        offset: gpui::point(px(0.0), px(10.0)),
-                        blur_radius: px(18.0),
-                        spread_radius: px(-10.0),
-                    },
-                ])
-                .cursor_pointer()
-                .hover(move |style| style.bg(theme.background))
-                .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-                .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
-                    let count = this
-                        .templates_tab
-                        .as_ref()
-                        .and_then(|s| s.form.as_ref())
-                        .map_or(0, |form| form.sections.len());
-                    this.insert_section_at(&id, count, window, cx);
-                }))
-                .child(icon("plus", px(16.0), theme.foreground))
-                .child("Add Section"),
+            // `Add Section`: `w-fit rounded-full px-4 py-2.5 text-sm border bg-card`
+            // with the soft shadow; the row keeps it from stretching.
+            div().flex().child(
+                div()
+                    .id("template-add-section")
+                    .flex()
+                    .w_auto()
+                    .items_center()
+                    // The button's `gap-2` plus the icon's `mr-2`.
+                    .gap_4()
+                    .rounded(px(8.0))
+                    .border_1()
+                    .border_color(theme.border)
+                    .bg(theme.card)
+                    .px_4()
+                    .py(px(10.0))
+                    .tw_text_sm()
+                    .text_color(theme.foreground)
+                    .shadow(vec![
+                        gpui::BoxShadow {
+                            color: alpha(gpui::rgb(0x57534e), 0.08).into(),
+                            offset: gpui::point(px(0.0), px(2.0)),
+                            blur_radius: px(6.0),
+                            spread_radius: px(0.0),
+                        },
+                        gpui::BoxShadow {
+                            color: alpha(gpui::rgb(0x57534e), 0.22).into(),
+                            offset: gpui::point(px(0.0), px(10.0)),
+                            blur_radius: px(18.0),
+                            spread_radius: px(-10.0),
+                        },
+                    ])
+                    .cursor_pointer()
+                    .hover(move |style| style.bg(theme.background))
+                    .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                    .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
+                        let count = this
+                            .templates_tab
+                            .as_ref()
+                            .and_then(|s| s.form.as_ref())
+                            .map_or(0, |form| form.sections.len());
+                        this.insert_section_at(&id, count, window, cx);
+                    }))
+                    .child(icon("plus", px(16.0), theme.foreground))
+                    .child("Add Section"),
+            ),
         )
     }
 
@@ -2149,12 +2164,14 @@ impl Workspace {
             );
 
         let mono = crate::theme::mono_font_family(cx.text_system());
+        let auto_scroll = auto.scroll.clone();
         let body = div()
             .id("auto-body")
-            .min_h_0()
-            .flex_1()
+            .size_full()
             .overflow_y_scroll()
+            .track_scroll(&auto_scroll)
             .px_6()
+            .pr(px(24.0) + crate::ui::scrollbar_gutter(&auto_scroll))
             .pt_3()
             .pb_6()
             .child(
@@ -2217,9 +2234,11 @@ impl Workspace {
                                     .border_color(theme.border)
                                     .bg(theme.card)
                                     .overflow_hidden()
+                                    // `PromptEditor className="min-h-[28rem] …"`: the
+                                    // editor's own `.ProseMirror { min-height: 100% }` wins
+                                    // over the class, so the box hugs its content.
                                     .child(
                                         div()
-                                            .min_h(px(448.0))
                                             .px_4()
                                             .py_3()
                                             .tw_text_sm()
@@ -2267,7 +2286,9 @@ impl Workspace {
             .min_h_0()
             .flex_col()
             .child(header)
-            .child(body)
+            .child(div().relative().flex_1().min_h_0().child(body).child(
+                crate::ui::webkit_scrollbar(auto_scroll, theme.scrollbar_thumb),
+            ))
             .into_any_element()
     }
 }

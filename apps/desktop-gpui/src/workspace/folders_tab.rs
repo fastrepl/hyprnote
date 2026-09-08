@@ -1090,9 +1090,10 @@ impl Workspace {
                     )),
             )
             .when(open, |anchor| {
+                // `DropdownMenuContent`'s `min-w-[128px]`; `Delete` alone fits.
                 let spec = MenuSpec {
                     id: "folder-actions-menu",
-                    width: 160.0,
+                    width: 128.0,
                     entries: vec![Entry::Item {
                         icon: None,
                         dim_icon: false,

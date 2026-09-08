@@ -63,6 +63,15 @@ test("returning users bypass checkout and unsafe redirects fall back", () => {
   );
 });
 
+test("sign-in preserves the app account and connected section without a URL fragment", () => {
+  const returnTo =
+    "/app/account?section=connected-accounts&account_user_id=00000000-0000-4000-8000-000000000001";
+  assert.equal(
+    buildPostAuthDestination({ newAccount: false, returnTo }),
+    returnTo,
+  );
+});
+
 test("checkout results preserve invitation query and hash state", () => {
   assert.equal(
     addInternalReturnPathSearch("/share/invite/abc/?scheme=hyprnote#note", {

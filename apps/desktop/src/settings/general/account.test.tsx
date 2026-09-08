@@ -170,6 +170,26 @@ describe("SettingsAccount", () => {
     );
   });
 
+  it("opens connected accounts on the website for the current app account", async () => {
+    renderAccount();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Manage sign-in methods" }),
+    );
+
+    await waitFor(() =>
+      expect(mocks.buildWebAppUrl).toHaveBeenCalledWith("/app/account", {
+        flow: "web",
+        section: "connected-accounts",
+        account_user_id: "user-1",
+      }),
+    );
+    expect(mocks.openUrl).toHaveBeenCalledWith(
+      "https://anarlog.so/app/account#connected-accounts",
+      null,
+    );
+  });
+
   it.each([
     { personalState: "trialing", isTrialing: true, isPaused: false },
     { personalState: "paused", isTrialing: false, isPaused: true },

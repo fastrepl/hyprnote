@@ -49,6 +49,17 @@ export default function AccountSettings() {
         `${env.appUrl.replace(/\/+$/, "")}/app/account`,
       ),
   });
+  const connectedAccounts = useMutation({
+    mutationFn: () => {
+      if (!accountId)
+        throw new Error("Sign in to manage your sign-in methods.");
+      const url = new URL(`${env.appUrl.replace(/\/+$/, "")}/app/account`);
+      url.searchParams.set("account_user_id", accountId);
+      url.searchParams.set("section", "connected-accounts");
+      url.hash = "connected-accounts";
+      return WebBrowser.openBrowserAsync(url.toString());
+    },
+  });
   return (
     <SettingsPage title="Account">
       <FieldGroup.Section>
@@ -100,11 +111,26 @@ export default function AccountSettings() {
             onPress={() => manage.mutate()}
           />
           <SettingsRow
+            title={
+              connectedAccounts.isPending
+                ? "Opening connected accounts…"
+                : "Connected accounts"
+            }
+            onPress={() => {
+              if (!connectedAccounts.isPending) connectedAccounts.mutate();
+            }}
+          />
+          <SettingsRow
             title={refresh.isPending ? "Refreshing…" : "Refresh plan"}
             onPress={() => refresh.mutate()}
           />
           <SettingsError
-            error={refresh.error || manage.error || workspacePlan.error}
+            error={
+              refresh.error ||
+              manage.error ||
+              connectedAccounts.error ||
+              workspacePlan.error
+            }
           />
         </FieldGroup.Section>
       )}

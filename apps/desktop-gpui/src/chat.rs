@@ -344,15 +344,16 @@ pub fn assistant_turns(parts: &[Part]) -> Vec<crate::llm_stream::Turn> {
                         arguments: tool.input.cloned().unwrap_or_else(|| serde_json::json!({})),
                         item_id: Part::item_id(value.get("callProviderMetadata")),
                     });
-                    let output = match (tool.output, tool.error_text) {
-                        (Some(output), _) => output.to_string(),
-                        (None, Some(error)) => error.to_string(),
-                        (None, None) => String::new(),
+                    let (output, is_error) = match (tool.output, tool.error_text) {
+                        (Some(output), _) => (output.to_string(), false),
+                        (None, Some(error)) => (error.to_string(), true),
+                        (None, None) => (String::new(), false),
                     };
                     results.push(Turn::ToolResult {
                         call_id: tool.call_id.to_string(),
                         name: tool.name.to_string(),
                         output,
+                        is_error,
                     });
                 }
             }

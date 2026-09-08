@@ -129,11 +129,14 @@ pub enum Turn {
         text: String,
         tool_calls: Vec<ToolCall>,
     },
-    /// A tool's output for one call, as the JSON text the model reads.
+    /// A tool's output for one call, as the JSON text the model reads;
+    /// `is_error` for a tool that failed (`error-text`), which Anthropic's
+    /// `tool_result` flags.
     ToolResult {
         call_id: String,
         name: String,
         output: String,
+        is_error: bool,
     },
     /// A Responses output item of the assistant turn that follows, referred
     /// to by id like `convertToOpenAIResponsesInput` does for parts carrying
@@ -816,11 +819,18 @@ fn anthropic_message(turn: &Turn) -> Value {
             json!({ "role": "assistant", "content": content })
         }
         Turn::ToolResult {
-            call_id, output, ..
-        } => json!({
-            "role": "user",
-            "content": [{ "type": "tool_result", "tool_use_id": call_id, "content": output }]
-        }),
+            call_id,
+            output,
+            is_error,
+            ..
+        } => {
+            let mut result =
+                json!({ "type": "tool_result", "tool_use_id": call_id, "content": output });
+            if *is_error {
+                merge(&mut result, Some(json!({ "is_error": true })));
+            }
+            json!({ "role": "user", "content": [result] })
+        }
     }
 }
 
@@ -1850,6 +1860,7 @@ mod tests {
             call_id: "call_1".into(),
             name: "list_meetings".into(),
             output: r#"{"meetings":[]}"#.into(),
+            is_error: false,
         });
         request.tools = vec![ToolSpec {
             name: "list_meetings".into(),
@@ -1916,6 +1927,30 @@ mod tests {
         assert_eq!(
             anthropic.body["messages"][2]["content"][0]["tool_use_id"],
             "call_1"
+        );
+        assert!(
+            anthropic.body["messages"][2]["content"][0]
+                .get("is_error")
+                .is_none()
+        );
+        // A failed tool answers with `is_error` for Anthropic only.
+        let mut failed = request.clone();
+        failed.messages[2] = Turn::ToolResult {
+            call_id: "call_1".into(),
+            name: "list_meetings".into(),
+            output: "boom".into(),
+            is_error: true,
+        };
+        let anthropic_failed =
+            build_request(&conn("anthropic", "claude", "default"), &failed).unwrap();
+        assert_eq!(
+            anthropic_failed.body["messages"][2]["content"][0],
+            json!({ "type": "tool_result", "tool_use_id": "call_1", "content": "boom", "is_error": true })
+        );
+        let chat_failed = build_request(&conn("openrouter", "m", "default"), &failed).unwrap();
+        assert_eq!(
+            chat_failed.body["messages"][3],
+            json!({ "role": "tool", "tool_call_id": "call_1", "content": "boom" })
         );
         let google =
             build_request(&conn("google_generative_ai", "gemini", "default"), &request).unwrap();

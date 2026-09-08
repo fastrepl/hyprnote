@@ -499,20 +499,12 @@ msgstr ""
 msgid "Anarlog couldn't complete this sync. Your notes are safe on this device."
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Anarlog couldn't read cloud sync status. Your notes are still available locally."
-msgstr ""
-
 #: src/settings/general/account.tsx
 msgid "Anarlog couldn't sign you out. Try again."
 msgstr ""
 
 #: src/lock/gate.tsx
 msgid "Anarlog is Locked"
-msgstr ""
-
-#: src/main/sync-status.tsx
-msgid "Anarlog is repairing cloud sync in the background. Your notes remain available locally."
 msgstr ""
 
 #: src/session-sharing/access-management.tsx
@@ -525,14 +517,6 @@ msgstr ""
 
 #: src/onboarding/index.tsx
 msgid "Anarlog needs microphone and system audio to transcribe your meetings, plus Accessibility to read meeting controls, visible chat."
-msgstr ""
-
-#: src/main/sync-status.tsx
-msgid "Anarlog Pro is required to use cloud sync."
-msgstr ""
-
-#: src/main/sync-status.tsx
-msgid "Anarlog Pro required"
 msgstr ""
 
 #. placeholder {0}: statuses[0].displayName
@@ -549,10 +533,6 @@ msgstr ""
 msgid "Anarlog user"
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Anarlog will keep retrying in the background. Your notes remain available locally."
-msgstr ""
-
 #: src/settings/sync/index.tsx
 msgid "Anarlog will keep retrying."
 msgstr ""
@@ -561,7 +541,6 @@ msgstr ""
 msgid "Anarlog will retry automatically."
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "Anarlog will retry automatically. This does not affect your notes."
 msgstr ""
@@ -942,10 +921,6 @@ msgstr ""
 msgid "Change workspace logo"
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Changes stay on this device until you resume sync"
-msgstr ""
-
 #: src/settings/sync/index.tsx
 msgid "Changes stay on this device until you resume sync."
 msgstr ""
@@ -1235,46 +1210,16 @@ msgstr ""
 msgid "Cloud sync complete"
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Cloud sync could not start on this device. Open Sync settings to try again."
-msgstr ""
-
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Cloud sync delayed"
-msgstr ""
-
-#: src/main/sync-status.tsx
-msgid "Cloud sync identity mismatch"
-msgstr ""
-
-#: src/main/sync-status.tsx
-msgid "Cloud sync resumes after this meeting finishes processing"
 msgstr ""
 
 #: src/settings/sync/index.tsx
 msgid "Cloud sync resumes after this meeting finishes processing."
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Cloud sync resumes when the current activity finishes"
-msgstr ""
-
 #: src/settings/sync/index.tsx
 msgid "Cloud sync resumes when the current activity finishes."
-msgstr ""
-
-#: src/main/sync-status.tsx
-msgid "Cloud sync setup required"
-msgstr ""
-
-#. placeholder {0}: view.label
-#: src/main/sync-status.tsx
-msgid "Cloud sync status: {0}"
-msgstr ""
-
-#: src/main/sync-status.tsx
-msgid "Cloud sync unavailable"
 msgstr ""
 
 #: src/session-sharing/comments.tsx
@@ -1464,7 +1409,6 @@ msgstr ""
 msgid "Connected with your existing subscription."
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Connecting..."
 msgstr ""
@@ -1766,10 +1710,6 @@ msgstr ""
 msgid "Create new speaker"
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Create or enter your recovery key in Sync settings to start syncing."
-msgstr ""
-
 #: src/templates/details.tsx
 msgid "Create template"
 msgstr ""
@@ -1966,7 +1906,6 @@ msgstr ""
 msgid "Device authentication is not available on this computer."
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Device limit reached"
 msgstr ""
@@ -2802,7 +2741,6 @@ msgid "Last seen {0}"
 msgstr ""
 
 #. placeholder {0}: formatDistanceToNow( new Date(status.last_sync_at_ms), { addSuffix: true }, )
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Last synced {0}"
 msgstr ""
@@ -2966,7 +2904,6 @@ msgid "macOS cannot access your login Keychain. Repairing briefly locks it and a
 msgstr ""
 
 #: src/auth/cloudsync-keychain-repair.tsx
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "macOS could not access your recovery key. Repair Keychain access, then resume sync."
 msgstr ""
@@ -3588,7 +3525,6 @@ msgstr ""
 msgid "Open Anarlog from the menu bar."
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Open Anarlog on a device that already has access, then approve this device."
 msgstr ""
@@ -3735,10 +3671,6 @@ msgstr ""
 
 #: src/settings/general/notification.tsx
 msgid "Pause alerts while Do Not Disturb is on."
-msgstr ""
-
-#: src/main/sync-status.tsx
-msgid "Pause sync"
 msgstr ""
 
 #: src/settings/developers/webhooks.tsx
@@ -4199,7 +4131,6 @@ msgstr ""
 msgid "Restore"
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Restoring cloud sync..."
 msgstr ""
@@ -4208,16 +4139,11 @@ msgstr ""
 msgid "Resume"
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Resume sync"
-msgstr ""
-
 #: src/settings/team/index.tsx
 msgid "Retention (days)"
 msgstr ""
 
 #: src/chat/components/message/error.tsx
-#: src/main/sync-status.tsx
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 #: src/settings/general/storage/legacy-cleanup.tsx
 #: src/settings/sync/index.tsx
@@ -4288,7 +4214,6 @@ msgstr ""
 msgid "Save visible chat from supported meetings using Accessibility."
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Saved locally"
 msgstr ""
@@ -4528,10 +4453,6 @@ msgstr ""
 msgid "Set up your recovery key to start encrypted cloud sync."
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Setting up cloud sync"
-msgstr ""
-
 #: src/settings/sync/index.tsx
 msgid "Setting up encrypted cloud sync."
 msgstr ""
@@ -4719,10 +4640,6 @@ msgstr ""
 msgid "Sign in"
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Sign in again"
-msgstr ""
-
 #: src/settings/sync/index.tsx
 msgid "Sign in before enabling encrypted cloud sync"
 msgstr ""
@@ -4821,7 +4738,6 @@ msgstr ""
 msgid "Sign out"
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Sign out and sign in again to resume cloud sync."
 msgstr ""
@@ -5124,35 +5040,23 @@ msgstr ""
 msgid "Sync failed"
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Sync issue"
-msgstr ""
-
 #: src/settings/sync/index.tsx
 msgid "Sync log"
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Sync needs attention"
 msgstr ""
 
 #: src/imports/screen.tsx
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Sync now"
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Sync paused"
 msgstr ""
 
-#: src/main/sync-status.tsx
-msgid "Sync settings"
-msgstr ""
-
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Sync status unavailable"
 msgstr ""
@@ -5161,12 +5065,10 @@ msgstr ""
 msgid "Sync your changes before signing out."
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Synced"
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Syncing..."
 msgstr ""
@@ -5316,10 +5218,6 @@ msgstr ""
 
 #: src/settings/sync/index.tsx
 msgid "This device will start syncing after you approve it from another signed-in device."
-msgstr ""
-
-#: src/main/sync-status.tsx
-msgid "This device's sync identity does not match your account. Sign in again or check Sync settings."
 msgstr ""
 
 #: src/edit/tab-content.tsx
@@ -5752,7 +5650,6 @@ msgstr ""
 msgid "Waiting for authorization in your browser…"
 msgstr ""
 
-#: src/main/sync-status.tsx
 #: src/settings/sync/index.tsx
 msgid "Waiting for device approval"
 msgstr ""
@@ -5929,7 +5826,6 @@ msgid "Your notes remain available locally. Try again in a moment."
 msgstr ""
 
 #: src/auth/cloudsync.ts
-#: src/main/sync-status.tsx
 msgid "Your plan’s sync device limit is reached. Remove another device to sync here."
 msgstr ""
 

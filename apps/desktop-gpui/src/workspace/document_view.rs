@@ -84,7 +84,7 @@ pub(super) struct DocumentRenderer {
     mentions_next: std::cell::RefCell<Vec<(std::ops::Range<usize>, String, String)>>,
     /// `placeholderPlugin`: the empty textblock holding the selection anchor
     /// shows the placeholder text.
-    placeholder: Option<(usize, SharedString)>,
+    pub(super) placeholder: Option<(usize, SharedString)>,
     /// Overrides the `blue-600` link colour (and makes links `font-medium`).
     link_color: Option<gpui::Rgba>,
     /// `documentTitlePlaceholder` applies while the selection anchor sits in
@@ -335,7 +335,9 @@ impl DocumentRenderer {
             .as_ref()
             .filter(|(block, _)| *block == index)
             .map(|(_, text)| text.clone());
-        let muted = self.theme.muted_foreground;
+        // `.note-typography.prosemirror-editor .is-empty::before`: muted
+        // foreground at `opacity: 0.6`.
+        let muted = alpha(self.theme.muted_foreground, 0.6);
         let text = match placeholder {
             // `.n::before { content: attr(data-placeholder) }` at the block's origin.
             Some(placeholder) => div()
@@ -829,7 +831,7 @@ impl DocumentRenderer {
         // in the editor too (the placeholder is an overlay, not text).
         let title = if empty && self.title_placeholder {
             let mut placeholder_style = style.clone();
-            placeholder_style.color = self.theme.muted_foreground.into();
+            placeholder_style.color = alpha(self.theme.muted_foreground, 0.6).into();
             let placeholder = self.prose(
                 &[Span {
                     text: "Untitled".to_string(),

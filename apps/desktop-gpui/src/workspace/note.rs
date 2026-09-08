@@ -960,7 +960,7 @@ impl Workspace {
                 body.child(
                     div()
                         .py(px(2.0))
-                        .text_color(theme.muted_foreground)
+                        .text_color(alpha(theme.muted_foreground, 0.6))
                         .child("Start writing..."),
                 )
             })

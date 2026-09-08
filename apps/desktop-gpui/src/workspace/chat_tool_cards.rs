@@ -241,10 +241,11 @@ impl Workspace {
     }
 
     /// `Disclosure`: `my-2 rounded-md border px-2 py-1`, the summary row with
-    /// the spinner or icon, the title, the caret; the body under a top border
-    /// while open.
+    /// the spinner or icon (a `"spinner"` glyph shows the spinner on an
+    /// enabled disclosure, like the running `Activity` row), the title, the
+    /// caret; the body under a top border while open.
     #[allow(clippy::too_many_arguments)]
-    fn render_disclosure(
+    pub(super) fn render_disclosure(
         &self,
         key: (usize, usize),
         glyph: &'static str,
@@ -275,7 +276,7 @@ impl Workspace {
                 }
                 cx.notify();
             }))
-            .child(if disabled {
+            .child(if disabled || glyph == "spinner" {
                 crate::ui::spinner(
                     ("chat-tool-spinner", key.0 * 1000 + key.1),
                     px(12.0),

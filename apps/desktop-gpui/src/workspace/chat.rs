@@ -1352,62 +1352,55 @@ impl Workspace {
                     .when(theme.dark, |b| {
                         b.rounded(px(16.0)).bg(theme.accent).px_3().py_1()
                     });
+                // `isActivityPart`: reasoning with text and every tool but the
+                // edit tools fold into one `Activity` disclosure ahead of the
+                // visible parts (#7461).
+                let activity: Vec<(usize, &Part)> = message
+                    .parts
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, part)| is_activity_part(part))
+                    .collect();
+                if !activity.is_empty() {
+                    let running = activity.iter().any(|(_, part)| match part {
+                        Part::Reasoning { state, .. } => state.as_deref() == Some("streaming"),
+                        other => other.tool_view().is_some_and(|tool| {
+                            matches!(tool.state, "input-streaming" | "input-available")
+                        }),
+                    });
+                    let key = format!("activity:{index}");
+                    let open = self.chat.open_tools.contains(&key);
+                    let body = open.then(|| {
+                        div()
+                            .flex()
+                            .flex_col()
+                            .children(activity.iter().map(|(part_index, part)| {
+                                self.render_chat_part(part, (index, *part_index), &renderer, cx)
+                            }))
+                            .into_any_element()
+                    });
+                    // One past the last part index: unique per message.
+                    bubble = bubble.child(self.render_disclosure(
+                        (index, message.parts.len()),
+                        if running { "spinner" } else { "brain" },
+                        "Activity".to_string(),
+                        false,
+                        open,
+                        key,
+                        body,
+                        cx,
+                    ));
+                }
                 for (part_index, part) in message.parts.iter().enumerate() {
-                    match part {
-                        Part::Reasoning { text, state } => {
-                            let raw = text.trim();
-                            if raw.is_empty() {
-                                continue;
-                            }
-                            let cleaned = raw
-                                .replace(['\n', '`', '*', '#', '"'], " ")
-                                .split_whitespace()
-                                .collect::<Vec<_>>()
-                                .join(" ");
-                            let streaming = state.as_deref() != Some("done");
-                            let title = if streaming {
-                                cleaned
-                                    .chars()
-                                    .rev()
-                                    .take(150)
-                                    .collect::<Vec<_>>()
-                                    .into_iter()
-                                    .rev()
-                                    .collect::<String>()
-                            } else {
-                                cleaned
-                            };
-                            bubble = bubble.child(
-                                div()
-                                    .flex()
-                                    .items_center()
-                                    .gap(px(6.0))
-                                    .py_1()
-                                    .text_color(theme.muted_foreground)
-                                    .tw_text_xs()
-                                    .child(icon("brain", px(12.0), theme.muted_foreground))
-                                    .child(
-                                        div().min_w_0().truncate().child(SharedString::from(title)),
-                                    ),
-                            );
-                        }
-                        Part::Text { text, .. } => {
-                            bubble = bubble.child(div().min_w_0().px(px(2.0)).py_1().children(
-                                renderer.chat_blocks(&crate::document::from_body("markdown", text)),
-                            ));
-                        }
-                        Part::StepStart => {}
-                        Part::Other(_) => {
-                            if let Some(tool) = part.tool_view() {
-                                bubble = bubble.child(self.render_tool_part(
-                                    &tool,
-                                    (index, part_index),
-                                    &renderer,
-                                    cx,
-                                ));
-                            }
-                        }
+                    if is_activity_part(part) {
+                        continue;
                     }
+                    bubble = bubble.child(self.render_chat_part(
+                        part,
+                        (index, part_index),
+                        &renderer,
+                        cx,
+                    ));
                 }
                 bubble
             };
@@ -2400,6 +2393,85 @@ impl Workspace {
                 )
                 .into_any_element(),
         )
+    }
+}
+
+/// `isActivityPart`: reasoning with text, and every tool part except the
+/// edit tools, which stay visible with their review controls.
+fn is_activity_part(part: &Part) -> bool {
+    match part {
+        Part::Reasoning { text, .. } => !text.trim().is_empty(),
+        Part::Other(_) => part.tool_view().is_some_and(|tool| {
+            !matches!(
+                tool.name,
+                "edit_memo" | "edit_summary" | "update_prompt_template"
+            )
+        }),
+        Part::Text { .. } | Part::StepStart => false,
+    }
+}
+
+impl Workspace {
+    /// `Part`: the reasoning disclosure, a text block, or a tool card.
+    fn render_chat_part(
+        &self,
+        part: &Part,
+        key: (usize, usize),
+        renderer: &super::document_view::DocumentRenderer,
+        cx: &Context<Self>,
+    ) -> AnyElement {
+        let theme = self.theme;
+        match part {
+            Part::Reasoning { text, state } => {
+                let raw = text.trim();
+                if raw.is_empty() {
+                    return div().into_any_element();
+                }
+                let cleaned = raw
+                    .replace(['\n', '`', '*', '#', '"'], " ")
+                    .split_whitespace()
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                let streaming = state.as_deref() != Some("done");
+                let title = if streaming {
+                    cleaned
+                        .chars()
+                        .rev()
+                        .take(150)
+                        .collect::<Vec<_>>()
+                        .into_iter()
+                        .rev()
+                        .collect::<String>()
+                } else {
+                    cleaned
+                };
+                // `Reasoning`: a `Disclosure` disabled while streaming, whose
+                // body is the raw text at `text-muted-foreground text-sm
+                // whitespace-pre-wrap`.
+                let id = format!("reasoning:{}:{}", key.0, key.1);
+                let open = self.chat.open_tools.contains(&id);
+                let body = open.then(|| {
+                    div()
+                        .tw_text_sm()
+                        .text_color(theme.muted_foreground)
+                        .whitespace_normal()
+                        .child(SharedString::from(text.clone()))
+                        .into_any_element()
+                });
+                self.render_disclosure(key, "brain", title, streaming, open, id, body, cx)
+            }
+            Part::Text { text, .. } => div()
+                .min_w_0()
+                .px(px(2.0))
+                .py_1()
+                .children(renderer.chat_blocks(&crate::document::from_body("markdown", text)))
+                .into_any_element(),
+            Part::StepStart => div().into_any_element(),
+            Part::Other(_) => match part.tool_view() {
+                Some(tool) => self.render_tool_part(&tool, key, renderer, cx),
+                None => div().into_any_element(),
+            },
+        }
     }
 }
 

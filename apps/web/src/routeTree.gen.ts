@@ -27,6 +27,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as TLinkIdRouteImport } from './routes/t/$linkId'
 import { Route as ShareShareIdRouteImport } from './routes/share/$shareId'
 import { Route as OauthConsentRouteImport } from './routes/oauth/consent'
+import { Route as OauthCallbackRouteImport } from './routes/oauth/callback'
 import { Route as InviteCodeRouteImport } from './routes/invite/$code'
 import { Route as ChangelogVersionRouteImport } from './routes/changelog/$version'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
@@ -40,6 +41,7 @@ import { Route as SharePublicPublicSlugRouteImport } from './routes/share/public
 import { Route as ShareLinkShareIdRouteImport } from './routes/share/link/$shareId'
 import { Route as ShareInviteInvitationIdRouteImport } from './routes/share/invite/$invitationId'
 import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
+import { Route as ApiCronJobRouteImport } from './routes/api/cron/$job'
 import { Route as ApiAssetsSplatRouteImport } from './routes/api/assets.$'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
@@ -147,6 +149,11 @@ const OauthConsentRoute = OauthConsentRouteImport.update({
   path: '/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OauthCallbackRoute = OauthCallbackRouteImport.update({
+  id: '/oauth/callback',
+  path: '/oauth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InviteCodeRoute = InviteCodeRouteImport.update({
   id: '/invite/$code',
   path: '/invite/$code',
@@ -210,6 +217,11 @@ const ShareInviteInvitationIdRoute = ShareInviteInvitationIdRouteImport.update({
 const ApiTweetIdRoute = ApiTweetIdRouteImport.update({
   id: '/api/tweet/$id',
   path: '/api/tweet/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronJobRoute = ApiCronJobRouteImport.update({
+  id: '/api/cron/$job',
+  path: '/api/cron/$job',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAssetsSplatRoute = ApiAssetsSplatRouteImport.update({
@@ -316,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/changelog/$version': typeof ChangelogVersionRoute
   '/invite/$code': typeof InviteCodeRoute
+  '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/share/$shareId': typeof ShareShareIdRoute
   '/t/$linkId': typeof TLinkIdRoute
@@ -337,6 +350,7 @@ export interface FileRoutesByFullPath {
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/api/assets/$': typeof ApiAssetsSplatRoute
+  '/api/cron/$job': typeof ApiCronJobRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/share/invite/$invitationId': typeof ShareInviteInvitationIdRoute
   '/share/link/$shareId': typeof ShareLinkShareIdRoute
@@ -364,6 +378,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/changelog/$version': typeof ChangelogVersionRoute
   '/invite/$code': typeof InviteCodeRoute
+  '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/share/$shareId': typeof ShareShareIdRoute
   '/t/$linkId': typeof TLinkIdRoute
@@ -385,6 +400,7 @@ export interface FileRoutesByTo {
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/api/assets/$': typeof ApiAssetsSplatRoute
+  '/api/cron/$job': typeof ApiCronJobRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/share/invite/$invitationId': typeof ShareInviteInvitationIdRoute
   '/share/link/$shareId': typeof ShareLinkShareIdRoute
@@ -415,6 +431,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/changelog/$version': typeof ChangelogVersionRoute
   '/invite/$code': typeof InviteCodeRoute
+  '/oauth/callback': typeof OauthCallbackRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/share/$shareId': typeof ShareShareIdRoute
   '/t/$linkId': typeof TLinkIdRoute
@@ -436,6 +453,7 @@ export interface FileRoutesById {
   '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/api/assets/$': typeof ApiAssetsSplatRoute
+  '/api/cron/$job': typeof ApiCronJobRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/share/invite/$invitationId': typeof ShareInviteInvitationIdRoute
   '/share/link/$shareId': typeof ShareLinkShareIdRoute
@@ -466,6 +484,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/changelog/$version'
     | '/invite/$code'
+    | '/oauth/callback'
     | '/oauth/consent'
     | '/share/$shareId'
     | '/t/$linkId'
@@ -487,6 +506,7 @@ export interface FileRouteTypes {
     | '/download/apple-intel'
     | '/download/apple-silicon'
     | '/api/assets/$'
+    | '/api/cron/$job'
     | '/api/tweet/$id'
     | '/share/invite/$invitationId'
     | '/share/link/$shareId'
@@ -514,6 +534,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/changelog/$version'
     | '/invite/$code'
+    | '/oauth/callback'
     | '/oauth/consent'
     | '/share/$shareId'
     | '/t/$linkId'
@@ -535,6 +556,7 @@ export interface FileRouteTypes {
     | '/download/apple-intel'
     | '/download/apple-silicon'
     | '/api/assets/$'
+    | '/api/cron/$job'
     | '/api/tweet/$id'
     | '/share/invite/$invitationId'
     | '/share/link/$shareId'
@@ -564,6 +586,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/changelog/$version'
     | '/invite/$code'
+    | '/oauth/callback'
     | '/oauth/consent'
     | '/share/$shareId'
     | '/t/$linkId'
@@ -585,6 +608,7 @@ export interface FileRouteTypes {
     | '/_view/download/apple-intel'
     | '/_view/download/apple-silicon'
     | '/api/assets/$'
+    | '/api/cron/$job'
     | '/api/tweet/$id'
     | '/share/invite/$invitationId'
     | '/share/link/$shareId'
@@ -614,6 +638,7 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   ChangelogVersionRoute: typeof ChangelogVersionRoute
   InviteCodeRoute: typeof InviteCodeRoute
+  OauthCallbackRoute: typeof OauthCallbackRoute
   OauthConsentRoute: typeof OauthConsentRoute
   ShareShareIdRoute: typeof ShareShareIdRoute
   TLinkIdRoute: typeof TLinkIdRoute
@@ -623,6 +648,7 @@ export interface RootRouteChildren {
   PricingIndexRoute: typeof PricingIndexRoute
   YcIndexRoute: typeof YcIndexRoute
   ApiAssetsSplatRoute: typeof ApiAssetsSplatRoute
+  ApiCronJobRoute: typeof ApiCronJobRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
   ShareInviteInvitationIdRoute: typeof ShareInviteInvitationIdRoute
   ShareLinkShareIdRoute: typeof ShareLinkShareIdRoute
@@ -762,6 +788,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/oauth/callback': {
+      id: '/oauth/callback'
+      path: '/oauth/callback'
+      fullPath: '/oauth/callback'
+      preLoaderRoute: typeof OauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/invite/$code': {
       id: '/invite/$code'
       path: '/invite/$code'
@@ -851,6 +884,13 @@ declare module '@tanstack/react-router' {
       path: '/api/tweet/$id'
       fullPath: '/api/tweet/$id'
       preLoaderRoute: typeof ApiTweetIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/$job': {
+      id: '/api/cron/$job'
+      path: '/api/cron/$job'
+      fullPath: '/api/cron/$job'
+      preLoaderRoute: typeof ApiCronJobRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/assets/$': {
@@ -1041,6 +1081,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   ChangelogVersionRoute: ChangelogVersionRoute,
   InviteCodeRoute: InviteCodeRoute,
+  OauthCallbackRoute: OauthCallbackRoute,
   OauthConsentRoute: OauthConsentRoute,
   ShareShareIdRoute: ShareShareIdRoute,
   TLinkIdRoute: TLinkIdRoute,
@@ -1050,6 +1091,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingIndexRoute: PricingIndexRoute,
   YcIndexRoute: YcIndexRoute,
   ApiAssetsSplatRoute: ApiAssetsSplatRoute,
+  ApiCronJobRoute: ApiCronJobRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
   ShareInviteInvitationIdRoute: ShareInviteInvitationIdRoute,
   ShareLinkShareIdRoute: ShareLinkShareIdRoute,

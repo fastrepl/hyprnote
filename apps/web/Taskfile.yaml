@@ -2,11 +2,11 @@ version: "3"
 
 tasks:
   deploy:
-    dir: .
+    dir: ../..
     cmds:
-      - netlify deploy --prod
+      - gh workflow run web_cd.yaml --ref main
 
   env-prod:
     dir: .
     cmds:
-      - netlify env:import .env.prod
+      - pnpm dlx vercel@59.11.7 env pull .env.prod --environment=production

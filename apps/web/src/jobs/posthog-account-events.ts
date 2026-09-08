@@ -4,7 +4,7 @@ import {
   groupAccountAnalyticsEvents,
   sendPostHogBatch,
   type AccountAnalyticsEvent,
-} from "../../src/lib/account-analytics.ts";
+} from "../lib/account-analytics.ts";
 
 function requireEnvironmentVariable(name: string) {
   const value = process.env[name];
@@ -107,8 +107,4 @@ export default async () => {
   if (failures.length > 0) {
     throw new AggregateError(failures, "Account analytics delivery failed");
   }
-};
-
-export const config = {
-  schedule: "*/5 * * * *",
 };

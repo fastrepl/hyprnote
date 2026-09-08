@@ -1,8 +1,8 @@
 import type { ImageProps } from "@unpic/react";
 import { Image as UnpicImage } from "@unpic/react/base";
 import type { ComponentProps } from "react";
-import { transform } from "unpic/providers/netlify";
 
+import { getResizedImageUrl } from "@/lib/image-cdn";
 import { stripEditorWidthFromTitle } from "@/lib/image-metadata";
 
 function isGifSource(src: ImageProps["src"]) {
@@ -52,7 +52,12 @@ export const Image = ({
     <UnpicImage
       {...(props as any)}
       src={src}
-      {...(isExternalUrl ? {} : { transformer: transform })}
+      {...(isExternalUrl
+        ? {}
+        : {
+            transformer: (url: string | URL, { width }: { width?: number }) =>
+              getResizedImageUrl(String(url), { width: width ?? 1200 }),
+          })}
       layout={layout}
       background={background}
       breakpoints={breakpoints}

@@ -6,7 +6,7 @@ import worker, {
   createWorkspaceShareOriginRequest,
 } from "./workspace-share-router.ts";
 
-test("routes a workspace hostname to Netlify with its original host", async () => {
+test("routes a workspace hostname to the canonical web origin with its original host", async () => {
   const request = new Request(
     "https://fastrepl.anarlog.so/share/public/note/?view=compact",
     {
@@ -27,7 +27,7 @@ test("routes a workspace hostname to Netlify with its original host", async () =
   assert.notEqual(originRequest, null);
   assert.equal(
     originRequest?.url,
-    "https://anarlog.netlify.app/share/public/note/?view=compact",
+    "https://anarlog.so/share/public/note/?view=compact",
   );
   assert.equal(
     originRequest?.headers.get("x-forwarded-host"),
@@ -36,11 +36,11 @@ test("routes a workspace hostname to Netlify with its original host", async () =
   assert.equal(originRequest?.headers.get("cookie"), "session=secret");
   assert.equal(originRequest?.redirect, "manual");
 
-  const netlifyHeaders = new Headers(originRequest?.headers);
-  netlifyHeaders.set("host", "anarlog.netlify.app");
-  netlifyHeaders.set("x-forwarded-host", "anarlog.netlify.app");
+  const originHeaders = new Headers(originRequest?.headers);
+  originHeaders.set("host", "anarlog.so");
+  originHeaders.set("x-forwarded-host", "anarlog.so");
   assert.equal(
-    getWorkspaceShareSlugFromHeaders(netlifyHeaders, "test-secret"),
+    getWorkspaceShareSlugFromHeaders(originHeaders, "test-secret"),
     "fastrepl",
   );
 });
@@ -59,6 +59,19 @@ test("does not route reserved or malformed workspace hostnames", () => {
       "test-secret",
     ),
     null,
+  );
+});
+
+test("keeps double-slash paths on the configured origin", () => {
+  const request = createWorkspaceShareOriginRequest(
+    new Request(
+      "https://fastrepl.anarlog.so//example.com/private?view=compact",
+    ),
+    "test-secret",
+  );
+  assert.equal(
+    request?.url,
+    "https://anarlog.so//example.com/private?view=compact",
   );
 });
 
@@ -100,7 +113,7 @@ test("removes workspace proxy headers when passing through platform hosts", asyn
 
 for (const [location, expected] of [
   [
-    "https://anarlog.netlify.app/app/?view=compact#notes",
+    "https://anarlog.so/app/?view=compact#notes",
     "https://fastrepl.anarlog.so/app/?view=compact#notes",
   ],
   ["/auth/?flow=web", "https://fastrepl.anarlog.so/auth/?flow=web"],

@@ -16,7 +16,7 @@ on:
       - .agents/skills/**
       - agent-plugins/**
       - apps/cli/**
-      - apps/web/netlify.toml
+      - apps/web/vercel-build-config.ts
       - apps/web/public/llms.txt
       - crates/agent-access/**
       - crates/cloudsync/**
@@ -47,7 +47,7 @@ on:
       - .agents/skills/**
       - agent-plugins/**
       - apps/cli/**
-      - apps/web/netlify.toml
+      - apps/web/vercel-build-config.ts
       - apps/web/public/llms.txt
       - crates/agent-access/**
       - crates/cloudsync/**

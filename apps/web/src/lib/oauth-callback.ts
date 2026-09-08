@@ -11,8 +11,3 @@ export default (request: Request): Response => {
     },
   });
 };
-
-export const config = {
-  path: "/oauth/callback",
-  method: ["GET"],
-};

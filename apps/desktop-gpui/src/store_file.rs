@@ -177,6 +177,16 @@ impl StoreFile {
             .and_then(|value| serde_json::from_value::<Vec<String>>(value.clone()).ok())
             .unwrap_or_default()
     }
+
+    /// `setDismissedToasts`: the array itself, as the Tauri command stores it.
+    pub fn set_dismissed_toasts(&self, ids: &[String]) -> std::io::Result<()> {
+        let mut desktop = self.read_desktop();
+        desktop.insert(
+            "DismissedToasts".into(),
+            serde_json::to_value(ids).expect("json array"),
+        );
+        self.write_desktop(&desktop)
+    }
 }
 
 #[cfg(test)]
@@ -217,6 +227,10 @@ mod tests {
             [PinnedSessionTab { id: "a".into() }]
         );
         assert_eq!(store.dismissed_toasts(), ["auth-promotion"]);
+        store
+            .set_dismissed_toasts(&["auth-promotion".to_string(), "other".to_string()])
+            .unwrap();
+        assert_eq!(store.dismissed_toasts(), ["auth-promotion", "other"]);
 
         store
             .save_recently_opened_sessions(&["c".to_string(), "a".to_string()])

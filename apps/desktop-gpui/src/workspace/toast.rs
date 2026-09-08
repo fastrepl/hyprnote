@@ -31,12 +31,14 @@ pub(crate) enum FlashVariant {
     Warning,
 }
 
-/// A transient sonner toast (`success` / `error`).
+/// A transient sonner toast (`success` / `error` / `warning`).
 pub(crate) struct FlashToast {
     variant: FlashVariant,
     message: SharedString,
     /// sonner's `description` under the title.
     description: Option<SharedString>,
+    /// sonner's `action` button.
+    action: Option<(&'static str, Box<dyn gpui::Action>)>,
     generation: u64,
 }
 
@@ -44,6 +46,9 @@ pub(crate) struct Toast {
     pub id: &'static str,
     pub description: SharedString,
     pub action: Option<(&'static str, Box<dyn gpui::Action>)>,
+    /// A `persistent` lifecycle: sonner's close button, whose dismissal is
+    /// remembered under this `dismissalId`.
+    pub dismissal_id: Option<&'static str>,
 }
 
 /// `createToastRegistry` reduced to the conditions the shell can evaluate;
@@ -67,7 +72,8 @@ pub(crate) fn current_toast(
         return Some(Toast {
             id: "sign-in-benefits",
             description: "Sign in to get the most out of Anarlog".into(),
-            action: Some(("Sign in", Box::new(actions::OpenSettings))),
+            action: Some(("Sign in", Box::new(actions::SignIn))),
+            dismissal_id: Some("auth-promotion"),
         });
     }
     if !has_usable_stt {
@@ -75,6 +81,7 @@ pub(crate) fn current_toast(
             id: "missing-stt",
             description: "Transcription provider needed".into(),
             action: Some(("Add", Box::new(actions::OpenTranscriptionSettings))),
+            dismissal_id: None,
         });
     }
     if !has_usable_llm {
@@ -82,6 +89,7 @@ pub(crate) fn current_toast(
             id: "missing-llm",
             description: "Language model needed".into(),
             action: Some(("Add", Box::new(actions::OpenIntelligenceSettings))),
+            dismissal_id: None,
         });
     }
     if !is_auth_loading
@@ -92,10 +100,12 @@ pub(crate) fn current_toast(
         && !settings.has_pro_stt()
         && !settings.has_pro_llm()
     {
+        // `onSignIn`: both promotions hand off to the browser sign-in.
         return Some(Toast {
             id: "upgrade-to-pro",
             description: "Pro features available".into(),
-            action: Some(("Upgrade", Box::new(actions::OpenSettings))),
+            action: Some(("Upgrade", Box::new(actions::SignIn))),
+            dismissal_id: Some("auth-promotion"),
         });
     }
     None
@@ -148,6 +158,14 @@ impl Workspace {
                     spread_radius: px(0.0),
                 }])
                 .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                .when_some(toast.dismissal_id, |host, dismissal_id| {
+                    host.child(
+                        close_button(toast.id, theme.toast_background, theme.toast_border, text)
+                            .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| {
+                                this.dismiss_toast(dismissal_id, cx);
+                            })),
+                    )
+                })
                 .child(
                     div()
                         .flex_1()
@@ -248,6 +266,38 @@ impl Workspace {
         self.flash_toast(variant, message.into(), Some(description.into()), cx);
     }
 
+    /// `sonnerToast.<variant>(message, { action: { label, onClick } })`.
+    pub(crate) fn flash_with_action(
+        &mut self,
+        variant: FlashVariant,
+        message: impl Into<SharedString>,
+        action: (&'static str, Box<dyn gpui::Action>),
+        cx: &mut Context<Self>,
+    ) {
+        self.flash_toast_with(variant, message.into(), None, Some(action), cx);
+    }
+
+    /// sonner's close button (the `Toaster` sets `closeButton`), or a
+    /// `persistent` registry toast's `onDismiss`.
+    pub(crate) fn dismiss_flash(&mut self, cx: &mut Context<Self>) {
+        if self.flash.take().is_some() {
+            cx.notify();
+        }
+    }
+
+    /// `dismissToast(dismissalId)`: remembered in `store.json` like
+    /// `setDismissedToasts`, so neither shell shows the promotion again.
+    pub(crate) fn dismiss_toast(&mut self, dismissal_id: &str, cx: &mut Context<Self>) {
+        if self.dismissed_toasts.iter().any(|id| id == dismissal_id) {
+            return;
+        }
+        self.dismissed_toasts.push(dismissal_id.to_string());
+        if let Err(error) = self.store_file.set_dismissed_toasts(&self.dismissed_toasts) {
+            tracing::warn!(%error, "failed to save the dismissed toasts");
+        }
+        cx.notify();
+    }
+
     fn flash_toast(
         &mut self,
         variant: FlashVariant,
@@ -255,17 +305,31 @@ impl Workspace {
         description: Option<SharedString>,
         cx: &mut Context<Self>,
     ) {
+        self.flash_toast_with(variant, message, description, None, cx);
+    }
+
+    /// `TOAST_DURATIONS`: success 3s, error 5s, warning 6s.
+    fn flash_toast_with(
+        &mut self,
+        variant: FlashVariant,
+        message: SharedString,
+        description: Option<SharedString>,
+        action: Option<(&'static str, Box<dyn gpui::Action>)>,
+        cx: &mut Context<Self>,
+    ) {
         let generation = self.flash.as_ref().map_or(0, |flash| flash.generation + 1);
         self.flash = Some(FlashToast {
             variant,
             message,
             description,
+            action,
             generation,
         });
         cx.notify();
         let duration = match variant {
             FlashVariant::Success => std::time::Duration::from_secs(3),
-            FlashVariant::Error | FlashVariant::Warning => std::time::Duration::from_secs(5),
+            FlashVariant::Error => std::time::Duration::from_secs(5),
+            FlashVariant::Warning => std::time::Duration::from_secs(6),
         };
         cx.spawn(async move |this, cx| {
             cx.background_executor().timer(duration).await;
@@ -286,7 +350,7 @@ impl Workspace {
 
     /// The flash toast in front of everything else, with sonner's richColors
     /// success / error palettes.
-    pub(super) fn render_flash_toast(&self) -> Option<AnyElement> {
+    pub(super) fn render_flash_toast(&self, cx: &Context<Self>) -> Option<AnyElement> {
         let flash = self.flash.as_ref()?;
         let (background, border, text, glyph) = match (flash.variant, self.theme.dark) {
             (FlashVariant::Success, false) => (
@@ -314,9 +378,9 @@ impl Workspace {
                 "warning-circle",
             ),
             (FlashVariant::Warning, false) => (
-                gpui::rgb(0xfffbeb),
-                gpui::rgb(0xfef3c7),
-                gpui::rgb(0x92400e),
+                gpui::rgb(0xfffcf0),
+                gpui::rgb(0xfdf5d3),
+                gpui::rgb(0xdc7609),
                 "alert-triangle",
             ),
             (FlashVariant::Warning, true) => (
@@ -348,6 +412,11 @@ impl Workspace {
                     spread_radius: px(0.0),
                 }])
                 .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                .child(
+                    close_button("flash", background, border, text).on_click(
+                        cx.listener(|this, _: &ClickEvent, _, cx| this.dismiss_flash(cx)),
+                    ),
+                )
                 .child(
                     // `[data-icon]`: a 16px box holding the Toaster's 20px
                     // Hugeicons glyph (`icons={{ success: <CheckCircle size={20} /> ... }}`).
@@ -382,13 +451,40 @@ impl Workspace {
                             content.child(div().line_height(px(18.0)).child(description))
                         }),
                 )
+                // `[data-button]`: `#171717` on white, 12px, 24px tall, `0 8px`.
+                .when_some(flash.action.as_ref(), |toast, (label, action)| {
+                    let action = action.boxed_clone();
+                    toast.child(
+                        div()
+                            .id("flash-toast-action")
+                            .ml_auto()
+                            .h(px(24.0))
+                            .px_2()
+                            .flex()
+                            .flex_shrink_0()
+                            .items_center()
+                            .rounded(px(4.0))
+                            .bg(gpui::rgb(0x171717))
+                            .text_color(gpui::rgb(0xffffff))
+                            .text_size(px(12.0))
+                            .line_height(px(24.0))
+                            .font_weight(gpui::FontWeight::NORMAL)
+                            .cursor_pointer()
+                            .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
+                                this.dismiss_flash(cx);
+                                window.dispatch_action(action.boxed_clone(), cx);
+                            }))
+                            .child(*label),
+                    )
+                })
                 .into_any_element(),
         )
     }
 
-    /// `sonnerToast.warning` with `richColors`: `#fffbeb` on a `#fef3c7`
-    /// border in `#92400e`, the 16px triangle in the icon slot (`-3px` /
-    /// `4px` margins), `Infinity` duration, not dismissible.
+    /// `sonnerToast.warning` with `richColors`: sonner's `--warning-bg` /
+    /// `--warning-border` / `--warning-text` (`#fffcf0` on a `#fdf5d3` border
+    /// in `#dc7609`, measured), the 16px triangle in the icon slot (`-3px` /
+    /// `4px` margins), `Infinity` duration, not dismissible (`condition-bound`).
     pub(super) fn render_settings_alert_toast(&self) -> Option<AnyElement> {
         let description = self.settings_alert()?;
         let (background, border, text) = if self.theme.dark {
@@ -399,9 +495,9 @@ impl Workspace {
             )
         } else {
             (
-                gpui::rgb(0xfffbeb),
-                gpui::rgb(0xfef3c7),
-                gpui::rgb(0x92400e),
+                gpui::rgb(0xfffcf0),
+                gpui::rgb(0xfdf5d3),
+                gpui::rgb(0xdc7609),
             )
         };
         Some(
@@ -449,4 +545,31 @@ impl Workspace {
                 .into_any_element(),
         )
     }
+}
+
+/// sonner's `[data-close-button]`: 20px round, at the toast's top-left corner
+/// translated `-35%`, the toast's own background and border (rich colours
+/// included) and its text colour for the 12px `X`.
+fn close_button(
+    id: &'static str,
+    background: gpui::Rgba,
+    border: gpui::Rgba,
+    text: gpui::Rgba,
+) -> gpui::Stateful<gpui::Div> {
+    div()
+        .id(SharedString::from(format!("toast-close-{id}")))
+        .absolute()
+        .left(px(-7.0))
+        .top(px(-7.0))
+        .flex()
+        .size(px(20.0))
+        .items_center()
+        .justify_center()
+        .rounded_full()
+        .border_1()
+        .border_color(border)
+        .bg(background)
+        .cursor_pointer()
+        .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+        .child(crate::ui::icon("x", px(12.0), text))
 }

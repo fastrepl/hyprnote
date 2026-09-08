@@ -30,6 +30,8 @@ actions!(
         SelectAll,
         DeleteSelected,
         TogglePlayback,
+        SignIn,
+        UpgradeToPro,
     ]
 );
 

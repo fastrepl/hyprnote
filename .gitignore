@@ -33,3 +33,8 @@ internal
 .codex-security-artifacts-*/
 .codex-security-work-ledger-*.jsonl
 .claude/launch.json
+
+# Web build and deployment outputs
+.vercel/
+.output/
+.nitro/

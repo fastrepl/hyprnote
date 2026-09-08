@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-import { sendLoopsTransactional } from "../../src/lib/loops.ts";
+import { sendLoopsTransactional } from "../lib/loops.ts";
 
 const TRIAL_ENDING_TRANSACTIONAL_ID = "cmruoy7ix00zg0j1g74a7cycv";
 
@@ -68,8 +68,4 @@ export default async () => {
   if (failures.length > 0) {
     throw new AggregateError(failures, "Trial reminder delivery failed");
   }
-};
-
-export const config = {
-  schedule: "*/5 * * * *",
 };

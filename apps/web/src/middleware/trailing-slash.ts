@@ -15,6 +15,7 @@ export const trailingSlashMiddleware = createMiddleware({
     pathname !== "/" &&
     !pathname.endsWith("/") &&
     pathname !== "/api" &&
+    pathname !== "/oauth/callback" &&
     !pathname.startsWith("/api/") &&
     !pathname.startsWith("/_") &&
     !lastSegment.includes(".");

@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-import { sendLoopsEvent } from "../../src/lib/loops.ts";
+import { sendLoopsEvent } from "../lib/loops.ts";
 
 type AccountOnboardingEvent = {
   id: string;
@@ -100,8 +100,4 @@ export default async () => {
   if (failures.length > 0) {
     throw new AggregateError(failures, "Account onboarding delivery failed");
   }
-};
-
-export const config = {
-  schedule: "*/5 * * * *",
 };

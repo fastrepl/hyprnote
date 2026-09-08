@@ -5,12 +5,25 @@ const docChangedByTransactionKey = new PluginKey<boolean>(
   "docChangedByTransaction",
 );
 
-export function docChangeListenerPlugin(onDocChanged: (doc: PMNode) => void) {
+export function docChangeListenerPlugin(
+  onDocChanged: (doc: PMNode) => void,
+  onContentSynced?: (doc: PMNode) => void,
+) {
   return new Plugin({
     key: docChangedByTransactionKey,
     state: {
       init: () => false,
-      apply: (transaction, previous) => transaction.docChanged || previous,
+      apply(transaction, previous) {
+        const appended = transaction.getMeta("appendedTransaction");
+        if ((appended ?? transaction).getMeta("externalContentSync")) {
+          return false;
+        }
+        if (transaction.docChanged && !appended && !previous) {
+          // This plugin precedes history so the first user edit after sync starts a group.
+          closeHistory(transaction);
+        }
+        return transaction.docChanged || previous;
+      },
     },
     view() {
       return {
@@ -20,6 +33,7 @@ export function docChangeListenerPlugin(onDocChanged: (doc: PMNode) => void) {
           }
 
           if (!docChangedByTransactionKey.getState(view.state)) {
+            onContentSynced?.(view.state.doc);
             return;
           }
 
@@ -29,3 +43,4 @@ export function docChangeListenerPlugin(onDocChanged: (doc: PMNode) => void) {
     },
   });
 }
+import { closeHistory } from "prosemirror-history";

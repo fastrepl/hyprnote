@@ -268,8 +268,6 @@ jobs:
             "${{ steps.macos-symbols.outputs.path }}"
       - if: ${{ inputs.channel == 'stable' }}
         name: Verify macOS updater signature
-        env:
-          EXPECTED_VERSION: ${{ needs.compute-version.outputs.version }}
         run: |
           shopt -s nullglob
           updater_dir="apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/macos"
@@ -289,8 +287,18 @@ jobs:
             "${artifacts[0]}" \
             "${signatures[0]}" \
             apps/desktop/src-tauri/tauri.conf.json
-          python3 scripts/verify-packaged-cli.py \
-            "${apps[0]}" "$EXPECTED_VERSION"
+      - name: Verify packaged macOS CLI and MCP
+        env:
+          EXPECTED_VERSION: ${{ needs.compute-version.outputs.version }}
+          PACKAGE_DIR: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/macos
+        run: |
+          shopt -s nullglob
+          apps=("$PACKAGE_DIR"/*.app)
+          if [[ ${#apps[@]} -ne 1 ]]; then
+            echo "Expected one packaged macOS app"
+            exit 1
+          fi
+          python3 scripts/verify-packaged-cli.py "${apps[0]}" "$EXPECTED_VERSION"
       - id: find-dmg
         shell: bash
         run: |

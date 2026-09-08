@@ -70,6 +70,11 @@
     "react-native-worklets": "0.10.1"
   },
   "expo": {
+    "autolinking": {
+      "android": {
+        "buildFromSource": ["expo-audio"]
+      }
+    },
     "install": {
       "exclude": [
         "@sentry/react-native"

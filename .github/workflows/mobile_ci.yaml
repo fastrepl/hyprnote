@@ -189,6 +189,8 @@ jobs:
           assert apks, "No release APK was produced"
           for apk in apks:
               with ZipFile(apk) as package:
+                  dex = b"".join(package.read(name) for name in package.namelist() if name.endswith(".dex"))
+                  assert b"expo-audio:stream" in dex, f"{apk}: background recording patch is missing; build expo-audio from source"
                   supported_abis = {"arm64-v8a", "armeabi-v7a", "x86_64"}
                   packaged_abis = {
                       name.split("/")[1]

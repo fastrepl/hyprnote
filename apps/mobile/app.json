@@ -37,7 +37,8 @@
         "expo-audio",
         {
           "microphonePermission": "Anarlog uses the microphone to capture and transcribe your meetings.",
-          "enableBackgroundRecording": true
+          "enableBackgroundRecording": true,
+          "enableBackgroundPlayback": false
         }
       ],
       "expo-widgets",

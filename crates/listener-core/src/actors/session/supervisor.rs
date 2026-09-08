@@ -12,7 +12,6 @@ use crate::actors::session::types::{
     SessionConfigUpdate, SessionContext, SessionParams, session_span, session_supervisor_name,
 };
 use crate::actors::{ListenerConfigUpdate, ListenerInitError, ListenerMsg};
-use owhisper_client::AdapterKind;
 
 use self::children::ChildKind;
 use self::mode::SessionModeState;
@@ -493,14 +492,6 @@ async fn retry_listener(myself: ActorRef<SessionMsg>, state: &mut SessionState) 
 fn should_stop_on_listener_failure(state: &SessionState) -> bool {
     state.ctx.params.uses_local_soniqo_live_model()
         || state.ctx.params.uses_local_apple_speech_live_model()
-        || matches!(
-            AdapterKind::from_url_and_languages(
-                &state.ctx.params.base_url,
-                &state.ctx.params.languages,
-                Some(&state.ctx.params.model),
-            ),
-            AdapterKind::Soniox
-        )
 }
 
 async fn stop_after_listener_failure(
@@ -630,6 +621,35 @@ mod tests {
     }
 
     struct SessionStopProbe;
+
+    struct SessionRetryProbe(tokio::sync::mpsc::UnboundedSender<()>);
+
+    #[ractor::async_trait]
+    impl Actor for SessionRetryProbe {
+        type Msg = SessionMsg;
+        type State = ();
+        type Arguments = ();
+
+        async fn pre_start(
+            &self,
+            _myself: ActorRef<Self::Msg>,
+            _args: Self::Arguments,
+        ) -> Result<Self::State, ActorProcessingErr> {
+            Ok(())
+        }
+
+        async fn handle(
+            &self,
+            _myself: ActorRef<Self::Msg>,
+            message: Self::Msg,
+            _state: &mut Self::State,
+        ) -> Result<(), ActorProcessingErr> {
+            if matches!(message, SessionMsg::RetryListener) {
+                let _ = self.0.send(());
+            }
+            Ok(())
+        }
+    }
 
     #[ractor::async_trait]
     impl Actor for SessionStopProbe {
@@ -802,13 +822,13 @@ mod tests {
     }
 
     #[test]
-    fn direct_soniox_listener_failure_stops_session() {
+    fn direct_soniox_listener_failure_preserves_recording() {
         let mut ctx = test_ctx();
         ctx.params.base_url = "https://api.soniox.com".to_string();
         ctx.params.model = "stt-v4".to_string();
         let state = test_state(ctx);
 
-        assert!(should_stop_on_listener_failure(&state));
+        assert!(!should_stop_on_listener_failure(&state));
     }
 
     #[test]
@@ -913,6 +933,67 @@ mod tests {
             assert_eq!(message, "listener failed");
         }
         let _ = handle.await;
+    }
+
+    #[tokio::test]
+    async fn stalled_cloud_and_soniox_listeners_schedule_reconnection_without_stopping_recording() {
+        for base_url in ["https://api.anarlog.so/stt", "https://api.soniox.com"] {
+            let runtime = Arc::new(RecordingRuntime {
+                lifecycle_events: std::sync::Mutex::new(vec![]),
+            });
+            let mut ctx = test_ctx();
+            ctx.runtime = runtime.clone();
+            ctx.params.base_url = base_url.to_string();
+            let mut state = test_state(ctx);
+            let (stop_tx, mut stop_rx) = tokio::sync::mpsc::unbounded_channel();
+            let (recorder, recorder_handle) = Actor::spawn(
+                None,
+                StopProbe {
+                    label: "recorder",
+                    tx: stop_tx,
+                },
+                (),
+            )
+            .await
+            .unwrap();
+            state.recorder_cell = Some(recorder.get_cell());
+            let (retry_tx, mut retry_rx) = tokio::sync::mpsc::unbounded_channel();
+            let (supervisor, supervisor_handle) =
+                Actor::spawn(None, SessionRetryProbe(retry_tx), ())
+                    .await
+                    .unwrap();
+
+            handle_listener_failure(
+                &supervisor,
+                &mut state,
+                DegradedError::ConnectionTimeout,
+                None,
+            )
+            .await;
+
+            tokio::time::timeout(Duration::from_secs(3), retry_rx.recv())
+                .await
+                .expect("stalled streams should schedule a reconnect")
+                .unwrap();
+            assert!(!state.shutting_down);
+            assert!(state.mode.should_retry_listener());
+            assert_eq!(recorder.get_status(), ActorStatus::Running);
+            assert!(stop_rx.try_recv().is_err());
+            assert!(matches!(
+                runtime.lifecycle_events.lock().unwrap().last(),
+                Some(crate::SessionLifecycleEvent::Active {
+                    requested_transcription_mode: TranscriptionMode::Live,
+                    current_transcription_mode: TranscriptionMode::Batch,
+                    error: Some(DegradedError::ConnectionTimeout),
+                    ..
+                })
+            ));
+
+            recorder.stop(None);
+            supervisor.stop(None);
+            recorder_handle.await.unwrap();
+            supervisor_handle.await.unwrap();
+        }
     }
 
     #[tokio::test]

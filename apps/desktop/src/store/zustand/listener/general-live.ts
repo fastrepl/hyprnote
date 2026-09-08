@@ -207,7 +207,7 @@ const notifyTranscriptionStalled = () => {
     id: "live-transcription-stalled",
     duration: Infinity,
     description:
-      "Anarlog keeps recording. The missing part of the transcript will be rebuilt from the recording when you stop listening.",
+      "Anarlog keeps recording while live transcription reconnects. Any missing text will be rebuilt from the recording after you stop listening.",
   });
 };
 
@@ -407,6 +407,9 @@ const createSessionEventHandlers = <T extends LiveStore>(
             (currentLive.finalStallAudibleSeconds !== 0 ||
               currentLive.transcriptionStalled)))
       ) {
+        if (hasFinalWords && currentLive.transcriptionStalled) {
+          sonnerToast.dismiss("live-transcription-stalled");
+        }
         setLiveState(set, (live) => {
           noteLiveTranscriptActivity(live, {
             hasFinalWords,

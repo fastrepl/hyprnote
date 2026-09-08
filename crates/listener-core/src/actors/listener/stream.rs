@@ -8,6 +8,70 @@ use super::{FINALIZE_STREAM_TIMEOUT, LISTEN_STREAM_TIMEOUT, ListenerMsg};
 const PROVIDER_RESPONSE_ACK_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(1);
 const FINALIZE_HANDLE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(1);
 const MAX_FINAL_RESPONSES: usize = 64;
+const TRANSCRIPT_PROGRESS_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+const MIN_ACTIVE_AUDIO_SAMPLES: usize = crate::actors::SAMPLE_RATE as usize * 5;
+const MAX_UNFINALIZED_AUDIO_SAMPLES: usize = crate::actors::SAMPLE_RATE as usize * 90;
+
+pub(super) struct StreamProgress {
+    last_response_at: std::time::Instant,
+    active_samples: usize,
+    unfinalized_samples: usize,
+}
+
+impl StreamProgress {
+    pub(super) fn new(now: std::time::Instant) -> Self {
+        Self {
+            last_response_at: now,
+            active_samples: 0,
+            unfinalized_samples: 0,
+        }
+    }
+
+    pub(super) fn observe_audio(&mut self, samples: usize, now: std::time::Instant) -> bool {
+        self.active_samples = self.active_samples.saturating_add(samples);
+        self.unfinalized_samples = self.unfinalized_samples.saturating_add(samples);
+        (self.active_samples >= MIN_ACTIVE_AUDIO_SAMPLES
+            && now.duration_since(self.last_response_at) >= TRANSCRIPT_PROGRESS_TIMEOUT)
+            || self.unfinalized_samples >= MAX_UNFINALIZED_AUDIO_SAMPLES
+    }
+
+    pub(super) fn observe_response(&mut self, response: &StreamResponse, now: std::time::Instant) {
+        if let StreamResponse::TranscriptResponse {
+            channel, is_final, ..
+        } = response
+            && channel.alternatives.iter().any(|alternative| {
+                !alternative.transcript.trim().is_empty() || !alternative.words.is_empty()
+            })
+        {
+            self.last_response_at = now;
+            self.active_samples = 0;
+            if *is_final {
+                self.unfinalized_samples = 0;
+            }
+        }
+    }
+}
+
+pub(super) fn active_audio_samples(audio: &[u8]) -> usize {
+    let samples = audio.len() / 2;
+    if samples == 0 {
+        return 0;
+    }
+    let energy = audio
+        .chunks_exact(2)
+        .map(|bytes| {
+            let sample = f64::from(i16::from_le_bytes([bytes[0], bytes[1]])) / 32768.0;
+            sample * sample
+        })
+        .sum::<f64>();
+
+    // Quiet meetings must not reconnect just because there is no transcript.
+    if energy / samples as f64 >= 0.005_f64.powi(2) {
+        samples
+    } else {
+        0
+    }
+}
 
 pub(super) async fn process_stream<S, E, H>(
     mut listen_stream: std::pin::Pin<&mut S>,
@@ -322,6 +386,113 @@ mod tests {
     fn extra() -> Extra {
         Extra {
             started_unix_millis: 0,
+        }
+    }
+
+    fn transcript_response(is_final: bool) -> StreamResponse {
+        use owhisper_interface::stream::{Alternatives, Channel, Metadata};
+
+        StreamResponse::TranscriptResponse {
+            start: 0.0,
+            duration: 1.0,
+            is_final,
+            speech_final: false,
+            from_finalize: false,
+            channel: Channel {
+                alternatives: vec![Alternatives {
+                    transcript: "hello".to_string(),
+                    words: vec![],
+                    confidence: 1.0,
+                    languages: vec![],
+                }],
+            },
+            metadata: Metadata::default(),
+            channel_index: vec![0, 1],
+        }
+    }
+
+    #[test]
+    fn stalled_transcript_is_detected_while_audio_continues() {
+        let now = Instant::now();
+        let mut progress = StreamProgress::new(now);
+        let audio = 1000_i16
+            .to_le_bytes()
+            .repeat(crate::actors::SAMPLE_RATE as usize);
+
+        for second in 1..30 {
+            assert!(!progress.observe_audio(
+                active_audio_samples(&audio),
+                now + Duration::from_secs(second),
+            ));
+        }
+        assert!(
+            progress.observe_audio(active_audio_samples(&audio), now + Duration::from_secs(30))
+        );
+    }
+
+    #[test]
+    fn silence_and_low_background_noise_do_not_trigger_reconnection() {
+        let now = Instant::now();
+        let mut progress = StreamProgress::new(now);
+        for sample in [0_i16, 16, -16] {
+            let audio = sample
+                .to_le_bytes()
+                .repeat(crate::actors::SAMPLE_RATE as usize);
+            assert!(
+                !progress
+                    .observe_audio(active_audio_samples(&audio), now + Duration::from_secs(600))
+            );
+        }
+        assert_eq!(active_audio_samples(&[]), 0);
+        assert!(!progress.observe_audio(
+            crate::actors::SAMPLE_RATE as usize,
+            now + Duration::from_secs(601)
+        ));
+    }
+
+    #[test]
+    fn partial_transcripts_reset_the_stall_watchdog() {
+        let now = Instant::now();
+        let mut progress = StreamProgress::new(now);
+        assert!(!progress.observe_audio(MIN_ACTIVE_AUDIO_SAMPLES, now + Duration::from_secs(29)));
+        progress.observe_response(&transcript_response(false), now + Duration::from_secs(29));
+        assert!(!progress.observe_audio(MIN_ACTIVE_AUDIO_SAMPLES, now + Duration::from_secs(30)));
+        assert!(progress.observe_audio(0, now + Duration::from_secs(59)));
+    }
+
+    #[test]
+    fn metadata_does_not_hide_a_stalled_transcript() {
+        let now = Instant::now();
+        let mut progress = StreamProgress::new(now);
+        assert!(!progress.observe_audio(MIN_ACTIVE_AUDIO_SAMPLES, now + Duration::from_secs(29)));
+        progress.observe_response(&terminal_response(), now + Duration::from_secs(29));
+        assert!(progress.observe_audio(0, now + Duration::from_secs(30)));
+    }
+
+    #[test]
+    fn partial_words_that_never_finalize_trigger_reconnection() {
+        let now = Instant::now();
+        let mut progress = StreamProgress::new(now);
+        for second in 1..90 {
+            let time = now + Duration::from_secs(second);
+            progress.observe_response(&transcript_response(false), time);
+            assert!(!progress.observe_audio(crate::actors::SAMPLE_RATE as usize, time));
+        }
+        progress.observe_response(&transcript_response(false), now + Duration::from_secs(90));
+        assert!(progress.observe_audio(
+            crate::actors::SAMPLE_RATE as usize,
+            now + Duration::from_secs(90)
+        ));
+    }
+
+    #[test]
+    fn finalized_words_keep_an_active_stream_healthy() {
+        let now = Instant::now();
+        let mut progress = StreamProgress::new(now);
+        for second in 1..300 {
+            let time = now + Duration::from_secs(second);
+            progress.observe_response(&transcript_response(second % 20 == 0), time);
+            assert!(!progress.observe_audio(crate::actors::SAMPLE_RATE as usize, time));
         }
     }
 

@@ -78,6 +78,7 @@ pub struct ListenerState {
     tx: ChannelSender,
     rx_task: tokio::task::JoinHandle<Vec<StreamResponse>>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
+    progress: Option<stream::StreamProgress>,
 }
 
 pub(super) enum ChannelSender {
@@ -176,6 +177,8 @@ impl Actor for ListenerActor {
                 tx,
                 rx_task,
                 shutdown_tx: Some(shutdown_tx),
+                progress: (!matches!(adapter_name.as_str(), "soniqo" | "apple-speech"))
+                    .then(|| stream::StreamProgress::new(Instant::now())),
             };
 
             Ok(state)
@@ -235,6 +238,7 @@ impl Actor for ListenerActor {
 
         match message {
             ListenerMsg::AudioSingle(audio, reply) => {
+                let active_samples = stream::active_audio_samples(&audio);
                 let result = match &state.tx {
                     ChannelSender::Single(tx) => match tx.try_send(MixedMessage::Audio(audio)) {
                         Ok(()) => ListenerAudioResult::Accepted,
@@ -248,6 +252,14 @@ impl Actor for ListenerActor {
                     ChannelSender::Dual(_) => ListenerAudioResult::ModeMismatch,
                 };
                 let _ = reply.send(result);
+                if result == ListenerAudioResult::Accepted
+                    && state.progress.as_mut().is_some_and(|progress| {
+                        progress.observe_audio(active_samples, Instant::now())
+                    })
+                {
+                    tracing::warn!("listen_stream_stalled_during_audio");
+                    stop_with_degraded_error(&myself, DegradedError::ConnectionTimeout);
+                }
                 if matches!(
                     result,
                     ListenerAudioResult::Closed | ListenerAudioResult::ModeMismatch
@@ -262,6 +274,8 @@ impl Actor for ListenerActor {
             }
 
             ListenerMsg::AudioDual(mic, spk, reply) => {
+                let active_samples =
+                    stream::active_audio_samples(&mic).max(stream::active_audio_samples(&spk));
                 let result = match &state.tx {
                     ChannelSender::Dual(tx) => match tx.try_send(MixedMessage::Audio((mic, spk))) {
                         Ok(()) => ListenerAudioResult::Accepted,
@@ -275,6 +289,14 @@ impl Actor for ListenerActor {
                     ChannelSender::Single(_) => ListenerAudioResult::ModeMismatch,
                 };
                 let _ = reply.send(result);
+                if result == ListenerAudioResult::Accepted
+                    && state.progress.as_mut().is_some_and(|progress| {
+                        progress.observe_audio(active_samples, Instant::now())
+                    })
+                {
+                    tracing::warn!("listen_stream_stalled_during_audio");
+                    stop_with_degraded_error(&myself, DegradedError::ConnectionTimeout);
+                }
                 if matches!(
                     result,
                     ListenerAudioResult::Closed | ListenerAudioResult::ModeMismatch
@@ -309,6 +331,9 @@ impl Actor for ListenerActor {
             }
 
             ListenerMsg::StreamResponse(response, reply) => {
+                if let Some(progress) = &mut state.progress {
+                    progress.observe_response(&response, Instant::now());
+                }
                 let degraded = process_stream_response(state, response);
                 let _ = reply.send(());
                 if let Some(degraded) = degraded {

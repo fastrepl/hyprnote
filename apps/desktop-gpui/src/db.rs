@@ -1436,6 +1436,24 @@ impl Store {
         self.db.pool()
     }
 
+    /// `dispatchEvent("note.enhanced")` + `runNoteEnhancedAutomations`, off
+    /// the UI thread.
+    pub fn run_note_enhanced_automations(&self, session_id: String) {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            crate::automations_engine::note_enhanced(db.pool(), &session_id).await;
+        });
+    }
+
+    /// `dispatchMeetingCompleted`: the webhooks and the automations of a
+    /// completed meeting.
+    pub fn run_meeting_completed_automations(&self, session_id: String) {
+        let db = self.db.clone();
+        self.runtime.spawn(async move {
+            crate::automations_engine::meeting_completed(db.pool(), &session_id).await;
+        });
+    }
+
     pub fn runtime(&self) -> &tokio::runtime::Handle {
         &self.runtime
     }

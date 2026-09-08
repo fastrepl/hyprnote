@@ -1505,6 +1505,8 @@ async fn enhance_success(
         persist_title(store, &args.session_id, &generated_title).await?;
     }
     tracing::info!(session_id = %args.session_id, "note.enhanced");
+    // `dispatchEvent("note.enhanced")` + `runNoteEnhancedAutomations`.
+    store.run_note_enhanced_automations(args.session_id.clone());
     // `showSummaryReadyNotification(sessionId, trimmedTitle)` and
     // `playCompletionSound` (`requestAppAttention` needs a window attention
     // API GPUI does not expose).

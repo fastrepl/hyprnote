@@ -8,6 +8,7 @@ mod audio;
 mod audio_player;
 mod audio_retention;
 mod automations;
+mod automations_engine;
 mod batch;
 mod capture_marker;
 mod chat;

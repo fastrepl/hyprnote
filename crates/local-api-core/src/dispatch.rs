@@ -20,7 +20,7 @@ const MAX_PENDING_TEST_DELIVERIES: usize = 32;
 const FANOUT_BUSY_ERROR: &str = "webhook fanout is busy; try again";
 const DELIVERY_BUSY_ERROR: &str = "webhook delivery is busy; try again";
 
-pub(crate) const MAX_WEBHOOK_ENDPOINTS: usize = 64;
+pub const MAX_WEBHOOK_ENDPOINTS: usize = 64;
 
 static CREATE_ENDPOINT_LOCK: std::sync::OnceLock<tokio::sync::Mutex<()>> =
     std::sync::OnceLock::new();
@@ -111,12 +111,12 @@ fn subscribes(endpoint: &anlg_db_app::WebhookEndpointRow, event: &str) -> bool {
 }
 
 fn envelope(event: &str, data: serde_json::Value) -> String {
-    serde_json::json!({
+    crate::sorted_json(&serde_json::json!({
         "id": format!("evt_{}", uuid::Uuid::new_v4().simple()),
         "event": event,
         "created_at": chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true),
         "data": data,
-    })
+    }))
     .to_string()
 }
 

@@ -104,6 +104,7 @@ anlg-listener-core = { path = "crates/listener-core", package = "listener-core" 
 anlg-listener2-core = { path = "crates/listener2-core", package = "listener2-core" }
 anlg-llm-proxy = { path = "crates/llm-proxy", package = "llm-proxy" }
 anlg-lmstudio = { path = "crates/lmstudio", package = "lmstudio" }
+anlg-local-api-core = { path = "crates/local-api-core", package = "local-api-core" }
 anlg-local-llm-core = { path = "crates/local-llm-core", package = "local-llm-core" }
 anlg-local-model = { path = "crates/local-model", package = "local-model" }
 anlg-local-stt-core = { path = "crates/local-stt-core", package = "local-stt-core" }

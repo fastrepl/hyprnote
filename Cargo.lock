@@ -5482,6 +5482,7 @@ dependencies = [
  "libloading 0.8.9",
  "listener-core",
  "listener2-core",
+ "local-api-core",
  "markdown",
  "mime_guess",
  "notification",
@@ -11578,6 +11579,27 @@ dependencies = [
  "dirs 6.0.0",
  "serde_json",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "local-api-core"
+version = "0.1.0"
+dependencies = [
+ "agent-access",
+ "bytes",
+ "chrono",
+ "db-app",
+ "db-core",
+ "hmac 0.13.0",
+ "reqwest 0.13.2",
+ "serde",
+ "serde_json",
+ "sha2 0.11.0",
+ "specta",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -19952,15 +19974,11 @@ name = "tauri-plugin-local-api"
 version = "0.1.0"
 dependencies = [
  "agent-access",
- "bytes",
- "chrono",
  "db-app",
  "db-core",
- "hmac 0.13.0",
- "reqwest 0.13.2",
+ "local-api-core",
  "serde",
  "serde_json",
- "sha2 0.11.0",
  "specta",
  "specta-typescript",
  "sqlx",

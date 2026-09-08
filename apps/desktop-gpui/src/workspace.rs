@@ -369,6 +369,8 @@ pub struct Workspace {
     default_ignored_apps: Vec<String>,
     /// The excluded-apps trigger's last painted bounds, for the popover flip.
     excluded_apps_bounds: std::rc::Rc<std::cell::Cell<Option<gpui::Bounds<gpui::Pixels>>>>,
+    /// The window's height as of the last frame, for `vh`-sized panels.
+    viewport_height: f32,
 }
 
 impl Workspace {
@@ -546,6 +548,7 @@ impl Workspace {
             installed_apps: None,
             default_ignored_apps: anlg_detect::default_ignored_bundle_ids(),
             excluded_apps_bounds: std::rc::Rc::default(),
+            viewport_height: 0.0,
         };
         // Chips and the bottom fade depend on the scroll position.
         this.list_state
@@ -1755,6 +1758,7 @@ impl Workspace {
 
 impl Render for Workspace {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.viewport_height = f32::from(window.viewport_size().height);
         // `MainChatPanels` lays out the body before the sidebar group inside
         // it; the width guard then reacts to what fits.
         let main_layout = self.main_layout(window);

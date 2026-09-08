@@ -408,7 +408,14 @@ impl Workspace {
                     .child(self.render_participants(cx));
             }
         }
-        body.into_any_element()
+        // `AppFloatingPanel className="scrollbar-hide max-h-[80vh] overflow-y-auto"`
+        // (#7475): long details scroll without a visible scrollbar.
+        div()
+            .id("meeting-info-scroll")
+            .max_h(px((self.viewport_height * 0.8).max(120.0)))
+            .overflow_y_scroll()
+            .child(body)
+            .into_any_element()
     }
 
     /// `DateEditor`: the `h-7` read-only row with the pencil, or the form.
@@ -576,8 +583,9 @@ impl Workspace {
                     .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
                         this.start_date_edit(window, cx)
                     }))
+                    // `<Pencil size={16} />`: Hugeicons' upright pencil.
                     .child(icon(
-                        "pencil-edit",
+                        "pencil",
                         px(16.0),
                         if hovered {
                             theme.foreground

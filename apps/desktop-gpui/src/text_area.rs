@@ -7,10 +7,11 @@ use std::ops::Range;
 use std::time::{Duration, Instant};
 
 use gpui::{
-    App, Bounds, ClipboardItem, Context, CursorStyle, ElementInputHandler, EntityInputHandler,
-    EventEmitter, FocusHandle, Focusable, HighlightStyle, KeyBinding, MouseButton, MouseDownEvent,
-    MouseMoveEvent, MouseUpEvent, Pixels, Point, Rgba, SharedString, StyledText, TextLayout,
-    UTF16Selection, Window, actions, canvas, div, fill, point, prelude::*, px, size,
+    AnyElement, App, Bounds, ClipboardItem, Context, CursorStyle, ElementInputHandler,
+    EntityInputHandler, EventEmitter, FocusHandle, Focusable, HighlightStyle, KeyBinding,
+    MouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent, Pixels, Point, Rgba, SharedString,
+    StyledText, TextLayout, UTF16Selection, Window, actions, canvas, div, fill, point, prelude::*,
+    px, size,
 };
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -1083,7 +1084,7 @@ impl Render for TextArea {
         let split = style.paragraph_gap > px(0.0) && !empty;
         let ranges = paragraph_ranges(&text, split);
         let mut parts = Vec::with_capacity(ranges.len());
-        let mut children = Vec::with_capacity(ranges.len());
+        let mut children: Vec<AnyElement> = Vec::with_capacity(ranges.len());
         for range in ranges {
             let local: Vec<(Range<usize>, HighlightStyle)> = highlights
                 .iter()
@@ -1103,8 +1104,17 @@ impl Render for TextArea {
             };
             let styled = StyledText::new(paragraph).with_default_highlights(&text_style, local);
             parts.push((range, styled.layout().clone()));
-            // An empty paragraph still takes a line, as an empty `<p>` does.
-            children.push(div().min_h(style.line_height).child(styled));
+            if split {
+                // An empty paragraph still takes a line, as an empty `<p>` does.
+                children.push(
+                    div()
+                        .min_h(style.line_height)
+                        .child(styled)
+                        .into_any_element(),
+                );
+            } else {
+                children.push(styled.into_any_element());
+            }
         }
         self.layout = AreaLayout {
             parts,
@@ -1165,13 +1175,19 @@ impl Render for TextArea {
             .on_mouse_up(MouseButton::Left, cx.listener(Self::on_mouse_up))
             .on_mouse_up_out(MouseButton::Left, cx.listener(Self::on_mouse_up))
             .on_mouse_move(cx.listener(Self::on_mouse_move))
-            .child(
-                div()
-                    .flex()
-                    .flex_col()
-                    .gap(style.paragraph_gap)
-                    .children(children),
-            )
+            .map(|area| {
+                if split {
+                    area.child(
+                        div()
+                            .flex()
+                            .flex_col()
+                            .gap(style.paragraph_gap)
+                            .children(children),
+                    )
+                } else {
+                    area.children(children)
+                }
+            })
             .child(
                 canvas(
                     |_, _, _| (),

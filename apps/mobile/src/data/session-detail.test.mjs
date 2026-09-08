@@ -91,3 +91,24 @@ test("uses the body heading when a synced summary has no stored title", () => {
     text: "Use hosted live transcription.",
   });
 });
+
+test("a named desktop placeholder with only the meeting title is not a finished summary", () => {
+  const detail = mapSessionDetailRows([
+    {
+      ...baseRow,
+      summary_body_format: "prosemirror_json",
+      summary_body: JSON.stringify({
+        type: "doc",
+        content: [
+          {
+            type: "heading",
+            attrs: { level: 1 },
+            content: [{ type: "text", text: baseRow.title }],
+          },
+          { type: "paragraph" },
+        ],
+      }),
+    },
+  ]);
+  assert.equal(detail.summary, null);
+});

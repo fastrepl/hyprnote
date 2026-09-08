@@ -1,6 +1,9 @@
 import { useLingui } from "@lingui/react/macro";
 
 import { cn } from "@anlg/utils";
+import { createEditorTabs } from "@anlg/utils/session";
+
+export { createEditorTabs } from "@anlg/utils/session";
 
 import { HeaderViewEnhanced } from "./header-enhanced";
 import { HeaderViewRaw } from "./header-raw";
@@ -144,23 +147,4 @@ export function useEditorTabs({
     enhancedNoteIds,
     canShowTranscript,
   });
-}
-
-export function createEditorTabs({
-  enhancedNoteIds,
-  canShowTranscript,
-}: {
-  enhancedNoteIds: string[];
-  canShowTranscript: boolean;
-}): EditorView[] {
-  const enhancedTabs: EditorView[] = enhancedNoteIds.map((id) => ({
-    type: "enhanced",
-    id,
-  }));
-
-  return [
-    ...enhancedTabs,
-    { type: "raw" },
-    ...(canShowTranscript ? [{ type: "transcript" } as const] : []),
-  ];
 }

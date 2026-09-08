@@ -1,5 +1,11 @@
-import { useMutationState } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutationState,
+  useQuery,
+} from "@tanstack/react-query";
 import { fetch } from "expo/fetch";
+
+import { hasSummaryContent } from "@anlg/utils/session";
 
 import { execute, executeTransaction } from "@/db";
 import { env } from "@/lib/env";
@@ -24,11 +30,25 @@ async function runSummary(
   sessionId: string,
   automatic: boolean,
 ): Promise<void> {
-  const existing = await execute<{ id: string; updated_at: string }>(
-    "SELECT id, updated_at FROM session_documents WHERE session_id = ? AND kind = 'summary' AND deleted_at IS NULL ORDER BY sort_order, created_at, id LIMIT 1",
+  const existing = await execute<{
+    id: string;
+    updated_at: string;
+    body: string;
+    session_title: string;
+  }>(
+    `SELECT document.id, document.updated_at, document.body, session.title AS session_title
+     FROM session_documents AS document
+     JOIN sessions AS session ON session.id = document.session_id AND session.deleted_at IS NULL
+     WHERE document.session_id = ? AND document.kind = 'summary' AND document.deleted_at IS NULL
+     ORDER BY document.sort_order, document.created_at, document.id LIMIT 1`,
     [sessionId],
   );
-  if (automatic && existing.length > 0) return;
+  if (
+    automatic &&
+    existing[0] &&
+    hasSummaryContent(existing[0].body, existing[0].session_title)
+  )
+    return;
   const [notes, transcripts, humans, preferences, provider] = await Promise.all(
     [
       execute<{ body: string; body_format: string }>(
@@ -102,7 +122,7 @@ async function runSummary(
     prior
       ? {
           sql: `UPDATE session_documents SET body = ?, body_format = 'markdown', generation_metadata_json = ?, updated_at = ?
-      WHERE id = ? AND session_id = ? AND updated_at = ? AND deleted_at IS NULL
+      WHERE id = ? AND session_id = ? AND updated_at = ? AND body = ? AND deleted_at IS NULL
         AND EXISTS (SELECT 1 FROM sessions WHERE id = ? AND deleted_at IS NULL)`,
           params: [
             summary,
@@ -111,6 +131,7 @@ async function runSummary(
             prior.id,
             sessionId,
             prior.updated_at,
+            prior.body,
             sessionId,
           ],
         }
@@ -161,6 +182,23 @@ export function summarizeSession(
 export function generateSummaryAfterTranscription(sessionId: string): void {
   // Summary failures are visible in the note; they must never fail audio persistence.
   void summarizeSession(sessionId, { automatic: true }).catch(() => {});
+}
+
+export function automaticSummaryOptions(sessionId: string) {
+  return queryOptions({
+    queryKey: ["session-auto-summary", sessionId],
+    queryFn: async () => {
+      await summarizeSession(sessionId, { automatic: true });
+      return null;
+    },
+    retry: false,
+    retryOnMount: false,
+    staleTime: Infinity,
+  });
+}
+
+export function useAutomaticSummary(sessionId: string, enabled: boolean) {
+  return useQuery({ ...automaticSummaryOptions(sessionId), enabled });
 }
 
 export function useSessionSummaryState(sessionId: string) {

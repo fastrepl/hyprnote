@@ -1,3 +1,5 @@
+import { hasSummaryContent } from "@anlg/utils/session";
+
 import {
   docToPlainText,
   isPlainTextDoc,
@@ -56,7 +58,6 @@ export function mapSessionDetailRows(
     (summaryDocument.title.trim() !== summaryTitle
       ? summaryDocument.title.trim()
       : "");
-  const hasSummaryContent = summaryTitle !== "Summary" || summaryText !== "";
 
   return {
     id: row.id,
@@ -66,7 +67,7 @@ export function mapSessionDetailRows(
     bodyFormat: isMarkdown ? "markdown" : "prosemirror_json",
     plainEditable: isMarkdown || isPlainTextDoc(row.raw_body),
     summary:
-      row.summary_id === "" || !hasSummaryContent
+      row.summary_id === "" || !hasSummaryContent(row.summary_body, row.title)
         ? null
         : {
             title: summaryTitle,

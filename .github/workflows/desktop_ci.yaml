@@ -13,6 +13,7 @@ on:
       - scripts/repack-linux-appimage.test.mjs
       - apps/cli/**
       - apps/desktop/**
+      - packages/utils/**
       - plugins/**
       - crates/**
       - Cargo.toml
@@ -25,6 +26,7 @@ on:
       - scripts/repack-linux-appimage.test.mjs
       - apps/cli/**
       - apps/desktop/**
+      - packages/utils/**
       - plugins/**
       - crates/**
       - Cargo.toml

@@ -1785,6 +1785,16 @@ impl Render for Workspace {
         let theme = self.theme;
         let client_decorations = matches!(window.window_decorations(), Decorations::Client { .. });
 
+        // `syncContent`'s focus rule: an external body parked while a note
+        // editor had focus lands once it blurs.
+        for editor in self.editor.clone().into_iter().chain(
+            self.enhanced_editor
+                .as_ref()
+                .map(|(_, editor)| editor.clone()),
+        ) {
+            let focused = editor.read(cx).is_focused(window);
+            editor.update(cx, |editor, cx| editor.sync_focus(focused, cx));
+        }
         // `/app/instruction` sits outside the shell layout: no title bar,
         // sidebar or toasts while the browser hand-off is pending.
         if self.instruction_open() {

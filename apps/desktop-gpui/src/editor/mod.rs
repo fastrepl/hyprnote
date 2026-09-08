@@ -166,6 +166,11 @@ pub struct BodyEditor {
     undo_stack: Vec<Snapshot>,
     redo_stack: Vec<Snapshot>,
     last_edit: Option<(Instant, EditKind)>,
+    /// Whether the editor had focus at the last frame.
+    focused: bool,
+    /// An external body that arrived while the editor had focus, applied once
+    /// focus leaves (`syncContent`'s `blur` listener).
+    pending_external: Option<String>,
     /// Text layouts captured while painting, one per textblock.
     layouts: Vec<Option<(ProseLayout, Bounds<Pixels>)>>,
     dirty_since: Option<Instant>,
@@ -218,6 +223,8 @@ impl BodyEditor {
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
             last_edit: None,
+            focused: false,
+            pending_external: None,
             dirty_since: None,
             enforce_title_heading: false,
             last_input: None,
@@ -568,7 +575,32 @@ impl BodyEditor {
     }
 
     /// Replace the document from the store unless local edits are pending.
+    /// Like the web editor's `externalContentSync` transaction (#7462), the
+    /// sync is one closed history step: Undo brings the previous content
+    /// back, the next typing starts its own group, and nothing is persisted.
+    /// While the editor has focus the body waits for the blur
+    /// (`shouldReplaceEditorContent` without `syncContentWhenFocused`).
     pub fn replace_body(&mut self, body: &str, cx: &mut Context<Self>) {
+        if self.is_dirty() {
+            return;
+        }
+        if self.focused {
+            self.pending_external = Some(body.to_string());
+            return;
+        }
+        self.apply_external_body(body, cx);
+    }
+
+    /// The workspace reports the focus state every frame: a body parked while
+    /// focused is applied once focus leaves (`syncContent` on `blur`).
+    pub fn sync_focus(&mut self, focused: bool, cx: &mut Context<Self>) {
+        self.focused = focused;
+        if !focused && let Some(body) = self.pending_external.take() {
+            self.apply_external_body(&body, cx);
+        }
+    }
+
+    fn apply_external_body(&mut self, body: &str, cx: &mut Context<Self>) {
         if self.is_dirty() {
             return;
         }
@@ -576,6 +608,15 @@ impl BodyEditor {
         if doc.to_json() == self.doc.to_json() {
             return;
         }
+        self.undo_stack.push(Snapshot {
+            json: self.doc.to_json(),
+            caret: self.caret,
+        });
+        if self.undo_stack.len() > 200 {
+            self.undo_stack.remove(0);
+        }
+        self.redo_stack.clear();
+        self.last_edit = None;
         self.doc = doc;
         self.layouts = vec![None; self.doc.textblock_count()];
         self.clamp_caret();
@@ -732,6 +773,9 @@ impl BodyEditor {
     /// Records the pre-edit state for undo; adjacent edits of the same kind
     /// within `newGroupDelay` share one history entry.
     fn record_edit(&mut self, kind: EditKind) {
+        // A local edit supersedes a body parked while focused: the store will
+        // come back with this edit's own document.
+        self.pending_external = None;
         let now = Instant::now();
         let grouped = matches!(
             self.last_edit,

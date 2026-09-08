@@ -177,12 +177,26 @@ pub enum Part {
     #[serde(rename = "text")]
     Text {
         text: String,
+        /// The provider's `text-end` metadata (the Responses API's
+        /// `{ openai: { itemId } }`), before `state` like the SDK's part.
+        #[serde(
+            rename = "providerMetadata",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        provider_metadata: Option<serde_json::Value>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         state: Option<String>,
     },
     #[serde(rename = "reasoning")]
     Reasoning {
         text: String,
+        #[serde(
+            rename = "providerMetadata",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        provider_metadata: Option<serde_json::Value>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         state: Option<String>,
     },
@@ -205,7 +219,10 @@ pub struct ToolView<'a> {
 
 impl Part {
     /// A tool part in the AI SDK's key order: `type`, `toolCallId`, `state`,
-    /// `input`, then `output` or `errorText`.
+    /// `input`, then `output` or `errorText`, then the provider metadata of
+    /// the call (`callProviderMetadata`) and, once the tool has answered, of
+    /// the result (`resultProviderMetadata`, the call's own metadata for a
+    /// locally run tool).
     pub fn tool(
         name: &str,
         call_id: &str,
@@ -213,6 +230,7 @@ impl Part {
         input: serde_json::Value,
         output: Option<serde_json::Value>,
         error_text: Option<String>,
+        provider_metadata: Option<serde_json::Value>,
     ) -> Part {
         let mut map = serde_json::Map::new();
         map.insert("type".into(), format!("tool-{name}").into());
@@ -225,7 +243,27 @@ impl Part {
         if let Some(error_text) = error_text {
             map.insert("errorText".into(), error_text.into());
         }
+        if let Some(metadata) = provider_metadata {
+            map.insert("callProviderMetadata".into(), metadata.clone());
+            if matches!(state, "output-available" | "output-error") {
+                map.insert("resultProviderMetadata".into(), metadata);
+            }
+        }
         Part::Other(serde_json::Value::Object(map))
+    }
+
+    /// The Responses `itemId` a part's provider metadata carries, under the
+    /// `openai` or `azure` provider name.
+    fn item_id(metadata: Option<&serde_json::Value>) -> Option<String> {
+        let metadata = metadata?.as_object()?;
+        ["openai", "azure"].iter().find_map(|provider| {
+            metadata
+                .get(*provider)?
+                .get("itemId")?
+                .as_str()
+                .filter(|id| !id.is_empty())
+                .map(str::to_string)
+        })
     }
 
     pub fn tool_view(&self) -> Option<ToolView<'_>> {
@@ -251,17 +289,22 @@ impl Part {
 }
 
 /// `convertToModelMessages` for one assistant message: each step's text and
-/// tool calls become an assistant turn followed by the tool results.
+/// tool calls become an assistant turn followed by the tool results; parts
+/// whose provider metadata names a Responses item (reasoning, the text's
+/// message, a tool call) carry the item so that API gets an `item_reference`.
 pub fn assistant_turns(parts: &[Part]) -> Vec<crate::llm_stream::Turn> {
-    use crate::llm_stream::{ToolCall, Turn};
+    use crate::llm_stream::{StoredItem, ToolCall, Turn};
     let mut turns = Vec::new();
     let mut text = String::new();
+    let mut items: Vec<StoredItem> = Vec::new();
     let mut calls: Vec<ToolCall> = Vec::new();
     let mut results: Vec<Turn> = Vec::new();
     let flush = |text: &mut String,
+                 items: &mut Vec<StoredItem>,
                  calls: &mut Vec<ToolCall>,
                  results: &mut Vec<Turn>,
                  turns: &mut Vec<Turn>| {
+        turns.extend(std::mem::take(items).into_iter().map(Turn::StoredItem));
         if !text.is_empty() || !calls.is_empty() {
             turns.push(Turn::Assistant {
                 text: std::mem::take(text),
@@ -272,15 +315,34 @@ pub fn assistant_turns(parts: &[Part]) -> Vec<crate::llm_stream::Turn> {
     };
     for part in parts {
         match part {
-            Part::StepStart => flush(&mut text, &mut calls, &mut results, &mut turns),
-            Part::Text { text: t, .. } => text.push_str(t),
-            Part::Reasoning { .. } => {}
-            Part::Other(_) => {
+            Part::StepStart => flush(&mut text, &mut items, &mut calls, &mut results, &mut turns),
+            Part::Text {
+                text: t,
+                provider_metadata,
+                ..
+            } => {
+                if let Some(id) = Part::item_id(provider_metadata.as_ref()) {
+                    items.push(StoredItem::Message { id });
+                }
+                text.push_str(t);
+            }
+            Part::Reasoning {
+                provider_metadata, ..
+            } => {
+                if let Some(id) = Part::item_id(provider_metadata.as_ref()) {
+                    items.push(StoredItem::Reasoning {
+                        id,
+                        encrypted_content: None,
+                    });
+                }
+            }
+            Part::Other(value) => {
                 if let Some(tool) = part.tool_view() {
                     calls.push(ToolCall {
                         id: tool.call_id.to_string(),
                         name: tool.name.to_string(),
                         arguments: tool.input.cloned().unwrap_or_else(|| serde_json::json!({})),
+                        item_id: Part::item_id(value.get("callProviderMetadata")),
                     });
                     let output = match (tool.output, tool.error_text) {
                         (Some(output), _) => output.to_string(),
@@ -296,7 +358,7 @@ pub fn assistant_turns(parts: &[Part]) -> Vec<crate::llm_stream::Turn> {
             }
         }
     }
-    flush(&mut text, &mut calls, &mut results, &mut turns);
+    flush(&mut text, &mut items, &mut calls, &mut results, &mut turns);
     turns
 }
 
@@ -680,10 +742,40 @@ mod tests {
             serde_json::json!({ "limit": 3 }),
             Some(serde_json::json!({ "meetings": [] })),
             None,
+            None,
         );
         assert_eq!(
             serde_json::to_string(&part).unwrap(),
             r#"{"type":"tool-list_meetings","toolCallId":"call_1","state":"output-available","input":{"limit":3},"output":{"meetings":[]}}"#
+        );
+        // A Responses call carries its item id as call and result metadata,
+        // after the output like the SDK's part.
+        let stored = Part::tool(
+            "list_meetings",
+            "call_1",
+            "output-available",
+            serde_json::json!({ "limit": 3 }),
+            Some(serde_json::json!({ "meetings": [] })),
+            None,
+            Some(serde_json::json!({ "openai": { "itemId": "fc_1" } })),
+        );
+        assert_eq!(
+            serde_json::to_string(&stored).unwrap(),
+            r#"{"type":"tool-list_meetings","toolCallId":"call_1","state":"output-available","input":{"limit":3},"output":{"meetings":[]},"callProviderMetadata":{"openai":{"itemId":"fc_1"}},"resultProviderMetadata":{"openai":{"itemId":"fc_1"}}}"#
+        );
+        let pending = Part::tool(
+            "list_meetings",
+            "call_1",
+            "input-available",
+            serde_json::json!({ "limit": 3 }),
+            None,
+            None,
+            Some(serde_json::json!({ "openai": { "itemId": "fc_1" } })),
+        );
+        assert!(
+            !serde_json::to_string(&pending)
+                .unwrap()
+                .contains("resultProviderMetadata")
         );
         let view = part.tool_view().unwrap();
         assert_eq!(
@@ -696,6 +788,7 @@ mod tests {
             Part::StepStart,
             Part::Text {
                 text: "Found none.".into(),
+                provider_metadata: None,
                 state: Some("done".into()),
             },
         ];
@@ -716,6 +809,85 @@ mod tests {
             ),
             ["a"]
         );
+    }
+
+    #[test]
+    fn stored_response_items_become_references() {
+        use crate::llm_stream::{StoredItem, Turn};
+        // The parts the Responses API leaves behind: an (empty) reasoning
+        // item, a call with its item id, and the text's message item.
+        let parts = vec![
+            Part::StepStart,
+            Part::Reasoning {
+                text: String::new(),
+                provider_metadata: Some(serde_json::json!({
+                    "openai": { "itemId": "rs_1", "reasoningEncryptedContent": null }
+                })),
+                state: Some("done".into()),
+            },
+            Part::tool(
+                "list_meetings",
+                "call_1",
+                "output-available",
+                serde_json::json!({ "limit": 3 }),
+                Some(serde_json::json!({ "meetings": [] })),
+                None,
+                Some(serde_json::json!({ "openai": { "itemId": "fc_1" } })),
+            ),
+            Part::StepStart,
+            Part::Text {
+                text: "Found none.".into(),
+                provider_metadata: Some(serde_json::json!({ "azure": { "itemId": "msg_1" } })),
+                state: Some("done".into()),
+            },
+        ];
+        let turns = assistant_turns(&parts);
+        assert_eq!(
+            turns[0],
+            Turn::StoredItem(StoredItem::Reasoning {
+                id: "rs_1".into(),
+                encrypted_content: None,
+            })
+        );
+        assert!(
+            matches!(&turns[1], Turn::Assistant { text, tool_calls } if text.is_empty() && tool_calls[0].item_id.as_deref() == Some("fc_1"))
+        );
+        assert!(matches!(&turns[2], Turn::ToolResult { call_id, .. } if call_id == "call_1"));
+        assert_eq!(
+            turns[3],
+            Turn::StoredItem(StoredItem::Message { id: "msg_1".into() })
+        );
+        assert!(
+            matches!(&turns[4], Turn::Assistant { text, tool_calls } if text == "Found none." && tool_calls.is_empty())
+        );
+        // The Responses request refers to every stored item and sends the
+        // text of a referenced message no second time; chat completions get
+        // the plain turns.
+        let mut request = crate::llm_stream::Request::new("sys", "next", 0);
+        request.messages = turns;
+        request.messages.push(Turn::User("next".into()));
+        let conn = |provider: &str| crate::llm_stream::Connection {
+            provider_id: provider.into(),
+            base_url: "https://api.example/v1".into(),
+            api_key: "k".into(),
+            model_id: "gpt-5.6".into(),
+            reasoning_effort: "default".into(),
+        };
+        let responses = crate::llm_stream::build_request(&conn("openai"), &request).unwrap();
+        assert_eq!(
+            responses.body["input"],
+            serde_json::json!([
+                { "role": "developer", "content": "sys" },
+                { "type": "item_reference", "id": "rs_1" },
+                { "type": "item_reference", "id": "fc_1" },
+                { "type": "function_call_output", "call_id": "call_1", "output": "{\"meetings\":[]}" },
+                { "type": "item_reference", "id": "msg_1" },
+                { "role": "user", "content": [{ "type": "input_text", "text": "next" }] }
+            ])
+        );
+        let chat = crate::llm_stream::build_request(&conn("openrouter"), &request).unwrap();
+        assert_eq!(chat.body["messages"].as_array().unwrap().len(), 5);
+        assert_eq!(chat.body["messages"][3]["content"], "Found none.");
     }
 
     #[test]
@@ -766,6 +938,7 @@ mod tests {
             role: Role::User,
             parts: vec![Part::Text {
                 text: "Hi".into(),
+                provider_metadata: None,
                 state: None,
             }],
             metadata: Metadata {

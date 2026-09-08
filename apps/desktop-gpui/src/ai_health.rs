@@ -70,12 +70,17 @@ fn probe(provider_id: &str, base_url: &str, api_key: &str, model: &str) -> Optio
                 "contents": [{ "role": "user", "parts": [{ "text": "Hi" }] }]
             }),
         },
+        // `createOpenAI` / `createAzure` answer through the Responses API, the
+        // system prompt a `developer` item for the reasoning models.
+        "openai" => Probe {
+            url: format!("{base}/responses"),
+            headers: vec![("Authorization", format!("Bearer {api_key}"))],
+            body: responses_body(model),
+        },
         "azure_openai" => Probe {
-            url: format!(
-                "{base}/openai/deployments/{model}/chat/completions?api-version=2024-10-21"
-            ),
+            url: format!("{base}/v1/responses?api-version=v1"),
             headers: vec![("api-key", api_key.to_string())],
-            body: openai_body,
+            body: responses_body(model),
         },
         "azure_ai" => Probe {
             url: format!("{base}/chat/completions"),
@@ -99,6 +104,22 @@ fn probe(provider_id: &str, base_url: &str, api_key: &str, model: &str) -> Optio
             },
             body: openai_body,
         },
+    })
+}
+
+/// The Responses request `generateText` sends: `input` items only.
+fn responses_body(model: &str) -> Value {
+    let role = if crate::llm_stream::openai_is_reasoning_model(model) {
+        "developer"
+    } else {
+        "system"
+    };
+    json!({
+        "model": model,
+        "input": [
+            { "role": role, "content": SYSTEM_PROMPT },
+            { "role": "user", "content": [{ "type": "input_text", "text": "Hi" }] }
+        ]
     })
 }
 
@@ -235,10 +256,22 @@ mod tests {
         assert!(!can_probe("anarlog", "https://api.example"));
         assert!(!can_probe("custom", ""));
         let openai = probe("openai", "https://api.openai.com/v1/", "k", "gpt-5.6").unwrap();
-        assert_eq!(openai.url, "https://api.openai.com/v1/chat/completions");
+        assert_eq!(openai.url, "https://api.openai.com/v1/responses");
         assert_eq!(
             openai.headers,
             vec![("Authorization", "Bearer k".to_string())]
+        );
+        assert_eq!(openai.body["input"][0]["role"], "developer");
+        assert_eq!(
+            openai.body["input"][1]["content"][0],
+            json!({ "type": "input_text", "text": "Hi" })
+        );
+        let chat = probe("openai", "https://api.openai.com/v1/", "k", "gpt-4o").unwrap();
+        assert_eq!(chat.body["input"][0]["role"], "system");
+        let compatible = probe("groq", "https://api.groq.com/openai/v1", "k", "m").unwrap();
+        assert_eq!(
+            compatible.url,
+            "https://api.groq.com/openai/v1/chat/completions"
         );
         let google = probe(
             "google_generative_ai",
@@ -251,10 +284,18 @@ mod tests {
             google.url,
             "https://g/v1beta/models/gemini-3.8-flash:generateContent"
         );
-        let azure = probe("azure_openai", "https://a.openai.azure.com", "k", "dep").unwrap();
-        assert!(azure.url.starts_with(
-            "https://a.openai.azure.com/openai/deployments/dep/chat/completions?api-version="
-        ));
+        let azure = probe(
+            "azure_openai",
+            "https://a.openai.azure.com/openai",
+            "k",
+            "dep",
+        )
+        .unwrap();
+        assert_eq!(
+            azure.url,
+            "https://a.openai.azure.com/openai/v1/responses?api-version=v1"
+        );
+        assert_eq!(azure.headers, vec![("api-key", "k".to_string())]);
         let ollama = probe("ollama", "http://localhost:11434/v1", "", "llama").unwrap();
         assert!(ollama.headers.is_empty());
     }

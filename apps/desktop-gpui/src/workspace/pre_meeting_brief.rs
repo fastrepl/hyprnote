@@ -210,7 +210,7 @@ impl Workspace {
                                 }
                             }
                         }
-                        Some(Chunk::ReasoningDelta(_)) | Some(Chunk::ToolCall(_)) => {}
+                        Some(Chunk::ReasoningDelta(_) | Chunk::ToolCall(_) | Chunk::Item(_)) => {}
                         Some(Chunk::Error(error)) => return Err(error),
                         Some(Chunk::Done) | None => break,
                     }

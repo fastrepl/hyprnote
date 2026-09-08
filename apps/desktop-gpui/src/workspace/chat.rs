@@ -479,6 +479,7 @@ impl Workspace {
             role: Role::User,
             parts: vec![Part::Text {
                 text: text.clone(),
+                provider_metadata: None,
                 state: None,
             }],
             metadata: Metadata {
@@ -542,6 +543,7 @@ impl Workspace {
                     role: Role::Assistant,
                     parts: vec![Part::Text {
                         text: TRANSCRIPT_UNAVAILABLE_REPLY.to_string(),
+                        provider_metadata: None,
                         state: None,
                     }],
                     metadata: Metadata {
@@ -631,23 +633,23 @@ impl Workspace {
         };
         let store = self.store.clone();
         cx.spawn(async move |this, cx| {
-            let mut receiver = llm_stream::stream(
-                store.runtime(),
-                connection,
-                Request::new(chat::TITLE_SYSTEM_PROMPT, prompt, 32),
-            );
-            let mut text = String::new();
-            while let Some(chunk) = receiver.recv().await {
-                match chunk {
-                    Chunk::TextDelta(delta) => text.push_str(&delta),
-                    Chunk::Error(error) => {
-                        tracing::error!(%error, "Failed to generate chat title");
-                        return;
-                    }
-                    Chunk::ReasoningDelta(_) | Chunk::ToolCall(_) => {}
-                    Chunk::Done => break,
+            // `generateText({ maxRetries: 2, maxOutputTokens: 32 })`: one whole reply.
+            let request = Request::new(chat::TITLE_SYSTEM_PROMPT, prompt, 32);
+            let generated = store
+                .runtime()
+                .spawn(async move { llm_stream::generate(&connection, &request, 2).await })
+                .await;
+            let text = match generated {
+                Ok(Ok(generated)) => generated.text,
+                Ok(Err(error)) => {
+                    tracing::error!(%error, "Failed to generate chat title");
+                    return;
                 }
-            }
+                Err(error) => {
+                    tracing::error!(%error, "Failed to generate chat title");
+                    return;
+                }
+            };
             let Some(title) = chat::normalize_generated_chat_title(&text) else {
                 return;
             };
@@ -666,6 +668,13 @@ impl Workspace {
     /// and its result feeds the next step — streamed into the assistant
     /// message; `onFinish` persists it.
     fn stream_chat_reply(&mut self, connection: Connection, cx: &mut Context<Self>) {
+        // `providerOptionsName`: the key the SDK files a Responses item's
+        // metadata under.
+        let provider_name: &'static str = if connection.provider_id == "azure_openai" {
+            "azure"
+        } else {
+            "openai"
+        };
         let Some(group_id) = self.chat.group_id.clone() else {
             return;
         };
@@ -758,13 +767,14 @@ impl Workspace {
             for (index, message) in history.iter().enumerate() {
                 match message.role {
                     Role::User => {
-                        let mut text = chat::extract_text_content(&message.parts);
-                        if Some(index) == last_user
-                            && let Some(block) = &context_block
-                        {
-                            text = format!("{block}\n\n{text}");
-                        }
-                        base_turns.push(Turn::User(text));
+                        let text = chat::extract_text_content(&message.parts);
+                        // The block is its own text part ahead of the message's.
+                        base_turns.push(match &context_block {
+                            Some(block) if Some(index) == last_user => {
+                                Turn::UserParts(vec![format!("{block}\n\n"), text])
+                            }
+                            _ => Turn::User(text),
+                        });
                     }
                     Role::Assistant => {
                         let parts = expand_search_outputs(&store, &message.parts).await;
@@ -838,6 +848,7 @@ impl Workspace {
                 let mut text = String::new();
                 let mut reasoning = String::new();
                 let mut calls: Vec<llm_stream::ToolCall> = Vec::new();
+                let mut items: Vec<llm_stream::StoredItem> = Vec::new();
                 let step_start = parts.len();
                 while let Some(chunk) = receiver.recv().await {
                     if abort.load(Ordering::Relaxed) {
@@ -848,6 +859,7 @@ impl Workspace {
                         Chunk::TextDelta(delta) => text.push_str(&delta),
                         Chunk::ReasoningDelta(delta) => reasoning.push_str(&delta),
                         Chunk::ToolCall(call) => calls.push(call),
+                        Chunk::Item(item) => items.push(item),
                         Chunk::Done => break,
                         Chunk::Error(error) => {
                             outcome = Err(error);
@@ -855,7 +867,7 @@ impl Workspace {
                         }
                     }
                     parts.truncate(step_start);
-                    parts.extend(step_parts(&reasoning, &text, false));
+                    parts.extend(step_parts(&reasoning, &text, &items, provider_name, false));
                     if !apply(&this, cx, &parts, ChatStatus::Streaming) {
                         return;
                     }
@@ -865,12 +877,17 @@ impl Workspace {
                     break 'steps;
                 }
                 parts.truncate(step_start);
-                parts.extend(step_parts(&reasoning, &text, true));
+                parts.extend(step_parts(&reasoning, &text, &items, provider_name, true));
                 if calls.is_empty() {
                     break 'steps;
                 }
                 // `input-available` while the tools run, then their outputs.
                 let first_tool = parts.len();
+                let call_metadata = |call: &llm_stream::ToolCall| {
+                    call.item_id
+                        .as_ref()
+                        .map(|id| serde_json::json!({ provider_name: { "itemId": id } }))
+                };
                 for call in &calls {
                     parts.push(Part::tool(
                         &call.name,
@@ -879,6 +896,7 @@ impl Workspace {
                         call.arguments.clone(),
                         None,
                         None,
+                        call_metadata(call),
                     ));
                 }
                 if !apply(&this, cx, &parts, ChatStatus::Streaming) {
@@ -916,6 +934,7 @@ impl Workspace {
                             call.arguments.clone(),
                             Some(output),
                             None,
+                            call_metadata(call),
                         ),
                         Err(error) => Part::tool(
                             &call.name,
@@ -924,6 +943,7 @@ impl Workspace {
                             call.arguments.clone(),
                             None,
                             Some(error),
+                            call_metadata(call),
                         ),
                     };
                     if !apply(&this, cx, &parts, ChatStatus::Streaming) {
@@ -2429,7 +2449,7 @@ impl Workspace {
     ) -> AnyElement {
         let theme = self.theme;
         match part {
-            Part::Reasoning { text, state } => {
+            Part::Reasoning { text, state, .. } => {
                 let raw = text.trim();
                 if raw.is_empty() {
                     return div().into_any_element();
@@ -2483,18 +2503,67 @@ impl Workspace {
 }
 
 /// One step's reasoning and text parts; `state` is `streaming` until done.
-fn step_parts(reasoning: &str, text: &str, done: bool) -> Vec<Part> {
+/// One step's reasoning and text parts. `items` are the Responses items the
+/// step produced: each `reasoning` item is a reasoning part of its own
+/// (empty when no summary streamed, as the SDK's `reasoning-start` /
+/// `reasoning-end` make it) and the `message` item labels the text part,
+/// both under `provider` (`openai` / `azure`) like the SDK's metadata.
+fn step_parts(
+    reasoning: &str,
+    text: &str,
+    items: &[llm_stream::StoredItem],
+    provider: &str,
+    done: bool,
+) -> Vec<Part> {
     let state = Some(if done { "done" } else { "streaming" }.to_string());
     let mut parts = Vec::new();
-    if !reasoning.is_empty() {
-        parts.push(Part::Reasoning {
-            text: reasoning.to_string(),
-            state: state.clone(),
-        });
+    let reasoning_items: Vec<_> = items
+        .iter()
+        .filter(|item| matches!(item, llm_stream::StoredItem::Reasoning { .. }))
+        .collect();
+    if reasoning_items.is_empty() {
+        if !reasoning.is_empty() {
+            parts.push(Part::Reasoning {
+                text: reasoning.to_string(),
+                provider_metadata: None,
+                state: state.clone(),
+            });
+        }
+    } else {
+        for (index, item) in reasoning_items.iter().enumerate() {
+            let llm_stream::StoredItem::Reasoning {
+                id,
+                encrypted_content,
+            } = item
+            else {
+                continue;
+            };
+            parts.push(Part::Reasoning {
+                // The summary text, when any streamed, belongs to the first item.
+                text: if index == 0 {
+                    reasoning.to_string()
+                } else {
+                    String::new()
+                },
+                provider_metadata: Some(serde_json::json!({
+                    provider: {
+                        "itemId": id,
+                        "reasoningEncryptedContent": encrypted_content
+                    }
+                })),
+                state: state.clone(),
+            });
+        }
     }
     if !text.is_empty() {
+        let message_item = items.iter().find_map(|item| match item {
+            llm_stream::StoredItem::Message { id } => Some(id.clone()),
+            _ => None,
+        });
         parts.push(Part::Text {
             text: text.to_string(),
+            provider_metadata: message_item
+                .map(|id| serde_json::json!({ provider: { "itemId": id } })),
             state,
         });
     }
@@ -2569,6 +2638,9 @@ async fn expand_search_outputs(store: &Arc<crate::db::Store>, parts: &[Part]) ->
                 if let Some(object) = output.as_object_mut() {
                     object.insert(crate::chat_tools::CONTEXT_TEXT_FIELD.into(), block.into());
                 }
+                let Part::Other(value) = part else {
+                    continue;
+                };
                 expanded.push(Part::tool(
                     view.name,
                     view.call_id,
@@ -2576,6 +2648,7 @@ async fn expand_search_outputs(store: &Arc<crate::db::Store>, parts: &[Part]) ->
                     view.input.cloned().unwrap_or_else(|| serde_json::json!({})),
                     Some(output),
                     None,
+                    value.get("callProviderMetadata").cloned(),
                 ));
             }
             None => expanded.push(part.clone()),

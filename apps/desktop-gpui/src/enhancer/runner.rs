@@ -139,8 +139,8 @@ async fn run_inner(
             match chunk {
                 Chunk::Error(message) => return Err(message),
                 Chunk::Done => break,
-                // The enhancer advertises no tools.
-                Chunk::ToolCall(_) => {}
+                // The enhancer advertises no tools and keeps no item ids.
+                Chunk::ToolCall(_) | Chunk::Item(_) => {}
                 Chunk::ReasoningDelta(_) => {
                     if !reasoning_active && full_text.is_empty() && buffer.is_empty() {
                         reasoning_active = true;

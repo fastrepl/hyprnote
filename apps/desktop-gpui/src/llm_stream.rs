@@ -1,7 +1,8 @@
 //! Streaming chat generation against the configured language model: the
 //! `streamText` call of the AI tasks, over the provider shapes
 //! `useLLMConnection`'s `createProviderModel` picks (OpenAI-compatible chat
-//! completions, Anthropic messages, Gemini `streamGenerateContent`), with
+//! completions, the OpenAI / Azure Responses API, Anthropic messages, Gemini
+//! `streamGenerateContent`), with
 //! `extractReasoningMiddleware`'s `<think>` / `<thinking>` handling and
 //! `reasoningProviderOptions`.
 
@@ -20,8 +21,33 @@ pub enum Chunk {
     ReasoningDelta(String),
     /// A complete tool call the model asked for; arrives before `Done`.
     ToolCall(ToolCall),
+    /// A finished Responses output item the SDK records as provider
+    /// metadata (`itemId`) on the message's text or reasoning part, so the
+    /// next turn can refer back to it.
+    Item(StoredItem),
     Done,
     Error(String),
+}
+
+/// A Responses API output item stored server-side (`store: true`), referred
+/// to from the next request as `{ "type": "item_reference", "id" }`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StoredItem {
+    /// The assistant `message` item that carried the reply text.
+    Message { id: String },
+    /// A `reasoning` item; `encrypted_content` is only present when asked for.
+    Reasoning {
+        id: String,
+        encrypted_content: Option<String>,
+    },
+}
+
+impl StoredItem {
+    pub fn id(&self) -> &str {
+        match self {
+            StoredItem::Message { id } | StoredItem::Reasoning { id, .. } => id,
+        }
+    }
 }
 
 /// A tool the model may call (`tools[].function` in the OpenAI shape).
@@ -33,11 +59,15 @@ pub struct ToolSpec {
 }
 
 /// A tool call the model made, with its arguments parsed.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ToolCall {
     pub id: String,
     pub name: String,
     pub arguments: Value,
+    /// The Responses API's `function_call` item id: a follow-up in the same
+    /// conversation refers back to the stored item (`item_reference`, the
+    /// SDK's `store: true` default) instead of resending the call.
+    pub item_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -86,6 +116,9 @@ impl Request {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Turn {
     User(String),
+    /// A user message of several text parts (the chat's context block ahead
+    /// of the typed message), each its own part in every provider's shape.
+    UserParts(Vec<String>),
     /// A user message with `ImagePart`s after its text (`createPromptInput`
     /// with image context).
     UserWithImages {
@@ -102,6 +135,17 @@ pub enum Turn {
         name: String,
         output: String,
     },
+    /// A Responses output item of the assistant turn that follows, referred
+    /// to by id like `convertToOpenAIResponsesInput` does for parts carrying
+    /// an `itemId` (a `Message` item stands in for that turn's text). Other
+    /// providers have no stored items and skip it.
+    StoredItem(StoredItem),
+}
+
+impl Turn {
+    fn is_stored_item(&self) -> bool {
+        matches!(self, Turn::StoredItem(_))
+    }
 }
 
 /// An `ImagePart`: base64 data with its media type.
@@ -137,6 +181,8 @@ impl Request {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Family {
     OpenAiCompatible,
+    /// `@ai-sdk/openai` / `@ai-sdk/azure`'s default model: the Responses API.
+    OpenAiResponses,
     Anthropic,
     Google,
 }
@@ -193,6 +239,150 @@ fn reasoning_options(conn: &Connection) -> Option<Value> {
         }
         _ => json!({ "reasoning_effort": effort }),
     })
+}
+
+/// `getOpenAILanguageModelCapabilities(modelId).isReasoningModel`: the
+/// models that take `reasoning.effort` and a `developer` system message.
+pub fn openai_is_reasoning_model(model: &str) -> bool {
+    model.starts_with("o1")
+        || model.starts_with("o3")
+        || model.starts_with("o4-mini")
+        || (model.starts_with("gpt-5") && !model.starts_with("gpt-5-chat"))
+}
+
+/// `convertToOpenAIResponsesInput` for the turns the tasks send: the system
+/// prompt as a `system` (or `developer`) item, user text as `input_text`
+/// with `input_image` data URLs, assistant text as an `output_text`
+/// message, tool calls as `function_call` items with their arguments as
+/// JSON text, and tool results as `function_call_output`.
+fn openai_responses_input(request: &Request, reasoning_model: bool) -> Vec<Value> {
+    let mut input = vec![json!({
+        "role": if reasoning_model { "developer" } else { "system" },
+        "content": request.system
+    })];
+    let mut text_referenced = false;
+    for turn in &request.messages {
+        match turn {
+            Turn::StoredItem(item) => {
+                input.push(json!({ "type": "item_reference", "id": item.id() }));
+                if matches!(item, StoredItem::Message { .. }) {
+                    text_referenced = true;
+                }
+            }
+            Turn::User(text) => input.push(json!({
+                "role": "user",
+                "content": [{ "type": "input_text", "text": text }]
+            })),
+            Turn::UserParts(texts) => input.push(json!({
+                "role": "user",
+                "content": texts
+                    .iter()
+                    .map(|text| json!({ "type": "input_text", "text": text }))
+                    .collect::<Vec<_>>()
+            })),
+            Turn::UserWithImages { text, images } => {
+                let mut content = vec![json!({ "type": "input_text", "text": text })];
+                content.extend(images.iter().map(|image| {
+                    json!({
+                        "type": "input_image",
+                        "image_url": format!("data:{};base64,{}", image.mime_type, image.base64)
+                    })
+                }));
+                input.push(json!({ "role": "user", "content": content }));
+            }
+            Turn::Assistant { text, tool_calls } => {
+                if !text.is_empty() && !std::mem::take(&mut text_referenced) {
+                    input.push(json!({
+                        "role": "assistant",
+                        "content": [{ "type": "output_text", "text": text }]
+                    }));
+                }
+                for call in tool_calls {
+                    input.push(match &call.item_id {
+                        Some(item_id) => json!({ "type": "item_reference", "id": item_id }),
+                        None => json!({
+                            "type": "function_call",
+                            "call_id": call.id,
+                            "name": call.name,
+                            "arguments": call.arguments.to_string()
+                        }),
+                    });
+                }
+            }
+            Turn::ToolResult {
+                call_id, output, ..
+            } => input.push(json!({
+                "type": "function_call_output",
+                "call_id": call_id,
+                "output": output
+            })),
+        }
+    }
+    input
+}
+
+/// `OpenAIResponsesLanguageModel.getArgs`: `model`, `input`,
+/// `max_output_tokens`, `text.format` for a schema, `reasoning.effort` on a
+/// reasoning model, then `tools` / `tool_choice` and `stream`.
+fn openai_responses_body(conn: &Connection, request: &Request, stream: bool) -> Value {
+    let reasoning_model = openai_is_reasoning_model(&conn.model_id);
+    let mut body = json!({
+        "model": conn.model_id,
+        "input": openai_responses_input(request, reasoning_model)
+    });
+    if request.max_output_tokens > 0 {
+        merge(
+            &mut body,
+            Some(json!({ "max_output_tokens": request.max_output_tokens })),
+        );
+    }
+    if let Some(schema) = &request.json_schema {
+        merge(
+            &mut body,
+            Some(json!({
+                "text": {
+                    "format": {
+                        "type": "json_schema",
+                        "strict": true,
+                        "name": "response",
+                        "schema": schema
+                    }
+                }
+            })),
+        );
+    }
+    // The SDK drops `reasoningEffort` for non-reasoning models with a warning.
+    if reasoning_model
+        && conn.reasoning_effort != "default"
+        && crate::ai_models::supports_reasoning_effort(&conn.provider_id)
+    {
+        merge(
+            &mut body,
+            Some(json!({ "reasoning": { "effort": conn.reasoning_effort } })),
+        );
+    }
+    if !request.tools.is_empty() {
+        let tools: Vec<Value> = request
+            .tools
+            .iter()
+            .map(|tool| {
+                json!({
+                    "type": "function",
+                    "name": tool.name,
+                    "description": tool.description,
+                    "parameters": tool.parameters
+                })
+            })
+            .collect();
+        merge(
+            &mut body,
+            Some(json!({ "tools": tools, "tool_choice": "auto" })),
+        );
+    }
+    if stream {
+        merge(&mut body, Some(json!({ "stream": true })));
+    }
+    body
 }
 
 fn merge(target: &mut Value, extra: Option<Value>) {
@@ -303,7 +493,13 @@ fn build(conn: &Connection, request: &Request, stream: bool) -> Result<HttpReque
     let api_key = conn.api_key.as_str();
     let model = conn.model_id.as_str();
     let mut openai_messages = vec![json!({ "role": "system", "content": request.system })];
-    openai_messages.extend(request.messages.iter().map(openai_message));
+    openai_messages.extend(
+        request
+            .messages
+            .iter()
+            .filter(|turn| !turn.is_stored_item())
+            .map(openai_message),
+    );
     // Keys in the order the SDK's `args` spread produces them.
     let mut openai_body = json!({ "model": model });
     if request.max_output_tokens > 0 {
@@ -312,21 +508,12 @@ fn build(conn: &Connection, request: &Request, stream: bool) -> Result<HttpReque
             Some(json!({ "max_tokens": request.max_output_tokens })),
         );
     }
-    if let Some(schema) = &request.json_schema {
-        // `@ai-sdk/openai` and `@ai-sdk/azure` send the schema itself;
+    if request.json_schema.is_some() {
         // `@ai-sdk/openai-compatible` without `supportsStructuredOutputs`
         // asks for any JSON object.
-        let response_format = if matches!(conn.provider_id.as_str(), "openai" | "azure_openai") {
-            json!({
-                "type": "json_schema",
-                "json_schema": { "schema": schema, "strict": true, "name": "response" }
-            })
-        } else {
-            json!({ "type": "json_object" })
-        };
         merge(
             &mut openai_body,
-            Some(json!({ "response_format": response_format })),
+            Some(json!({ "response_format": { "type": "json_object" } })),
         );
     }
     merge(
@@ -387,8 +574,9 @@ fn build(conn: &Connection, request: &Request, stream: bool) -> Result<HttpReque
             merge(
                 &mut body,
                 Some(json!({
-                    "system": request.system,
-                    "messages": request.messages.iter().map(anthropic_message).collect::<Vec<_>>()
+                    // The system prompt is a text block too.
+                    "system": [{ "type": "text", "text": request.system }],
+                    "messages": request.messages.iter().filter(|turn| !turn.is_stored_item()).map(anthropic_message).collect::<Vec<_>>()
                 })),
             );
             if !request.tools.is_empty() {
@@ -453,7 +641,12 @@ fn build(conn: &Connection, request: &Request, stream: bool) -> Result<HttpReque
                 );
             }
             merge(&mut generation_config, reasoning_options(conn));
-            let contents: Vec<Value> = request.messages.iter().map(google_content).collect();
+            let contents: Vec<Value> = request
+                .messages
+                .iter()
+                .filter(|turn| !turn.is_stored_item())
+                .map(google_content)
+                .collect();
             let mut body = json!({
                 "generationConfig": generation_config,
                 "contents": contents,
@@ -487,17 +680,21 @@ fn build(conn: &Connection, request: &Request, stream: bool) -> Result<HttpReque
                 family: Family::Google,
             }
         }
-        "azure_openai" => {
-            merge(&mut openai_body, reasoning_options(conn));
-            HttpRequest {
-                url: format!(
-                    "{base}/openai/deployments/{model}/chat/completions?api-version=2024-10-21"
-                ),
-                headers: vec![("api-key", api_key.to_string())],
-                body: openai_body,
-                family: Family::OpenAiCompatible,
-            }
-        }
+        // `createOpenAI(...)(modelId)` is the Responses model.
+        "openai" => HttpRequest {
+            url: format!("{base}/responses"),
+            headers: vec![("Authorization", format!("Bearer {api_key}"))],
+            body: openai_responses_body(conn, request, stream),
+            family: Family::OpenAiResponses,
+        },
+        // `createAzure(...)(deployment)`: `{baseURL}/v1/responses?api-version=v1`
+        // with the `api-key` header.
+        "azure_openai" => HttpRequest {
+            url: format!("{base}/v1/responses?api-version=v1"),
+            headers: vec![("api-key", api_key.to_string())],
+            body: openai_responses_body(conn, request, stream),
+            family: Family::OpenAiResponses,
+        },
         "azure_ai" => {
             merge(&mut openai_body, reasoning_options(conn));
             HttpRequest {
@@ -530,7 +727,16 @@ fn build(conn: &Connection, request: &Request, stream: bool) -> Result<HttpReque
 /// arguments as JSON text, tool results answer by `tool_call_id`.
 fn openai_message(turn: &Turn) -> Value {
     match turn {
+        // Filtered out before mapping: only the Responses API has stored items.
+        Turn::StoredItem(_) => Value::Null,
         Turn::User(text) => json!({ "role": "user", "content": text }),
+        Turn::UserParts(texts) => json!({
+            "role": "user",
+            "content": texts
+                .iter()
+                .map(|text| json!({ "type": "text", "text": text }))
+                .collect::<Vec<_>>()
+        }),
         // `image_url` parts carry a data URL.
         Turn::UserWithImages { text, images } => {
             let mut content = vec![json!({ "type": "text", "text": text })];
@@ -570,7 +776,20 @@ fn openai_message(turn: &Turn) -> Value {
 
 fn anthropic_message(turn: &Turn) -> Value {
     match turn {
-        Turn::User(text) => json!({ "role": "user", "content": text }),
+        // Filtered out before mapping: only the Responses API has stored items.
+        Turn::StoredItem(_) => Value::Null,
+        // `convertToAnthropicMessagesPrompt`: user content is always blocks.
+        Turn::User(text) => json!({
+            "role": "user",
+            "content": [{ "type": "text", "text": text }]
+        }),
+        Turn::UserParts(texts) => json!({
+            "role": "user",
+            "content": texts
+                .iter()
+                .map(|text| json!({ "type": "text", "text": text }))
+                .collect::<Vec<_>>()
+        }),
         Turn::UserWithImages { text, images } => {
             let mut content = vec![json!({ "type": "text", "text": text })];
             content.extend(images.iter().map(|image| {
@@ -607,7 +826,13 @@ fn anthropic_message(turn: &Turn) -> Value {
 
 fn google_content(turn: &Turn) -> Value {
     match turn {
+        // Filtered out before mapping: only the Responses API has stored items.
+        Turn::StoredItem(_) => Value::Null,
         Turn::User(text) => json!({ "role": "user", "parts": [{ "text": text }] }),
+        Turn::UserParts(texts) => json!({
+            "role": "user",
+            "parts": texts.iter().map(|text| json!({ "text": text })).collect::<Vec<_>>()
+        }),
         Turn::UserWithImages { text, images } => {
             let mut parts = vec![json!({ "text": text })];
             parts.extend(images.iter().map(|image| {
@@ -654,6 +879,8 @@ enum Event {
     },
     /// A tool call that arrives whole (Google's `functionCall`).
     ToolCall(ToolCall),
+    /// A finished Responses `message` / `reasoning` item.
+    Item(StoredItem),
     Done,
     Error(String),
 }
@@ -732,6 +959,68 @@ fn parse_event(family: Family, data: &str) -> Vec<Event> {
                 events.push(Event::Done);
             }
         }
+        Family::OpenAiResponses => match value.get("type").and_then(|t| t.as_str()) {
+            Some("response.output_text.delta") => {
+                if let Some(text) = value.get("delta").and_then(|t| t.as_str())
+                    && !text.is_empty()
+                {
+                    events.push(Event::Text(text.to_string()));
+                }
+            }
+            Some("response.reasoning_summary_text.delta") => {
+                if let Some(text) = value.get("delta").and_then(|t| t.as_str())
+                    && !text.is_empty()
+                {
+                    events.push(Event::Reasoning(text.to_string()));
+                }
+            }
+            // The SDK's `tool-call` comes from the finished item (its
+            // `arguments` complete), not from the argument deltas.
+            Some("response.output_item.done") => {
+                if let Some(item) = value.get("item") {
+                    let id = item
+                        .get("id")
+                        .and_then(|i| i.as_str())
+                        .filter(|id| !id.is_empty())
+                        .map(str::to_string);
+                    match (item.get("type").and_then(|t| t.as_str()), id) {
+                        (Some("function_call"), _) => {
+                            events.push(Event::ToolCall(responses_function_call(
+                                item,
+                                value
+                                    .get("output_index")
+                                    .and_then(|i| i.as_u64())
+                                    .unwrap_or(0) as usize,
+                            )));
+                        }
+                        (Some("message"), Some(id)) => {
+                            events.push(Event::Item(StoredItem::Message { id }));
+                        }
+                        (Some("reasoning"), Some(id)) => {
+                            events.push(Event::Item(StoredItem::Reasoning {
+                                id,
+                                encrypted_content: item
+                                    .get("encrypted_content")
+                                    .and_then(|c| c.as_str())
+                                    .map(str::to_string),
+                            }));
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            Some("response.completed" | "response.incomplete") => events.push(Event::Done),
+            Some("response.failed") => {
+                let error = value
+                    .get("response")
+                    .and_then(|r| r.get("error"))
+                    .cloned()
+                    .unwrap_or(Value::Null);
+                events.push(Event::Error(api_error_message(&error)));
+            }
+            Some("error") => events.push(Event::Error(api_error_message(&value))),
+            _ => {}
+        },
         Family::Anthropic => match value.get("type").and_then(|t| t.as_str()) {
             Some("content_block_start") => {
                 if let Some(block) = value.get("content_block")
@@ -819,6 +1108,7 @@ fn parse_event(family: Family, data: &str) -> Vec<Event> {
                             .unwrap_or_default()
                             .to_string(),
                         arguments: call.get("args").cloned().unwrap_or_else(|| json!({})),
+                        item_id: None,
                     }));
                 }
             }
@@ -837,6 +1127,33 @@ fn parse_event(family: Family, data: &str) -> Vec<Event> {
     events
 }
 
+/// A Responses `function_call` item: `call_id`, `name`, the `arguments`
+/// JSON text parsed (an unparsable string becomes `{}`), and the item id.
+fn responses_function_call(item: &Value, position: usize) -> ToolCall {
+    let arguments = item
+        .get("arguments")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    ToolCall {
+        id: item
+            .get("call_id")
+            .and_then(Value::as_str)
+            .filter(|id| !id.is_empty())
+            .map_or_else(|| format!("call_{position}"), str::to_string),
+        name: item
+            .get("name")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string(),
+        arguments: serde_json::from_str(arguments).unwrap_or_else(|_| json!({})),
+        item_id: item
+            .get("id")
+            .and_then(Value::as_str)
+            .filter(|id| !id.is_empty())
+            .map(str::to_string),
+    }
+}
+
 /// Assembles streamed tool-call fragments by index; `finish` yields the
 /// calls in index order with their arguments parsed (an unparsable
 /// argument string becomes `{}`, like the SDK's lenient parse).
@@ -850,15 +1167,7 @@ impl ToolCallAssembler {
         let entry = match self.calls.iter_mut().find(|(i, _, _)| *i == index) {
             Some(entry) => entry,
             None => {
-                self.calls.push((
-                    index,
-                    ToolCall {
-                        id: String::new(),
-                        name: String::new(),
-                        arguments: Value::Null,
-                    },
-                    String::new(),
-                ));
+                self.calls.push((index, ToolCall::default(), String::new()));
                 self.calls.last_mut().expect("just pushed")
             }
         };
@@ -1181,7 +1490,38 @@ fn parse_generated(family: Family, value: &Value) -> Result<Generated, String> {
                         .unwrap_or_default()
                         .to_string(),
                     arguments: serde_json::from_str(arguments).unwrap_or_else(|_| json!({})),
+                    item_id: None,
                 });
+            }
+        }
+        Family::OpenAiResponses => {
+            for (position, item) in value
+                .get("output")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+                .enumerate()
+            {
+                match item.get("type").and_then(Value::as_str) {
+                    Some("message") => {
+                        for part in item
+                            .get("content")
+                            .and_then(Value::as_array)
+                            .into_iter()
+                            .flatten()
+                        {
+                            if part.get("type").and_then(Value::as_str) == Some("output_text")
+                                && let Some(text_part) = part.get("text").and_then(Value::as_str)
+                            {
+                                text.push_str(text_part);
+                            }
+                        }
+                    }
+                    Some("function_call") => {
+                        tool_calls.push(responses_function_call(item, position));
+                    }
+                    _ => {}
+                }
             }
         }
         Family::Anthropic => {
@@ -1209,6 +1549,7 @@ fn parse_generated(family: Family, value: &Value) -> Result<Generated, String> {
                             .unwrap_or_default()
                             .to_string(),
                         arguments: block.get("input").cloned().unwrap_or_else(|| json!({})),
+                        item_id: None,
                     }),
                     _ => {}
                 }
@@ -1241,6 +1582,7 @@ fn parse_generated(family: Family, value: &Value) -> Result<Generated, String> {
                             .unwrap_or_default()
                             .to_string(),
                         arguments: call.get("args").cloned().unwrap_or_else(|| json!({})),
+                        item_id: None,
                     });
                 }
             }
@@ -1330,6 +1672,7 @@ async fn run_once(
                 emitted_any = true;
                 deliver(sender, vec![Chunk::ToolCall(call)])
             }
+            Event::Item(item) => deliver(sender, vec![Chunk::Item(item)]),
             Event::Error(error) => {
                 emitted_any = true;
                 deliver(sender, vec![Chunk::Error(error)])
@@ -1423,9 +1766,9 @@ mod tests {
             },
             Turn::User("third".into()),
         ];
-        let openai = build_request(&conn("openai", "gpt-5.6", "default"), &request).unwrap();
+        let chat = build_request(&conn("openrouter", "gpt-5.6", "default"), &request).unwrap();
         assert_eq!(
-            openai.body["messages"],
+            chat.body["messages"],
             json!([
                 { "role": "system", "content": "sys" },
                 { "role": "user", "content": "first" },
@@ -1434,7 +1777,53 @@ mod tests {
             ])
         );
         // No cap requested: the provider default stands.
-        assert!(openai.body.get("max_tokens").is_none());
+        assert!(chat.body.get("max_tokens").is_none());
+        // The Responses API's `input` items, the system prompt a `developer`
+        // message for a reasoning model.
+        let openai = build_request(&conn("openai", "gpt-5.6", "default"), &request).unwrap();
+        assert_eq!(
+            openai.body["input"],
+            json!([
+                { "role": "developer", "content": "sys" },
+                { "role": "user", "content": [{ "type": "input_text", "text": "first" }] },
+                { "role": "assistant", "content": [{ "type": "output_text", "text": "second" }] },
+                { "role": "user", "content": [{ "type": "input_text", "text": "third" }] }
+            ])
+        );
+        assert!(openai.body.get("max_output_tokens").is_none());
+        let plain = build_request(&conn("openai", "gpt-4o", "default"), &request).unwrap();
+        assert_eq!(plain.body["input"][0]["role"], "system");
+        // The chat's context block rides as its own text part in every shape.
+        let mut with_context = Request::new("sys", "", 0);
+        with_context.messages = vec![Turn::UserParts(vec!["<context/>\n\n".into(), "q".into()])];
+        let chat = build_request(&conn("openrouter", "m", "default"), &with_context).unwrap();
+        assert_eq!(
+            chat.body["messages"][1]["content"],
+            json!([{ "type": "text", "text": "<context/>\n\n" }, { "type": "text", "text": "q" }])
+        );
+        let responses = build_request(&conn("openai", "gpt-4o", "default"), &with_context).unwrap();
+        assert_eq!(
+            responses.body["input"][1]["content"],
+            json!([
+                { "type": "input_text", "text": "<context/>\n\n" },
+                { "type": "input_text", "text": "q" }
+            ])
+        );
+        let anthropic =
+            build_request(&conn("anthropic", "claude", "default"), &with_context).unwrap();
+        assert_eq!(
+            anthropic.body["messages"][0]["content"],
+            json!([{ "type": "text", "text": "<context/>\n\n" }, { "type": "text", "text": "q" }])
+        );
+        let google = build_request(
+            &conn("google_generative_ai", "gemini", "default"),
+            &with_context,
+        )
+        .unwrap();
+        assert_eq!(
+            google.body["contents"][0]["parts"],
+            json!([{ "text": "<context/>\n\n" }, { "text": "q" }])
+        );
         let anthropic = build_request(&conn("anthropic", "claude", "default"), &request).unwrap();
         assert_eq!(anthropic.body["messages"].as_array().unwrap().len(), 3);
         assert_eq!(anthropic.body["max_tokens"], 4096);
@@ -1450,6 +1839,7 @@ mod tests {
             id: "call_1".into(),
             name: "list_meetings".into(),
             arguments: json!({ "limit": 3 }),
+            item_id: None,
         };
         let mut request = Request::new("sys", "list", 0);
         request.messages.push(Turn::Assistant {
@@ -1466,11 +1856,11 @@ mod tests {
             description: "List meetings".into(),
             parameters: json!({ "type": "object", "properties": {} }),
         }];
-        let openai = build_request(&conn("openai", "gpt-5.6", "default"), &request).unwrap();
-        assert_eq!(openai.body["tool_choice"], "auto");
-        assert_eq!(openai.body["tools"][0]["function"]["name"], "list_meetings");
+        let chat = build_request(&conn("openrouter", "gpt-5.6", "default"), &request).unwrap();
+        assert_eq!(chat.body["tool_choice"], "auto");
+        assert_eq!(chat.body["tools"][0]["function"]["name"], "list_meetings");
         assert_eq!(
-            openai.body["messages"][2],
+            chat.body["messages"][2],
             json!({
                 "role": "assistant",
                 "content": "",
@@ -1478,8 +1868,44 @@ mod tests {
             })
         );
         assert_eq!(
-            openai.body["messages"][3],
+            chat.body["messages"][3],
             json!({ "role": "tool", "tool_call_id": "call_1", "content": "{\"meetings\":[]}" })
+        );
+        // Responses: flat `function` tools, `function_call` items with the
+        // arguments as JSON text, `function_call_output` results.
+        let openai = build_request(&conn("openai", "gpt-5.6", "default"), &request).unwrap();
+        assert_eq!(openai.body["tool_choice"], "auto");
+        assert_eq!(
+            openai.body["tools"][0],
+            json!({
+                "type": "function",
+                "name": "list_meetings",
+                "description": "List meetings",
+                "parameters": { "type": "object", "properties": {} }
+            })
+        );
+        assert_eq!(
+            openai.body["input"][2],
+            json!({ "type": "function_call", "call_id": "call_1", "name": "list_meetings", "arguments": "{\"limit\":3}" })
+        );
+        assert_eq!(
+            openai.body["input"][3],
+            json!({ "type": "function_call_output", "call_id": "call_1", "output": "{\"meetings\":[]}" })
+        );
+        // A call from this conversation's own stream refers to its stored item.
+        let mut same_conversation = request.clone();
+        same_conversation.messages[1] = Turn::Assistant {
+            text: String::new(),
+            tool_calls: vec![ToolCall {
+                item_id: Some("fc_1".into()),
+                ..call.clone()
+            }],
+        };
+        let openai =
+            build_request(&conn("openai", "gpt-5.6", "default"), &same_conversation).unwrap();
+        assert_eq!(
+            openai.body["input"][2],
+            json!({ "type": "item_reference", "id": "fc_1" })
         );
         let anthropic = build_request(&conn("anthropic", "claude", "default"), &request).unwrap();
         assert_eq!(anthropic.body["tools"][0]["input_schema"]["type"], "object");
@@ -1540,11 +1966,13 @@ mod tests {
                     id: "call_1".into(),
                     name: "list_meetings".into(),
                     arguments: json!({ "limit": 3 }),
+                    item_id: None,
                 },
                 ToolCall {
                     id: "call_1".into(),
                     name: "get_meeting".into(),
                     arguments: json!({}),
+                    item_id: None,
                 },
             ]
         );
@@ -1581,6 +2009,7 @@ mod tests {
                 id: "call_0".into(),
                 name: "search_contacts".into(),
                 arguments: json!({ "query": "ada" }),
+                item_id: None,
             })]
         );
     }
@@ -1600,12 +2029,20 @@ mod tests {
             Turn::User(_)
         ));
 
-        let openai = build_request(&conn("openai", "gpt-5.6", "default"), &request).unwrap();
+        let chat = build_request(&conn("openrouter", "gpt-5.6", "default"), &request).unwrap();
         assert_eq!(
-            openai.body["messages"][1]["content"],
+            chat.body["messages"][1]["content"],
             json!([
                 { "type": "text", "text": "look" },
                 { "type": "image_url", "image_url": { "url": "data:image/png;base64,QUJD" } }
+            ])
+        );
+        let openai = build_request(&conn("openai", "gpt-5.6", "default"), &request).unwrap();
+        assert_eq!(
+            openai.body["input"][1]["content"],
+            json!([
+                { "type": "input_text", "text": "look" },
+                { "type": "input_image", "image_url": "data:image/png;base64,QUJD" }
             ])
         );
         let anthropic =
@@ -1634,10 +2071,29 @@ mod tests {
     #[test]
     fn requests_follow_the_provider_family() {
         let openai = build_request(&conn("openai", "gpt-5.6", "high"), &request()).unwrap();
-        assert_eq!(openai.url, "https://api.example/v1/chat/completions");
+        assert_eq!(openai.url, "https://api.example/v1/responses");
+        assert_eq!(
+            openai.headers,
+            vec![("Authorization", "Bearer k".to_string())]
+        );
         assert_eq!(openai.body["stream"], json!(true));
-        assert_eq!(openai.body["reasoning_effort"], json!("high"));
-        assert_eq!(openai.body["messages"][0]["role"], json!("system"));
+        assert_eq!(openai.body["max_output_tokens"], json!(8192));
+        assert_eq!(openai.body["reasoning"], json!({ "effort": "high" }));
+        assert_eq!(openai.body["input"][0]["role"], json!("developer"));
+        // `reasoningEffort` is dropped for non-reasoning models.
+        let chat_model = build_request(&conn("openai", "gpt-4o", "high"), &request()).unwrap();
+        assert!(chat_model.body.get("reasoning").is_none());
+        assert_eq!(chat_model.body["input"][0]["role"], json!("system"));
+        let azure = build_request(&conn("azure_openai", "dep", "default"), &request()).unwrap();
+        assert_eq!(
+            azure.url,
+            "https://api.example/v1/v1/responses?api-version=v1"
+        );
+        assert_eq!(azure.headers, vec![("api-key", "k".to_string())]);
+        let compatible = build_request(&conn("groq", "m", "high"), &request()).unwrap();
+        assert_eq!(compatible.url, "https://api.example/v1/chat/completions");
+        assert_eq!(compatible.body["reasoning_effort"], json!("high"));
+        assert_eq!(compatible.body["messages"][0]["role"], json!("system"));
 
         let custom = build_request(&conn("custom", "m", "default"), &request()).unwrap();
         assert!(custom.body.get("reasoning_effort").is_none());
@@ -1648,7 +2104,14 @@ mod tests {
 
         let anthropic = build_request(&conn("anthropic", "claude", "low"), &request()).unwrap();
         assert_eq!(anthropic.url, "https://api.example/v1/messages");
-        assert_eq!(anthropic.body["system"], json!("sys"));
+        assert_eq!(
+            anthropic.body["system"],
+            json!([{ "type": "text", "text": "sys" }])
+        );
+        assert_eq!(
+            anthropic.body["messages"][0]["content"],
+            json!([{ "type": "text", "text": "hi" }])
+        );
         assert_eq!(anthropic.body["thinking"]["type"], json!("adaptive"));
         assert_eq!(anthropic.body["output_config"]["effort"], json!("low"));
 
@@ -1802,17 +2265,20 @@ mod tests {
 
         let openai =
             build_generate_request(&conn("openai", "gpt-4o", "default"), &request).unwrap();
+        assert_eq!(openai.body.get("stream"), None);
+        assert_eq!(openai.body["max_output_tokens"], 4096);
         assert_eq!(
-            openai.body["response_format"],
+            openai.body["text"],
             json!({
-                "type": "json_schema",
-                "json_schema": {
-                    "schema": crate::contact_summary::schema(),
+                "format": {
+                    "type": "json_schema",
                     "strict": true,
-                    "name": "response"
+                    "name": "response",
+                    "schema": crate::contact_summary::schema()
                 }
             })
         );
+        assert_eq!(openai.body.get("response_format"), None);
 
         let anthropic =
             build_generate_request(&conn("anthropic", "claude-sonnet-4-5", "default"), &request)
@@ -1873,6 +2339,88 @@ mod tests {
                     "properties": { "facts": { "type": "array", "items": { "type": "string" } } }
                 }
             })
+        );
+    }
+
+    #[test]
+    fn responses_events_and_replies_parse() {
+        assert_eq!(
+            parse_event(
+                Family::OpenAiResponses,
+                r#"{"type":"response.output_text.delta","item_id":"msg_1","output_index":0,"delta":"Hel"}"#
+            ),
+            vec![Event::Text("Hel".into())]
+        );
+        assert_eq!(
+            parse_event(
+                Family::OpenAiResponses,
+                r#"{"type":"response.reasoning_summary_text.delta","item_id":"rs_1","summary_index":0,"delta":"think"}"#
+            ),
+            vec![Event::Reasoning("think".into())]
+        );
+        // The call arrives whole with the finished item; the `added` item and
+        // the argument deltas carry nothing the SDK's `tool-call` needs.
+        assert!(
+            parse_event(
+                Family::OpenAiResponses,
+                r#"{"type":"response.output_item.added","output_index":1,"item":{"type":"function_call","id":"fc_1","call_id":"call_1","name":"list_meetings","arguments":""}}"#
+            )
+            .is_empty()
+        );
+        assert!(
+            parse_event(
+                Family::OpenAiResponses,
+                r#"{"type":"response.function_call_arguments.delta","item_id":"fc_1","output_index":1,"delta":"{\"limit\":3}"}"#
+            )
+            .is_empty()
+        );
+        assert_eq!(
+            parse_event(
+                Family::OpenAiResponses,
+                r#"{"type":"response.output_item.done","output_index":1,"item":{"type":"function_call","id":"fc_1","call_id":"call_1","name":"list_meetings","arguments":"{\"limit\":3}","status":"completed"}}"#
+            ),
+            vec![Event::ToolCall(ToolCall {
+                id: "call_1".into(),
+                name: "list_meetings".into(),
+                arguments: json!({ "limit": 3 }),
+                item_id: Some("fc_1".into()),
+            })]
+        );
+        assert_eq!(
+            parse_event(
+                Family::OpenAiResponses,
+                r#"{"type":"response.completed","response":{"id":"resp_1","usage":{}}}"#
+            ),
+            vec![Event::Done]
+        );
+        assert_eq!(
+            parse_event(
+                Family::OpenAiResponses,
+                r#"{"type":"response.failed","response":{"error":{"message":"boom"}}}"#
+            ),
+            vec![Event::Error("boom".into())]
+        );
+        // A message item's text and a function_call item's arguments.
+        let generated = parse_generated(
+            Family::OpenAiResponses,
+            &json!({
+                "output": [
+                    { "type": "reasoning", "summary": [] },
+                    { "type": "message", "content": [{ "type": "output_text", "text": "hello" }] },
+                    { "type": "function_call", "id": "fc_9", "call_id": "call_9", "name": "list_meetings", "arguments": "{\"limit\":1}" }
+                ]
+            }),
+        )
+        .unwrap();
+        assert_eq!(generated.text, "hello");
+        assert_eq!(
+            generated.tool_calls,
+            vec![ToolCall {
+                id: "call_9".into(),
+                name: "list_meetings".into(),
+                arguments: json!({ "limit": 1 }),
+                item_id: Some("fc_9".into()),
+            }]
         );
     }
 

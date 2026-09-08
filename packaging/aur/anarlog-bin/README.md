@@ -24,8 +24,10 @@ verifies its checksum, and installs it through pacman.
 
 ## Updating
 
-Each stable publish opens a `chore(packaging): bump anarlog-bin to <version>` pull
-request automatically, so this normally needs no manual work.
+Each stable publish opens a `chore(packaging): publish Linux packages for <version>`
+pull request, waits for its checks, and merges it automatically. The same workflow
+deploys and verifies the signed APT repository. Publishing this package to the AUR
+registry remains a separate step.
 
 To bump by hand, or to refresh the files before an AUR push:
 

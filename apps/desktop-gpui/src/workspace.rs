@@ -374,6 +374,10 @@ pub struct Workspace {
     viewport_height: f32,
     /// The participant chip whose `Enhance contact` button is hovered.
     hovered_participant: Option<String>,
+    /// The meeting info panel's and its participant row's last painted
+    /// bounds, for the dropdown drawn over the panel's scrolling body.
+    meeting_panel_bounds: std::rc::Rc<std::cell::Cell<Option<gpui::Bounds<gpui::Pixels>>>>,
+    participant_input_bounds: std::rc::Rc<std::cell::Cell<Option<gpui::Bounds<gpui::Pixels>>>>,
     /// The open (or opening) Radix-style tooltip.
     tooltip: Option<tooltip::TooltipState>,
     tooltip_bounds: tooltip::TriggerBounds,
@@ -559,6 +563,8 @@ impl Workspace {
             excluded_apps_bounds: std::rc::Rc::default(),
             viewport_height: 0.0,
             hovered_participant: None,
+            meeting_panel_bounds: std::rc::Rc::default(),
+            participant_input_bounds: std::rc::Rc::default(),
             tooltip: None,
             tooltip_bounds: Default::default(),
             tooltip_closed_at: None,

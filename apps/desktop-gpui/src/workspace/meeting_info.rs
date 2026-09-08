@@ -494,11 +494,22 @@ impl Workspace {
         }
         // `AppFloatingPanel className="scrollbar-hide max-h-[80vh] overflow-y-auto"`
         // (#7475): long details scroll without a visible scrollbar.
+        let panel_bounds = self.meeting_panel_bounds.clone();
         div()
-            .id("meeting-info-scroll")
-            .max_h(px((self.viewport_height * 0.8).max(120.0)))
-            .overflow_y_scroll()
-            .child(body)
+            .relative()
+            .on_children_prepainted(move |children, _, _| {
+                if let Some(first) = children.first() {
+                    panel_bounds.set(Some(*first));
+                }
+            })
+            .child(
+                div()
+                    .id("meeting-info-scroll")
+                    .max_h(px((self.viewport_height * 0.8).max(120.0)))
+                    .overflow_y_scroll()
+                    .child(body),
+            )
+            .children(self.render_participant_dropdown_overlay(cx))
             .into_any_element()
     }
 
@@ -996,14 +1007,8 @@ impl Workspace {
                 .into_any_element()
         });
         let input = info.input.clone();
-        let show_dropdown = info.dropdown_open && !info.input.read(cx).text().trim().is_empty();
-        let candidates = if show_dropdown {
-            self.meeting_candidates(cx)
-        } else {
-            Vec::new()
-        };
-        let selected = info.selected_index;
 
+        let input_bounds = self.participant_input_bounds.clone();
         div()
             .flex()
             .flex_col()
@@ -1012,6 +1017,11 @@ impl Workspace {
             .child(
                 div()
                     .relative()
+                    .on_children_prepainted(move |children, _, _| {
+                        if let Some(first) = children.first() {
+                            input_bounds.set(Some(*first));
+                        }
+                    })
                     .child(
                         div()
                             .id("participant-input")
@@ -1033,11 +1043,22 @@ impl Workspace {
                             .children(chips)
                             .children(pending)
                             .child(div().min_w(px(120.0)).flex_1().tw_text_sm().child(input)),
-                    )
-                    .when(show_dropdown && !candidates.is_empty(), |anchor| {
-                        anchor.child(self.render_participant_dropdown(candidates, selected, cx))
-                    }),
+                    ),
             )
+    }
+
+    /// `showDropdown && inputValue.trim()` with matches: the dropdown the
+    /// panel draws over its scrolling body.
+    fn render_participant_dropdown_overlay(&self, cx: &Context<Self>) -> Option<AnyElement> {
+        let info = self.meeting_info.as_ref()?;
+        if !info.dropdown_open || info.input.read(cx).text().trim().is_empty() {
+            return None;
+        }
+        let candidates = self.meeting_candidates(cx);
+        if candidates.is_empty() {
+            return None;
+        }
+        Some(self.render_participant_dropdown(candidates, info.selected_index, cx))
     }
 
     /// `ParticipantDropdown`: `bg-popover rounded-md border shadow-md`, rows
@@ -1049,12 +1070,20 @@ impl Workspace {
         cx: &Context<Self>,
     ) -> AnyElement {
         let theme = self.theme;
-        // The panel is already a deferred layer, so the dropdown is an
-        // absolutely positioned sibling rather than another deferred draw.
+        // `FloatingPortal`: the panel is already a deferred layer (GPUI allows
+        // no nesting), so the dropdown is placed from the input row's last
+        // painted bounds outside the panel's scrolling body, which would
+        // otherwise clip it.
+        let (Some(input), Some(panel)) = (
+            self.participant_input_bounds.get(),
+            self.meeting_panel_bounds.get(),
+        ) else {
+            return div().into_any_element();
+        };
         div()
             .absolute()
-            .top_full()
-            .left_0()
+            .left(input.origin.x - panel.origin.x)
+            .top(input.origin.y + input.size.height - panel.origin.y)
             .child(
                 div()
                     .id("participant-dropdown")

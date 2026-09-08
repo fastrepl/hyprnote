@@ -27,16 +27,24 @@ Microphone detection is available on macOS and Linux. On macOS, Accessibility pe
 
 Under **Settings → Meetings**, enable **Stop when meeting ends**. Anarlog stops listening when the meeting app releases the microphone.
 
-This control is available on macOS and Linux. If you switch audio devices or use an app with unusual microphone behavior, check that the recording is still active before closing the meeting.
+This control is available on macOS and Linux.
+
+<Warning>
+  If you switch audio devices or use an app with unusual microphone behavior, automatic stop detection can misfire and end the recording early without warning. Check that the recording is still active before closing the meeting.
+</Warning>
 
 ## Capture meeting chat
 
 On macOS and Linux, **Settings → Meetings** also includes:
 
-- **Post recording disclosure in meeting chat**, which tells participants when listening starts. This does not confirm consent.
+- **Post recording disclosure in meeting chat**, which tells participants when listening starts.
 - **Capture meeting chat in Memos**, which saves visible chat from supported meetings. On macOS this uses Accessibility; on Linux it uses assistive-technology access.
 
 These features are not available on Windows.
+
+<Note>
+  Posting a disclosure does not by itself confirm consent. Recording-consent rules depend on where you and the other participants are located; see [Record meetings](/meetings).
+</Note>
 
 ## Keep controls nearby
 

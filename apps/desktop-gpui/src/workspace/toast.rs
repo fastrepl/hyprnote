@@ -451,7 +451,8 @@ impl Workspace {
                             content.child(div().line_height(px(18.0)).child(description))
                         }),
                 )
-                // `[data-button]`: `#171717` on white, 12px, 24px tall, `0 8px`.
+                // `[data-button]`: `--normal-text` on `--normal-bg` (`#171717`
+                // on white; `#fcfcfc` on black in dark), 12px, 24px tall, `0 8px`.
                 .when_some(flash.action.as_ref(), |toast, (label, action)| {
                     let action = action.boxed_clone();
                     toast.child(
@@ -464,8 +465,8 @@ impl Workspace {
                             .flex_shrink_0()
                             .items_center()
                             .rounded(px(4.0))
-                            .bg(gpui::rgb(0x171717))
-                            .text_color(gpui::rgb(0xffffff))
+                            .bg(self.theme.toast_text)
+                            .text_color(self.theme.toast_background)
                             .text_size(px(12.0))
                             .line_height(px(24.0))
                             .font_weight(gpui::FontWeight::NORMAL)

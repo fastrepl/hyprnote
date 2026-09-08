@@ -223,6 +223,7 @@ msgstr "Action"
 msgid "Active days"
 msgstr "Active days"
 
+#: src/chat/components/message/normal.tsx
 #: src/templates/template-icon-picker.tsx
 msgid "Activity"
 msgstr "Activity"

@@ -36,6 +36,10 @@ export function NormalMessage({
 }) {
   const { t } = useLingui();
   const isUser = message.role === "user";
+  const activityParts = isUser ? [] : message.parts.filter(isActivityPart);
+  const visibleParts = isUser
+    ? message.parts
+    : message.parts.filter((part) => !isActivityPart(part));
   const [copied, setCopied] = useState(false);
   const copiedResetTimeoutRef = useRef<number | null>(null);
 
@@ -77,7 +81,17 @@ export function NormalMessage({
         ])}
       >
         <MessageBubble variant={isUser ? "user" : "assistant"}>
-          {message.parts.map((part, i) => (
+          {activityParts.length > 0 && (
+            <Disclosure
+              icon={<Brain className="h-3 w-3" />}
+              title={t`Activity`}
+            >
+              {activityParts.map((part, i) => (
+                <Part key={i} part={part as Part} />
+              ))}
+            </Disclosure>
+          )}
+          {visibleParts.map((part, i) => (
             <Part key={i} part={part as Part} />
           ))}
         </MessageBubble>
@@ -103,6 +117,19 @@ export function NormalMessage({
         )}
       </div>
     </MessageContainer>
+  );
+}
+
+function isActivityPart(part: AnlgUIMessage["parts"][number]) {
+  if (part.type === "reasoning") {
+    return part.text.trim().length > 0;
+  }
+
+  return (
+    (part.type.startsWith("tool-") || part.type === "dynamic-tool") &&
+    part.type !== "tool-edit_memo" &&
+    part.type !== "tool-edit_summary" &&
+    part.type !== "tool-update_prompt_template"
   );
 }
 

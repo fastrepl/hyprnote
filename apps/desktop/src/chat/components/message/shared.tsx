@@ -108,8 +108,9 @@ export function Disclosure({
   return (
     <details
       className={cn([
-        "group my-2 rounded-md border px-2 py-1 transition-colors",
+        "my-2 rounded-md border px-2 py-1 transition-colors",
         "border-border hover:border-border cursor-pointer",
+        "[&[open]>summary>span:last-of-type]:font-medium [&[open]>summary>svg:last-child]:rotate-90",
       ])}
     >
       <summary
@@ -128,10 +129,8 @@ export function Disclosure({
       >
         {disabled ? <CircleNotch className="h-3 w-3 animate-spin" /> : null}
         {!disabled && icon && <span className="shrink-0">{icon}</span>}
-        <span className={cn(["flex-1 truncate", "group-open:font-medium"])}>
-          {title}
-        </span>
-        <CaretRight className="h-3 w-3 shrink-0 transition-transform group-open:rotate-90" />
+        <span className="flex-1 truncate">{title}</span>
+        <CaretRight className="h-3 w-3 shrink-0 transition-transform" />
       </summary>
       <div className="border-border mt-1 border-t px-1 pt-2">{children}</div>
     </details>

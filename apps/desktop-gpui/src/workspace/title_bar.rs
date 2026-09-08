@@ -317,12 +317,62 @@ impl Workspace {
         cx: &Context<Self>,
     ) -> Option<AnyElement> {
         let menu = self.open_menu?;
-        let theme = self.theme;
         let x = self.menu_trigger_x(menu, window);
         let entries = self.menu_entries(menu);
+        // Radix anchors `sideOffset={1}` below the 28px trigger centred in the bar.
+        let trigger_bottom = (TITLE_BAR_HEIGHT - 28.0) / 2.0 + 28.0;
+        let target = (menu == Menu::Edit)
+            .then(|| self.menu_edit_target.clone())
+            .flatten();
+        Some(self.render_title_bar_menu_panel(
+            "menu-panel",
+            entries,
+            point(x, px(trigger_bottom + 1.0)),
+            target,
+            1,
+            cx,
+        ))
+    }
+
+    /// The webview's editing context menu (Cut / Copy / Paste / Select All)
+    /// at the pointer, acting on the editable that was right-clicked.
+    pub(super) fn render_edit_context_menu(&self, cx: &Context<Self>) -> Option<AnyElement> {
+        use crate::actions::*;
+        let (position, target) = self.edit_context_menu.clone()?;
+        let entries = vec![
+            item("Cut", Some("Ctrl+X"), Cut),
+            item("Copy", Some("Ctrl+C"), Copy),
+            item("Paste", Some("Ctrl+V"), Paste),
+            MenuEntry::Separator,
+            item("Select All", Some("Ctrl+A"), SelectAll),
+        ];
+        // The OS menu draws over everything, the format toolbar included.
+        Some(self.render_title_bar_menu_panel(
+            "edit-context-menu",
+            entries,
+            position,
+            Some(target),
+            5,
+            cx,
+        ))
+    }
+
+    /// One `w-56 rounded-lg` menu panel at `position`; an item refocuses
+    /// `edit_target` before its action, like `runEditCommand`.
+    fn render_title_bar_menu_panel(
+        &self,
+        id: &'static str,
+        entries: Vec<MenuEntry>,
+        position: Point<Pixels>,
+        edit_target: Option<gpui::FocusHandle>,
+        priority: usize,
+        cx: &Context<Self>,
+    ) -> AnyElement {
+        let theme = self.theme;
+        let edit_target = std::rc::Rc::new(edit_target);
 
         let panel = div()
-            .id("menu-panel")
+            .id(id)
             .occlude()
             .w(px(224.0))
             .flex()
@@ -335,9 +385,12 @@ impl Workspace {
             .p_1()
             .tw_text_sm()
             .text_color(theme.foreground)
-            .on_mouse_down_out(
-                cx.listener(|this, _: &MouseDownEvent, window, cx| this.set_menu(None, window, cx)),
-            )
+            .on_mouse_down_out(cx.listener(|this, _: &MouseDownEvent, window, cx| {
+                this.set_menu(None, window, cx);
+                if this.edit_context_menu.take().is_some() {
+                    cx.notify();
+                }
+            }))
             .children(entries.into_iter().enumerate().map(|(index, entry)| {
                 match entry {
                     MenuEntry::Separator => div()
@@ -361,22 +414,27 @@ impl Workspace {
                         .rounded(px(14.0))
                         .cursor_default()
                         .hover(move |style| style.bg(theme.accent))
-                        .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
-                            this.set_menu(None, window, cx);
-                            if let Some(url) = url {
-                                cx.open_url(url);
-                            }
-                            if let Some(action) = &action {
-                                // `runEditCommand`: the Edit items run on the
-                                // element that had focus when the menu opened.
-                                if menu == Menu::Edit
-                                    && let Some(target) = this.menu_edit_target.take()
-                                {
-                                    window.focus(&target);
+                        .on_click({
+                            let edit_target = edit_target.clone();
+                            cx.listener(move |this, _: &ClickEvent, window, cx| {
+                                this.set_menu(None, window, cx);
+                                this.menu_edit_target = None;
+                                if this.edit_context_menu.take().is_some() {
+                                    cx.notify();
                                 }
-                                window.dispatch_action(action.boxed_clone(), cx);
-                            }
-                        }))
+                                if let Some(url) = url {
+                                    cx.open_url(url);
+                                }
+                                if let Some(action) = &action {
+                                    // `runEditCommand`: the item runs on the
+                                    // element that had focus when the menu opened.
+                                    if let Some(target) = edit_target.as_ref() {
+                                        window.focus(target);
+                                    }
+                                    window.dispatch_action(action.boxed_clone(), cx);
+                                }
+                            })
+                        })
                         .child(label)
                         .when_some(shortcut, |item, shortcut| {
                             item.child(
@@ -391,17 +449,13 @@ impl Workspace {
                 }
             }));
 
-        // Radix anchors `sideOffset={1}` below the 28px trigger centred in the bar.
-        let trigger_bottom = (TITLE_BAR_HEIGHT - 28.0) / 2.0 + 28.0;
-        Some(
-            deferred(
-                anchored()
-                    .position(point(x, px(trigger_bottom + 1.0)))
-                    .snap_to_window_with_margin(px(8.0))
-                    .child(panel),
-            )
-            .with_priority(1)
-            .into_any_element(),
+        deferred(
+            anchored()
+                .position(position)
+                .snap_to_window_with_margin(px(8.0))
+                .child(panel),
         )
+        .with_priority(priority)
+        .into_any_element()
     }
 }

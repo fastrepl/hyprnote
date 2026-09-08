@@ -1802,6 +1802,15 @@ impl BodyEditor {
             .on_mouse_move(cx.listener(|this, event: &gpui::MouseMoveEvent, _, cx| {
                 this.update_image_resize(event.position.x, cx)
             }))
+            // A right-click in a contenteditable focuses it and opens the
+            // editing context menu.
+            .on_mouse_down(
+                gpui::MouseButton::Right,
+                cx.listener(|this, event: &gpui::MouseDownEvent, window, cx| {
+                    window.focus(&this.focus_handle);
+                    crate::edit_menu::request(cx, event.position, this.focus_handle.clone());
+                }),
+            )
             .on_mouse_up(
                 gpui::MouseButton::Left,
                 cx.listener(|this, _: &gpui::MouseUpEvent, _, cx| {

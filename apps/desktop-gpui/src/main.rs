@@ -23,6 +23,7 @@ mod deeplink;
 mod developers;
 mod dictation;
 mod document;
+mod edit_menu;
 mod editor;
 mod emoji;
 mod enhancer;

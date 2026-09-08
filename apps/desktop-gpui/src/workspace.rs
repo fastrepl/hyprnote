@@ -213,6 +213,9 @@ pub struct Workspace {
     /// `editTargetRef`: the element focused when a title bar menu opened, so
     /// an Edit item runs on it after the press moved focus.
     menu_edit_target: Option<FocusHandle>,
+    /// The editing context menu a right-click in an editable opened: where,
+    /// and the editable it acts on.
+    edit_context_menu: Option<(gpui::Point<Pixels>, FocusHandle)>,
     open_note: Option<open_note::OpenNoteDialog>,
     /// `recentlyOpenedSessionIds`, newest first, persisted to `store.json`.
     recently_opened: Vec<String>,
@@ -484,6 +487,7 @@ impl Workspace {
             window_active: true,
             open_menu: None,
             menu_edit_target: None,
+            edit_context_menu: None,
             open_note: None,
             recently_opened: Vec::new(),
             store_file,
@@ -2021,6 +2025,17 @@ impl Render for Workspace {
                     }
                 }),
             )
+            // An editable's right mouse down (which ran first) asked for the
+            // webview's editing context menu.
+            .on_mouse_down(
+                MouseButton::Right,
+                cx.listener(|this, _: &gpui::MouseDownEvent, _, cx| {
+                    if let Some(request) = crate::edit_menu::take(cx) {
+                        this.edit_context_menu = Some(request);
+                        cx.notify();
+                    }
+                }),
+            )
             // `shouldClearTimelineSelectionOnPointerDown`: any press outside the
             // timeline root, its dialog, or its (OS-level in Tauri) context menu
             // drops the selection, whatever element claims the pointer.
@@ -2154,6 +2169,7 @@ impl Render for Workspace {
             .children(self.render_format_toolbar(window, cx))
             .children(self.render_delete_selected_dialog(cx))
             .children(self.render_open_menu(window, cx))
+            .children(self.render_edit_context_menu(cx))
             .children(self.render_export_dialog(window, cx))
             .children(self.render_badge_dialog(window, cx))
             .children(self.render_folder_dialogs(window, cx))

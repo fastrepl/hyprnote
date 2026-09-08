@@ -319,6 +319,9 @@ impl Workspace {
         if self.open_menu.take().is_some() {
             closed = true;
         }
+        if self.edit_context_menu.take().is_some() {
+            closed = true;
+        }
         if let Some(player) = self.audio_player.as_mut()
             && player.menu_at.take().is_some()
         {

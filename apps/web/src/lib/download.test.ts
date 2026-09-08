@@ -4,8 +4,9 @@ import test from "node:test";
 import {
   comingSoonPlatforms,
   desktopDownloadSections,
-  detectDesktopPlatform,
-  getOrderedDesktopDownloadSections,
+  detectDownloadPlatform,
+  getOrderedDownloadSections,
+  mobileDownloadSections,
   windowsStoreDownloadUrl,
 } from "./download.ts";
 
@@ -14,12 +15,7 @@ test("offers macOS, Windows, and Linux downloads", () => {
     desktopDownloadSections.map((section) => section.platform),
     ["macos", "windows", "linux"],
   );
-  assert.deepEqual(comingSoonPlatforms, [
-    "iOS",
-    "Android",
-    "Apple Watch",
-    "Galaxy Watch",
-  ]);
+  assert.deepEqual(comingSoonPlatforms, ["Apple Watch", "Galaxy Watch"]);
 
   const macosDownloads = desktopDownloadSections.find(
     (section) => section.platform === "macos",
@@ -61,42 +57,77 @@ test("offers macOS, Windows, and Linux downloads", () => {
 
 test("detects supported desktop platforms from browser user agents", () => {
   assert.equal(
-    detectDesktopPlatform(
+    detectDownloadPlatform(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     ),
     "windows",
   );
   assert.equal(
-    detectDesktopPlatform(
+    detectDownloadPlatform(
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15",
     ),
     "macos",
   );
   assert.equal(
-    detectDesktopPlatform("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"),
+    detectDownloadPlatform(
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+    ),
     "linux",
   );
 });
 
+test("routes phones and tablets to the matching public beta", () => {
+  for (const userAgent of [
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15",
+    "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15",
+    "Mozilla/5.0 (iPod touch; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15",
+  ]) {
+    const platform = detectDownloadPlatform(userAgent);
+    assert.equal(platform, "ios");
+    assert.equal(
+      getOrderedDownloadSections(platform)[0].downloads[0].url,
+      "https://testflight.apple.com/join/y7WJCXvG",
+    );
+  }
+
+  const android = detectDownloadPlatform(
+    "Mozilla/5.0 (Linux; Android 16; Pixel 10) AppleWebKit/537.36",
+  );
+  assert.equal(android, "android");
+  assert.equal(
+    getOrderedDownloadSections(android)[0].downloads[0].url,
+    "https://play.google.com/apps/testing/so.anarlog.mobile",
+  );
+  assert.deepEqual(
+    mobileDownloadSections.map((section) => section.platform),
+    ["ios", "android"],
+  );
+});
+
+test("recognizes iPad desktop browsing without treating Macs as iPads", () => {
+  const userAgent =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15";
+  assert.equal(detectDownloadPlatform(userAgent, 5), "ios");
+  assert.equal(detectDownloadPlatform(userAgent, 0), "macos");
+  assert.equal(detectDownloadPlatform(userAgent, 1), "macos");
+});
+
 test("falls back to macOS for unsupported and unknown platforms", () => {
   assert.equal(
-    detectDesktopPlatform(
-      "Mozilla/5.0 (Linux; Android 16; Pixel 10) AppleWebKit/537.36",
-    ),
+    detectDownloadPlatform("Mozilla/5.0 (X11; CrOS x86_64)"),
     "macos",
   );
-  assert.equal(detectDesktopPlatform("unknown"), "macos");
+  assert.equal(detectDownloadPlatform("unknown"), "macos");
+  assert.equal(detectDownloadPlatform(""), "macos");
 });
 
 test("orders the detected platform first", () => {
   assert.deepEqual(
-    getOrderedDesktopDownloadSections("windows").map(
-      (section) => section.platform,
-    ),
-    ["windows", "macos", "linux"],
+    getOrderedDownloadSections("windows").map((section) => section.platform),
+    ["windows", "macos", "linux", "ios", "android"],
   );
   assert.equal(
-    getOrderedDesktopDownloadSections("macos")[0].downloads[0].name,
+    getOrderedDownloadSections("macos")[0].downloads[0].name,
     "Apple Silicon",
   );
 });

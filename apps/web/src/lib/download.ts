@@ -5,18 +5,51 @@ function getStableDownloadUrl(platform: string) {
   return `${latestStableDownloadUrl}/${platform}?channel=stable`;
 }
 
-export type DesktopPlatform = "linux" | "macos" | "windows";
+export type DownloadPlatform =
+  | "android"
+  | "ios"
+  | "linux"
+  | "macos"
+  | "windows";
 
 export const appleSiliconDownloadUrl = getStableDownloadUrl("dmg-aarch64");
 export const appleIntelDownloadUrl = getStableDownloadUrl("dmg-x86_64");
 export const windowsStoreDownloadUrl =
   "https://apps.microsoft.com/detail/XPDLN196NKSW10";
 
-export const comingSoonPlatforms = [
-  "iOS",
-  "Android",
-  "Apple Watch",
-  "Galaxy Watch",
+export const comingSoonPlatforms = ["Apple Watch", "Galaxy Watch"] as const;
+
+export const mobileDownloadSections = [
+  {
+    platform: "ios",
+    name: "iOS",
+    status: "Beta",
+    description: "Join the public beta on your iPhone or iPad with TestFlight.",
+    downloads: [
+      {
+        name: "TestFlight",
+        detail: "iPhone and iPad · Public beta",
+        url: "https://testflight.apple.com/join/y7WJCXvG",
+        actionLabel: "Join TestFlight",
+        showInMenu: true,
+      },
+    ],
+  },
+  {
+    platform: "android",
+    name: "Android",
+    status: "Beta",
+    description: "Join the open beta on Google Play.",
+    downloads: [
+      {
+        name: "Google Play",
+        detail: "Android · Open beta",
+        url: "https://play.google.com/apps/testing/so.anarlog.mobile",
+        actionLabel: "Join open beta",
+        showInMenu: true,
+      },
+    ],
+  },
 ] as const;
 
 export const desktopDownloadSections = [
@@ -110,9 +143,19 @@ export const desktopDownloadSections = [
   },
 ] as const;
 
-export function detectDesktopPlatform(userAgent: string): DesktopPlatform {
+export function detectDownloadPlatform(
+  userAgent: string,
+  maxTouchPoints = 0,
+): DownloadPlatform {
+  if (/Android/i.test(userAgent)) return "android";
+  if (
+    /iPhone|iPad|iPod/i.test(userAgent) ||
+    (/Macintosh/i.test(userAgent) && maxTouchPoints > 1)
+  ) {
+    return "ios";
+  }
   if (/Windows/i.test(userAgent)) return "windows";
-  if (/Macintosh|Mac OS X|iPhone|iPad|iPod/i.test(userAgent)) return "macos";
+  if (/Macintosh|Mac OS X/i.test(userAgent)) return "macos";
   if (!/Android|CrOS/i.test(userAgent) && /Linux|X11/i.test(userAgent)) {
     return "linux";
   }
@@ -120,15 +163,12 @@ export function detectDesktopPlatform(userAgent: string): DesktopPlatform {
   return "macos";
 }
 
-export function getOrderedDesktopDownloadSections(
-  preferredPlatform: DesktopPlatform,
+export function getOrderedDownloadSections(
+  preferredPlatform: DownloadPlatform,
 ) {
+  const sections = [...desktopDownloadSections, ...mobileDownloadSections];
   return [
-    ...desktopDownloadSections.filter(
-      (section) => section.platform === preferredPlatform,
-    ),
-    ...desktopDownloadSections.filter(
-      (section) => section.platform !== preferredPlatform,
-    ),
+    ...sections.filter((section) => section.platform === preferredPlatform),
+    ...sections.filter((section) => section.platform !== preferredPlatform),
   ];
 }

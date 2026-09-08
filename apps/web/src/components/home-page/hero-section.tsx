@@ -11,9 +11,9 @@ import { AnarlogLogo } from "@/components/anarlog-logo";
 import { useAnalytics } from "@/hooks/use-posthog";
 import { useMountEffect } from "@/hooks/useMountEffect";
 import {
-  type DesktopPlatform,
-  detectDesktopPlatform,
-  getOrderedDesktopDownloadSections,
+  type DownloadPlatform,
+  detectDownloadPlatform,
+  getOrderedDownloadSections,
 } from "@/lib/download";
 import { getResizedImageUrl } from "@/lib/image-cdn";
 import { runWhenIdle } from "@/lib/run-when-idle";
@@ -340,18 +340,23 @@ function DownloadButton() {
   const { track } = useAnalytics();
   const [open, setOpen] = useState(false);
   const [preferredPlatform, setPreferredPlatform] =
-    useState<DesktopPlatform>("macos");
+    useState<DownloadPlatform>("macos");
   const containerRef = useRef<HTMLDivElement>(null);
-  const orderedSections = getOrderedDesktopDownloadSections(preferredPlatform);
+  const orderedSections = getOrderedDownloadSections(preferredPlatform);
   const preferredSection = orderedSections[0];
   const preferredDownload = preferredSection.downloads[0];
   const preferredLabel =
-    preferredSection.platform === "macos"
-      ? `Download for ${preferredDownload.name}`
-      : `Download for ${preferredSection.name}`;
+    preferredSection.platform === "ios" ||
+    preferredSection.platform === "android"
+      ? `Join ${preferredSection.name} beta`
+      : preferredSection.platform === "macos"
+        ? `Download for ${preferredDownload.name}`
+        : `Download for ${preferredSection.name}`;
 
   useMountEffect(() => {
-    setPreferredPlatform(detectDesktopPlatform(navigator.userAgent));
+    setPreferredPlatform(
+      detectDownloadPlatform(navigator.userAgent, navigator.maxTouchPoints),
+    );
 
     const onPointerDown = (event: MouseEvent | TouchEvent) => {
       if (
@@ -407,7 +412,7 @@ function DownloadButton() {
       {open && (
         <div
           role="menu"
-          className="surface border-color-brand absolute top-[calc(100%+0.5rem)] left-0 z-10 w-72 max-w-[calc(100vw-2.5rem)] rounded-2xl border p-2 text-left shadow-[0_14px_40px_rgba(24,22,19,0.12)]"
+          className="surface border-color-brand absolute top-[calc(100%+0.5rem)] left-1/2 z-10 w-72 max-w-[calc(100vw-2.5rem)] -translate-x-1/2 rounded-2xl border p-2 text-left shadow-[0_14px_40px_rgba(24,22,19,0.12)]"
         >
           {orderedSections.map((section) =>
             section.downloads.map((download) => {
@@ -459,13 +464,15 @@ function DownloadButton() {
   );
 }
 
-function getPlatformIcon(platform: DesktopPlatform, size: number) {
+function getPlatformIcon(platform: DownloadPlatform, size: number) {
   const icon =
     platform === "windows"
       ? "simple-icons:windows11"
       : platform === "linux"
         ? "simple-icons:linux"
-        : "simple-icons:apple";
+        : platform === "android"
+          ? "simple-icons:android"
+          : "simple-icons:apple";
   return (
     <Icon
       icon={icon}
@@ -478,9 +485,11 @@ function getPlatformIcon(platform: DesktopPlatform, size: number) {
 }
 
 function getDownloadOptionLabel(
-  platform: DesktopPlatform,
+  platform: DownloadPlatform,
   downloadName: string,
 ) {
+  if (platform === "ios") return "iOS";
+  if (platform === "android") return "Android";
   if (platform === "macos" && downloadName === "Intel") return "Apple Intel";
   const label = downloadName.replace(/ x64$/, "");
   if (platform === "linux") return `Linux ${label}`;

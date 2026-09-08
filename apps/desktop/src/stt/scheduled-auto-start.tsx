@@ -101,8 +101,13 @@ export async function startScheduledMeeting(
   row: ScheduledMeetingRow,
   autoJoin: boolean,
 ): Promise<"started" | "ignored" | "blocked"> {
+  if (listenerStore.getState().live.status === "active") {
+    return "ignored";
+  }
+
   const { ignoredIds, ignoredSeriesIds } = await getIgnoredEventSets();
   if (
+    listenerStore.getState().live.status === "active" ||
     ignoredIds.has(row.tracking_id_event) ||
     (row.recurrence_series_id && ignoredSeriesIds.has(row.recurrence_series_id))
   ) {
@@ -110,6 +115,9 @@ export async function startScheduledMeeting(
   }
 
   const sessionId = await getOrCreateSessionForEventId(row.id);
+  if (listenerStore.getState().live.status === "active") {
+    return "ignored";
+  }
   if (!listenerStore.getState().canStartLiveSession(sessionId)) {
     return "blocked";
   }
@@ -231,27 +239,23 @@ export function ScheduledMeetingAutoStart() {
         else scheduleNextStart();
       };
 
-      if (
-        hasScheduledAutoStartInFlight() ||
-        hasPendingAutoStart(useTabs.getState().tabs)
-      ) {
-        scheduleAfterTransientBlock();
-        return;
-      }
-
       const liveStatus = listenerStore.getState().live.status;
       const action = getScheduledAutoStartAction(liveStatus);
-      if (action === "retry") {
-        scheduleAfterTransientBlock();
-        return;
-      }
-
       if (action === "skip") {
         // Do not let an overlapping meeting start after the active recording ends.
         for (const row of due) {
           firedEventIds.add(row.id);
         }
         scheduleNextStart();
+        return;
+      }
+
+      if (
+        action === "retry" ||
+        hasScheduledAutoStartInFlight() ||
+        hasPendingAutoStart(useTabs.getState().tabs)
+      ) {
+        scheduleAfterTransientBlock();
         return;
       }
 

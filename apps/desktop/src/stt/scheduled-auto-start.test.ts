@@ -1,10 +1,13 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { cleanup, render } from "@testing-library/react";
+import { createElement } from "react";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   getScheduledAutoStartAction,
   hasPendingAutoStart,
   SCHEDULED_AUTO_START_GRACE_MS,
   type ScheduledMeetingRow,
+  ScheduledMeetingAutoStart,
   selectDueMeetings,
   startScheduledMeeting,
 } from "./scheduled-auto-start";
@@ -13,10 +16,30 @@ import type { Tab } from "~/store/zustand/tabs";
 
 const mocks = vi.hoisted(() => ({
   canStart: true,
+  liveStatus: "inactive",
   getIgnoredEventSets: vi.fn(),
   getOrCreateSessionForEventId: vi.fn(),
   openNew: vi.fn(),
   openUrl: vi.fn(),
+  subscribeMeetings: vi.fn(),
+  subscribeListener: vi.fn(),
+  subscribeTabs: vi.fn(),
+  tabs: [] as Tab[],
+}));
+
+vi.mock("@anlg/plugin-windows", () => ({
+  getCurrentWebviewWindowLabel: () => "main",
+}));
+
+vi.mock("~/db", () => ({
+  liveQueryClient: { subscribe: mocks.subscribeMeetings },
+}));
+
+vi.mock("~/shared/config", () => ({
+  useConfigValues: () => ({
+    auto_start_scheduled_meetings: true,
+    auto_join_scheduled_meetings: true,
+  }),
 }));
 
 vi.mock("@anlg/plugin-opener2", () => ({
@@ -35,20 +58,25 @@ vi.mock("~/store/zustand/listener/instance", () => ({
   listenerStore: {
     getState: () => ({
       canStartLiveSession: () => mocks.canStart,
-      live: { status: "inactive" },
+      live: { status: mocks.liveStatus },
     }),
-    subscribe: () => () => {},
+    subscribe: mocks.subscribeListener,
   },
 }));
 
 vi.mock("~/store/zustand/tabs", () => ({
   useTabs: {
-    getState: () => ({ openNew: mocks.openNew }),
-    subscribe: () => () => {},
+    getState: () => ({ openNew: mocks.openNew, tabs: mocks.tabs }),
+    subscribe: mocks.subscribeTabs,
   },
 }));
 
 const NOW = new Date("2026-05-15T12:00:00.000Z").getTime();
+
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 function meeting(
   id: string,
@@ -172,6 +200,7 @@ describe("hasPendingAutoStart", () => {
 describe("startScheduledMeeting", () => {
   beforeEach(() => {
     mocks.canStart = true;
+    mocks.liveStatus = "inactive";
     mocks.getIgnoredEventSets.mockReset().mockResolvedValue({
       ignoredIds: new Set<string>(),
       ignoredSeriesIds: new Set<string>(),
@@ -181,6 +210,10 @@ describe("startScheduledMeeting", () => {
       .mockResolvedValue("session-a");
     mocks.openNew.mockReset();
     mocks.openUrl.mockReset().mockResolvedValue({ status: "ok", data: null });
+    mocks.subscribeMeetings.mockReset().mockResolvedValue(async () => {});
+    mocks.subscribeListener.mockReset().mockReturnValue(() => {});
+    mocks.subscribeTabs.mockReset().mockReturnValue(() => {});
+    mocks.tabs = [];
   });
 
   test("opens the meeting link and arms the session when the meeting is due", async () => {
@@ -226,6 +259,75 @@ describe("startScheduledMeeting", () => {
       "ignored",
     );
 
+    expect(mocks.openUrl).not.toHaveBeenCalled();
+    expect(mocks.openNew).not.toHaveBeenCalled();
+  });
+
+  test("ignores the next meeting while the previous recording runs overtime", async () => {
+    mocks.liveStatus = "active";
+
+    await expect(startScheduledMeeting(meeting("a", 0), true)).resolves.toBe(
+      "ignored",
+    );
+
+    expect(mocks.getOrCreateSessionForEventId).not.toHaveBeenCalled();
+    expect(mocks.openUrl).not.toHaveBeenCalled();
+    expect(mocks.openNew).not.toHaveBeenCalled();
+  });
+
+  test("ignores a recording that becomes active while the calendar lookup is pending", async () => {
+    mocks.getIgnoredEventSets.mockImplementation(async () => {
+      mocks.liveStatus = "active";
+      return { ignoredIds: new Set(), ignoredSeriesIds: new Set() };
+    });
+
+    await expect(startScheduledMeeting(meeting("a", 0), true)).resolves.toBe(
+      "ignored",
+    );
+
+    expect(mocks.getOrCreateSessionForEventId).not.toHaveBeenCalled();
+    expect(mocks.openUrl).not.toHaveBeenCalled();
+    expect(mocks.openNew).not.toHaveBeenCalled();
+  });
+
+  test("does not queue or join a meeting if recording starts during session creation", async () => {
+    mocks.getOrCreateSessionForEventId.mockImplementation(async () => {
+      mocks.liveStatus = "active";
+      mocks.canStart = false;
+      return "session-a";
+    });
+
+    await expect(startScheduledMeeting(meeting("a", 0), true)).resolves.toBe(
+      "ignored",
+    );
+
+    expect(mocks.openUrl).not.toHaveBeenCalled();
+    expect(mocks.openNew).not.toHaveBeenCalled();
+  });
+
+  test("an overlapping meeting stays skipped after a pending tab and the active recording clear", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    mocks.liveStatus = "active";
+    mocks.tabs = [
+      {
+        type: "sessions",
+        id: "pending",
+        slotId: "pending",
+        active: true,
+        pinned: false,
+        state: { view: null, autoStart: true },
+      },
+    ];
+    render(createElement(ScheduledMeetingAutoStart));
+    mocks.subscribeMeetings.mock.calls[0][2].onData([meeting("a", 0)]);
+
+    mocks.liveStatus = "inactive";
+    mocks.tabs = [];
+    mocks.subscribeTabs.mock.calls[0][0]();
+    await vi.advanceTimersByTimeAsync(15_000);
+
+    expect(mocks.getOrCreateSessionForEventId).not.toHaveBeenCalled();
     expect(mocks.openUrl).not.toHaveBeenCalled();
     expect(mocks.openNew).not.toHaveBeenCalled();
   });

@@ -22,13 +22,16 @@ export function ScheduledSessionAutoStart({
   const canStartLiveSession = useListener((state) =>
     state.canStartLiveSession(sessionId),
   );
+  const recordingActive = useListener(
+    (state) => state.live.status === "active",
+  );
   const session = useSession(sessionId);
   const revealed = useAppLock((state) =>
     Boolean(state.revealedNoteIds[sessionId]),
   );
   const locked = isLockedFlag(session?.locked) && !revealed;
 
-  if (session && locked) {
+  if (recordingActive || (session && locked)) {
     return <AbandonedScheduledSessionAutoStart sessionId={sessionId} />;
   }
 

@@ -1,6 +1,8 @@
 import { create as mutate } from "mutative";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import { sonnerToast } from "@anlg/ui/components/ui/toast";
+
 const {
   dispatchEventMock,
   getIdentifierMock,
@@ -1012,6 +1014,63 @@ describe("General Listener Slice", () => {
           liveTranscriptionActive: true,
         }),
       );
+    });
+
+    test("clears the stall warning only after finalized transcript words resume", async () => {
+      const dismiss = vi.spyOn(sonnerToast, "dismiss");
+      getCaptureSnapshotMock.mockResolvedValueOnce({
+        status: "ok",
+        data: {
+          activeSessionId: "session-a",
+          finalizingSessionIds: [],
+          liveTranscriptionActive: true,
+          requestedLiveTranscription: true,
+          state: "active",
+        },
+      });
+      await store.getState().attachLiveSession("session-a");
+      store.setState((state) => ({
+        live: {
+          ...state.live,
+          transcriptionStalled: true,
+          needsBatchRepair: true,
+        },
+      }));
+      const dataHandler = listenCaptureDataMock.mock.calls[0][0];
+      const word = {
+        id: "recovered",
+        text: "hello",
+        start_ms: 0,
+        end_ms: 500,
+        channel: 0,
+      };
+
+      try {
+        dataHandler({
+          payload: {
+            session_id: "session-a",
+            type: "transcript_delta",
+            delta: { new_words: [], replaced_ids: [], partials: [word] },
+          },
+        });
+        expect(dismiss).not.toHaveBeenCalled();
+        expect(store.getState().live.transcriptionStalled).toBe(true);
+
+        dataHandler({
+          payload: {
+            session_id: "session-a",
+            type: "transcript_delta",
+            delta: { new_words: [word], replaced_ids: [], partials: [] },
+          },
+        });
+        expect(dismiss).toHaveBeenCalledWith("live-transcription-stalled");
+        expect(store.getState().live.transcriptionStalled).toBe(false);
+        expect(store.getState().live.needsBatchRepair).toBe(true);
+        expect(store.getState().live.status).toBe("active");
+      } finally {
+        clearInterval(store.getState().live.intervalId);
+        dismiss.mockRestore();
+      }
     });
 
     test("keeps recovery callbacks installed when the native snapshot is unavailable", async () => {

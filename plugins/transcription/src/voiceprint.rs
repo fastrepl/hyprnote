@@ -169,7 +169,7 @@ pub async fn extract_voiceprint_candidates<R: tauri::Runtime>(
                 source_session_id: &session_id,
                 source_transcript_id: &transcript_id,
                 source_attachment_id: &attachment_id,
-                source_speaker_label: &speaker_label(&span),
+                source_speaker_label: &speaker_label(span),
                 speaker_channel: span.channel,
                 speaker_index: span.speaker_index,
                 source_start_ms: span.start_ms,

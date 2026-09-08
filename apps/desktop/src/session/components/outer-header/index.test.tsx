@@ -47,6 +47,13 @@ vi.mock("../title-input", () => ({
   TitleInput: () => <input aria-label="Session title" placeholder="Untitled" />,
 }));
 
+vi.mock("~/session/queries", () => ({
+  useSession: () => ({ folder_id: "" }),
+  useFolderIcons: () => ({}),
+  useFolderPaths: () => [],
+  useUpdateSession: () => vi.fn(),
+}));
+
 vi.mock("./overflow", () => ({
   OverflowButton: (props: {
     allowListening?: boolean;
@@ -393,7 +400,7 @@ describe("OuterHeader", () => {
     expect(actionStrip?.hasAttribute("data-tauri-drag-region")).toBe(true);
   });
 
-  it("places the record and overflow controls in order", () => {
+  it("places folder selection before the record and overflow controls", () => {
     const { container } = render(
       <OuterHeader
         sessionId="session-1"
@@ -409,6 +416,7 @@ describe("OuterHeader", () => {
     const header = container.firstElementChild;
     const views = screen.getByRole("group", { name: "Session note views" });
     const record = screen.getByRole("button", { name: "Record" });
+    const folder = screen.getByRole("combobox", { name: "Select folder" });
     const more = screen.getByRole("button", { name: "More" });
     const actionStrip = header?.lastElementChild;
     const actionChildren = [...(actionStrip?.children ?? [])];
@@ -416,12 +424,13 @@ describe("OuterHeader", () => {
     expect(header?.firstElementChild).toBe(views);
     expect(actionStrip?.contains(record)).toBe(true);
     expect(actionStrip?.contains(more)).toBe(true);
+    expect(actionStrip?.contains(folder)).toBe(true);
+    expect(
+      actionChildren.findIndex((child) => child.contains(folder)),
+    ).toBeLessThan(actionChildren.findIndex((child) => child.contains(record)));
     expect(
       actionChildren.findIndex((child) => child.contains(record)),
     ).toBeLessThan(actionChildren.findIndex((child) => child.contains(more)));
-    expect(
-      screen.queryByRole("combobox", { name: "Select folder" }),
-    ).toBeNull();
   });
 
   it("shows an editable title in the header on the summary tab", () => {
@@ -756,6 +765,11 @@ describe("OuterHeader", () => {
     const joinButton = screen.getByRole("button", { name: "Join & record" });
     const moreButton = screen.getByRole("button", { name: "More" });
 
+    expect(
+      screen
+        .getByRole("combobox", { name: "Select folder" })
+        .compareDocumentPosition(joinButton) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(joinButton.className).toContain("border-border");
     expect(joinButton.className).toContain("bg-transparent");
     expect(joinButton.className).toContain("text-foreground");
@@ -1238,6 +1252,13 @@ describe("OuterHeader", () => {
 
     expect(screen.queryByRole("button", { name: "Record" })).toBeNull();
     expect(screen.getByRole("button", { name: "Share note" })).not.toBeNull();
+    expect(
+      screen
+        .getByRole("combobox", { name: "Select folder" })
+        .compareDocumentPosition(
+          screen.getByRole("button", { name: "Share note" }),
+        ) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(screen.getByRole("button", { name: "More" })).not.toBeNull();
     expect(mocks.startListening).not.toHaveBeenCalled();
   });
@@ -1278,8 +1299,10 @@ describe("OuterHeader", () => {
       stop.compareDocumentPosition(more) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(
-      screen.queryByRole("combobox", { name: "Select folder" }),
-    ).toBeNull();
+      screen
+        .getByRole("combobox", { name: "Select folder" })
+        .compareDocumentPosition(stop) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("keeps stop available for an active ad hoc session", () => {

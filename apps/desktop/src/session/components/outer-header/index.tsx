@@ -12,6 +12,7 @@ import {
 } from "@anlg/ui/components/ui/popover";
 import { cn, parseEventInstant, safeParseDate } from "@anlg/utils";
 
+import { FolderPicker } from "../folder-picker";
 import { RecordingIcon, useHasTranscript } from "../shared";
 import { TitleInput } from "../title-input";
 import { OverflowButton } from "./overflow";
@@ -102,6 +103,7 @@ export function OuterHeader({
         data-tauri-drag-region
         className="relative z-10 flex shrink-0 items-center pr-1"
       >
+        <FolderPicker sessionId={sessionId} align="end" />
         <HeaderMeetingControl
           sessionId={sessionId}
           sessionMode={sessionMode}

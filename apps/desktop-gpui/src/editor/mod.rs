@@ -736,18 +736,47 @@ impl BodyEditor {
     }
 
     /// Mouse down in a textblock: place the caret (shift extends) and start a
-    /// drag selection.
+    /// drag selection; a double-click selects the word under the pointer and
+    /// a triple-click the textblock, like the browser's selection.
     pub fn place_caret_at(
         &mut self,
         block: usize,
         position: Point<Pixels>,
         extend: bool,
+        click_count: usize,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         self.doc.ensure_textblock();
         let head = self.caret_for_position(block, position);
-        self.set_head(head, extend, cx);
+        match click_count {
+            2 => {
+                let text = self.doc.text(block);
+                let range = crate::text_input::word_range_at(&text, head.offset);
+                self.set_head(
+                    Caret {
+                        block,
+                        offset: range.start,
+                    },
+                    false,
+                    cx,
+                );
+                self.set_head(
+                    Caret {
+                        block,
+                        offset: range.end,
+                    },
+                    true,
+                    cx,
+                );
+            }
+            count if count >= 3 => {
+                let end = self.doc.text(block).len();
+                self.set_head(Caret { block, offset: 0 }, false, cx);
+                self.set_head(Caret { block, offset: end }, true, cx);
+            }
+            _ => self.set_head(head, extend, cx),
+        }
         self.is_selecting = true;
         self.focus_handle.focus(window);
     }

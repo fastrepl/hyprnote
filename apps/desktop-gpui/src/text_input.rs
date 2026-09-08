@@ -69,6 +69,20 @@ pub fn bind_keys(cx: &mut App) {
     ]);
 }
 
+/// WebKit's double-click selection: the UAX #29 word (or the run of spaces
+/// or the punctuation mark) under `offset`, the last one past the end.
+pub fn word_range_at(text: &str, offset: usize) -> Range<usize> {
+    let mut last = 0..0;
+    for (start, word) in text.split_word_bound_indices() {
+        let end = start + word.len();
+        if offset < end {
+            return start..end;
+        }
+        last = start..end;
+    }
+    last
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TextInputEvent {
     Changed,
@@ -335,10 +349,18 @@ impl TextInput {
         if !self.focus_handle.is_focused(window) {
             self.focus_handle.focus(window);
         }
-        if event.modifiers.shift {
-            self.select_to(self.index_for_mouse_position(event.position), cx);
-        } else {
-            self.move_to(self.index_for_mouse_position(event.position), cx)
+        let index = self.index_for_mouse_position(event.position);
+        // A double-click selects the word, a triple-click the whole value.
+        match event.click_count {
+            2 => {
+                let range = word_range_at(&self.content, index);
+                self.selection_reversed = false;
+                self.selected_range = range;
+                cx.notify();
+            }
+            count if count >= 3 => self.select_all_text(cx),
+            _ if event.modifiers.shift => self.select_to(index, cx),
+            _ => self.move_to(index, cx),
         }
     }
 
@@ -874,5 +896,23 @@ impl Render for TextInput {
 impl Focusable for TextInput {
     fn focus_handle(&self, _: &App) -> FocusHandle {
         self.focus_handle.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::word_range_at;
+
+    #[test]
+    fn double_click_selects_the_word_space_run_or_mark_under_the_offset() {
+        let text = "Beta Gamma, Delta";
+        assert_eq!(word_range_at(text, 0), 0..4);
+        assert_eq!(word_range_at(text, 7), 5..10);
+        // The run of spaces and the comma are their own segments.
+        assert_eq!(word_range_at(text, 4), 4..5);
+        assert_eq!(word_range_at(text, 10), 10..11);
+        // Past the end the last segment is selected.
+        assert_eq!(word_range_at(text, text.len()), 12..17);
+        assert_eq!(word_range_at("", 0), 0..0);
     }
 }

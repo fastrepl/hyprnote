@@ -367,6 +367,7 @@ impl DocumentRenderer {
                             index,
                             event.position,
                             event.modifiers.shift,
+                            event.click_count,
                             window,
                             cx,
                         )

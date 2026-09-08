@@ -895,10 +895,23 @@ impl TextArea {
             self.focus_handle.focus(window);
         }
         let index = self.index_for_mouse_position(event.position);
-        if event.modifiers.shift {
-            self.select_to(index, cx);
-        } else {
-            self.move_to(index, cx)
+        // A double-click selects the word, a triple-click the paragraph.
+        match event.click_count {
+            2 => {
+                let range = crate::text_input::word_range_at(&self.content, index);
+                self.move_to(range.start, cx);
+                self.select_to(range.end, cx);
+            }
+            count if count >= 3 => {
+                let start = self.content[..index].rfind('\n').map_or(0, |at| at + 1);
+                let end = self.content[index..]
+                    .find('\n')
+                    .map_or(self.content.len(), |at| index + at);
+                self.move_to(start, cx);
+                self.select_to(end, cx);
+            }
+            _ if event.modifiers.shift => self.select_to(index, cx),
+            _ => self.move_to(index, cx),
         }
     }
 

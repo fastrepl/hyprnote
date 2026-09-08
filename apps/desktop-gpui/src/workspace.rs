@@ -228,6 +228,9 @@ pub struct Workspace {
     overflow_submenu: Option<usize>,
     /// The settings tab while it is the active overlay tab.
     settings_tab: Option<settings::SettingsTab>,
+    /// `returnToSlotId`: the settings tab an overlay tab (folders, templates,
+    /// calendar, contacts, automations) was opened from, for `leaveOverlayTab`.
+    overlay_return_settings: Option<settings::SettingsTab>,
     settings_search: Option<gpui::Entity<TextInput>>,
     /// The settings `Select` whose popover is open.
     open_select: Option<settings::OpenSelect>,
@@ -442,6 +445,7 @@ impl Workspace {
             overflow_open: false,
             overflow_submenu: None,
             settings_tab: None,
+            overlay_return_settings: None,
             settings_search: None,
             open_select: None,
             ai_settings: std::collections::HashMap::new(),
@@ -1858,6 +1862,9 @@ impl Render for Workspace {
                     this.close_icon_picker(window, cx);
                 } else if this.template_picker_open() {
                     this.close_template_picker(window, cx);
+                } else if this.overlay_tab_open() {
+                    // `useMainEscapeShortcutAction` → `leaveOverlayTab`.
+                    this.leave_overlay_tab(window, cx);
                 } else if this.is_standalone() {
                     window.remove_window();
                 }

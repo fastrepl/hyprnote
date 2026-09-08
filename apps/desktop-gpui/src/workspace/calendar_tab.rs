@@ -274,6 +274,7 @@ fn format_time(instant: &str) -> Option<String> {
 
 impl Workspace {
     pub(crate) fn open_calendar(&mut self, cx: &mut Context<Self>) {
+        self.remember_overlay_origin();
         self.close_settings(cx);
         self.close_folders(cx);
         self.close_templates(cx);
@@ -557,9 +558,9 @@ impl Workspace {
                     .pl_2()
                     .child(
                         self.tracked_chrome_button("calendar-back", cx)
-                            .on_click(
-                                cx.listener(|this, _: &ClickEvent, _, cx| this.close_calendar(cx)),
-                            )
+                            .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                                this.leave_overlay_tab(window, cx)
+                            }))
                             .child(icon(
                                 "arrow-left",
                                 px(16.0),

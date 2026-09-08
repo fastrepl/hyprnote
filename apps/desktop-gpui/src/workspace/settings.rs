@@ -654,11 +654,47 @@ impl Workspace {
             )
     }
 
-    /// `leaveOverlayTab`: back to the tab that was active before.
     pub(crate) fn close_settings(&mut self, cx: &mut Context<Self>) {
         if self.settings_tab.take().is_some() {
             cx.notify();
         }
+    }
+
+    /// An overlay tab (`RETURN_ORIGIN_TAB_TYPES`) is the active surface.
+    pub(crate) fn overlay_tab_open(&self) -> bool {
+        self.settings_open()
+            || self.folders_open()
+            || self.templates_open()
+            || self.calendar_open()
+            || self.contacts_open()
+            || self.automations_open()
+    }
+
+    /// `openNew` of an overlay tab records the active tab as its return
+    /// origin: the settings tab when the settings nav opened it, else the
+    /// note underneath.
+    pub(crate) fn remember_overlay_origin(&mut self) {
+        self.overlay_return_settings = self.settings_tab;
+    }
+
+    /// `leaveOverlayTab`: Escape and the sidebar's back arrow return to the
+    /// tab the overlay was opened from — the settings tab for a tab opened
+    /// from the settings nav, otherwise the note underneath.
+    pub(crate) fn leave_overlay_tab(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if self.settings_open() {
+            self.close_settings(cx);
+            return;
+        }
+        let return_to = self.overlay_return_settings.take();
+        self.close_folders(cx);
+        self.close_templates(cx);
+        self.close_calendar(cx);
+        self.close_contacts(cx);
+        self.close_automations(cx);
+        if let Some(tab) = return_to {
+            self.open_settings(tab, window, cx);
+        }
+        cx.notify();
     }
 
     pub(crate) fn settings_open(&self) -> bool {
@@ -742,7 +778,9 @@ impl Workspace {
             .pl_2()
             .child(
                 self.tracked_chrome_button("settings-back", cx)
-                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| this.close_settings(cx)))
+                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                        this.leave_overlay_tab(window, cx)
+                    }))
                     .child(icon(
                         "arrow-left",
                         px(16.0),

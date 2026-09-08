@@ -56,6 +56,7 @@ impl Workspace {
 
     /// `openNew({ type: "folders" })`
     pub(crate) fn open_folders(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.remember_overlay_origin();
         self.close_settings(cx);
         self.close_templates(cx);
         self.close_calendar(cx);
@@ -660,8 +661,8 @@ impl Workspace {
                             .gap_1()
                             .child(
                                 self.tracked_chrome_button("folders-back", cx)
-                                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
-                                        this.close_folders(cx);
+                                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                                        this.leave_overlay_tab(window, cx);
                                     }))
                                     .child(icon(
                                         "arrow-left",

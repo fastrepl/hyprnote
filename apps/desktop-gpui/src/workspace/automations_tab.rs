@@ -126,6 +126,7 @@ const STEP_CONNECT_IDS: [&str; 12] = [
 impl Workspace {
     /// `openNew({ type: "automations" })`
     pub(crate) fn open_automations(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.remember_overlay_origin();
         self.close_settings(cx);
         self.close_folders(cx);
         self.close_templates(cx);
@@ -827,8 +828,8 @@ impl Workspace {
                             .gap_1()
                             .child(
                                 self.tracked_chrome_button("automations-back", cx)
-                                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
-                                        this.close_automations(cx);
+                                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                                        this.leave_overlay_tab(window, cx);
                                     }))
                                     .child(icon(
                                         "arrow-left",

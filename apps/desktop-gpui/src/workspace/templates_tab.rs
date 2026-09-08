@@ -73,6 +73,7 @@ impl Workspace {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        self.remember_overlay_origin();
         self.close_settings(cx);
         self.close_folders(cx);
         self.close_calendar(cx);
@@ -827,8 +828,8 @@ impl Workspace {
                             .gap_1()
                             .child(
                                 self.tracked_chrome_button("templates-back", cx)
-                                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
-                                        this.close_templates(cx);
+                                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                                        this.leave_overlay_tab(window, cx);
                                     }))
                                     .child(icon(
                                         "arrow-left",

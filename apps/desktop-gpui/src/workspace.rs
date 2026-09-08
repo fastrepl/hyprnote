@@ -1730,12 +1730,17 @@ impl Render for Workspace {
         // the bare root, past this element's bindings — the handle may still
         // be alive while its element is gone — so the workspace takes the
         // focus back whenever the focused handle is not under this element.
-        if window
-            .focused(cx)
-            .is_none_or(|focused| !self.focus_handle.contains(&focused, window))
-        {
-            window.focus(&self.focus_handle);
-        }
+        // Checked once this frame is drawn: during `render` the tree is the
+        // previous frame's, which would unfocus a field mounted this frame.
+        let root_focus = self.focus_handle.clone();
+        window.on_next_frame(move |window, cx| {
+            if window
+                .focused(cx)
+                .is_none_or(|focused| !root_focus.contains(&focused, window))
+            {
+                window.focus(&root_focus);
+            }
+        });
         let resolved = Theme::resolve(&self.theme_preference, window.appearance());
         if resolved != self.theme {
             self.theme = resolved;

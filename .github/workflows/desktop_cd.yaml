@@ -433,13 +433,14 @@ jobs:
       - run: |
           sudo apt-get -o Acquire::Retries=5 install -y libxkbcommon-dev libxkbcommon-x11-dev
       - run: |
-          TAURI_ENV_TARGET_TRIPLE=${{ matrix.target }} cargo xtask prepare-binaries
+          cargo xtask prepare-binaries
           ./scripts/sidecar.sh "./apps/desktop/$TAURI_CONF_PATH" "binaries/char-chrome-native-host"
           ./scripts/sidecar.sh "./apps/desktop/$TAURI_CONF_PATH" "resources/cli/anarlog-cli"
           ./scripts/sidecar.sh "./apps/desktop/$TAURI_CONF_PATH" "binaries/anarlog-gpui"
         env:
           APP_VERSION: ${{ needs.compute-version.outputs.version }}
           ANARLOG_GPUI_SIDECAR: "1"
+          TAURI_ENV_TARGET_TRIPLE: ${{ matrix.target }}
       - run: |
           BUILD_ARGS=(
             --ci

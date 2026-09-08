@@ -21,4 +21,5 @@ jobs:
           scripts/verify-linux-audio-qa-run.test.mjs
           scripts/verify-linux-audio-qa-evidence.test.mjs
           scripts/update-apt-repository.test.mjs
+          scripts/verify-apt-repository.test.mjs
           scripts/update-aur-pkgbuild.test.mjs

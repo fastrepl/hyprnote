@@ -212,12 +212,15 @@ GitHub against the provenance manifest.
 
 The publish workflow calls `desktop_store_publish.yaml` with
 `submit_to_stores=true` for Microsoft Store certification. Inspect that job and
-the resulting submission separately from GitHub/CrabNebula publication. Merge
-the generated Linux package metadata PR and verify the signed APT index is live
-on `anarlog.so`. Check whether Netlify deployed that commit automatically before
-dispatching `web_cd.yaml`. Arch `PKGBUILD` and `.SRCINFO` updates ship in this
-repository; there is no AUR publication workflow. Check the AUR registry before
-claiming an AUR release. Creating the metadata PR alone is not publication.
+the resulting submission separately from GitHub/CrabNebula publication. For
+Linux, the workflow waits for the generated package metadata PR's checks,
+merges that exact PR head, calls `web_cd.yaml` with the merged commit, and
+verifies the live signed APT metadata for both architectures on `anarlog.so`.
+Require `linux-package-bump`, `linux-apt-deploy`, and `linux-apt-verify` to succeed;
+a metadata PR or successful merge alone is not APT publication. Failed checks
+leave the PR open and fail the release workflow for follow-up. Arch `PKGBUILD`
+and `.SRCINFO` updates ship in this repository; there is no AUR publication
+workflow. Check the AUR registry before claiming an AUR release.
 
 ## Mobile Store Distribution
 

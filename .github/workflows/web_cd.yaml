@@ -1,14 +1,30 @@
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
+    secrets:
+      NETLIFY_AUTH_TOKEN:
+        required: true
+      NETLIFY_SITE_ID:
+        required: true
+      INFISICAL_PROJECT_ID:
+        required: true
+      INFISICAL_SENTRY_TOKEN:
+        required: true
 
 jobs:
   compute-version:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      sha: ${{ steps.version.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.sha || github.sha }}
           fetch-depth: 0
           fetch-tags: true
       - run: git fetch --tags --force
@@ -17,6 +33,7 @@ jobs:
         run: |
           VERSION=$(doxxer --config doxxer.web.toml next patch)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "Computed version: $VERSION"
 
   deploy:
@@ -26,6 +43,8 @@ jobs:
     concurrency: web-netlify-deploy
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.compute-version.outputs.sha }}
       - uses: ./.github/actions/pnpm_install
       - uses: denoland/setup-deno@v2
       - name: Check Netlify deployment credentials
@@ -83,8 +102,10 @@ jobs:
             --no-build \
             --site "$NETLIFY_SITE_ID" \
             --filter @anlg/web \
-            --message "web v${{ needs.compute-version.outputs.version }} ($GITHUB_SHA)"
+            --message "web v$WEB_VERSION ($DEPLOY_SHA)"
         env:
+          WEB_VERSION: ${{ needs.compute-version.outputs.version }}
+          DEPLOY_SHA: ${{ needs.compute-version.outputs.sha }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
@@ -95,8 +116,11 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.compute-version.outputs.sha }}
       - uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_sha: ${{ needs.compute-version.outputs.sha }}
           custom_tag: web_v${{ needs.compute-version.outputs.version }}
           tag_prefix: ""

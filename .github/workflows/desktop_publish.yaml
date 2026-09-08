@@ -584,6 +584,9 @@ jobs:
     needs: [parse, gh-release]
     if: ${{ !cancelled() && needs.parse.outputs.include_linux == 'true' && needs.gh-release.result == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      sha: ${{ steps.merge.outputs.sha || steps.package-pr.outputs.sha }}
     permissions:
       contents: write
       pull-requests: write
@@ -591,12 +594,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
-      - name: Point anarlog-bin at the published release
-        env:
+          persist-credentials: false
+      - env:
           VERSION: ${{ needs.parse.outputs.version }}
         run: node scripts/update-aur-pkgbuild.mjs --version "$VERSION"
       - id: linux-release
-        name: Download published Debian packages
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.parse.outputs.version }}
@@ -609,8 +611,7 @@ jobs:
             --json publishedAt \
             --jq .publishedAt)
           echo "published_at=$published_at" >> "$GITHUB_OUTPUT"
-      - name: Build and sign the APT repository
-        env:
+      - env:
           APT_REPOSITORY_GPG_FINGERPRINT: ${{ vars.APT_REPOSITORY_GPG_FINGERPRINT }}
           APT_REPOSITORY_GPG_PRIVATE_KEY: ${{ secrets.APT_REPOSITORY_GPG_PRIVATE_KEY }}
           PUBLISHED_AT: ${{ steps.linux-release.outputs.published_at }}
@@ -636,60 +637,125 @@ jobs:
             exit 1
           fi
 
+          release_dir="apps/web/public/apt/dists/stable"
+          cp -R "$release_dir" "$RUNNER_TEMP/previous-apt"
           node scripts/update-apt-repository.mjs \
             --version "$VERSION" \
             --amd64 "$RUNNER_TEMP/apt-packages/anarlog-linux-x86_64.deb" \
             --arm64 "$RUNNER_TEMP/apt-packages/anarlog-linux-aarch64.deb" \
             --date "$PUBLISHED_AT"
 
-          release_dir="apps/web/public/apt/dists/stable"
-          gpg --batch --yes --armor \
-            --local-user "$APT_REPOSITORY_GPG_FINGERPRINT" \
-            --output "$release_dir/InRelease" \
-            --clearsign "$release_dir/Release"
-          gpg --batch --yes --armor --detach-sign \
-            --local-user "$APT_REPOSITORY_GPG_FINGERPRINT" \
-            --output "$release_dir/Release.gpg" \
-            "$release_dir/Release"
+          if cmp -s "$release_dir/Release" "$RUNNER_TEMP/previous-apt/Release"; then
+            cp "$RUNNER_TEMP/previous-apt/"{InRelease,Release.gpg} "$release_dir/"
+          else
+            gpg --batch --yes --armor \
+              --local-user "$APT_REPOSITORY_GPG_FINGERPRINT" \
+              --output "$release_dir/InRelease" \
+              --clearsign "$release_dir/Release"
+            gpg --batch --yes --armor --detach-sign \
+              --local-user "$APT_REPOSITORY_GPG_FINGERPRINT" \
+              --output "$release_dir/Release.gpg" \
+              "$release_dir/Release"
+          fi
           gpg --batch --verify "$release_dir/InRelease"
           gpg --batch --verify "$release_dir/Release.gpg" "$release_dir/Release"
-      - name: Open the Linux package bump pull request
+      - id: package-pr
         env:
           GH_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
           VERSION: ${{ needs.parse.outputs.version }}
         run: |
           if git diff --quiet -- packaging/aur/anarlog-bin apps/web/public/apt; then
             echo "Linux package metadata already tracks $VERSION"
+            echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           BRANCH="chore/linux-packages-$VERSION"
+          gh auth setup-git
+          remote_sha=$(git ls-remote --heads origin "$BRANCH" | cut -f 1)
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
           git add packaging/aur/anarlog-bin apps/web/public/apt
           git commit -m "chore(packaging): publish Linux packages for $VERSION" \
             -m "Refresh the AUR package and signed APT repository metadata for the desktop_v$VERSION release."
-          git push --force origin "$BRANCH"
+          head_sha=$(git rev-parse HEAD)
+          git push --force-with-lease="refs/heads/$BRANCH:$remote_sha" origin "$BRANCH"
 
-          if gh pr view "$BRANCH" --json number >/dev/null 2>&1; then
-            echo "Pull request for $BRANCH already open"
-            exit 0
+          pr_number=$(gh pr list --state open --head "$BRANCH" --base main --json number --jq '.[0].number // empty')
+          if [[ -z "$pr_number" ]]; then
+            printf '%s\n' \
+              "Refresh the AUR package and signed APT metadata for desktop_v$VERSION." \
+              "" \
+              "The desktop publish workflow verified the APT signatures and will merge this PR after checks pass, deploy the metadata, and verify the live APT repository." \
+              > "$RUNNER_TEMP/linux-package-pr.md"
+
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "chore(packaging): publish Linux packages for $VERSION" \
+              --body-file "$RUNNER_TEMP/linux-package-pr.md"
+            pr_number=$(gh pr view "$BRANCH" --json number --jq .number)
           fi
 
-          BODY=$(printf '%s\n' \
-            "## Summary" \
-            "" \
-            "**Problem:** The desktop_v$VERSION release changed Linux artifacts, leaving the AUR package and signed APT repository metadata on the previous version." \
-            "" \
-            "**Fix:** Refresh the AUR package and signed APT repository metadata so Linux package managers install the current desktop_v$VERSION release." \
-            "" \
-            "## Verification" \
-            "" \
-            "- Generated and verified the signed APT repository metadata during the desktop publish run.")
+          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+      - id: merge
+        if: ${{ steps.package-pr.outputs.number != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.package-pr.outputs.number }}
+          PR_HEAD_SHA: ${{ steps.package-pr.outputs.head_sha }}
+        run: |
+          deadline=$((SECONDS + 300))
+          while true; do
+            checks=$(gh pr view "$PR_NUMBER" --json statusCheckRollup \
+              --jq '[.statusCheckRollup[] | .name // .context]')
+            if jq -e '["ci", "fmt", "lint", "zizmor"] - . | length == 0' <<< "$checks" > /dev/null; then
+              break
+            fi
+            if (( SECONDS >= deadline )); then
+              echo "::error::CI checks did not register for Linux package PR #$PR_NUMBER"
+              exit 1
+            fi
+            sleep 10
+          done
+          gh pr checks "$PR_NUMBER" --watch --fail-fast --interval 15
+          gh pr merge "$PR_NUMBER" --squash --match-head-commit "$PR_HEAD_SHA"
+          merge_sha=$(gh pr view "$PR_NUMBER" --json state,mergeCommit \
+            --jq 'select(.state == "MERGED") | .mergeCommit.oid')
+          if [[ ! "$merge_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Linux package PR #$PR_NUMBER did not merge"
+            exit 1
+          fi
+          echo "sha=$merge_sha" >> "$GITHUB_OUTPUT"
 
-          gh pr create \
-            --base main \
-            --head "$BRANCH" \
-            --title "chore(packaging): publish Linux packages for $VERSION" \
-            --body "$BODY"
+  linux-apt-deploy:
+    needs: linux-package-bump
+    permissions:
+      contents: write
+    uses: $/.github/workflows/web_cd.yaml
+    with:
+      sha: ${{ needs.linux-package-bump.outputs.sha }}
+    secrets:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+      INFISICAL_SENTRY_TOKEN: ${{ secrets.INFISICAL_SENTRY_TOKEN }}
+
+  linux-apt-verify:
+    needs: [parse, linux-package-bump, linux-apt-deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ needs.linux-package-bump.outputs.sha }}
+          persist-credentials: false
+      - env:
+          VERSION: ${{ needs.parse.outputs.version }}
+        run: |
+          node scripts/verify-apt-repository.mjs --version "$VERSION"
+          echo "Signed APT repository for $VERSION is live at https://anarlog.so/apt/ (amd64 and arm64)." >> "$GITHUB_STEP_SUMMARY"

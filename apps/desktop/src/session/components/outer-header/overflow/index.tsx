@@ -26,7 +26,6 @@ import {
   DropdownMenuTrigger,
 } from "@anlg/ui/components/ui/dropdown-menu";
 
-import { FolderPickerSubmenu } from "../../folder-picker";
 import { MetadataPanelContent } from "../metadata";
 import { DeleteNote } from "./delete";
 import { ExportModal } from "./export-modal";
@@ -139,10 +138,6 @@ export function OverflowButton({
         </DropdownMenuTrigger>
         <DropdownMenuContent variant="app" align="end" className="w-56">
           <AppFloatingPanel className={appFloatingMenuPanelClassName}>
-            <FolderPickerSubmenu
-              sessionId={sessionId}
-              onClose={() => setOpen(false)}
-            />
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className="cursor-pointer">
                 <CalendarBlank />

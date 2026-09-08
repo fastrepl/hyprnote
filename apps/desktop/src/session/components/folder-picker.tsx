@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo, useState } from "react";
 
-import { CaretRight, Check, Plus } from "@anlg/ui/components/icons";
+import { CaretRight, Check, Folder, Plus } from "@anlg/ui/components/icons";
 import {
   Command,
   CommandEmpty,
@@ -10,12 +10,6 @@ import {
   CommandItem,
   CommandList,
 } from "@anlg/ui/components/ui/command";
-import {
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
 import {
   AppFloatingPanel,
   Popover,
@@ -83,10 +77,14 @@ export function FolderPicker({
             open && "bg-accent text-foreground",
           ])}
         >
-          <TemplateIconGlyph
-            icon={resolvedFolderIcon(currentPath ?? "", folderIcons)}
-            className="size-4 shrink-0"
-          />
+          {currentPath ? (
+            <TemplateIconGlyph
+              icon={resolvedFolderIcon(currentPath, folderIcons)}
+              className="size-4 shrink-0"
+            />
+          ) : (
+            <Folder className="size-4 shrink-0" />
+          )}
           {currentPath ? (
             <span className="min-w-0 truncate text-xs text-neutral-600 @max-[480px]:sr-only dark:text-neutral-300">
               {currentPath}
@@ -105,49 +103,6 @@ export function FolderPicker({
         />
       </PopoverContent>
     </Popover>
-  );
-}
-
-export function FolderPickerSubmenu({
-  sessionId,
-  onClose,
-}: {
-  sessionId: string;
-  onClose: () => void;
-}) {
-  const { t } = useLingui();
-  const [open, setOpen] = useState(false);
-  const currentPath = normalizeFolderPath(
-    useSession(sessionId)?.folder_id ?? "",
-  );
-  const folderIcons = useFolderIcons();
-
-  return (
-    <DropdownMenuSub open={open} onOpenChange={setOpen}>
-      <DropdownMenuSubTrigger
-        aria-label={currentPath ? t`Folder: ${currentPath}` : t`Select folder`}
-        className="cursor-pointer"
-      >
-        <TemplateIconGlyph
-          icon={resolvedFolderIcon(currentPath ?? "", folderIcons)}
-          className="size-4 opacity-70"
-        />
-        <span className="flex-1">{t`Folder`}</span>
-        {currentPath ? (
-          <span className="text-muted-foreground max-w-24 truncate">
-            {currentPath}
-          </span>
-        ) : null}
-      </DropdownMenuSubTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuSubContent
-          variant="app"
-          className="w-56 overflow-hidden pb-0"
-        >
-          <FolderPickerContent sessionId={sessionId} onClose={onClose} />
-        </DropdownMenuSubContent>
-      </DropdownMenuPortal>
-    </DropdownMenuSub>
   );
 }
 

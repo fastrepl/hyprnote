@@ -128,14 +128,6 @@ vi.mock("../metadata", () => ({
   ),
 }));
 
-vi.mock("../../folder-picker", () => ({
-  FolderPickerSubmenu: ({ sessionId }: { sessionId: string }) => (
-    <button type="button" aria-label="Select folder">
-      Folder {sessionId}
-    </button>
-  ),
-}));
-
 vi.mock("~/meeting-float/host", () => ({
   openFloatingMeetingPanel: vi.fn(),
 }));
@@ -355,7 +347,7 @@ describe("OverflowButton", () => {
     );
   });
 
-  it("nests folder selection in the overflow menu", () => {
+  it("keeps folder selection out of the overflow menu", () => {
     render(
       <OverflowButton
         sessionId="session-1"
@@ -363,9 +355,8 @@ describe("OverflowButton", () => {
       />,
     );
 
-    expect(
-      screen.getByRole("button", { name: "Select folder" }).textContent,
-    ).toContain("session-1");
+    expect(screen.queryByRole("combobox", { name: /folder/i })).toBeNull();
+    expect(screen.queryByText("Folder")).toBeNull();
   });
 
   it("keeps the overflow trigger out of the header drag region", () => {

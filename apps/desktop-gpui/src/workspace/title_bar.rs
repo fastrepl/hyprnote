@@ -17,6 +17,13 @@ pub fn uses_windows_style_title_bar() -> bool {
     cfg!(any(target_os = "windows", target_os = "linux"))
 }
 
+/// `usesTitleBarSidebarActions`: on Windows the sidebar's Search / New note /
+/// Filter buttons sit in the title bar beside the toggle while the sidebar is
+/// expanded (#7395); Linux keeps them in the sidebar's chrome row.
+pub fn uses_title_bar_sidebar_actions() -> bool {
+    cfg!(target_os = "windows")
+}
+
 const TITLE_BAR_HEIGHT: f32 = 40.0;
 /// `pl-2` + the `size-7` toggle + `ml-2` on the menubar.
 const MENUBAR_LEFT: f32 = 8.0 + 28.0 + 8.0;
@@ -180,6 +187,12 @@ impl Workspace {
                                 px(16.0),
                                 self.chrome_icon_color("toggle-sidebar"),
                             )),
+                    )
+                    .when(
+                        uses_title_bar_sidebar_actions()
+                            && self.shows_sidebar_timeline_chrome()
+                            && self.sidebar_expanded,
+                        |row| row.child(self.render_sidebar_note_actions(cx)),
                     )
                     .child(
                         div().ml_2().flex().h_full().items_center().children(

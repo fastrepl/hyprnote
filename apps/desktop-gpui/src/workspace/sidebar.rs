@@ -24,9 +24,10 @@ impl Workspace {
     pub(super) fn render_sidebar(&mut self, window: &mut Window, cx: &mut Context<Self>) -> Div {
         let theme = self.theme;
 
-        // `flex h-9 shrink-0 items-start pt-[9px] pr-1 pl-2`; on Windows/Linux the
-        // sidebar toggle lives in the title bar and a `size-7` spacer keeps the
-        // row aligned.
+        // `SidebarTimelineChrome`: `flex h-9 shrink-0 items-start pt-[9px] pr-1
+        // pl-2` with the sidebar toggle where the title bar does not hold it
+        // (macOS) and the note actions where the title bar does not hold them
+        // (#7395: Windows shows them beside the toggle and drops this row).
         let header = div()
             .flex()
             .h(px(36.0))
@@ -39,49 +40,20 @@ impl Workspace {
                 div()
                     .flex()
                     .items_center()
-                    .child(div().size(px(28.0)).flex_shrink_0())
-                    .child(
-                        self.tracked_chrome_button("search", cx)
-                            .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
-                                this.open_note_dialog(window, cx)
-                            }))
-                            .child(icon("search", px(15.0), self.chrome_icon_color("search"))),
-                    )
-                    .child(
-                        self.tracked_chrome_button("new-note", cx)
-                            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| this.new_note(cx)))
-                            .child(icon(
-                                "note-edit",
-                                px(15.0),
-                                self.chrome_icon_color("new-note"),
-                            )),
-                    )
-                    .child(
-                        // `!isDefaultView && "bg-accent text-foreground"`
-                        self.tracked_chrome_button("sort-notes", cx)
-                            .when(
-                                !self.is_default_notes_view() && self.hovered != Some("sort-notes"),
-                                |button| {
-                                    button.child(crate::squircle::squircle(
-                                        crate::squircle::CONTROL_RADIUS,
-                                        Some(theme.accent),
-                                        None,
-                                    ))
-                                },
-                            )
-                            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
-                                this.toggle_filter_menu(cx)
-                            }))
-                            .child(icon(
-                                "filter",
-                                px(15.0),
-                                if self.is_default_notes_view() {
-                                    self.chrome_icon_color("sort-notes")
-                                } else {
-                                    theme.foreground
-                                },
-                            )),
-                    ),
+                    .when(!super::title_bar::uses_windows_style_title_bar(), |row| {
+                        row.child(
+                            self.tracked_chrome_button("toggle-sidebar", cx)
+                                .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                                    this.toggle_sidebar(cx);
+                                }))
+                                .child(icon(
+                                    "sidebar-left",
+                                    px(16.0),
+                                    self.chrome_icon_color("toggle-sidebar"),
+                                )),
+                        )
+                    })
+                    .child(self.render_sidebar_note_actions(cx)),
             );
 
         if matches!(self.sessions, Sessions::Ready(_)) {
@@ -221,8 +193,18 @@ impl Workspace {
             .flex_shrink_0()
             .gap_1()
             .overflow_hidden()
-            .child(header)
+            // Windows keeps the note actions in the title bar and no chrome row.
+            .when(
+                !super::title_bar::uses_title_bar_sidebar_actions(),
+                |column| column.child(header),
+            )
             .child(body)
+    }
+
+    /// `showSidebarTimelineChrome`: the timeline sidebar, not a custom
+    /// sidebar or the onboarding.
+    pub(super) fn shows_sidebar_timeline_chrome(&self) -> bool {
+        !self.custom_sidebar_open() && !self.onboarding_open()
     }
 
     /// Where the current-time line is relative to the list viewport
@@ -547,6 +529,61 @@ impl Workspace {
             }
             None => div().into_any_element(),
         }
+    }
+
+    /// `SidebarNoteActions`: Search, New note and the notes filter menu.
+    pub(super) fn render_sidebar_note_actions(&self, cx: &Context<Self>) -> Div {
+        let theme = self.theme;
+        div()
+            .flex()
+            .items_center()
+            .child(
+                self.tracked_chrome_button("search", cx)
+                    .on_click(cx.listener(|this, _: &ClickEvent, window, cx| {
+                        this.open_note_dialog(window, cx)
+                    }))
+                    .child(icon("search", px(15.0), self.chrome_icon_color("search"))),
+            )
+            .child(
+                self.tracked_chrome_button("new-note", cx)
+                    .on_click(cx.listener(|this, _: &ClickEvent, _, cx| this.new_note(cx)))
+                    .child(icon(
+                        "note-edit",
+                        px(15.0),
+                        self.chrome_icon_color("new-note"),
+                    )),
+            )
+            .child(
+                // `!isDefaultView && "bg-accent text-foreground"`
+                self.tracked_chrome_button("sort-notes", cx)
+                    .when(
+                        !self.is_default_notes_view() && self.hovered != Some("sort-notes"),
+                        |button| {
+                            button.child(crate::squircle::squircle(
+                                crate::squircle::CONTROL_RADIUS,
+                                Some(theme.accent),
+                                None,
+                            ))
+                        },
+                    )
+                    .on_click(
+                        cx.listener(|this, _: &ClickEvent, _, cx| this.toggle_filter_menu(cx)),
+                    )
+                    .child(icon(
+                        // `weight={isDefaultView ? "regular" : "bold"}`
+                        if self.is_default_notes_view() {
+                            "filter"
+                        } else {
+                            "filter-bold"
+                        },
+                        px(15.0),
+                        if self.is_default_notes_view() {
+                            self.chrome_icon_color("sort-notes")
+                        } else {
+                            theme.foreground
+                        },
+                    )),
+            )
     }
 
     /// `bg-background pt-0 pr-1 pb-1 pl-3` with a `text-base font-bold` label.

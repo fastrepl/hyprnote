@@ -48,8 +48,14 @@ existing job leases and delivery idempotency remain in place.
    secret, so there is no dependency on a provider-assigned project hostname.
 4. Disable the old Netlify scheduled jobs, then set `CRON_JOBS_ENABLED=true` in
    Vercel and redeploy. Verify each job before retiring the old web deployment.
-   Keep the old deployment and DNS values available for rollback; if rolling
-   back, disable Vercel jobs before re-enabling the old scheduler.
+   After retirement, use a previous Vercel deployment for web rollback.
+
+The old Netlify `anarlog` project was deleted on 2026-09-08 after its final
+`hyprnote.com` redirect dependency moved to Vercel. The apex uses the existing
+host-specific routes; `www.hyprnote.com` redirects to the apex. Both use the
+Vercel CNAME target in Cloudflare with proxying disabled. The desktop download
+and update aliases remain on Vercel for installed-client compatibility.
+Netlify is no longer a deployment, scheduler, or rollback target for Anarlog.
 
 Local development still uses `pnpm exec turbo dev:web`. Local image requests
 redirect to their original assets; Vercel performs width-based image

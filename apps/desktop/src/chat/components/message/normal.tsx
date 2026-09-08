@@ -6,6 +6,7 @@ import {
   ArrowCounterClockwise,
   Brain,
   Check,
+  CircleNotch,
   Copy,
 } from "@anlg/ui/components/icons";
 import { streamdownIcons } from "@anlg/ui/components/streamdown-icons";
@@ -37,6 +38,12 @@ export function NormalMessage({
   const { t } = useLingui();
   const isUser = message.role === "user";
   const activityParts = isUser ? [] : message.parts.filter(isActivityPart);
+  const activityRunning = activityParts.some((part) =>
+    part.type === "reasoning"
+      ? part.state === "streaming"
+      : "state" in part &&
+        (part.state === "input-streaming" || part.state === "input-available"),
+  );
   const visibleParts = isUser
     ? message.parts
     : message.parts.filter((part) => !isActivityPart(part));
@@ -83,7 +90,13 @@ export function NormalMessage({
         <MessageBubble variant={isUser ? "user" : "assistant"}>
           {activityParts.length > 0 && (
             <Disclosure
-              icon={<Brain className="h-3 w-3" />}
+              icon={
+                activityRunning ? (
+                  <CircleNotch className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Brain className="h-3 w-3" />
+                )
+              }
               title={t`Activity`}
             >
               {activityParts.map((part, i) => (

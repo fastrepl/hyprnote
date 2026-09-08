@@ -12,6 +12,7 @@ import { ToastNotifications } from "~/sidebar/toast";
 import {
   hasCustomSidebarTab,
   hasLeftSurfaceCustomSidebarTab,
+  useCustomSidebarEffect,
 } from "~/sidebar/use-custom-sidebar";
 import { useTabs } from "~/store/zustand/tabs";
 
@@ -22,6 +23,9 @@ export function ClassicMainShellFrame() {
   const isOnboarding = currentTab?.type === "onboarding";
   const isChangelog = currentTab?.type === "changelog";
   const hasCustomSidebar = hasCustomSidebarTab(currentTab);
+  // Chat session changes remount the body; sidebar ownership must survive them.
+  useCustomSidebarEffect(hasCustomSidebar, leftsidebar);
+
   const hasLeftSurfaceCustomSidebar =
     hasLeftSurfaceCustomSidebarTab(currentTab);
   const showSidebarTimelineChrome = !hasCustomSidebar && !isOnboarding;

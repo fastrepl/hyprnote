@@ -1,20 +1,11 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const hoisted = vi.hoisted(() => ({
-  setExpanded: vi.fn(),
-  setLocked: vi.fn(),
-}));
-
-const { setExpanded, setLocked } = hoisted;
-
 let mockCurrentTab: {
   type: "settings" | "empty" | "onboarding" | "calendar" | "automations";
 } | null = { type: "empty" };
 const mockLeftSidebar = {
   expanded: false,
-  setExpanded,
-  setLocked,
 };
 
 vi.mock("~/contexts/shell", () => ({
@@ -40,47 +31,6 @@ describe("ClassicMainSidebar", () => {
     cleanup();
     mockCurrentTab = { type: "empty" };
     mockLeftSidebar.expanded = false;
-    setExpanded.mockClear();
-    setLocked.mockClear();
-  });
-
-  it("forces custom-sidebar tabs open and restores the previous sidebar state", async () => {
-    mockCurrentTab = { type: "settings" };
-
-    const { rerender } = render(<ClassicMainSidebar />);
-
-    expect(setExpanded).toHaveBeenCalledWith(true);
-    expect(setLocked).toHaveBeenCalledWith(true);
-
-    mockCurrentTab = { type: "empty" };
-
-    rerender(<ClassicMainSidebar />);
-
-    expect(setLocked).toHaveBeenLastCalledWith(false);
-    expect(setExpanded).toHaveBeenLastCalledWith(false);
-  });
-
-  it("unlocks the custom sidebar when unmounted while active", () => {
-    mockCurrentTab = { type: "calendar" };
-
-    const { unmount } = render(<ClassicMainSidebar />);
-
-    expect(setExpanded).toHaveBeenCalledWith(true);
-    expect(setLocked).toHaveBeenCalledWith(true);
-
-    unmount();
-
-    expect(setLocked).toHaveBeenLastCalledWith(false);
-    expect(setExpanded).toHaveBeenLastCalledWith(false);
-  });
-
-  it("forces the Automations navigator open", () => {
-    mockCurrentTab = { type: "automations" };
-
-    render(<ClassicMainSidebar />);
-
-    expect(setExpanded).toHaveBeenCalledWith(true);
-    expect(setLocked).toHaveBeenCalledWith(true);
   });
 
   it("renders the default timeline sidebar when expanded", () => {

@@ -6,6 +6,8 @@ const mocks = vi.hoisted(() => ({
   platform: "macos" as "linux" | "macos" | "windows",
   leftsidebar: {
     expanded: true,
+    setExpanded: vi.fn(),
+    setLocked: vi.fn(),
   },
 }));
 
@@ -84,6 +86,42 @@ describe("ClassicMainShellFrame", () => {
     mocks.currentTab = { type: "empty" };
     mocks.platform = "macos";
     mocks.leftsidebar.expanded = true;
+    mocks.leftsidebar.setExpanded.mockClear();
+    mocks.leftsidebar.setLocked.mockClear();
+  });
+
+  it.each([
+    "settings",
+    "calendar",
+    "contacts",
+    "templates",
+    "automations",
+    "folders",
+  ])("opens the %s sidebar and restores its previous state on exit", (type) => {
+    mocks.currentTab = { type };
+    mocks.leftsidebar.expanded = false;
+
+    const { rerender } = render(<ClassicMainShellFrame />);
+
+    expect(mocks.leftsidebar.setExpanded).toHaveBeenCalledWith(true);
+    expect(mocks.leftsidebar.setLocked).toHaveBeenCalledWith(true);
+
+    mocks.currentTab = { type: "empty" };
+    rerender(<ClassicMainShellFrame />);
+
+    expect(mocks.leftsidebar.setExpanded).toHaveBeenLastCalledWith(false);
+    expect(mocks.leftsidebar.setLocked).toHaveBeenLastCalledWith(false);
+  });
+
+  it("unlocks the custom sidebar when the shell unmounts", () => {
+    mocks.currentTab = { type: "calendar" };
+    mocks.leftsidebar.expanded = false;
+
+    const { unmount } = render(<ClassicMainShellFrame />);
+    unmount();
+
+    expect(mocks.leftsidebar.setExpanded).toHaveBeenLastCalledWith(false);
+    expect(mocks.leftsidebar.setLocked).toHaveBeenLastCalledWith(false);
   });
 
   it.each(["windows", "linux"] as const)(

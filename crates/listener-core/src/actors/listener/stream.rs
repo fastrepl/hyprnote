@@ -1,3 +1,5 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
+
 use futures_util::StreamExt;
 use owhisper_client::FinalizeHandle;
 use owhisper_interface::stream::{Extra, StreamResponse};
@@ -13,7 +15,8 @@ const MIN_ACTIVE_AUDIO_SAMPLES: usize = crate::actors::SAMPLE_RATE as usize * 5;
 const MAX_UNFINALIZED_AUDIO_SAMPLES: usize = crate::actors::SAMPLE_RATE as usize * 90;
 
 pub(super) struct StreamProgress {
-    last_response_at: std::time::Instant,
+    last_progress_at: std::time::Instant,
+    last_partials_hash: Option<u64>,
     active_samples: usize,
     unfinalized_samples: usize,
 }
@@ -21,7 +24,8 @@ pub(super) struct StreamProgress {
 impl StreamProgress {
     pub(super) fn new(now: std::time::Instant) -> Self {
         Self {
-            last_response_at: now,
+            last_progress_at: now,
+            last_partials_hash: None,
             active_samples: 0,
             unfinalized_samples: 0,
         }
@@ -31,23 +35,36 @@ impl StreamProgress {
         self.active_samples = self.active_samples.saturating_add(samples);
         self.unfinalized_samples = self.unfinalized_samples.saturating_add(samples);
         (self.active_samples >= MIN_ACTIVE_AUDIO_SAMPLES
-            && now.duration_since(self.last_response_at) >= TRANSCRIPT_PROGRESS_TIMEOUT)
+            && now.duration_since(self.last_progress_at) >= TRANSCRIPT_PROGRESS_TIMEOUT)
             || self.unfinalized_samples >= MAX_UNFINALIZED_AUDIO_SAMPLES
     }
 
-    pub(super) fn observe_response(&mut self, response: &StreamResponse, now: std::time::Instant) {
-        if let StreamResponse::TranscriptResponse {
-            channel, is_final, ..
-        } = response
-            && channel.alternatives.iter().any(|alternative| {
-                !alternative.transcript.trim().is_empty() || !alternative.words.is_empty()
-            })
+    pub(super) fn observe_delta(
+        &mut self,
+        delta: &crate::LiveTranscriptDelta,
+        now: std::time::Instant,
+    ) {
+        let finalized = delta
+            .new_words
+            .iter()
+            .any(|word| !word.text.trim().is_empty());
+        let mut partials_hash = None;
+        let mut hasher = DefaultHasher::new();
+        for word in delta
+            .partials
+            .iter()
+            .filter(|word| !word.text.trim().is_empty())
         {
-            self.last_response_at = now;
+            (&word.text, word.start_ms, word.end_ms, word.channel).hash(&mut hasher);
+            partials_hash = Some(hasher.finish());
+        }
+        if finalized || (partials_hash.is_some() && partials_hash != self.last_partials_hash) {
+            self.last_progress_at = now;
             self.active_samples = 0;
-            if *is_final {
-                self.unfinalized_samples = 0;
-            }
+        }
+        self.last_partials_hash = partials_hash;
+        if finalized {
+            self.unfinalized_samples = 0;
         }
     }
 }
@@ -390,7 +407,7 @@ mod tests {
     }
 
     fn transcript_response(is_final: bool) -> StreamResponse {
-        use owhisper_interface::stream::{Alternatives, Channel, Metadata};
+        use owhisper_interface::stream::{Alternatives, Channel, Metadata, Word};
 
         StreamResponse::TranscriptResponse {
             start: 0.0,
@@ -400,8 +417,20 @@ mod tests {
             from_finalize: false,
             channel: Channel {
                 alternatives: vec![Alternatives {
-                    transcript: "hello".to_string(),
-                    words: vec![],
+                    transcript: "hello world".to_string(),
+                    words: ["hello", "world"]
+                        .into_iter()
+                        .enumerate()
+                        .map(|(index, text)| Word {
+                            word: text.to_string(),
+                            start: index as f64 * 0.5,
+                            end: (index + 1) as f64 * 0.5,
+                            confidence: 1.0,
+                            speaker: None,
+                            punctuated_word: None,
+                            language: None,
+                        })
+                        .collect(),
                     confidence: 1.0,
                     languages: vec![],
                 }],
@@ -409,6 +438,34 @@ mod tests {
             metadata: Metadata::default(),
             channel_index: vec![0, 1],
         }
+    }
+
+    fn transcript_delta(is_final: bool, second: i64) -> crate::LiveTranscriptDelta {
+        let mut delta = crate::LiveTranscriptDelta {
+            new_words: vec![],
+            replaced_ids: vec![],
+            partials: vec![],
+        };
+        if is_final {
+            delta.new_words.push(anlg_transcript::FinalizedWord {
+                id: second.to_string(),
+                text: "hello".to_string(),
+                start_ms: second * 1000,
+                end_ms: second * 1000 + 500,
+                channel: 0,
+                speaker_index: None,
+                state: anlg_transcript::WordState::Final,
+            });
+        } else {
+            delta.partials.push(anlg_transcript::PartialWord {
+                text: "hello".to_string(),
+                start_ms: second * 1000,
+                end_ms: second * 1000 + 500,
+                channel: 0,
+                speaker_index: None,
+            });
+        }
+        delta
     }
 
     #[test]
@@ -455,17 +512,24 @@ mod tests {
         let now = Instant::now();
         let mut progress = StreamProgress::new(now);
         assert!(!progress.observe_audio(MIN_ACTIVE_AUDIO_SAMPLES, now + Duration::from_secs(29)));
-        progress.observe_response(&transcript_response(false), now + Duration::from_secs(29));
+        progress.observe_delta(&transcript_delta(false, 29), now + Duration::from_secs(29));
         assert!(!progress.observe_audio(MIN_ACTIVE_AUDIO_SAMPLES, now + Duration::from_secs(30)));
         assert!(progress.observe_audio(0, now + Duration::from_secs(59)));
     }
 
     #[test]
-    fn metadata_does_not_hide_a_stalled_transcript() {
+    fn empty_updates_do_not_hide_a_stalled_transcript() {
         let now = Instant::now();
         let mut progress = StreamProgress::new(now);
         assert!(!progress.observe_audio(MIN_ACTIVE_AUDIO_SAMPLES, now + Duration::from_secs(29)));
-        progress.observe_response(&terminal_response(), now + Duration::from_secs(29));
+        progress.observe_delta(
+            &crate::LiveTranscriptDelta {
+                new_words: vec![],
+                replaced_ids: vec![],
+                partials: vec![],
+            },
+            now + Duration::from_secs(29),
+        );
         assert!(progress.observe_audio(0, now + Duration::from_secs(30)));
     }
 
@@ -475,14 +539,53 @@ mod tests {
         let mut progress = StreamProgress::new(now);
         for second in 1..90 {
             let time = now + Duration::from_secs(second);
-            progress.observe_response(&transcript_response(false), time);
+            progress.observe_delta(&transcript_delta(false, second as i64), time);
             assert!(!progress.observe_audio(crate::actors::SAMPLE_RATE as usize, time));
         }
-        progress.observe_response(&transcript_response(false), now + Duration::from_secs(90));
+        progress.observe_delta(&transcript_delta(false, 90), now + Duration::from_secs(90));
         assert!(progress.observe_audio(
             crate::actors::SAMPLE_RATE as usize,
             now + Duration::from_secs(90)
         ));
+    }
+
+    #[test]
+    fn repeated_final_responses_do_not_hide_stalled_transcripts() {
+        let now = Instant::now();
+        let mut progress = StreamProgress::new(now);
+        let mut engine = crate::LiveTranscriptEngine::new("anarlog", &[], None);
+        let response = transcript_response(true);
+        let initial = engine
+            .process(&response)
+            .expect("initial response should produce words");
+        progress.observe_delta(&initial.transcript_delta, now);
+        for second in 1..=30 {
+            let time = now + Duration::from_secs(second);
+            assert!(
+                engine.process(&response).is_none(),
+                "duplicate provider words must not count as app progress"
+            );
+            assert_eq!(
+                progress.observe_audio(crate::actors::SAMPLE_RATE as usize, time),
+                second == 30,
+            );
+        }
+    }
+
+    #[test]
+    fn repeated_partials_do_not_hide_stalled_transcripts() {
+        let now = Instant::now();
+        let mut progress = StreamProgress::new(now);
+        let delta = transcript_delta(false, 0);
+        progress.observe_delta(&delta, now);
+        for second in 1..=30 {
+            let time = now + Duration::from_secs(second);
+            progress.observe_delta(&delta, time);
+            assert_eq!(
+                progress.observe_audio(crate::actors::SAMPLE_RATE as usize, time),
+                second == 30
+            );
+        }
     }
 
     #[test]
@@ -491,7 +594,7 @@ mod tests {
         let mut progress = StreamProgress::new(now);
         for second in 1..300 {
             let time = now + Duration::from_secs(second);
-            progress.observe_response(&transcript_response(second % 20 == 0), time);
+            progress.observe_delta(&transcript_delta(second % 20 == 0, second as i64), time);
             assert!(!progress.observe_audio(crate::actors::SAMPLE_RATE as usize, time));
         }
     }

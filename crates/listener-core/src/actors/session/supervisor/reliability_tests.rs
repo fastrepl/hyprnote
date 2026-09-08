@@ -207,9 +207,20 @@ async fn send_audio(listener: &ActorRef<ListenerMsg>) {
     );
 }
 
+#[derive(Clone, Copy)]
+enum StreamFailure {
+    Silent,
+    Unfinalized,
+    RepeatedFinal,
+}
+
 #[tokio::test]
-async fn live_words_resume_after_silent_and_partial_only_streams_without_restarting_recorder() {
-    for partial_only in [false, true] {
+async fn live_words_resume_after_stalled_streams_without_restarting_recorder() {
+    for failure in [
+        StreamFailure::Silent,
+        StreamFailure::Unfinalized,
+        StreamFailure::RepeatedFinal,
+    ] {
         let socket = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let address = socket.local_addr().unwrap();
         let server = tokio::spawn(async move {
@@ -228,10 +239,19 @@ async fn live_words_resume_after_silent_and_partial_only_streams_without_restart
                                 .await
                                 .unwrap();
                                 first_audio = false;
-                            } else if partial_only
-                                && ws.send(response("unfinished", false)).await.is_err()
-                            {
-                                break;
+                            } else {
+                                let update = match failure {
+                                    StreamFailure::Silent => None,
+                                    StreamFailure::Unfinalized => {
+                                        Some(response("unfinished", false))
+                                    }
+                                    StreamFailure::RepeatedFinal => Some(response("before", true)),
+                                };
+                                if let Some(update) = update
+                                    && ws.send(update).await.is_err()
+                                {
+                                    break;
+                                }
                             }
                         }
                         Message::Text(text) if text.contains("Finalize") => {
@@ -260,15 +280,24 @@ async fn live_words_resume_after_silent_and_partial_only_streams_without_restart
         send_audio(&listener).await;
         wait_for_word(&mut events, "before").await;
 
-        if partial_only {
-            for _ in 0..89 {
-                send_audio(&listener).await;
-                tokio::time::sleep(Duration::from_millis(5)).await;
+        match failure {
+            StreamFailure::Unfinalized => {
+                for _ in 0..89 {
+                    send_audio(&listener).await;
+                    tokio::time::sleep(Duration::from_millis(5)).await;
+                }
             }
-        } else {
-            tokio::time::sleep(Duration::from_secs(30)).await;
-            for _ in 0..4 {
-                send_audio(&listener).await;
+            StreamFailure::Silent => {
+                tokio::time::sleep(Duration::from_secs(30)).await;
+                for _ in 0..4 {
+                    send_audio(&listener).await;
+                }
+            }
+            StreamFailure::RepeatedFinal => {
+                for _ in 0..5 {
+                    send_audio(&listener).await;
+                    tokio::time::sleep(Duration::from_secs(6)).await;
+                }
             }
         }
         // The first finalized response resets the audio count for the stalled period.

@@ -3053,7 +3053,7 @@ fn plan_tiers() -> [PlanTier; 4] {
                 "Cloud Transcription",
                 "Cloud LLM",
                 "Better Speaker Identification",
-                "End-to-end encrypted Cloud Sync",
+                "End-to-end encrypted sync across 3 devices",
                 "Share individual notes",
                 "Integrations and personal automations",
                 "Folder sharing with access controls",
@@ -3069,6 +3069,7 @@ fn plan_tiers() -> [PlanTier; 4] {
             description: "A paid shared workspace with Pro for every member; each workspace has its own per-seat billing.",
             features: &[
                 "Everything in Pro for every member",
+                "Sync across 5 devices per member",
                 "Shared workspaces and notes",
                 "Members, roles, and invitations",
                 "Centralized per-seat billing",

@@ -1960,7 +1960,7 @@ impl Workspace {
         details.organization_open = !details.organization_open;
         if details.organization_open && details.organization_search.is_none() {
             let input =
-                cx.new(|cx| TextInput::new("Search or create organization", style, window, cx));
+                cx.new(|cx| TextInput::new("Search or add company", style, window, cx));
             cx.subscribe_in(
                 &input,
                 window,

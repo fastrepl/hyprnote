@@ -1275,7 +1275,11 @@ impl Workspace {
 
     /// `FolderNameDialog` and `DestructiveConfirmationDialog` on the glass
     /// overlay (`bg-black/40`, 320px `rounded-[26px] p-5` card).
-    pub(super) fn render_folder_dialogs(&self, cx: &Context<Self>) -> Option<AnyElement> {
+    pub(super) fn render_folder_dialogs(
+        &self,
+        window: &Window,
+        cx: &Context<Self>,
+    ) -> Option<AnyElement> {
         let state = self.folders.as_ref()?;
         let theme = self.theme;
         let glass_button =
@@ -1350,13 +1354,15 @@ impl Workspace {
         let content: AnyElement = if let Some(dialog) = &state.creating {
             let input = dialog.input.clone();
             let busy = dialog.busy;
+            let focused = dialog.input.read(cx).focus_handle(cx).is_focused(window);
             card(vec![
                 title("New folder").into_any_element(),
                 div()
                     .flex()
                     .flex_col()
                     .child(
-                        // `Input`: `h-9 rounded-md border px-3 md:text-sm`.
+                        // `Input`: `h-9 rounded-md border px-3 md:text-sm shadow-xs
+                        // focus-visible:ring-1`.
                         div()
                             .id("new-folder-input")
                             .flex()
@@ -1366,6 +1372,14 @@ impl Workspace {
                             .rounded_md()
                             .border_1()
                             .border_color(theme.border)
+                            .relative()
+                            // `bg-transparent` over the card: opaque here so the
+                            // shadow GPUI paints under the box stays outside it.
+                            .bg(crate::theme::glass_card_fill(theme))
+                            .shadow(crate::ui::input_shadow())
+                            .when(focused, |field| {
+                                field.child(crate::ui::input_focus_ring(theme))
+                            })
                             .px_3()
                             .tw_text_sm()
                             .cursor_text()

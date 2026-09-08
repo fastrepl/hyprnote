@@ -296,7 +296,12 @@ impl Workspace {
 
     /// `SettingsDevelopers`: the title row with the Guide button, then the
     /// CLI & MCP, Cloud API & Connectors, and Webhooks sections (`gap-8`).
-    pub(super) fn render_developers_settings(&self, title: Div, cx: &Context<Self>) -> Div {
+    pub(super) fn render_developers_settings(
+        &self,
+        title: Div,
+        window: &Window,
+        cx: &Context<Self>,
+    ) -> Div {
         let theme = self.theme;
         div()
             .flex()
@@ -327,7 +332,7 @@ impl Workspace {
             )
             .child(self.render_cli_section(cx))
             .child(self.render_cloud_api_section())
-            .child(self.render_webhooks_section(cx))
+            .child(self.render_webhooks_section(window, cx))
     }
 
     /// `Button size="sm" variant="outline"` (or `default` when `primary`):
@@ -754,19 +759,25 @@ impl Workspace {
 
     /// `WebhooksSection`: heading, the URL form, the one-time secret card,
     /// and the endpoint rows.
-    fn render_webhooks_section(&self, cx: &Context<Self>) -> Div {
+    fn render_webhooks_section(&self, window: &Window, cx: &Context<Self>) -> Div {
         let theme = self.theme;
         let Some(state) = self.developers.as_ref() else {
             return div();
         };
         let input = state.webhook_input.clone();
         let creating = state.webhook_creating;
+        let focused = state
+            .webhook_input
+            .read(cx)
+            .focus_handle(cx)
+            .is_focused(window);
         let mut body = div().child(
             div()
                 .flex()
                 .gap_2()
                 .child(
-                    // `Input className="h-8 max-w-md text-sm"`
+                    // `Input className="h-8 max-w-md text-sm"`: `shadow-xs` and
+                    // the `focus-visible:ring-1` ring.
                     div()
                         .id("webhook-url")
                         .flex()
@@ -777,6 +788,11 @@ impl Workspace {
                         .rounded_md()
                         .border_1()
                         .border_color(theme.border)
+                        .relative()
+                        .shadow(crate::ui::input_shadow())
+                        .when(focused, |field| {
+                            field.child(crate::ui::input_focus_ring(theme))
+                        })
                         .bg(theme.background)
                         .px_3()
                         .tw_text_sm()

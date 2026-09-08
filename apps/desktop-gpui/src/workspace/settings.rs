@@ -1001,7 +1001,7 @@ impl Workspace {
             SettingsTab::Intelligence => {
                 self.render_ai_settings(super::ai_settings::ProviderKind::Llm, title, window, cx)
             }
-            SettingsTab::Developers => self.render_developers_settings(title, cx),
+            SettingsTab::Developers => self.render_developers_settings(title, window, cx),
             SettingsTab::Dictionary => self.render_dictionary_settings(title, window, cx),
             // `SettingsTeam` signed out: the title and one muted line.
             SettingsTab::Team => div().flex().flex_col().gap_8().child(title).child(

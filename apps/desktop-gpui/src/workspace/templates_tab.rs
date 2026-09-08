@@ -1736,13 +1736,15 @@ impl Workspace {
                                     } else {
                                         theme.border
                                     })
+                                    // `ring-primary/20 ring-2` around the `rounded-xl` box.
                                     .when(focused, |area| {
-                                        area.shadow(vec![gpui::BoxShadow {
-                                            color: alpha(theme.primary, 0.2).into(),
-                                            offset: gpui::point(px(0.0), px(0.0)),
-                                            blur_radius: px(0.0),
-                                            spread_radius: px(2.0),
-                                        }])
+                                        area.child(crate::ui::ring(
+                                            alpha(theme.primary, 0.2),
+                                            2.0,
+                                            0.0,
+                                            1.0,
+                                            12.0,
+                                        ))
                                     })
                                     .p_3()
                                     .tw_text_sm()

@@ -48,6 +48,42 @@ pub fn spinner(id: impl Into<gpui::ElementId>, size: Pixels, color: Rgba) -> imp
     )
 }
 
+/// Tailwind's `ring-{width}` (after `ring-offset-{offset}`): a spread-only
+/// `box-shadow`, which GPUI's shadow shader paints as nothing at zero blur,
+/// so the ring is a border box floated `offset` outside the element's edge.
+/// The element must be `relative()`; GPUI positions the box against its
+/// padding box (and paints the element's own border over children), so its
+/// `border` width is stepped over; `radius` is the element's corner radius.
+pub fn ring(color: Rgba, width: f32, offset: f32, border: f32, radius: f32) -> Div {
+    let outside = width + offset;
+    let inset = outside + border;
+    div()
+        .absolute()
+        .top(px(-inset))
+        .left(px(-inset))
+        .right(px(-inset))
+        .bottom(px(-inset))
+        .rounded(px(radius + outside))
+        .border(px(width))
+        .border_color(color)
+}
+
+/// The shadcn `Input`'s `shadow-xs`.
+pub fn input_shadow() -> Vec<gpui::BoxShadow> {
+    vec![gpui::BoxShadow {
+        color: gpui::hsla(0.0, 0.0, 0.0, 0.05),
+        offset: gpui::point(px(0.0), px(1.0)),
+        blur_radius: px(2.0),
+        spread_radius: px(0.0),
+    }]
+}
+
+/// The shadcn `Input`'s `focus-visible:ring-1 ring-ring` over its
+/// `rounded-md border` box.
+pub fn input_focus_ring(theme: Theme) -> Div {
+    ring(theme.ring, 1.0, 0.0, 1.0, 6.0)
+}
+
 pub fn icon(name: &str, size: Pixels, color: Rgba) -> Svg {
     svg()
         .path(SharedString::from(format!("icons/{name}.svg")))

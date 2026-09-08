@@ -2037,7 +2037,7 @@ impl Render for Workspace {
             .children(self.render_delete_selected_dialog(cx))
             .children(self.render_open_menu(window, cx))
             .children(self.render_export_dialog(cx))
-            .children(self.render_folder_dialogs(cx))
+            .children(self.render_folder_dialogs(window, cx))
             .children(
                 self.render_recording_toast(cx)
                     .map(|toast| gpui::deferred(toast).with_priority(10)),

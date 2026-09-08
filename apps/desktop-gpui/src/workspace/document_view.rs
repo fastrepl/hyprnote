@@ -1014,20 +1014,6 @@ impl DocumentRenderer {
             .image_draft
             .filter(|(index, _)| *index == nth)
             .map(|(_, width)| width);
-        let ring = vec![
-            gpui::BoxShadow {
-                color: theme.border.into(),
-                offset: point(px(0.0), px(0.0)),
-                blur_radius: px(0.0),
-                spread_radius: px(3.0),
-            },
-            gpui::BoxShadow {
-                color: theme.card.into(),
-                offset: point(px(0.0), px(0.0)),
-                blur_radius: px(0.0),
-                spread_radius: px(2.0),
-            },
-        ];
         let handle = |left: bool, editor: Option<Entity<BodyEditor>>| {
             div()
                 .id((
@@ -1103,7 +1089,17 @@ impl DocumentRenderer {
                     })
                     .max_w_full()
                     .rounded(px(6.0))
-                    .hover(move |style| style.shadow(ring.clone()))
+                    // `hover:ring-1 ring-border ring-offset-2 ring-offset-card`.
+                    .child(
+                        crate::ui::ring(theme.card, 2.0, 0.0, 0.0, 6.0)
+                            .invisible()
+                            .group_hover("note-image", |ring| ring.visible()),
+                    )
+                    .child(
+                        crate::ui::ring(theme.border, 1.0, 2.0, 0.0, 6.0)
+                            .invisible()
+                            .group_hover("note-image", |ring| ring.visible()),
+                    )
                     .map(|frame| match source {
                         Some(source) => frame.child(
                             img(source)

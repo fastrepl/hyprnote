@@ -604,7 +604,12 @@ impl BodyEditor {
         if self.is_dirty() {
             return;
         }
-        let doc = Doc::parse(body);
+        let mut doc = Doc::parse(body);
+        // `normalizeTitleHeadingDoc` on the incoming document, so a store body
+        // the title rule already reshaped compares equal.
+        if self.enforce_title_heading {
+            doc.enforce_title_heading();
+        }
         if doc.to_json() == self.doc.to_json() {
             return;
         }
@@ -839,6 +844,29 @@ impl BodyEditor {
     /// `enforceTitleHeading`: the document keeps an h1 as its first block.
     pub fn set_enforce_title_heading(&mut self, enforce: bool) {
         self.enforce_title_heading = enforce;
+        if enforce {
+            // `normalizeTitleHeadingDoc` on the initial state.
+            self.normalize_title_heading();
+        }
+    }
+
+    /// `normalizeTitleHeadingDoc`: the document starts with an h1, with a
+    /// paragraph after a lone empty one; the layouts and caret follow.
+    fn normalize_title_heading(&mut self) {
+        if !self.enforce_title_heading {
+            return;
+        }
+        let inserted = self.doc.enforce_title_heading();
+        self.layouts = vec![None; self.doc.textblock_count()];
+        if inserted {
+            if let Some(caret) = self.caret.as_mut() {
+                caret.block += 1;
+            }
+            if let Some(anchor) = self.anchor.as_mut() {
+                anchor.block += 1;
+            }
+        }
+        self.clamp_caret();
     }
 
     fn changed(&mut self, cx: &mut Context<Self>) {

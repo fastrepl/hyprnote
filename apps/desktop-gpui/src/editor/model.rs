@@ -1082,8 +1082,20 @@ impl Doc {
                     object.insert("type".into(), Value::String("heading".into()));
                     object.insert("attrs".into(), json!({ "level": 1 }));
                 }
+                if content.len() == 1 && plain_text(&content[0]).trim().is_empty() {
+                    content.push(json!({ "type": "paragraph" }));
+                }
                 self.reindex();
                 false
+            }
+            None => {
+                // `normalizeTitleHeadingDoc` on an empty document: the title
+                // heading and a paragraph to type into.
+                let content = self.root_content_mut();
+                content.push(json!({ "type": "heading", "attrs": { "level": 1 } }));
+                content.push(json!({ "type": "paragraph" }));
+                self.reindex();
+                true
             }
             _ => {
                 self.root_content_mut()
@@ -1859,6 +1871,18 @@ mod tests {
         let before = doc.to_json();
         assert!(!doc.enforce_title_heading());
         assert_eq!(doc.to_json(), before);
+        // An empty document (a summary stored as "") gets the title heading
+        // and a paragraph, like `normalizeTitleHeadingDoc`.
+        let mut doc = Doc::parse(r#"{"type":"doc","content":[]}"#);
+        assert!(doc.enforce_title_heading());
+        assert_eq!(doc.block_type(0).as_deref(), Some("heading"));
+        assert_eq!(doc.block_type(1).as_deref(), Some("paragraph"));
+        assert_eq!(doc.textblock_count(), 2);
+        // A lone empty paragraph becomes the title with a paragraph after it.
+        let mut doc = Doc::parse(r#"{"type":"doc","content":[{"type":"paragraph"}]}"#);
+        assert!(!doc.enforce_title_heading());
+        assert_eq!(doc.block_type(0).as_deref(), Some("heading"));
+        assert_eq!(doc.textblock_count(), 2);
     }
 
     fn caret(block: usize, offset: usize) -> Caret {

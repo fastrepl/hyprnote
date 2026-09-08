@@ -16,6 +16,7 @@ pub struct Caret {
     pub offset: usize,
 }
 
+#[derive(Clone)]
 pub struct Doc {
     root: Value,
     /// Paths (indices into successive `content` arrays) of every textblock,
@@ -1310,6 +1311,88 @@ impl Doc {
         Some(Caret { block, offset: 0 })
     }
 
+    /// The innermost `listItem` / `taskItem` holding the textblock, as its
+    /// node path.
+    fn innermost_list_item(&self, block: usize) -> Option<Vec<usize>> {
+        let path = self.textblocks.get(block)?;
+        (1..path.len()).rev().find_map(|depth| {
+            let item_path = &path[..depth];
+            let kind = node_at(&self.root, item_path)?
+                .get("type")
+                .and_then(Value::as_str)?;
+            (kind == "listItem" || kind == "taskItem").then(|| item_path.to_vec())
+        })
+    }
+
+    /// The keymap's `moveListItem`: Alt-Up / Alt-Down swap the item holding
+    /// the caret with its neighbour, or at the list's edge lift it into the
+    /// enclosing list (of a compatible kind) before or after the outer item.
+    /// Returns the caret's textblock after the move.
+    pub fn move_list_item(&mut self, block: usize, up: bool) -> Option<usize> {
+        let path = self.textblocks.get(block)?.clone();
+        let item_path = self.innermost_list_item(block)?;
+        let relative = path[item_path.len()..].to_vec();
+        let (list_path, item_index) = item_path.split_at(item_path.len() - 1);
+        let item_index = item_index[0];
+        let sibling_count = children(node_at(&self.root, list_path)?).len();
+        let at_boundary = if up {
+            item_index == 0
+        } else {
+            item_index + 1 >= sibling_count
+        };
+
+        if !at_boundary {
+            let target = if up { item_index - 1 } else { item_index + 1 };
+            content_mut(node_at_mut(&mut self.root, list_path)?).swap(item_index, target);
+            self.reindex();
+            let mut new_path = list_path.to_vec();
+            new_path.push(target);
+            new_path.extend(relative);
+            return self.textblock_index_of(&new_path);
+        }
+
+        // The outer item: the next listItem / taskItem up the path.
+        let outer_item_path = (1..list_path.len()).rev().find_map(|depth| {
+            let candidate = &list_path[..depth];
+            let kind = node_at(&self.root, candidate)?
+                .get("type")
+                .and_then(Value::as_str)?;
+            (kind == "listItem" || kind == "taskItem").then(|| candidate.to_vec())
+        })?;
+        let (outer_list_path, outer_index) = outer_item_path.split_at(outer_item_path.len() - 1);
+        let outer_index = outer_index[0];
+        let outer_list_kind = node_at(&self.root, outer_list_path)?
+            .get("type")
+            .and_then(Value::as_str)?
+            .to_string();
+        let item_kind = node_at(&self.root, &item_path)?
+            .get("type")
+            .and_then(Value::as_str)?
+            .to_string();
+        let compatible = match item_kind.as_str() {
+            "listItem" => matches!(outer_list_kind.as_str(), "bulletList" | "orderedList"),
+            "taskItem" => outer_list_kind == "taskList",
+            _ => false,
+        };
+        if !compatible {
+            return None;
+        }
+
+        // Take the item, or the whole nested list when it was the only child.
+        let item = content_mut(node_at_mut(&mut self.root, list_path)?).remove(item_index);
+        if sibling_count == 1 {
+            let (list_parent_path, list_index) = list_path.split_at(list_path.len() - 1);
+            content_mut(node_at_mut(&mut self.root, list_parent_path)?).remove(list_index[0]);
+        }
+        let insert_at = if up { outer_index } else { outer_index + 1 };
+        content_mut(node_at_mut(&mut self.root, outer_list_path)?).insert(insert_at, item);
+        self.reindex();
+        let mut new_path = outer_list_path.to_vec();
+        new_path.push(insert_at);
+        new_path.extend(relative);
+        self.textblock_index_of(&new_path)
+    }
+
     /// `sinkListItem`: nest the item under the previous item as a sublist.
     pub fn sink_list_item(&mut self, block: usize) -> bool {
         let Some((list_path, item_index)) = self.list_item_position(block) else {
@@ -2071,6 +2154,42 @@ mod tests {
             doc.to_json(),
             r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]},{"type":"horizontalRule"},{"type":"paragraph"},{"type":"orderedList","attrs":{"start":3},"content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}"#
         );
+    }
+
+    #[test]
+    fn moving_a_list_item_swaps_neighbours_and_lifts_at_the_edge() {
+        // `- 1` / `- 2` with `- nested` under `2`.
+        let body = r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"2"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"nested"}]}]}]}]}]}]}"#;
+        let mut doc = Doc::parse(body);
+        // Alt-Up on `2` swaps it (with its sublist) above `1`; the caret's
+        // textblock moves with it.
+        assert_eq!(doc.move_list_item(1, true), Some(0));
+        assert_eq!(doc.text(0), "2");
+        assert_eq!(doc.text(1), "nested");
+        assert_eq!(doc.text(2), "1");
+        // Alt-Up at the top of the outer list goes nowhere.
+        assert_eq!(doc.move_list_item(0, true), None);
+        // Alt-Up on the nested item (the only child) lifts it before `2` and
+        // drops the emptied sublist.
+        assert_eq!(doc.move_list_item(1, true), Some(0));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"nested"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"2"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]}]}]}"#
+        );
+        // Alt-Down on `2` swaps it below `1`.
+        assert_eq!(doc.move_list_item(1, false), Some(2));
+        assert_eq!(doc.text(1), "1");
+        assert_eq!(doc.text(2), "2");
+        // A task item does not lift into a bullet list.
+        let body = r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]},{"type":"taskList","content":[{"type":"taskItem","attrs":{"checked":false},"content":[{"type":"paragraph","content":[{"type":"text","text":"t"}]}]}]}]}]}]}"#;
+        let mut doc = Doc::parse(body);
+        assert_eq!(doc.move_list_item(1, true), None);
+        assert_eq!(doc.to_json(), body);
+        // A paragraph outside any list is left alone.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"p"}]}]}"#,
+        );
+        assert_eq!(doc.move_list_item(0, false), None);
     }
 
     #[test]

@@ -62,6 +62,8 @@ actions!(
         DocumentEnd,
         SelectDocumentStart,
         SelectDocumentEnd,
+        MoveListItemUp,
+        MoveListItemDown,
     ]
 );
 
@@ -141,6 +143,9 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new(&format!("{w}-shift-right"), SelectWordRight, ctx),
         KeyBinding::new(&format!("{w}-backspace"), DeleteWordBackward, ctx),
         KeyBinding::new(&format!("{w}-delete"), DeleteWordForward, ctx),
+        // `Alt-ArrowUp` / `Alt-ArrowDown`: `moveListItem`.
+        KeyBinding::new("alt-up", MoveListItemUp, ctx),
+        KeyBinding::new("alt-down", MoveListItemDown, ctx),
     ]);
 }
 
@@ -1441,6 +1446,40 @@ impl BodyEditor {
         self.move_to_document_edge(true, true, cx);
     }
 
+    /// Alt-Up / Alt-Down: `moveListItem`, the caret staying in its text.
+    fn move_list_item(&mut self, up: bool, cx: &mut Context<Self>) {
+        let Some(caret) = self.caret else {
+            return;
+        };
+        // Recorded before the move so a no-op (not in a list, incompatible
+        // outer list) leaves the history alone.
+        let before = self.doc.clone();
+        if let Some(block) = self.doc.move_list_item(caret.block, up) {
+            let after = std::mem::replace(&mut self.doc, before);
+            self.record_edit(EditKind::Structural);
+            self.doc = after;
+            self.caret = Some(Caret {
+                block,
+                offset: caret.offset,
+            });
+            self.anchor = None;
+            self.changed(cx);
+        }
+    }
+
+    fn on_move_list_item_up(&mut self, _: &MoveListItemUp, _: &mut Window, cx: &mut Context<Self>) {
+        self.move_list_item(true, cx);
+    }
+
+    fn on_move_list_item_down(
+        &mut self,
+        _: &MoveListItemDown,
+        _: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.move_list_item(false, cx);
+    }
+
     /// Home / End (with Shift extending) to the textblock's edge.
     fn move_to_line_edge(&mut self, end: bool, extend: bool, cx: &mut Context<Self>) {
         if let Some(caret) = self.caret {
@@ -2031,6 +2070,8 @@ impl BodyEditor {
             .on_action(cx.listener(Self::on_document_end))
             .on_action(cx.listener(Self::on_select_document_start))
             .on_action(cx.listener(Self::on_select_document_end))
+            .on_action(cx.listener(Self::on_move_list_item_up))
+            .on_action(cx.listener(Self::on_move_list_item_down))
             // The title bar's Edit menu (`runEditCommand`) targets the editor
             // that had focus with the app-level actions.
             .on_action(cx.listener(|this, _: &crate::actions::Undo, window, cx| {

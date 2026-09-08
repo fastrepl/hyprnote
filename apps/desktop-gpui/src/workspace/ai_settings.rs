@@ -25,6 +25,13 @@ pub(crate) enum ProviderKind {
 }
 
 impl ProviderKind {
+    pub fn credential_kind(self) -> crate::ai_verify::CredentialKind {
+        match self {
+            Self::Stt => crate::ai_verify::CredentialKind::Stt,
+            Self::Llm => crate::ai_verify::CredentialKind::Llm,
+        }
+    }
+
     pub fn key(self) -> &'static str {
         match self {
             Self::Stt => "stt",
@@ -333,12 +340,19 @@ impl Workspace {
         let store = self.store.clone();
         let runtime = self.store.runtime().clone();
         let provider_id = provider.id;
+        let credential_kind = kind.credential_kind();
         let key_for_page = api_key.clone();
         cx.spawn(async move |this, cx| {
             if let Some((url, key)) = verify {
                 let verified = runtime
                     .spawn(async move {
-                        crate::ai_verify::verify_provider_credentials(provider_id, &url, &key).await
+                        crate::ai_verify::verify_provider_credentials(
+                            credential_kind,
+                            provider_id,
+                            &url,
+                            &key,
+                        )
+                        .await
                     })
                     .await
                     .unwrap_or_else(|_| {

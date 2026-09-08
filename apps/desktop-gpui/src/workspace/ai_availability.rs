@@ -86,13 +86,14 @@ impl Workspace {
             }
             let provider_id = provider.id;
             let local = provider.checks_availability;
+            let credential_kind = kind.credential_kind();
             let task = self.store.runtime().spawn(async move {
                 if local {
                     check_local_availability(provider_id, &base_url, &api_key).await
                 } else {
                     // A retryable failure leaves the query without data
                     // (`retry: false`), which reads as unavailable too.
-                    verify_provider_credentials(provider_id, &base_url, &api_key)
+                    verify_provider_credentials(credential_kind, provider_id, &base_url, &api_key)
                         .await
                         .is_ok()
                 }

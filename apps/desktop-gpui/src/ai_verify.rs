@@ -318,13 +318,27 @@ async fn send(
     builder.send().await
 }
 
+/// `ProviderCredential.type`
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CredentialKind {
+    Stt,
+    Llm,
+}
+
 /// `verifyProviderCredentials`
 pub async fn verify_provider_credentials(
+    kind: CredentialKind,
     provider: &str,
     base_url: &str,
     api_key: &str,
 ) -> Result<(), CredentialError> {
     validate_credential(base_url, api_key)?;
+    // Deepgram-compatible listen servers need not expose a model catalog or
+    // a credential-probe endpoint; their credentials are checked when
+    // transcribing (#7446).
+    if kind == CredentialKind::Stt && provider == "custom" {
+        return Ok(());
+    }
     let api_key = api_key.trim();
     let identity = credential_identity(provider, base_url, api_key);
     if RECENT
@@ -607,5 +621,39 @@ mod tests {
         assert_eq!(a, b);
         assert_ne!(a, c);
         assert_eq!(a.len(), 64);
+    }
+
+    /// #7446: a Custom STT endpoint is accepted without a probe once the
+    /// static checks pass; the same credential on the LLM side still probes
+    /// (and fails against a closed port).
+    #[tokio::test]
+    async fn custom_stt_credentials_skip_the_probe() {
+        let stt = verify_provider_credentials(
+            CredentialKind::Stt,
+            "custom",
+            "http://127.0.0.1:9/v1",
+            "key",
+        )
+        .await;
+        assert!(stt.is_ok());
+        let https = verify_provider_credentials(
+            CredentialKind::Stt,
+            "custom",
+            "http://example.com/v1",
+            "key",
+        )
+        .await;
+        assert_eq!(
+            https.unwrap_err().message,
+            "Use HTTPS for provider credentials."
+        );
+        let llm = verify_provider_credentials(
+            CredentialKind::Llm,
+            "custom",
+            "http://127.0.0.1:9/v1",
+            "key",
+        )
+        .await;
+        assert!(llm.is_err());
     }
 }

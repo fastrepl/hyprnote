@@ -343,6 +343,48 @@ impl From<TranscriptionParams> for listener2::BatchParams {
     }
 }
 
+impl From<listener2::BatchRunOutput> for TranscriptionOutput {
+    fn from(value: listener2::BatchRunOutput) -> Self {
+        Self {
+            session_id: value.session_id,
+            mode: value.mode,
+            response: value.response,
+        }
+    }
+}
+
+impl From<listener2::BatchEvent> for TranscriptionEvent {
+    fn from(value: listener2::BatchEvent) -> Self {
+        match value {
+            listener2::BatchEvent::BatchStarted { session_id } => Self::Started { session_id },
+            listener2::BatchEvent::BatchCompleted { .. } => {
+                unreachable!("batch completed is represented by transcription completed")
+            }
+            listener2::BatchEvent::BatchResponse {
+                session_id,
+                response,
+                mode,
+            } => Self::Completed {
+                session_id,
+                response,
+                mode,
+            },
+            listener2::BatchEvent::BatchResponseStreamed { session_id, event } => {
+                Self::Progress { session_id, event }
+            }
+            listener2::BatchEvent::BatchFailed {
+                session_id,
+                code,
+                error,
+            } => Self::Failed {
+                session_id,
+                code,
+                error,
+            },
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::CaptureParams;
@@ -574,47 +616,5 @@ mod tests {
         let params = capture_params("soniqo://local", "nova-3");
 
         assert_eq!(resolved(&params), TranscriptionMode::Batch);
-    }
-}
-
-impl From<listener2::BatchRunOutput> for TranscriptionOutput {
-    fn from(value: listener2::BatchRunOutput) -> Self {
-        Self {
-            session_id: value.session_id,
-            mode: value.mode,
-            response: value.response,
-        }
-    }
-}
-
-impl From<listener2::BatchEvent> for TranscriptionEvent {
-    fn from(value: listener2::BatchEvent) -> Self {
-        match value {
-            listener2::BatchEvent::BatchStarted { session_id } => Self::Started { session_id },
-            listener2::BatchEvent::BatchCompleted { .. } => {
-                unreachable!("batch completed is represented by transcription completed")
-            }
-            listener2::BatchEvent::BatchResponse {
-                session_id,
-                response,
-                mode,
-            } => Self::Completed {
-                session_id,
-                response,
-                mode,
-            },
-            listener2::BatchEvent::BatchResponseStreamed { session_id, event } => {
-                Self::Progress { session_id, event }
-            }
-            listener2::BatchEvent::BatchFailed {
-                session_id,
-                code,
-                error,
-            } => Self::Failed {
-                session_id,
-                code,
-                error,
-            },
-        }
     }
 }

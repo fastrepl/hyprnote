@@ -15,6 +15,13 @@ fn capture_snapshot_from_result<E: std::fmt::Debug>(
     })
 }
 
+async fn active_source() -> Option<ActorRef<SourceMsg>> {
+    let root: ActorRef<RootMsg> = registry::where_is(RootActor::name())?.into();
+    let snapshot = call_t!(root, RootMsg::GetSnapshot, 100).ok()?;
+    let session_id = snapshot.active_session_id?;
+    registry::where_is(SourceActor::name(&session_id)).map(Into::into)
+}
+
 fn hydrate_session_state(
     snapshot: &mut CaptureSnapshot,
     session_id: String,
@@ -51,14 +58,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
 
     #[tracing::instrument(skip_all)]
     pub async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
-        if let Some(cell) = registry::where_is(SourceActor::name()) {
-            let actor: ActorRef<SourceMsg> = cell.into();
+        if let Some(actor) = active_source().await {
             match call_t!(actor, SourceMsg::GetMicDevice, 500) {
                 Ok(device_name) => Ok(device_name),
                 Err(_) => Ok(None),
             }
         } else {
-            Err(crate::Error::ActorNotFound(SourceActor::name()))
+            Err(crate::Error::ActorNotFound("active source".to_string()))
         }
     }
 
@@ -108,8 +114,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
 
     #[tracing::instrument(skip_all)]
     pub async fn get_mic_muted(&self) -> bool {
-        if let Some(cell) = registry::where_is(SourceActor::name()) {
-            let actor: ActorRef<SourceMsg> = cell.into();
+        if let Some(actor) = active_source().await {
             call_t!(actor, SourceMsg::GetMicMute, 100).unwrap_or_default()
         } else {
             false
@@ -118,8 +123,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
 
     #[tracing::instrument(skip_all)]
     pub async fn set_mic_muted(&self, muted: bool) {
-        if let Some(cell) = registry::where_is(SourceActor::name()) {
-            let actor: ActorRef<SourceMsg> = cell.into();
+        if let Some(actor) = active_source().await {
             let _ = actor.cast(SourceMsg::SetMicMute(muted));
         }
     }
@@ -160,9 +164,136 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
     }
 }
 
+pub trait ListenerPluginExt<R: tauri::Runtime> {
+    fn listener(&self) -> Listener<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
+    fn listener(&self) -> Listener<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Listener {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    struct SnapshotProbe;
+
+    #[ractor::async_trait]
+    impl ractor::Actor for SnapshotProbe {
+        type Msg = RootMsg;
+        type State = Option<String>;
+        type Arguments = Self::State;
+
+        async fn pre_start(
+            &self,
+            _myself: ActorRef<RootMsg>,
+            args: Self::Arguments,
+        ) -> Result<Self::State, ractor::ActorProcessingErr> {
+            Ok(args)
+        }
+
+        async fn handle(
+            &self,
+            _myself: ActorRef<RootMsg>,
+            message: RootMsg,
+            state: &mut Self::State,
+        ) -> Result<(), ractor::ActorProcessingErr> {
+            match message {
+                RootMsg::GetSnapshot(reply) => {
+                    let _ = reply.send(anlg_transcription_core::listener::Snapshot {
+                        state: if state.is_some() {
+                            anlg_transcription_core::listener::State::Active
+                        } else {
+                            anlg_transcription_core::listener::State::Finalizing
+                        },
+                        active_session_id: state.clone(),
+                        finalizing_session_ids: vec!["previous".to_string()],
+                    });
+                }
+                RootMsg::StopSession(reply) => {
+                    *state = None;
+                    let _ = reply.send(());
+                }
+                _ => {}
+            }
+            Ok(())
+        }
+    }
+
+    struct MicProbe;
+
+    #[ractor::async_trait]
+    impl ractor::Actor for MicProbe {
+        type Msg = SourceMsg;
+        type State = bool;
+        type Arguments = ();
+
+        async fn pre_start(
+            &self,
+            _myself: ActorRef<SourceMsg>,
+            _args: (),
+        ) -> Result<bool, ractor::ActorProcessingErr> {
+            Ok(false)
+        }
+
+        async fn handle(
+            &self,
+            _myself: ActorRef<SourceMsg>,
+            message: SourceMsg,
+            muted: &mut bool,
+        ) -> Result<(), ractor::ActorProcessingErr> {
+            match message {
+                SourceMsg::SetMicMute(value) => *muted = value,
+                SourceMsg::GetMicMute(reply) => {
+                    let _ = reply.send(*muted);
+                }
+                _ => {}
+            }
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn microphone_controls_target_active_session_and_ignore_finalizing_sessions() {
+        use ractor::Actor;
+
+        let (previous, previous_task) =
+            Actor::spawn(Some(SourceActor::name("previous")), MicProbe, ())
+                .await
+                .unwrap();
+        let next_id = uuid::Uuid::new_v4().to_string();
+        let (next, next_task) = Actor::spawn(Some(SourceActor::name(&next_id)), MicProbe, ())
+            .await
+            .unwrap();
+        let (root, root_task) = Actor::spawn(Some(RootActor::name()), SnapshotProbe, Some(next_id))
+            .await
+            .unwrap();
+
+        let active = active_source().await.unwrap();
+        assert_eq!(active.get_id(), next.get_id());
+        active.cast(SourceMsg::SetMicMute(true)).unwrap();
+        assert!(call_t!(next, SourceMsg::GetMicMute, 1000).unwrap());
+        assert!(!call_t!(previous, SourceMsg::GetMicMute, 1000).unwrap());
+        call_t!(root, RootMsg::StopSession, 1000).unwrap();
+        assert!(active_source().await.is_none());
+
+        root.stop(None);
+        previous.stop(None);
+        next.stop(None);
+        root_task.await.unwrap();
+        previous_task.await.unwrap();
+        next_task.await.unwrap();
+    }
 
     #[test]
     fn capture_snapshot_failure_is_not_reported_as_inactive() {
@@ -191,23 +322,5 @@ mod tests {
             Some("session-a")
         );
         assert_eq!(snapshot.live_segments, Some(Vec::new()));
-    }
-}
-
-pub trait ListenerPluginExt<R: tauri::Runtime> {
-    fn listener(&self) -> Listener<'_, R, Self>
-    where
-        Self: tauri::Manager<R> + Sized;
-}
-
-impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
-    fn listener(&self) -> Listener<'_, R, Self>
-    where
-        Self: Sized,
-    {
-        Listener {
-            manager: self,
-            _runtime: std::marker::PhantomData,
-        }
     }
 }

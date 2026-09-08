@@ -1,5 +1,7 @@
 mod children;
 mod mode;
+#[cfg(test)]
+mod reliability_tests;
 
 use std::hash::{DefaultHasher, Hash, Hasher};
 
@@ -552,7 +554,7 @@ mod tests {
 
     impl AudioProvider for TestRuntime {
         fn open_capture(&self, _config: CaptureConfig) -> Result<CaptureStream, anlg_audio::Error> {
-            unimplemented!()
+            Ok(CaptureStream::new(futures_util::stream::pending()))
         }
         fn open_speaker_capture(
             &self,
@@ -620,7 +622,7 @@ mod tests {
         }
     }
 
-    struct SessionStopProbe;
+    pub(super) struct SessionStopProbe;
 
     struct SessionRetryProbe(tokio::sync::mpsc::UnboundedSender<()>);
 
@@ -692,7 +694,7 @@ mod tests {
         fn emit_data(&self, _event: SessionDataEvent) {}
     }
 
-    fn test_ctx() -> SessionContext {
+    pub(super) fn test_ctx() -> SessionContext {
         SessionContext {
             runtime: Arc::new(TestRuntime),
             audio: Arc::new(TestRuntime),
@@ -717,7 +719,7 @@ mod tests {
         }
     }
 
-    fn test_state(ctx: SessionContext) -> SessionState {
+    pub(super) fn test_state(ctx: SessionContext) -> SessionState {
         SessionState {
             ctx,
             source_cell: None,

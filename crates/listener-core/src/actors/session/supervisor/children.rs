@@ -79,7 +79,7 @@ pub(super) async fn spawn_source(
 ) -> Result<ActorRef<SourceMsg>, ractor::SpawnErr> {
     let recorder = recorder_cell.map(Into::into);
     let (source_ref, _) = Actor::spawn_linked(
-        Some(SourceActor::name()),
+        Some(SourceActor::name(&ctx.params.session_id)),
         SourceActor,
         SourceArgs {
             mic_device: ctx.params.mic_device.clone(),
@@ -101,7 +101,7 @@ pub(super) async fn spawn_recorder(
     ctx: &SessionContext,
 ) -> Result<ActorCell, ractor::SpawnErr> {
     let (recorder_ref, _): (ActorRef<RecMsg>, _) = Actor::spawn_linked(
-        Some(RecorderActor::name()),
+        Some(RecorderActor::name(&ctx.params.session_id)),
         RecorderActor::new(),
         RecArgs {
             app_dir: ctx.app_dir.clone(),
@@ -120,7 +120,7 @@ pub(super) async fn spawn_listener(
 ) -> Result<ActorCell, ractor::SpawnErr> {
     let mode = ChannelMode::determine(ctx.params.onboarding);
     let (listener_ref, _): (ActorRef<crate::actors::ListenerMsg>, _) = Actor::spawn_linked(
-        Some(ListenerActor::name()),
+        Some(ListenerActor::name(&ctx.params.session_id)),
         ListenerActor,
         ListenerArgs {
             runtime: ctx.runtime.clone(),

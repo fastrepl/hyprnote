@@ -189,8 +189,8 @@ impl OutputRoutingTracker {
 }
 
 impl SourceActor {
-    pub fn name() -> ActorName {
-        "source".into()
+    pub fn name(session_id: &str) -> ActorName {
+        format!("source_{session_id}")
     }
 }
 

@@ -304,11 +304,11 @@ fn finish_batch_session(
     control: &Arc<BatchSessionControl>,
 ) {
     {
-        if let Ok(mut state) = lock_terminal_state(control) {
-            if *state == BatchTerminalState::Running {
-                *state = BatchTerminalState::Finished;
-                control.cancellation_token.cancel();
-            }
+        if let Ok(mut state) = lock_terminal_state(control)
+            && *state == BatchTerminalState::Running
+        {
+            *state = BatchTerminalState::Finished;
+            control.cancellation_token.cancel();
         }
     }
 

@@ -212,6 +212,15 @@ fn apply_segment_delta(
     }
 }
 
+async fn current_root_state() -> RootState {
+    let Some(cell) = registry::where_is(RootActor::name()) else {
+        return RootState::Inactive;
+    };
+
+    let actor: ActorRef<RootMsg> = cell.into();
+    call_t!(actor, RootMsg::GetState, 100).unwrap_or(RootState::Inactive)
+}
+
 #[cfg(test)]
 mod tests {
     use anlg_transcript::{ChannelProfile, SegmentKey};
@@ -283,13 +292,4 @@ mod tests {
             Some("segment-5")
         );
     }
-}
-
-async fn current_root_state() -> RootState {
-    let Some(cell) = registry::where_is(RootActor::name()) else {
-        return RootState::Inactive;
-    };
-
-    let actor: ActorRef<RootMsg> = cell.into();
-    call_t!(actor, RootMsg::GetState, 100).unwrap_or(RootState::Inactive)
 }

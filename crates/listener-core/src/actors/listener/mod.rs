@@ -89,8 +89,8 @@ pub(super) enum ChannelSender {
 pub struct ListenerActor;
 
 impl ListenerActor {
-    pub fn name() -> ActorName {
-        "listener_actor".into()
+    pub fn name(session_id: &str) -> ActorName {
+        format!("listener_actor_{session_id}")
     }
 }
 
@@ -331,9 +331,6 @@ impl Actor for ListenerActor {
             }
 
             ListenerMsg::StreamResponse(response, reply) => {
-                if let Some(progress) = &mut state.progress {
-                    progress.observe_response(&response, Instant::now());
-                }
                 let degraded = process_stream_response(state, response);
                 let _ = reply.send(());
                 if let Some(degraded) = degraded {
@@ -478,6 +475,9 @@ fn process_stream_response(
     }
 
     if let Some(update) = state.transcript.process(&response) {
+        if let Some(progress) = &mut state.progress {
+            progress.observe_delta(&update.transcript_delta, Instant::now());
+        }
         state
             .args
             .runtime

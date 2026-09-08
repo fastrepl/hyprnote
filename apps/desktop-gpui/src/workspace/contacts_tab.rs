@@ -1216,7 +1216,7 @@ impl Workspace {
                                             icon: None,
                                             dim_icon: false,
                                             label: label.into(),
-                                            trailing: Trailing::Check(sort == value),
+                                            trailing: Trailing::Radio(sort == value),
                                             destructive: false,
                                             on_select: Some(Box::new(move |this: &mut Workspace, _: &mut Window, cx: &mut Context<Workspace>| {
                                                 if let Some(state) = this.contacts.as_mut() {
@@ -1247,9 +1247,9 @@ impl Workspace {
                                         anchor.child(
                                             div()
                                                 .absolute()
-                                                .top(px(32.0))
+                                                .top(px(14.0))
                                                 .right_0()
-                                                .child(self.render_menu_inline(spec, Align::End, cx)),
+                                                .child(self.render_menu_inline(spec, Align::End, super::menu::INLINE_MENU_SPACER_7, cx)),
                                         )
                                     }),
                                 )
@@ -1486,13 +1486,14 @@ impl Workspace {
                     )
                     .when(menu_open, |anchor| {
                         let _ = pinned;
-                        anchor.child(
-                            div()
-                                .absolute()
-                                .top(px(36.0))
-                                .right_0()
-                                .child(self.render_menu_inline(menu, Align::End, cx)),
-                        )
+                        anchor.child(div().absolute().top(px(16.0)).right_0().child(
+                            self.render_menu_inline(
+                                menu,
+                                Align::End,
+                                super::menu::INLINE_MENU_SPACER_8,
+                                cx,
+                            ),
+                        ))
                     }),
             )
     }
@@ -1800,7 +1801,7 @@ impl Workspace {
                                         icon: None,
                                         dim_icon: false,
                                         label: label.into(),
-                                        trailing: Trailing::Check(details.related_newest == newest),
+                                        trailing: Trailing::Radio(details.related_newest == newest),
                                         destructive: false,
                                         on_select: Some(Box::new(move |this: &mut Workspace, _: &mut Window, cx: &mut Context<Workspace>| {
                                             if let Some(details) = this.contacts.as_mut().and_then(|s| s.details.as_mut()) {
@@ -1826,9 +1827,9 @@ impl Workspace {
                                     anchor.child(
                                         div()
                                             .absolute()
-                                            .top(px(32.0))
+                                            .top(px(14.0))
                                             .left_0()
-                                            .child(self.render_menu_inline(spec, Align::Start, cx)),
+                                            .child(self.render_menu_inline(spec, Align::Start, super::menu::INLINE_MENU_SPACER_7, cx)),
                                     )
                                 }),
                         )

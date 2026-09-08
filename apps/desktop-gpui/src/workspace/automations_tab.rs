@@ -1403,13 +1403,14 @@ impl Workspace {
                     )),
             )
             .when(open, |anchor| {
-                anchor.child(
-                    div()
-                        .absolute()
-                        .top(px(32.0))
-                        .right_0()
-                        .child(self.render_menu_inline(menu, Align::End, cx)),
-                )
+                anchor.child(div().absolute().top(px(14.0)).right_0().child(
+                    self.render_menu_inline(
+                        menu,
+                        Align::End,
+                        super::menu::INLINE_MENU_SPACER_7,
+                        cx,
+                    ),
+                ))
             })
             .into_any_element()
     }

@@ -776,9 +776,9 @@ impl Workspace {
                         anchor.child(
                             div()
                                 .absolute()
-                                .top(px(32.0))
+                                .top(px(14.0))
                                 .right_0()
-                                .child(self.render_menu_inline(spec, Align::End, cx)),
+                                .child(self.render_menu_inline(spec, Align::End, super::menu::INLINE_MENU_SPACER_7, cx)),
                         )
                     }),
             );
@@ -1365,13 +1365,14 @@ impl Workspace {
                         }
                     },
                 };
-                anchor.child(
-                    div()
-                        .absolute()
-                        .top(px(36.0))
-                        .right_0()
-                        .child(self.render_menu_inline(spec, Align::End, cx)),
-                )
+                anchor.child(div().absolute().top(px(16.0)).right_0().child(
+                    self.render_menu_inline(
+                        spec,
+                        Align::End,
+                        super::menu::INLINE_MENU_SPACER_8,
+                        cx,
+                    ),
+                ))
             })
     }
 
@@ -1773,13 +1774,14 @@ impl Workspace {
                                             }
                                         },
                                     };
-                                    anchor.child(
-                                        div()
-                                            .absolute()
-                                            .top(px(32.0))
-                                            .right_0()
-                                            .child(self.render_menu_inline(spec, Align::End, cx)),
-                                    )
+                                    anchor.child(div().absolute().top(px(14.0)).right_0().child(
+                                        self.render_menu_inline(
+                                            spec,
+                                            Align::End,
+                                            super::menu::INLINE_MENU_SPACER_7,
+                                            cx,
+                                        ),
+                                    ))
                                 }),
                         )
                     }),
@@ -2002,9 +2004,9 @@ impl Workspace {
                                 anchor.child(
                                     div()
                                         .absolute()
-                                        .top(px(36.0))
+                                        .top(px(16.0))
                                         .right_0()
-                                        .child(self.render_menu_inline(spec, Align::End, cx)),
+                                        .child(self.render_menu_inline(spec, Align::End, super::menu::INLINE_MENU_SPACER_8, cx)),
                                 )
                             }),
                     ),

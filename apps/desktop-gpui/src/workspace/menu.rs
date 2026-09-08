@@ -17,6 +17,11 @@ pub(crate) const SEPARATOR_HEIGHT: f32 = 9.0;
 /// chrome border + `p-0.5` + panel border + `p-1.5`
 pub(crate) const PANEL_INSET: f32 = 1.0 + 2.0 + 1.0 + 6.0;
 
+/// Half a `size-7` / `size-8` trigger plus the 4px `sideOffset`: the inline
+/// menus are anchored at the trigger's vertical centre (`top(14)` / `top(16)`).
+pub(crate) const INLINE_MENU_SPACER_7: f32 = 18.0;
+pub(crate) const INLINE_MENU_SPACER_8: f32 = 20.0;
+
 pub(crate) type Select = Box<dyn Fn(&mut Workspace, &mut gpui::Window, &mut Context<Workspace>)>;
 
 pub(crate) enum Trailing {
@@ -25,6 +30,9 @@ pub(crate) enum Trailing {
     Text(SharedString),
     /// A `Check` icon when selected.
     Check(bool),
+    /// `DropdownMenuRadioItem`: `pl-8` with the 8px `bg-current` dot in the
+    /// `left-2 size-3.5` indicator slot when selected.
+    Radio(bool),
     /// `DropdownMenuSubTrigger`'s caret.
     Submenu,
 }
@@ -174,12 +182,15 @@ impl Workspace {
                             theme.foreground
                         };
                         let on_select = on_select.map(std::rc::Rc::new);
+                        let radio = matches!(trailing, Trailing::Radio(_));
                         div()
                             .id((spec.id, index))
+                            .relative()
                             .flex()
                             .items_center()
                             .gap_2()
                             .px_2()
+                            .when(radio, |item| item.pl(px(32.0)))
                             .py(px(6.0))
                             .rounded(px(14.0))
                             .tw_text_sm()
@@ -232,6 +243,7 @@ impl Workspace {
                                         div().into_any_element()
                                     }
                                 }
+                                Trailing::Radio(selected) => radio_indicator(selected, color),
                             })
                             // `DropdownMenuSubTrigger` always ends with the caret.
                             .when(is_sub, |item| {
@@ -329,6 +341,7 @@ impl Workspace {
         &self,
         spec: MenuSpec,
         align: Align,
+        spacer: f32,
         cx: &Context<Self>,
     ) -> AnyElement {
         let theme = self.theme;
@@ -351,14 +364,25 @@ impl Workspace {
                     ))
                     .children(items),
             );
+        // `DropdownMenuContent sideOffset={4}` under a `size-7` trigger, flipped
+        // above it like Radix when it would leave the window: the anchor sits at
+        // the trigger's vertical centre and the panel is padded by half the
+        // trigger plus the offset on both sides, so the switched corner lands
+        // the panel 4px above the trigger instead.
         deferred(
             anchored()
                 .anchor(match align {
                     Align::Start => Corner::TopLeft,
                     Align::End => Corner::TopRight,
                 })
-                .snap_to_window_with_margin(px(8.0))
-                .child(panel),
+                .child(
+                    div()
+                        .flex()
+                        .flex_col()
+                        .child(div().h(px(spacer)))
+                        .child(panel)
+                        .child(div().h(px(spacer))),
+                ),
         )
         .with_priority(2)
         .into_any_element()
@@ -399,12 +423,15 @@ impl Workspace {
                     };
                     let disabled = on_select.is_none();
                     let on_select = on_select.map(std::rc::Rc::new);
+                    let radio = matches!(trailing, Trailing::Radio(_));
                     div()
                         .id(SharedString::from(format!("{id}-inline-{index}")))
+                        .relative()
                         .flex()
                         .items_center()
                         .gap_2()
                         .px_2()
+                        .when(radio, |item| item.pl(px(32.0)))
                         .py(px(6.0))
                         .rounded(px(14.0))
                         .tw_text_sm()
@@ -435,6 +462,7 @@ impl Workspace {
                             Trailing::Check(true) => {
                                 icon("check", px(14.0), color).into_any_element()
                             }
+                            Trailing::Radio(selected) => radio_indicator(selected, color),
                             Trailing::Text(text) => div()
                                 .text_color(theme.muted_foreground)
                                 .child(text)
@@ -619,4 +647,20 @@ pub(super) fn menu_chrome(theme: Theme, id: &'static str, width: f32) -> gpui::S
                 spread_radius: px(-4.0),
             },
         ])
+}
+
+/// `DropdownMenuRadioItem`'s indicator: the `left-2 size-3.5` slot with the
+/// 8px `bg-current` dot while selected.
+fn radio_indicator(selected: bool, color: gpui::Rgba) -> AnyElement {
+    div()
+        .absolute()
+        .left(px(8.0))
+        .size(px(14.0))
+        .flex()
+        .items_center()
+        .justify_center()
+        .when(selected, |slot| {
+            slot.child(div().size(px(8.0)).rounded_full().bg(color))
+        })
+        .into_any_element()
 }

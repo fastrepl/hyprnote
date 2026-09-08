@@ -717,9 +717,9 @@ impl Workspace {
         // Anchored under the button's right edge (`align="end"`, 4px offset).
         div()
             .absolute()
-            .top(px(36.0))
+            .top(px(16.0))
             .right_0()
-            .child(self.render_menu_inline(spec, Align::End, cx))
+            .child(self.render_menu_inline(spec, Align::End, super::menu::INLINE_MENU_SPACER_8, cx))
             .into_any_element()
     }
 

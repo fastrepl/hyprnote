@@ -1122,13 +1122,14 @@ impl Workspace {
                         }
                     },
                 };
-                anchor.child(
-                    div()
-                        .absolute()
-                        .top(px(36.0))
-                        .right_0()
-                        .child(self.render_menu_inline(spec, Align::End, cx)),
-                )
+                anchor.child(div().absolute().top(px(16.0)).right_0().child(
+                    self.render_menu_inline(
+                        spec,
+                        Align::End,
+                        super::menu::INLINE_MENU_SPACER_8,
+                        cx,
+                    ),
+                ))
             })
     }
 

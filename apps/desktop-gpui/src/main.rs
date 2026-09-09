@@ -69,6 +69,15 @@ mod workspace;
 #[cfg(target_os = "linux")]
 mod x11;
 
+/// The version the app reports (`app.package_info().version` in Tauri): the
+/// release lane stamps `APP_VERSION` into `tauri.conf.json` and exports it to
+/// the sidecar build, so both shells show the same number; a plain build
+/// falls back to the crate's.
+pub const APP_VERSION: &str = match option_env!("APP_VERSION") {
+    Some(version) => version,
+    None => env!("CARGO_PKG_VERSION"),
+};
+
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -420,10 +429,7 @@ fn main() -> anyhow::Result<()> {
         let store_file = store_file::StoreFile::next_to(store.path());
         cx.set_global(tray::Tray::start(tray::TrayState {
             app_name: tray::app_name(&identifier).to_string(),
-            version_label: anlg_tray_core::labels::version(
-                env!("CARGO_PKG_VERSION"),
-                tray::channel(&identifier),
-            ),
+            version_label: anlg_tray_core::labels::version(APP_VERSION, tray::channel(&identifier)),
             schedule: Vec::new(),
             show_events: store_file
                 .scoped_bool(tray::SCOPE, tray::SHOW_EVENTS_KEY)

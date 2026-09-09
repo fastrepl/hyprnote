@@ -17,7 +17,7 @@ const DEVELOPERS_GUIDE_URL: &str = "https://docs.anarlog.so/agents/overview";
 
 /// A row-button action.
 type RowAction = Box<dyn Fn(&mut Workspace, &mut Context<Workspace>)>;
-const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+const APP_VERSION: &str = crate::APP_VERSION;
 
 pub(crate) struct DevelopersState {
     cli: Option<Result<CliStatus, String>>,

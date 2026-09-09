@@ -5,6 +5,21 @@ use super::model::Caret;
 use super::pm::node::Node;
 use super::pm::schema::{Schema, schema};
 
+/// `clipboardData.setData` on copy: the text and ProseMirror's HTML together,
+/// where the platform lets the app own both. `false` when it does not and
+/// gpui's text-only clipboard is the fallback.
+pub fn write_clipboard(text: &str, html: &str) -> bool {
+    #[cfg(target_os = "linux")]
+    {
+        crate::x11::write_clipboard(text.to_string(), html.to_string())
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        let _ = (text, html);
+        false
+    }
+}
+
 /// `clipboardData.getData("text/html")`, where the platform exposes it.
 pub fn clipboard_html() -> Option<String> {
     #[cfg(target_os = "linux")]

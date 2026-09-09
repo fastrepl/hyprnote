@@ -13,12 +13,23 @@ impl Node {
     /// `slice(from, to)`: the content between the positions, open at the
     /// depths of each side.
     pub fn slice(&self, from: usize, to: usize) -> Slice {
+        self.slice_at(from, to, false)
+    }
+
+    /// `slice(from, to, includeParents)`: with `include_parents` the slice
+    /// keeps every enclosing node open down from the document, which is
+    /// what `selection.content()` copies.
+    pub fn slice_at(&self, from: usize, to: usize, include_parents: bool) -> Slice {
         if from == to {
             return Slice::empty();
         }
         let from_pos = self.resolve(from);
         let to_pos = self.resolve(to);
-        let depth = from_pos.shared_depth(to);
+        let depth = if include_parents {
+            0
+        } else {
+            from_pos.shared_depth(to)
+        };
         let start = from_pos.start(depth);
         let node = from_pos.node(depth);
         let content = node

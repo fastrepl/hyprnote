@@ -160,3 +160,214 @@ pub fn clipboard_html() -> Option<String> {
     let text = text.trim_end_matches('\0').to_string();
     (!text.trim().is_empty()).then_some(text)
 }
+
+/// `ClipboardEvent` on copy: the selection's text next to the HTML
+/// ProseMirror's clipboard serializer builds, the way the web view offers
+/// `text/plain` and `text/html` together. gpui's clipboard writes a string
+/// alone, so a thread of this process owns the CLIPBOARD selection and
+/// answers the targets until another owner (the next copy, gpui, or any
+/// other app) takes it. `false` when no X server is available; the caller
+/// falls back to gpui's clipboard.
+pub fn write_clipboard(text: String, html: String) -> bool {
+    use x11rb::CURRENT_TIME;
+    use x11rb::connection::RequestConnection as _;
+    use x11rb::protocol::Event;
+    use x11rb::protocol::xproto::{
+        Atom, AtomEnum, ConnectionExt as _, CreateWindowAux, EventMask, PropMode,
+        SELECTION_NOTIFY_EVENT, SelectionNotifyEvent, WindowClass,
+    };
+    use x11rb::wrapper::ConnectionExt as _;
+
+    let Ok((conn, screen)) = x11rb::connect(None) else {
+        return false;
+    };
+    let root = conn.setup().roots[screen].root;
+    let window = match conn.generate_id() {
+        Ok(id) => id,
+        Err(_) => return false,
+    };
+    if conn
+        .create_window(
+            0,
+            window,
+            root,
+            0,
+            0,
+            1,
+            1,
+            0,
+            WindowClass::INPUT_ONLY,
+            0,
+            &CreateWindowAux::new().event_mask(EventMask::PROPERTY_CHANGE),
+        )
+        .is_err()
+    {
+        return false;
+    }
+    let atom = |name: &str| -> Option<Atom> {
+        conn.intern_atom(false, name.as_bytes())
+            .ok()?
+            .reply()
+            .ok()
+            .map(|r| r.atom)
+    };
+    let (
+        Some(clipboard),
+        Some(targets),
+        Some(timestamp),
+        Some(utf8),
+        Some(text_atom),
+        Some(plain),
+        Some(plain_utf8),
+        Some(html_atom),
+    ) = (
+        atom("CLIPBOARD"),
+        atom("TARGETS"),
+        atom("TIMESTAMP"),
+        atom("UTF8_STRING"),
+        atom("TEXT"),
+        atom("text/plain"),
+        atom("text/plain;charset=utf-8"),
+        atom("text/html"),
+    )
+    else {
+        return false;
+    };
+    if conn
+        .set_selection_owner(window, clipboard, CURRENT_TIME)
+        .is_err()
+        || conn.flush().is_err()
+    {
+        return false;
+    }
+    let owner = conn
+        .get_selection_owner(clipboard)
+        .ok()
+        .and_then(|cookie| cookie.reply().ok())
+        .map(|reply| reply.owner);
+    if owner != Some(window) {
+        return false;
+    }
+    // Properties beyond the request limit would need INCR; such a target is
+    // refused and the requestor takes the text instead.
+    let limit = conn.maximum_request_bytes().saturating_sub(64);
+    let latin1: Vec<u8> = text
+        .chars()
+        .map(|c| {
+            if (c as u32) < 256 {
+                c as u32 as u8
+            } else {
+                b'?'
+            }
+        })
+        .collect();
+    std::thread::Builder::new()
+        .name("x11-clipboard-owner".into())
+        .spawn(move || {
+            loop {
+                let Ok(event) = conn.wait_for_event() else {
+                    return;
+                };
+                match event {
+                    Event::SelectionClear(clear) if clear.selection == clipboard => return,
+                    Event::SelectionRequest(request) if request.selection == clipboard => {
+                        let property = if request.property == Atom::from(AtomEnum::NONE) {
+                            request.target
+                        } else {
+                            request.property
+                        };
+                        let served = if request.target == targets {
+                            let list: Vec<Atom> = vec![
+                                targets,
+                                timestamp,
+                                utf8,
+                                text_atom,
+                                plain,
+                                plain_utf8,
+                                html_atom,
+                                Atom::from(AtomEnum::STRING),
+                            ];
+                            conn.change_property32(
+                                PropMode::REPLACE,
+                                request.requestor,
+                                property,
+                                AtomEnum::ATOM,
+                                &list,
+                            )
+                            .is_ok()
+                        } else if request.target == timestamp {
+                            conn.change_property32(
+                                PropMode::REPLACE,
+                                request.requestor,
+                                property,
+                                AtomEnum::INTEGER,
+                                &[CURRENT_TIME],
+                            )
+                            .is_ok()
+                        } else if request.target == utf8
+                            || request.target == text_atom
+                            || request.target == plain
+                            || request.target == plain_utf8
+                        {
+                            text.len() <= limit
+                                && conn
+                                    .change_property8(
+                                        PropMode::REPLACE,
+                                        request.requestor,
+                                        property,
+                                        if request.target == text_atom {
+                                            utf8
+                                        } else {
+                                            request.target
+                                        },
+                                        text.as_bytes(),
+                                    )
+                                    .is_ok()
+                        } else if request.target == Atom::from(AtomEnum::STRING) {
+                            latin1.len() <= limit
+                                && conn
+                                    .change_property8(
+                                        PropMode::REPLACE,
+                                        request.requestor,
+                                        property,
+                                        AtomEnum::STRING,
+                                        &latin1,
+                                    )
+                                    .is_ok()
+                        } else if request.target == html_atom {
+                            html.len() <= limit
+                                && conn
+                                    .change_property8(
+                                        PropMode::REPLACE,
+                                        request.requestor,
+                                        property,
+                                        html_atom,
+                                        html.as_bytes(),
+                                    )
+                                    .is_ok()
+                        } else {
+                            false
+                        };
+                        let notify = SelectionNotifyEvent {
+                            response_type: SELECTION_NOTIFY_EVENT,
+                            sequence: 0,
+                            time: request.time,
+                            requestor: request.requestor,
+                            selection: request.selection,
+                            target: request.target,
+                            property: if served {
+                                property
+                            } else {
+                                Atom::from(AtomEnum::NONE)
+                            },
+                        };
+                        let _ =
+                            conn.send_event(false, request.requestor, EventMask::NO_EVENT, notify);
+                        let _ = conn.flush();
+                    }
+                    _ => {}
+                }
+            }
+        })
+        .is_ok()
+}

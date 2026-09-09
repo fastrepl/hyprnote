@@ -1532,21 +1532,42 @@ impl BodyEditor {
 
     fn on_copy(&mut self, _: &Copy, _: &mut Window, cx: &mut Context<Self>) {
         if let Some((from, to)) = self.selection() {
-            cx.write_to_clipboard(ClipboardItem::new_string(
-                self.doc.clipboard_text_between(from, to),
-            ));
+            self.copy_selection(from, to, cx);
         }
     }
 
     fn on_cut(&mut self, _: &Cut, _: &mut Window, cx: &mut Context<Self>) {
         if let Some((from, to)) = self.selection() {
-            cx.write_to_clipboard(ClipboardItem::new_string(
-                self.doc.clipboard_text_between(from, to),
-            ));
+            self.copy_selection(from, to, cx);
             self.record_edit(EditKind::Structural);
             self.delete_selection();
             self.changed(cx);
         }
+    }
+
+    /// `serializeForClipboard(view, selection.content())`: the text from
+    /// `clipboardTextSerializer` and the HTML with its `data-pm-slice`
+    /// context go on the clipboard together; the text alone where the
+    /// platform clipboard takes one string.
+    fn copy_selection(&self, from: Caret, to: Caret, cx: &mut Context<Self>) {
+        let text = self.doc.clipboard_text_between(from, to);
+        let html = self.selection_html(from, to);
+        if html
+            .as_deref()
+            .is_none_or(|html| !paste::write_clipboard(&text, html))
+        {
+            cx.write_to_clipboard(ClipboardItem::new_string(text));
+        }
+    }
+
+    fn selection_html(&self, from: Caret, to: Caret) -> Option<String> {
+        let schema = pm::schema::schema();
+        let doc = pm::node::Node::from_json(schema, self.doc.root())?;
+        let (from, to) = (paste::position(&doc, from)?, paste::position(&doc, to)?);
+        Some(pm::serialize::serialize_for_clipboard(
+            schema,
+            &doc.slice_at(from, to, true),
+        ))
     }
 
     fn on_paste(&mut self, _: &Paste, window: &mut Window, cx: &mut Context<Self>) {

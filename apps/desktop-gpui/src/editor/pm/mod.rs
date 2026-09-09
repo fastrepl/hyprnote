@@ -13,4 +13,5 @@ pub mod node;
 pub mod replace;
 pub mod resolved;
 pub mod schema;
+pub mod serialize;
 pub mod transform;

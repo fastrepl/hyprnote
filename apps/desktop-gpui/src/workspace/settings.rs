@@ -1071,8 +1071,8 @@ impl Workspace {
                                 .text_color(theme.foreground)
                                 .cursor_pointer()
                                 .hover(|s| s.bg(theme.accent))
-                                .on_click(cx.listener(|_, _: &gpui::ClickEvent, _, cx| {
-                                    cx.open_url("https://docs.anarlog.so/imports");
+                                .on_click(cx.listener(|_, _: &gpui::ClickEvent, _, _cx| {
+                                    crate::opener::open_url("https://docs.anarlog.so/imports");
                                 }))
                                 .child("Documentation")
                                 .child(crate::ui::icon(
@@ -2764,8 +2764,8 @@ impl Workspace {
                             .cursor_pointer()
                             .hover(|s| s.bg(alpha(theme.muted, 0.4)))
                             // `openerCommands.openPath`: `xdg-open <folder>`.
-                            .on_click(move |_: &gpui::ClickEvent, _, cx| {
-                                cx.open_with_system(std::path::Path::new(&open_path));
+                            .on_click(move |_: &gpui::ClickEvent, _, _| {
+                                crate::opener::open_path(std::path::Path::new(&open_path));
                             })
                             .child(icon("folder", px(16.0), theme.muted_foreground))
                             .child(

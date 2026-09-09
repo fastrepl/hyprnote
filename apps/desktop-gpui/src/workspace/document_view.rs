@@ -1383,9 +1383,11 @@ impl DocumentRenderer {
                                         .on_mouse_down(MouseButton::Left, move |_, _, cx| {
                                             cx.stop_propagation();
                                             if path.starts_with("https://") {
-                                                cx.open_url(&path);
+                                                crate::opener::open_url(&path);
                                             } else {
-                                                cx.open_url(&format!("file://{path}"));
+                                                crate::opener::open_path(std::path::Path::new(
+                                                    &path,
+                                                ));
                                             }
                                         }),
                                 )

@@ -1203,7 +1203,7 @@ impl Workspace {
                             .cursor_pointer()
                             .hover(move |style| style.text_color(theme.foreground))
                             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-                            .on_click(move |_, _, cx| cx.open_url(&url))
+                            .on_click(move |_, _, _cx| crate::opener::open_url(&url))
                             .child(SharedString::from(*label))
                             .child(icon("external-link", px(12.0), theme.muted_foreground))
                     }),

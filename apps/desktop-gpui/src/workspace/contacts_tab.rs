@@ -2609,7 +2609,7 @@ impl Workspace {
                 .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
                 .on_click(move |_, _, cx| {
                     cx.stop_propagation();
-                    cx.open_url(&href);
+                    crate::opener::open_url(&href);
                 })
                 .child(glyph)
         };

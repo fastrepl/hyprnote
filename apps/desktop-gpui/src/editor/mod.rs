@@ -643,7 +643,7 @@ impl BodyEditor {
             .and_then(|href| links::openable_href(&href))
         {
             tracing::info!(%href, "opening link from the memo");
-            cx.open_url(&href);
+            crate::opener::open_url(&href);
         } else if let Some((kind, id)) = self.doc.mention_at(block, index) {
             // `MentionNodeView`'s click navigates to `/app/<type>/<id>`.
             cx.emit(EditorEvent::OpenMention { kind, id });

@@ -188,7 +188,7 @@ impl Workspace {
                 // Joining and listening are independent: the link opens as
                 // soon as the meeting is due.
                 if auto_join {
-                    cx.open_url(&next.meeting_link);
+                    crate::opener::open_url(&next.meeting_link);
                 }
                 tracing::info!(
                     event_id = next.id,

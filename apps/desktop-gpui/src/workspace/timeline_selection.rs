@@ -285,9 +285,9 @@ impl Workspace {
                 } else {
                     "Show in folder"
                 },
-                Box::new(move |this, _, cx| {
+                Box::new(move |this, _, _cx| {
                     let path = this.store.session_dir(&show_id);
-                    cx.open_url(&format!("file://{}", path.display()));
+                    crate::opener::open_path(&path);
                 }),
             ),
             Entry::Separator,

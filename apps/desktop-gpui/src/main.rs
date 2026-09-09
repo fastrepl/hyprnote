@@ -38,6 +38,7 @@ mod mention;
 mod note_search;
 mod notification_apps;
 mod notifications;
+mod opener;
 mod pre_meeting;
 mod prose_text;
 mod recording;

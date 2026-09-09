@@ -423,7 +423,7 @@ impl Workspace {
                                     cx.notify();
                                 }
                                 if let Some(url) = url {
-                                    cx.open_url(url);
+                                    crate::opener::open_url(url);
                                 }
                                 if let Some(action) = &action {
                                     // `runEditCommand`: the item runs on the

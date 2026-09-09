@@ -95,7 +95,7 @@ impl Workspace {
             callback,
             saved_size,
         });
-        cx.open_url(&url);
+        crate::opener::open_url(&url);
         cx.notify();
     }
 
@@ -327,7 +327,7 @@ impl Workspace {
                                 this.set_hovered("instruction-reopen", *hovering, cx);
                             }))
                             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-                            .on_click(move |_: &ClickEvent, _, cx| cx.open_url(&url))
+                            .on_click(move |_: &ClickEvent, _, _cx| crate::opener::open_url(&url))
                             .child("Reopen checkout page")
                             .child(icon("arrow-square-out", px(14.0), theme.muted_foreground)),
                     ),

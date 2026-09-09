@@ -49,7 +49,6 @@ pub(crate) struct ExportDialog {
     pub include_summary: bool,
     pub include_transcript: bool,
     pub pending: bool,
-    pub error: Option<String>,
 }
 
 impl Default for ExportDialog {
@@ -60,7 +59,6 @@ impl Default for ExportDialog {
             include_summary: true,
             include_transcript: false,
             pending: false,
-            error: None,
         }
     }
 }
@@ -95,11 +93,13 @@ impl Workspace {
             super::Note::Ready { preview, tab } => (preview, tab),
             _ => return None,
         };
+        // `getMemoMd` / `getSummaryMd`: `json2md(JSON.parse(body))`, "" for
+        // anything that does not parse.
         let json_to_md = |body: &str| -> String {
-            serde_json::from_str::<serde_json::Value>(body)
-                .ok()
-                .and_then(|json| anlg_tiptap::tiptap_json_to_md(&json).ok())
-                .unwrap_or_default()
+            if serde_json::from_str::<serde_json::Value>(body).is_err() {
+                return String::new();
+            }
+            crate::db::enhancer::body_to_markdown(body, "tiptap")
         };
         let summary_md = match tab {
             super::NoteTab::Enhanced(id) => preview
@@ -167,7 +167,6 @@ impl Workspace {
             dialog.include_transcript,
         );
         dialog.pending = true;
-        dialog.error = None;
         cx.notify();
         let session_id = match &self.note {
             super::Note::Ready { preview, .. } => preview.session.id.clone(),
@@ -200,16 +199,15 @@ impl Workspace {
                 match result {
                     Ok(path) => {
                         // `revealItemInDir`
-                        if let Some(dir) = path.parent() {
-                            cx.open_url(&format!("file://{}", dir.display()));
-                        }
+                        crate::opener::reveal_item_in_dir(this.store.runtime(), path);
                         this.export_dialog = None;
                     }
+                    // `onError: console.error`: the dialog stays open with no
+                    // message of its own.
                     Err(error) => {
                         tracing::error!(%error, "export failed");
                         if let Some(dialog) = this.export_dialog.as_mut() {
                             dialog.pending = false;
-                            dialog.error = Some(error.to_string());
                         }
                     }
                 }
@@ -400,12 +398,6 @@ impl Workspace {
                             .child(includes),
                     ),
             )
-            .children(dialog.error.clone().map(|error| {
-                div()
-                    .tw_text_xs()
-                    .text_color(theme.destructive)
-                    .child(SharedString::from(error))
-            }))
             .child(
                 // `<button className="h-10 w-full rounded-full border-2 border-primary
                 // bg-primary text-primary-foreground text-sm font-medium shadow">`

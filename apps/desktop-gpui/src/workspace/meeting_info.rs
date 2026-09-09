@@ -814,7 +814,7 @@ impl Workspace {
                                 this.set_hovered("event-join", *hovering, cx);
                             }))
                             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-                            .on_click(move |_, _, cx| cx.open_url(&link))
+                            .on_click(move |_, _, _cx| crate::opener::open_url(&link))
                             .child("Join"),
                     ),
             );

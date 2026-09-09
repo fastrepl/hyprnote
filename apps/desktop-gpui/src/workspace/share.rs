@@ -303,7 +303,7 @@ impl Workspace {
                                     if let Some(popover) = this.share_popover.as_mut() {
                                         popover.opening_sign_in = true;
                                     }
-                                    cx.open_url(&url);
+                                    crate::opener::open_url(&url);
                                     cx.spawn(async move |this, cx| {
                                         cx.background_executor()
                                             .timer(std::time::Duration::from_millis(600))

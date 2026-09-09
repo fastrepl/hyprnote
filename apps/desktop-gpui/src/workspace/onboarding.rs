@@ -109,7 +109,7 @@ impl Workspace {
         if let Some(state) = self.onboarding.as_mut() {
             state.opening_sign_in = true;
         }
-        cx.open_url(&url);
+        crate::opener::open_url(&url);
         cx.spawn(async move |this, cx| {
             cx.background_executor()
                 .timer(std::time::Duration::from_millis(600))
@@ -1036,7 +1036,9 @@ impl Workspace {
                             .justify_center()
                             .rounded_md()
                             .cursor_pointer()
-                            .on_click(cx.listener(move |_, _: &ClickEvent, _, cx| cx.open_url(url)))
+                            .on_click(cx.listener(move |_, _: &ClickEvent, _, _cx| {
+                                crate::opener::open_url(url)
+                            }))
                             .child(icon(glyph, px(size), theme.muted_foreground))
                     })),
             )

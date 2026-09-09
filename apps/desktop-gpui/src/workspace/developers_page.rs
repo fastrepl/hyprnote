@@ -328,7 +328,9 @@ impl Workspace {
                                 .child(icon("external-link", px(14.0), theme.foreground))
                                 .into_any_element(),
                             false,
-                            Some(Box::new(|_, _, cx| cx.open_url(DEVELOPERS_GUIDE_URL))),
+                            Some(Box::new(|_, _, _cx| {
+                                crate::opener::open_url(DEVELOPERS_GUIDE_URL)
+                            })),
                             cx,
                         ),
                     ),

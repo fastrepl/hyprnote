@@ -113,7 +113,7 @@ impl Workspace {
                 };
                 let url = crate::deeplink::welcome_demo_url(&link, port);
                 this.update(cx, |this, cx| {
-                    cx.open_url(&url);
+                    crate::opener::open_url(&url);
                     this.start_listening(session_id, cx);
                     this.joining_meeting = false;
                     cx.notify();
@@ -122,7 +122,7 @@ impl Workspace {
             })
             .detach();
         } else {
-            cx.open_url(&link);
+            crate::opener::open_url(&link);
             self.start_listening(session_id, cx);
             self.joining_meeting = false;
             cx.notify();

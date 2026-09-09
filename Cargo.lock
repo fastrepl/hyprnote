@@ -5488,6 +5488,7 @@ dependencies = [
  "markdown",
  "mime_guess",
  "notification",
+ "open",
  "owhisper-interface",
  "pico-args",
  "ractor",
@@ -5518,6 +5519,7 @@ dependencies = [
  "voiceprint-service",
  "x11-clipboard",
  "x11rb",
+ "zbus",
 ]
 
 [[package]]

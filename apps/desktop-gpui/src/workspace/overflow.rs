@@ -55,13 +55,13 @@ impl Workspace {
         }
     }
 
-    fn show_in_folder(&mut self, cx: &mut Context<Self>) {
+    fn show_in_folder(&mut self, _cx: &mut Context<Self>) {
         if let Some(path) = self
             .selected
             .as_deref()
             .map(|id| self.store.session_dir(id))
         {
-            cx.open_url(&format!("file://{}", path.display()));
+            crate::opener::open_path(&path);
         }
     }
 

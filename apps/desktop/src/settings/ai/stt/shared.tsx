@@ -116,6 +116,10 @@ export const displayModelId = (model: string): string => {
     return "Soniox 5";
   }
 
+  if (model === "muse-voice-transcribe-1.0") {
+    return "Muse Voice Transcribe";
+  }
+
   if (model === "stt-v4" || model === "stt-rt-v4" || model === "stt-async-v4") {
     return "Soniox 4";
   }

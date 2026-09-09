@@ -63,6 +63,9 @@ describe("STT model display labels", () => {
 
   test("uses product-facing labels for hosted provider models", () => {
     expect(displayModelLabel("stt-rt-v5")).toBe("Soniox 5");
+    expect(displayModelLabel("muse-voice-transcribe-1.0")).toBe(
+      "Muse Voice Transcribe",
+    );
     expect(displayModelLabel("universal-3-5-pro")).toBe("Universal 3.5 Pro");
     expect(displayModelLabel("universal-3-5-pro-realtime")).toBe(
       "Universal 3.5 Pro Realtime",

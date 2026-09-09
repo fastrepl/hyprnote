@@ -16,6 +16,14 @@ test("offers macOS, Windows, and Linux downloads", () => {
     desktopDownloadSections.map((section) => section.platform),
     ["macos", "windows", "linux"],
   );
+  assert.deepEqual(
+    desktopDownloadSections.map((section) => section.status),
+    [null, null, null],
+  );
+  assert.deepEqual(
+    mobileDownloadSections.map((section) => section.status),
+    ["Beta", "Beta"],
+  );
   assert.deepEqual(comingSoonPlatforms, ["Apple Watch", "Galaxy Watch"]);
 
   const macosDownloads = desktopDownloadSections.find(

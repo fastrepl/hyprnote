@@ -11,6 +11,6 @@ Your current Anarlog installation stays on stable unless you choose to install N
 
 [Try Anarlog Nightly](https://anarlog.so/download/nightly/)
 
-Nightly keeps separate local data. If you use sync with the same account, changes
-can also reach your other devices. Please include your Nightly version and operating
-system when you reply with feedback.
+Nightly opens the same local notes as your stable Anarlog, while sign-in and settings
+stay separate. Quit one app before opening the other. Please include your Nightly
+version and operating system when you reply with feedback.

@@ -90,6 +90,87 @@ fn lock_launch_file(path: &Path) -> LaunchLockState {
     }
 }
 
+// Nightly and stable open the same database. SQLite serializes their writes,
+// but live queries and CloudSync only see their own process, so the two
+// channels exclude each other for the whole app lifetime. Each channel holds
+// its own lock file; the peer's lock being held means the peer is running.
+// Same-channel relaunches keep working: an own lock that is already held is
+// left to the single-instance plugin, as before.
+pub struct ChannelLock {
+    _file: std::fs::File,
+}
+
+pub enum ChannelLockState {
+    Acquired(Option<ChannelLock>),
+    PeerRunning { peer: &'static str },
+    Unavailable(String),
+}
+
+pub fn acquire_channel_lock(identifier: &str) -> ChannelLockState {
+    let Some(peer) = crate::db::shared_database_peer(identifier) else {
+        return ChannelLockState::Acquired(None);
+    };
+    let Some(dir) = crate::db::desktop_db_dir(identifier) else {
+        return ChannelLockState::Unavailable(
+            "application data directory is unavailable".to_string(),
+        );
+    };
+    lock_channel_files(
+        &dir.join(channel_lock_filename(identifier)),
+        &dir.join(channel_lock_filename(peer)),
+        peer,
+    )
+}
+
+fn channel_lock_filename(identifier: &str) -> String {
+    format!("{identifier}.running.lock")
+}
+
+// The peer is probed before our own lock is taken. Two channels starting at
+// the same instant can both slip through, which only preserves today's
+// behavior; the reverse order could make both of them exit.
+fn lock_channel_files(own_path: &Path, peer_path: &Path, peer: &'static str) -> ChannelLockState {
+    match lock_launch_file(peer_path) {
+        LaunchLockState::Acquired(probe) => drop(probe),
+        LaunchLockState::HeldByAnotherProcess => return ChannelLockState::PeerRunning { peer },
+        LaunchLockState::Unavailable(reason) => return ChannelLockState::Unavailable(reason),
+    }
+
+    match lock_launch_file(own_path) {
+        LaunchLockState::Acquired(LaunchLock { _file }) => {
+            ChannelLockState::Acquired(Some(ChannelLock { _file }))
+        }
+        LaunchLockState::HeldByAnotherProcess => ChannelLockState::Acquired(None),
+        LaunchLockState::Unavailable(reason) => ChannelLockState::Unavailable(reason),
+    }
+}
+
+pub fn exit_for_running_peer_channel(identifier: &str, peer: &str) -> ! {
+    let own_name = channel_product_name(identifier);
+    let peer_name = channel_product_name(peer);
+    eprintln!("{peer_name} is running on the shared database; exiting {own_name}");
+
+    #[cfg(target_os = "macos")]
+    {
+        let alert = format!(
+            "display alert \"{own_name} cannot open yet\" message \"{peer_name} is running, and both apps use the same notes. Quit {peer_name}, then open {own_name} again.\" as critical buttons {{\"OK\"}} default button \"OK\""
+        );
+        let _ = std::process::Command::new("/usr/bin/osascript")
+            .args(["-e", &alert])
+            .spawn();
+    }
+
+    std::process::exit(0);
+}
+
+fn channel_product_name(identifier: &str) -> &'static str {
+    if identifier == crate::db::NIGHTLY_BUNDLE_ID {
+        "Anarlog Nightly"
+    } else {
+        "Anarlog"
+    }
+}
+
 pub fn exit_for_already_running_instance() -> ! {
     eprintln!("another Anarlog process holds the launch lock; exiting");
 
@@ -213,6 +294,68 @@ mod tests {
             lock_launch_file(&path),
             LaunchLockState::Acquired(_)
         ));
+    }
+
+    #[test]
+    fn channel_lock_excludes_the_peer_channel_while_held() {
+        let dir = tempfile::tempdir().unwrap();
+        let stable = dir
+            .path()
+            .join(channel_lock_filename("com.hyprnote.stable"));
+        let nightly = dir
+            .path()
+            .join(channel_lock_filename("com.hyprnote.nightly"));
+
+        let stable_lock = lock_channel_files(&stable, &nightly, "com.hyprnote.nightly");
+        assert!(matches!(stable_lock, ChannelLockState::Acquired(Some(_))));
+
+        assert!(matches!(
+            lock_channel_files(&nightly, &stable, "com.hyprnote.stable"),
+            ChannelLockState::PeerRunning {
+                peer: "com.hyprnote.stable"
+            }
+        ));
+
+        drop(stable_lock);
+        assert!(matches!(
+            lock_channel_files(&nightly, &stable, "com.hyprnote.stable"),
+            ChannelLockState::Acquired(Some(_))
+        ));
+    }
+
+    #[test]
+    fn channel_lock_defers_same_channel_relaunches_to_single_instance() {
+        let dir = tempfile::tempdir().unwrap();
+        let stable = dir
+            .path()
+            .join(channel_lock_filename("com.hyprnote.stable"));
+        let nightly = dir
+            .path()
+            .join(channel_lock_filename("com.hyprnote.nightly"));
+
+        let _running = lock_channel_files(&stable, &nightly, "com.hyprnote.nightly");
+
+        assert!(matches!(
+            lock_channel_files(&stable, &nightly, "com.hyprnote.nightly"),
+            ChannelLockState::Acquired(None)
+        ));
+    }
+
+    #[test]
+    fn channels_without_a_shared_database_skip_the_channel_lock() {
+        assert!(matches!(
+            acquire_channel_lock("com.hyprnote.staging"),
+            ChannelLockState::Acquired(None)
+        ));
+    }
+
+    #[test]
+    fn channel_product_names_follow_the_bundle_identifier() {
+        assert_eq!(
+            channel_product_name("com.hyprnote.nightly"),
+            "Anarlog Nightly"
+        );
+        assert_eq!(channel_product_name("com.hyprnote.stable"), "Anarlog");
     }
 
     #[test]

@@ -804,6 +804,21 @@ export function SettingsSync() {
           description: t`Choose a device below to replace, then this device will continue automatically.`,
         };
       }
+      if (credentialBlock === "clock_skew") {
+        return {
+          kind: "error" as const,
+          label: t`Sync needs attention`,
+          description: t`This device's clock is wrong. Fix the date and time, and sync will continue automatically.`,
+        };
+      }
+      if (credentialBlock === "activation_failed") {
+        return {
+          kind: "error" as const,
+          label: t`Sync needs attention`,
+          description: t`Anarlog could not start cloud sync on this device. It will keep retrying.`,
+          detail: status?.configuration_error ?? null,
+        };
+      }
       return {
         kind: "error" as const,
         label: t`Sync needs attention`,
@@ -854,7 +869,12 @@ export function SettingsSync() {
         label: status.recovery_delayed
           ? t`Cloud sync delayed`
           : t`Restoring cloud sync...`,
-        description: t`Your notes remain available locally.`,
+        description: status.recovery_delayed
+          ? t`Your notes remain available locally. Anarlog will keep retrying.`
+          : t`Your notes remain available locally.`,
+        detail: status.recovery_delayed
+          ? (status.recovery_error ?? null)
+          : null,
       };
     }
     if (!status || !status.configured || !status.running) {
@@ -862,6 +882,7 @@ export function SettingsSync() {
         kind: "syncing" as const,
         label: t`Connecting...`,
         description: t`Setting up encrypted cloud sync.`,
+        detail: status?.configuration_error ?? null,
       };
     }
     if (
@@ -928,6 +949,11 @@ export function SettingsSync() {
               <p className="text-muted-foreground mt-1 text-xs leading-5">
                 {statusView.description}
               </p>
+              {statusView.detail && (
+                <p className="text-muted-foreground mt-1 font-mono text-[11px] leading-4 break-words">
+                  {statusView.detail}
+                </p>
+              )}
             </div>
           </div>
           <Switch
@@ -964,7 +990,10 @@ export function SettingsSync() {
               credentialBlock !== null ||
               syncNowMutation.isPending ||
               statusQuery.isFetching ||
-              status?.activity_paused === true
+              !status?.configured ||
+              !status.running ||
+              status.activity_paused ||
+              status.recovery_pending === true
             }
             onClick={() => syncNowMutation.mutate()}
           >

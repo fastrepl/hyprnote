@@ -51,10 +51,11 @@ fn resolve_default_path_for_command(data_dir: &Path, command_name: Option<&OsStr
         .and_then(OsStr::to_str)
         .and_then(|name| Path::new(name).file_stem())
         .and_then(OsStr::to_str);
+    // `anarlog-nightly` falls through: the Nightly desktop app opens the same
+    // database as stable.
     let channel_identifier = match command_name {
         Some("anarlog-dev") => Some("com.hyprnote.dev"),
         Some("anarlog-staging") => Some("com.hyprnote.staging"),
-        Some("anarlog-nightly") => Some("com.hyprnote.nightly"),
         _ => None,
     };
     if let Some(identifier) = channel_identifier {
@@ -122,14 +123,23 @@ mod tests {
     }
 
     #[test]
-    fn channel_commands_target_their_channel_database() {
+    fn nightly_command_targets_the_stable_database() {
         let dir = tempfile::tempdir().unwrap();
+        let stable = dir.path().join("anarlog/app.db");
+        std::fs::create_dir_all(stable.parent().unwrap()).unwrap();
+        std::fs::write(&stable, "").unwrap();
+
         for command in ["anarlog-nightly", "anarlog-nightly.exe"] {
             assert_eq!(
                 resolve_default_path_for_command(dir.path(), Some(OsStr::new(command))),
-                dir.path().join("com.hyprnote.nightly/app.db")
+                stable
             );
         }
+    }
+
+    #[test]
+    fn channel_commands_target_their_channel_database() {
+        let dir = tempfile::tempdir().unwrap();
         let stable = dir.path().join("anarlog/app.db");
         std::fs::create_dir_all(stable.parent().unwrap()).unwrap();
         std::fs::write(stable, "").unwrap();

@@ -89,6 +89,8 @@ pub enum Provider {
     DashScope,
     #[strum(serialize = "mistral")]
     Mistral,
+    #[strum(serialize = "meta")]
+    Meta,
     #[strum(serialize = "pyannote")]
     Pyannote,
     #[strum(serialize = "cohere")]
@@ -116,7 +118,7 @@ pub enum Provider {
 }
 
 impl Provider {
-    const ALL: [Provider; 23] = [
+    const ALL: [Provider; 24] = [
         Self::AquaVoice,
         Self::Cartesia,
         Self::Deepgram,
@@ -128,6 +130,7 @@ impl Provider {
         Self::ElevenLabs,
         Self::DashScope,
         Self::Mistral,
+        Self::Meta,
         Self::Pyannote,
         Self::Cohere,
         Self::AwsTranscribe,
@@ -186,7 +189,7 @@ impl Provider {
                 name: "Authorization",
                 prefix: Some("Bearer "),
             },
-            Self::Mistral => Auth::Header {
+            Self::Mistral | Self::Meta => Auth::Header {
                 name: "Authorization",
                 prefix: Some("Bearer "),
             },
@@ -244,6 +247,7 @@ impl Provider {
             Self::ElevenLabs => "api.elevenlabs.io",
             Self::DashScope => "dashscope-intl.aliyuncs.com",
             Self::Mistral => "api.mistral.ai",
+            Self::Meta => "api.meta.ai",
             Self::Pyannote => "api.pyannote.ai",
             Self::Cohere => "api.cohere.com",
             Self::AwsTranscribe => "transcribe.us-east-1.amazonaws.com",
@@ -272,6 +276,7 @@ impl Provider {
             Self::ElevenLabs => "api.elevenlabs.io",
             Self::DashScope => "dashscope-intl.aliyuncs.com",
             Self::Mistral => "api.mistral.ai",
+            Self::Meta => "api.meta.ai",
             Self::Pyannote => "api.pyannote.ai",
             Self::Cohere => "api.cohere.com",
             Self::AwsTranscribe => "transcribestreaming.us-east-1.amazonaws.com",
@@ -300,6 +305,7 @@ impl Provider {
             Self::ElevenLabs => "/v1/speech-to-text/realtime",
             Self::DashScope => "/api-ws/v1/realtime",
             Self::Mistral => "/v1/audio/transcriptions/realtime",
+            Self::Meta => crate::adapter::meta::WS_PATH,
             Self::Pyannote => "/v1/diarize",
             Self::Cohere => "",
             Self::Xai => "/v1/stt",
@@ -327,7 +333,7 @@ impl Provider {
             Self::Gladia => Some("https://api.gladia.io/v2/live"),
             Self::ElevenLabs => Some("https://api.elevenlabs.io/v1"),
             Self::DashScope => None,
-            Self::Mistral => None,
+            Self::Mistral | Self::Meta => None,
             Self::Pyannote => Some("https://api.pyannote.ai/v1"),
             Self::Cohere => Some("https://api.cohere.com/v2"),
             Self::AwsTranscribe
@@ -356,6 +362,7 @@ impl Provider {
             Self::ElevenLabs => "https://api.elevenlabs.io",
             Self::DashScope => "https://dashscope-intl.aliyuncs.com",
             Self::Mistral => "https://api.mistral.ai/v1",
+            Self::Meta => crate::adapter::meta::DEFAULT_API_BASE,
             Self::Pyannote => "https://api.pyannote.ai",
             Self::Cohere => "https://api.cohere.com/v2",
             Self::AwsTranscribe => "https://transcribe.us-east-1.amazonaws.com",
@@ -384,6 +391,7 @@ impl Provider {
             Self::ElevenLabs => "elevenlabs.io",
             Self::DashScope => "aliyuncs.com",
             Self::Mistral => "mistral.ai",
+            Self::Meta => "meta.ai",
             Self::Pyannote => "pyannote.ai",
             Self::Cohere => "cohere.com",
             Self::AwsTranscribe => "amazonaws.com",
@@ -436,6 +444,7 @@ impl Provider {
             Self::ElevenLabs => "ELEVENLABS_API_KEY",
             Self::DashScope => "DASHSCOPE_API_KEY",
             Self::Mistral => "MISTRAL_API_KEY",
+            Self::Meta => "META_API_KEY",
             Self::Pyannote => "PYANNOTE_API_KEY",
             Self::Cohere => "COHERE_API_KEY",
             Self::AwsTranscribe => "AWS_TRANSCRIBE_API_KEY",
@@ -464,6 +473,7 @@ impl Provider {
             Self::ElevenLabs => "scribe_v2_realtime",
             Self::DashScope => "qwen3-asr-flash-realtime",
             Self::Mistral => "voxtral-mini-transcribe-realtime-2602",
+            Self::Meta => crate::adapter::meta::MODEL,
             Self::Pyannote => "parakeet-tdt-0.6b-v3",
             Self::Cohere => crate::adapter::cohere::DEFAULT_MODEL,
             Self::AwsTranscribe => "amazon-transcribe",
@@ -486,6 +496,7 @@ impl Provider {
             Self::ElevenLabs
             | Self::DashScope
             | Self::Mistral
+            | Self::Meta
             | Self::Pyannote
             | Self::Cohere
             | Self::AwsTranscribe
@@ -514,6 +525,7 @@ impl Provider {
             Self::ElevenLabs => "scribe_v2",
             Self::DashScope => "qwen3-asr-flash-filetrans",
             Self::Mistral => "voxtral-mini-2602",
+            Self::Meta => crate::adapter::meta::MODEL,
             Self::Pyannote => "parakeet-tdt-0.6b-v3",
             Self::Cohere => crate::adapter::cohere::DEFAULT_MODEL,
             Self::AwsTranscribe => "amazon-transcribe",
@@ -536,6 +548,7 @@ impl Provider {
             Self::AquaVoice
             | Self::DashScope
             | Self::Mistral
+            | Self::Meta
             | Self::Pyannote
             | Self::Cohere
             | Self::AwsTranscribe
@@ -563,6 +576,7 @@ impl Provider {
             | Self::ElevenLabs
             | Self::DashScope
             | Self::Mistral
+            | Self::Meta
             | Self::Pyannote
             | Self::Cohere
             | Self::AwsTranscribe
@@ -593,6 +607,7 @@ impl Provider {
             Self::Gladia => &[],
             Self::ElevenLabs => &["commit"],
             Self::SmallestAI => &["finalize", "close_stream"],
+            Self::Meta => &["endStream"],
             Self::DashScope
             | Self::Mistral
             | Self::Pyannote
@@ -627,6 +642,7 @@ impl Provider {
             Self::AquaVoice
             | Self::Cartesia
             | Self::Mistral
+            | Self::Meta
             | Self::Pyannote
             | Self::Cohere
             | Self::AwsTranscribe
@@ -674,6 +690,7 @@ impl Provider {
             Self::ElevenLabs => from_adapter(&crate::adapter::ElevenLabsAdapter, msg),
             Self::DashScope => from_adapter(&crate::adapter::DashScopeAdapter, msg),
             Self::Mistral => from_adapter(&crate::adapter::MistralAdapter::default(), msg),
+            Self::Meta => from_adapter(&crate::adapter::MetaAdapter::default(), msg),
             Self::AquaVoice => None,
             Self::Cartesia => from_adapter(&crate::adapter::CartesiaAdapter, msg),
             Self::OpenAI => from_adapter(&crate::adapter::OpenAIAdapter::default(), msg),
@@ -707,6 +724,7 @@ impl Provider {
             | Self::Gladia
             | Self::DashScope
             | Self::Mistral
+            | Self::Meta
             | Self::Pyannote
             | Self::Cohere
             | Self::AwsTranscribe

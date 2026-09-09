@@ -25,12 +25,28 @@ fn is_tap_device(name: &str) -> bool {
 }
 
 pub(crate) fn is_unusable_input_device(name: &str) -> bool {
+    is_unusable_input_device_with_id(None, name)
+}
+
+/// Like `is_unusable_input_device`, but also rejects the ALSA `null` pcm by its stable device id
+/// (`cpal::Device::id()`) when the caller has one. `null` accepts writes and produces silence
+/// with no real clock, so a capture stream opened on it free-spins the audio callback instead of
+/// blocking on hardware timing (see `new_locked`). The id check is the primary signal; the
+/// description check below is a defensive fallback for callers that only have a name, such as a
+/// device_name string loaded from settings.
+pub(crate) fn is_unusable_input_device_with_id(id: Option<&str>, name: &str) -> bool {
     if is_tap_device(name) {
         return true;
     }
 
+    if id.is_some_and(|id| id.eq_ignore_ascii_case("null")) {
+        return true;
+    }
+
     let lower = name.to_ascii_lowercase();
-    lower.contains(".monitor") || lower.contains("monitor of ")
+    lower.contains(".monitor")
+        || lower.contains("monitor of ")
+        || lower.starts_with("discard all samples")
 }
 
 fn rank_input_devices(
@@ -59,6 +75,36 @@ fn rank_input_devices(
         push(name);
     }
     ordered
+}
+
+/// Finds the index in `listed_names` that a ranked candidate should open.
+///
+/// Candidates are normally matched by description (`name`). The default device is a special
+/// case on ALSA: `host.default_input_device()` returns a synthetic device whose description
+/// (e.g. "Default Audio Device") never matches the real ALSA hint description carried by its
+/// entry in the listed devices, so a plain name match misses it even though `rank_input_devices`
+/// ranked it correctly. When `is_default` is set, fall back to matching by stable device id
+/// (`cpal::Device::id()`) against `listed_ids` — on ALSA the "default" pcm id also shows up as
+/// its own listed hint, with the real description, whenever the system defines one.
+fn resolve_ranked_candidate(
+    name: &str,
+    is_default: bool,
+    default_id: Option<&str>,
+    listed_names: &[String],
+    listed_ids: &[Option<String>],
+) -> Option<usize> {
+    listed_names
+        .iter()
+        .position(|listed_name| listed_name == name)
+        .or_else(|| {
+            if !is_default {
+                return None;
+            }
+            let id = default_id?;
+            listed_ids
+                .iter()
+                .position(|listed_id| listed_id.as_deref() == Some(id))
+        })
 }
 
 fn with_cpal_host_lock<T>(f: impl FnOnce() -> T) -> T {
@@ -218,11 +264,12 @@ impl MicInput {
                 .into_iter()
                 .flatten()
                 .filter_map(|d| {
+                    let id = d.id().ok().map(|id| id.1);
                     let name = d
                         .description()
                         .map(|desc| desc.name().to_string())
                         .unwrap_or("Unknown Microphone".to_string());
-                    let keep = !is_unusable_input_device(&name);
+                    let keep = !is_unusable_input_device_with_id(id.as_deref(), &name);
                     drop_quietly(d);
                     keep.then_some(name)
                 })
@@ -238,12 +285,14 @@ impl MicInput {
             let name = host
                 .default_input_device()
                 .and_then(|device| {
+                    let id = device.id().ok().map(|id| id.1);
                     let name = device
                         .description()
                         .map(|d| d.name().to_string())
                         .unwrap_or_default();
                     drop_quietly(device);
-                    (!name.is_empty() && !is_unusable_input_device(&name)).then_some(name)
+                    (!name.is_empty() && !is_unusable_input_device_with_id(id.as_deref(), &name))
+                        .then_some(name)
                 })
                 .unwrap_or_else(|| "Unknown Microphone".to_string());
             drop_quietly(host);
@@ -263,13 +312,17 @@ impl MicInput {
                 .map(|desc| desc.name().to_string())
                 .unwrap_or_default()
         };
+        let get_device_id = |d: &cpal::Device| d.id().ok().map(|id| id.1);
 
         let listed: Vec<cpal::Device> = host
             .input_devices()
             .map(|devices| devices.collect())
             .unwrap_or_else(|_| Vec::new());
         let listed_names: Vec<String> = listed.iter().map(get_device_name).collect();
-        let default_name = host.default_input_device().map(|d| {
+        let listed_ids: Vec<Option<String>> = listed.iter().map(get_device_id).collect();
+        let default_device = host.default_input_device();
+        let default_id = default_device.as_ref().and_then(get_device_id);
+        let default_name = default_device.map(|d| {
             let name = get_device_name(&d);
             drop_quietly(d);
             name
@@ -285,18 +338,41 @@ impl MicInput {
         } else {
             let mut opened = None;
             for name in ranked {
-                let Some(device) = listed
-                    .iter()
-                    .find(|d| get_device_name(d) == name)
-                    .cloned()
-                    .or_else(|| {
-                        host.input_devices()
-                            .ok()
-                            .and_then(|devices| take_named_device(devices, &name, get_device_name))
-                    })
-                else {
+                let is_default = default_name.as_deref() == Some(name.as_str());
+
+                let device = resolve_ranked_candidate(
+                    &name,
+                    is_default,
+                    default_id.as_deref(),
+                    &listed_names,
+                    &listed_ids,
+                )
+                .map(|index| listed[index].clone())
+                .or_else(|| {
+                    host.input_devices()
+                        .ok()
+                        .and_then(|devices| take_named_device(devices, &name, get_device_name))
+                })
+                .or_else(|| {
+                    // Nothing in `listed` matches this candidate by name or id. For the default
+                    // candidate, open the live default device directly rather than silently
+                    // skipping the user's actual default input device — see
+                    // `resolve_ranked_candidate` for why name matching alone misses it.
+                    is_default.then(|| host.default_input_device()).flatten()
+                });
+
+                let Some(device) = device else {
+                    tracing::warn!(device_name = name, "mic_candidate_device_unresolved");
                     continue;
                 };
+
+                if is_unusable_input_device_with_id(
+                    get_device_id(&device).as_deref(),
+                    &get_device_name(&device),
+                ) {
+                    drop_quietly(device);
+                    continue;
+                }
 
                 match device.default_input_config() {
                     Ok(config) => {
@@ -609,6 +685,46 @@ mod tests {
     }
 
     #[test]
+    fn alsa_null_device_is_unusable_by_id_even_with_an_innocuous_description() {
+        // The id is the primary signal: it is authoritative and does not depend on locale or
+        // wording of the ALSA hint description.
+        assert!(is_unusable_input_device_with_id(
+            Some("null"),
+            "Some Innocuous Description"
+        ));
+        assert!(is_unusable_input_device_with_id(
+            Some("NULL"),
+            "Some Innocuous Description"
+        ));
+    }
+
+    #[test]
+    fn alsa_null_device_is_unusable_by_description_when_no_id_is_available() {
+        // Defensive fallback for callers that only have a name, such as a device_name string
+        // loaded from settings, or a host that does not report device ids.
+        assert!(is_unusable_input_device(
+            "Discard all samples (playback) or generate zero samples (capture)"
+        ));
+        assert!(is_unusable_input_device_with_id(
+            None,
+            "Discard all samples (playback) or generate zero samples (capture)"
+        ));
+    }
+
+    #[test]
+    fn ordinary_devices_are_not_rejected_by_id_or_description() {
+        assert!(!is_unusable_input_device_with_id(
+            Some("hw:CARD=0,DEV=0"),
+            "USB Microphone"
+        ));
+        // A non-null id must not be enough on its own to reject a device.
+        assert!(!is_unusable_input_device_with_id(
+            Some("default"),
+            "Default ALSA Output (currently PipeWire Media Server)"
+        ));
+    }
+
+    #[test]
     fn rank_input_devices_prefers_named_then_default_and_skips_monitors() {
         let ranked = rank_input_devices(
             Some("USB Microphone"),
@@ -680,6 +796,126 @@ mod tests {
         );
 
         assert_eq!(ranked, vec!["Built-in Audio".to_string()]);
+    }
+
+    #[test]
+    fn rank_input_devices_excludes_the_null_device_like_a_monitor() {
+        let ranked = rank_input_devices(
+            None,
+            Some("Built-in Audio"),
+            &[
+                "Discard all samples (playback) or generate zero samples (capture)".to_string(),
+                "Built-in Audio".to_string(),
+                "USB Microphone".to_string(),
+            ],
+        );
+
+        assert_eq!(
+            ranked,
+            vec!["Built-in Audio".to_string(), "USB Microphone".to_string()]
+        );
+    }
+
+    #[test]
+    fn rank_input_devices_ranks_default_even_when_its_description_is_not_listed() {
+        // On ALSA, `host.default_input_device()` returns a synthetic device described as
+        // "Default Audio Device" — a string that never appears among the listed hints, whose
+        // own "default" entry carries the real ALSA hint description instead. Ranking must still
+        // surface the default's own description so `resolve_ranked_candidate` has a candidate to
+        // resolve by id.
+        let ranked = rank_input_devices(
+            None,
+            Some("Default Audio Device"),
+            &[
+                "Default ALSA Output (currently PipeWire Media Server)".to_string(),
+                "USB Microphone".to_string(),
+            ],
+        );
+
+        assert_eq!(
+            ranked,
+            vec![
+                "Default Audio Device".to_string(),
+                "Default ALSA Output (currently PipeWire Media Server)".to_string(),
+                "USB Microphone".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn resolve_ranked_candidate_matches_default_by_id_when_description_differs() {
+        let listed_names = vec![
+            "Discard all samples (playback) or generate zero samples (capture)".to_string(),
+            "Default ALSA Output (currently PipeWire Media Server)".to_string(),
+            "USB Microphone".to_string(),
+        ];
+        let listed_ids = vec![
+            Some("null".to_string()),
+            Some("default".to_string()),
+            Some("hw:CARD=1,DEV=0".to_string()),
+        ];
+
+        // The synthetic default's description matches nothing in `listed_names`, but its id
+        // ("default") matches the second listed device's id.
+        let resolved = resolve_ranked_candidate(
+            "Default Audio Device",
+            true,
+            Some("default"),
+            &listed_names,
+            &listed_ids,
+        );
+        assert_eq!(resolved, Some(1));
+    }
+
+    #[test]
+    fn resolve_ranked_candidate_prefers_name_match_over_id_match() {
+        let listed_names = vec!["USB Microphone".to_string(), "Built-in Audio".to_string()];
+        let listed_ids = vec![
+            Some("hw:CARD=1,DEV=0".to_string()),
+            Some("default".to_string()),
+        ];
+
+        let resolved = resolve_ranked_candidate(
+            "USB Microphone",
+            false,
+            Some("default"),
+            &listed_names,
+            &listed_ids,
+        );
+        assert_eq!(resolved, Some(0));
+    }
+
+    #[test]
+    fn resolve_ranked_candidate_does_not_id_match_non_default_candidates() {
+        let listed_names = vec!["Default ALSA Output".to_string()];
+        let listed_ids = vec![Some("default".to_string())];
+
+        // Even though the id would match, this candidate is not the default, so it must not be
+        // resolved by id — only the caller's explicit preferred/listed name matching applies.
+        let resolved = resolve_ranked_candidate(
+            "Some Other Name",
+            false,
+            Some("default"),
+            &listed_names,
+            &listed_ids,
+        );
+        assert_eq!(resolved, None);
+    }
+
+    #[test]
+    fn resolve_ranked_candidate_returns_none_when_default_id_is_unavailable() {
+        let listed_names = vec!["USB Microphone".to_string()];
+        let listed_ids = vec![Some("hw:CARD=1,DEV=0".to_string())];
+
+        // Falls through to the caller's own "open the live default directly" fallback.
+        let resolved = resolve_ranked_candidate(
+            "Default Audio Device",
+            true,
+            None,
+            &listed_names,
+            &listed_ids,
+        );
+        assert_eq!(resolved, None);
     }
 
     #[test]

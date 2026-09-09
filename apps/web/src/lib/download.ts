@@ -19,6 +19,14 @@ export const windowsStoreDownloadUrl =
 
 export const comingSoonPlatforms = ["Apple Watch", "Galaxy Watch"] as const;
 
+export const platformIcons = {
+  macOS: "simple-icons:apple",
+  Windows: "simple-icons:windows",
+  Linux: "simple-icons:linux",
+  iOS: "simple-icons:apple",
+  Android: "simple-icons:android",
+} as const;
+
 export const mobileDownloadSections = [
   {
     platform: "ios",
@@ -76,7 +84,7 @@ export const desktopDownloadSections = [
   {
     platform: "windows",
     name: "Windows",
-    status: "Beta",
+    status: null,
     description: "Choose a direct download or install from Microsoft Store.",
     downloads: [
       {
@@ -97,7 +105,7 @@ export const desktopDownloadSections = [
   {
     platform: "linux",
     name: "Linux",
-    status: "Beta",
+    status: null,
     description:
       "APT, AppImage, and Debian packages for x64 and ARM64, plus a PKGBUILD for Arch.",
     downloads: [

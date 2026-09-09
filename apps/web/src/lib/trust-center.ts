@@ -176,7 +176,7 @@ export const contractualDocs = [
 ];
 
 export const shipsToday = [
-  "Desktop app on macOS, with Windows and Linux in beta",
+  "Desktop app on macOS, Windows, and Linux",
   "Bot-free local capture from microphone and system audio",
   "Local SQLite as the source of truth, plus Markdown and other exports",
   "On-device transcription and local models, or bring-your-own API keys",

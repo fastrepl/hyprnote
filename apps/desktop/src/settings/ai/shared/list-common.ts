@@ -99,6 +99,7 @@ const modelPriorityPatterns = [
   /(?:^|\/)kimi-k3$/,
   /(?:^|\/)deepseek-v4-(?:pro|flash)$/,
   /(?:^|\/)glm-5\.3$/,
+  /(?:^|\/)muse-spark-1\.3$/,
 ] as const;
 
 export const fetchJson = (url: string, headers: Record<string, string>) =>

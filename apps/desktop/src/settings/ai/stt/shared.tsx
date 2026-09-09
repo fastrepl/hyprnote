@@ -116,6 +116,10 @@ export const displayModelId = (model: string): string => {
     return "Soniox 5";
   }
 
+  if (model === "muse-voice-transcribe-1.0") {
+    return "Muse Voice Transcribe";
+  }
+
   if (model === "stt-v4" || model === "stt-rt-v4" || model === "stt-async-v4") {
     return "Soniox 4";
   }
@@ -889,6 +893,32 @@ const _PROVIDERS = [
   },
   {
     disabled: false,
+    id: "meta",
+    displayName: "Meta Muse",
+    badge: null,
+    icon: (
+      <ProviderBrandImage
+        src="/assets/model-icons/meta-logo.svg"
+        alt="Meta Muse"
+        className="rounded-xs"
+      />
+    ),
+    baseUrl: "https://api.meta.ai/v1",
+    models: ["muse-voice-transcribe-1.0"],
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+    links: {
+      models: {
+        label: "Available models",
+        url: "https://dev.meta.ai/docs/speech-to-text",
+      },
+      setup: {
+        label: "API setup",
+        url: "https://dev.meta.ai/",
+      },
+    },
+  },
+  {
+    disabled: false,
     id: "elevenlabs",
     displayName: "ElevenLabs",
     badge: null,
@@ -1030,6 +1060,7 @@ const PROVIDER_ORDER = [
   "azure_speech",
   "elevenlabs",
   "soniox",
+  "meta",
   "speechmatics",
   "groq",
   "mistral",

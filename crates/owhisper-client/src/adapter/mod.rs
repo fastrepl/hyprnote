@@ -20,6 +20,7 @@ pub(crate) mod google_generative_ai;
 mod groq;
 pub mod http;
 mod language;
+pub(crate) mod meta;
 mod mistral;
 mod openai;
 mod openai_compatible_batch;
@@ -53,6 +54,7 @@ pub use google_cloud::*;
 pub use google_generative_ai::*;
 pub use groq::*;
 pub use language::{LanguageQuality, LanguageSupport};
+pub use meta::*;
 pub use mistral::*;
 pub use openai::*;
 pub use openrouter::*;
@@ -487,6 +489,8 @@ pub enum AdapterKind {
     DashScope,
     #[strum(serialize = "mistral")]
     Mistral,
+    #[strum(serialize = "meta")]
+    Meta,
     #[strum(serialize = "pyannote")]
     Pyannote,
     #[strum(serialize = "cohere")]
@@ -587,6 +591,9 @@ impl AdapterKind {
             // Pre-recorded requests cap at 250 MB and time out after 10 minutes,
             // and the docs recommend splitting anything longer.
             Self::SmallestAI => (250 * 1024 * 1024, Duration::from_secs(10 * 60)),
+            // Muse caps requests at 10 minutes / 32 MB. Segments are re-encoded to
+            // 16 kHz mono s16 WAV (~19 MB per 590 s), so only the duration binds.
+            Self::Meta => (u64::MAX, Duration::from_secs(590)),
             _ => return None,
         };
 
@@ -622,6 +629,7 @@ impl AdapterKind {
             | Self::ElevenLabs
             | Self::DashScope
             | Self::Mistral
+            | Self::Meta
             | Self::Xai
             | Self::SmallestAI
             | Self::GoogleGenerativeAi
@@ -652,6 +660,7 @@ impl AdapterKind {
             Self::DashScope => DashScopeAdapter::language_support_live(languages),
             Self::Argmax => ArgmaxAdapter::language_support_live(languages, model),
             Self::Mistral => MistralAdapter::language_support_live(languages),
+            Self::Meta => MetaAdapter::language_support_live(languages),
             Self::Pyannote => LanguageSupport::NotSupported,
             Self::Cohere => LanguageSupport::NotSupported,
             Self::AwsTranscribe
@@ -692,6 +701,7 @@ impl AdapterKind {
             Self::DashScope => DashScopeAdapter::language_support_batch(languages),
             Self::Argmax => ArgmaxAdapter::language_support_batch(languages, model),
             Self::Mistral => MistralAdapter::language_support_batch(languages),
+            Self::Meta => MetaAdapter::language_support_batch(languages),
             Self::Pyannote => PyannoteAdapter::language_support_batch(languages, model),
             Self::Cohere => CohereAdapter::language_support_batch(languages, model),
             Self::AwsTranscribe => AwsTranscribeAdapter::language_support_batch(languages),
@@ -762,6 +772,7 @@ impl From<crate::providers::Provider> for AdapterKind {
             Provider::ElevenLabs => Self::ElevenLabs,
             Provider::DashScope => Self::DashScope,
             Provider::Mistral => Self::Mistral,
+            Provider::Meta => Self::Meta,
             Provider::Pyannote => Self::Pyannote,
             Provider::Cohere => Self::Cohere,
             Provider::AwsTranscribe => Self::AwsTranscribe,

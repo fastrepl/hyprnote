@@ -148,6 +148,7 @@ pub struct PluginDbRuntime {
     cloudsync_auth_generation: std::sync::Arc<std::sync::atomic::AtomicU64>,
     cloudsync_auth_changed: std::sync::Arc<tokio::sync::Notify>,
     cloudsync_focus_nudge_at: std::sync::Mutex<Option<std::time::Instant>>,
+    cloudsync_configuration_error: std::sync::Mutex<Option<String>>,
     _replica_sync: replica_sync::ReplicaSyncTask,
     _witness_watch: witness_watch::WitnessWatchTask,
     #[cfg(test)]
@@ -237,6 +238,7 @@ impl PluginDbRuntime {
             cloudsync_auth_generation: Default::default(),
             cloudsync_auth_changed: Default::default(),
             cloudsync_focus_nudge_at: Default::default(),
+            cloudsync_configuration_error: Default::default(),
             _replica_sync: replica_sync,
             #[cfg(test)]
             pause_transaction_after_begin: Default::default(),
@@ -1462,6 +1464,37 @@ impl PluginDbRuntime {
         self.suspend_cloudsync().await
     }
 
+    /// Records the outcome of a CloudSync configuration or start step so the
+    /// status surface can explain why sync is still "Connecting" instead of
+    /// leaving the frontend to retry silently.
+    pub fn record_cloudsync_configuration_result<T>(
+        &self,
+        step: &'static str,
+        result: &std::result::Result<T, String>,
+    ) {
+        let mut slot = self.cloudsync_configuration_error.lock().unwrap();
+        match result {
+            Ok(_) => {
+                if slot.take().is_some() {
+                    tracing::info!(step, "CloudSync configuration recovered");
+                }
+            }
+            Err(error) => {
+                tracing::warn!(step, %error, "CloudSync configuration failed");
+                *slot = Some(format!("{step}: {error}"));
+            }
+        }
+    }
+
+    fn cloudsync_configuration_error_value(&self) -> serde_json::Value {
+        self.cloudsync_configuration_error
+            .lock()
+            .unwrap()
+            .clone()
+            .map(serde_json::Value::String)
+            .unwrap_or(serde_json::Value::Null)
+    }
+
     pub async fn cloudsync_status(&self) -> Result<serde_json::Value> {
         if self.e2ee_sync_hook.replica_transport_configured() {
             return self.replica_transport_status().await;
@@ -1473,6 +1506,10 @@ impl PluginDbRuntime {
             let status_object = status.as_object_mut().ok_or_else(|| {
                 std::io::Error::other("CloudSync status did not serialize to an object")
             })?;
+            status_object.insert(
+                "configuration_error".to_string(),
+                self.cloudsync_configuration_error_value(),
+            );
             status_object.insert(
                 "activity_paused".to_string(),
                 serde_json::Value::Bool(activity_paused),
@@ -1497,6 +1534,7 @@ impl PluginDbRuntime {
                     serde_json::Value::Bool(false),
                 );
                 status_object.insert("recovery_phase".to_string(), serde_json::Value::Null);
+                status_object.insert("recovery_error".to_string(), serde_json::Value::Null);
                 return Ok(status);
             }
         }
@@ -1525,12 +1563,16 @@ impl PluginDbRuntime {
         .await;
         connection.return_to_pool().await;
         let (local_e2ee_work_pending, recovery) = enrichment?;
-        let recovery_delayed = recovery.as_ref().is_some_and(|state| {
-            self.scheduled_cloudsync_full_resync
-                .lock()
-                .unwrap()
-                .is_delayed(&state.generation)
-        });
+        let (recovery_delayed, recovery_error) = match recovery.as_ref() {
+            Some(state) => {
+                let schedule = self.scheduled_cloudsync_full_resync.lock().unwrap();
+                (
+                    schedule.is_delayed(&state.generation),
+                    schedule.last_error(&state.generation),
+                )
+            }
+            None => (false, None),
+        };
         let status_object = status.as_object_mut().ok_or_else(|| {
             std::io::Error::other("CloudSync status did not serialize to an object")
         })?;
@@ -1553,6 +1595,12 @@ impl PluginDbRuntime {
             recovery
                 .map(|state| serde_json::to_value(state.phase))
                 .transpose()?
+                .unwrap_or(serde_json::Value::Null),
+        );
+        status_object.insert(
+            "recovery_error".to_string(),
+            recovery_error
+                .map(serde_json::Value::String)
                 .unwrap_or(serde_json::Value::Null),
         );
         Ok(status)
@@ -1581,6 +1629,7 @@ impl PluginDbRuntime {
         }
         self.e2ee_sync_hook.clear();
         self.e2ee_sync_hook.clear_activities();
+        self.cloudsync_configuration_error.lock().unwrap().take();
         Ok(())
     }
 
@@ -1605,6 +1654,7 @@ impl PluginDbRuntime {
             "configured": true,
             "running": true,
             "network_initialized": true,
+            "configuration_error": self.cloudsync_configuration_error_value(),
             "activity_paused": activity_paused,
             "deferred_for_capture": self.e2ee_sync_hook.has_activity(CLOUDSYNC_CAPTURE_ACTIVITY),
             "last_sync": null,
@@ -1616,6 +1666,7 @@ impl PluginDbRuntime {
             "recovery_pending": false,
             "recovery_delayed": false,
             "recovery_phase": null,
+            "recovery_error": null,
             "activity_log": [],
         }))
     }

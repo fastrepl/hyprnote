@@ -7,8 +7,8 @@ use ractor::{ActorProcessingErr, ActorRef};
 use owhisper_client::{
     AdapterKind, AnarlogAdapter, ArgmaxAdapter, AssemblyAIAdapter, CartesiaAdapter,
     DashScopeAdapter, DeepgramAdapter, DeepgramFluxAdapter, ElevenLabsAdapter, FireworksAdapter,
-    GladiaAdapter, GoogleGenerativeAiAdapter, MistralAdapter, OpenAIAdapter, RealtimeSttAdapter,
-    SmallestAIAdapter, SonioxAdapter, XaiAdapter, anlg_ws_client,
+    GladiaAdapter, GoogleGenerativeAiAdapter, MetaAdapter, MistralAdapter, OpenAIAdapter,
+    RealtimeSttAdapter, SmallestAIAdapter, SonioxAdapter, XaiAdapter, anlg_ws_client,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -192,6 +192,7 @@ pub(super) async fn spawn_rx_task(
         ElevenLabs => ElevenLabsAdapter,
         DashScope => DashScopeAdapter,
         Mistral => MistralAdapter,
+        Meta => MetaAdapter,
         Xai => XaiAdapter,
         SmallestAI => SmallestAIAdapter,
         GoogleGenerativeAi => GoogleGenerativeAiAdapter,

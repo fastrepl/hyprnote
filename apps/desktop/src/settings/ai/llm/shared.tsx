@@ -30,7 +30,11 @@ import type { ReactNode } from "react";
 import { Shuffle } from "@anlg/ui/components/icons";
 
 import { env } from "~/env";
-import { AnarlogProviderIcon, ProviderLobeIcon } from "~/settings/ai/shared";
+import {
+  AnarlogProviderIcon,
+  ProviderBrandImage,
+  ProviderLobeIcon,
+} from "~/settings/ai/shared";
 import { type ProviderRequirement } from "~/settings/ai/shared/eligibility";
 import { checkAppleFoundationModelAvailability } from "~/settings/ai/shared/list-apple-foundation";
 import {
@@ -561,6 +565,30 @@ const _PROVIDERS = [
     },
   },
   {
+    id: "meta",
+    displayName: "Meta Muse",
+    badge: null,
+    icon: (
+      <ProviderBrandImage
+        src="/assets/model-icons/meta-logo.svg"
+        alt="Meta Muse"
+        className="rounded-xs"
+      />
+    ),
+    baseUrl: "https://api.meta.ai/v1",
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+    links: {
+      models: {
+        label: "Available models",
+        url: "https://dev.meta.ai/docs/models",
+      },
+      setup: {
+        label: "API setup",
+        url: "https://dev.meta.ai/",
+      },
+    },
+  },
+  {
     id: "azure_openai",
     displayName: "Azure OpenAI",
     badge: null,
@@ -653,6 +681,7 @@ const PROVIDER_ORDER = [
   "ollama",
   "xai",
   "mistral",
+  "meta",
   "together",
   "cohere",
   "fireworks",

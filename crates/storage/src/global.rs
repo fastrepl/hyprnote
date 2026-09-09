@@ -16,6 +16,8 @@ pub fn compute_default_base(bundle_id: &str) -> Option<PathBuf> {
     Some(data_dir.join(app_folder))
 }
 
+// This base holds settings, the store, and the vault config. Nightly keeps its
+// own; the desktop app maps only the database itself onto stable's folder.
 fn resolve_app_folder<'a>(data_dir: &Path, bundle_id: &'a str, is_debug: bool) -> &'a str {
     if is_debug || matches!(bundle_id, STAGING_BUNDLE_ID | NIGHTLY_BUNDLE_ID) {
         bundle_id
@@ -100,7 +102,7 @@ mod tests {
     }
 
     #[test]
-    fn nightly_does_not_reuse_stable_or_legacy_data() {
+    fn nightly_keeps_its_own_settings_base() {
         let temp = tempfile::tempdir().unwrap();
         for folder in [RELEASE_APP_FOLDER, LEGACY_RELEASE_APP_FOLDER] {
             std::fs::create_dir(temp.path().join(folder)).unwrap();

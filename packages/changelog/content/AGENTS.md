@@ -2,6 +2,7 @@
 
 - Read through the commits, and most of the diffs, but only keep the desktop-related thing to the changelog.
 - All changelogs should "worth reading" for app users. No internal changes or infra updates.
+- If a user-facing change came from a pull request by someone outside the Fastrepl org, acknowledge them on that item. See [Contributor credit](#contributor-credit).
 - Each changelog must include `date` and `summary` frontmatter. `summary` is shown on the web changelog index, so keep it to one concise, plain-text, user-facing sentence with no markdown or custom tags.
 
 ```md
@@ -45,6 +46,33 @@ done
 ```bash
 gh api repos/fastrepl/anarlog/compare/<>...<>  --jq '.commits'
 ```
+
+4. For each merged PR in that range, look up who opened it so outside
+   contributors can be credited:
+
+```bash
+gh api repos/fastrepl/anarlog/pulls/<number> --jq '{login: .user.login, type: .user.type, association: .author_association}'
+```
+
+# Contributor credit
+
+If a user-facing change came from a pull request by someone else — not a
+Fastrepl org member, collaborator, owner, or bot — acknowledge them on that
+changelog item. Team PRs need no credit line.
+
+Credit when `author_association` is not `MEMBER`, `OWNER`, or `COLLABORATOR`,
+and `user.type` is not `Bot`. Use the pull request author, not the merger.
+
+Put the thanks at the end of the item, after the user-facing sentence. Link
+the GitHub username. Do not put credits in `summary`. Skip credit when the
+change is internal-only and does not appear in the changelog.
+
+```md
+- Use the actual default microphone on Linux instead of silently recording
+  from ALSA's null device. Thanks [@jacopone](https://github.com/jacopone).
+```
+
+If several people outside the org authored the same item, thank each of them.
 
 # Custom Tags
 

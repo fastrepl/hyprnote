@@ -254,7 +254,7 @@ The changelog is required alongside the release surface review. Before releasing
 3. Compare the file against the desktop user-facing changes since the latest `desktop_v*` tag.
 4. If the changelog is missing or incomplete, update it before release.
 
-Changelog entries should be worth reading for app users. Exclude internal-only refactors, CI changes, infra noise, and implementation details unless they explain a user-visible change.
+Changelog entries should be worth reading for app users. Exclude internal-only refactors, CI changes, infra noise, and implementation details unless they explain a user-visible change. If a user-facing change came from a pull request by someone outside the Fastrepl org, that item must credit them. See `packages/changelog/content/AGENTS.md`.
 
 Each changelog file must include:
 

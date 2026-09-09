@@ -15,4 +15,8 @@ Nightly opens the same local notes as your stable Anarlog, while sign-in and set
 - Canceling post-meeting transcription stops that work, and incomplete post-processing no longer replaces a saved transcript.
 - The folder picker sits beside the note header actions. Meeting details and sharing menus are more compact.
 
+## Providers
+
+- Connect Meta Muse for transcription and intelligence with your own API key. Thanks [@realtonypark](https://github.com/realtonypark).
+
 Please include the Nightly version and your operating system when reporting a problem.

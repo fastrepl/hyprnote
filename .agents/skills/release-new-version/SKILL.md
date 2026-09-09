@@ -16,7 +16,8 @@ Do not trigger a stable release from an unmerged branch. Complete the release su
 ## Nightly and Stable Operations
 
 - Existing users and the main download remain on stable. Nightly is an explicit
-  separate-app install, with its own updater feed, local data, and CLI command.
+  separate-app install, with its own updater feed and CLI command. It opens the
+  same local database as stable; settings, store, and sign-in stay per app.
 - The team uses Nightly for daily meetings. Volunteers can join through the
   announcement in the next stable changelog and product-update newsletter.
 - `.github/workflows/desktop_nightly.yaml` runs daily at 15:00 UTC (midnight KST)
@@ -48,8 +49,12 @@ Do not trigger a stable release from an unmerged branch. Complete the release su
   hotfix branch, supplying its exact SHA, then use the resulting Nightly tag
   for stable verification and publication. This preserves the minimal patch.
 - Shared APIs and synced data must stay compatible with existing stable clients.
-  Separate local storage does not isolate writes to a synced account. Use one
-  app at a time for recording, and never point Nightly at stable's local folder.
+  Nightly and stable write the same local database, and the apps refuse to run
+  at the same time. A `-- breaking` migration published in Nightly locks stable
+  users out of their notes until stable ships it: keep schema changes additive
+  (see the root `AGENTS.md`), and land a breaking migration only in the
+  candidate that becomes the next stable release, so the lockout ends when that
+  release publishes.
 
 ### Publish and verify Nightly
 

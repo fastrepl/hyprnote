@@ -7,7 +7,7 @@ summary: "Nightly is back, with transcription recovery and meeting controls to t
 
 Nightly is a separate app for trying upcoming improvements before they reach stable. It updates more frequently and may be less reliable. Your existing Anarlog installation stays on stable.
 
-Nightly keeps its own local data. If you sign into the same account with sync enabled, synced changes can also reach your other devices. Use one app at a time for recording.
+Nightly opens the same local notes as your stable Anarlog, while sign-in and settings stay separate. Quit one app before opening the other. If Nightly updates the database format ahead of stable, stable asks for an update until a release includes that change; keep using Nightly until then.
 
 ## Try in your next meeting
 

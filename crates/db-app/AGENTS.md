@@ -16,6 +16,7 @@
 ## Hard Rules
 
 - Treat migration ids and shipped SQL as append-only. Add a new step instead of mutating an existing one.
+- Nightly and stable desktop builds open the same database. Keep new steps downgrade-safe so stable can still open a database that Nightly migrated. A `-- breaking` step raises the compat floor and locks stable out until stable includes it; add one only in the candidate that becomes the next stable release.
 - Migration scope is explicit. If DDL touches an enabled CloudSync table, declare `CloudsyncAlter`; never rely on SQL text inspection.
 - If a table may ever be synced, make the original DDL CloudSync-safe: one `TEXT NOT NULL` primary key and defaults on every non-PK `NOT NULL` column.
 - `cloudsync_table_registry()` is policy, not discovery. Adding or enabling a table here is a deliberate product/runtime decision.

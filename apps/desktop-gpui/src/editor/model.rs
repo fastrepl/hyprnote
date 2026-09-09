@@ -852,8 +852,12 @@ impl Doc {
         out
     }
 
-    /// `deleteSelection`: removes everything between two carets, joining the
-    /// end block into the start block. Returns the collapsed caret.
+    /// `deleteSelection`: removes everything between two carets. Across
+    /// blocks this is ProseMirror's `deleteRange` (whole blocks the range
+    /// covers go, a range starting at a block's start takes that block with
+    /// it while the deeper end keeps its structure, otherwise the ends
+    /// join), the caret landing where `Selection.near` puts it. Returns the
+    /// collapsed caret.
     pub fn delete_between(&mut self, from: Caret, to: Caret) -> Caret {
         let (from, to) = order(from, to);
         if from == to {
@@ -862,6 +866,9 @@ impl Doc {
         if from.block == to.block {
             self.delete_range(from.block, from.offset..to.offset);
             return from;
+        }
+        if let Some(caret) = self.delete_range_between(from, to) {
+            return caret;
         }
         let first_len = self.text(from.block).len();
         self.delete_range(from.block, from.offset..first_len);
@@ -875,6 +882,29 @@ impl Doc {
         // `to` is now directly after `from`.
         self.join_textblocks(from.block + 1);
         from
+    }
+
+    /// `tr.deleteRange(from, to)` through the ProseMirror port; `None` when
+    /// the document holds nodes the port's schema lacks.
+    fn delete_range_between(&mut self, from: Caret, to: Caret) -> Option<Caret> {
+        let schema = super::pm::schema::schema();
+        let doc = super::pm::node::Node::from_json(schema, &self.root)?;
+        let (from, to) = (
+            super::paste::position(&doc, from)?,
+            super::paste::position(&doc, to)?,
+        );
+        let applied = super::pm::transform::replace_range(
+            schema,
+            &doc,
+            from,
+            to,
+            &super::pm::node::Slice::empty(),
+        )?;
+        let pos = super::pm::clipboard::near_text(schema, &applied.doc, applied.end, 1)
+            .or_else(|| super::pm::clipboard::near_text(schema, &applied.doc, applied.end, -1))?;
+        let caret = super::paste::caret(&applied.doc, pos)?;
+        self.replace_root(applied.doc.to_json(schema));
+        Some(caret)
     }
 
     /// Moves textblock `block`'s inline content onto the end of the textblock
@@ -3254,6 +3284,30 @@ mod tests {
         assert_eq!(
             doc.to_json(),
             r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c"}]}]}]}]},{"type":"listItem","content":[{"type":"paragraph"}]}]}]}"#
+        );
+    }
+
+    #[test]
+    fn deleting_from_a_block_start_into_a_list_keeps_the_list() {
+        // S5 recorded in the Tauri app: `deleteRange` removes the paragraph
+        // the range starts at and closes the list around what is left.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"one"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}"#,
+        );
+        assert_eq!(doc.delete_between(caret(0, 0), caret(2, 0)), caret(0, 0));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}"#
+        );
+        // S2: a whole heading and paragraph selected from the heading's
+        // start leave the empty heading.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":1},"content":[{"type":"text","text":"Head"}]},{"type":"paragraph","content":[{"type":"text","text":"para"}]}]}"#,
+        );
+        assert_eq!(doc.delete_between(caret(0, 0), caret(1, 4)), caret(0, 0));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":1}}]}"#
         );
     }
 }

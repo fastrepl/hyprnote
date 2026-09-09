@@ -6,6 +6,7 @@ import {
   formatAuthenticatedSharedNoteAccessLabel,
   formatSharedNoteAccessRequestDescription,
   hasSharedNoteCollaborationAccess,
+  selectSharedNoteCommentAccessRequest,
   MAX_SHARED_NOTE_COMMENT_ANCHOR_CONTEXT_BYTES,
   MAX_SHARED_NOTE_COMMENT_ANCHOR_EXACT_BYTES,
   MAX_SHARED_NOTE_COMMENT_BYTES,
@@ -244,4 +245,31 @@ test("access request descriptions preserve the requested capability", () => {
     formatSharedNoteAccessRequestDescription("editor"),
     "Requested permission to edit",
   );
+});
+
+test("comment panel ignores viewer requests made from the access gate", () => {
+  const base = {
+    requestId: "00000000-0000-4000-8000-000000000001",
+    createdAt: "2026-09-09T09:00:00Z",
+    reviewedAt: "2026-09-09T09:05:00Z",
+  } as const;
+  assert.equal(
+    selectSharedNoteCommentAccessRequest({
+      ...base,
+      requestedCapability: "viewer",
+      status: "approved",
+    }),
+    null,
+  );
+  const commentRequest = {
+    ...base,
+    requestedCapability: "commenter",
+    status: "pending",
+    reviewedAt: null,
+  } as const;
+  assert.equal(
+    selectSharedNoteCommentAccessRequest(commentRequest),
+    commentRequest,
+  );
+  assert.equal(selectSharedNoteCommentAccessRequest(null), null);
 });

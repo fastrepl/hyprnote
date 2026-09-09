@@ -25,7 +25,10 @@ import {
   requestSharedNoteAccess,
   reviewSharedNoteAccessRequest,
 } from "@/functions/shared-notes";
-import { formatSharedNoteAccessRequestDescription } from "@/lib/shared-note-collaboration";
+import {
+  formatSharedNoteAccessRequestDescription,
+  selectSharedNoteCommentAccessRequest,
+} from "@/lib/shared-note-collaboration";
 import type {
   SessionAccessRequestState,
   SessionShareAccessCursor,
@@ -192,7 +195,9 @@ export function SharedNoteCollaboration({
         />
       ) : (
         <AccessRequestPanel
-          request={accessRequestQuery.data ?? null}
+          request={selectSharedNoteCommentAccessRequest(
+            accessRequestQuery.data ?? null,
+          )}
           error={
             accessRequestQuery.isError ||
             requestMutation.isError ||

@@ -194,6 +194,36 @@ impl AreaLayout {
         layout.position_for_index(index.clamp(range.start, range.end) - range.start)
     }
 
+    /// The visual line (a paragraph's wrapped line) holding the caret at
+    /// `index`: its start and its end, which on a soft wrap is the index the
+    /// next line starts at — after the collapsed trailing space, where the
+    /// layout draws a caret at the end of the wrapped line like WebKit's
+    /// `endOfLine`. `None` before the layout exists.
+    fn visual_line_edges(&self, text: &str, index: usize) -> Option<(usize, usize)> {
+        let (range, layout) = self.part_for_index(index)?;
+        let local = index.clamp(range.start, range.end) - range.start;
+        let wrapped = layout.line_layout_for_index(local)?;
+        // The layout lays each `\n`-separated line out on its own; the wrap
+        // boundaries index into that line.
+        let part = &text[range.clone()];
+        let line_start = part[..local].rfind('\n').map_or(0, |i| i + 1);
+        let line_end = part[local..].find('\n').map_or(part.len(), |i| local + i);
+        let within = local - line_start;
+        let unwrapped = &wrapped.unwrapped_layout;
+        let mut start = 0;
+        for boundary in &wrapped.wrap_boundaries {
+            let wrap_end = unwrapped.runs[boundary.run_ix].glyphs[boundary.glyph_ix].index;
+            if within <= wrap_end {
+                return Some((
+                    range.start + line_start + start,
+                    range.start + line_start + wrap_end,
+                ));
+            }
+            start = wrap_end;
+        }
+        Some((range.start + line_start + start, range.start + line_end))
+    }
+
     /// The paragraph under `position.y`, the gap after a paragraph counting
     /// as that paragraph, then the layout's own hit test clamped into it.
     fn index_for_position(&self, position: Point<Pixels>) -> Result<usize, usize> {
@@ -665,11 +695,21 @@ impl TextArea {
         self.snap_out_of_atoms(boundary, 1)
     }
 
+    /// Home: WebKit's `startOfLine` — the visual line once laid out, the
+    /// paragraph before that.
     fn line_start(&self, offset: usize) -> usize {
+        if let Some((start, _)) = self.layout.visual_line_edges(&self.content, offset) {
+            return start;
+        }
         self.content[..offset].rfind('\n').map_or(0, |i| i + 1)
     }
 
+    /// End: `endOfLine`, the visual line's end (after a soft wrap's trailing
+    /// space), the paragraph's end before layout.
     fn line_end(&self, offset: usize) -> usize {
+        if let Some((_, end)) = self.layout.visual_line_edges(&self.content, offset) {
+            return end;
+        }
         self.content[offset..]
             .find('\n')
             .map_or(self.content.len(), |i| offset + i)

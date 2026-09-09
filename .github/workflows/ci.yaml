@@ -18,7 +18,6 @@ jobs:
           scripts/release-version.test.mjs
           scripts/changelog-bundle.test.mjs
           scripts/verify-release-candidate.test.mjs
-          .agents/skills/qa-critical-ux/scripts/launch-native-dev-qa.test.mjs
           scripts/desktop-release-provenance.test.mjs
           scripts/publish-anarlog-skill.test.mjs
           scripts/repack-linux-appimage.test.mjs

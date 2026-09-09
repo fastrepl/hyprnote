@@ -121,10 +121,17 @@ const invitationActionInputSchema = z
   })
   .strict();
 
+const requestSharedNoteAccessInputSchema = z
+  .object({
+    shareId: shareIdSchema,
+    capability: z.enum(["viewer", "commenter"]),
+  })
+  .strict();
+
 const requestSessionAccessRowSchema = z
   .object({
     request_id: shareIdSchema,
-    requested_capability: z.literal("commenter"),
+    requested_capability: z.enum(["viewer", "commenter"]),
     was_created: z.boolean(),
   })
   .strict();
@@ -177,6 +184,7 @@ type SharedNoteOperationStatus =
 
 type SharedNoteAccessRequestResult =
   | { status: "ready"; request: SessionAccessRequestState | null }
+  | { status: "unavailable" }
   | { status: "error" };
 
 export const readAuthenticatedSharedNote = createServerFn({ method: "GET" })
@@ -336,38 +344,39 @@ export const getMySharedNoteAccessRequest = createServerFn({ method: "GET" })
     },
   );
 
-export const requestSharedNoteCommentAccess = createServerFn({ method: "POST" })
-  .inputValidator(shareIdSchema)
-  .handler(
-    async ({ data: shareId }): Promise<SharedNoteAccessRequestResult> => {
-      setPrivateShareResponseHeaders();
+export const requestSharedNoteAccess = createServerFn({ method: "POST" })
+  .inputValidator(requestSharedNoteAccessInputSchema)
+  .handler(async ({ data }): Promise<SharedNoteAccessRequestResult> => {
+    setPrivateShareResponseHeaders();
 
-      const supabase = getSupabaseServerClient();
-      const { data, error } = await supabase.rpc("request_session_access", {
-        p_share_id: shareId,
-        p_requested_capability: "commenter",
-      });
-      if (error || !Array.isArray(data) || data.length !== 1) {
+    const supabase = getSupabaseServerClient();
+    const { data: rows, error } = await supabase.rpc("request_session_access", {
+      p_share_id: data.shareId,
+      p_requested_capability: data.capability,
+    });
+    if (error) return unavailableOrError(error.code);
+    if (!Array.isArray(rows) || rows.length !== 1) {
+      return { status: "error" };
+    }
+
+    try {
+      const requested = requestSessionAccessRowSchema.parse(rows[0]);
+      const result = await loadMySharedNoteAccessRequest(data.shareId);
+      // An existing pending request is reused as-is, so compare against what
+      // the database returned rather than the capability we asked for.
+      if (
+        result.status !== "ready" ||
+        result.request?.requestId !== requested.request_id ||
+        result.request.requestedCapability !== requested.requested_capability ||
+        result.request.status !== "pending"
+      ) {
         return { status: "error" };
       }
-
-      try {
-        const requested = requestSessionAccessRowSchema.parse(data[0]);
-        const result = await loadMySharedNoteAccessRequest(shareId);
-        if (
-          result.status !== "ready" ||
-          result.request?.requestId !== requested.request_id ||
-          result.request.requestedCapability !== "commenter" ||
-          result.request.status !== "pending"
-        ) {
-          return { status: "error" };
-        }
-        return result;
-      } catch {
-        return { status: "error" };
-      }
-    },
-  );
+      return result;
+    } catch {
+      return { status: "error" };
+    }
+  });
 
 export const cancelMySharedNoteAccessRequest = createServerFn({
   method: "POST",

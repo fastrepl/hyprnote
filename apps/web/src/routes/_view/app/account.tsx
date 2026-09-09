@@ -5,6 +5,10 @@ import { z } from "zod";
 
 import { AnarlogLogo } from "@/components/anarlog-logo";
 import { desktopSchemeSchema } from "@/functions/desktop-flow";
+import {
+  identityLinkMessages,
+  type IdentityLinkStatus,
+} from "@/functions/identity-link";
 import { getSupabaseBrowserClient } from "@/functions/supabase";
 import {
   ACCOUNT_SECTIONS,
@@ -20,6 +24,7 @@ import { capturePrivateRouteEvent } from "@/lib/private-route-analytics";
 import { AccountTabs } from "./-account-nav";
 import { accountSessionQueryKey } from "./-account-session";
 
+const loadAccountIdentitiesSection = () => import("./-account-identities");
 const loadAccountAccessSection = () => import("./-account-access");
 const loadApiKeysSection = () => import("./-account-api-keys");
 const loadDangerAreaSection = () => import("./-account-danger");
@@ -30,6 +35,11 @@ const loadProfileInfoSection = () => import("./-account-profile-info");
 const loadReferralSection = () => import("./-account-referrals");
 const loadSharedNotesSection = () => import("./-account-shares");
 
+const AccountIdentitiesSection = lazy(() =>
+  loadAccountIdentitiesSection().then((module) => ({
+    default: module.AccountIdentitiesSection,
+  })),
+);
 const AccountAccessSection = lazy(() =>
   loadAccountAccessSection().then((module) => ({
     default: module.AccountAccessSection,
@@ -74,6 +84,7 @@ const accountTabPreloaders: Record<AccountTabId, () => Promise<unknown>> = {
   account: () =>
     Promise.all([
       loadProfileInfoSection(),
+      loadAccountIdentitiesSection(),
       loadPlanSection(),
       loadReferralSection(),
       loadAccountAccessSection(),
@@ -93,13 +104,25 @@ function preloadAccountTab(tabId: AccountTabId) {
 }
 
 function scrollHashSectionIntoView(element: HTMLElement | null) {
-  if (element && window.location.hash === `#${element.id}`) {
+  if (
+    element &&
+    (window.location.hash === `#${element.id}` ||
+      new URLSearchParams(window.location.search).get("section") === element.id)
+  ) {
     element.scrollIntoView({ block: "start" });
   }
 }
 
 const validateSearch = z
   .object({
+    account_user_id: z.uuid(),
+    section: z.literal("connected-accounts"),
+    identity_link: z.enum(
+      Object.keys(identityLinkMessages) as [
+        IdentityLinkStatus,
+        ...IdentityLinkStatus[],
+      ],
+    ),
     success: z.coerce.boolean(),
     trial: z.enum(["started"]),
     scheme: desktopSchemeSchema,
@@ -125,7 +148,10 @@ function Component() {
   const queryClient = useQueryClient();
   const [hash, setHash] = useState("");
   const [optimisticTab, setOptimisticTab] = useState<AccountTabId | null>(null);
-  const routeTab = resolveAccountTab({ tab: search.tab, hash });
+  const routeTab = resolveAccountTab({
+    tab: search.tab,
+    hash: hash || search.section,
+  });
   const activeTab = optimisticTab ?? routeTab;
 
   useEffect(() => {
@@ -186,6 +212,7 @@ function Component() {
       search: (prev) => ({
         ...prev,
         tab: tabId === "account" ? undefined : tabId,
+        section: undefined,
       }),
       // Empty string is treated as omitted and would keep the current hash.
       hash: () => "",
@@ -235,6 +262,8 @@ function Component() {
                   <AccountSectionBody
                     id={section.id}
                     email={user?.email}
+                    expectedUserId={search.account_user_id ?? user!.id}
+                    identityLinkResult={search.identity_link}
                     perk={search.perk}
                     referralIneligible={search.referral === "ineligible"}
                   />
@@ -292,15 +321,26 @@ function AccountSectionBody({
   email,
   perk,
   referralIneligible,
+  expectedUserId,
+  identityLinkResult,
 }: {
   id: AccountSectionId;
   email?: string;
   perk?: "applied" | "claimed" | "invalid";
   referralIneligible: boolean;
+  expectedUserId: string;
+  identityLinkResult?: IdentityLinkStatus;
 }) {
   switch (id) {
     case "profile":
       return <ProfileInfoSection email={email} />;
+    case "connected-accounts":
+      return (
+        <AccountIdentitiesSection
+          expectedUserId={expectedUserId}
+          result={identityLinkResult}
+        />
+      );
     case "plan":
       return <PlanSection perk={perk} />;
     case "referrals":

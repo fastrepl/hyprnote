@@ -1,5 +1,6 @@
 export const ACCOUNT_SECTIONS = [
   { id: "profile", label: "Profile" },
+  { id: "connected-accounts", label: "Connected accounts" },
   { id: "plan", label: "Your plan" },
   { id: "referrals", label: "Refer friends" },
   { id: "integrations", label: "Integrations" },
@@ -16,7 +17,14 @@ export const ACCOUNT_TABS = [
   {
     id: "account",
     label: "Account",
-    sectionIds: ["profile", "plan", "referrals", "session", "danger"],
+    sectionIds: [
+      "profile",
+      "connected-accounts",
+      "plan",
+      "referrals",
+      "session",
+      "danger",
+    ],
   },
   {
     id: "connections",
@@ -36,6 +44,7 @@ export const DEFAULT_ACCOUNT_TAB: AccountTabId = "account";
 
 const SECTION_TAB: Record<AccountSectionId, AccountTabId> = {
   profile: "account",
+  "connected-accounts": "account",
   plan: "account",
   referrals: "account",
   session: "account",

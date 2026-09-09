@@ -9,6 +9,7 @@ import {
 
 test("maps section hashes to the tab that contains them", () => {
   assert.equal(accountTabForSection("plan"), "account");
+  assert.equal(accountTabForSection("connected-accounts"), "account");
   assert.equal(accountTabForSection("referrals"), "account");
   assert.equal(accountTabForSection("session"), "account");
   assert.equal(accountTabForSection("integrations"), "connections");
@@ -49,7 +50,7 @@ test("an empty hash after a tab click does not override the tab param", () => {
 test("lists the sections for a tab in page order", () => {
   assert.deepEqual(
     sectionsForAccountTab("account").map((section) => section.id),
-    ["profile", "plan", "referrals", "session", "danger"],
+    ["profile", "connected-accounts", "plan", "referrals", "session", "danger"],
   );
   assert.deepEqual(
     sectionsForAccountTab("developer").map((section) => section.id),

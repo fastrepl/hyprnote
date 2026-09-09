@@ -10,6 +10,7 @@ import {
   authPrimaryButtonClassName,
   authSecondaryButtonClassName,
 } from "@/components/auth-shell";
+import { finishAccountIdentity } from "@/functions/account-identities";
 import { exchangeOAuthCode } from "@/functions/auth";
 import {
   DEFAULT_DESKTOP_SCHEME,
@@ -36,6 +37,9 @@ import {
 } from "@/lib/desktop-auth-handoff";
 
 const validateSearch = z.object({
+  intent: z.literal("link_identity").optional(),
+  link_state: z.string().optional(),
+  account_user_id: z.uuid().optional(),
   code: z.string().optional(),
   token_hash: z.string().optional(),
   type: z
@@ -77,6 +81,31 @@ export const Route = createFileRoute("/_view/callback/auth")({
     meta: [{ name: "robots", content: "noindex, nofollow" }],
   }),
   beforeLoad: async ({ search }) => {
+    if (search.intent === "link_identity") {
+      const hash = new URLSearchParams(window.location.hash.slice(1));
+      const result = await finishAccountIdentity({
+        data: {
+          state: search.link_state,
+          code: search.code,
+          error:
+            search.error_code ??
+            hash.get("error_code") ??
+            search.error ??
+            hash.get("error") ??
+            undefined,
+        },
+      }).catch(() => ({ status: "failed" as const, userId: undefined }));
+      throw redirect({
+        to: "/app/account/",
+        search: {
+          section: "connected-accounts",
+          identity_link: result.status,
+          account_user_id: result.userId ?? search.account_user_id,
+        },
+        hash: "connected-accounts",
+      });
+    }
+
     const context = resolveAuthFlowContext(search);
 
     if (search.code) {

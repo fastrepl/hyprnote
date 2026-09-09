@@ -95,6 +95,22 @@ export function SettingsAccount() {
       await openerCommands.openUrl(url, null);
     },
   });
+  const openConnectedAccounts = useMutation({
+    mutationFn: async () => {
+      if (!auth?.session) return;
+      const url = new URL(
+        await buildWebAppUrl("/app/account", {
+          flow: "web",
+          section: "connected-accounts",
+          account_user_id: auth.session.user.id,
+        }),
+      );
+      url.hash = "connected-accounts";
+      await openerCommands.openUrl(url.toString(), null);
+    },
+    onError: () =>
+      sonnerToast.error(t`Couldn't open connected accounts. Try again.`),
+  });
 
   if (!isAuthenticated) {
     if (isPending) {
@@ -189,6 +205,22 @@ export function SettingsAccount() {
             disabled={signOutMutation.isPending}
           >
             {signOutMutation.isPending ? t`Signing out...` : t`Sign out`}
+          </Button>
+        }
+      />
+
+      <Container
+        title={<Trans>Connected accounts</Trans>}
+        description={
+          <Trans>Manage your sign-in methods on the Anarlog website.</Trans>
+        }
+        action={
+          <Button
+            variant="outline"
+            disabled={openConnectedAccounts.isPending}
+            onClick={() => openConnectedAccounts.mutate()}
+          >
+            <Trans>Manage sign-in methods</Trans>
           </Button>
         }
       />

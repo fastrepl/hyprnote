@@ -215,7 +215,7 @@ export type CloudApiSettings = {
     updated_at?: string | null;
 };
 
-export type CloudsyncCredentialResponse = LegacyCloudsyncCredentials | CloudsyncCredentials;
+export type CloudsyncCredentialResponse = LegacyCloudsyncCredentials | CloudsyncCredentials | ReplicaCredentials;
 
 export type CloudsyncCredentials = {
     accountUserId: string;
@@ -5092,6 +5092,10 @@ export type CreateCredentialsData = {
          * Account-level member identity public key
          */
         'x-anarlog-e2ee-member-public-key'?: string | null;
+        /**
+         * Comma-separated transports the client accepts; include `replica` to allow witness-only credentials
+         */
+        'x-anarlog-cloudsync-transports'?: string | null;
     };
     path?: never;
     query?: never;

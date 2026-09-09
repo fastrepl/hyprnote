@@ -199,6 +199,143 @@ async fn issues_replica_credentials_without_contacting_sqlitecloud() {
     );
 }
 
+async fn mock_personal_only_e2ee_account(server: &MockServer) {
+    mock_workspace_projection(server, json!([personal_workspace("user-123")])).await;
+    mock_workspace_key_grants(server, json!([])).await;
+    mock_e2ee_key_claim(server, TEST_KEY_ID).await;
+}
+
+fn requested_paths(requests: &[wiremock::Request]) -> Vec<&str> {
+    requests.iter().map(|request| request.url.path()).collect()
+}
+
+#[tokio::test]
+async fn token_route_hands_replica_credentials_to_overridden_accounts() {
+    let server = MockServer::start().await;
+    mock_personal_only_e2ee_account(&server).await;
+    mock_sync_transport_override(&server, Some("replica")).await;
+
+    let response = test_router(&server, "issuer-key", &["hyprnote_pro"])
+        .oneshot(replica_capable_token_request())
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.headers()[http_header::CACHE_CONTROL], "no-store");
+    let body = response_json(response).await;
+    assert_eq!(body["transport"], "replica");
+    assert_eq!(body["encryptionKeyId"], TEST_KEY_ID);
+    assert_eq!(body["personalWorkspaceId"], "user-123");
+    assert_eq!(body["workspaces"][0]["id"], "user-123");
+    assert!(body.get("databaseId").is_none());
+    assert!(body.get("token").is_none());
+
+    let requests = server.received_requests().await.unwrap();
+    let paths = requested_paths(&requests);
+    assert_eq!(paths[0], "/rest/v1/sync_transport_overrides");
+    assert!(!paths.contains(&"/v2/tokens"));
+}
+
+#[tokio::test]
+async fn token_route_keeps_sqlite_sync_for_clients_that_did_not_opt_in() {
+    let server = MockServer::start().await;
+    mock_personal_only_e2ee_account(&server).await;
+    mock_sync_transport_override(&server, Some("replica")).await;
+    mock_sqlitecloud_token(&server, "sqlite-token").await;
+
+    let response = test_router(&server, "issuer-key", &["hyprnote_pro"])
+        .oneshot(token_request())
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = response_json(response).await;
+    assert_eq!(body["token"], "sqlite-token");
+    assert_eq!(body["databaseId"], "database-id");
+    assert!(body.get("transport").is_none());
+
+    let requests = server.received_requests().await.unwrap();
+    let paths = requested_paths(&requests);
+    assert!(!paths.contains(&"/rest/v1/sync_transport_overrides"));
+    assert!(paths.contains(&"/v2/tokens"));
+}
+
+#[tokio::test]
+async fn token_route_keeps_sqlite_sync_without_an_override() {
+    let server = MockServer::start().await;
+    mock_personal_only_e2ee_account(&server).await;
+    mock_sync_transport_override(&server, None).await;
+    mock_sqlitecloud_token(&server, "sqlite-token").await;
+
+    let response = test_router(&server, "issuer-key", &["hyprnote_pro"])
+        .oneshot(replica_capable_token_request())
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = response_json(response).await;
+    assert_eq!(body["token"], "sqlite-token");
+    assert!(body.get("transport").is_none());
+}
+
+#[tokio::test]
+async fn replica_default_transport_still_honours_sqlite_sync_overrides() {
+    let server = MockServer::start().await;
+    mock_personal_only_e2ee_account(&server).await;
+    mock_sqlitecloud_token(&server, "sqlite-token").await;
+
+    let replica_by_default = || {
+        test_router_with_transport(
+            &server,
+            "issuer-key",
+            &["hyprnote_pro"],
+            CloudsyncProtocolMode::E2eeEnforced,
+            None,
+            CloudsyncTransport::Replica,
+        )
+    };
+
+    mock_sync_transport_override(&server, None).await;
+    let response = replica_by_default()
+        .oneshot(replica_capable_token_request())
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response_json(response).await["transport"], "replica");
+
+    server.reset().await;
+    mock_personal_only_e2ee_account(&server).await;
+    mock_sqlitecloud_token(&server, "sqlite-token").await;
+    mock_sync_transport_override(&server, Some("sqlite_sync")).await;
+    let response = replica_by_default()
+        .oneshot(replica_capable_token_request())
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = response_json(response).await;
+    assert_eq!(body["token"], "sqlite-token");
+    assert!(body.get("transport").is_none());
+}
+
+#[tokio::test]
+async fn transport_override_failure_is_redacted() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/sync_transport_overrides"))
+        .respond_with(ResponseTemplate::new(500).set_body_string("secret details"))
+        .mount(&server)
+        .await;
+
+    let response = test_router(&server, "issuer-key", &["hyprnote_pro"])
+        .oneshot(replica_capable_token_request())
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::BAD_GATEWAY);
+    let body = response_json(response).await;
+    assert!(!body.to_string().contains("secret details"));
+}
+
 #[tokio::test]
 async fn publishes_the_member_identity_before_issuing_replica_credentials() {
     let server = MockServer::start().await;

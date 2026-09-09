@@ -3995,6 +3995,18 @@
                 "null"
               ]
             }
+          },
+          {
+            "name": "x-anarlog-cloudsync-transports",
+            "in": "header",
+            "description": "Comma-separated transports the client accepts; include `replica` to allow witness-only credentials",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
           }
         ],
         "responses": {
@@ -6069,6 +6081,9 @@
           },
           {
             "$ref": "#/components/schemas/CloudsyncCredentials"
+          },
+          {
+            "$ref": "#/components/schemas/ReplicaCredentials"
           }
         ]
       },

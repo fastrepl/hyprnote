@@ -18,6 +18,29 @@ pub struct SyncEnv {
     pub anarlog_cloudsync_protocol_mode: Option<String>,
     #[serde(default, deserialize_with = "deserialize_optional_u64")]
     pub anarlog_cloudsync_token_ttl_seconds: Option<u64>,
+    #[serde(default)]
+    pub anarlog_cloudsync_desktop_transport: Option<String>,
+}
+
+/// Which transport `/sync/token` hands to desktop clients that can accept
+/// either. Per-account rows in `sync_transport_overrides` win over this default.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(crate) enum CloudsyncTransport {
+    #[default]
+    SqliteSync,
+    Replica,
+}
+
+impl CloudsyncTransport {
+    pub(crate) fn parse(value: Option<&str>) -> Result<Self, String> {
+        match value.map(str::trim).filter(|value| !value.is_empty()) {
+            None | Some("sqlite_sync") => Ok(Self::SqliteSync),
+            Some("replica") => Ok(Self::Replica),
+            Some(_) => Err(
+                "ANARLOG_CLOUDSYNC_DESKTOP_TRANSPORT must be sqlite_sync or replica".to_string(),
+            ),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -58,6 +81,7 @@ pub struct SyncConfig {
     pub(crate) database_id: String,
     pub(crate) legacy_database_id: Option<String>,
     pub(crate) protocol_mode: CloudsyncProtocolMode,
+    pub(crate) desktop_transport: CloudsyncTransport,
     pub(crate) token_ttl_seconds: u64,
     pub(crate) supabase_url: String,
     pub(crate) supabase_anon_key: String,
@@ -187,6 +211,7 @@ impl SyncConfig {
             database_id: database_id.into(),
             legacy_database_id: None,
             protocol_mode: CloudsyncProtocolMode::E2eeEnforced,
+            desktop_transport: CloudsyncTransport::SqliteSync,
             token_ttl_seconds: DEFAULT_TOKEN_TTL_SECONDS,
             supabase_url: validate_supabase_url(supabase_url.into())?,
             supabase_anon_key,
@@ -198,6 +223,11 @@ impl SyncConfig {
         validate_token_ttl(token_ttl_seconds)?;
         self.token_ttl_seconds = token_ttl_seconds;
         Ok(self)
+    }
+
+    pub(crate) fn with_desktop_transport(mut self, transport: CloudsyncTransport) -> Self {
+        self.desktop_transport = transport;
+        self
     }
 
     pub(crate) fn with_protocol_mode(
@@ -226,12 +256,14 @@ impl SyncConfig {
         let database_id = nonempty(env.anarlog_cloudsync_e2ee_database_id.as_deref());
         let legacy_database_id = nonempty(env.anarlog_cloudsync_database_id.as_deref());
         let protocol_mode_value = nonempty(env.anarlog_cloudsync_protocol_mode.as_deref());
+        let desktop_transport_value = nonempty(env.anarlog_cloudsync_desktop_transport.as_deref());
 
         if project_url.is_none()
             && token_issuer_api_key.is_none()
             && database_id.is_none()
             && legacy_database_id.is_none()
             && protocol_mode_value.is_none()
+            && desktop_transport_value.is_none()
         {
             return Ok(None);
         }
@@ -248,6 +280,7 @@ impl SyncConfig {
                 .to_string()
         })?;
         let protocol_mode = CloudsyncProtocolMode::parse(protocol_mode_value.as_deref())?;
+        let desktop_transport = CloudsyncTransport::parse(desktop_transport_value.as_deref())?;
         let token_ttl_seconds = env
             .anarlog_cloudsync_token_ttl_seconds
             .unwrap_or(DEFAULT_TOKEN_TTL_SECONDS);
@@ -263,7 +296,8 @@ impl SyncConfig {
                 supabase_service_role_key,
             )?
             .with_protocol_mode(protocol_mode, legacy_database_id)?
-            .with_token_ttl_seconds(token_ttl_seconds)?,
+            .with_token_ttl_seconds(token_ttl_seconds)?
+            .with_desktop_transport(desktop_transport),
         ))
     }
 
@@ -398,6 +432,7 @@ mod tests {
             anarlog_cloudsync_database_id: None,
             anarlog_cloudsync_protocol_mode: None,
             anarlog_cloudsync_token_ttl_seconds: token_ttl_seconds,
+            anarlog_cloudsync_desktop_transport: None,
         }
     }
 
@@ -408,7 +443,26 @@ mod tests {
             .unwrap();
 
         assert_eq!(config.protocol_mode, CloudsyncProtocolMode::E2eeEnforced);
+        assert_eq!(config.desktop_transport, CloudsyncTransport::SqliteSync);
         assert!(config.legacy_database_id.is_none());
+    }
+
+    #[test]
+    fn accepts_only_known_desktop_transports() {
+        let mut sync_env = env("https://project.region.gateway.sqlite.cloud/", None);
+        sync_env.anarlog_cloudsync_desktop_transport = Some("replica".to_string());
+        let replica = config(&sync_env).unwrap().unwrap();
+        assert_eq!(replica.desktop_transport, CloudsyncTransport::Replica);
+
+        sync_env.anarlog_cloudsync_desktop_transport = Some(" sqlite_sync ".to_string());
+        let sqlite_sync = config(&sync_env).unwrap().unwrap();
+        assert_eq!(
+            sqlite_sync.desktop_transport,
+            CloudsyncTransport::SqliteSync
+        );
+
+        sync_env.anarlog_cloudsync_desktop_transport = Some("witness".to_string());
+        assert!(config(&sync_env).is_err());
     }
 
     #[test]

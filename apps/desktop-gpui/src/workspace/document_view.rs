@@ -111,10 +111,14 @@ pub(super) struct DocumentRenderer {
     tooltips: Option<super::tooltip::TooltipHost>,
     /// `currentColor` while inside a blockquote (`color: muted-foreground`).
     text_color: Cell<Option<gpui::Rgba>>,
-    /// Inside a blockquote: its paragraphs and headings carry no
-    /// `padding-block` of their own (only `.note-typography > *` and
-    /// `li > p` do), and siblings are spaced by `blockquote > * + *`.
-    in_blockquote: Cell<bool>,
+    /// What the block being rendered is a direct child of: `.note-typography
+    /// > *` pads top-level blocks, `li > p` pads an item's paragraphs, a
+    /// blockquote's children carry no padding and are spaced by
+    /// `blockquote > * + *`, and `li > ul/ol` draws the guide rail.
+    container: Cell<Container>,
+    /// How many non-task `ul`s enclose the list being rendered: `ul ul`
+    /// markers are hollow, `ul ul ul` squares, then the cycle repeats.
+    bullet_depth: Cell<usize>,
     /// How many ordered lists enclose the list being rendered: `ol ol` markers
     /// count in lower-alpha, `ol ol ol` in lower-roman, then the cycle repeats.
     ordered_depth: Cell<usize>,
@@ -175,7 +179,8 @@ impl Workspace {
             inline_box_height,
             tooltips: None,
             text_color: Cell::new(None),
-            in_blockquote: Cell::new(false),
+            container: Cell::new(Container::Root),
+            bullet_depth: Cell::new(0),
             ordered_depth: Cell::new(0),
         }
     }
@@ -904,11 +909,12 @@ impl DocumentRenderer {
         let theme = self.theme;
         // `.note-typography > * { padding-block: 0.125em }`
         let pad = px(BODY_PX * 0.125);
-        // A textblock's own vertical padding: none inside a blockquote.
-        let text_pad = if self.in_blockquote.get() {
-            px(0.0)
-        } else {
-            pad
+        let container = self.container.get();
+        // A paragraph's own vertical padding: top-level blocks and `li > p`
+        // have it, a blockquote's children do not.
+        let text_pad = match container {
+            Container::Root | Container::ListItem => pad,
+            Container::Blockquote => px(0.0),
         };
         match block {
             // The editor's paragraphs compute `text-wrap: wrap` (measured on
@@ -929,11 +935,12 @@ impl DocumentRenderer {
                 style.font_size = px(font_px).into();
                 self.textblock(
                     div()
-                        // `padding-block: 0.125em` scales with the heading's own size.
-                        .py(if self.in_blockquote.get() {
-                            px(0.0)
-                        } else {
+                        // `padding-block: 0.125em` scales with the heading's own
+                        // size; only `.note-typography > *` pads a heading.
+                        .py(if container == Container::Root {
                             px(font_px * 0.125)
+                        } else {
+                            px(0.0)
                         })
                         .text_size(px(font_px))
                         .line_height(px(webkit_line_height(font_px, ratio))),
@@ -947,16 +954,21 @@ impl DocumentRenderer {
             } => {
                 let current = self.text_color.get().unwrap_or(theme.foreground);
                 let ordered_depth = self.ordered_depth.get();
+                let bullet_depth = self.bullet_depth.get();
+                let task_list = items.first().is_some_and(|item| item.checked.is_some());
                 if *ordered {
                     self.ordered_depth.set(ordered_depth + 1);
+                } else if !task_list {
+                    self.bullet_depth.set(bullet_depth + 1);
                 }
+                let outer_container = self.container.replace(Container::ListItem);
                 let list = div()
                     .flex()
                     .flex_col()
                     // `li > ul::before`: a 1px guide rail at `left: calc(-1em - 0.5px)`
                     // in `currentColor` at 30%, centred under the parent marker.
                     // WebKit snaps the half pixel to the nearer device pixel.
-                    .when(depth > 0, |list| {
+                    .when(outer_container == Container::ListItem, |list| {
                         list.relative().child(
                             div()
                                 .absolute()
@@ -988,7 +1000,12 @@ impl DocumentRenderer {
                                     .flex_shrink_0()
                                     .w(px(BODY_PX * 1.5))
                                     .h(px(BODY_PX * 1.5 + 4.0))
-                                    .child(self.marker(item.checked, number, depth, first_block)),
+                                    .child(self.marker(
+                                        item.checked,
+                                        number,
+                                        bullet_depth,
+                                        first_block,
+                                    )),
                             )
                             .child(
                                 // `li[data-checked="true"] > div { opacity: 0.5 }`
@@ -1002,7 +1019,9 @@ impl DocumentRenderer {
                             )
                     }))
                     .into_any_element();
+                self.container.set(outer_container);
                 self.ordered_depth.set(ordered_depth);
+                self.bullet_depth.set(bullet_depth);
                 list
             }
             // `blockquote { border-left: 3px solid border; padding-inline: 1em
@@ -1011,7 +1030,7 @@ impl DocumentRenderer {
             // `blockquote > * + * { margin-top: 0.5em }`.
             Block::Blockquote(blocks) => {
                 let outer = self.text_color.replace(Some(theme.muted_foreground));
-                let was_nested = self.in_blockquote.replace(true);
+                let outer_container = self.container.replace(Container::Blockquote);
                 let children: Vec<AnyElement> = blocks
                     .iter()
                     .enumerate()
@@ -1020,14 +1039,15 @@ impl DocumentRenderer {
                         if index == 0 {
                             element
                         } else {
+                            // `0.5em` of the child's own font size.
                             div()
-                                .mt(px(BODY_PX * 0.5))
+                                .mt(px(block_font_px(block) * 0.5))
                                 .child(element)
                                 .into_any_element()
                         }
                     })
                     .collect();
-                self.in_blockquote.set(was_nested);
+                self.container.set(outer_container);
                 self.text_color.set(outer);
                 div()
                     .py(pad)
@@ -1386,13 +1406,14 @@ impl DocumentRenderer {
             .into_any_element()
     }
 
-    /// Unordered markers cycle by depth (filled circle, hollow circle, square,
-    /// then repeat); ordered lists count; task items draw a checkbox.
+    /// Unordered markers cycle with the enclosing `ul`s (filled circle,
+    /// hollow circle, square, then repeat); ordered lists count; task items
+    /// draw a checkbox.
     fn marker(
         &self,
         checked: Option<bool>,
         number: Option<String>,
-        depth: usize,
+        bullet_depth: usize,
         first_block: usize,
     ) -> AnyElement {
         let theme = self.theme;
@@ -1423,7 +1444,7 @@ impl DocumentRenderer {
                 .child(SharedString::from(number))
                 .into_any_element();
         }
-        match depth % 3 {
+        match bullet_depth % 3 {
             0 => centre(BODY_PX * 0.5).rounded_full().bg(ink),
             1 => centre(BODY_PX * 0.5)
                 .rounded_full()
@@ -1549,7 +1570,8 @@ impl DocumentRenderer {
             inline_box_height: self.inline_box_height,
             tooltips: None,
             text_color: Cell::new(None),
-            in_blockquote: Cell::new(false),
+            container: Cell::new(Container::Root),
+            bullet_depth: Cell::new(0),
             ordered_depth: Cell::new(0),
         };
         renderer.text(spans, &base)
@@ -1658,6 +1680,25 @@ impl DocumentRenderer {
             }
         }
         (text, highlights)
+    }
+}
+
+/// The node a block is rendered directly inside.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Container {
+    Root,
+    ListItem,
+    Blockquote,
+}
+
+/// The font size a block's box computes, which `blockquote > * + *`'s `0.5em`
+/// margin scales with.
+fn block_font_px(block: &Block) -> f32 {
+    match block {
+        Block::Heading { level: 1, .. } => BODY_PX * 1.25,
+        Block::Heading { level: 2, .. } => BODY_PX * 1.125,
+        Block::Code(_) => BODY_PX * 0.875,
+        _ => BODY_PX,
     }
 }
 

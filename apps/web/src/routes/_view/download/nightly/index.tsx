@@ -38,7 +38,7 @@ function NightlyDownloads() {
           <h1 className="font-hand mt-5 text-6xl leading-[0.98] font-semibold md:text-7xl">
             Anarlog Nightly
           </h1>
-          <p className="text-blueprint-fg-muted mt-6 text-lg leading-7">
+          <p className="mt-6 text-lg leading-7">
             Try upcoming improvements before they reach stable and help us catch
             bugs earlier. Nightly installs as a separate app, updates
             frequently, and opens the same notes as your stable Anarlog.
@@ -53,7 +53,7 @@ function NightlyDownloads() {
               Quit one app before opening the other. Anarlog refuses to open
               while the other one is running.
             </p>
-            <p className="text-blueprint-fg-muted">
+            <p>
               Nightly can update the database format ahead of stable. Most
               changes stay compatible. When one is not, stable shows an update
               prompt and cannot open your notes until a stable release includes
@@ -87,11 +87,11 @@ function NightlyDownloads() {
               </section>
             ))}
           </div>
-          <p className="text-blueprint-fg-muted mt-9 text-sm leading-6">
+          <p className="mt-9 text-sm leading-6">
             Release notes are included in Nightly and on{" "}
             <a
               href="https://github.com/fastrepl/anarlog/releases"
-              className="text-blueprint-fg underline underline-offset-4"
+              className="underline underline-offset-4"
             >
               GitHub
             </a>

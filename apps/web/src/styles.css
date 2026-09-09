@@ -65,12 +65,15 @@
   --brand-yellow: oklch(0.9484 0.0672 90.6);
 
   /* ── Colors: blueprint (Nightly) ─────────────── */
-  --color-blueprint: oklch(0.36 0.11 262);
-  --color-blueprint-deep: oklch(0.31 0.1 262);
-  --color-blueprint-fg: oklch(0.985 0.005 260);
-  --color-blueprint-fg-muted: oklch(0.985 0.005 260 / 0.72);
-  --color-blueprint-line: oklch(1 0 0 / 0.1);
-  --color-blueprint-line-strong: oklch(1 0 0 / 0.22);
+  /* Hue and chroma follow the Blueprint app icon (#0091ff); lightness sits
+     at the brightest point that keeps white body text at WCAG AA (4.7:1).
+     The muted tone falls below AA, so it is for labels and links only. */
+  --color-blueprint: oklch(0.56 0.17 251.5);
+  --color-blueprint-deep: oklch(0.45 0.16 251.5);
+  --color-blueprint-fg: oklch(0.985 0.005 250);
+  --color-blueprint-fg-muted: oklch(0.985 0.005 250 / 0.9);
+  --color-blueprint-line: oklch(1 0 0 / 0.12);
+  --color-blueprint-line-strong: oklch(1 0 0 / 0.24);
 
   /* ── Shadows ─────────────────────────────────── */
   --shadow-ring: 0 0 0 1px var(--color-border);

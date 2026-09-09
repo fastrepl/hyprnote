@@ -67,6 +67,13 @@ async fn account_binding_is_durable_without_rekeying_local_rows() {
         )
     );
     assert_eq!(session, (local_workspace.clone(), local_workspace));
+    sqlx::query(
+        "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
+         VALUES ('owned', 'user-a', 'user-a', 'Synced note')",
+    )
+    .execute(runtime.pool())
+    .await
+    .unwrap();
     assert!(
         !runtime
             .bind_cloudsync_account("user-b".to_string())
@@ -603,6 +610,14 @@ async fn account_switch_is_rejected_and_leaves_cloudsync_suspended() {
             .await
             .unwrap()
     );
+    // The device only stays bound once the account owns rows on it.
+    sqlx::query(
+        "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
+         VALUES ('owned', 'user-a', 'user-a', 'Synced note')",
+    )
+    .execute(runtime.pool())
+    .await
+    .unwrap();
 
     let bound = runtime
         .bind_cloudsync_account("user-b".to_string())

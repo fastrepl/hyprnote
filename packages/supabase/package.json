@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.19.17",
-    "vitest": "^4.1.4"
+    "vitest": "^5.0.0"
   },
   "peerDependencies": {
     "hono": "^4.0.0"

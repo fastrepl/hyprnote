@@ -8,7 +8,7 @@ const baseConfig = JSON.parse(
   readFileSync(new URL("./app.json", import.meta.url), "utf8"),
 ).expo;
 const releaseVersion = JSON.parse(
-  readFileSync(new URL("../../release-version.json", import.meta.url), "utf8"),
+  readFileSync(new URL("./release-version.json", import.meta.url), "utf8"),
 ).version;
 
 const expectedVariants = {
@@ -119,7 +119,7 @@ test("defines dev, staging, and stable EAS build profiles", () => {
   assert.equal(easConfig.build.staging.autoIncrement, true);
 });
 
-test("the shared marketing version leaves store build counters intact", () => {
+test("the mobile marketing version leaves store build counters intact", () => {
   const config = configureMobileApp({
     config: {
       ...baseConfig,

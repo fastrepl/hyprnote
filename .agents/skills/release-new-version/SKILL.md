@@ -7,7 +7,7 @@ metadata:
 
 # Release a New Version
 
-Use this for Nightly builds, stable desktop releases, and requested mobile store distribution. A stable desktop release must come from `main`, after the changelog and required CLI, MCP, API, agent-package, and documentation updates are accurate, validated, and merged. Desktop, iOS, Android, and watchOS share the marketing version in `release-version.json`; platform build numbers and publication schedules remain independent.
+Use this for Nightly builds, stable desktop releases, and requested mobile store distribution. A stable desktop release must come from `main`, after the changelog and required CLI, MCP, API, agent-package, and documentation updates are accurate, validated, and merged. Desktop and watchOS share the marketing version in `release-version.json`. iOS and Android use `apps/mobile/release-version.json`. Platform build numbers and publication schedules remain independent.
 
 ## Core Rule
 
@@ -164,8 +164,9 @@ test -f "packages/changelog/content/$VERSION.md"
 Stable desktop releases never infer a version. The workflow requires the exact
 stable semantic version to match `release-version.json` and a changelog file.
 The version command also regenerates `apps/watch/apple/Version.xcconfig`;
-commit both version files with the release preparation changes. Expo reads the
-shared version directly. Matching versions do not authorize mobile publication.
+commit both desktop version files with the release preparation changes. Expo
+reads `apps/mobile/release-version.json`. A desktop bump does not change or
+authorize mobile publication.
 
 3. Identify the latest stable desktop tag and the commits that will ship:
 
@@ -474,8 +475,8 @@ Complete the hosted-service deploys above, then verify each live result:
    update instructions rather than claiming all installations updated.
 
 Record each publication's source SHA, version (where applicable), run/deployment
-URL, and observed result. API and plugin versions remain independent. Desktop,
-mobile, and watchOS builds use the shared marketing version, but each store's
+URL, and observed result. API and plugin versions remain independent. Desktop
+and watchOS share a marketing version; mobile uses its own. Each store's
 actual availability must be verified separately. If a required surface is
 deferred, state its impact and the user's explicit deferral.
 
@@ -506,10 +507,12 @@ building or submitting. Current repository identities are:
 Re-read these values rather than treating this list as authority if configuration
 changes. Never access an environment whose name matches `*-char`.
 
-The mobile marketing version comes from `release-version.json` through
-`apps/mobile/app.config.ts`. Run `node scripts/release-version.mjs --check`
-before building. Use `node scripts/release-version.mjs <major.minor.patch>` to
-prepare a new shared version; do not edit the generated watch configuration.
+The mobile marketing version comes from `apps/mobile/release-version.json`
+through `apps/mobile/app.config.ts`. Run
+`node scripts/release-version.mjs --mobile --check` before building. Use
+`node scripts/release-version.mjs --mobile <major.minor.patch>` to prepare a
+new mobile version. Do not bump desktop `release-version.json` for a mobile
+release, and do not edit the generated watch configuration from a mobile bump.
 Keep `appVersionSource: remote` and `autoIncrement: true` for iOS build numbers
 and Android version codes, and never reset those counters to match the marketing
 version. Check remote build history and store versions before selecting a

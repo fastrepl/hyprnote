@@ -975,14 +975,21 @@ impl Workspace {
     /// `Use files`: the native picker; the Google Meet export import itself
     /// needs the imports service, so the selection is logged for now.
     fn pick_import_files(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        let picker = cx.prompt_for_paths(gpui::PathPromptOptions {
-            files: true,
-            directories: false,
-            multiple: true,
-            prompt: None,
-        });
+        // `selectFiles({ title: "Choose Google Meet export files", multiple, filters })`
+        let picker = crate::dialogs::pick(
+            cx,
+            crate::dialogs::Options {
+                title: "Choose Google Meet export files".into(),
+                pick: crate::dialogs::Pick::Files,
+                start_dir: None,
+                filters: vec![crate::dialogs::Filter::Extensions {
+                    name: "Meeting exports",
+                    extensions: &["csv", "json", "md", "markdown", "srt", "txt", "vtt"],
+                }],
+            },
+        );
         cx.spawn_in(window, async move |_, _| {
-            if let Ok(Ok(Some(paths))) = picker.await {
+            if let Some(paths) = picker.await {
                 tracing::info!(?paths, "[onboarding] Google Meet export files selected");
             }
         })

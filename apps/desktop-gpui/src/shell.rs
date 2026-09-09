@@ -33,6 +33,19 @@ pub fn switch_to_tauri(identifier: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// `tauri::process::restart` after the single-instance cleanup: the socket
+/// file goes first so the new process does not hand its arguments to this
+/// one, then the same binary starts with the same arguments; the caller
+/// quits this process.
+pub fn relaunch_self(db_path: &std::path::Path) -> anyhow::Result<()> {
+    let _ = std::fs::remove_file(crate::deeplink::socket_path(db_path));
+    let exe = std::env::current_exe()?;
+    std::process::Command::new(exe)
+        .args(std::env::args_os().skip(1))
+        .spawn()?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

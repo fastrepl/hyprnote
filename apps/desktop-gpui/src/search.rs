@@ -41,11 +41,7 @@ impl SearchIndex {
             collections: collections.clone(),
             ready: ready.clone(),
         });
-        let vault_base: PathBuf = store
-            .path()
-            .parent()
-            .map(std::path::Path::to_path_buf)
-            .unwrap_or_default();
+        let vault_base: PathBuf = store.vault_base().to_path_buf();
         let pool = store.pool().clone();
         store.runtime().spawn(async move {
             loop {

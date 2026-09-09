@@ -335,6 +335,11 @@ pub struct Workspace {
     applying_stt_default: bool,
     /// `pendingProvider`: an STT provider picked without a model to show.
     pending_stt_provider: Option<String>,
+    /// `changeMutation.isPending` of the storage row: the vault is being
+    /// moved and the app is about to relaunch.
+    storage_change_pending: bool,
+    /// `changeMutation.error` under the storage row.
+    storage_change_error: Option<String>,
     /// `useDeepgramHealth` results by API key.
     deepgram_health: std::collections::HashMap<String, stt_selection::SttHealth>,
     /// The Dictionary page's term field and the row being edited.
@@ -463,7 +468,7 @@ impl Workspace {
             }
         })
         .detach();
-        let store_file = StoreFile::next_to(store.path());
+        let store_file = StoreFile::in_vault(store.vault_base());
         let sidebar_fraction = Self::load_sidebar_fraction(&store, &store_file);
         let chat_panel_fraction = Self::load_chat_panel_fraction(&store, &store_file);
         let mut this = Self {
@@ -565,6 +570,8 @@ impl Workspace {
             last_stt_models: Default::default(),
             applying_stt_default: false,
             pending_stt_provider: None,
+            storage_change_pending: false,
+            storage_change_error: None,
             deepgram_health: Default::default(),
             dictionary_input: None,
             dictionary_edit: None,

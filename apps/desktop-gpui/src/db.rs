@@ -1556,6 +1556,14 @@ pub struct Store {
     /// The Tauri bundle identifier whose data (and credential-store entries)
     /// this shell shares.
     identifier: String,
+    /// The settings plugin's `global_base`: the app's own data folder
+    /// (`compute_default_base`), where the vault-location config lives.
+    global_base: PathBuf,
+    /// The settings plugin's startup `vault_base`: where notes, recordings and
+    /// attachments live — the global base unless `CHAR_VAULT_BASE` or the
+    /// persisted `vault_path` moves it. Snapshotted at startup like Tauri's
+    /// `StartupSnapshot`; a change takes a relaunch.
+    vault_base: PathBuf,
     /// `enqueueDatabaseWrite("session:<id>")`: check-then-insert writes for
     /// one session run one at a time.
     session_locks: Arc<std::sync::Mutex<HashMap<String, Arc<tokio::sync::Mutex<()>>>>>,
@@ -1581,13 +1589,62 @@ impl Store {
                 .with_context(|| format!("failed to open {}", path.display()))?,
         );
         let changes = spawn_change_watcher(&runtime, db.clone()).await?;
+        let db_dir = path.parent().map(Path::to_path_buf).unwrap_or_default();
+        // The app's own layout resolves like the settings plugin; a database
+        // opened from elsewhere (`--db-path`, tests) keeps its vault beside it.
+        let standard_layout = default_db_path(&identifier).is_ok_and(|standard| standard == path);
+        let global_base = if standard_layout {
+            anlg_storage::global::compute_default_base(&identifier)
+                .unwrap_or_else(|| db_dir.clone())
+        } else {
+            db_dir
+        };
+        let _ = std::fs::create_dir_all(&global_base);
+        let vault_base = anlg_storage::vault::resolve_base(&global_base, &global_base);
         Ok(Self {
             runtime,
             db,
             path,
             changes,
             identifier,
+            global_base,
+            vault_base,
             session_locks: Default::default(),
+        })
+    }
+
+    /// `settings().global_base()`.
+    pub fn global_base(&self) -> &Path {
+        &self.global_base
+    }
+
+    /// `settings().vault_base()`: the storage location shown in General
+    /// settings and used for sessions, recordings and attachments.
+    pub fn vault_base(&self) -> &Path {
+        &self.vault_base
+    }
+
+    /// `settings().move_vault(new_path)`: the vault's items are copied to
+    /// the new folder (which must be empty or missing and neither inside
+    /// nor around the old one), the config points at the copy, then the old
+    /// location is cleared best-effort. The running process keeps its
+    /// startup snapshot; a relaunch picks the new base up.
+    pub fn move_vault(&self, new_path: PathBuf) -> tokio::task::JoinHandle<anyhow::Result<()>> {
+        let old = self.vault_base.clone();
+        let global = self.global_base.clone();
+        self.runtime.spawn(async move {
+            if new_path == old {
+                return Ok(());
+            }
+            anlg_storage::vault::validate_vault_base_change(&old, &new_path)?;
+            if !anlg_storage::vault::fs::is_empty_or_missing_dir(&new_path)? {
+                return Err(anlg_storage::Error::VaultBaseIsNotEmpty.into());
+            }
+            anlg_storage::vault::ensure_vault_dir(&new_path)?;
+            anlg_storage::vault::fs::copy_vault_items(&old, &new_path).await?;
+            anlg_storage::vault::persist_vault_path(&global, &global, &new_path)?;
+            let _ = anlg_storage::vault::fs::remove_vault_items(&old).await;
+            Ok(())
         })
     }
 
@@ -1908,6 +1965,8 @@ impl Store {
             path: self.path.clone(),
             changes: self.changes.clone(),
             identifier: self.identifier.clone(),
+            global_base: self.global_base.clone(),
+            vault_base: self.vault_base.clone(),
             session_locks: self.session_locks.clone(),
         }
     }
@@ -2069,15 +2128,9 @@ impl Store {
         })
     }
 
-    /// `fs-sync`'s `session_dir`: `<vault>/sessions/<id>`, where the vault is
-    /// the folder holding `app.db`.
+    /// `fs-sync`'s `session_dir`: `<vault>/sessions/<id>`.
     pub fn session_dir(&self, session_id: &str) -> PathBuf {
-        let base = self
-            .path
-            .parent()
-            .map(Path::to_path_buf)
-            .unwrap_or_default();
-        crate::workspace::find_session_dir(&base.join("sessions"), session_id)
+        crate::workspace::find_session_dir(&self.vault_base.join("sessions"), session_id)
     }
 
     /// `updateSession(sessionId, { raw_md })`: the memo upsert.
@@ -2551,14 +2604,9 @@ impl Store {
     }
 
     /// The vault mirror for folder operations (`fs-sync`'s base directory is
-    /// the folder holding `app.db`).
+    /// `settings().vault_base()`).
     fn vault(&self) -> crate::folders::Vault {
-        crate::folders::Vault::new(
-            self.path
-                .parent()
-                .map(Path::to_path_buf)
-                .unwrap_or_default(),
-        )
+        crate::folders::Vault::new(self.vault_base.clone())
     }
 
     pub fn load_folder_catalog(

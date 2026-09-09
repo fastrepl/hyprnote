@@ -1,4 +1,4 @@
-//! The desktop's `tauri-plugin-store2` file (`store.json` next to `app.db`):
+//! The desktop's `tauri-plugin-store2` file (`store.json` in the vault base):
 //! `{"desktop": "<json>"}` where the inner document holds `StoreKey` values.
 //! `RecentlyOpenedSessions` and `PinnedTabs` are JSON strings themselves.
 
@@ -16,6 +16,15 @@ pub struct PinnedSessionTab {
 }
 
 impl StoreFile {
+    /// `store2`'s `store_path`: `store.json` in the vault base (a vault item
+    /// that moves with the storage location), the app data folder otherwise.
+    pub fn in_vault(vault_base: &Path) -> Self {
+        Self {
+            path: vault_base.join("store.json"),
+        }
+    }
+
+    #[cfg(test)]
     pub fn next_to(db_path: &Path) -> Self {
         Self {
             path: db_path.with_file_name("store.json"),

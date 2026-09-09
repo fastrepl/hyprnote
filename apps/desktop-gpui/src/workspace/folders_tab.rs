@@ -550,14 +550,18 @@ impl Workspace {
             return;
         };
         let path = editor.path.clone();
-        let picker = cx.prompt_for_paths(gpui::PathPromptOptions {
-            files: true,
-            directories: false,
-            multiple: false,
-            prompt: None,
-        });
+        // WebKitGTK's chooser for `<input type="file">`.
+        let picker = crate::dialogs::pick(
+            cx,
+            crate::dialogs::Options {
+                title: "Select File".into(),
+                pick: crate::dialogs::Pick::File,
+                start_dir: None,
+                filters: Vec::new(),
+            },
+        );
         cx.spawn_in(window, async move |this, cx| {
-            let Ok(Ok(Some(paths))) = picker.await else {
+            let Some(paths) = picker.await else {
                 return;
             };
             let Some(file) = paths.into_iter().next() else {

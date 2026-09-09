@@ -510,14 +510,18 @@ impl Workspace {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        let picker = cx.prompt_for_paths(gpui::PathPromptOptions {
-            files: true,
-            directories: false,
-            multiple: false,
-            prompt: None,
-        });
+        // WebKitGTK's chooser for `<input type="file" accept="image/*">`.
+        let picker = crate::dialogs::pick(
+            cx,
+            crate::dialogs::Options {
+                title: "Select File".into(),
+                pick: crate::dialogs::Pick::File,
+                start_dir: None,
+                filters: vec![crate::dialogs::Filter::Mime("image/*")],
+            },
+        );
         cx.spawn_in(window, async move |this, cx| {
-            let Ok(Ok(Some(paths))) = picker.await else {
+            let Some(paths) = picker.await else {
                 return;
             };
             let Some(path) = paths.into_iter().next() else {

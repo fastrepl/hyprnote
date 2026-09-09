@@ -2508,20 +2508,9 @@ impl Workspace {
         let week_start = settings
             .string_setting("week_start", &["general", "week_start"])
             .unwrap_or_else(|| "sunday".to_string());
-        let vault = self
-            .store
-            .path()
-            .parent()
-            .map(|p| p.display().to_string())
-            .unwrap_or_default();
-        let home = dirs::home_dir()
-            .map(|p| p.display().to_string())
-            .unwrap_or_default();
-        let vault_display = if !home.is_empty() && vault.starts_with(&home) {
-            format!("~{}", &vault[home.len()..])
-        } else {
-            vault
-        };
+        let vault = self.store.vault_base().display().to_string();
+        let home = dirs::home_dir().map(|p| p.display().to_string());
+        let vault_display = crate::storage::display_path(&vault, home.as_deref());
 
         let switch_row = |id: &'static str,
                           title: &'static str,
@@ -2741,68 +2730,173 @@ impl Workspace {
                     ),
             )
             .child(
-                div().child(section_heading(theme, "Storage")).child(
-                    // `StorageLocationRow`: `grid-cols-[minmax(0,1fr)_9rem] gap-3`.
-                    div()
-                        .flex()
-                        .items_center()
-                        .gap_3()
-                        .child(
-                            div()
-                                .flex()
-                                .min_w_0()
-                                .flex_1()
-                                .items_center()
-                                .gap_2()
-                                .rounded_lg()
-                                .px_2()
-                                .py_2()
-                                .child(icon("folder", px(16.0), theme.muted_foreground))
-                                .child(
-                                    // `min-w-0` alone makes Taffy size the
-                                    // column at its min-content width and wrap
-                                    // the label; `flex-1` keeps the web view's
-                                    // max-content layout with the path truncating.
-                                    div()
-                                        .min_w_0()
-                                        .flex_1()
-                                        .child(
-                                            div()
-                                                .tw_text_sm()
-                                                .font_weight(gpui::FontWeight::MEDIUM)
-                                                .child(
-                                                    "Where your notes and recordings are stored",
-                                                ),
-                                        )
-                                        .child(
-                                            div()
-                                                .tw_text_xs()
-                                                .text_color(theme.muted_foreground)
-                                                .truncate()
-                                                .child(SharedString::from(vault_display)),
-                                        ),
-                                ),
-                        )
-                        .child(
-                            // `Button variant="outline" className="h-9 w-full"` in a 9rem column.
-                            div()
-                                .relative()
-                                .w(px(144.0))
-                                .h(px(36.0))
-                                .flex()
-                                .items_center()
-                                .justify_center()
-                                .child(crate::squircle::squircle(
-                                    crate::squircle::CONTROL_RADIUS,
-                                    Some(theme.background),
-                                    Some((1.0, theme.border)),
-                                ))
-                                .tw_text_sm()
-                                .font_weight(gpui::FontWeight::MEDIUM)
-                                .child("Change"),
-                        ),
-                ),
+                div()
+                    .child(section_heading(theme, "Storage"))
+                    .child(self.render_storage_row(vault, vault_display, cx)),
             )
+    }
+
+    /// `StorageLocationRow`: `grid-cols-[minmax(0,1fr)_9rem] gap-3`. The row
+    /// opens the folder (`openerCommands.openPath`); `Change` picks a folder,
+    /// moves the vault and relaunches; an error shows under the row.
+    fn render_storage_row(&self, vault: String, vault_display: String, cx: &Context<Self>) -> Div {
+        let theme = self.theme;
+        let pending = self.storage_change_pending;
+        let open_path = vault.clone();
+        div()
+            .child(
+                div()
+                    .flex()
+                    .items_center()
+                    .gap_3()
+                    .child(
+                        // `hover:bg-muted/40 rounded-lg px-2 py-2`
+                        div()
+                            .id("setting-storage-open")
+                            .flex()
+                            .min_w_0()
+                            .flex_1()
+                            .items_center()
+                            .gap_2()
+                            .rounded_lg()
+                            .px_2()
+                            .py_2()
+                            .cursor_pointer()
+                            .hover(|s| s.bg(alpha(theme.muted, 0.4)))
+                            // `openerCommands.openPath`: `xdg-open <folder>`.
+                            .on_click(move |_: &gpui::ClickEvent, _, cx| {
+                                cx.open_with_system(std::path::Path::new(&open_path));
+                            })
+                            .child(icon("folder", px(16.0), theme.muted_foreground))
+                            .child(
+                                // `min-w-0` alone makes Taffy size the
+                                // column at its min-content width and wrap
+                                // the label; `flex-1` keeps the web view's
+                                // max-content layout with the path truncating.
+                                div()
+                                    .min_w_0()
+                                    .flex_1()
+                                    .child(
+                                        div()
+                                            .tw_text_sm()
+                                            .font_weight(gpui::FontWeight::MEDIUM)
+                                            .child("Where your notes and recordings are stored"),
+                                    )
+                                    .child(
+                                        div()
+                                            .tw_text_xs()
+                                            .text_color(theme.muted_foreground)
+                                            .truncate()
+                                            .child(SharedString::from(vault_display)),
+                                    ),
+                            ),
+                    )
+                    .child(
+                        // `Button variant="outline" className="h-9 w-full"` in a 9rem column.
+                        div()
+                            .id("setting-storage-change")
+                            .relative()
+                            .w(px(144.0))
+                            .h(px(36.0))
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .gap_2()
+                            .child(crate::squircle::squircle(
+                                crate::squircle::CONTROL_RADIUS,
+                                Some(theme.background),
+                                Some((1.0, theme.border)),
+                            ))
+                            .tw_text_sm()
+                            .font_weight(gpui::FontWeight::MEDIUM)
+                            .when(pending, |button| button.opacity(0.5))
+                            .when(!pending, |button| {
+                                button.cursor_pointer().on_click(cx.listener(
+                                    |this, _: &gpui::ClickEvent, window, cx| {
+                                        this.change_storage_location(window, cx);
+                                    },
+                                ))
+                            })
+                            .when(pending, |button| {
+                                button.child(crate::ui::spinner(
+                                    "setting-storage-spinner",
+                                    px(16.0),
+                                    theme.foreground,
+                                ))
+                            })
+                            .child("Change"),
+                    ),
+            )
+            .when_some(self.storage_change_error.clone(), |row, error| {
+                // `mt-1 text-xs text-red-500`
+                row.child(
+                    div()
+                        .mt_1()
+                        .tw_text_xs()
+                        .text_color(gpui::rgb(0xef4444))
+                        .child(SharedString::from(error)),
+                )
+            })
+    }
+
+    /// `handleChange`: a folder dialog seeded with the current location; a
+    /// different choice runs `moveVault` and then relaunches the app the way
+    /// `scheduleAutomaticRelaunch` does.
+    fn change_storage_location(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if self.storage_change_pending {
+            return;
+        }
+        let current = self.store.vault_base().to_path_buf();
+        let picker = crate::dialogs::pick(
+            cx,
+            crate::dialogs::Options {
+                title: "Choose storage location".into(),
+                pick: crate::dialogs::Pick::Folder,
+                start_dir: Some(current.clone()),
+                filters: Vec::new(),
+            },
+        );
+        cx.spawn_in(window, async move |this, cx| {
+            let Some(paths) = picker.await else {
+                return;
+            };
+            let Some(selected) = paths.into_iter().next() else {
+                return;
+            };
+            if selected == current {
+                return;
+            }
+            let task = this
+                .update(cx, |this, cx| {
+                    this.storage_change_pending = true;
+                    this.storage_change_error = None;
+                    cx.notify();
+                    this.store.move_vault(selected)
+                })
+                .ok();
+            let Some(task) = task else {
+                return;
+            };
+            let result = task.await.map_err(anyhow::Error::from).and_then(|r| r);
+            this.update(cx, |this, cx| match result {
+                Ok(()) => {
+                    if let Err(error) = crate::shell::relaunch_self(this.store.path()) {
+                        this.storage_change_pending = false;
+                        this.storage_change_error = Some(error.to_string());
+                        cx.notify();
+                    } else {
+                        cx.quit();
+                    }
+                }
+                Err(error) => {
+                    this.storage_change_pending = false;
+                    this.storage_change_error = Some(error.to_string());
+                    cx.notify();
+                }
+            })
+            .ok();
+        })
+        .detach();
     }
 }
 

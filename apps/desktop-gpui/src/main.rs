@@ -21,6 +21,7 @@ mod cuelume;
 mod db;
 mod deeplink;
 mod developers;
+mod dialogs;
 mod dictation;
 mod document;
 mod edit_menu;
@@ -50,6 +51,7 @@ mod sidebar_layout;
 mod speaker_assignment;
 mod squircle;
 mod stats;
+mod storage;
 mod store_file;
 mod stt_capabilities;
 mod stt_models;
@@ -256,7 +258,7 @@ fn handle_tray_action(action: tray::TrayAction, store: &Arc<Store>, cx: &mut App
             }
         }
         TrayAction::ToggleShowEvents => {
-            let store_file = store_file::StoreFile::next_to(store.path());
+            let store_file = store_file::StoreFile::in_vault(store.vault_base());
             let show = !store_file
                 .scoped_bool(tray::SCOPE, tray::SHOW_EVENTS_KEY)
                 .unwrap_or(true);
@@ -398,6 +400,11 @@ fn main() -> anyhow::Result<()> {
     let store = Arc::new(store);
     let search = search::SearchIndex::start(&store);
     tracing::info!(path = %store.path().display(), "opened application database");
+    // The direct-distribution Tauri build writes the vault's `AGENTS.md` on
+    // every start (`agents::write_agents_file`).
+    if let Err(error) = storage::write_agents_file(store.vault_base()) {
+        tracing::error!(%error, "failed to write AGENTS.md");
+    }
 
     let identifier = args.identifier.clone();
     let callback_server = deeplink::CallbackServer::new(
@@ -426,7 +433,7 @@ fn main() -> anyhow::Result<()> {
         cx.set_global(DeepLinks {
             server: callback_server,
         });
-        let store_file = store_file::StoreFile::next_to(store.path());
+        let store_file = store_file::StoreFile::in_vault(store.vault_base());
         cx.set_global(tray::Tray::start(tray::TrayState {
             app_name: tray::app_name(&identifier).to_string(),
             version_label: anlg_tray_core::labels::version(APP_VERSION, tray::channel(&identifier)),

@@ -459,14 +459,21 @@ impl Workspace {
         let Some(session_id) = self.selected.clone() else {
             return;
         };
-        let picker = cx.prompt_for_paths(gpui::PathPromptOptions {
-            files: true,
-            directories: false,
-            multiple: false,
-            prompt: None,
-        });
+        // `selectFile({ title: "Upload Audio", defaultPath: downloadDir(), filters })`
+        let picker = crate::dialogs::pick(
+            cx,
+            crate::dialogs::Options {
+                title: "Upload Audio".into(),
+                pick: crate::dialogs::Pick::File,
+                start_dir: dirs::download_dir(),
+                filters: vec![crate::dialogs::Filter::Extensions {
+                    name: "Audio",
+                    extensions: &["wav", "mp3", "ogg", "mp4", "m4a", "flac", "webm", "aac"],
+                }],
+            },
+        );
         cx.spawn_in(window, async move |this, cx| {
-            let Ok(Ok(Some(paths))) = picker.await else {
+            let Some(paths) = picker.await else {
                 return;
             };
             let Some(path) = paths.into_iter().next() else {
@@ -1739,15 +1746,11 @@ impl Workspace {
     /// Spawn the root actor once the window is up and pump its events.
     pub(crate) fn spawn_recorder(&mut self, cx: &mut Context<Self>) {
         let runtime = self.store.runtime().clone();
-        let base = self
-            .store
-            .path()
-            .parent()
-            .map(std::path::Path::to_path_buf)
-            .unwrap_or_default();
+        let global_base = self.store.global_base().to_path_buf();
+        let vault_base = self.store.vault_base().to_path_buf();
         let audio = cx.global::<crate::audio::Audio>().0.clone();
         cx.spawn(async move |this, cx| {
-            let spawned = Recorder::spawn(runtime, base, audio).await;
+            let spawned = Recorder::spawn(runtime, global_base, vault_base, audio).await;
             let (recorder, mut events) = match spawned {
                 Ok(spawned) => spawned,
                 Err(error) => {

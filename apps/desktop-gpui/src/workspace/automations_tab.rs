@@ -480,17 +480,21 @@ impl Workspace {
     fn choose_export_folder(
         &mut self,
         target: FolderTarget,
+        current: String,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        let picker = cx.prompt_for_paths(gpui::PathPromptOptions {
-            files: false,
-            directories: true,
-            multiple: false,
-            prompt: None,
-        });
+        let picker = crate::dialogs::pick(
+            cx,
+            crate::dialogs::Options {
+                title: "Choose export folder".into(),
+                pick: crate::dialogs::Pick::Folder,
+                start_dir: (!current.is_empty()).then(|| std::path::PathBuf::from(current)),
+                filters: Vec::new(),
+            },
+        );
         cx.spawn_in(window, async move |this, cx| {
-            let Ok(Ok(Some(paths))) = picker.await else {
+            let Some(paths) = picker.await else {
                 return;
             };
             let Some(path) = paths.into_iter().next() else {
@@ -1529,7 +1533,7 @@ impl Workspace {
         let value = if directory.is_empty() {
             "No folder selected yet.".to_string()
         } else {
-            directory
+            directory.clone()
         };
         self.config_row(
             "Export folder",
@@ -1542,7 +1546,7 @@ impl Workspace {
                     label: "Choose folder",
                     disabled: false,
                     on_click: Some(Rc::new(move |this, window, cx| {
-                        this.choose_export_folder(target.clone(), window, cx)
+                        this.choose_export_folder(target.clone(), directory.clone(), window, cx)
                     })),
                 },
                 cx,

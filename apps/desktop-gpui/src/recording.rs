@@ -23,17 +23,18 @@ pub enum Event {
 
 /// `TauriRuntime`: the storage roots plus the event bridge.
 struct Runtime {
-    base: PathBuf,
+    global_base: PathBuf,
+    vault_base: PathBuf,
     events: tokio::sync::mpsc::UnboundedSender<Event>,
 }
 
 impl anlg_storage::StorageRuntime for Runtime {
     fn global_base(&self) -> Result<PathBuf, anlg_storage::Error> {
-        Ok(self.base.clone())
+        Ok(self.global_base.clone())
     }
 
     fn vault_base(&self) -> Result<PathBuf, anlg_storage::Error> {
-        Ok(self.base.clone())
+        Ok(self.vault_base.clone())
     }
 }
 
@@ -61,15 +62,20 @@ pub struct Recorder {
 }
 
 impl Recorder {
-    /// Spawns the root actor on the tokio runtime; `base` is the folder
-    /// holding `app.db` (the vault and global storage root).
+    /// Spawns the root actor on the tokio runtime with the settings plugin's
+    /// two roots: the app's data folder and the (possibly relocated) vault.
     pub async fn spawn(
         runtime: tokio::runtime::Handle,
-        base: PathBuf,
+        global_base: PathBuf,
+        vault_base: PathBuf,
         audio: Arc<dyn AudioProvider>,
     ) -> anyhow::Result<(Self, tokio::sync::mpsc::UnboundedReceiver<Event>)> {
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
-        let listener_runtime: Arc<dyn ListenerRuntime> = Arc::new(Runtime { base, events: tx });
+        let listener_runtime: Arc<dyn ListenerRuntime> = Arc::new(Runtime {
+            global_base,
+            vault_base,
+            events: tx,
+        });
         let root = runtime
             .spawn(async move {
                 Actor::spawn(

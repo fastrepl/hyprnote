@@ -10,6 +10,7 @@ import {
   type IdentityLinkStatus,
 } from "@/functions/identity-link";
 import { getSupabaseBrowserClient } from "@/functions/supabase";
+import { accountWorkspacePlanQueryKey } from "@/lib/account-plan";
 import {
   ACCOUNT_SECTIONS,
   type AccountSectionId,
@@ -176,6 +177,9 @@ function Component() {
       // The refreshed JWT carries the post-checkout billing claims; cached
       // account-session data is stale until it re-reads the session.
       void queryClient.invalidateQueries({ queryKey: accountSessionQueryKey });
+      void queryClient.invalidateQueries({
+        queryKey: accountWorkspacePlanQueryKey,
+      });
     };
 
     void syncBillingAnalytics();

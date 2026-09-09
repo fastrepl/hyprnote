@@ -6,8 +6,13 @@ import { cn } from "@anlg/utils";
 
 import { authInputClassName } from "@/components/auth-shell";
 import { getAccountSubscription } from "@/functions/billing";
+import { getSupabaseBrowserClient } from "@/functions/supabase";
 import { applyYcPerk } from "@/functions/yc-perk";
-import { getAccountPlanCopy } from "@/lib/account-plan";
+import {
+  accountWorkspacePlanQueryKey,
+  fetchWorkspacePlan,
+  getAccountPlanCopy,
+} from "@/lib/account-plan";
 import { validateYcPerkApplyValue } from "@/lib/yc-perk";
 
 import { useAccountSession } from "./-account-session";
@@ -33,10 +38,30 @@ export function PlanSection({
 }) {
   const { data, isPending } = useAccountSession();
   const billing = data?.billing;
+  const workspacePlanQuery = useQuery({
+    queryKey: accountWorkspacePlanQueryKey,
+    enabled: typeof window !== "undefined",
+    retry: 1,
+    queryFn: async ({ signal }) => {
+      const supabase = getSupabaseBrowserClient();
+      const { data: sessionData, error } = await supabase.auth.getSession();
+      const session = sessionData.session;
+      if (error || !session) {
+        throw new Error("Sign in again to refresh your plan.");
+      }
+      return fetchWorkspacePlan({
+        client: supabase,
+        accessToken: session.access_token,
+        signal,
+      });
+    },
+  });
   const subscriptionQuery = useQuery({
     queryKey: accountSubscriptionQueryKey,
     enabled:
       typeof window !== "undefined" &&
+      workspacePlanQuery.isSuccess &&
+      workspacePlanQuery.data == null &&
       (billing?.isPaid === true ||
         billing?.isTrialing === true ||
         billing?.isPaused === true),
@@ -53,6 +78,8 @@ export function PlanSection({
       : (billing?.currentPeriodEnd ?? null);
   const hasYcPerk =
     subscriptionQuery.data?.hasYcPerk === true || perk === "applied";
+  const workspacePlan = workspacePlanQuery.data ?? null;
+  const isWorkspacePlan = workspacePlan != null;
 
   const { planLabel, planDetail } = getAccountPlanCopy({
     isTrialing: billing?.isTrialing === true,
@@ -65,13 +92,20 @@ export function PlanSection({
     cancelAtPeriodEnd,
     currentPeriodEnd,
     hasYcPerk,
+    workspacePlan,
   });
 
   const isCheckingPlan =
     isPending ||
-    (billing?.isPaid === true &&
+    workspacePlanQuery.isPending ||
+    (workspacePlanQuery.isSuccess &&
+      workspacePlanQuery.data == null &&
+      billing?.isPaid === true &&
       billing.isTrialing !== true &&
       subscriptionQuery.isPending);
+  const couldNotVerifyPlan =
+    !isCheckingPlan &&
+    (workspacePlanQuery.isError || !workspacePlanQuery.isSuccess);
 
   return (
     <div className={accountCardClassName}>
@@ -79,6 +113,10 @@ export function PlanSection({
         {isCheckingPlan ? (
           <p className="text-sm leading-6 text-[#756b5d]">
             Checking your plan...
+          </p>
+        ) : couldNotVerifyPlan ? (
+          <p className="text-sm leading-6 text-[#756b5d]">
+            Couldn't verify your plan. Refresh to try again.
           </p>
         ) : (
           <>
@@ -93,7 +131,7 @@ export function PlanSection({
                 {planDetail}
               </p>
             </div>
-            {billing?.isPaid || billing?.isTrialing ? (
+            {isWorkspacePlan ? null : billing?.isPaid || billing?.isTrialing ? (
               <Link to="/app/portal/" className={accountPillSecondaryClassName}>
                 Manage billing
               </Link>
@@ -113,7 +151,12 @@ export function PlanSection({
           </>
         )}
       </div>
-      {!isCheckingPlan && !hasYcPerk ? <YcPerkApplyForm perk={perk} /> : null}
+      {!isCheckingPlan &&
+      !couldNotVerifyPlan &&
+      !isWorkspacePlan &&
+      !hasYcPerk ? (
+        <YcPerkApplyForm perk={perk} />
+      ) : null}
     </div>
   );
 }

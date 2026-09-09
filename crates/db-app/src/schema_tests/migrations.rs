@@ -124,6 +124,7 @@ async fn migrations_apply_cleanly() {
             "search_index_state",
             "session_attachments",
             "session_disclosure_attempts",
+            "session_document_versions",
             "session_documents",
             "session_participant_consent",
             "session_participants",

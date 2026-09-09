@@ -38,6 +38,7 @@ async fn copy_replica(source: &SqlitePool, target: &SqlitePool) {
 
 mod convergence;
 mod dirty_rows;
+mod document_versions;
 mod edit_conflicts;
 mod replica_apply;
 mod revision_conflicts;

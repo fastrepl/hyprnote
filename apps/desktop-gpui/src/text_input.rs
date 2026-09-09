@@ -3,6 +3,7 @@
 //! reusable entity that emits `Changed` while typing and `Committed` on
 //! Enter/blur, which is how the app's `<input>` fields persist.
 
+use std::cell::RefCell;
 use std::ops::Range;
 
 use gpui::{
@@ -43,10 +44,54 @@ actions!(
         Up,
         Down,
         Escape,
+        Tab,
+        ShiftTab,
     ]
 );
 
 const KEY_CONTEXT: &str = "TextInput";
+
+thread_local! {
+    /// Every live field, so a keyboard focus change can find the one it
+    /// landed on.
+    static INPUTS: RefCell<Vec<gpui::WeakEntity<TextInput>>> = const { RefCell::new(Vec::new()) };
+}
+
+/// Runs `move_focus` (`Window::focus_next` / `focus_prev`) as a keyboard
+/// focus change: WebKit selects an `<input>`'s whole value when the keyboard
+/// focuses it (a `<textarea>` keeps its caret at the start). `from` is the
+/// field the key was pressed in, which is mid-update and cannot be read.
+pub(crate) fn focus_by_keyboard(
+    window: &mut Window,
+    cx: &mut App,
+    from: Option<gpui::EntityId>,
+    move_focus: fn(&mut Window),
+) {
+    move_focus(window);
+    let Some(focused) = window.focused(cx) else {
+        return;
+    };
+    let inputs: Vec<_> = INPUTS.with_borrow_mut(|inputs| {
+        inputs.retain(|input| input.upgrade().is_some());
+        inputs
+            .iter()
+            .filter_map(gpui::WeakEntity::upgrade)
+            .collect()
+    });
+    for input in inputs {
+        if Some(input.entity_id()) == from {
+            continue;
+        }
+        if input.read(cx).focus_handle == focused {
+            input.update(cx, |input, cx| {
+                input.selected_range = 0..input.content.len();
+                input.selection_reversed = false;
+                cx.notify();
+            });
+            return;
+        }
+    }
+}
 
 pub fn bind_keys(cx: &mut App) {
     let m = if cfg!(target_os = "macos") {
@@ -93,6 +138,8 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new("up", Up, ctx),
         KeyBinding::new("down", Down, ctx),
         KeyBinding::new("escape", Escape, ctx),
+        KeyBinding::new("tab", Tab, ctx),
+        KeyBinding::new("shift-tab", ShiftTab, ctx),
     ]);
 }
 
@@ -204,6 +251,10 @@ pub struct TextInput {
     /// Enter emits `Enter` without blurring (a find field that steps to the
     /// next match), instead of committing like a form field.
     enter_keeps_focus: bool,
+    /// A chip input: Tab with text acts like Enter and keeps the focus
+    /// (`if (e.key === "Enter" || e.key === "Tab") && inputValue.trim()`);
+    /// an empty field lets Tab move the focus on like any other.
+    tab_submits_when_filled: bool,
 }
 
 impl EventEmitter<TextInputEvent> for TextInput {}
@@ -215,11 +266,14 @@ impl TextInput {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Self {
-        let focus_handle = cx.focus_handle();
+        // A tab stop, so Tab walks the fields in render order like the
+        // webview's sequential focus navigation.
+        let focus_handle = cx.focus_handle().tab_stop(true);
         cx.on_focus_out(&focus_handle, window, |this: &mut Self, _, window, cx| {
             this.blurred(window, cx);
         })
         .detach();
+        INPUTS.with_borrow_mut(|inputs| inputs.push(cx.weak_entity()));
         Self {
             focus_handle,
             content: SharedString::default(),
@@ -235,11 +289,17 @@ impl TextInput {
             was_focused: false,
             scroll_offset: px(0.0),
             enter_keeps_focus: false,
+            tab_submits_when_filled: false,
         }
     }
 
     pub fn enter_keeps_focus(mut self) -> Self {
         self.enter_keeps_focus = true;
+        self
+    }
+
+    pub fn tab_submits_when_filled(mut self) -> Self {
+        self.tab_submits_when_filled = true;
         self
     }
 
@@ -293,6 +353,22 @@ impl TextInput {
 
     fn shift_enter(&mut self, _: &ShiftEnter, _: &mut Window, cx: &mut Context<Self>) {
         cx.emit(TextInputEvent::ShiftEnter);
+    }
+
+    /// Sequential focus navigation: the next tab stop, or the chip input's
+    /// submit while it holds text.
+    fn tab(&mut self, _: &Tab, window: &mut Window, cx: &mut Context<Self>) {
+        if self.tab_submits_when_filled && !self.content.trim().is_empty() {
+            cx.emit(TextInputEvent::Enter);
+            return;
+        }
+        let from = cx.entity_id();
+        focus_by_keyboard(window, cx, Some(from), Window::focus_next);
+    }
+
+    fn shift_tab(&mut self, _: &ShiftTab, window: &mut Window, cx: &mut Context<Self>) {
+        let from = cx.entity_id();
+        focus_by_keyboard(window, cx, Some(from), Window::focus_prev);
     }
 
     fn mod_enter(&mut self, _: &ModEnter, _: &mut Window, cx: &mut Context<Self>) {
@@ -933,7 +1009,10 @@ impl Element for TextElement {
         let selection = prepaint.selection.take();
         let cursor = prepaint.cursor.take();
         window.with_content_mask(Some(gpui::ContentMask { bounds }), |window| {
-            if let Some(selection) = selection {
+            // Only the focused control paints its selection (the frame
+            // selection follows the focus); an unfocused field keeps its
+            // range for when it is focused again.
+            if focused && let Some(selection) = selection {
                 window.paint_quad(selection)
             }
             line.paint(
@@ -993,6 +1072,8 @@ impl Render for TextInput {
             .on_action(cx.listener(Self::up))
             .on_action(cx.listener(Self::down))
             .on_action(cx.listener(Self::escape))
+            .on_action(cx.listener(Self::tab))
+            .on_action(cx.listener(Self::shift_tab))
             // The title bar's Edit menu (`runEditCommand`) on the focused field.
             .on_action(
                 cx.listener(|this, _: &crate::actions::Cut, window, cx| this.cut(&Cut, window, cx)),

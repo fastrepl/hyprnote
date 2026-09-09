@@ -72,7 +72,9 @@ impl Workspace {
             return;
         }
         let style = self.panel_input_style();
-        let input = cx.new(|cx| TextInput::new("Add participants", style, window, cx));
+        let input = cx.new(|cx| {
+            TextInput::new("Add participants", style, window, cx).tab_submits_when_filled()
+        });
         cx.subscribe_in(
             &input,
             window,

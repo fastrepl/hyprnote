@@ -1615,7 +1615,7 @@ impl Workspace {
             input.read(cx).focus_handle(cx).focus(window);
             return;
         }
-        let input = cx.new(|cx| TextInput::new("", style, window, cx));
+        let input = cx.new(|cx| TextInput::new("", style, window, cx).tab_submits_when_filled());
         cx.subscribe(
             &input,
             |this, input, event: &TextInputEvent, cx| match event {

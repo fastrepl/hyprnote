@@ -277,7 +277,7 @@ impl BodyEditor {
     pub fn new(session_id: String, body: &str, cx: &mut Context<Self>) -> Self {
         let doc = Doc::parse(body);
         Self {
-            focus_handle: cx.focus_handle(),
+            focus_handle: cx.focus_handle().tab_stop(true),
             session_id,
             layouts: vec![None; doc.textblock_count()],
             doc,

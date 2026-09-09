@@ -52,6 +52,8 @@ actions!(
         Submit,
         Undo,
         Redo,
+        Tab,
+        ShiftTab,
     ]
 );
 
@@ -110,6 +112,8 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new(&format!("{m}-enter"), Submit, ctx),
         KeyBinding::new(&format!("{m}-z"), Undo, ctx),
         KeyBinding::new(&format!("{m}-shift-z"), Redo, ctx),
+        KeyBinding::new("tab", Tab, ctx),
+        KeyBinding::new("shift-tab", ShiftTab, ctx),
     ]);
     if !cfg!(target_os = "macos") {
         cx.bind_keys([KeyBinding::new("ctrl-y", Redo, ctx)]);
@@ -315,7 +319,7 @@ impl TextArea {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Self {
-        let focus_handle = cx.focus_handle();
+        let focus_handle = cx.focus_handle().tab_stop(true);
         cx.on_focus_out(&focus_handle, window, |this: &mut Self, _, _, cx| {
             this.is_selecting = false;
             cx.emit(TextAreaEvent::Blurred);
@@ -995,6 +999,15 @@ impl TextArea {
         cx.emit(TextAreaEvent::Escape);
     }
 
+    /// A `<textarea>` leaves Tab to sequential focus navigation.
+    fn tab(&mut self, _: &Tab, window: &mut Window, cx: &mut Context<Self>) {
+        crate::text_input::focus_by_keyboard(window, cx, None, Window::focus_next);
+    }
+
+    fn shift_tab(&mut self, _: &ShiftTab, window: &mut Window, cx: &mut Context<Self>) {
+        crate::text_input::focus_by_keyboard(window, cx, None, Window::focus_prev);
+    }
+
     fn paste(&mut self, _: &Paste, window: &mut Window, cx: &mut Context<Self>) {
         if let Some(text) = cx.read_from_clipboard().and_then(|item| item.text()) {
             self.replace_text_in_range(None, &text.replace("\r\n", "\n"), window, cx);
@@ -1324,6 +1337,8 @@ impl Render for TextArea {
             .on_action(cx.listener(Self::newline))
             .on_action(cx.listener(Self::enter))
             .on_action(cx.listener(Self::escape))
+            .on_action(cx.listener(Self::tab))
+            .on_action(cx.listener(Self::shift_tab))
             .on_action(cx.listener(Self::submit))
             .on_action(cx.listener(Self::undo))
             .on_action(cx.listener(Self::redo))

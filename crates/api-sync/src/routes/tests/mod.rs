@@ -12,7 +12,10 @@ use wiremock::{
 };
 
 use super::*;
-use crate::{SyncConfig, SyncError, config::CloudsyncProtocolMode};
+use crate::{
+    SyncConfig, SyncError,
+    config::{CloudsyncProtocolMode, CloudsyncTransport},
+};
 
 const TEST_KEY_ID: &str = "abcdefghijklmnopqrstuv";
 
@@ -33,12 +36,31 @@ fn test_router_with_protocol(
     protocol_mode: CloudsyncProtocolMode,
     legacy_database_id: Option<&str>,
 ) -> Router {
+    test_router_with_transport(
+        server,
+        api_key,
+        entitlements,
+        protocol_mode,
+        legacy_database_id,
+        CloudsyncTransport::SqliteSync,
+    )
+}
+
+fn test_router_with_transport(
+    server: &MockServer,
+    api_key: &str,
+    entitlements: &[&str],
+    protocol_mode: CloudsyncProtocolMode,
+    legacy_database_id: Option<&str>,
+    desktop_transport: CloudsyncTransport,
+) -> Router {
     let state = AppState::new(SyncConfig {
         project_url: server.uri(),
         token_issuer_api_key: api_key.to_string(),
         database_id: "database-id".to_string(),
         legacy_database_id: legacy_database_id.map(ToString::to_string),
         protocol_mode,
+        desktop_transport,
         token_ttl_seconds: 60,
         supabase_url: server.uri(),
         supabase_anon_key: "anon-key".to_string(),
@@ -129,6 +151,41 @@ fn token_request() -> Request<Body> {
         .header(E2EE_KEY_ID_HEADER, TEST_KEY_ID)
         .body(Body::empty())
         .unwrap()
+}
+
+fn replica_capable_token_request() -> Request<Body> {
+    Request::post("/token")
+        .header(E2EE_KEY_ID_HEADER, TEST_KEY_ID)
+        .header(CLOUDSYNC_TRANSPORTS_HEADER, "replica")
+        .body(Body::empty())
+        .unwrap()
+}
+
+async fn mock_sync_transport_override(server: &MockServer, transport: Option<&str>) {
+    let body = match transport {
+        Some(transport) => json!([{ "transport": transport }]),
+        None => json!([]),
+    };
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/sync_transport_overrides"))
+        .and(header("apikey", "service-role-key"))
+        .and(header("authorization", "Bearer service-role-key"))
+        .and(query_param("user_id", "eq.user-123"))
+        .and(query_param("select", "transport"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(body))
+        .mount(server)
+        .await;
+}
+
+async fn mock_sqlitecloud_token(server: &MockServer, token: &str) {
+    Mock::given(method("POST"))
+        .and(path("/v2/tokens"))
+        .and(header("authorization", "Bearer issuer-key"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "data": { "token": token }
+        })))
+        .mount(server)
+        .await;
 }
 
 async fn response_json(response: axum::response::Response) -> Value {

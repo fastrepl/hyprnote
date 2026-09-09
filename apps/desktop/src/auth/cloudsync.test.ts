@@ -632,6 +632,7 @@ describe("CloudSync auth lifecycle", () => {
           Authorization: "Bearer supabase-token",
           "X-Anarlog-E2EE-Key-Id": E2EE_KEY_ID,
           "x-anarlog-e2ee-member-public-key": E2EE_MEMBER_PUBLIC_KEY,
+          "x-anarlog-cloudsync-transports": "replica",
         },
       }),
     );
@@ -681,14 +682,23 @@ describe("CloudSync auth lifecycle", () => {
     expect(configureCloudsyncToken).not.toHaveBeenCalled();
   });
 
-  test("passes shared workspaces and key grants to the replica transport", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(() => Promise.resolve(projectedReplicaCredentialsResponse())),
+  test("switches to the replica transport when /sync/token hands out replica credentials", async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(projectedReplicaCredentialsResponse()),
     );
+    vi.stubGlobal("fetch", fetchMock);
 
     await handleCloudsyncAuthChange("SIGNED_IN", session());
 
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      new URL("https://api.test/sync/token"),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "x-anarlog-cloudsync-transports": "replica",
+        }),
+      }),
+    );
     expect(configureE2eeReplica).toHaveBeenCalledWith(
       "user-id",
       witness(),

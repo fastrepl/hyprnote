@@ -61,6 +61,11 @@ export type CloudsyncCredentials =
 
 export const DEVICE_NAME_HEADER = "x-anarlog-device-name";
 export const E2EE_MEMBER_PUBLIC_KEY_HEADER = "x-anarlog-e2ee-member-public-key";
+// Tells /sync/token this build can run the witness-only replica transport for
+// every workspace, so the server may hand out replica credentials instead of a
+// sqlite-sync token. Older builds omit it and keep receiving sqlite-sync.
+export const CLOUDSYNC_TRANSPORTS_HEADER = "x-anarlog-cloudsync-transports";
+export const CLOUDSYNC_ACCEPTED_TRANSPORTS = "replica";
 export const DEVICE_LIMIT_ERROR_CODE = "sync_device_limit_reached";
 export const DEVICE_LIMIT_TOAST_ID = "cloudsync-device-limit";
 

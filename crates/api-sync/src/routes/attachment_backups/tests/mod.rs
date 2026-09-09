@@ -43,6 +43,7 @@ fn test_state(server: &MockServer) -> AppState {
         database_id: "database-id".to_string(),
         legacy_database_id: None,
         protocol_mode: crate::config::CloudsyncProtocolMode::E2eeEnforced,
+        desktop_transport: crate::config::CloudsyncTransport::SqliteSync,
         token_ttl_seconds: 60,
         supabase_url: server.uri(),
         supabase_anon_key: "anon-key".to_string(),

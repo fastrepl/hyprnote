@@ -1,4 +1,6 @@
 import {
+  CLOUDSYNC_ACCEPTED_TRANSPORTS,
+  CLOUDSYNC_TRANSPORTS_HEADER,
   DEVICE_NAME_HEADER,
   E2EE_MEMBER_PUBLIC_KEY_HEADER,
   getDeviceIdentity,
@@ -35,6 +37,7 @@ export async function requestCloudsyncCredentials({
       Authorization: `Bearer ${accessToken}`,
       "X-Anarlog-E2EE-Key-Id": encryptionKeyId,
       [E2EE_MEMBER_PUBLIC_KEY_HEADER]: memberPublicKey,
+      [CLOUDSYNC_TRANSPORTS_HEADER]: CLOUDSYNC_ACCEPTED_TRANSPORTS,
     };
     if (device.fingerprint) {
       headers[DEVICE_FINGERPRINT_HEADER] = device.fingerprint;

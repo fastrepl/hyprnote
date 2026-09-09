@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::OpenApi;
 
 use crate::{
-    config::CloudsyncProtocolMode,
+    config::{CloudsyncProtocolMode, CloudsyncTransport},
     error::{Result, SyncError},
     state::{AppState, ReplicaState},
 };
@@ -19,6 +19,7 @@ mod grants;
 mod identity;
 mod projection;
 mod token;
+mod transport;
 
 use enrollment::{
     __path_consume_e2ee_device_enrollment, __path_register_e2ee_device_enrollment,
@@ -41,6 +42,7 @@ pub use projection::CloudsyncWorkspace;
 pub(super) use projection::encode_workspace_token_attributes;
 use projection::{fetch_workspace_projection, validate_workspace_projection};
 use token::{E2eeCreateTokenRequest, LegacyCreateTokenRequest, mint_cloudsync_token, token_expiry};
+use transport::{client_accepts_replica_transport, resolve_desktop_transport};
 
 #[cfg(test)]
 pub(super) use identity::{DEVICE_FINGERPRINT_HEADER, DEVICE_NAME_HEADER};
@@ -48,6 +50,8 @@ pub(super) use identity::{DEVICE_FINGERPRINT_HEADER, DEVICE_NAME_HEADER};
 pub(super) use projection::{
     MAX_TOKEN_ATTRIBUTES_BYTES, MAX_TOKEN_WORKSPACES, WORKSPACE_PROJECTION_SELECT,
 };
+#[cfg(test)]
+pub(super) use transport::CLOUDSYNC_TRANSPORTS_HEADER;
 
 const SUPABASE_REQUEST_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 const CLOUDSYNC_ENCRYPTION_VERSION: u8 = 2;
@@ -98,6 +102,7 @@ pub struct ReplicaCredentials {
 pub enum CloudsyncCredentialResponse {
     Legacy(LegacyCloudsyncCredentials),
     E2ee(CloudsyncCredentials),
+    Replica(ReplicaCredentials),
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
@@ -287,29 +292,40 @@ async fn create_replica_credentials(
         .ok_or_else(|| SyncError::BadRequest("E2EE key identity is required".to_string()))?
         .to_str()
         .map_err(|_| SyncError::BadRequest("E2EE key identity is invalid".to_string()))?;
-    let workspace_rows = fetch_workspace_projection(&state, &auth).await?;
-    let (personal_workspace_id, workspaces) =
-        validate_workspace_projection(workspace_rows, &auth.claims.sub)?;
-    let workspace_key_grants = fetch_workspace_key_grants(&state, &auth.token, &workspaces).await?;
-    let encryption_key_id =
-        claim_personal_e2ee_key(&state, &auth.claims.sub, requested_key_id).await?;
-    claim_sync_device(&state, &auth.claims.sub, &headers).await?;
-    let expires_at = token_expiry(REPLICA_CREDENTIAL_TTL_SECONDS)?;
+    let credentials = issue_replica_credentials(&state, auth, requested_key_id, &headers).await?;
 
     Ok((
         [(header::CACHE_CONTROL, HeaderValue::from_static("no-store"))],
-        Json(ReplicaCredentials {
-            transport: "replica",
-            encryption_version: CLOUDSYNC_ENCRYPTION_VERSION,
-            encryption_key_id,
-            expires_at,
-            workspace_id: personal_workspace_id.clone(),
-            account_user_id: auth.claims.sub,
-            personal_workspace_id,
-            workspaces,
-            workspace_key_grants,
-        }),
+        Json(credentials),
     ))
+}
+
+async fn issue_replica_credentials(
+    state: &ReplicaState,
+    auth: AuthContext,
+    requested_key_id: &str,
+    headers: &HeaderMap,
+) -> Result<ReplicaCredentials> {
+    let workspace_rows = fetch_workspace_projection(state, &auth).await?;
+    let (personal_workspace_id, workspaces) =
+        validate_workspace_projection(workspace_rows, &auth.claims.sub)?;
+    let workspace_key_grants = fetch_workspace_key_grants(state, &auth.token, &workspaces).await?;
+    let encryption_key_id =
+        claim_personal_e2ee_key(state, &auth.claims.sub, requested_key_id).await?;
+    claim_sync_device(state, &auth.claims.sub, headers).await?;
+    let expires_at = token_expiry(REPLICA_CREDENTIAL_TTL_SECONDS)?;
+
+    Ok(ReplicaCredentials {
+        transport: "replica",
+        encryption_version: CLOUDSYNC_ENCRYPTION_VERSION,
+        encryption_key_id,
+        expires_at,
+        workspace_id: personal_workspace_id.clone(),
+        account_user_id: auth.claims.sub,
+        personal_workspace_id,
+        workspaces,
+        workspace_key_grants,
+    })
 }
 
 #[derive(Serialize, utoipa::ToSchema)]
@@ -444,7 +460,8 @@ async fn claim_e2ee_identity(
     tag = "sync",
     params(
         ("x-anarlog-e2ee-key-id" = Option<String>, Header, description = "Local recovery-key identity"),
-        ("x-anarlog-e2ee-member-public-key" = Option<String>, Header, description = "Account-level member identity public key")
+        ("x-anarlog-e2ee-member-public-key" = Option<String>, Header, description = "Account-level member identity public key"),
+        ("x-anarlog-cloudsync-transports" = Option<String>, Header, description = "Comma-separated transports the client accepts; include `replica` to allow witness-only credentials")
     ),
     responses(
         (status = 200, description = "Short-lived CloudSync credentials", body = CloudsyncCredentialResponse),
@@ -516,6 +533,27 @@ async fn create_credentials(
         ));
     }
     let requested_key_id = requested_key_id.expect("header presence was checked");
+
+    if client_accepts_replica_transport(&headers)
+        && resolve_desktop_transport(
+            &state.replica,
+            &auth.claims.sub,
+            state.config.desktop_transport,
+        )
+        .await?
+            == CloudsyncTransport::Replica
+    {
+        let credentials =
+            issue_replica_credentials(&state.replica, auth, requested_key_id, &headers).await?;
+        tracing::info!(
+            transport = "replica",
+            "issued replica CloudSync credentials"
+        );
+        return Ok((
+            [(header::CACHE_CONTROL, HeaderValue::from_static("no-store"))],
+            Json(CloudsyncCredentialResponse::Replica(credentials)),
+        ));
+    }
 
     let workspace_rows = fetch_workspace_projection(&state.replica, &auth).await?;
     let (personal_workspace_id, workspaces) =

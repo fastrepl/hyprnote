@@ -37,6 +37,7 @@ const {
   useSessionMock,
   useSessionHasTranscriptMock,
   useSessionParticipantHumanIdsMock,
+  getSessionParticipantHumanIdsMock,
   createLiveTranscriptMock,
   applyLiveTranscriptDeltaToDatabaseMock,
   flushLiveTranscriptDeltasToDatabaseMock,
@@ -92,6 +93,7 @@ const {
   useSessionMock: vi.fn(),
   useSessionHasTranscriptMock: vi.fn(),
   useSessionParticipantHumanIdsMock: vi.fn(),
+  getSessionParticipantHumanIdsMock: vi.fn(),
   createLiveTranscriptMock: vi.fn(),
   applyLiveTranscriptDeltaToDatabaseMock: vi.fn(),
   flushLiveTranscriptDeltasToDatabaseMock: vi.fn(),
@@ -289,6 +291,7 @@ vi.mock("~/stt/queries", () => ({
   softDeleteTranscript: softDeleteTranscriptMock,
   transcriptExists: transcriptExistsMock,
   useSessionParticipantHumanIds: useSessionParticipantHumanIdsMock,
+  getSessionParticipantHumanIds: getSessionParticipantHumanIdsMock,
 }));
 
 let disclosureSessionSequence = 0;
@@ -489,6 +492,9 @@ describe("useStartListening", () => {
     });
     useSessionHasTranscriptMock.mockReturnValue(false);
     useSessionParticipantHumanIdsMock.mockReturnValue([]);
+    getSessionParticipantHumanIdsMock.mockImplementation(async () =>
+      useSessionParticipantHumanIdsMock(),
+    );
     createLiveTranscriptMock.mockResolvedValue(undefined);
     applyLiveTranscriptDeltaToDatabaseMock.mockResolvedValue(undefined);
     flushLiveTranscriptDeltasToDatabaseMock.mockResolvedValue(undefined);
@@ -907,6 +913,23 @@ describe("useStartListening", () => {
       saveCaptureLifecycleMarkerMock,
     );
     expect(saveCaptureLifecycleMarkerMock).toHaveBeenCalledBefore(startMock);
+  });
+
+  test("reads remote participants from sqlite before starting capture", async () => {
+    useSessionParticipantHumanIdsMock.mockReturnValue([]);
+    getSessionParticipantHumanIdsMock.mockResolvedValue(["human-artem"]);
+
+    const { result } = renderHook(() => useStartListening("session-1"));
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(getSessionParticipantHumanIdsMock).toHaveBeenCalledWith("session-1");
+    expect(startMock.mock.calls[0]?.[0]).toMatchObject({
+      participant_human_ids: ["human-artem"],
+      self_human_id: "user-1",
+    });
   });
 
   test("manual recording stays manual while a scheduled start is waiting for the same note", async () => {

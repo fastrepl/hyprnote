@@ -281,11 +281,9 @@ export async function getSessionTranscriptRecords(
   return rows.map(mapTranscriptRow);
 }
 
-export function useSessionParticipantHumanIds(sessionId: string): string[] {
-  const { data = EMPTY_IDS } = useLiveQuery<ParticipantHumanSqlRow, string[]>({
-    // Drop excluded people and any contact that is the current user (or a
-    // calendar copy with the same email) so a 1:1 meeting still has one remote.
-    sql: `
+// Drop excluded people and any contact that is the current user (or a
+// calendar copy with the same email) so a 1:1 meeting still has one remote.
+export const SESSION_REMOTE_PARTICIPANT_IDS_SQL = `
       SELECT DISTINCT participant.human_id
       FROM session_participants AS participant
       LEFT JOIN humans AS human
@@ -314,7 +312,25 @@ export function useSessionParticipantHumanIds(sessionId: string): string[] {
           )
         )
       ORDER BY participant.human_id
-    `,
+    `;
+
+export async function getSessionParticipantHumanIds(
+  sessionId: string,
+): Promise<string[]> {
+  if (!sessionId) {
+    return [];
+  }
+
+  const rows = await liveQueryClient.execute<ParticipantHumanSqlRow>(
+    SESSION_REMOTE_PARTICIPANT_IDS_SQL,
+    [sessionId],
+  );
+  return rows.map((row) => row.human_id).filter(Boolean);
+}
+
+export function useSessionParticipantHumanIds(sessionId: string): string[] {
+  const { data = EMPTY_IDS } = useLiveQuery<ParticipantHumanSqlRow, string[]>({
+    sql: SESSION_REMOTE_PARTICIPANT_IDS_SQL,
     params: [sessionId],
     enabled: Boolean(sessionId),
     mapRows: (rows) => rows.map((row) => row.human_id),

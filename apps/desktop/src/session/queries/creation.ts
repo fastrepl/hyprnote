@@ -147,6 +147,10 @@ export async function getOrCreateSessionForEventId(
 
   const existingSessionId = await findSessionForEvent(event);
   if (existingSessionId) {
+    await ensureEventParticipants(
+      existingSessionId,
+      parseEventParticipants(event.participants_json),
+    );
     return existingSessionId;
   }
 
@@ -203,7 +207,93 @@ export async function getOrCreateSessionForEventId(
     createEmptyNoteStatement(sessionId, now),
   ];
 
+  statements.push(
+    ...eventParticipantStatements(sessionId, participants, humansByEmail, now),
+  );
+
+  const rowsAffected = await executeTransaction(statements);
+
+  const createdSessionId = await findSessionForEvent(event, sessionId);
+  if (!createdSessionId) {
+    throw new Error(`Failed to create a session for event ${eventId}`);
+  }
+
+  if (rowsAffected[0] === 1) {
+    trackNoteCreated(true);
+  }
+  return createdSessionId;
+}
+
+function createEmptyNoteStatement(sessionId: string, now: string, body = "") {
+  return {
+    sql: `
+      INSERT INTO session_documents (
+        id, workspace_id, session_id, kind, body_format, body, created_by,
+        updated_by, created_at, updated_at, deleted_at
+      )
+      SELECT ?, workspace_id, id, 'note', 'prosemirror_json', ?,
+        owner_user_id, owner_user_id, ?, ?, NULL
+      FROM sessions
+      WHERE id = ? AND deleted_at IS NULL
+    `,
+    params: [sessionId, body, now, now, sessionId],
+  };
+}
+
+async function findSessionForEvent(
+  event: EventSqlRow,
+  preferredId?: string,
+): Promise<string | null> {
+  const rows = await liveQueryClient.execute<SessionIdentitySqlRow>(
+    `
+      SELECT id
+      FROM sessions
+      WHERE deleted_at IS NULL
+        AND (event_id = ? OR (? <> '' AND external_event_id = ?))
+      ORDER BY CASE WHEN id = ? THEN 0 ELSE 1 END, created_at, id
+      LIMIT 1
+    `,
+    [
+      event.id,
+      event.tracking_id_event,
+      event.tracking_id_event,
+      preferredId ?? "",
+    ],
+  );
+  return rows[0]?.id ?? null;
+}
+
+async function ensureEventParticipants(
+  sessionId: string,
+  participants: EventParticipant[],
+): Promise<void> {
+  if (participants.length === 0) {
+    return;
+  }
+
+  const humansByEmail = await findHumansByEmail(participants);
+  const statements = eventParticipantStatements(
+    sessionId,
+    participants,
+    humansByEmail,
+    new Date().toISOString(),
+  );
+  if (statements.length === 0) {
+    return;
+  }
+
+  await executeTransaction(statements);
+}
+
+function eventParticipantStatements(
+  sessionId: string,
+  participants: EventParticipant[],
+  humansByEmail: Map<string, string>,
+  now: string,
+): Array<{ sql: string; params: string[] }> {
+  const statements: Array<{ sql: string; params: string[] }> = [];
   const seenEmails = new Set<string>();
+
   for (const participant of participants) {
     const email = participant.email?.trim();
     if (!email) continue;
@@ -269,56 +359,7 @@ export async function getOrCreateSessionForEventId(
     });
   }
 
-  const rowsAffected = await executeTransaction(statements);
-
-  const createdSessionId = await findSessionForEvent(event, sessionId);
-  if (!createdSessionId) {
-    throw new Error(`Failed to create a session for event ${eventId}`);
-  }
-
-  if (rowsAffected[0] === 1) {
-    trackNoteCreated(true);
-  }
-  return createdSessionId;
-}
-
-function createEmptyNoteStatement(sessionId: string, now: string, body = "") {
-  return {
-    sql: `
-      INSERT INTO session_documents (
-        id, workspace_id, session_id, kind, body_format, body, created_by,
-        updated_by, created_at, updated_at, deleted_at
-      )
-      SELECT ?, workspace_id, id, 'note', 'prosemirror_json', ?,
-        owner_user_id, owner_user_id, ?, ?, NULL
-      FROM sessions
-      WHERE id = ? AND deleted_at IS NULL
-    `,
-    params: [sessionId, body, now, now, sessionId],
-  };
-}
-
-async function findSessionForEvent(
-  event: EventSqlRow,
-  preferredId?: string,
-): Promise<string | null> {
-  const rows = await liveQueryClient.execute<SessionIdentitySqlRow>(
-    `
-      SELECT id
-      FROM sessions
-      WHERE deleted_at IS NULL
-        AND (event_id = ? OR (? <> '' AND external_event_id = ?))
-      ORDER BY CASE WHEN id = ? THEN 0 ELSE 1 END, created_at, id
-      LIMIT 1
-    `,
-    [
-      event.id,
-      event.tracking_id_event,
-      event.tracking_id_event,
-      preferredId ?? "",
-    ],
-  );
-  return rows[0]?.id ?? null;
+  return statements;
 }
 
 async function findHumansByEmail(

@@ -164,6 +164,12 @@ export const TRANSCRIPTION_PROVIDERS = [
     model: "avalon-v1.5",
   },
   {
+    id: "meta",
+    name: "Meta Muse",
+    baseUrl: "https://api.meta.ai/v1",
+    model: "muse-voice-transcribe-1.0",
+  },
+  {
     id: "custom",
     name: "Custom",
     baseUrl: "",
@@ -302,6 +308,12 @@ export const SUMMARY_PROVIDERS = [
     id: "cerebras",
     name: "Cerebras",
     baseUrl: "https://api.cerebras.ai/v1",
+    model: "",
+  },
+  {
+    id: "meta",
+    name: "Meta Muse",
+    baseUrl: "https://api.meta.ai/v1",
     model: "",
   },
   {

@@ -67,7 +67,7 @@ export function createMdxFormatter(yaml) {
 
     const yamlStr = yaml.dump(ordered, {
       lineWidth: -1,
-      quotingType: '"',
+      quoteStyle: "double",
       forceQuotes: true,
       noRefs: true,
       sortKeys: false,

@@ -917,8 +917,11 @@ impl BodyEditor {
     }
 
     /// Records the pre-edit state for undo; adjacent edits of the same kind
-    /// within `newGroupDelay` share one history entry.
+    /// within `newGroupDelay` share one history entry. Like a transaction's
+    /// `addStep`, an edit drops the stored marks: a pending `Ctrl+B` does
+    /// not survive Enter or Backspace, only the text typed next.
     fn record_edit(&mut self, kind: EditKind) {
+        self.stored_marks = None;
         // A local edit supersedes a body parked while focused: the store will
         // come back with this edit's own document.
         self.pending_external = None;
@@ -2134,22 +2137,22 @@ impl BodyEditor {
             block: 0,
             offset: 0,
         });
+        // The typed text takes the stored marks (`insertText` inherits
+        // `storedMarks`), which the edit itself then clears.
+        let stored_marks = self.stored_marks.take();
         self.record_edit(EditKind::Typing);
         // Input rules see typed text only (`handleTextInput`), never pastes.
         if !self.pasting {
             let in_code = self.doc.block_type(caret.block).as_deref() == Some("codeBlock")
-                || self
-                    .stored_marks
+                || stored_marks
                     .clone()
                     .unwrap_or_else(|| self.doc.marks_at(caret))
                     .contains(&"code");
             if let Some(outcome) = rules::apply(&mut self.doc, caret, text, in_code) {
                 self.caret = Some(outcome.caret);
                 if let Some(mark) = outcome.clear_stored_mark {
-                    let mut marks = self
-                        .stored_marks
-                        .clone()
-                        .unwrap_or_else(|| self.doc.marks_at(outcome.caret));
+                    let mut marks =
+                        stored_marks.unwrap_or_else(|| self.doc.marks_at(outcome.caret));
                     marks.retain(|m| *m != mark);
                     self.stored_marks = Some(marks);
                 }
@@ -2159,7 +2162,7 @@ impl BodyEditor {
             }
         }
         let end = self.doc.insert_text(caret, text);
-        if let Some(marks) = self.stored_marks.take() {
+        if let Some(marks) = stored_marks {
             self.doc.set_marks(caret, end, &marks);
         }
         self.caret = Some(end);

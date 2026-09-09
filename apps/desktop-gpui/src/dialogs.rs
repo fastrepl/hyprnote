@@ -34,6 +34,27 @@ pub struct Options {
     pub filters: Vec<Filter>,
 }
 
+/// `MessageDialogButtons::OkCancelCustom(ok, cancel)` with the builder's
+/// default kind, `Info`.
+pub struct MessageOptions {
+    pub title: String,
+    pub description: String,
+    pub ok: String,
+    pub cancel: String,
+}
+
+/// `app.dialog().message(description).title(title).buttons(OkCancelCustom).show`:
+/// resolves `true` when the ok button was chosen.
+pub fn message(
+    window: &mut gpui::Window,
+    cx: &mut gpui::App,
+    options: MessageOptions,
+) -> impl std::future::Future<Output = bool> + use<> {
+    let (sender, receiver) = tokio::sync::oneshot::channel::<bool>();
+    platform::open_message(window, cx, options, sender);
+    async move { receiver.await.unwrap_or(false) }
+}
+
 /// Opens the chooser and resolves with the chosen paths, `None` when the
 /// dialog is cancelled or cannot be shown.
 pub fn pick(
@@ -47,7 +68,7 @@ pub fn pick(
 
 #[cfg(target_os = "linux")]
 mod platform {
-    use super::{Filter, Options, Pick};
+    use super::{Filter, MessageOptions, Options, Pick};
     use gtk::prelude::*;
     use std::cell::Cell;
     use std::path::PathBuf;
@@ -104,13 +125,77 @@ mod platform {
             dialog.show();
         });
     }
+
+    /// rfd's GTK message dialog: `gtk_message_dialog_new(NULL, MODAL, INFO,
+    /// BUTTONS_NONE, "%s", title)` with the description as the secondary
+    /// text, the title on the window too, selectable labels and the custom
+    /// buttons in order.
+    pub fn open_message(
+        _window: &mut gpui::Window,
+        _cx: &mut gpui::App,
+        options: MessageOptions,
+        sender: Sender<bool>,
+    ) {
+        if !crate::gtk_loop::ensure_running() {
+            let _ = sender.send(false);
+            return;
+        }
+        crate::gtk_loop::invoke(move || {
+            let dialog = gtk::MessageDialog::new(
+                None::<&gtk::Window>,
+                gtk::DialogFlags::MODAL,
+                gtk::MessageType::Info,
+                gtk::ButtonsType::None,
+                &options.title,
+            );
+            dialog.set_secondary_text(Some(&options.description));
+            dialog.set_title(&options.title);
+            if let Ok(area) = dialog.message_area().downcast::<gtk::Container>() {
+                for child in area.children() {
+                    if let Ok(label) = child.downcast::<gtk::Label>() {
+                        label.set_selectable(true);
+                    }
+                }
+            }
+            dialog.add_button(&options.ok, gtk::ResponseType::Ok);
+            dialog.add_button(&options.cancel, gtk::ResponseType::Cancel);
+            let sender = Rc::new(Cell::new(Some(sender)));
+            dialog.connect_response(move |dialog, response| {
+                if let Some(sender) = sender.take() {
+                    let _ = sender.send(response == gtk::ResponseType::Ok);
+                }
+                dialog.close();
+            });
+            dialog.show();
+        });
+    }
 }
 
 #[cfg(not(target_os = "linux"))]
 mod platform {
-    use super::{Options, Pick};
+    use super::{MessageOptions, Options, Pick};
     use std::path::PathBuf;
     use tokio::sync::oneshot::Sender;
+
+    /// gpui's prompt is the platform's own alert on macOS and Windows.
+    pub fn open_message(
+        window: &mut gpui::Window,
+        cx: &mut gpui::App,
+        options: MessageOptions,
+        sender: Sender<bool>,
+    ) {
+        let answer = window.prompt(
+            gpui::PromptLevel::Info,
+            &options.title,
+            Some(&options.description),
+            &[options.ok.as_str(), options.cancel.as_str()],
+            cx,
+        );
+        cx.spawn(async move |_| {
+            let _ = sender.send(answer.await == Ok(0));
+        })
+        .detach();
+    }
 
     /// gpui's prompt is the platform's own dialog on macOS and Windows.
     pub fn open(cx: &mut gpui::App, options: Options, sender: Sender<Option<Vec<PathBuf>>>) {

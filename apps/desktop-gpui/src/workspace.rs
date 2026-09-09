@@ -1615,18 +1615,20 @@ impl Workspace {
     /// the background.
     pub(crate) fn confirm_quit_completely(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let app_name = crate::tray::app_name(self.store.identifier()).to_string();
-        let answer = window.prompt(
-            gpui::PromptLevel::Warning,
-            &anlg_tray_core::labels::quit_completely_title(&app_name),
-            Some(&anlg_tray_core::labels::quit_completely_message(&app_name)),
-            &[
-                anlg_tray_core::labels::QUIT_COMPLETELY_CONFIRM,
-                anlg_tray_core::labels::CANCEL,
-            ],
+        // `app.dialog().message(..).title(..).buttons(OkCancelCustom(..))`: the
+        // dialog plugin's native message box, kind `Info`.
+        let answer = crate::dialogs::message(
+            window,
             cx,
+            crate::dialogs::MessageOptions {
+                title: anlg_tray_core::labels::quit_completely_title(&app_name),
+                description: anlg_tray_core::labels::quit_completely_message(&app_name),
+                ok: anlg_tray_core::labels::QUIT_COMPLETELY_CONFIRM.to_string(),
+                cancel: anlg_tray_core::labels::CANCEL.to_string(),
+            },
         );
         cx.spawn(async move |_, cx| {
-            if answer.await == Ok(0) {
+            if answer.await {
                 cx.update(|cx| cx.quit()).ok();
             }
         })

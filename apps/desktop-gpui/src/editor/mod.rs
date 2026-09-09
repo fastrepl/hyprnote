@@ -121,6 +121,10 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new(&format!("{m}-a"), SelectAll, ctx),
         KeyBinding::new("backspace", Backspace, ctx),
         KeyBinding::new("delete", Delete, ctx),
+        // `Shift-Backspace` is bound to the same command; a shifted Delete
+        // reaches WebKit's own deletion.
+        KeyBinding::new("shift-backspace", Backspace, ctx),
+        KeyBinding::new("shift-delete", Delete, ctx),
         KeyBinding::new("enter", Enter, ctx),
         KeyBinding::new("escape", MentionEscape, ctx),
         KeyBinding::new(&format!("{m}-c"), Copy, ctx),
@@ -145,6 +149,8 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new(&format!("{w}-shift-right"), SelectWordRight, ctx),
         KeyBinding::new(&format!("{w}-backspace"), DeleteWordBackward, ctx),
         KeyBinding::new(&format!("{w}-delete"), DeleteWordForward, ctx),
+        KeyBinding::new(&format!("{w}-shift-backspace"), DeleteWordBackward, ctx),
+        KeyBinding::new(&format!("{w}-shift-delete"), DeleteWordForward, ctx),
         // `Alt-ArrowUp` / `Alt-ArrowDown`: `moveListItem`.
         KeyBinding::new("alt-up", MoveListItemUp, ctx),
         KeyBinding::new("alt-down", MoveListItemDown, ctx),
@@ -211,6 +217,12 @@ pub struct BodyEditor {
     /// ProseMirror `storedMarks`: the mark set for the next typed text after
     /// toggling a mark with an empty selection.
     stored_marks: Option<Vec<&'static str>>,
+    /// The selection is `selectAll`'s `AllSelection` rather than a text
+    /// selection over the same range: typing or deleting over it leaves one
+    /// empty paragraph (its `$from` is the document, so the replaced content
+    /// takes the schema's default block), where a text selection keeps the
+    /// first block's type.
+    all_selected: bool,
     is_selecting: bool,
     pasting: bool,
     marked_range: Option<Range<usize>>,
@@ -272,6 +284,7 @@ impl BodyEditor {
             caret: None,
             anchor: None,
             stored_marks: None,
+            all_selected: false,
             is_selecting: false,
             pasting: false,
             marked_range: None,
@@ -568,8 +581,21 @@ impl BodyEditor {
         let Some((from, to)) = self.selection() else {
             return false;
         };
-        self.caret = Some(self.doc.delete_between(from, to));
+        if self.all_selected {
+            // `deleteRange(0, doc.content.size)`: `block+` is refilled with
+            // the default block.
+            self.doc.replace_root(
+                serde_json::json!({ "type": "doc", "content": [{ "type": "paragraph" }] }),
+            );
+            self.caret = Some(Caret {
+                block: 0,
+                offset: 0,
+            });
+        } else {
+            self.caret = Some(self.doc.delete_between(from, to));
+        }
         self.anchor = None;
+        self.all_selected = false;
         true
     }
 
@@ -579,6 +605,7 @@ impl BodyEditor {
         } else {
             self.anchor = None;
         }
+        self.all_selected = false;
         self.caret = Some(head);
         self.upstream_at = None;
         self.stored_marks = None;
@@ -1297,6 +1324,7 @@ impl BodyEditor {
             block: last,
             offset: self.doc.text(last).len(),
         });
+        self.all_selected = true;
         self.stored_marks = None;
         cx.notify();
     }
@@ -1654,10 +1682,17 @@ impl BodyEditor {
         });
         let anchor = self.anchor.unwrap_or(caret);
         let (from_caret, to_caret) = model::order(anchor, caret);
-        let (Some(from), Some(to)) = (
-            paste::position(&doc, from_caret),
-            paste::position(&doc, to_caret),
-        ) else {
+        // An `AllSelection` spans the document itself, not the first and
+        // last textblocks' insides.
+        let range = if self.all_selected && anchor != caret {
+            (Some(0), Some(doc.content.size))
+        } else {
+            (
+                paste::position(&doc, from_caret),
+                paste::position(&doc, to_caret),
+            )
+        };
+        let (Some(from), Some(to)) = range else {
             return false;
         };
         let context = doc.resolve(from);
@@ -1684,6 +1719,7 @@ impl BodyEditor {
         });
         self.caret = Some(new_caret);
         self.anchor = None;
+        self.all_selected = false;
         self.stored_marks = None;
         // `autolinkPlugin` / `linkBoundaryGuardPlugin` over the changed
         // textblocks: the pasted range of the first and last, all of the rest.
@@ -2094,7 +2130,15 @@ impl BodyEditor {
             return;
         }
         self.record_edit(EditKind::Structural);
+        // Over an `AllSelection` every command in the Enter chain declines
+        // (`$from` has no depth to split at) and WebKit's own handling only
+        // deletes the selection.
+        let all_selected = self.all_selected;
         self.delete_selection();
+        if all_selected {
+            self.changed(cx);
+            return;
+        }
         let Some(caret) = self.caret else {
             return;
         };

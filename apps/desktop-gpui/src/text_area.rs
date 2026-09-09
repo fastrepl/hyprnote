@@ -77,12 +77,17 @@ pub fn bind_keys(cx: &mut App) {
     cx.bind_keys([
         KeyBinding::new("backspace", Backspace, ctx),
         KeyBinding::new("delete", Delete, ctx),
+        // WebKit deletes with a shifted key as well.
+        KeyBinding::new("shift-backspace", Backspace, ctx),
+        KeyBinding::new("shift-delete", Delete, ctx),
         KeyBinding::new(&format!("{w}-left"), WordLeft, ctx),
         KeyBinding::new(&format!("{w}-right"), WordRight, ctx),
         KeyBinding::new(&format!("{w}-shift-left"), SelectWordLeft, ctx),
         KeyBinding::new(&format!("{w}-shift-right"), SelectWordRight, ctx),
         KeyBinding::new(&format!("{w}-backspace"), DeleteWordBackward, ctx),
         KeyBinding::new(&format!("{w}-delete"), DeleteWordForward, ctx),
+        KeyBinding::new(&format!("{w}-shift-backspace"), DeleteWordBackward, ctx),
+        KeyBinding::new(&format!("{w}-shift-delete"), DeleteWordForward, ctx),
         KeyBinding::new("left", Left, ctx),
         KeyBinding::new("right", Right, ctx),
         KeyBinding::new("up", Up, ctx),

@@ -988,3 +988,226 @@ async fn replica_apply_scan_bounds_payload_comparisons_before_filtering() {
     assert_eq!(changed[0].id, "record-255");
     assert!(changed[0].changed);
 }
+
+async fn seeded_target_with_session() -> (
+    anlg_db_core::Db,
+    HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+) {
+    let workspace_keys = keys("workspace-a");
+    let source = test_db().await;
+    sqlx::query(
+        "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
+         VALUES ('session-1', 'workspace-a', 'user-a', 'Ready')",
+    )
+    .execute(source.pool())
+    .await
+    .unwrap();
+    encrypt_e2ee_replica_changes(source.pool(), &workspace_keys)
+        .await
+        .unwrap();
+    let target = test_db().await;
+    copy_replica(source.pool(), target.pool()).await;
+    (target, workspace_keys)
+}
+
+async fn parked_record(pool: &SqlitePool, record_id: &str) -> Option<(String, String, String)> {
+    sqlx::query_as(
+        "SELECT reason, table_name, field_name FROM e2ee_parked_records WHERE record_id = ?",
+    )
+    .bind(record_id)
+    .fetch_optional(pool)
+    .await
+    .unwrap()
+}
+
+async fn pending_count(pool: &SqlitePool, record_id: &str) -> i64 {
+    sqlx::query_scalar("SELECT COUNT(*) FROM e2ee_replica_pending WHERE record_id = ?")
+        .bind(record_id)
+        .fetch_one(pool)
+        .await
+        .unwrap()
+}
+
+#[tokio::test]
+async fn records_for_unknown_tables_are_parked_and_requeued_at_startup() {
+    let (target, workspace_keys) = seeded_target_with_session().await;
+    let key = &workspace_keys["workspace-a"];
+    let future = key
+        .seal_field(
+            "workspace-a",
+            "templates",
+            "template-1",
+            "title",
+            "ffffffffffffffffffffffffffffffff",
+            1,
+            false,
+            json!("Inbox"),
+        )
+        .unwrap();
+    sqlx::query(
+        "INSERT INTO e2ee_records (id, workspace_id, payload) VALUES (?, 'workspace-a', ?)",
+    )
+    .bind(&future.record_id)
+    .bind(&future.payload)
+    .execute(target.pool())
+    .await
+    .unwrap();
+
+    let stats = apply_e2ee_replica_changes(target.pool(), &workspace_keys)
+        .await
+        .unwrap();
+
+    assert_eq!(stats.parked_records, 1);
+    assert!(!stats.remaining_replica_changes);
+    let title: String = sqlx::query_scalar("SELECT title FROM sessions WHERE id = 'session-1'")
+        .fetch_one(target.pool())
+        .await
+        .unwrap();
+    assert_eq!(title, "Ready");
+    assert_eq!(
+        parked_record(target.pool(), &future.record_id).await,
+        Some((
+            "unknown_table".to_string(),
+            "templates".to_string(),
+            "title".to_string()
+        ))
+    );
+    assert_eq!(pending_count(target.pool(), &future.record_id).await, 0);
+
+    let stats = apply_e2ee_replica_changes(target.pool(), &workspace_keys)
+        .await
+        .unwrap();
+    assert_eq!(stats, E2eeReplicaStats::default());
+
+    assert_eq!(requeue_parked_e2ee_records(target.pool()).await.unwrap(), 1);
+    assert_eq!(parked_record(target.pool(), &future.record_id).await, None);
+    assert_eq!(pending_count(target.pool(), &future.record_id).await, 1);
+
+    let stats = apply_e2ee_replica_changes(target.pool(), &workspace_keys)
+        .await
+        .unwrap();
+    assert_eq!(stats.parked_records, 1);
+    assert_eq!(
+        parked_e2ee_record_summary(target.pool()).await.unwrap(),
+        vec![E2eeParkedRecordSummary {
+            reason: "unknown_table".to_string(),
+            table_name: "templates".to_string(),
+            count: 1,
+        }]
+    );
+}
+
+#[tokio::test]
+async fn records_for_unknown_columns_are_parked_while_the_row_still_applies() {
+    let (target, workspace_keys) = seeded_target_with_session().await;
+    let key = &workspace_keys["workspace-a"];
+    let future = key
+        .seal_field(
+            "workspace-a",
+            "sessions",
+            "session-1",
+            "future_column",
+            "ffffffffffffffffffffffffffffffff",
+            5,
+            false,
+            json!("later"),
+        )
+        .unwrap();
+    sqlx::query(
+        "INSERT INTO e2ee_records (id, workspace_id, payload) VALUES (?, 'workspace-a', ?)",
+    )
+    .bind(&future.record_id)
+    .bind(&future.payload)
+    .execute(target.pool())
+    .await
+    .unwrap();
+
+    let stats = apply_e2ee_replica_changes(target.pool(), &workspace_keys)
+        .await
+        .unwrap();
+
+    assert_eq!(stats.parked_records, 1);
+    let title: String = sqlx::query_scalar("SELECT title FROM sessions WHERE id = 'session-1'")
+        .fetch_one(target.pool())
+        .await
+        .unwrap();
+    assert_eq!(title, "Ready");
+    assert_eq!(
+        parked_record(target.pool(), &future.record_id).await,
+        Some((
+            "unknown_field".to_string(),
+            "sessions".to_string(),
+            "future_column".to_string()
+        ))
+    );
+}
+
+#[tokio::test]
+async fn oversized_rows_are_parked_instead_of_failing_the_round() {
+    let workspace_keys = keys("workspace-a");
+    let source = test_db().await;
+    sqlx::query(
+        "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
+         VALUES ('session-big', 'workspace-a', 'user-a', ?),
+                ('session-small', 'workspace-a', 'user-a', 'Small')",
+    )
+    .bind("x".repeat(60_000))
+    .execute(source.pool())
+    .await
+    .unwrap();
+    encrypt_e2ee_replica_changes(source.pool(), &workspace_keys)
+        .await
+        .unwrap();
+    let target = test_db().await;
+    copy_replica(source.pool(), target.pool()).await;
+    let big_title_id =
+        workspace_keys["workspace-a"].blind_field_id("sessions", "session-big", "title");
+
+    let mut parked_records = 0;
+    for _ in 0..8 {
+        let stats = apply_e2ee_replica_changes_inner(
+            target.pool(),
+            &workspace_keys,
+            false,
+            E2EE_APPLY_ROW_LIMIT,
+            20_000,
+            &|| false,
+        )
+        .await
+        .unwrap();
+        parked_records += stats.parked_records;
+        if !stats.remaining_replica_changes {
+            break;
+        }
+    }
+
+    assert!(parked_records >= 1);
+    let small: String = sqlx::query_scalar("SELECT title FROM sessions WHERE id = 'session-small'")
+        .fetch_one(target.pool())
+        .await
+        .unwrap();
+    assert_eq!(small, "Small");
+    let big_present: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM sessions WHERE id = 'session-big')")
+            .fetch_one(target.pool())
+            .await
+            .unwrap();
+    assert!(!big_present);
+    let (reason, _, _) = parked_record(target.pool(), &big_title_id)
+        .await
+        .expect("oversized title record is parked");
+    assert_eq!(reason, "too_large");
+
+    // A build with a larger budget applies the row after startup requeues it.
+    assert!(requeue_parked_e2ee_records(target.pool()).await.unwrap() >= 1);
+    let stats = apply_e2ee_replica_changes(target.pool(), &workspace_keys)
+        .await
+        .unwrap();
+    assert_eq!(stats.parked_records, 0);
+    let big_length: i64 =
+        sqlx::query_scalar("SELECT LENGTH(title) FROM sessions WHERE id = 'session-big'")
+            .fetch_one(target.pool())
+            .await
+            .unwrap();
+    assert_eq!(big_length, 60_000);
+}

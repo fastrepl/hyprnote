@@ -101,6 +101,7 @@ pub struct E2eeReplicaStats {
     pub skipped_local_changes: u64,
     pub rejected_rollbacks: u64,
     pub rejected_unwitnessed: u64,
+    pub parked_records: u64,
     pub remaining_replica_changes: bool,
 }
 
@@ -129,6 +130,7 @@ struct EncryptedRecord {
 #[derive(sqlx::FromRow)]
 struct EncryptedRecordMetadata {
     id: String,
+    workspace_id: String,
     generation: i64,
     record_bytes: i64,
     witnessed: bool,
@@ -203,6 +205,10 @@ use replica_encrypt::{
 #[cfg(test)]
 use replica_storage::load_or_create_writer_id;
 use replica_storage::reconcile_e2ee_witness_pending;
+pub use replica_storage::{
+    E2eeParkReason, E2eeParkedRecordSummary, parked_e2ee_record_summary,
+    requeue_parked_e2ee_records,
+};
 
 #[cfg(test)]
 mod tests;

@@ -425,6 +425,114 @@ pub(super) async fn load_or_create_writer_id(
     Ok(writer_id)
 }
 
+/// Why a received record is waiting for a more capable build instead of
+/// blocking the sync round.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum E2eeParkReason {
+    UnknownTable,
+    UnknownField,
+    TooLarge,
+}
+
+impl E2eeParkReason {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::UnknownTable => "unknown_table",
+            Self::UnknownField => "unknown_field",
+            Self::TooLarge => "too_large",
+        }
+    }
+}
+
+pub(super) struct ParkedRecord {
+    pub record_id: String,
+    pub workspace_id: String,
+    pub generation: i64,
+    pub reason: E2eeParkReason,
+    pub table_name: String,
+    pub field_name: String,
+}
+
+pub(super) async fn park_records(
+    transaction: &mut Transaction<'_, Sqlite>,
+    records: &[ParkedRecord],
+) -> E2eeReplicaResult<()> {
+    if records.is_empty() {
+        return Ok(());
+    }
+    let mut query = QueryBuilder::<Sqlite>::new(
+        "INSERT INTO e2ee_parked_records (record_id, workspace_id, reason, table_name, field_name) ",
+    );
+    query.push_values(records, |mut row, record| {
+        row.push_bind(&record.record_id)
+            .push_bind(&record.workspace_id)
+            .push_bind(record.reason.as_str())
+            .push_bind(&record.table_name)
+            .push_bind(&record.field_name);
+    });
+    query.push(
+        " ON CONFLICT(record_id) DO UPDATE SET
+           workspace_id = excluded.workspace_id,
+           reason = excluded.reason,
+           table_name = excluded.table_name,
+           field_name = excluded.field_name",
+    );
+    query.build().execute(&mut **transaction).await?;
+
+    let mut query = QueryBuilder::<Sqlite>::new(
+        "DELETE FROM e2ee_replica_pending WHERE (record_id, generation) IN (",
+    );
+    query.push_values(records, |mut row, record| {
+        row.push_bind(&record.record_id)
+            .push_bind(record.generation);
+    });
+    query.push(")").build().execute(&mut **transaction).await?;
+    Ok(())
+}
+
+/// Moves every parked record back into the apply queue. Runs at startup, after
+/// migrations, so a build that gained a table, a column, or a larger limit
+/// retries what an older build had to skip.
+pub async fn requeue_parked_e2ee_records(pool: &SqlitePool) -> sqlx::Result<u64> {
+    let mut transaction = pool.begin_with("BEGIN IMMEDIATE").await?;
+    let requeued = sqlx::query(
+        "INSERT INTO e2ee_replica_pending (record_id, workspace_id)
+         SELECT record_id, workspace_id FROM e2ee_parked_records
+         WHERE true
+         ON CONFLICT(record_id) DO UPDATE SET
+           workspace_id = excluded.workspace_id,
+           generation = e2ee_replica_pending.generation + 1",
+    )
+    .execute(&mut *transaction)
+    .await?
+    .rows_affected();
+    sqlx::query("DELETE FROM e2ee_parked_records")
+        .execute(&mut *transaction)
+        .await?;
+    transaction.commit().await?;
+    Ok(requeued)
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow)]
+pub struct E2eeParkedRecordSummary {
+    pub reason: String,
+    pub table_name: String,
+    pub count: i64,
+}
+
+pub async fn parked_e2ee_record_summary(
+    pool: &SqlitePool,
+) -> sqlx::Result<Vec<E2eeParkedRecordSummary>> {
+    sqlx::query_as(
+        "SELECT reason, table_name, COUNT(*) AS count
+         FROM e2ee_parked_records
+         GROUP BY reason, table_name
+         ORDER BY reason, table_name",
+    )
+    .fetch_all(pool)
+    .await
+}
+
 pub(super) fn record_version_order(
     state: &LocalState,
     record: &DecryptedRecord,

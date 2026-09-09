@@ -8,8 +8,7 @@ use owhisper_client::{
     AdapterKind, AnarlogAdapter, ArgmaxAdapter, AssemblyAIAdapter, CartesiaAdapter,
     DashScopeAdapter, DeepgramAdapter, DeepgramFluxAdapter, ElevenLabsAdapter, FireworksAdapter,
     GladiaAdapter, GoogleGenerativeAiAdapter, MetaAdapter, MistralAdapter, OpenAIAdapter,
-    RealtimeSttAdapter,
-    SmallestAIAdapter, SonioxAdapter, XaiAdapter, anlg_ws_client,
+    RealtimeSttAdapter, SmallestAIAdapter, SonioxAdapter, XaiAdapter, anlg_ws_client,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};

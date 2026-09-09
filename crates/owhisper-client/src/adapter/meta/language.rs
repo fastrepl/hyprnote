@@ -38,7 +38,9 @@ fn name_for(language: &Language) -> Option<&'static str> {
 }
 
 pub(super) fn all_supported(languages: &[Language]) -> bool {
-    languages.iter().all(|language| name_for(language).is_some())
+    languages
+        .iter()
+        .all(|language| name_for(language).is_some())
 }
 
 pub(super) fn language_bias(languages: &[Language]) -> Vec<String> {

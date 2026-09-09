@@ -120,7 +120,10 @@ mod tests {
     fn test_is_meta_host() {
         assert!(Provider::Meta.is_host("api.meta.ai"));
         assert!(!Provider::Meta.is_host("api.openai.com"));
-        assert_eq!(Provider::from_url("https://api.meta.ai/v1"), Some(Provider::Meta));
+        assert_eq!(
+            Provider::from_url("https://api.meta.ai/v1"),
+            Some(Provider::Meta)
+        );
     }
 
     #[test]
@@ -131,6 +134,9 @@ mod tests {
             vec![("hello", 1.0, 2.0), ("big", 2.0, 3.0), ("world", 3.0, 4.0)]
         );
         assert!(MetaAdapter::word_spans("  ", 0.0, 1.0).is_empty());
-        assert_eq!(MetaAdapter::word_spans("x", 2.0, 1.0), vec![("x", 2.0, 2.0)]);
+        assert_eq!(
+            MetaAdapter::word_spans("x", 2.0, 1.0),
+            vec![("x", 2.0, 2.0)]
+        );
     }
 }

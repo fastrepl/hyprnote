@@ -6,9 +6,8 @@ use owhisper_client::{
     AwsTranscribeAdapter, AzureSpeechAdapter, BatchSttAdapter, BatchUploadLimit, CartesiaAdapter,
     CohereAdapter, DeepgramAdapter, ElevenLabsAdapter, FireworksAdapter, GladiaAdapter,
     GoogleCloudAdapter, GoogleGenerativeAiAdapter, GroqAdapter, MetaAdapter, MistralAdapter,
-    OpenAIAdapter,
-    OpenRouterAdapter, PyannoteAdapter, RevAiAdapter, SiliconFlowAdapter, SmallestAIAdapter,
-    SonioxAdapter, SpeechmaticsAdapter, TogetherAdapter, XaiAdapter, ZaiAdapter,
+    OpenAIAdapter, OpenRouterAdapter, PyannoteAdapter, RevAiAdapter, SiliconFlowAdapter,
+    SmallestAIAdapter, SonioxAdapter, SpeechmaticsAdapter, TogetherAdapter, XaiAdapter, ZaiAdapter,
 };
 use owhisper_interface::batch::{Alternatives, Channel, Response, Results};
 use tracing::Instrument;

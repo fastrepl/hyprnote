@@ -98,7 +98,9 @@ async fn do_transcribe_file(
         );
 
     let mut url: url::Url = if api_base.is_empty() {
-        DEFAULT_API_BASE.parse().expect("invalid_default_meta_api_base")
+        DEFAULT_API_BASE
+            .parse()
+            .expect("invalid_default_meta_api_base")
     } else {
         api_base.parse().map_err(|e: url::ParseError| {
             Error::AudioProcessing(format!("invalid api_base: {e}"))
@@ -129,11 +131,15 @@ async fn do_transcribe_file(
 fn encode_mono_wav(path: &Path) -> Result<Vec<u8>, Error> {
     use anlg_audio_utils::Source;
 
-    let source =
-        anlg_audio_utils::source_from_path(path).map_err(|e| Error::AudioProcessing(e.to_string()))?;
+    let source = anlg_audio_utils::source_from_path(path)
+        .map_err(|e| Error::AudioProcessing(e.to_string()))?;
     let channels = usize::from(u16::from(source.channels()));
     let source_rate = u32::from(source.sample_rate());
-    let rate = if source_rate == 24_000 { 24_000 } else { 16_000 };
+    let rate = if source_rate == 24_000 {
+        24_000
+    } else {
+        16_000
+    };
     let samples = anlg_audio_utils::resample_audio(source, rate)
         .map_err(|e| Error::AudioProcessing(e.to_string()))?;
     let mono: Vec<f32> = anlg_audio_utils::mono_frames(samples.into_iter(), channels).collect();
@@ -191,7 +197,11 @@ fn convert_response(response: MetaBatchResponse) -> BatchResponse {
                 start,
                 end,
                 confidence: 1.0,
-                channel: if speaker.is_some() { MIXED_CAPTURE_CHANNEL } else { 0 },
+                channel: if speaker.is_some() {
+                    MIXED_CAPTURE_CHANNEL
+                } else {
+                    0
+                },
                 speaker,
                 punctuated_word: Some(token.to_string()),
             });
@@ -245,12 +255,18 @@ mod tests {
 
         let words = &response.results.channels[0].alternatives[0].words;
         assert_eq!(words.len(), 3);
-        assert_eq!((words[0].word.as_str(), words[0].start, words[0].end), ("Hello", 1.0, 2.0));
+        assert_eq!(
+            (words[0].word.as_str(), words[0].start, words[0].end),
+            ("Hello", 1.0, 2.0)
+        );
         assert_eq!(words[1].punctuated_word.as_deref(), Some("there."));
         assert_eq!(words[1].speaker, Some(0));
         assert_eq!(words[2].speaker, Some(1));
         assert_eq!(words[2].channel, MIXED_CAPTURE_CHANNEL);
-        assert_eq!(response.metadata["speaker_labels"], serde_json::json!(["A", "B"]));
+        assert_eq!(
+            response.metadata["speaker_labels"],
+            serde_json::json!(["A", "B"])
+        );
     }
 
     #[test]

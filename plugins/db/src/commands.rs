@@ -534,10 +534,12 @@ pub(crate) async fn configure_cloudsync(
     state: tauri::State<'_, ManagedState>,
     config_json: String,
 ) -> Result<(), String> {
-    state
+    let result = state
         .configure_cloudsync(config_json)
         .await
-        .map_err(|error| error.to_string())
+        .map_err(|error| error.to_string());
+    state.record_cloudsync_configuration_result("configure", &result);
+    result
 }
 
 #[tauri::command]
@@ -552,48 +554,53 @@ pub(crate) async fn configure_cloudsync_token<R: tauri::Runtime>(
     workspace_key_grants: Option<Vec<crate::CloudsyncWorkspaceKeyGrant>>,
     e2ee_witness: crate::CloudsyncE2eeWitness,
 ) -> Result<crate::CloudsyncTokenConfigurationResult, String> {
-    let auth_generation = state.begin_cloudsync_auth_configuration();
-    let personal_workspace_id = workspace_projection
-        .as_ref()
-        .map(|projection| projection.personal_workspace_id.clone())
-        .unwrap_or_else(|| workspace_id.clone());
-    let recovery_key = load_e2ee_recovery_key(app, &workspace_id)
-        .await?
-        .ok_or_else(|| {
-            "end-to-end encryption recovery key setup is required before CloudSync can start"
-                .to_string()
-        })?;
-    let shared_workspace_ids = workspace_projection
-        .as_ref()
-        .into_iter()
-        .flat_map(|projection| projection.workspaces.iter())
-        .filter(|workspace| workspace.kind == "shared")
-        .map(|workspace| workspace.id.clone())
-        .collect();
-    let shared_keyrings = open_shared_workspace_keyrings(
-        &recovery_key,
-        &workspace_id,
-        shared_workspace_ids,
-        workspace_key_grants.unwrap_or_default(),
-    )?;
-    state
-        .configure_cloudsync_token_with_projection_at_generation(
-            crate::runtime::CloudsyncTokenConfiguration::new(
-                database_id,
-                token,
-                workspace_id,
-                workspace_projection.map(Into::into),
-                e2ee_witness,
-            ),
-            Some(crate::runtime::E2eeWorkspaceKeyConfiguration::new(
-                personal_workspace_id,
-                recovery_key,
-                shared_keyrings,
-            )),
-            auth_generation,
-        )
-        .await
-        .map_err(|error| error.to_string())
+    let result = async {
+        let auth_generation = state.begin_cloudsync_auth_configuration();
+        let personal_workspace_id = workspace_projection
+            .as_ref()
+            .map(|projection| projection.personal_workspace_id.clone())
+            .unwrap_or_else(|| workspace_id.clone());
+        let recovery_key = load_e2ee_recovery_key(app, &workspace_id)
+            .await?
+            .ok_or_else(|| {
+                "end-to-end encryption recovery key setup is required before CloudSync can start"
+                    .to_string()
+            })?;
+        let shared_workspace_ids = workspace_projection
+            .as_ref()
+            .into_iter()
+            .flat_map(|projection| projection.workspaces.iter())
+            .filter(|workspace| workspace.kind == "shared")
+            .map(|workspace| workspace.id.clone())
+            .collect();
+        let shared_keyrings = open_shared_workspace_keyrings(
+            &recovery_key,
+            &workspace_id,
+            shared_workspace_ids,
+            workspace_key_grants.unwrap_or_default(),
+        )?;
+        state
+            .configure_cloudsync_token_with_projection_at_generation(
+                crate::runtime::CloudsyncTokenConfiguration::new(
+                    database_id,
+                    token,
+                    workspace_id,
+                    workspace_projection.map(Into::into),
+                    e2ee_witness,
+                ),
+                Some(crate::runtime::E2eeWorkspaceKeyConfiguration::new(
+                    personal_workspace_id,
+                    recovery_key,
+                    shared_keyrings,
+                )),
+                auth_generation,
+            )
+            .await
+            .map_err(|error| error.to_string())
+    }
+    .await;
+    state.record_cloudsync_configuration_result("configure_token", &result);
+    result
 }
 
 fn open_shared_workspace_keyrings(
@@ -664,21 +671,27 @@ pub(crate) async fn configure_e2ee_replica<R: tauri::Runtime>(
     workspace_id: String,
     e2ee_witness: crate::CloudsyncE2eeWitness,
 ) -> Result<crate::CloudsyncTokenConfigurationResult, String> {
-    let auth_generation = state.begin_cloudsync_auth_configuration();
-    let recovery_key = load_e2ee_recovery_key(app, &workspace_id)
-        .await?
-        .ok_or_else(|| {
-            "end-to-end encryption recovery key setup is required before sync can start".to_string()
-        })?;
-    state
-        .configure_replica_transport_at_generation(
-            workspace_id,
-            e2ee_witness,
-            recovery_key,
-            auth_generation,
-        )
-        .await
-        .map_err(|error| error.to_string())
+    let result = async {
+        let auth_generation = state.begin_cloudsync_auth_configuration();
+        let recovery_key = load_e2ee_recovery_key(app, &workspace_id)
+            .await?
+            .ok_or_else(|| {
+                "end-to-end encryption recovery key setup is required before sync can start"
+                    .to_string()
+            })?;
+        state
+            .configure_replica_transport_at_generation(
+                workspace_id,
+                e2ee_witness,
+                recovery_key,
+                auth_generation,
+            )
+            .await
+            .map_err(|error| error.to_string())
+    }
+    .await;
+    state.record_cloudsync_configuration_result("configure_replica", &result);
+    result
 }
 
 #[tauri::command]
@@ -696,10 +709,12 @@ pub(crate) async fn bind_cloudsync_account(
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn start_cloudsync(state: tauri::State<'_, ManagedState>) -> Result<(), String> {
-    state
+    let result = state
         .start_cloudsync()
         .await
-        .map_err(|error| error.to_string())
+        .map_err(|error| error.to_string());
+    state.record_cloudsync_configuration_result("start", &result);
+    result
 }
 
 #[tauri::command]

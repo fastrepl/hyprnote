@@ -1218,6 +1218,82 @@ describe("CloudSync auth lifecycle", () => {
     expect(suspendCloudsync).toHaveBeenCalledTimes(2);
   });
 
+  test("surfaces repeated local configuration failures instead of connecting forever", async () => {
+    const fetchMock = vi.fn(() => Promise.resolve(credentialsResponse()));
+    vi.stubGlobal("fetch", fetchMock);
+    vi.mocked(configureCloudsyncToken).mockRejectedValue(
+      new Error("witness unreachable"),
+    );
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await expect(
+      handleCloudsyncAuthChange("SIGNED_IN", session()),
+    ).resolves.toBe("ok");
+    expect(getCloudsyncCredentialBlock()).toBeNull();
+
+    await vi.advanceTimersByTimeAsync(60 * 1000);
+    expect(getCloudsyncCredentialBlock()).toBeNull();
+
+    await vi.advanceTimersByTimeAsync(60 * 1000);
+    expect(configureCloudsyncToken).toHaveBeenCalledTimes(3);
+    expect(getCloudsyncCredentialBlock()).toBe("activation_failed");
+
+    vi.mocked(configureCloudsyncToken).mockResolvedValue("configured");
+    await vi.advanceTimersByTimeAsync(60 * 1000);
+    expect(configureCloudsyncToken).toHaveBeenCalledTimes(4);
+    expect(getCloudsyncCredentialBlock()).toBeNull();
+    expect(startCloudsyncInitialSyncProgress).toHaveBeenCalledTimes(1);
+  });
+
+  test("surfaces repeated exchange outages after silent retries", async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(new Response(null, { status: 503 })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await expect(
+      handleCloudsyncAuthChange("SIGNED_IN", session()),
+    ).resolves.toBe("ok");
+    await vi.advanceTimersByTimeAsync(60 * 1000);
+    expect(getCloudsyncCredentialBlock()).toBeNull();
+
+    await vi.advanceTimersByTimeAsync(60 * 1000);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(getCloudsyncCredentialBlock()).toBe("activation_failed");
+    expect(configureCloudsyncToken).not.toHaveBeenCalled();
+  });
+
+  test("reports a clock skew when the exchanged token is already expired", async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            encryptionVersion: 2,
+            encryptionKeyId: E2EE_KEY_ID,
+            databaseId: "database-id",
+            token: "sqlite-token",
+            expiresAt: new Date(NOW.getTime() - 60 * 1000).toISOString(),
+            workspaceId: "user-id",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await expect(
+      handleCloudsyncAuthChange("SIGNED_IN", session()),
+    ).resolves.toBe("ok");
+
+    expect(getCloudsyncCredentialBlock()).toBe("clock_skew");
+    expect(configureCloudsyncToken).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(60 * 1000);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   test("reports a permanent configuration rejection without re-exchanging", async () => {
     const fetchMock = vi.fn(() => Promise.resolve(credentialsResponse()));
     vi.stubGlobal("fetch", fetchMock);

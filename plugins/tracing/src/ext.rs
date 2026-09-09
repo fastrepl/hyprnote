@@ -19,26 +19,50 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'a, R, M> {
 
     pub fn do_log(&self, level: Level, data: Vec<serde_json::Value>) -> Result<(), crate::Error> {
         let argument_count = data.len();
+        let diagnostic = diagnostic_message(&data);
         match level {
             Level::Trace => {
-                tracing::trace!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, "webview_console_event");
+                tracing::trace!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, diagnostic, "webview_console_event");
             }
             Level::Debug => {
-                tracing::debug!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, "webview_console_event");
+                tracing::debug!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, diagnostic, "webview_console_event");
             }
             Level::Info => {
-                tracing::info!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, "webview_console_event");
+                tracing::info!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, diagnostic, "webview_console_event");
             }
             Level::Warn => {
-                tracing::warn!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, "webview_console_event");
+                tracing::warn!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, diagnostic, "webview_console_event");
             }
             Level::Error => {
-                tracing::error!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, "webview_console_event");
+                tracing::error!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, diagnostic, "webview_console_event");
             }
         }
         Ok(())
     }
+}
 
+const DIAGNOSTIC_PREFIXES: &[&str] = &["[cloudsync]"];
+const DIAGNOSTIC_MAX_LEN: usize = 200;
+
+/// Console payloads are dropped from app.log for privacy. The only exception is
+/// a leading static diagnostic literal from an allowlisted subsystem; trailing
+/// arguments (error objects, ids) are never recorded.
+fn diagnostic_message(data: &[serde_json::Value]) -> Option<&str> {
+    let first = data.first()?.as_str()?;
+    if !DIAGNOSTIC_PREFIXES
+        .iter()
+        .any(|prefix| first.starts_with(prefix))
+    {
+        return None;
+    }
+    let end = first
+        .char_indices()
+        .nth(DIAGNOSTIC_MAX_LEN)
+        .map_or(first.len(), |(index, _)| index);
+    Some(&first[..end])
+}
+
+impl<R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'_, R, M> {
     pub fn log_content(&self) -> Result<Option<String>, crate::Error> {
         let logs_dir = self.logs_dir()?;
         const TARGET_LINES: usize = 300;
@@ -167,6 +191,35 @@ mod tests {
     #[test]
     fn tail_lines_handles_zero_limit() {
         assert!(super::tail_lines("line 1\nline 2", 0).is_empty());
+    }
+
+    #[test]
+    fn diagnostic_message_keeps_only_allowlisted_leading_literal() {
+        let data = vec![
+            serde_json::json!("[cloudsync] local sync configuration failed; retrying"),
+            serde_json::json!({ "message": "secret" }),
+        ];
+        assert_eq!(
+            super::diagnostic_message(&data),
+            Some("[cloudsync] local sync configuration failed; retrying")
+        );
+
+        assert_eq!(
+            super::diagnostic_message(&[serde_json::json!("user typed something")]),
+            None
+        );
+        assert_eq!(
+            super::diagnostic_message(&[serde_json::json!({ "message": "[cloudsync] x" })]),
+            None
+        );
+        assert_eq!(super::diagnostic_message(&[]), None);
+
+        let long = [serde_json::json!(format!(
+            "[cloudsync] {}",
+            "é".repeat(400)
+        ))];
+        let truncated = super::diagnostic_message(&long).unwrap();
+        assert_eq!(truncated.chars().count(), super::DIAGNOSTIC_MAX_LEN);
     }
 
     fn setup_runtime() -> (Runtime, Context) {

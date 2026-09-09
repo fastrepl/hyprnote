@@ -603,6 +603,63 @@ describe("SettingsSync", () => {
     ).toBeNull();
   });
 
+  it("explains a stalled activation with the native configuration error", async () => {
+    mocks.credentialBlock = "activation_failed";
+    mocks.getCloudsyncStatus.mockResolvedValue({
+      ...syncedStatus(),
+      configured: false,
+      running: false,
+      last_sync_at_ms: null,
+      configuration_error: "configure_token: witness request timed out",
+    });
+
+    renderSettings();
+
+    expect(await screen.findByText("Sync needs attention")).toBeTruthy();
+    expect(
+      await screen.findByText("configure_token: witness request timed out"),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Sync now" }).hasAttribute("disabled"),
+    ).toBe(true);
+  });
+
+  it("explains a delayed recovery and blocks manual sync until it finishes", async () => {
+    mocks.getCloudsyncStatus.mockResolvedValue({
+      ...syncedStatus(),
+      recovery_pending: true,
+      recovery_delayed: true,
+      recovery_phase: "need_clean_receive",
+      recovery_error: "NeedCleanReceive: CloudSync receive failed",
+    });
+
+    renderSettings();
+
+    expect(await screen.findByText("Cloud sync delayed")).toBeTruthy();
+    expect(
+      await screen.findByText("NeedCleanReceive: CloudSync receive failed"),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Sync now" }).hasAttribute("disabled"),
+    ).toBe(true);
+  });
+
+  it("keeps manual sync disabled while still connecting", async () => {
+    mocks.getCloudsyncStatus.mockResolvedValue({
+      ...syncedStatus(),
+      configured: false,
+      running: false,
+      last_sync_at_ms: null,
+    });
+
+    renderSettings();
+
+    expect(await screen.findByText("Connecting...")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Sync now" }).hasAttribute("disabled"),
+    ).toBe(true);
+  });
+
   it("shows native cloud sync preflight errors", async () => {
     mocks.syncEnabled = false;
     mocks.getE2eeIdentityStatus

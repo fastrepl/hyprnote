@@ -58,6 +58,10 @@ const MIN_REFRESH_DELAY_MS = 1000;
 const EXCHANGE_TIMEOUT_MS = 25 * 1000;
 const EVICTION_RETRY_DELAY_MS = 30 * 1000;
 const CLOUDSYNC_TEARDOWN_TIMEOUT_MS = 2 * 1000;
+// Activation retries are silent at first because transient network blips are
+// common; after this many consecutive failures the UI stops saying
+// "Connecting..." and tells the user sync needs attention.
+const SILENT_ACTIVATION_FAILURE_LIMIT = 3;
 
 export type CloudsyncAuthChangeResult = "ok" | "account_mismatch";
 
@@ -74,6 +78,7 @@ let cleanupSuspendFailureVersion = 0;
 let cleanupSuspendCompletedVersion = 0;
 let signedOutGeneration: number | null = null;
 let cleanupServiceGeneration: number | null = null;
+let consecutiveActivationFailures = 0;
 let currentCloudsyncReactivation: {
   session: Session;
   generation: number;
@@ -521,6 +526,33 @@ function scheduleExchange(
   }, delayMs);
 }
 
+function scheduleActivationRetry(
+  session: Session,
+  activeGeneration: number,
+  onAccountMismatch: CloudsyncAccountMismatchHandler | undefined,
+  block: Extract<
+    CloudsyncCredentialBlock,
+    "activation_failed" | "clock_skew"
+  > = "activation_failed",
+) {
+  if (activeGeneration !== generation) {
+    return;
+  }
+  consecutiveActivationFailures += 1;
+  if (
+    block === "clock_skew" ||
+    consecutiveActivationFailures >= SILENT_ACTIVATION_FAILURE_LIMIT
+  ) {
+    setCredentialBlock(block);
+  }
+  scheduleExchange(
+    session,
+    activeGeneration,
+    RETRY_DELAY_MS,
+    onAccountMismatch,
+  );
+}
+
 function scheduleCurrentCloudsyncReactivation() {
   const reactivation = currentCloudsyncReactivation;
   if (!reactivation || reactivation.generation !== generation) {
@@ -785,6 +817,7 @@ async function activateCloudsync(
   }
 
   if (!enabled) {
+    consecutiveActivationFailures = 0;
     setCredentialBlock(null);
     if (!suspendedBeforeCredentialExchange) {
       await suspendCloudsyncAfterCredentialRejection(activeGeneration);
@@ -1085,12 +1118,7 @@ async function activateCloudsync(
         ? "[cloudsync] credential exchange returned an invalid response"
         : "[cloudsync] credential exchange unavailable; retrying",
     );
-    scheduleExchange(
-      session,
-      activeGeneration,
-      RETRY_DELAY_MS,
-      onAccountMismatch,
-    );
+    scheduleActivationRetry(session, activeGeneration, onAccountMismatch);
     return "ok";
   }
 
@@ -1153,12 +1181,7 @@ async function activateCloudsync(
     }
 
     console.warn("[cloudsync] credential exchange unavailable; retrying");
-    scheduleExchange(
-      session,
-      activeGeneration,
-      RETRY_DELAY_MS,
-      onAccountMismatch,
-    );
+    scheduleActivationRetry(session, activeGeneration, onAccountMismatch);
     return "ok";
   }
 
@@ -1170,12 +1193,7 @@ async function activateCloudsync(
     console.warn(
       "[cloudsync] credential exchange returned an invalid response",
     );
-    scheduleExchange(
-      session,
-      activeGeneration,
-      RETRY_DELAY_MS,
-      onAccountMismatch,
-    );
+    scheduleActivationRetry(session, activeGeneration, onAccountMismatch);
     return "ok";
   }
 
@@ -1204,12 +1222,16 @@ async function activateCloudsync(
 
   const expiresAtMs = Date.parse(credentials.expiresAt);
   if (expiresAtMs <= Date.now()) {
-    console.warn("[cloudsync] credential exchange returned an expired token");
-    scheduleExchange(
+    // A freshly minted token that is already expired means this machine's
+    // clock is ahead of the server by more than the token lifetime.
+    console.warn(
+      "[cloudsync] credential exchange returned an expired token; local clock is likely wrong",
+    );
+    scheduleActivationRetry(
       session,
       activeGeneration,
-      RETRY_DELAY_MS,
       onAccountMismatch,
+      "clock_skew",
     );
     return "ok";
   }
@@ -1230,12 +1252,7 @@ async function activateCloudsync(
         return "ok";
       }
       console.warn("[cloudsync] shared workspace key provisioning failed");
-      scheduleExchange(
-        session,
-        activeGeneration,
-        RETRY_DELAY_MS,
-        onAccountMismatch,
-      );
+      scheduleActivationRetry(session, activeGeneration, onAccountMismatch);
       return "ok";
     }
     if (activeGeneration !== generation) {
@@ -1254,7 +1271,11 @@ async function activateCloudsync(
     }
   }
 
-  setCredentialBlock(null);
+  // The exchange succeeded, so credential-level blocks are resolved. A local
+  // configuration failure is only cleared once configuration actually succeeds.
+  if (getCloudsyncCredentialBlock() !== "activation_failed") {
+    setCredentialBlock(null);
+  }
   sonnerToast.dismiss(DEVICE_LIMIT_TOAST_ID);
 
   try {
@@ -1317,6 +1338,8 @@ async function activateCloudsync(
       return "account_mismatch";
     }
 
+    consecutiveActivationFailures = 0;
+    setCredentialBlock(null);
     startCloudsyncInitialSyncProgress(session.user.id);
   } catch (error) {
     if (activeGeneration !== generation) {
@@ -1345,12 +1368,7 @@ async function activateCloudsync(
       "[cloudsync] local sync configuration failed; retrying",
       error,
     );
-    scheduleExchange(
-      session,
-      activeGeneration,
-      RETRY_DELAY_MS,
-      onAccountMismatch,
-    );
+    scheduleActivationRetry(session, activeGeneration, onAccountMismatch);
     return "ok";
   }
 
@@ -1373,6 +1391,7 @@ async function suspendCloudsyncSession(): Promise<void> {
   signedOutGeneration = activeGeneration;
   currentCloudsyncReactivation = null;
   stopCloudsyncInitialSyncProgress();
+  consecutiveActivationFailures = 0;
   setCredentialBlock(null);
   const suspension = trackCloudsyncTeardown(suspendCloudsyncAfterAuthLoss());
   let timeout: ReturnType<typeof setTimeout> | null = null;

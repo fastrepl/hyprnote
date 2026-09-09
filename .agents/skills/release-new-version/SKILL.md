@@ -1,6 +1,6 @@
 ---
 name: release-new-version
-description: Prepare Anarlog Nightly builds and promote tested desktop stable versions with current CLI, local and hosted MCP, API, agent packages, and documentation. Validate and merge release updates before publishing. Distribute mobile builds when requested.
+description: Prepare Anarlog Nightly builds and promote tested desktop stable versions with current CLI, local and hosted MCP, API, agent packages, and documentation. Deploy any required hosted services during the release. Validate and merge release updates before publishing. Distribute mobile builds when requested.
 metadata:
   internal: true
 ---
@@ -88,7 +88,8 @@ App Store here means the iOS app. The repository deliberately has no Mac App
 Store release lane; do not recreate one as part of a desktop or mobile release.
 
 Every desktop release includes the CLI, local and hosted MCP, API, agent-package,
-and documentation freshness review below. The CLI and local MCP ship inside the
+and documentation freshness review below, and deploys any hosted service that
+has unpublished changes this release needs. The CLI and local MCP ship inside the
 desktop package; hosted services, plugin catalogs, and docs have separate
 publication paths. Keep their versions independent and record their source SHAs.
 An unchanged surface needs evidence that its published version still covers the
@@ -96,8 +97,10 @@ candidate; it does not need an artificial version bump or redeployment.
 
 Honor existing authorization for service and documentation publication. If a
 required external action is not authorized, finish preparing and validating the
-concrete change before asking for that action. Do not call the complete release
-finished while a required surface is stale or awaiting publication.
+concrete change before asking for that action. When a hosted service has
+unpublished changes this release needs, dispatch its CD workflow during the
+release; do not leave the deploy as a follow-up. Do not call the complete
+release finished while a required surface is stale or awaiting publication.
 
 Release and QA are separate, explicitly requested workflows. Do not read or
 run `qa-critical-ux` or `qa-cli-mcp-api` solely because the user asked for a
@@ -142,6 +145,8 @@ cat .github/workflows/desktop_store_publish.yaml
 cat .github/workflows/cli_ci.yaml
 cat .github/workflows/api_ci.yaml
 cat .github/workflows/api_cd.yaml
+cat .github/workflows/stripe_cd.yaml
+cat .github/workflows/db_cd.yaml
 cat .github/workflows/web_ci.yaml
 cat .github/workflows/web_cd.yaml
 ```
@@ -197,6 +202,7 @@ that needs a product decision requires an explicit deferral, not a silent skip.
 | API and generated client    | `apps/api`, `crates/api-cloud`, and affected auth/sync crates; `apps/api/openapi.gen.json` and `packages/api-client/src/generated`. Check routes, payloads, errors, auth scopes, and compatibility with already shipped desktop/mobile/CLI clients.                                                                                                                                               |
 | Agent skills and plugins    | Authored `skills/anarlog`, generated `agent-plugins/anarlog` and `docs/skill.md`, native manifests, and repository marketplace entries. Update instructions and examples, bump the plugin's own version when its package changes, and keep manifests and their tests aligned.                                                                                                                     |
 | Documentation and discovery | Read `docs/AGENTS.md`; review affected product guides, installation/upgrade instructions, CLI/MCP/Cloud references, examples, troubleshooting, screenshots, `docs/docs.json`, and `apps/web/public/llms.txt`. Include the public skill, Mintlify's `llms.txt`/`llms-full.txt`, and the website changelog in publication verification. Document shipped behavior and actual platform availability. |
+| Hosted services             | Compare each independently deployed service with its last published SHA/tag: API/hosted MCP (`api_cd.yaml`, `api_v*`), Stripe (`stripe_cd.yaml`, `stripe_v*`), hosted Postgres (`db_cd.yaml`), website (`web_cd.yaml`, `web_v*`), and Mintlify docs. Record whether the candidate needs a redeploy. |
 
 Review related release dependencies when affected: SQLite/CloudSync and hosted
 schema migrations, downgrade compatibility, native bindings, mobile/watch
@@ -294,6 +300,50 @@ but pr new chore/release-changelog -t
 
 Use actual IDs from `but diff` / `but status -fv`; do not invent IDs.
 
+## Deploy Hosted Services
+
+This is a required release action, not optional follow-up. After the candidate
+is on `main`, decide for each independently published service and then deploy
+the ones that need it before publishing the desktop client.
+
+For each service:
+
+1. Find the last successful CD run and, when one exists, the published tag
+   (`api_v*`, `stripe_v*`, `web_v*`). Hosted Postgres has no version tag; use
+   the last successful `db_cd.yaml` run SHA.
+2. Diff that SHA against the candidate for that service's source. Re-read the
+   workflow if the checkout, image context, or migration path is unclear.
+3. Dispatch the CD workflow on `main` when the candidate contains unpublished
+   changes this release needs, or that users would otherwise miss. Reuse a live
+   deployment only when its SHA already includes those changes.
+4. An unchanged service needs that live SHA/version recorded. Do not dispatch a
+   no-op redeploy to make the checklist look complete.
+5. Confirm the target is Anarlog before any service access; never access
+   `*-char`. Check the run's `headSha` against the intended SHA and wait for
+   the job and tag (when the workflow creates one).
+
+```bash
+gh workflow run api_cd.yaml --ref main
+gh workflow run stripe_cd.yaml --ref main
+gh workflow run db_cd.yaml --ref main
+gh workflow run web_cd.yaml --ref main
+gh run list --workflow api_cd.yaml --limit 3
+gh run view <run-id> --json headSha,url
+```
+
+| Service | Workflow | Deploy when | Live check |
+| --- | --- | --- | --- |
+| API and hosted MCP | `api_cd.yaml` | Unpublished API, hosted MCP, auth, or related proxy changes | `/health` reports the new `api_v*` version; MCP discovery and an authenticated read succeed when credentials exist |
+| Stripe billing | `stripe_cd.yaml` | Unpublished `apps/stripe` or image-context changes | CD succeeded and tagged `stripe_v*`; `/health` on the Anarlog Stripe app returns ok |
+| Hosted Postgres | `db_cd.yaml` | Unpublished `supabase/` migrations this release needs | Linked Anarlog project only; `supabase db push` completed. Run `db_ci.yaml` coverage first when migrations changed |
+| Website | `web_cd.yaml` | Unpublished website, changelog, or download-page changes not already covered by the Linux APT web deploy | Live `anarlog.so` URLs show the candidate content |
+| Docs | Mintlify connected deploy (no GitHub CD) | Unpublished `docs/` or public skill content after merge | Live `https://docs.anarlog.so` pages, `skill.md`, and LLM indexes |
+
+If the desktop client depends on new server or schema behavior, those deploys
+must succeed before `desktop_publish.yaml`. Independent website or docs updates
+can finish in parallel, but the release is incomplete until they are live or
+explicitly deferred.
+
 ## Trigger Stable Release
 
 Dispatch desktop, CLI, and API verification from the candidate Nightly tag, then identify each run
@@ -359,9 +409,9 @@ protocol-only and verify clean shutdown. A developer binary on `PATH` is not
 evidence for the packaged CLI. After updating, verify the supported CLI installer
 resolves to the new bundled executable; record unavailable platform checks.
 
-Before the desktop publish dispatch, complete any backend deployment required
-by the candidate, following the publication steps below. Do not publish a client
-whose required server behavior is still unavailable.
+Before the desktop publish dispatch, finish the hosted-service deploys above
+that the candidate depends on. Do not publish a client whose required server
+behavior is still unavailable.
 
 After the exact dry-run artifacts pass the required platform gates and the
 candidate is still merged into main, publish only through the provenance
@@ -398,24 +448,26 @@ workflow. Check the AUR registry before claiming an AUR release.
 
 ## Publish and Verify Related Surfaces
 
-1. **API and hosted MCP:** verify the target environment is Anarlog before any
-   service access; never access `*-char`. Inspect recent `api_cd.yaml` runs and
-   the deployed `api_v*` tag. Reuse a deployment that contains the required changes;
-   otherwise deploy the merged, verified candidate through `api_cd.yaml` within
-   existing authorization. Dispatch on `main`, check the run's `headSha` against
-   the intended SHA, and wait for deployment and tagging. Confirm `/health` reports the deployed
-   API version, MCP authentication discovery and OAuth resource metadata are
-   correct, and an authenticated read exercises the affected contract when
-   credentials are available. Health or an unauthenticated `401` alone does not
-   verify tool behavior; report unavailable authenticated checks explicitly.
-2. **Docs and website:** verify the configured Mintlify deployment includes the
+Complete the hosted-service deploys above, then verify each live result:
+
+1. **API and hosted MCP:** confirm `/health` reports the deployed API version,
+   MCP authentication discovery and OAuth resource metadata are correct, and an
+   authenticated read exercises the affected contract when credentials are
+   available. Health or an unauthenticated `401` alone does not verify tool
+   behavior; report unavailable authenticated checks explicitly.
+2. **Stripe:** confirm the `stripe_v*` tag matches the deploy run SHA and the
+   Anarlog billing app `/health` returns ok.
+3. **Hosted Postgres:** if `db_cd.yaml` ran, record that run URL and SHA. If
+   it did not run, record the last applied migration SHA and why no push was
+   needed.
+4. **Docs and website:** verify the configured Mintlify deployment includes the
    merged docs changes, then check affected live pages, examples, navigation,
    `https://docs.anarlog.so/skill.md`, and its LLM indexes for the changed content.
    Verify website/changelog/discovery updates through `web_cd.yaml` and the live
    URLs. Reuse the desktop Linux APT web deployment when it already includes
-   them. Mintlify and Netlify are separate deployments; a merge, HTTP 200, or a
+   them. Mintlify and Vercel are separate deployments; a merge, HTTP 200, or a
    successful web build does not establish that the docs content is current.
-3. **Agent packages:** verify the published repository manifests and skill
+5. **Agent packages:** verify the published repository manifests and skill
    mirrors, and any affected external catalog's accepted version. Check the
    supported install/update path resolves the expected version. An existing
    installed plugin cache may remain older; record that separately and provide
@@ -562,6 +614,8 @@ Before reporting success, capture:
 - CLI version from each platform's packaged artifact and installer/update result
 - CLI/API candidate CI runs and contract checks, including stdio MCP discovery
 - hosted API/MCP deployed version, source SHA, deployment URL, and live checks
+- Stripe deploy decision, `stripe_v*` tag or reuse reason, and live `/health`
+- hosted Postgres deploy decision, `db_cd.yaml` run or reuse reason
 - published docs, skill, LLM indexes, and website content verification
 - plugin package/catalog version and install/update result when affected
 - release surface review, with reasons for unchanged/not-applicable surfaces and

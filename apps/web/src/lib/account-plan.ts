@@ -1,3 +1,9 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export type WorkspacePlan = "team" | "enterprise";
+
+export const accountWorkspacePlanQueryKey = ["account-workspace-plan"] as const;
+
 export function getSubscriptionAccessEnd(subscription: {
   cancel_at?: number | null;
   current_period_end?: number | null;
@@ -28,6 +34,55 @@ export function formatAccountPlanDate(date: Date) {
   });
 }
 
+export async function fetchWorkspacePlan({
+  client,
+  accessToken,
+  signal,
+}: {
+  client: SupabaseClient;
+  accessToken: string;
+  signal: AbortSignal;
+}): Promise<WorkspacePlan | null> {
+  const authorization = `Bearer ${accessToken}`;
+  const workspaces = await client
+    .from("workspaces")
+    .select("id")
+    .eq("kind", "shared")
+    .setHeader("Authorization", authorization)
+    .abortSignal(signal);
+  if (workspaces.error) throw workspaces.error;
+  if (!Array.isArray(workspaces.data)) {
+    throw new Error("Could not verify your plan. Try refreshing it.");
+  }
+
+  const tiers = await Promise.all(
+    workspaces.data.map(async (workspace) => {
+      if (typeof workspace.id !== "string") {
+        throw new Error("Could not verify your plan. Try refreshing it.");
+      }
+      const access = await client
+        .rpc("get_workspace_access", { p_workspace_id: workspace.id })
+        .setHeader("Authorization", authorization)
+        .abortSignal(signal);
+      if (access.error) throw access.error;
+      const row = Array.isArray(access.data) ? access.data[0] : access.data;
+      const tier =
+        row && typeof row === "object" && "workspace_tier" in row
+          ? row.workspace_tier
+          : undefined;
+      if (tier !== "free" && tier !== "team" && tier !== "enterprise") {
+        throw new Error("Could not verify your plan. Try refreshing it.");
+      }
+      return tier;
+    }),
+  );
+  return tiers.includes("enterprise")
+    ? "enterprise"
+    : tiers.includes("team")
+      ? "team"
+      : null;
+}
+
 export function getAccountPlanCopy({
   isTrialing,
   isPaused = false,
@@ -39,6 +94,7 @@ export function getAccountPlanCopy({
   cancelAtPeriodEnd,
   currentPeriodEnd,
   hasYcPerk = false,
+  workspacePlan = null,
 }: {
   isTrialing: boolean;
   isPaused?: boolean;
@@ -50,7 +106,22 @@ export function getAccountPlanCopy({
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: Date | null;
   hasYcPerk?: boolean;
+  workspacePlan?: WorkspacePlan | null;
 }): { planLabel: string; planDetail: string } {
+  if (workspacePlan === "enterprise") {
+    return {
+      planLabel: "Enterprise",
+      planDetail: "Organization-wide Team with security and policy controls.",
+    };
+  }
+
+  if (workspacePlan === "team") {
+    return {
+      planLabel: "Team",
+      planDetail: "Shared workspace with Pro for every member.",
+    };
+  }
+
   const planLabel = isTrialing
     ? "Pro trial"
     : isPaid

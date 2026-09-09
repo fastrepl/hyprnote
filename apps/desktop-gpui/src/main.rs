@@ -57,6 +57,7 @@ mod storage;
 mod store_file;
 mod stt_capabilities;
 mod stt_models;
+mod system_theme;
 mod templates;
 mod text_area;
 mod text_input;
@@ -447,6 +448,7 @@ fn main() -> anyhow::Result<()> {
         cx.set_global(audio::Audio(audio));
         cx.set_global(search::Search(search));
         cx.set_global(MainWindow { handle: None });
+        cx.set_global(system_theme::SystemTheme::start(store.runtime()));
         cx.set_global(notifications::Notifications::install());
         cx.set_global(DeepLinks {
             server: callback_server,
@@ -521,6 +523,10 @@ fn main() -> anyhow::Result<()> {
                         }
                         for url in forwarded.try_iter().chain(deeplink_receiver.try_iter()) {
                             handle_deep_link_url(&url, &tray_store, cx);
+                        }
+                        // `onThemeChanged`: windows on the `system` theme re-resolve.
+                        if cx.global::<system_theme::SystemTheme>().take_changed() {
+                            cx.refresh_windows();
                         }
                     })
                     .is_err();

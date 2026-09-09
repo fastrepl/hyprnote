@@ -123,12 +123,8 @@ impl Theme {
     }
 
     /// `resolveIsDarkMode`: the `theme` setting (`light` / `dark` / `system`)
-    /// against the window's appearance.
-    pub fn resolve(preference: &str, appearance: gpui::WindowAppearance) -> Self {
-        let system_dark = matches!(
-            appearance,
-            gpui::WindowAppearance::Dark | gpui::WindowAppearance::VibrantDark
-        );
+    /// against the system colour scheme.
+    pub fn resolve(preference: &str, system_dark: bool) -> Self {
         let dark = match preference {
             "dark" => true,
             "light" => false,

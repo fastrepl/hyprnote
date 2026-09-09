@@ -1878,7 +1878,8 @@ impl Render for Workspace {
                 window.focus(&root_focus);
             }
         });
-        let resolved = Theme::resolve(&self.theme_preference, window.appearance());
+        let system_dark = cx.global::<crate::system_theme::SystemTheme>().dark(window);
+        let resolved = Theme::resolve(&self.theme_preference, system_dark);
         if resolved != self.theme {
             self.theme = resolved;
             self.title_input.update(cx, |input, cx| {

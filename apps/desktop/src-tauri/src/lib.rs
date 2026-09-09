@@ -142,6 +142,18 @@ pub fn main() {
             None
         }
     };
+    // Held until run() returns so Nightly and stable never share the open
+    // database at the same time.
+    let _channel_lock = match startup::acquire_channel_lock(&identifier) {
+        startup::ChannelLockState::Acquired(lock) => lock,
+        startup::ChannelLockState::PeerRunning { peer } => {
+            startup::exit_for_running_peer_channel(&identifier, peer)
+        }
+        startup::ChannelLockState::Unavailable(reason) => {
+            eprintln!("starting without the channel lock: {reason}");
+            None
+        }
+    };
 
     let (root_supervisor_ctx, root_supervisor_handle, db, crash_reporting_enabled) = runtime
         .block_on(async {
@@ -574,7 +586,7 @@ fn exit_after_startup_failure(identifier: &str, error: &impl std::fmt::Display) 
         let alert = if db::is_transient_lock_error(error) {
             "display alert \"Anarlog is not ready yet\" message \"Another Anarlog process is still using your data, possibly finishing an update. Your existing data was left unchanged. Please wait a moment and open Anarlog again.\" as critical buttons {\"OK\"} default button \"OK\""
         } else if db::is_newer_schema_error(error) {
-            "display alert \"Anarlog needs an update\" message \"Your data was created by a newer version of Anarlog, and this older version cannot open it. Your existing data was left unchanged. Please install the latest version of Anarlog.\" as critical buttons {\"OK\"} default button \"OK\""
+            "display alert \"Anarlog needs an update\" message \"Your data was updated by a newer version of Anarlog, such as Anarlog Nightly, and this version cannot open it yet. Your existing data was left unchanged. Install the latest version of Anarlog, or keep using the newer app until this version catches up.\" as critical buttons {\"OK\"} default button \"OK\""
         } else {
             "display alert \"Anarlog could not start\" message \"Your existing data was left unchanged. Please restart the app. If the problem continues, contact support.\" as critical buttons {\"OK\"} default button \"OK\""
         };

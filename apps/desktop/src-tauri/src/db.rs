@@ -3,6 +3,8 @@ use std::sync::Arc;
 use anlg_db_core::Db;
 
 const DB_FILENAME: &str = "app.db";
+pub(crate) const STABLE_BUNDLE_ID: &str = "com.hyprnote.stable";
+pub(crate) const NIGHTLY_BUNDLE_ID: &str = "com.hyprnote.nightly";
 const DEFAULT_CLOUDSYNC_INTERVAL_MS: u64 = 30_000;
 const DB_OPEN_LOCK_RETRIES: u32 = 12;
 const DB_OPEN_LOCK_RETRY_DELAY: std::time::Duration = std::time::Duration::from_secs(5);
@@ -132,7 +134,29 @@ fn parse_env_flag(value: String) -> Result<bool, String> {
     }
 }
 
+// Nightly previews run against the user's real notes, so it opens stable's
+// database while keeping its own settings, store, and sign-in. db-migrate keeps
+// the two builds compatible: stable tolerates the additive migrations a newer
+// Nightly applies and refuses the file after a "-- breaking" one until a stable
+// release includes that migration.
+pub(crate) fn shared_database_peer(identifier: &str) -> Option<&'static str> {
+    match identifier {
+        NIGHTLY_BUNDLE_ID => Some(STABLE_BUNDLE_ID),
+        STABLE_BUNDLE_ID => Some(NIGHTLY_BUNDLE_ID),
+        _ => None,
+    }
+}
+
+fn database_identifier(identifier: &str) -> &str {
+    if identifier == NIGHTLY_BUNDLE_ID {
+        STABLE_BUNDLE_ID
+    } else {
+        identifier
+    }
+}
+
 pub(crate) fn desktop_db_dir(identifier: &str) -> Option<std::path::PathBuf> {
+    let identifier = database_identifier(identifier);
     let data_dir = dirs::data_dir()?;
     let default_dir = anlg_storage::global::compute_default_base(identifier)?;
     let identifier_dir = data_dir.join(identifier);
@@ -179,6 +203,33 @@ mod tests {
         let db_dir = desktop_db_dir("com.hyprnote.dev").unwrap();
 
         assert!(db_dir.ends_with("com.hyprnote.dev"));
+    }
+
+    #[test]
+    fn nightly_opens_the_stable_database() {
+        assert_eq!(
+            desktop_db_dir(NIGHTLY_BUNDLE_ID),
+            desktop_db_dir(STABLE_BUNDLE_ID)
+        );
+        assert!(
+            !desktop_db_dir(NIGHTLY_BUNDLE_ID)
+                .unwrap()
+                .ends_with(NIGHTLY_BUNDLE_ID)
+        );
+    }
+
+    #[test]
+    fn only_nightly_and_stable_share_a_database() {
+        assert_eq!(
+            shared_database_peer(NIGHTLY_BUNDLE_ID),
+            Some(STABLE_BUNDLE_ID)
+        );
+        assert_eq!(
+            shared_database_peer(STABLE_BUNDLE_ID),
+            Some(NIGHTLY_BUNDLE_ID)
+        );
+        assert_eq!(shared_database_peer("com.hyprnote.staging"), None);
+        assert_eq!(shared_database_peer("com.hyprnote.dev"), None);
     }
 
     #[test]

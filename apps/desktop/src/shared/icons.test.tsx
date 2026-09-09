@@ -3,8 +3,13 @@ import { describe, expect, it } from "vitest";
 
 import * as icons from "@anlg/ui/components/icons";
 
+const brandIconNames = new Set(["DiscordLogo", "GithubLogo", "XLogo"]);
+const outlineIcons = Object.entries(icons).filter(
+  ([name]) => !brandIconNames.has(name),
+);
+
 describe("outline icons", () => {
-  it.each(Object.entries(icons))(
+  it.each(outlineIcons)(
     "renders %s without filled shapes at every supported weight",
     (_, Icon) => {
       for (const weight of ["thin", "light", "regular", "bold"] as const) {
@@ -27,5 +32,19 @@ describe("outline icons", () => {
     );
 
     expect(container.querySelector("svg")?.getAttribute("fill")).toBe("none");
+  });
+});
+
+describe("brand icons", () => {
+  it.each([
+    ["DiscordLogo", icons.DiscordLogo],
+    ["GithubLogo", icons.GithubLogo],
+    ["XLogo", icons.XLogo],
+  ] as const)("renders %s as a filled brand logo", (_, Icon) => {
+    const { container } = render(<Icon size={16} />);
+    const svg = container.querySelector("svg");
+
+    expect(svg?.getAttribute("fill")).toBe("currentColor");
+    expect(svg?.querySelector("path")).not.toBeNull();
   });
 });

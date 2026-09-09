@@ -12289,6 +12289,7 @@ dependencies = [
  "data",
  "deepgram",
  "futures-util",
+ "hound",
  "language",
  "observability",
  "openai-transcription",

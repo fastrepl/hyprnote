@@ -38,6 +38,7 @@ describe("LLM providers", () => {
       "ollama",
       "xai",
       "mistral",
+      "meta",
       "together",
       "cohere",
       "fireworks",
@@ -144,6 +145,7 @@ describe("getLlmProviderStatus", () => {
     ["groq", "https://api.groq.com/openai/v1"],
     ["xai", "https://api.x.ai/v1"],
     ["together", "https://api.together.xyz/v1"],
+    ["meta", "https://api.meta.ai/v1"],
     ["fireworks", "https://api.fireworks.ai/inference/v1"],
     ["cerebras", "https://api.cerebras.ai/v1"],
   ])("configures %s through its OpenAI-compatible endpoint", (id, baseUrl) => {

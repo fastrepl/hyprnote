@@ -25,6 +25,30 @@ test("discovers models from an authenticated local provider that rejects foreign
 });
 
 describe("processGenericModels", () => {
+  test("lists Meta Muse Spark models with the current release first", () => {
+    const result = processGenericModels([
+      { id: "muse-spark-1.3-contributor" },
+      { id: "muse-voice-transcribe-1.0" },
+      { id: "muse-spark-1.3" },
+      { id: "muse-image-1.0" },
+      { id: "muse-spark-1.2-contributor" },
+      { id: "muse-spark-1.2" },
+      { id: "muse-spark-1.1" },
+    ]);
+
+    expect(result.models).toEqual([
+      "muse-spark-1.3",
+      "muse-spark-1.1",
+      "muse-spark-1.2",
+      "muse-spark-1.2-contributor",
+      "muse-spark-1.3-contributor",
+    ]);
+    expect(result.ignored.map(({ id }) => id)).toEqual([
+      "muse-voice-transcribe-1.0",
+      "muse-image-1.0",
+    ]);
+  });
+
   test("keeps Cohere model versions while still filtering non-chat models", () => {
     const result = processGenericModels(
       [{ id: "command-a-plus-05-2026" }, { id: "embed-v4.0" }],

@@ -1,4 +1,3 @@
-use owhisper_client::AdapterKind;
 use std::str::FromStr;
 
 use crate::listener::ListenerPluginExt;
@@ -125,39 +124,9 @@ pub async fn suggest_providers_for_languages_live<R: tauri::Runtime>(
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| format!("unknown_language: {}", e))?;
 
-    let all_providers = [
-        AdapterKind::Argmax,
-        AdapterKind::Soniox,
-        AdapterKind::Fireworks,
-        AdapterKind::Deepgram,
-        AdapterKind::AssemblyAI,
-        AdapterKind::OpenAI,
-        AdapterKind::Gladia,
-        AdapterKind::ElevenLabs,
-        AdapterKind::DashScope,
-        AdapterKind::Mistral,
-        AdapterKind::Xai,
-        AdapterKind::SmallestAI,
-        AdapterKind::GoogleGenerativeAi,
-    ];
-
-    let mut with_support: Vec<_> = all_providers
-        .iter()
-        .map(|kind| {
-            let support = kind.language_support_live(&languages_parsed, None);
-            (*kind, support)
-        })
-        .filter(|(_, support)| support.is_supported())
-        .collect();
-
-    with_support.sort_by(|(_, s1), (_, s2)| s2.cmp(s1));
-
-    let supported: Vec<String> = with_support
-        .into_iter()
-        .map(|(kind, _)| kind.to_string())
-        .collect();
-
-    Ok(supported)
+    Ok(listener2_core::suggest_providers_for_languages_live(
+        &languages_parsed,
+    ))
 }
 
 #[tauri::command]

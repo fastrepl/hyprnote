@@ -131,6 +131,41 @@ pub fn is_supported_languages_batch(
     Ok(adapter_kind.is_supported_languages_batch(languages, model))
 }
 
+pub fn suggest_providers_for_languages_live(languages: &[anlg_language::Language]) -> Vec<String> {
+    let all_providers = [
+        AdapterKind::Argmax,
+        AdapterKind::Soniox,
+        AdapterKind::Fireworks,
+        AdapterKind::Deepgram,
+        AdapterKind::AssemblyAI,
+        AdapterKind::OpenAI,
+        AdapterKind::Gladia,
+        AdapterKind::ElevenLabs,
+        AdapterKind::DashScope,
+        AdapterKind::Mistral,
+        AdapterKind::Meta,
+        AdapterKind::Xai,
+        AdapterKind::SmallestAI,
+        AdapterKind::GoogleGenerativeAi,
+    ];
+
+    let mut with_support: Vec<_> = all_providers
+        .iter()
+        .map(|kind| {
+            let support = kind.language_support_live(languages, None);
+            (*kind, support)
+        })
+        .filter(|(_, support)| support.is_supported())
+        .collect();
+
+    with_support.sort_by(|(_, s1), (_, s2)| s2.cmp(s1));
+
+    with_support
+        .into_iter()
+        .map(|(kind, _)| kind.to_string())
+        .collect()
+}
+
 pub fn suggest_providers_for_languages_batch(languages: &[anlg_language::Language]) -> Vec<String> {
     let all_providers = [
         AdapterKind::Argmax,
@@ -146,6 +181,7 @@ pub fn suggest_providers_for_languages_batch(languages: &[anlg_language::Languag
         AdapterKind::ElevenLabs,
         AdapterKind::DashScope,
         AdapterKind::Mistral,
+        AdapterKind::Meta,
         AdapterKind::Cohere,
         AdapterKind::AwsTranscribe,
         AdapterKind::AzureSpeech,
@@ -220,6 +256,24 @@ mod tests {
         let languages = vec!["fr".parse().unwrap()];
 
         assert!(is_supported_languages_batch("anarlog", Some("cloud"), &languages).unwrap());
+    }
+
+    #[test]
+    fn meta_is_suggested_for_documented_languages_live() {
+        let english = vec!["en-US".parse().unwrap()];
+        let swahili = vec!["sw".parse().unwrap()];
+
+        assert!(suggest_providers_for_languages_live(&english).contains(&"meta".to_string()));
+        assert!(!suggest_providers_for_languages_live(&swahili).contains(&"meta".to_string()));
+    }
+
+    #[test]
+    fn meta_is_suggested_for_documented_languages_batch() {
+        let english = vec!["en-US".parse().unwrap()];
+        let swahili = vec!["sw".parse().unwrap()];
+
+        assert!(suggest_providers_for_languages_batch(&english).contains(&"meta".to_string()));
+        assert!(!suggest_providers_for_languages_batch(&swahili).contains(&"meta".to_string()));
     }
 
     #[test]

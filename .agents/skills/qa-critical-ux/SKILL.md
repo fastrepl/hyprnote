@@ -1,6 +1,6 @@
 ---
 name: qa-critical-ux
-description: QA Anarlog's critical Pro user journey on a signed staging candidate — onboarding, responsive launch, microphone and system-audio capture, and automated summaries.
+description: QA Anarlog's critical Pro user journey on a signed staging candidate — onboarding, responsive launch, microphone and system-audio capture, automated summaries, and cloud sync.
 ---
 
 # QA: Critical User Experience
@@ -13,6 +13,7 @@ Test only the signed staging artifact for the requested candidate:
 2. Onboarding completes from scratch: permissions, sign-in, and provider setup.
 3. A recording captures both microphone and system audio.
 4. Stopping the recording produces an automated summary.
+5. The note syncs to the account and comes back after a local wipe.
 
 Everything else is outside this skill's scope.
 
@@ -68,7 +69,7 @@ Leave the MacBook open on its built-in speakers and microphone with no external 
 
 Missing app data starts onboarding normally. Do not use `ONBOARDING=1`; resetting permissions asynchronously after initialization can suppress the microphone prompt. Do not edit permission databases.
 
-Complete onboarding for real: grant each permission, sign in with the Pro or trialing test account, and select Anarlog cloud (`anarlog`) in Settings → AI.
+Complete onboarding for real: grant each permission, sign in with the Pro or trialing test account, select Anarlog cloud (`anarlog`) in Settings → AI, and turn on encrypted cloud sync in Settings → Sync. Use that account's existing recovery key when prompted. Creating a new key on an account that already has sync fails this item.
 
 ## Checklist
 
@@ -82,6 +83,7 @@ Complete onboarding for real: grant each permission, sign in with the Pro or tri
 
 - Each permission prompt appears and the grant persists.
 - Sign-in completes and the app reaches the entitled state without feature-gate prompts.
+- Settings → Sync turns on with the account's existing recovery key.
 - A stalled, dead, or looping onboarding step fails this item.
 
 ### 3. Create a note and record
@@ -102,6 +104,19 @@ Complete onboarding for real: grant each permission, sign in with the Pro or tri
 - Stopping does not hang while settling.
 - An enhanced summary and title are generated automatically, reflect the fixture content, and remain attached with the transcript.
 - Restart the app and verify the note, transcript, and summary persist.
+
+### 5. Sync the note and restore it
+
+- After the summary exists, open Settings → Sync. Status must reach **Synced**, not stay on Connecting, Syncing, Saved locally, or Sync needs attention.
+- Record the note title shown in the app. Quit Anarlog Staging. Do not reset permissions again. Wipe staging data once more:
+
+  ```bash
+  rm -rf ~/Library/Application\ Support/com.hyprnote.staging
+  ```
+
+- Launch through LaunchServices, sign in with the same Pro or trialing account, and enter the same recovery key.
+- The same note, transcript, and summary reappear after restore. A missing note, empty transcript, or missing summary fails this item.
+- Mid-recording deferral, chat/enhance leases, and hash-stable transcript integrity stay informational under `ANLG-287`.
 
 Verify results programmatically where possible through the app's supported interfaces and logs. Do not query the app database directly.
 

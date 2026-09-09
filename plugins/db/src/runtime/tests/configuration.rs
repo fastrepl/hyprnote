@@ -35,7 +35,12 @@ async fn configures_replica_transport_without_the_cloudsync_extension() {
                     endpoint: format!("{}/sync/e2ee/witness/user-a", witness_server.uri()),
                     access_token: "access-token".to_string(),
                 },
-                recovery_key,
+                E2eeWorkspaceKeyConfiguration::new(
+                    "user-a".to_string(),
+                    recovery_key,
+                    std::collections::HashMap::new(),
+                ),
+                None,
                 generation,
             )
             .await
@@ -47,6 +52,174 @@ async fn configures_replica_transport_without_the_cloudsync_extension() {
         runtime.cloudsync_status().await.unwrap()["configured"],
         true
     );
+}
+
+#[tokio::test]
+async fn configures_replica_transport_for_shared_workspaces() {
+    let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
+    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    sqlx::query(
+        "UPDATE storage_migration_state
+         SET importer_version = ?, parity_verified = 1
+         WHERE id = 'legacy_v1'",
+    )
+    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .execute(db.pool())
+    .await
+    .unwrap();
+    let runtime = PluginDbRuntime::new(db);
+    let (witness_server, witness_config) =
+        crate::tests::support::setup_witnesses(&["user-a", "workspace-shared"]).await;
+    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+        "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
+    )
+    .unwrap();
+    let projection = anlg_db_app::CloudsyncWorkspaceProjection {
+        account_user_id: "user-a".to_string(),
+        personal_workspace_id: "user-a".to_string(),
+        workspaces: vec![
+            anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+                id: "user-a".to_string(),
+                owner_user_id: "user-a".to_string(),
+                kind: "personal".to_string(),
+                name: "Personal".to_string(),
+                membership_id: "membership-personal".to_string(),
+                role: "owner".to_string(),
+                membership_created_at: "2026-07-01T00:00:00Z".to_string(),
+                membership_updated_at: "2026-07-01T00:00:00Z".to_string(),
+                created_at: "2026-07-01T00:00:00Z".to_string(),
+                updated_at: "2026-07-01T00:00:00Z".to_string(),
+            },
+            anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+                id: "workspace-shared".to_string(),
+                owner_user_id: "user-b".to_string(),
+                kind: "shared".to_string(),
+                name: "Team".to_string(),
+                membership_id: "membership-shared".to_string(),
+                role: "member".to_string(),
+                membership_created_at: "2026-07-02T00:00:00Z".to_string(),
+                membership_updated_at: "2026-07-02T00:00:00Z".to_string(),
+                created_at: "2026-07-02T00:00:00Z".to_string(),
+                updated_at: "2026-07-02T00:00:00Z".to_string(),
+            },
+        ],
+    };
+    let generation = runtime.begin_cloudsync_auth_configuration();
+
+    assert_eq!(
+        runtime
+            .configure_replica_transport_at_generation(
+                "user-a".to_string(),
+                witness_config,
+                E2eeWorkspaceKeyConfiguration::new(
+                    "user-a".to_string(),
+                    recovery_key,
+                    std::collections::HashMap::from([(
+                        "workspace-shared".to_string(),
+                        anlg_e2ee::WorkspaceKeyring::new(
+                            anlg_e2ee::WorkspaceKey::generate().unwrap(),
+                        ),
+                    )]),
+                ),
+                Some(projection),
+                generation,
+            )
+            .await
+            .unwrap(),
+        crate::CloudsyncTokenConfigurationResult::Configured
+    );
+
+    assert!(runtime.e2ee_sync_hook.replica_transport_configured());
+    assert!(
+        runtime
+            .e2ee_sync_hook
+            .witness_for_workspace("workspace-shared")
+            .is_some()
+    );
+    let local_workspaces: Vec<(String, String)> =
+        sqlx::query_as("SELECT id, kind FROM workspaces ORDER BY id")
+            .fetch_all(runtime.pool())
+            .await
+            .unwrap();
+    assert_eq!(
+        local_workspaces,
+        vec![
+            ("user-a".to_string(), "personal".to_string()),
+            ("workspace-shared".to_string(), "shared".to_string()),
+        ]
+    );
+    let initialized_paths = witness_server
+        .received_requests()
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|request| request.url.path().to_string())
+        .collect::<std::collections::HashSet<_>>();
+    assert!(initialized_paths.contains("/sync/e2ee/witness/user-a"));
+    assert!(initialized_paths.contains("/sync/e2ee/witness/workspace-shared"));
+}
+
+#[tokio::test]
+async fn replica_transport_rejects_a_projection_for_another_account() {
+    let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
+    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    sqlx::query(
+        "UPDATE storage_migration_state
+         SET importer_version = ?, parity_verified = 1
+         WHERE id = 'legacy_v1'",
+    )
+    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .execute(db.pool())
+    .await
+    .unwrap();
+    let runtime = PluginDbRuntime::new(db);
+    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+        "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
+    )
+    .unwrap();
+    let projection = anlg_db_app::CloudsyncWorkspaceProjection {
+        account_user_id: "user-b".to_string(),
+        personal_workspace_id: "user-b".to_string(),
+        workspaces: vec![anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+            id: "user-b".to_string(),
+            owner_user_id: "user-b".to_string(),
+            kind: "personal".to_string(),
+            name: "Personal".to_string(),
+            membership_id: "membership-personal".to_string(),
+            role: "owner".to_string(),
+            membership_created_at: "2026-07-01T00:00:00Z".to_string(),
+            membership_updated_at: "2026-07-01T00:00:00Z".to_string(),
+            created_at: "2026-07-01T00:00:00Z".to_string(),
+            updated_at: "2026-07-01T00:00:00Z".to_string(),
+        }],
+    };
+    let generation = runtime.begin_cloudsync_auth_configuration();
+
+    let error = runtime
+        .configure_replica_transport_at_generation(
+            "user-a".to_string(),
+            crate::tests::support::unreachable_witness("user-a"),
+            E2eeWorkspaceKeyConfiguration::new(
+                "user-a".to_string(),
+                recovery_key,
+                std::collections::HashMap::new(),
+            ),
+            Some(projection),
+            generation,
+        )
+        .await
+        .unwrap_err();
+
+    assert!(
+        matches!(
+            error,
+            crate::Error::CloudsyncWorkspace(
+                anlg_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection
+            )
+        ),
+        "{error}"
+    );
+    assert!(!runtime.e2ee_sync_hook.replica_transport_configured());
 }
 
 #[tokio::test]

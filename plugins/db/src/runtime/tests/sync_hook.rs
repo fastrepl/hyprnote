@@ -134,6 +134,122 @@ async fn replica_transport_hydrates_a_fresh_local_database() {
 }
 
 #[tokio::test]
+async fn replica_transport_syncs_every_configured_workspace() {
+    let source = Db::connect_memory_plain().await.unwrap();
+    let target = Db::connect_memory_plain().await.unwrap();
+    anlg_db_app::prepare_schema(&source).await.unwrap();
+    anlg_db_app::prepare_schema(&target).await.unwrap();
+    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+        "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
+    )
+    .unwrap();
+    let shared_key = anlg_e2ee::WorkspaceKey::generate().unwrap();
+    let (witness_server, witness_config) =
+        crate::tests::support::setup_witnesses(&["user-a", "workspace-shared"]).await;
+    let configure = |hook: &E2eeSyncHook| {
+        hook.set_workspaces(
+            "user-a",
+            &recovery_key,
+            HashMap::from([(
+                "workspace-shared".to_string(),
+                anlg_e2ee::WorkspaceKeyring::new(shared_key.clone()),
+            )]),
+        )
+        .unwrap();
+        let personal =
+            crate::e2ee_witness::E2eeWitnessClient::new(witness_config.clone(), "user-a").unwrap();
+        let shared = personal.for_workspace("workspace-shared").unwrap();
+        hook.set_replica_witnesses(HashMap::from([
+            ("user-a".to_string(), personal),
+            ("workspace-shared".to_string(), shared),
+        ]));
+    };
+    let source_hook = E2eeSyncHook::default();
+    let target_hook = E2eeSyncHook::default();
+    configure(&source_hook);
+    configure(&target_hook);
+    sqlx::query(
+        "INSERT INTO sessions (id, workspace_id, title)
+         VALUES
+           ('session-personal', 'user-a', 'Personal note'),
+           ('session-shared', 'workspace-shared', 'Team note')",
+    )
+    .execute(source.pool())
+    .await
+    .unwrap();
+
+    assert_eq!(
+        source_hook
+            .sync_replica_transport(source.pool())
+            .await
+            .unwrap(),
+        ReplicaSyncOutcome::Settled
+    );
+    assert_eq!(
+        target_hook
+            .sync_replica_transport(target.pool())
+            .await
+            .unwrap(),
+        ReplicaSyncOutcome::Settled
+    );
+
+    let titles: Vec<(String, String)> =
+        sqlx::query_as("SELECT id, title FROM sessions ORDER BY id")
+            .fetch_all(target.pool())
+            .await
+            .unwrap();
+    assert_eq!(
+        titles,
+        vec![
+            ("session-personal".to_string(), "Personal note".to_string()),
+            ("session-shared".to_string(), "Team note".to_string()),
+        ]
+    );
+    let published_paths = witness_server
+        .received_requests()
+        .await
+        .unwrap()
+        .into_iter()
+        .filter(|request| request.method == wiremock::http::Method::POST)
+        .map(|request| request.url.path().to_string())
+        .collect::<std::collections::HashSet<_>>();
+    assert!(published_paths.contains("/sync/e2ee/witness/user-a"));
+    assert!(published_paths.contains("/sync/e2ee/witness/workspace-shared"));
+}
+
+#[tokio::test]
+async fn replica_transport_rejects_a_witness_set_that_misses_a_workspace() {
+    let db = Db::connect_memory_plain().await.unwrap();
+    anlg_db_app::prepare_schema(&db).await.unwrap();
+    let hook = E2eeSyncHook::default();
+    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+        "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
+    )
+    .unwrap();
+    hook.set_workspaces(
+        "user-a",
+        &recovery_key,
+        HashMap::from([(
+            "workspace-shared".to_string(),
+            anlg_e2ee::WorkspaceKeyring::new(anlg_e2ee::WorkspaceKey::generate().unwrap()),
+        )]),
+    )
+    .unwrap();
+    let (_witness_server, witness_config) = crate::tests::support::setup_witness("user-a").await;
+    hook.set_replica_witness(
+        crate::e2ee_witness::E2eeWitnessClient::new(witness_config, "user-a").unwrap(),
+    );
+
+    let error = hook.sync_replica_transport(db.pool()).await.unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("do not match configured workspaces"),
+        "{error}"
+    );
+}
+
+#[tokio::test]
 async fn capture_lifecycle_marker_defers_only_its_transcript() {
     let db = Db::connect_memory_plain().await.unwrap();
     anlg_db_app::prepare_schema(&db).await.unwrap();

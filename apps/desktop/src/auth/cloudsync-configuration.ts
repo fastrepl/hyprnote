@@ -25,7 +25,18 @@ export function configureCloudsyncCredentials(
   };
 
   if (isReplicaCredentials(credentials)) {
-    return configureE2eeReplica(credentials.workspaceId, witness);
+    return configureE2eeReplica(
+      credentials.workspaceId,
+      witness,
+      hasWorkspaceProjection(credentials)
+        ? {
+            accountUserId: credentials.accountUserId,
+            personalWorkspaceId: credentials.personalWorkspaceId,
+            workspaces: credentials.workspaces,
+          }
+        : undefined,
+      credentials.workspaceKeyGrants ?? [],
+    );
   }
 
   return hasWorkspaceProjection(credentials)

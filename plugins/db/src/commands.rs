@@ -566,13 +566,7 @@ pub(crate) async fn configure_cloudsync_token<R: tauri::Runtime>(
                 "end-to-end encryption recovery key setup is required before CloudSync can start"
                     .to_string()
             })?;
-        let shared_workspace_ids = workspace_projection
-            .as_ref()
-            .into_iter()
-            .flat_map(|projection| projection.workspaces.iter())
-            .filter(|workspace| workspace.kind == "shared")
-            .map(|workspace| workspace.id.clone())
-            .collect();
+        let shared_workspace_ids = shared_workspace_ids(workspace_projection.as_ref());
         let shared_keyrings = open_shared_workspace_keyrings(
             &recovery_key,
             &workspace_id,
@@ -601,6 +595,17 @@ pub(crate) async fn configure_cloudsync_token<R: tauri::Runtime>(
     .await;
     state.record_cloudsync_configuration_result("configure_token", &result);
     result
+}
+
+fn shared_workspace_ids(
+    workspace_projection: Option<&crate::CloudsyncWorkspaceProjection>,
+) -> std::collections::HashSet<String> {
+    workspace_projection
+        .into_iter()
+        .flat_map(|projection| projection.workspaces.iter())
+        .filter(|workspace| workspace.kind == "shared")
+        .map(|workspace| workspace.id.clone())
+        .collect()
 }
 
 fn open_shared_workspace_keyrings(
@@ -670,6 +675,8 @@ pub(crate) async fn configure_e2ee_replica<R: tauri::Runtime>(
     state: tauri::State<'_, ManagedState>,
     workspace_id: String,
     e2ee_witness: crate::CloudsyncE2eeWitness,
+    workspace_projection: Option<crate::CloudsyncWorkspaceProjection>,
+    workspace_key_grants: Option<Vec<crate::CloudsyncWorkspaceKeyGrant>>,
 ) -> Result<crate::CloudsyncTokenConfigurationResult, String> {
     let result = async {
         let auth_generation = state.begin_cloudsync_auth_configuration();
@@ -679,11 +686,23 @@ pub(crate) async fn configure_e2ee_replica<R: tauri::Runtime>(
                 "end-to-end encryption recovery key setup is required before sync can start"
                     .to_string()
             })?;
+        let shared_workspace_ids = shared_workspace_ids(workspace_projection.as_ref());
+        let shared_keyrings = open_shared_workspace_keyrings(
+            &recovery_key,
+            &workspace_id,
+            shared_workspace_ids,
+            workspace_key_grants.unwrap_or_default(),
+        )?;
         state
             .configure_replica_transport_at_generation(
-                workspace_id,
+                workspace_id.clone(),
                 e2ee_witness,
-                recovery_key,
+                crate::runtime::E2eeWorkspaceKeyConfiguration::new(
+                    workspace_id,
+                    recovery_key,
+                    shared_keyrings,
+                ),
+                workspace_projection.map(Into::into),
                 auth_generation,
             )
             .await

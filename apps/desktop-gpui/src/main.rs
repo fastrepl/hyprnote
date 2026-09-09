@@ -125,7 +125,7 @@ fn handle_deep_link_url(url: &str, store: &Arc<Store>, cx: &mut App) {
     cx.activate(true);
     handle
         .update(cx, |workspace, window, cx| {
-            window.activate_window();
+            workspace::show_window(window);
             match incoming {
                 deeplink::Incoming::DeepLink(link) => workspace.handle_deep_link(link, cx),
                 deeplink::Incoming::ShareOpen(request) => {
@@ -212,7 +212,7 @@ fn open_main_window(store: Arc<Store>, cx: &mut App) -> anyhow::Result<WindowHan
     }
     // The window manager's close (`CloseRequested` on `AppWindow::Main`):
     // the frame is saved and the window hides behind the tray instead of
-    // closing (iconified, since gpui has no hide), like `Workspace::close_window`.
+    // closing, like `Workspace::close_window`.
     let close_identifier = identifier.clone();
     window
         .update(cx, |_, window, cx| {
@@ -221,7 +221,7 @@ fn open_main_window(store: Arc<Store>, cx: &mut App) -> anyhow::Result<WindowHan
                 if window.is_fullscreen() {
                     window.toggle_fullscreen();
                 }
-                window.minimize_window();
+                workspace::hide_window(window);
                 false
             });
         })
@@ -236,12 +236,12 @@ fn open_main_window(store: Arc<Store>, cx: &mut App) -> anyhow::Result<WindowHan
 fn handle_tray_action(action: tray::TrayAction, store: &Arc<Store>, cx: &mut App) {
     use tray::TrayAction;
     match action {
-        // gpui 0.2.2's X11 client stops the run loop once the last window
-        // closes, so `Hide` iconifies the window instead of unmapping it.
+        // `TrayHide`: `window.hide()`; the window stays open (gpui 0.2.2's
+        // X11 client stops the run loop once the last window closes).
         TrayAction::Hide => {
             if let Some(handle) = cx.global::<MainWindow>().handle {
                 handle
-                    .update(cx, |_, window, _| window.minimize_window())
+                    .update(cx, |_, window, _| workspace::hide_window(window))
                     .ok();
             }
         }
@@ -251,7 +251,7 @@ fn handle_tray_action(action: tray::TrayAction, store: &Arc<Store>, cx: &mut App
                 Some(handle) => {
                     handle
                         .update(cx, |workspace, window, cx| {
-                            window.activate_window();
+                            workspace::show_window(window);
                             workspace.confirm_quit_completely(window, cx);
                         })
                         .ok();
@@ -284,7 +284,7 @@ fn handle_tray_action(action: tray::TrayAction, store: &Arc<Store>, cx: &mut App
             cx.activate(true);
             handle
                 .update(cx, |workspace, window, cx| {
-                    window.activate_window();
+                    workspace::show_window(window);
                     match action {
                         TrayAction::Start => workspace.new_note_and_listen(cx),
                         TrayAction::Settings => {
@@ -317,7 +317,7 @@ fn handle_notification_open(opened: notifications::Opened, store: &Arc<Store>, c
     cx.activate(true);
     handle
         .update(cx, |workspace, window, cx| {
-            window.activate_window();
+            workspace::show_window(window);
             workspace.open_session_from_notification(opened.session_id, cx);
         })
         .ok();

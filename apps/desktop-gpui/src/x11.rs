@@ -1,15 +1,88 @@
-//! X11 window placement. gpui 0.2.2 creates the X window at the requested
-//! origin but never asks the window manager to honour it (no `PPosition`
-//! hint), so the manager places the window itself and a restored
-//! `.window-state.json` position is lost. Tauri's GTK window moves to its
-//! saved origin; the shell does the same with a `ConfigureWindow` on the
-//! mapped window, found through the `_NET_WM_PID` gpui stamps on it.
+//! X11 window placement, hiding and attention. gpui 0.2.2 creates the X
+//! window at the requested origin but never asks the window manager to
+//! honour it (no `PPosition` hint), so the manager places the window itself
+//! and a restored `.window-state.json` position is lost. Tauri's GTK window
+//! moves to its saved origin; the shell does the same with a
+//! `ConfigureWindow` on the mapped window, found through the `_NET_WM_PID`
+//! gpui stamps on it. gpui also has no `hide`, so the tray's hide/show is
+//! the ICCCM withdraw and a fresh map done here.
 
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::Duration;
 
 use x11rb::connection::Connection;
 use x11rb::properties::WmHints;
-use x11rb::protocol::xproto::{AtomEnum, ConfigureWindowAux, ConnectionExt, MapState, Window};
+use x11rb::protocol::xproto::{
+    AtomEnum, ConfigureWindowAux, ConnectionExt, EventMask, MapState, UNMAP_NOTIFY_EVENT,
+    UnmapNotifyEvent, Window,
+};
+
+/// The window withdrawn by [`withdraw`], mapped again by [`map_withdrawn`].
+static WITHDRAWN: AtomicU32 = AtomicU32::new(0);
+
+/// `window.hide()` as GTK does it: the ICCCM withdraw (unmap plus a
+/// synthetic `UnmapNotify` to the root) of this process's mapped `width` ×
+/// `height` window, so the window manager drops it from the taskbar and
+/// pager instead of iconifying it. `false` when there is no X server or no
+/// such window.
+pub fn withdraw(width: u32, height: u32) -> bool {
+    let result: anyhow::Result<bool> = (|| {
+        let (conn, screen) = x11rb::connect(None)?;
+        let root = conn.setup().roots[screen].root;
+        let pid_atom = conn.intern_atom(false, b"_NET_WM_PID")?.reply()?.atom;
+        let pid = std::process::id();
+        let Some(window) = find_window(&conn, root, pid_atom, pid, width, height)? else {
+            return Ok(false);
+        };
+        conn.unmap_window(window)?;
+        let notify = UnmapNotifyEvent {
+            response_type: UNMAP_NOTIFY_EVENT,
+            sequence: 0,
+            event: root,
+            window,
+            from_configure: false,
+        };
+        conn.send_event(
+            false,
+            root,
+            EventMask::SUBSTRUCTURE_REDIRECT | EventMask::SUBSTRUCTURE_NOTIFY,
+            notify,
+        )?;
+        conn.flush()?;
+        WITHDRAWN.store(window, Ordering::SeqCst);
+        tracing::debug!(window, "withdrew the main window");
+        Ok(true)
+    })();
+    match result {
+        Ok(withdrawn) => withdrawn,
+        Err(error) => {
+            tracing::debug!(%error, "x11 withdraw unavailable");
+            false
+        }
+    }
+}
+
+/// `window.show()`: maps the withdrawn window again (a no-op once it is
+/// mapped); the window manager places it like GTK's shown window.
+pub fn map_withdrawn() {
+    let window = WITHDRAWN.load(Ordering::SeqCst);
+    if window == 0 {
+        return;
+    }
+    let result: anyhow::Result<()> = (|| {
+        let (conn, _) = x11rb::connect(None)?;
+        conn.map_window(window)?;
+        // The round trip keeps the connection open until the server has
+        // handed the MapRequest to the window manager; a request still in
+        // flight when the connection closes is dropped.
+        conn.get_window_attributes(window)?.reply()?;
+        Ok(())
+    })();
+    match result {
+        Ok(()) => tracing::debug!(window, "mapped the withdrawn main window"),
+        Err(error) => tracing::debug!(%error, "x11 map unavailable"),
+    }
+}
 
 /// Moves this process's mapped top-level window of `width` × `height` to
 /// (`x`, `y`) once the window manager has shown it. Runs off the UI thread

@@ -667,8 +667,8 @@ impl Workspace {
 
     /// `on_window_event`'s `CloseRequested` for `AppWindow::Main`: the window
     /// leaves fullscreen and hides while the app stays alive behind the tray
-    /// (its frame saved first, like the window-state plugin's save); gpui has
-    /// no hide, so the window iconifies. A standalone note window closes.
+    /// (its frame saved first, like the window-state plugin's save). A
+    /// standalone note window closes.
     pub(crate) fn close_window(&self, window: &mut Window) {
         if self.is_standalone() {
             window.remove_window();
@@ -678,7 +678,7 @@ impl Workspace {
         if window.is_fullscreen() {
             window.toggle_fullscreen();
         }
-        window.minimize_window();
+        hide_window(window);
     }
 
     pub(crate) fn is_standalone(&self) -> bool {
@@ -2225,4 +2225,29 @@ impl Render for Workspace {
             .children(self.render_open_note_dialog(window, cx))
             .into_any_element()
     }
+}
+
+/// `window.hide()`: withdrawn on X11 so it leaves the taskbar like Tauri's
+/// GTK window; gpui has no hide, so elsewhere the window iconifies.
+pub(crate) fn hide_window(window: &mut Window) {
+    #[cfg(target_os = "linux")]
+    {
+        let size = window.viewport_size();
+        let scale = window.scale_factor();
+        if crate::x11::withdraw(
+            (f32::from(size.width) * scale).round() as u32,
+            (f32::from(size.height) * scale).round() as u32,
+        ) {
+            return;
+        }
+    }
+    window.minimize_window();
+}
+
+/// `window.show()` + `set_focus()`: maps a hidden window again and raises
+/// it.
+pub(crate) fn show_window(window: &mut Window) {
+    #[cfg(target_os = "linux")]
+    crate::x11::map_withdrawn();
+    window.activate_window();
 }

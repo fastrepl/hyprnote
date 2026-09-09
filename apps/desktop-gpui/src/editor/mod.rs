@@ -6,6 +6,8 @@ pub mod clip;
 pub mod links;
 pub mod mention_picker;
 pub mod model;
+pub mod paste;
+pub mod pm;
 pub mod rules;
 pub mod tasks;
 
@@ -1539,15 +1541,103 @@ impl BodyEditor {
             cx.emit(EditorEvent::Files(files));
             return;
         }
-        if let Some(text) = item.text() {
-            if self.paste_clip(&text, cx) {
-                return;
-            }
+        let text = item.text();
+        // `clipPastePlugin.handlePaste` reads the plain text first.
+        if let Some(text) = text.as_deref()
+            && self.paste_clip(text, cx)
+        {
+            return;
+        }
+        // `parseFromClipboard`: the HTML is used unless the caret sits in a
+        // code block (`inCode`) or the clipboard carries none.
+        let in_code = self
+            .caret
+            .is_some_and(|caret| self.doc.block_type(caret.block).as_deref() == Some("codeBlock"));
+        if !in_code
+            && let Some(html) = paste::clipboard_html()
+            && self.paste_html(&html, cx)
+        {
+            return;
+        }
+        if let Some(text) = text {
             self.record_edit(EditKind::Structural);
             self.pasting = true;
             self.replace_text_in_range(None, &text, window, cx);
             self.pasting = false;
         }
+    }
+
+    /// `doPaste` with the clipboard's HTML: the slice `parseFromClipboard`
+    /// builds replaces the selection like `replaceSelection`, the caret
+    /// lands at the insertion end, and the autolink plugins run over the
+    /// textblocks the paste touched. `false` when the HTML yields nothing
+    /// (the text is pasted instead), `true` once handled.
+    fn paste_html(&mut self, html: &str, cx: &mut Context<Self>) -> bool {
+        self.doc.ensure_textblock();
+        let schema = pm::schema::schema();
+        let Some(doc) = pm::node::Node::from_json(schema, self.doc.root()) else {
+            return false;
+        };
+        let caret = self.caret.unwrap_or(Caret {
+            block: 0,
+            offset: 0,
+        });
+        let anchor = self.anchor.unwrap_or(caret);
+        let (from_caret, to_caret) = model::order(anchor, caret);
+        let (Some(from), Some(to)) = (
+            paste::position(&doc, from_caret),
+            paste::position(&doc, to_caret),
+        ) else {
+            return false;
+        };
+        let context = doc.resolve(from);
+        let Some(slice) = pm::clipboard::parse_from_clipboard(schema, html, &context) else {
+            return false;
+        };
+        let Some(pasted) = pm::clipboard::paste(schema, &doc, from, to, &slice) else {
+            return true;
+        };
+        let end = match pasted.selection {
+            pm::clipboard::SelectionEnd::Text(pos) => Some(pos),
+            pm::clipboard::SelectionEnd::Node { to, .. } => {
+                pm::clipboard::near_text(schema, &pasted.doc, to, 1)
+            }
+        };
+        let new_caret = end.and_then(|pos| paste::caret(&pasted.doc, pos));
+        self.record_edit(EditKind::Structural);
+        self.doc.replace_root(pasted.doc.to_json(schema));
+        let new_caret = new_caret.unwrap_or(Caret {
+            block: from_caret
+                .block
+                .min(self.doc.textblock_count().saturating_sub(1)),
+            offset: 0,
+        });
+        self.caret = Some(new_caret);
+        self.anchor = None;
+        self.stored_marks = None;
+        // `autolinkPlugin` / `linkBoundaryGuardPlugin` over the changed
+        // textblocks: the pasted range of the first and last, all of the rest.
+        for block in from_caret.block
+            ..=new_caret
+                .block
+                .min(self.doc.textblock_count().saturating_sub(1))
+        {
+            let len = self.doc.text(block).len();
+            let start = if block == from_caret.block {
+                from_caret.offset.min(len)
+            } else {
+                0
+            };
+            let end = if block == new_caret.block {
+                new_caret.offset.min(len)
+            } else {
+                len
+            };
+            self.doc.maintain_links(block, start..end.max(start));
+        }
+        self.layouts = vec![None; self.doc.textblock_count()];
+        self.changed(cx);
+        true
     }
 
     /// `handleDrop`: the caret moves to `posAtCoords` of the drop, then the

@@ -5475,9 +5475,11 @@ dependencies = [
  "gpui",
  "gtk",
  "hound",
+ "html5ever 0.29.1",
  "iana-time-zone",
  "image",
  "keyring",
+ "kuchikiki",
  "language",
  "libloading 0.8.9",
  "listener-core",
@@ -5514,6 +5516,7 @@ dependencies = [
  "url",
  "uuid",
  "voiceprint-service",
+ "x11-clipboard",
  "x11rb",
 ]
 

@@ -111,3 +111,52 @@ fn find_window(
     }
     Ok(None)
 }
+
+/// `clipboardData.getData("text/html")`: the `text/html` target of the
+/// CLIPBOARD selection, which gpui's clipboard (text and images) does not
+/// read. `None` when the owner offers no HTML or does not answer in time.
+pub fn clipboard_html() -> Option<String> {
+    use std::sync::{Mutex, OnceLock};
+    use x11_clipboard::Clipboard;
+    static CLIPBOARD: OnceLock<Option<Mutex<Clipboard>>> = OnceLock::new();
+    let clipboard = CLIPBOARD
+        .get_or_init(|| match Clipboard::new() {
+            Ok(clipboard) => Some(Mutex::new(clipboard)),
+            Err(error) => {
+                tracing::debug!(%error, "x11 clipboard unavailable");
+                None
+            }
+        })
+        .as_ref()?;
+    let clipboard = clipboard.lock().ok()?;
+    let target = clipboard.getter.get_atom("text/html").ok()?;
+    let bytes = clipboard
+        .load(
+            clipboard.getter.atoms.clipboard,
+            target,
+            clipboard.getter.atoms.property,
+            Duration::from_millis(250),
+        )
+        .ok()?;
+    if bytes.is_empty() {
+        return None;
+    }
+    // Some owners hand out UTF-16 with a byte-order mark.
+    let text = match bytes.as_slice() {
+        [0xff, 0xfe, rest @ ..] => String::from_utf16_lossy(
+            &rest
+                .chunks_exact(2)
+                .map(|pair| u16::from_le_bytes([pair[0], pair[1]]))
+                .collect::<Vec<_>>(),
+        ),
+        [0xfe, 0xff, rest @ ..] => String::from_utf16_lossy(
+            &rest
+                .chunks_exact(2)
+                .map(|pair| u16::from_be_bytes([pair[0], pair[1]]))
+                .collect::<Vec<_>>(),
+        ),
+        _ => String::from_utf8_lossy(&bytes).into_owned(),
+    };
+    let text = text.trim_end_matches('\0').to_string();
+    (!text.trim().is_empty()).then_some(text)
+}

@@ -46,9 +46,11 @@ dirs = { workspace = true }
 futures-util = { workspace = true }
 gpui = { workspace = true }
 hound = { workspace = true }
+html5ever = "0.29"
 iana-time-zone = "0.1"
 image = { workspace = true, features = ["gif", "jpeg", "png"] }
 keyring = { workspace = true }
+kuchikiki = "0.8.8-speedreader"
 mime_guess = "2"
 pico-args = { workspace = true }
 ractor = { workspace = true, features = ["async-trait"] }
@@ -72,6 +74,7 @@ uuid = { workspace = true, features = ["v4"] }
 gtk = "0.18"
 libloading = { workspace = true }
 tray-icon = { version = "0.24.2", default-features = false, features = ["gtk"] }
+x11-clipboard = "0.9.3"
 x11rb = "0.13.1"
 
 [dev-dependencies]

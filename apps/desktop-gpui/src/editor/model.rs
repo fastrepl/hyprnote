@@ -42,6 +42,12 @@ impl Doc {
         serde_json::to_string(&self.root).expect("json value serialises")
     }
 
+    /// Swaps in a whole document (the result of a ProseMirror transform).
+    pub fn replace_root(&mut self, root: Value) {
+        self.root = root;
+        self.reindex();
+    }
+
     pub fn root(&self) -> &Value {
         &self.root
     }

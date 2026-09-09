@@ -419,7 +419,8 @@ impl DocumentRenderer {
                             (
                                 editor
                                     .caret()
-                                    .filter(|caret| caret.block == index && focused),
+                                    .filter(|caret| caret.block == index && focused)
+                                    .map(|caret| (caret, editor.caret_upstream())),
                                 editor.selection_in_block(index).filter(|_| focused),
                                 editor.search_ranges_in_block(index),
                             )
@@ -449,8 +450,9 @@ impl DocumentRenderer {
                         if let Some(range) = selection {
                             paint_selection(&layout, range, selection_color, window);
                         }
-                        if let Some(caret) = caret
-                            && let Some(position) = layout.position_for_index(caret.offset)
+                        if let Some((caret, upstream)) = caret
+                            && let Some(position) =
+                                layout.position_for_index_biased(caret.offset, upstream)
                         {
                             window.paint_quad(fill(
                                 gpui::Bounds::new(position, size(px(1.0), layout.line_height())),

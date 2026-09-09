@@ -58,6 +58,8 @@ struct Line {
     range: Range<usize>,
     /// Bytes of hanging whitespace (and the forced break) at the end.
     hanging: usize,
+    /// The line ends at a forced break (`\n`) rather than a soft wrap.
+    forced_break: bool,
     /// Shaped without a wrap width; `shape_text` keeps a font per run where
     /// `shape_line` would merge runs that only differ in font.
     shaped: WrappedLine,
@@ -131,6 +133,16 @@ impl ProseText {
     }
 }
 
+/// A caret's visual line (`line_edges_for_index`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LineEdges {
+    pub start: usize,
+    /// The logical end: after collapsed trailing spaces, before a forced break.
+    pub end: usize,
+    /// `end` is a soft-wrap boundary the next line starts at.
+    pub soft_wrap: bool,
+}
+
 impl ProseLayout {
     pub fn line_height(&self) -> Pixels {
         self.0
@@ -144,14 +156,50 @@ impl ProseLayout {
     /// on a wrap boundary belongs to the start of the next line, like a
     /// downstream caret affinity.
     pub fn position_for_index(&self, index: usize) -> Option<Point<Pixels>> {
+        self.position_for_index_biased(index, false)
+    }
+
+    /// The visual line a caret at `index` sits on. An index on a soft-wrap
+    /// boundary belongs to the next line (downstream) unless `upstream`,
+    /// WebKit's affinity for a caret placed at the end of a wrapped line.
+    fn line_index_for(inner: &Inner, index: usize, upstream: bool) -> Option<usize> {
+        let found = inner.lines.iter().position(|line| {
+            if upstream {
+                index <= line.range.end
+            } else {
+                index < line.range.end
+            }
+        });
+        found.or_else(|| inner.lines.len().checked_sub(1))
+    }
+
+    /// `startOfLine` / `endOfLine` of the caret's visual line: the logical
+    /// end is after the line's collapsed trailing spaces (before a forced
+    /// break), which on a soft wrap is also where the next line starts.
+    pub fn line_edges_for_index(&self, index: usize, upstream: bool) -> Option<LineEdges> {
+        let inner = self.0.borrow();
+        let inner = inner.as_ref()?;
+        let line_ix = Self::line_index_for(inner, index, upstream)?;
+        let line = inner.lines.get(line_ix)?;
+        Some(Self::edges_of(inner, line_ix, line))
+    }
+
+    fn edges_of(inner: &Inner, line_ix: usize, line: &Line) -> LineEdges {
+        LineEdges {
+            start: line.range.start,
+            end: line.range.end - usize::from(line.forced_break),
+            soft_wrap: !line.forced_break && line_ix + 1 < inner.lines.len(),
+        }
+    }
+
+    /// `position_for_index` with the caret's affinity: an upstream caret on a
+    /// soft-wrap boundary draws at the end of the wrapped line, after the
+    /// advance of its hanging space like WebKit's `pre-wrap` caret.
+    pub fn position_for_index_biased(&self, index: usize, upstream: bool) -> Option<Point<Pixels>> {
         let inner = self.0.borrow();
         let inner = inner.as_ref()?;
         let bounds = inner.bounds?;
-        let line_ix = inner
-            .lines
-            .iter()
-            .position(|line| index < line.range.end)
-            .unwrap_or(inner.lines.len().saturating_sub(1));
+        let line_ix = Self::line_index_for(inner, index, upstream)?;
         let line = inner.lines.get(line_ix)?;
         let local = index.saturating_sub(line.range.start).min(line.range.len());
         let x = line.shaped.unwrapped_layout.x_for_index(local);
@@ -159,6 +207,47 @@ impl ProseLayout {
             bounds.left() + x,
             bounds.top() + inner.line_height * line_ix as f32,
         ))
+    }
+
+    /// Where a click at a window position puts the caret, and whether the
+    /// caret takes upstream affinity: past the end of a soft-wrapped line
+    /// WebKit lands after the collapsed trailing space, drawn at that line's
+    /// end (typing there continues the next line).
+    pub fn caret_for_point(&self, position: Point<Pixels>) -> (usize, bool) {
+        let inner = self.0.borrow();
+        let Some(inner) = inner.as_ref() else {
+            return (0, false);
+        };
+        let Some(bounds) = inner.bounds else {
+            return (0, false);
+        };
+        if inner.lines.is_empty() {
+            return (0, false);
+        }
+        let y = position.y - bounds.top();
+        if y < px(0.0) {
+            return (0, false);
+        }
+        let line_ix = (f32::from(y) / f32::from(inner.line_height)).floor() as usize;
+        if line_ix >= inner.lines.len() {
+            let last_ix = inner.lines.len() - 1;
+            return (
+                Self::edges_of(inner, last_ix, &inner.lines[last_ix]).end,
+                false,
+            );
+        }
+        let line = &inner.lines[line_ix];
+        let x = position.x - bounds.left();
+        if x < px(0.0) {
+            return (line.range.start, false);
+        }
+        match line.shaped.unwrapped_layout.index_for_x(x) {
+            Some(local) => (line.range.start + local, false),
+            None => {
+                let edges = Self::edges_of(inner, line_ix, line);
+                (edges.end, edges.soft_wrap)
+            }
+        }
     }
 
     /// The character at a window position: `Ok` when the point is over the
@@ -581,6 +670,7 @@ fn break_lines(
         lines.push(Line {
             range: start..end,
             hanging,
+            forced_break: newline == 1,
             shaped,
         });
         start = end;

@@ -245,6 +245,10 @@ pub struct BodyEditor {
     /// The editor root's width (`.ProseMirror`), the resize maximum.
     root_width: Option<Pixels>,
     image_resize: Option<ImageResize>,
+    /// The caret this position was placed with upstream affinity: at the end
+    /// of a soft-wrapped line (End, a click past the line's end), after its
+    /// collapsed trailing space but drawn on that line, like WebKit.
+    upstream_at: Option<Caret>,
 }
 
 /// The find bar's query as `setSearch` / `replace` hand it to the editor.
@@ -288,6 +292,7 @@ impl BodyEditor {
             image_bounds: Vec::new(),
             root_width: None,
             image_resize: None,
+            upstream_at: None,
         }
     }
 
@@ -575,6 +580,7 @@ impl BodyEditor {
             self.anchor = None;
         }
         self.caret = Some(head);
+        self.upstream_at = None;
         self.stored_marks = None;
         self.refresh_mention();
         cx.notify();
@@ -764,26 +770,29 @@ impl BodyEditor {
     pub fn caret_position(&self) -> Option<(Point<Pixels>, Pixels)> {
         let caret = self.caret?;
         let (layout, _) = self.layouts.get(caret.block)?.as_ref()?;
-        let position = layout.position_for_index(caret.offset)?;
+        let position = layout.position_for_index_biased(caret.offset, self.caret_upstream())?;
         Some((position, layout.line_height()))
     }
 
-    fn caret_for_position(&self, block: usize, position: Point<Pixels>) -> Caret {
-        let offset = self
+    /// The caret sits on a soft-wrap boundary with upstream affinity.
+    pub fn caret_upstream(&self) -> bool {
+        self.caret.is_some() && self.upstream_at == self.caret
+    }
+
+    /// The caret a click at `position` places, and whether it takes
+    /// upstream affinity (past the end of a soft-wrapped line).
+    fn caret_for_position(&self, block: usize, position: Point<Pixels>) -> (Caret, bool) {
+        let (offset, upstream) = self
             .layouts
             .get(block)
             .and_then(Option::as_ref)
-            .map(|(layout, _)| match layout.index_for_position(position) {
-                Ok(index) | Err(index) => index,
-            })
-            .unwrap_or(0);
+            .map(|(layout, _)| layout.caret_for_point(position))
+            .unwrap_or((0, false));
         let block = block.min(self.doc.textblock_count().saturating_sub(1));
         let text = self.doc.text(block);
-        let offset = snap(&text, offset.min(text.len()));
-        Caret {
-            block,
-            offset: self.doc.snap_out_of_atoms(block, offset, 0),
-        }
+        let snapped = snap(&text, offset.min(text.len()));
+        let offset = self.doc.snap_out_of_atoms(block, snapped, 0);
+        (Caret { block, offset }, upstream && offset == snapped)
     }
 
     /// Mouse down in a textblock: place the caret (shift extends) and start a
@@ -799,7 +808,7 @@ impl BodyEditor {
         cx: &mut Context<Self>,
     ) {
         self.doc.ensure_textblock();
-        let head = self.caret_for_position(block, position);
+        let (head, upstream) = self.caret_for_position(block, position);
         match click_count {
             2 => {
                 let text = self.doc.text(block);
@@ -826,7 +835,10 @@ impl BodyEditor {
                 self.set_head(Caret { block, offset: 0 }, false, cx);
                 self.set_head(Caret { block, offset: end }, true, cx);
             }
-            _ => self.set_head(head, extend, cx),
+            _ => {
+                self.set_head(head, extend, cx);
+                self.upstream_at = upstream.then_some(head);
+            }
         }
         self.is_selecting = true;
         self.focus_handle.focus(window);
@@ -837,9 +849,10 @@ impl BodyEditor {
         if !self.is_selecting {
             return;
         }
-        let head = self.caret_for_position(block, position);
+        let (head, upstream) = self.caret_for_position(block, position);
         if self.caret != Some(head) {
             self.set_head(head, true, cx);
+            self.upstream_at = upstream.then_some(head);
         }
     }
 
@@ -1148,12 +1161,15 @@ impl BodyEditor {
             .get(caret.block)
             .and_then(Option::as_ref)
             .filter(|(_, bounds)| target_y >= bounds.top() && target_y < bounds.bottom())
-            .map(|(layout, _)| layout.index_for_position(Point::new(position.x, target_y)));
-        let next = match within {
-            Some(Ok(index) | Err(index)) => Caret {
-                block: caret.block,
-                offset: index,
-            },
+            .map(|(layout, _)| layout.caret_for_point(Point::new(position.x, target_y)));
+        let (next, upstream) = match within {
+            Some((index, upstream)) => (
+                Caret {
+                    block: caret.block,
+                    offset: index,
+                },
+                upstream,
+            ),
             None => {
                 let block = if delta < 0 {
                     if caret.block == 0 {
@@ -1175,21 +1191,25 @@ impl BodyEditor {
                 } else {
                     bounds.top() + line_height / 2.0
                 };
-                let index = match layout.index_for_position(Point::new(position.x, y)) {
-                    Ok(index) | Err(index) => index,
-                };
-                Caret {
-                    block,
-                    offset: index,
-                }
+                let (index, upstream) = layout.caret_for_point(Point::new(position.x, y));
+                (
+                    Caret {
+                        block,
+                        offset: index,
+                    },
+                    upstream,
+                )
             }
         };
         let text = self.doc.text(next.block);
+        let snapped = snap(&text, next.offset.min(text.len()));
+        let upstream = upstream && snapped == next.offset;
         let next = Caret {
             block: next.block,
-            offset: snap(&text, next.offset.min(text.len())),
+            offset: snapped,
         };
         self.set_head(next, extend, cx);
+        self.upstream_at = upstream.then_some(next);
     }
 
     fn on_left(&mut self, _: &Left, _: &mut Window, cx: &mut Context<Self>) {
@@ -1483,21 +1503,30 @@ impl BodyEditor {
     }
 
     /// Home / End (with Shift extending) to the textblock's edge.
+    /// Home / End: WebKit's `startOfLine` / `endOfLine` — the visual line the
+    /// caret sits on (a wrapped line or one ended by a hard break), the
+    /// whole textblock before it has been laid out.
     fn move_to_line_edge(&mut self, end: bool, extend: bool, cx: &mut Context<Self>) {
         if let Some(caret) = self.caret {
-            let offset = if end {
-                self.doc.text(caret.block).len()
-            } else {
-                0
+            let edges = self
+                .layouts
+                .get(caret.block)
+                .and_then(|layout| layout.as_ref())
+                .and_then(|(layout, _)| {
+                    layout.line_edges_for_index(caret.offset, self.caret_upstream())
+                });
+            let (offset, upstream) = match (edges, end) {
+                (Some(edges), true) => (edges.end, edges.soft_wrap),
+                (Some(edges), false) => (edges.start, false),
+                (None, true) => (self.doc.text(caret.block).len(), false),
+                (None, false) => (0, false),
             };
-            self.set_head(
-                Caret {
-                    block: caret.block,
-                    offset,
-                },
-                extend,
-                cx,
-            );
+            let head = Caret {
+                block: caret.block,
+                offset,
+            };
+            self.set_head(head, extend, cx);
+            self.upstream_at = upstream.then_some(head);
         }
     }
 
@@ -1668,7 +1697,7 @@ impl BodyEditor {
             })
             .map(|(index, _)| index)
             .unwrap_or(0);
-        let head = self.caret_for_position(block, position);
+        let (head, _) = self.caret_for_position(block, position);
         self.set_head(head, false, cx);
         cx.emit(EditorEvent::Dropped(paths));
     }
@@ -1697,7 +1726,7 @@ impl BodyEditor {
             })
             .map(|(index, _)| index)
             .unwrap_or(0);
-        let head = self.caret_for_position(block, position);
+        let (head, _) = self.caret_for_position(block, position);
         self.record_edit(EditKind::Structural);
         let caret = self
             .doc

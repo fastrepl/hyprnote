@@ -497,6 +497,10 @@ msgid "Anarlog could not start cloud sync on this device."
 msgstr "Anarlog could not start cloud sync on this device."
 
 #: src/settings/sync/index.tsx
+msgid "Anarlog could not start cloud sync on this device. It will keep retrying."
+msgstr "Anarlog could not start cloud sync on this device. It will keep retrying."
+
+#: src/settings/sync/index.tsx
 msgid "Anarlog couldn't complete this sync. Your notes are safe on this device."
 msgstr "Anarlog couldn't complete this sync. Your notes are safe on this device."
 
@@ -5244,6 +5248,10 @@ msgstr "This device"
 msgid "This device will start syncing after you approve it from another signed-in device."
 msgstr "This device will start syncing after you approve it from another signed-in device."
 
+#: src/settings/sync/index.tsx
+msgid "This device's clock is wrong. Fix the date and time, and sync will continue automatically."
+msgstr "This device's clock is wrong. Fix the date and time, and sync will continue automatically."
+
 #: src/edit/tab-content.tsx
 msgid "This edit is no longer pending."
 msgstr "This edit is no longer pending."
@@ -5848,6 +5856,10 @@ msgstr "Your notes and recordings are safe. Upgrade anytime to keep cloud transc
 #: src/settings/sync/index.tsx
 msgid "Your notes remain available locally."
 msgstr "Your notes remain available locally."
+
+#: src/settings/sync/index.tsx
+msgid "Your notes remain available locally. Anarlog will keep retrying."
+msgstr "Your notes remain available locally. Anarlog will keep retrying."
 
 #: src/settings/sync/index.tsx
 msgid "Your notes remain available locally. Try again in a moment."

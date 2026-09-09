@@ -49,7 +49,9 @@ export const DEVICE_LIMIT_ERROR_CODE = "sync_device_limit_reached";
 export const DEVICE_LIMIT_TOAST_ID = "cloudsync-device-limit";
 
 export type CloudsyncCredentialBlock =
+  | "activation_failed"
   | "approval_pending"
+  | "clock_skew"
   | "device_limit"
   | "identity_mismatch"
   | "keychain_access"

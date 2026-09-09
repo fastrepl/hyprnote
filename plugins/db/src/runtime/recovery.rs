@@ -34,6 +34,7 @@ pub(super) struct CloudsyncFullResyncSchedule {
     pub(super) generation: Option<String>,
     pub(super) recovery_delayed: bool,
     pub(super) last_progress_at: Option<std::time::Instant>,
+    pub(super) last_error: Option<String>,
 }
 
 #[derive(Clone, Copy)]
@@ -74,6 +75,7 @@ impl CloudsyncFullResyncSchedule {
         self.generation = Some(generation.to_string());
         self.recovery_delayed = false;
         self.last_progress_at = Some(std::time::Instant::now());
+        self.last_error = None;
     }
 
     pub(super) fn is_active(&self, generation: &str) -> bool {
@@ -84,6 +86,7 @@ impl CloudsyncFullResyncSchedule {
         self.generation = None;
         self.recovery_delayed = false;
         self.last_progress_at = None;
+        self.last_error = None;
     }
 
     fn complete(&mut self, generation: &str) {
@@ -96,12 +99,22 @@ impl CloudsyncFullResyncSchedule {
         if self.is_active(generation) {
             self.recovery_delayed = false;
             self.last_progress_at = Some(std::time::Instant::now());
+            self.last_error = None;
         }
     }
 
-    pub(super) fn mark_failure(&mut self, generation: &str) {
+    pub(super) fn mark_failure(&mut self, generation: &str, error: &str) {
         if self.is_active(generation) {
             self.recovery_delayed = true;
+            self.last_error = Some(error.to_string());
+        }
+    }
+
+    pub(super) fn last_error(&self, generation: &str) -> Option<String> {
+        if self.is_active(generation) {
+            self.last_error.clone()
+        } else {
+            None
         }
     }
 
@@ -175,6 +188,8 @@ impl PluginDbRuntime {
                 }
 
                 let recovery_cancelled = std::sync::atomic::AtomicBool::new(false);
+                let current_phase =
+                    std::sync::Mutex::new(None::<anlg_db_app::CloudsyncRecoveryPhase>);
                 let witness_cancellation = crate::e2ee_witness::E2eeWitnessCancellation::default();
                 let mut recovery_step = Box::pin(async {
                     #[cfg(test)]
@@ -209,6 +224,7 @@ impl PluginDbRuntime {
                         )
                         .into());
                     }
+                    *current_phase.lock().unwrap() = Some(state.phase);
                     if !matches!(
                         state.phase,
                         anlg_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair
@@ -765,8 +781,21 @@ impl PluginDbRuntime {
                             .expect("completed CloudSync recovery already returned")
                     }
                     Err(error) => {
-                        scheduled.lock().unwrap().mark_failure(&generation);
-                        tracing::warn!(%error, "CloudSync recovery remains pending");
+                        let phase = *current_phase.lock().unwrap();
+                        let message = match phase {
+                            Some(phase) => format!("{phase:?}: {error}"),
+                            None => error.to_string(),
+                        };
+                        scheduled
+                            .lock()
+                            .unwrap()
+                            .mark_failure(&generation, &message);
+                        tracing::warn!(
+                            %error,
+                            phase = ?phase,
+                            generation = %generation,
+                            "CloudSync recovery remains pending"
+                        );
                         CLOUDSYNC_FULL_RESYNC_RETRY_INTERVAL
                     }
                 };

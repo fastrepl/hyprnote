@@ -672,7 +672,7 @@ async fn activity_release_does_not_hide_a_recovery_failure() {
     {
         let mut schedule = runtime.scheduled_cloudsync_full_resync.lock().unwrap();
         schedule.claim("generation-1");
-        schedule.mark_failure("generation-1");
+        schedule.mark_failure("generation-1", "witness timed out");
     }
 
     runtime

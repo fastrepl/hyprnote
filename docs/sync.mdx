@@ -56,11 +56,15 @@ The key is shown only during setup. Clipboard copies clear after 60 seconds when
 
 ## Add another device
 
-1. Install Anarlog and sign in with the same account.
-2. Open **Settings → Sync** and turn on Cloud sync.
-3. Choose the option to enter an existing recovery key.
-4. Paste the key from your password manager, then wait for the first sync to finish.
+You do not need to type the recovery key on a new device. An existing device approves it instead.
+
+1. Install Anarlog and sign in with the same account on the new device.
+2. Open **Settings → Sync** and turn on Cloud sync. The status shows **Waiting for device approval**.
+3. On a device that already syncs, open **Settings → Sync**. The new device appears under **Devices**; click **Approve**.
+4. Return to the new device. It receives its key automatically, shows **Restoring cloud sync...** while it downloads your notes, and then **Synced**. Keep the app open until this finishes.
 5. Re-enter any Transcription or Intelligence API keys you use on this computer, then select those models under **Settings → Transcription** and **Settings → Intelligence**.
+
+If none of your approved devices is available, click **Use recovery key instead** on the new device and paste the key from your password manager.
 
 One account can sync up to five devices. If you reach the limit, remove an unused device before enabling sync on another one.
 
@@ -93,9 +97,25 @@ Use **Change** instead of moving or deleting the storage folder manually. If the
 ## Fix a blocked sync
 
 - **Setup required:** Create a recovery key or enter the key from an existing device.
+- **Waiting for device approval:** Approve the new device from a device that already syncs, or use the recovery key.
 - **Sign in again:** Sign out and sign back in, then resume sync.
 - **Identity mismatch:** Sign in again with the account that owns the synced notes. Check Sync settings before changing local files.
 - **Device limit reached:** Remove an unused device, then try again.
 - **macOS Keychain error:** Open **Settings → Sync**, click **Repair Keychain Access**, and resume sync.
+
+## Sync stays on Connecting or Cloud sync delayed
+
+Both states mean Anarlog is still retrying in the background. Your notes remain available locally.
+
+- **Connecting...** means this device has not finished setting up encrypted sync. It usually clears within a minute. If it does not, Anarlog shows **Sync needs attention** with the underlying error below the status.
+- **Cloud sync delayed** means this device is rebuilding its synced copy and a step keeps failing. The failing step and error appear below the status.
+
+To fix it:
+
+1. Check that the device is online and that a firewall, VPN, or proxy is not blocking `api.anarlog.so`.
+2. Check the date and time on this device. A wrong clock makes sync credentials expire immediately; Anarlog reports this as a clock problem.
+3. Keep Anarlog open. A large first download can take several minutes and resumes if the app was closed.
+4. Turn Cloud sync off and on again from **Settings → Sync**.
+5. If it still does not clear, open **Settings → Sync**, expand **Sync log**, and email [founders@anarlog.so](mailto:founders@anarlog.so) with the status text, the error shown under it, and the log entries.
 
 If sync is paused during recording or an import, let that activity finish. Anarlog resumes background sync when it is safe to do so.

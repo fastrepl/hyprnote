@@ -160,15 +160,25 @@ fn full_resync_schedule_tracks_generation_until_cancelled() {
     assert!(schedule.is_delayed("generation-1"));
     schedule.mark_progress("generation-1");
     assert!(!schedule.is_delayed("generation-1"));
-    schedule.mark_failure("generation-1");
+    schedule.mark_failure("generation-1", "NeedCleanReceive: witness timed out");
     assert!(schedule.is_delayed("generation-1"));
+    assert_eq!(
+        schedule.last_error("generation-1").as_deref(),
+        Some("NeedCleanReceive: witness timed out")
+    );
+    assert_eq!(schedule.last_error("generation-2"), None);
     schedule.mark_progress("generation-1");
     assert!(!schedule.is_delayed("generation-1"));
+    assert_eq!(schedule.last_error("generation-1"), None);
+    schedule.mark_failure("generation-1", "again");
     schedule.claim("generation-1");
     assert!(schedule.is_active("generation-1"));
+    assert_eq!(schedule.last_error("generation-1"), None);
 
+    schedule.mark_failure("generation-1", "again");
     schedule.cancel();
     assert!(!schedule.is_active("generation-1"));
+    assert_eq!(schedule.last_error("generation-1"), None);
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))]

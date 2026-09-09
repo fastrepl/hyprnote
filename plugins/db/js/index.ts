@@ -142,7 +142,10 @@ export type CloudsyncStatus = {
     | "need_clean_receive"
     | "need_witness_repair"
     | "need_barrier_cleanup"
+    | "need_transport_resume"
     | null;
+  recovery_error?: string | null;
+  configuration_error?: string | null;
   activity_log?: CloudsyncActivityEntry[];
 };
 

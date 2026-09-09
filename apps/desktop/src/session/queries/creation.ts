@@ -295,6 +295,7 @@ function eventParticipantStatements(
   const seenEmails = new Set<string>();
 
   for (const participant of participants) {
+    if (participant.is_current_user === true) continue;
     const email = participant.email?.trim();
     if (!email) continue;
     const emailKey = email.toLowerCase();
@@ -312,6 +313,7 @@ function eventParticipantStatements(
           SELECT ?, session.workspace_id, session.owner_user_id, ?, ?, ?, ?, NULL
           FROM sessions AS session
           WHERE session.id = ? AND session.deleted_at IS NULL
+            AND ? <> session.owner_user_id
             AND NOT EXISTS (
               SELECT 1
               FROM humans
@@ -325,6 +327,7 @@ function eventParticipantStatements(
           now,
           now,
           sessionId,
+          humanId,
           email,
         ],
       });
@@ -340,10 +343,32 @@ function eventParticipantStatements(
           ?, ?, ?, 'auto', ?, ?, NULL
         FROM sessions AS session
         WHERE session.id = ? AND session.deleted_at IS NULL
+          AND ? <> session.owner_user_id
           AND NOT EXISTS (
             SELECT 1
-            FROM session_participants
-            WHERE session_id = session.id AND human_id = ? AND deleted_at IS NULL
+            FROM humans AS owner
+            WHERE owner.id = session.owner_user_id
+              AND owner.deleted_at IS NULL
+              AND NULLIF(lower(owner.email), '') IS NOT NULL
+              AND lower(owner.email) = lower(?)
+          )
+          AND NOT EXISTS (
+            SELECT 1
+            FROM session_participants AS existing
+            WHERE existing.session_id = session.id
+              AND existing.deleted_at IS NULL
+              AND (
+                existing.human_id = ?
+                OR (
+                  existing.human_id = session.owner_user_id
+                  AND NULLIF(lower(existing.email), '') IS NOT NULL
+                  AND lower(existing.email) = lower(?)
+                )
+                OR (
+                  NULLIF(lower(existing.email), '') IS NOT NULL
+                  AND lower(existing.email) = lower(?)
+                )
+              )
           )
       `,
       params: [
@@ -355,6 +380,10 @@ function eventParticipantStatements(
         now,
         sessionId,
         humanId,
+        email,
+        humanId,
+        email,
+        email,
       ],
     });
   }

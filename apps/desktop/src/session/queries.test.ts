@@ -115,6 +115,42 @@ describe("session SQLite operations", () => {
     expect(statements[0]?.params).toContain("alice@example.com");
   });
 
+  it("does not attach the calendar self copy to an existing event note", async () => {
+    mocks.execute
+      .mockResolvedValueOnce([
+        {
+          ...event,
+          participants_json: JSON.stringify([
+            {
+              name: "John",
+              email: "john@example.com",
+              is_current_user: true,
+            },
+            { name: "Artem", email: "artem@example.com" },
+          ]),
+        },
+      ])
+      .mockResolvedValueOnce([{ id: "session-existing" }])
+      .mockResolvedValueOnce([]);
+
+    await expect(getOrCreateSessionForEventId("event-1")).resolves.toBe(
+      "session-existing",
+    );
+
+    const statements = mocks.executeTransaction.mock.calls[0][0] as Array<{
+      sql: string;
+      params: unknown[];
+    }>;
+    const params = statements.flatMap((statement) => statement.params);
+    expect(params).toContain("artem@example.com");
+    expect(params).not.toContain("john@example.com");
+    expect(
+      statements.every((statement) =>
+        statement.sql.includes("? <> session.owner_user_id"),
+      ),
+    ).toBe(true);
+  });
+
   it("commits title and raw note changes in one ordered transaction", async () => {
     mocks.executeTransaction.mockResolvedValueOnce([1, 1]);
 

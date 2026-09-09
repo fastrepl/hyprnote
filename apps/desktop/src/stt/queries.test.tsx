@@ -298,6 +298,7 @@ describe("transcript SQLite queries", () => {
     expect(mocks.queryOptions[0]?.sql).toContain("deleted_at IS NULL");
     expect(mocks.queryOptions[0]?.sql).toContain("source <> 'excluded'");
     expect(mocks.queryOptions[0]?.sql).toContain("owner_user_id");
+    expect(mocks.queryOptions[0]?.sql).toContain("owner_participant");
     expect(mocks.queryOptions[0]?.sql).toContain(
       "COALESCE(NULLIF(human.email, ''), participant.email)",
     );

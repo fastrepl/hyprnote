@@ -302,13 +302,23 @@ export const SESSION_REMOTE_PARTICIPANT_IDS_SQL = `
           NULLIF(lower(COALESCE(NULLIF(human.email, ''), participant.email)), '') IS NULL
           OR NOT EXISTS (
             SELECT 1
-            FROM humans AS self_human
-            JOIN sessions AS session
-              ON session.owner_user_id = self_human.id
-            WHERE session.id = participant.session_id
+            FROM sessions AS session
+            LEFT JOIN humans AS self_human
+              ON self_human.id = session.owner_user_id
               AND self_human.deleted_at IS NULL
-              AND NULLIF(lower(self_human.email), '') IS NOT NULL
-              AND lower(self_human.email) = lower(COALESCE(NULLIF(human.email, ''), participant.email))
+            LEFT JOIN session_participants AS owner_participant
+              ON owner_participant.session_id = session.id
+              AND owner_participant.human_id = session.owner_user_id
+              AND owner_participant.deleted_at IS NULL
+            WHERE session.id = participant.session_id
+              AND lower(COALESCE(NULLIF(human.email, ''), participant.email)) IN (
+                lower(self_human.email),
+                lower(owner_participant.email)
+              )
+              AND NULLIF(lower(COALESCE(
+                NULLIF(self_human.email, ''),
+                owner_participant.email
+              )), '') IS NOT NULL
           )
         )
       ORDER BY participant.human_id

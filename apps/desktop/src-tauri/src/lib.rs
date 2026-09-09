@@ -204,6 +204,10 @@ pub fn main() {
             sentry::configure_scope(|scope| {
                 scope.set_tag("service.namespace", "anarlog");
                 scope.set_tag("service.name", "desktop");
+                scope.set_tag(
+                    "release_channel",
+                    option_env!("RELEASE_CHANNEL").unwrap_or("dev"),
+                );
             });
 
             Some(client)

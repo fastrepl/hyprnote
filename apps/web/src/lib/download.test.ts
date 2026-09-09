@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  nightlyDownloadSections,
   comingSoonPlatforms,
   desktopDownloadSections,
   detectDownloadPlatform,
@@ -130,4 +131,22 @@ test("orders the detected platform first", () => {
     getOrderedDownloadSections("macos")[0].downloads[0].name,
     "Apple Silicon",
   );
+});
+
+test("Nightly uses its own feed without changing stable downloads", () => {
+  const nightly = nightlyDownloadSections.flatMap(
+    (section) => section.downloads,
+  );
+  assert.equal(nightly.length, 7);
+  for (const download of nightly) {
+    assert.equal(new URL(download.url).searchParams.get("channel"), "nightly");
+  }
+  for (const section of desktopDownloadSections) {
+    for (const download of section.downloads) {
+      const url = new URL(download.url);
+      if (url.hostname === "desktop.anarlog.so") {
+        assert.equal(url.searchParams.get("channel"), "stable");
+      }
+    }
+  }
 });

@@ -55,6 +55,7 @@ import { Route as ViewAppPortalRouteImport } from './routes/_view/app/portal'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
 import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
+import { Route as ViewDownloadNightlyIndexRouteImport } from './routes/_view/download/nightly/index'
 import { Route as ApiOgBlogSlugRouteImport } from './routes/api/og/blog/$slug'
 import { Route as ApiOgShareTLinkIdRouteImport } from './routes/api/og/share/t/$linkId'
 import { Route as ApiOgSharePublicPublicSlugRouteImport } from './routes/api/og/share/public/$publicSlug'
@@ -290,6 +291,12 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
+const ViewDownloadNightlyIndexRoute =
+  ViewDownloadNightlyIndexRouteImport.update({
+    id: '/download/nightly/',
+    path: '/download/nightly/',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
 const ApiOgBlogSlugRoute = ApiOgBlogSlugRouteImport.update({
   id: '/api/og/blog/$slug',
   path: '/api/og/blog/$slug',
@@ -359,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/app/': typeof ViewAppIndexRoute
   '/download/': typeof ViewDownloadIndexRoute
   '/api/og/blog/$slug': typeof ApiOgBlogSlugRoute
+  '/download/nightly/': typeof ViewDownloadNightlyIndexRoute
   '/api/og/share/link/$shareId': typeof ApiOgShareLinkShareIdRoute
   '/api/og/share/public/$publicSlug': typeof ApiOgSharePublicPublicSlugRoute
   '/api/og/share/t/$linkId': typeof ApiOgShareTLinkIdRoute
@@ -409,6 +417,7 @@ export interface FileRoutesByTo {
   '/app': typeof ViewAppIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/api/og/blog/$slug': typeof ApiOgBlogSlugRoute
+  '/download/nightly': typeof ViewDownloadNightlyIndexRoute
   '/api/og/share/link/$shareId': typeof ApiOgShareLinkShareIdRoute
   '/api/og/share/public/$publicSlug': typeof ApiOgSharePublicPublicSlugRoute
   '/api/og/share/t/$linkId': typeof ApiOgShareTLinkIdRoute
@@ -462,6 +471,7 @@ export interface FileRoutesById {
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/download/': typeof ViewDownloadIndexRoute
   '/api/og/blog/$slug': typeof ApiOgBlogSlugRoute
+  '/_view/download/nightly/': typeof ViewDownloadNightlyIndexRoute
   '/api/og/share/link/$shareId': typeof ApiOgShareLinkShareIdRoute
   '/api/og/share/public/$publicSlug': typeof ApiOgSharePublicPublicSlugRoute
   '/api/og/share/t/$linkId': typeof ApiOgShareTLinkIdRoute
@@ -515,6 +525,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/download/'
     | '/api/og/blog/$slug'
+    | '/download/nightly/'
     | '/api/og/share/link/$shareId'
     | '/api/og/share/public/$publicSlug'
     | '/api/og/share/t/$linkId'
@@ -565,6 +576,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/download'
     | '/api/og/blog/$slug'
+    | '/download/nightly'
     | '/api/og/share/link/$shareId'
     | '/api/og/share/public/$publicSlug'
     | '/api/og/share/t/$linkId'
@@ -617,6 +629,7 @@ export interface FileRouteTypes {
     | '/_view/app/'
     | '/_view/download/'
     | '/api/og/blog/$slug'
+    | '/_view/download/nightly/'
     | '/api/og/share/link/$shareId'
     | '/api/og/share/public/$publicSlug'
     | '/api/og/share/t/$linkId'
@@ -984,6 +997,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppAccountRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
+    '/_view/download/nightly/': {
+      id: '/_view/download/nightly/'
+      path: '/download/nightly'
+      fullPath: '/download/nightly/'
+      preLoaderRoute: typeof ViewDownloadNightlyIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/api/og/blog/$slug': {
       id: '/api/og/blog/$slug'
       path: '/api/og/blog/$slug'
@@ -1048,6 +1068,7 @@ interface ViewRouteRouteChildren {
   ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
+  ViewDownloadNightlyIndexRoute: typeof ViewDownloadNightlyIndexRoute
 }
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
@@ -1059,6 +1080,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewDownloadAppleIntelRoute: ViewDownloadAppleIntelRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,
+  ViewDownloadNightlyIndexRoute: ViewDownloadNightlyIndexRoute,
 }
 
 const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(

@@ -7,6 +7,7 @@ on:
         type: choice
         options:
           - stable
+          - nightly
   workflow_call:
     inputs:
       channel:
@@ -45,8 +46,19 @@ jobs:
 
       - uses: ./.github/actions/doxxer_install
       - id: version
+        env:
+          RELEASE_CHANNEL: ${{ inputs.channel }}
         run: |
-          VERSION=$(doxxer --config doxxer.desktop.toml next patch)
+          if [[ "$RELEASE_CHANNEL" == "nightly" ]]; then
+            VERSION="nightly"
+            FILE="packages/changelog/nightly.md"
+          elif [[ "$RELEASE_CHANNEL" == "stable" ]]; then
+            VERSION=$(doxxer --config doxxer.desktop.toml next patch)
+            FILE="packages/changelog/content/$VERSION.md"
+          else
+            exit 1
+          fi
+          echo "file=$FILE" >> $GITHUB_OUTPUT
           PREV=$(git tag -l 'desktop_v*' --sort=-v:refname | grep -E '^desktop_v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)
           CURRENT="HEAD"
 
@@ -63,11 +75,13 @@ jobs:
             Read and follow positioning guidelines in `apps/web/content/AGENTS.md`.
 
             1.
-            Create packages/changelog/content/${{ steps.version.outputs.version }}.md.
+            Create or update ${{ steps.version.outputs.file }}.
+            Follow .agents/skills/new-changelog/SKILL.md for the channel contract.
+            Nightly notes must never be published in the website changelog.
             Changelog should be generated from commits between ${{ steps.version.outputs.prev }} ~ ${{ steps.version.outputs.current }}.
             Follow guidelines in packages/changelog/content/AGENTS.md.
 
             2.
-            Create a PR with title "Publish Changelog for ${{ steps.version.outputs.version }}"
+            Create a PR with title "Prepare Changelog for ${{ steps.version.outputs.version }}"
 
             3. Do not run `typecheck`, `dprint` or `pnpm` things.

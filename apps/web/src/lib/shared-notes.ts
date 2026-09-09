@@ -19,9 +19,11 @@ export const sharedNoteDesktopSchemeSchema = z
   .enum([
     "anarlog",
     "anarlog-staging",
+    "anarlog-nightly",
     "anarlog-dev",
     "hyprnote",
     "hyprnote-staging",
+    "hyprnote-nightly",
     "hypr",
   ])
   .catch("anarlog")

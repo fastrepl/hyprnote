@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Anarlog Nightly",
+  "mainBinaryName": "anarlog-nightly",
+  "identifier": "com.hyprnote.nightly",
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "anarlog-nightly",
+          "hyprnote-nightly"
+        ]
+      }
+    },
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://desktop.anarlog.so/update/{{target}}-{{arch}}-{{bundle_type}}/{{current_version}}?channel=nightly"
+      ]
+    }
+  },
+  "bundle": {
+    "icon": [
+      "icons/staging/32x32.png",
+      "icons/staging/128x128.png",
+      "icons/staging/128x128@2x.png",
+      "icons/staging/icon.icns",
+      "icons/staging/icon.ico"
+    ],
+    "macOS": {
+      "files": {
+        "Resources/mlx-swift_Cmlx.bundle/default.metallib": "resources/mlx.metallib",
+        "Resources/AppIcon.icns": "resources/staging/AppIcon.icns"
+      },
+      "dmg": {
+        "background": "assets/dmg-background-staging.png"
+      }
+    },
+    "windows": {
+      "webviewInstallMode": {
+        "type": "offlineInstaller"
+      }
+    }
+  }
+}

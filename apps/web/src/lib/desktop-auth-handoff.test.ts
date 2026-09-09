@@ -205,3 +205,9 @@ function restoreGlobal(key: string, value: unknown) {
     value,
   });
 }
+
+test("Nightly authentication returns to Nightly", () => {
+  const url = buildDesktopAuthDeeplink("anarlog-nightly", "access", "refresh");
+  assert.ok(url);
+  assert.ok(url.startsWith("anarlog-nightly://auth/callback?"));
+});

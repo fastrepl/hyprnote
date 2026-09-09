@@ -12,6 +12,20 @@ Announce a desktop release to users through the "Anarlog update (...)" campaign 
 Run this after `../new-changelog/SKILL.md` produces the entry and the version is released via
 `../release-new-version/SKILL.md`. The published changelog is the copy source, not the raw commit log.
 
+## Nightly announcement
+
+The newsletter follows stable releases. Do not send a newsletter for each
+Nightly. In the next stable update, include the opt-in Nightly announcement
+from [nightly-announcement.md](nightly-announcement.md), alongside that stable
+release's changelog. Existing users remain on stable automatically.
+
+Before describing Nightly as available, verify its published installers, update
+feed, and `https://anarlog.so/download/nightly/`. Use the released stable
+changelog as the main source; Nightly-only changes are not shipped stable
+features. Nightly release notes live in the app and GitHub prereleases, not the
+website changelog. Prepare copy locally before publication is ready; create or
+update the Loops campaign once the stable release and linked Nightly are live.
+
 ## Source of Truth
 
 Read `https://anarlog.so/changelog/<version>`, which renders `packages/changelog/content/<version>.md`.

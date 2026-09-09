@@ -1,17 +1,74 @@
 ---
 name: release-new-version
-description: Prepare and release Anarlog desktop stable versions with current CLI, local and hosted MCP, API, agent packages, and documentation. Validate and merge release updates before publishing. Distribute mobile builds when requested.
+description: Prepare Anarlog Nightly builds and promote tested desktop stable versions with current CLI, local and hosted MCP, API, agent packages, and documentation. Validate and merge release updates before publishing. Distribute mobile builds when requested.
 metadata:
   internal: true
 ---
 
 # Release a New Version
 
-Use this for stable desktop releases and requested mobile store distribution. A stable desktop release must come from `main`, after the changelog and required CLI, MCP, API, agent-package, and documentation updates are accurate, validated, and merged. Desktop, iOS, Android, and watchOS share the marketing version in `release-version.json`; platform build numbers and publication schedules remain independent.
+Use this for Nightly builds, stable desktop releases, and requested mobile store distribution. A stable desktop release must come from `main`, after the changelog and required CLI, MCP, API, agent-package, and documentation updates are accurate, validated, and merged. Desktop, iOS, Android, and watchOS share the marketing version in `release-version.json`; platform build numbers and publication schedules remain independent.
 
 ## Core Rule
 
-Do not trigger a stable release from an unmerged branch. Complete the release surface review and changelog below, merge the required changes to `main`, then freeze the candidate and release from `main`.
+Do not trigger a stable release from an unmerged branch. Complete the release surface review and changelog below, merge the required changes to `main`, then freeze the candidate and release that merged commit through its Nightly tag.
+
+## Nightly and Stable Operations
+
+- Existing users and the main download remain on stable. Nightly is an explicit
+  separate-app install, with its own updater feed, local data, and CLI command.
+- The team uses Nightly for daily meetings. Volunteers can join through the
+  announcement in the next stable changelog and product-update newsletter.
+- `.github/workflows/desktop_nightly.yaml` runs daily at 15:00 UTC (midnight KST)
+  and can be dispatched manually from `main`. It runs desktop JS/i18n and native
+  CI, including source CloudSync rebuilds, before building and publishing all
+  desktop platforms through `desktop_cd.yaml` with `channel=nightly`.
+- Nightly versions are `<shared-version>-nightly.<workflow-run-id>`. Each build
+  snapshots `packages/changelog/nightly.md` into the app and a GitHub prerelease
+  tagged `desktop_nightly_v<nightly-version>`. Maintain that file as curated,
+  user-facing changes since the previous stable release; do not generate a raw
+  commit dump. Nightly notes never belong in the website's stable changelog.
+- Target weekly ordinary stable releases. Select a published Nightly commit,
+  pin the team's app to it for 2–3 working days, and record real meeting results.
+  Disable automatic updates while testing that candidate. CI or elapsed time
+  alone is not evidence of use. Confirm recording/transcription, saved notes
+  after restart, sync, and stable-to-candidate upgrades on shipped platforms.
+- One release owner records the candidate, Nightly release/run, testing results,
+  unresolved issues, and go/no-go decision in the release task. A serious
+  regression postpones publication. Candidate fixes require renewed affected
+  testing; newer main features wait for the next candidate.
+- Nightly and stable are separate signed packages. Build stable from the tested
+  commit and verify its install/upgrade behavior before publication; do not
+  present the Nightly binary as byte-identical to the stable artifact.
+- For an urgent stable hotfix, start from the latest stable tag, carry the
+  minimal fix into main, and verify the patch. Record the owner's explicit
+  exception to the usual Nightly testing period; do not bundle unrelated work.
+  The candidate must still be merged into main before publication. If main has
+  advanced, dispatch `desktop_cd.yaml` with `channel=nightly` on the merged
+  hotfix branch, supplying its exact SHA, then use the resulting Nightly tag
+  for stable verification and publication. This preserves the minimal patch.
+- Shared APIs and synced data must stay compatible with existing stable clients.
+  Separate local storage does not isolate writes to a synced account. Use one
+  app at a time for recording, and never point Nightly at stable's local folder.
+
+### Publish and verify Nightly
+
+```bash
+gh workflow run desktop_nightly.yaml --ref main
+gh run list --workflow desktop_nightly.yaml --limit 5
+```
+
+Verify the exact SHA and all called jobs, not only the aggregate status. A failed
+run needs a fresh dispatch. Confirm the GitHub prerelease/tag, signed installers,
+CrabNebula `nightly` downloads, and every platform's Nightly update response.
+Install the published build and exercise Nightly-to-Nightly updating, auth,
+sharing links, and the embedded CLI. Confirm stable remains on the stable feed.
+The first published Nightly needs this verification before announcing it.
+
+Do not send the newsletter or announce Nightly as available until the Nightly
+builds, update feed, and `https://anarlog.so/download/nightly/` are live and verified.
+Use the [newsletter skill](../product-update-newsletter/SKILL.md) for the announcement.
+Nightly publication does not publish a website changelog or submit to stores.
 
 ## Scope Boundary
 
@@ -39,7 +96,9 @@ finished while a required surface is stale or awaiting publication.
 
 Release and QA are separate, explicitly requested workflows. Do not read or
 run `qa-critical-ux` or `qa-cli-mcp-api` solely because the user asked for a
-release. A release does not require a QA report or QA PASS.
+release. A release does not require a report from either optional QA skill. The Nightly
+candidate testing and final stable package verification above are part of this
+release operation; report their actual evidence separately.
 The contract, packaging, and publication checks in this skill are required
 release verification; they do not invoke either optional QA workflow.
 
@@ -59,8 +118,8 @@ Silicon and Intel, `rebuild-windows.sh` under UCRT64 in `windows_ci`, and
 freshly built library, covering the stalled-network, logout, configuration
 cleanup/init, worker-drain, and immediate-local-write cancellation gates.
 
-The rebuild steps run only on `workflow_dispatch`, so a routine pull-request
-run does not prove them. Dispatch `desktop_ci.yaml` against the candidate SHA
+The rebuild steps run on `workflow_dispatch` or the Nightly caller with
+`rebuild_cloudsync=true`, so a routine pull-request run does not prove them. Dispatch `desktop_ci.yaml` against the candidate SHA
 and confirm the `cloudsync-windows-*` and `cloudsync-linux-*` artifacts before
 treating a desktop lane as approved. Do not treat macOS artifacts or
 Rust-only tests as cross-platform approval. Check the mobile coverage separately;
@@ -177,10 +236,10 @@ before freezing the candidate.
 
 ## Changelog Gate
 
-The changelog is required alongside the release surface review. Before releasing:
+The changelog is required alongside the release surface review. Before releasing either channel:
 
 1. Open `packages/changelog/content/AGENTS.md` and follow its instructions.
-2. Confirm `packages/changelog/content/<version>.md` exists.
+2. For stable, confirm `packages/changelog/content/<version>.md` exists. For Nightly, use `packages/changelog/nightly.md`.
 3. Compare the file against the desktop user-facing changes since the latest `desktop_v*` tag.
 4. If the changelog is missing or incomplete, update it before release.
 
@@ -213,7 +272,10 @@ validation passes:
 3. Wait for CI and required review state to be clear.
 4. Merge the release preparation PRs to `main`.
 5. Verify `main` contains the changelog and all required surface updates.
-6. Record the resulting `main` SHA as the release candidate.
+6. Record the resulting `main` SHA, publish a Nightly from it, and retain its
+   immutable `desktop_nightly_v<nightly-version>` tag as `CANDIDATE_REF`.
+7. Complete the Nightly candidate testing period before building stable. Keep
+   development on main; do not replace the candidate with its latest head.
 
 If using GitButler, prefer:
 
@@ -229,15 +291,16 @@ Use actual IDs from `but diff` / `but status -fv`; do not invent IDs.
 
 ## Trigger Stable Release
 
-Dispatch desktop, CLI, and API verification from `main`, then identify each run
+Dispatch desktop, CLI, and API verification from the candidate Nightly tag, then identify each run
 and verify `headSha` equals the recorded candidate before accepting any job.
 Reuse an existing successful run only if it covers the exact SHA and all
 required jobs; path-filtered or skipped jobs are not coverage:
 
 ```bash
-gh workflow run desktop_ci.yaml --ref main
-gh workflow run cli_ci.yaml --ref main
-gh workflow run api_ci.yaml --ref main
+CANDIDATE_REF=desktop_nightly_v<nightly-version>
+gh workflow run desktop_ci.yaml --ref "$CANDIDATE_REF"
+gh workflow run cli_ci.yaml --ref "$CANDIDATE_REF"
+gh workflow run api_ci.yaml --ref "$CANDIDATE_REF"
 ```
 
 Verify every native job and the source-rebuilt CloudSync artifacts, including
@@ -245,12 +308,12 @@ both macOS architectures, Windows, and both Linux architectures. Pull-request
 runs skip the desktop native jobs. Require both CLI jobs and the API job to pass
 for this candidate as well. Keep the candidate fixed through publication.
 
-After the changelog merge, verify `main` has not moved, then build the stable
-candidate without publishing:
+After candidate testing, verify the candidate remains an ancestor of main,
+then build the stable candidate without publishing:
 
 ```bash
 gh workflow run desktop_cd.yaml \
-  --ref main \
+  --ref "$CANDIDATE_REF" \
   -f channel=stable \
   -f candidate_sha=<40-character-main-sha> \
   -f include_windows=true \
@@ -261,7 +324,7 @@ gh workflow run desktop_cd.yaml \
 Watch the dry-run build:
 
 ```bash
-gh run list --workflow desktop_cd.yaml --branch main --limit 5
+gh run list --workflow desktop_cd.yaml --limit 5
 gh run view <run-id> --json headSha,url
 gh run watch <run-id>
 ```
@@ -295,15 +358,15 @@ Before the desktop publish dispatch, complete any backend deployment required
 by the candidate, following the publication steps below. Do not publish a client
 whose required server behavior is still unavailable.
 
-After the exact dry-run artifacts pass the required platform gates and `main`
-still points to the candidate SHA, publish only through the provenance
+After the exact dry-run artifacts pass the required platform gates and the
+candidate is still merged into main, publish only through the provenance
 workflow. Do not run `desktop_linux_audio_qa` as a publish gate; Linux is
 covered by the same dry-run provenance as macOS and Windows. That workflow
 remains available for optional debugging.
 
 ```bash
 gh workflow run desktop_publish.yaml \
-  --ref main \
+  --ref "$CANDIDATE_REF" \
   -f version=<version> \
   -f candidate_sha=<40-character-main-sha> \
   -f dry_run_id=<dry-run-id> \
@@ -312,7 +375,7 @@ gh workflow run desktop_publish.yaml \
 ```
 
 Watch that workflow to completion. It must verify the dry-run run identity,
-artifact hashes, CrabNebula tool identity and hash, current `main`, and the
+artifact hashes, CrabNebula tool identity and hash, main ancestry, and the
 immutable tag before publishing. It must also verify every file mirrored to
 GitHub against the provenance manifest.
 
@@ -484,7 +547,7 @@ from a successful upload. Never accept new legal agreements on the user's behalf
 
 Before reporting success, capture:
 
-- explicit stable version and candidate SHA
+- explicit stable version, candidate SHA, Nightly release/tag and testing evidence
 - dry-run workflow URL and head SHA
 - publish workflow URL and head SHA
 - `desktop_v<version>` tag

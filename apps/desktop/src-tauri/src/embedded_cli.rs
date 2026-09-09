@@ -13,6 +13,7 @@ const LEGACY_STABLE_BUNDLE_ID: &str = "com.hyprnote.Hyprnote";
 const MANAGED_CLI_DIR: &str = ".anarlog-cli";
 const STABLE_BUNDLE_ID: &str = "com.hyprnote.stable";
 const STAGING_BUNDLE_ID: &str = "com.hyprnote.staging";
+const NIGHTLY_BUNDLE_ID: &str = "com.hyprnote.nightly";
 
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, specta::Type)]
@@ -225,6 +226,7 @@ fn command_name_from_identifier(identifier: &str) -> &'static str {
     match identifier {
         STABLE_BUNDLE_ID | LEGACY_STABLE_BUNDLE_ID | FLATPAK_BUNDLE_ID => "anarlog",
         STAGING_BUNDLE_ID => "anarlog-staging",
+        NIGHTLY_BUNDLE_ID => "anarlog-nightly",
         DEV_BUNDLE_ID => "anarlog-dev",
         _ => "anarlog",
     }

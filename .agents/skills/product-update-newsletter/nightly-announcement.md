@@ -1,0 +1,16 @@
+# Next stable newsletter: Nightly announcement
+
+Draft copy. Include after the first Nightly release and download page are verified.
+This file does not authorize sending or scheduling the campaign.
+
+### Anarlog Nightly is back
+
+Try upcoming improvements before they reach stable and help us catch bugs earlier.
+Nightly installs as a separate app, updates more frequently, and may be less reliable.
+Your current Anarlog installation stays on stable unless you choose to install Nightly.
+
+[Try Anarlog Nightly](https://anarlog.so/download/nightly/)
+
+Nightly keeps separate local data. If you use sync with the same account, changes
+can also reach your other devices. Please include your Nightly version and operating
+system when you reply with feedback.

@@ -41,7 +41,10 @@ export function resolveAppIconName(
   if (appIdentifier.endsWith(".dev")) {
     return "dev";
   }
-  if (appIdentifier.endsWith(".staging")) {
+  if (
+    appIdentifier.endsWith(".staging") ||
+    appIdentifier.endsWith(".nightly")
+  ) {
     return "staging";
   }
   return "stable";

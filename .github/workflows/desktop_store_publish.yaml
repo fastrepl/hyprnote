@@ -87,8 +87,8 @@ jobs:
             echo "::error::Microsoft Store publication requires include_windows"
             exit 1
           fi
-          if [[ "$EXECUTION_REF" != "refs/heads/main" ]]; then
-            echo "::error::Store publication must run from refs/heads/main, not $EXECUTION_REF"
+          if [[ "$EXECUTION_REF" != "refs/heads/main" && ! "$EXECUTION_REF" =~ ^refs/tags/desktop_nightly_v[0-9]+\.[0-9]+\.[0-9]+-nightly\.[0-9]+$ ]]; then
+            echo "::error::Store publication requires main or the tested Nightly tag, got $EXECUTION_REF"
             exit 1
           fi
 

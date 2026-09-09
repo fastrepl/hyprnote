@@ -412,13 +412,24 @@ struct Environment {
 
 impl Environment {
     fn current() -> Self {
-        let executable = std::env::current_exe()
-            .ok()
+        let executable = std::env::args_os()
+            .next()
+            .map(std::path::PathBuf::from)
             .and_then(|path| {
                 path.file_stem()
                     .map(|name| name.to_string_lossy().into_owned())
             })
             .unwrap_or_default();
+        Self::for_executable(&executable)
+    }
+
+    fn for_executable(executable: &str) -> Self {
+        if executable.contains("nightly") {
+            return Self {
+                scheme: "anarlog-nightly",
+                bundle_id: "com.hyprnote.nightly",
+            };
+        }
         if executable.contains("staging") {
             return Self {
                 scheme: "anarlog-staging",
@@ -447,6 +458,23 @@ mod tests {
             "header.{}.signature",
             URL_SAFE_NO_PAD.encode(serde_json::to_vec(&payload).unwrap())
         )
+    }
+
+    #[test]
+    fn nightly_auth_uses_its_own_callback_and_token_store() {
+        let environment = Environment::for_executable("anarlog-nightly");
+        assert_eq!(environment.scheme, "anarlog-nightly");
+        assert_eq!(environment.bundle_id, "com.hyprnote.nightly");
+        assert!(
+            login_url(environment.scheme)
+                .unwrap()
+                .as_str()
+                .ends_with("scheme=anarlog-nightly")
+        );
+        assert_eq!(
+            Environment::for_executable("anarlog").bundle_id,
+            "com.hyprnote.stable"
+        );
     }
 
     #[test]

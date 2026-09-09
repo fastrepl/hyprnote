@@ -131,7 +131,7 @@ function StartupErrorView({ error }: { error: Error }) {
         </h1>
         <p className="text-muted-foreground text-sm leading-relaxed">
           {needsUpdate
-            ? "Your data was created by a newer version of Anarlog, and this older version cannot open it. Your existing data was left unchanged. Please install the latest version of Anarlog."
+            ? "Your data was updated by a newer version of Anarlog, such as Anarlog Nightly, and this version cannot open it yet. Your existing data was left unchanged. Install the latest version of Anarlog, or keep using the newer app until this version catches up."
             : "Your existing data was left unchanged. Please restart the app. If the problem continues, contact support."}
         </p>
         {needsUpdate ? null : (

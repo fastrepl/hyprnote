@@ -2050,6 +2050,19 @@ impl BodyEditor {
                 self.changed(cx);
                 return;
             }
+            // `joinBackward` at a blockquote's first block: no cut inside
+            // the quote, and `deleteBarrier` cannot join a paragraph with
+            // the quote, so the block lifts out (`liftTarget`).
+            if self.doc.parent_type(caret.block).as_deref() == Some("blockquote")
+                && self.doc.is_first_child(caret.block)
+            {
+                self.record_edit(EditKind::Structural);
+                if let Some(next) = self.doc.lift_out_of_blockquote(caret.block) {
+                    self.caret = Some(next);
+                }
+                self.changed(cx);
+                return;
+            }
             self.record_edit(EditKind::Structural);
             if let Some(next) = self.doc.join_backward(caret.block) {
                 self.caret = Some(next);
@@ -2168,6 +2181,16 @@ impl BodyEditor {
             if let Some(next) = self.doc.lift_list_item(caret.block) {
                 self.caret = Some(next);
             }
+            self.changed(cx);
+            return;
+        }
+        // `liftEmptyBlock`: an empty paragraph in a blockquote splits the
+        // quote or leaves it.
+        if text.is_empty()
+            && self.doc.parent_type(caret.block).as_deref() == Some("blockquote")
+            && let Some(next) = self.doc.lift_empty_block(caret.block)
+        {
+            self.caret = Some(next);
             self.changed(cx);
             return;
         }

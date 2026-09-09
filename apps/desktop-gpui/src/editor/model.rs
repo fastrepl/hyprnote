@@ -543,6 +543,77 @@ impl Doc {
         })
     }
 
+    /// The textblock's parent is a blockquote: its index there and the
+    /// quote's child count.
+    fn blockquote_position(&self, block: usize) -> Option<(Vec<usize>, usize, usize)> {
+        let path = self.textblocks.get(block)?;
+        if path.len() < 2 {
+            return None;
+        }
+        let (quote_path, index) = path.split_at(path.len() - 1);
+        let quote = node_at(&self.root, quote_path)?;
+        if quote.get("type").and_then(Value::as_str) != Some("blockquote") {
+            return None;
+        }
+        Some((quote_path.to_vec(), index[0], children(quote).len()))
+    }
+
+    /// `tr.lift(range, target)` for one block of a blockquote: it moves out
+    /// beside the quote, the siblings before and after it each keeping a
+    /// quote of their own (none when there are none). `None` when the block
+    /// is not directly inside a blockquote.
+    pub fn lift_out_of_blockquote(&mut self, block: usize) -> Option<Caret> {
+        let (quote_path, index, _) = self.blockquote_position(block)?;
+        let quote = node_at(&self.root, &quote_path)?.clone();
+        let siblings = children(&quote);
+        let requote = |blocks: &[Value]| {
+            let mut requoted = quote.clone();
+            requoted
+                .as_object_mut()
+                .map(|object| object.insert("content".into(), Value::Array(blocks.to_vec())));
+            requoted
+        };
+        let mut replacement = Vec::new();
+        if index > 0 {
+            replacement.push(requote(&siblings[..index]));
+        }
+        replacement.push(siblings[index].clone());
+        if index + 1 < siblings.len() {
+            replacement.push(requote(&siblings[index + 1..]));
+        }
+        let (parent_path, quote_index) = quote_path.split_at(quote_path.len() - 1);
+        let parent = node_at_mut(&mut self.root, parent_path)?;
+        content_mut(parent).splice(quote_index[0]..=quote_index[0], replacement);
+        self.reindex();
+        Some(Caret { block, offset: 0 })
+    }
+
+    /// `liftEmptyBlock` for an empty textblock inside a blockquote: with
+    /// siblings on both sides the quote splits before it (`canSplit`); as
+    /// the first or last child it lifts out beside the quote, since a split
+    /// would leave an empty quote.
+    pub fn lift_empty_block(&mut self, block: usize) -> Option<Caret> {
+        let (quote_path, index, count) = self.blockquote_position(block)?;
+        if index == 0 || index + 1 >= count {
+            return self.lift_out_of_blockquote(block);
+        }
+        let quote = node_at(&self.root, &quote_path)?.clone();
+        let siblings = children(&quote);
+        let requote = |blocks: &[Value]| {
+            let mut requoted = quote.clone();
+            requoted
+                .as_object_mut()
+                .map(|object| object.insert("content".into(), Value::Array(blocks.to_vec())));
+            requoted
+        };
+        let replacement = vec![requote(&siblings[..index]), requote(&siblings[index..])];
+        let (parent_path, quote_index) = quote_path.split_at(quote_path.len() - 1);
+        let parent = node_at_mut(&mut self.root, parent_path)?;
+        content_mut(parent).splice(quote_index[0]..=quote_index[0], replacement);
+        self.reindex();
+        Some(Caret { block, offset: 0 })
+    }
+
     /// Plain text between two carets, blocks joined with newlines.
     pub fn text_between(&self, from: Caret, to: Caret) -> String {
         let (from, to) = order(from, to);
@@ -2527,5 +2598,43 @@ mod tests {
             r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Z"}]}]}"#
         )
         .ends_in_blank_paragraph());
+    }
+
+    #[test]
+    fn blockquote_blocks_lift_and_split_like_the_commands() {
+        // `joinBackward` at the quote's first paragraph lifts it out, the
+        // rest keeping the quote (P5 recorded in the Tauri app).
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"one"}]},{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q1"}]},{"type":"paragraph","content":[{"type":"text","text":"q2"}]}]}]}"#,
+        );
+        assert_eq!(doc.lift_out_of_blockquote(1), Some(caret(1, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"one"}]},{"type":"paragraph","content":[{"type":"text","text":"q1"}]},{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q2"}]}]}]}"#
+        );
+        // A single-paragraph quote disappears with its paragraph.
+        assert_eq!(doc.lift_out_of_blockquote(2), Some(caret(2, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"one"}]},{"type":"paragraph","content":[{"type":"text","text":"q1"}]},{"type":"paragraph","content":[{"type":"text","text":"q2"}]}]}"#
+        );
+        assert_eq!(doc.lift_out_of_blockquote(0), None);
+
+        // `liftEmptyBlock`: Enter on the empty middle paragraph splits the
+        // quote, Enter again lifts the paragraph out between the halves.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q1"}]},{"type":"paragraph"},{"type":"paragraph","content":[{"type":"text","text":"q2"}]}]}]}"#,
+        );
+        assert_eq!(doc.lift_empty_block(1), Some(caret(1, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q1"}]}]},{"type":"blockquote","content":[{"type":"paragraph"},{"type":"paragraph","content":[{"type":"text","text":"q2"}]}]}]}"#
+        );
+        assert_eq!(doc.lift_empty_block(1), Some(caret(1, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q1"}]}]},{"type":"paragraph"},{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q2"}]}]}]}"#
+        );
+        assert_eq!(doc.lift_empty_block(1), None);
     }
 }

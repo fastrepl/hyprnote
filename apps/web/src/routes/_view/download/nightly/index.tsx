@@ -25,6 +25,23 @@ function NightlyDownloads() {
   return (
     <>
       <main className="blueprint min-h-screen">
+        <aside
+          aria-label="Nightly notice"
+          className="border-blueprint-line-strong bg-blueprint-deep border-b"
+        >
+          <p className="mx-auto w-full max-w-[700px] px-5 py-3 text-sm leading-6 md:px-8">
+            Nightly may be less reliable. It opens the same notes as your stable
+            Anarlog, so quit one app before opening the other. If Nightly
+            updates the database format first, stable asks for an update until a
+            release includes it.{" "}
+            <a
+              href="https://docs.anarlog.so/desktop-installation#nightly"
+              className="whitespace-nowrap underline underline-offset-4"
+            >
+              Learn more
+            </a>
+          </p>
+        </aside>
         <div className="mx-auto w-full max-w-[700px] px-5 py-12 md:px-8">
           <Link
             to="/download/"
@@ -38,28 +55,12 @@ function NightlyDownloads() {
           <h1 className="font-hand mt-5 text-6xl leading-[0.98] font-semibold md:text-7xl">
             Anarlog Nightly
           </h1>
-          <p className="mt-6 text-lg leading-7">
+          <p className="mt-6 mb-10 text-lg leading-7">
             Try upcoming improvements before they reach stable and help us catch
-            bugs earlier. Nightly installs as a separate app, updates
-            frequently, and opens the same notes as your stable Anarlog.
+            bugs earlier. Nightly installs as a separate app with its own
+            sign-in and settings, updates frequently, and works on the notes you
+            already have.
           </p>
-          <div className="border-blueprint-line-strong bg-blueprint-deep my-8 grid gap-3 rounded-xl border p-5 text-sm leading-6">
-            <p>
-              Nightly may be less reliable. Your existing Anarlog app stays on
-              stable, and both apps read and write one local notes database.
-              Sign-in and app settings stay separate.
-            </p>
-            <p>
-              Quit one app before opening the other. Anarlog refuses to open
-              while the other one is running.
-            </p>
-            <p>
-              Nightly can update the database format ahead of stable. Most
-              changes stay compatible. When one is not, stable shows an update
-              prompt and cannot open your notes until a stable release includes
-              that change. Keep using Nightly until then.
-            </p>
-          </div>
           <div className="grid gap-9">
             {nightlyDownloadSections.map((section) => (
               <section key={section.name}>

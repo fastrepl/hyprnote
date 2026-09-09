@@ -1419,13 +1419,20 @@ export type Reminders = {
     useDefault?: boolean | null;
 };
 
+export type RenameSyncDeviceRequest = {
+    deviceName: string;
+};
+
 export type ReplicaCredentials = {
     accountUserId: string;
     encryptionKeyId: string;
     encryptionVersion: number;
     expiresAt: string;
+    personalWorkspaceId: string;
     transport: string;
     workspaceId: string;
+    workspaceKeyGrants: Array<WorkspaceE2EeKeyGrant>;
+    workspaces: Array<CloudsyncWorkspace>;
 };
 
 export type ReserveAttachmentBackupRequest = {
@@ -1617,6 +1624,11 @@ export type SnapshotReceipt = {
     published_at: string;
     revision: number;
     session_id: string;
+};
+
+export type StableSharedNoteSnapshot = {
+    accessScope: string;
+    snapshot: SharedNoteSnapshot;
 };
 
 export type StartTrialReason = 'started' | 'not_eligible';
@@ -1943,6 +1955,13 @@ export type WorkspaceE2EeKeyRecipient = {
     userId: string;
 };
 
+export type WorkspaceInvitationEmailRequest = {
+    fromName?: string;
+    inviteToken: string;
+    workspaceId: string;
+    workspaceName: string;
+};
+
 export type ZoomImportMeetingsRequest = {
     connection_id: string;
     known_meeting_ids?: Array<string>;
@@ -2161,6 +2180,10 @@ export type GoogleListCalendarsErrors = {
      */
     401: unknown;
     /**
+     * Calendar connection requires reconnect
+     */
+    424: unknown;
+    /**
      * Internal server error
      */
     500: unknown;
@@ -2187,6 +2210,10 @@ export type GoogleListEventsErrors = {
      * Unauthorized
      */
     401: unknown;
+    /**
+     * Calendar connection requires reconnect
+     */
+    424: unknown;
     /**
      * Internal server error
      */
@@ -2215,6 +2242,10 @@ export type OutlookListCalendarsErrors = {
      */
     401: unknown;
     /**
+     * Calendar connection requires reconnect
+     */
+    424: unknown;
+    /**
      * Internal server error
      */
     500: unknown;
@@ -2241,6 +2272,10 @@ export type OutlookListEventsErrors = {
      * Unauthorized
      */
     401: unknown;
+    /**
+     * Calendar connection requires reconnect
+     */
+    424: unknown;
     /**
      * Internal server error
      */
@@ -3466,6 +3501,138 @@ export type ReadPublicSharedNotePreviewResponses = {
 
 export type ReadPublicSharedNotePreviewResponse = ReadPublicSharedNotePreviewResponses[keyof ReadPublicSharedNotePreviewResponses];
 
+export type ReadStableSharedNoteData = {
+    body?: never;
+    path: {
+        /**
+         * Stable session share ID
+         */
+        share_id: string;
+    };
+    query?: never;
+    url: '/shared-notes/share/{share_id}';
+};
+
+export type ReadStableSharedNoteErrors = {
+    /**
+     * Shared note unavailable
+     */
+    404: unknown;
+    /**
+     * Shared note service unavailable
+     */
+    502: unknown;
+};
+
+export type ReadStableSharedNoteResponses = {
+    /**
+     * Stable shared note
+     */
+    200: StableSharedNoteSnapshot;
+};
+
+export type ReadStableSharedNoteResponse = ReadStableSharedNoteResponses[keyof ReadStableSharedNoteResponses];
+
+export type DownloadStableSharedAttachmentData = {
+    body?: never;
+    path: {
+        /**
+         * Stable session share ID
+         */
+        share_id: string;
+        /**
+         * Published attachment ID
+         */
+        attachment_id: string;
+    };
+    query?: never;
+    url: '/shared-notes/share/{share_id}/attachments/{attachment_id}/download';
+};
+
+export type DownloadStableSharedAttachmentErrors = {
+    /**
+     * Shared attachment unavailable
+     */
+    404: unknown;
+    /**
+     * Shared attachment service unavailable
+     */
+    502: unknown;
+};
+
+export type DownloadStableSharedAttachmentResponses = {
+    /**
+     * Short-lived stable-link attachment download
+     */
+    200: SharedAttachmentDownload;
+};
+
+export type DownloadStableSharedAttachmentResponse = DownloadStableSharedAttachmentResponses[keyof DownloadStableSharedAttachmentResponses];
+
+export type CreateStableSharedNoteHandoffData = {
+    body?: never;
+    path: {
+        /**
+         * Stable session share ID
+         */
+        share_id: string;
+    };
+    query?: never;
+    url: '/shared-notes/share/{share_id}/handoff';
+};
+
+export type CreateStableSharedNoteHandoffErrors = {
+    /**
+     * Shared note unavailable
+     */
+    404: unknown;
+    /**
+     * Shared note service unavailable
+     */
+    502: unknown;
+};
+
+export type CreateStableSharedNoteHandoffResponses = {
+    /**
+     * One-time desktop handoff
+     */
+    200: SharedNoteHandoff;
+};
+
+export type CreateStableSharedNoteHandoffResponse = CreateStableSharedNoteHandoffResponses[keyof CreateStableSharedNoteHandoffResponses];
+
+export type ReadStableSharedNotePreviewData = {
+    body?: never;
+    path: {
+        /**
+         * Stable session share ID
+         */
+        share_id: string;
+    };
+    query?: never;
+    url: '/shared-notes/share/{share_id}/preview';
+};
+
+export type ReadStableSharedNotePreviewErrors = {
+    /**
+     * Shared note unavailable
+     */
+    404: unknown;
+    /**
+     * Shared note service unavailable
+     */
+    502: unknown;
+};
+
+export type ReadStableSharedNotePreviewResponses = {
+    /**
+     * Stable shared note preview
+     */
+    200: SharedNotePreview;
+};
+
+export type ReadStableSharedNotePreviewResponse = ReadStableSharedNotePreviewResponses[keyof ReadStableSharedNotePreviewResponses];
+
 export type SendSharedNoteRecapEmailData = {
     body: MeetingRecapEmailRequest;
     path: {
@@ -4176,6 +4343,46 @@ export type DeleteDeviceResponses = {
 };
 
 export type DeleteDeviceResponse = DeleteDeviceResponses[keyof DeleteDeviceResponses];
+
+export type PatchDeviceData = {
+    body: RenameSyncDeviceRequest;
+    path: {
+        /**
+         * Device fingerprint
+         */
+        fingerprint: string;
+    };
+    query?: never;
+    url: '/sync/devices/{fingerprint}';
+};
+
+export type PatchDeviceErrors = {
+    /**
+     * Invalid device fingerprint or name
+     */
+    400: unknown;
+    /**
+     * Authentication required
+     */
+    401: unknown;
+    /**
+     * Anarlog Pro subscription required
+     */
+    403: unknown;
+    /**
+     * Device service unavailable
+     */
+    502: unknown;
+};
+
+export type PatchDeviceResponses = {
+    /**
+     * Device renamed
+     */
+    204: void;
+};
+
+export type PatchDeviceResponse = PatchDeviceResponses[keyof PatchDeviceResponses];
 
 export type RegisterE2EeDeviceEnrollmentData = {
     body: RegisterE2EeDeviceEnrollmentRequest;
@@ -5170,6 +5377,10 @@ export type ListMeetingsData = {
 export type ListMeetingsErrors = {
     401: ErrorEnvelope;
     403: ErrorEnvelope;
+    /**
+     * Cloud API rate limit exceeded
+     */
+    429: string;
 };
 
 export type ListMeetingsError = ListMeetingsErrors[keyof ListMeetingsErrors];
@@ -5190,7 +5401,13 @@ export type GetMeetingData = {
 };
 
 export type GetMeetingErrors = {
+    401: ErrorEnvelope;
+    403: ErrorEnvelope;
     404: ErrorEnvelope;
+    /**
+     * Cloud API rate limit exceeded
+     */
+    429: string;
 };
 
 export type GetMeetingError = GetMeetingErrors[keyof GetMeetingErrors];
@@ -5217,7 +5434,13 @@ export type ExportMeetingData = {
 
 export type ExportMeetingErrors = {
     400: ErrorEnvelope;
+    401: ErrorEnvelope;
+    403: ErrorEnvelope;
     404: ErrorEnvelope;
+    /**
+     * Cloud API rate limit exceeded
+     */
+    429: string;
 };
 
 export type ExportMeetingError = ExportMeetingErrors[keyof ExportMeetingErrors];
@@ -5242,7 +5465,13 @@ export type GetHistoryData = {
 };
 
 export type GetHistoryErrors = {
+    401: ErrorEnvelope;
+    403: ErrorEnvelope;
     404: ErrorEnvelope;
+    /**
+     * Cloud API rate limit exceeded
+     */
+    429: string;
 };
 
 export type GetHistoryError = GetHistoryErrors[keyof GetHistoryErrors];
@@ -5266,7 +5495,13 @@ export type GetTranscriptData = {
 };
 
 export type GetTranscriptErrors = {
+    401: ErrorEnvelope;
+    403: ErrorEnvelope;
     404: ErrorEnvelope;
+    /**
+     * Cloud API rate limit exceeded
+     */
+    429: string;
 };
 
 export type GetTranscriptError = GetTranscriptErrors[keyof GetTranscriptErrors];
@@ -5346,6 +5581,46 @@ export type WebexImportMeetingsResponses = {
 };
 
 export type WebexImportMeetingsResponse = WebexImportMeetingsResponses[keyof WebexImportMeetingsResponses];
+
+export type SendWorkspaceInvitationEmailData = {
+    body: WorkspaceInvitationEmailRequest;
+    path: {
+        /**
+         * Workspace invitation ID
+         */
+        invitation_id: string;
+    };
+    query?: never;
+    url: '/workspaces/invitations/{invitation_id}/email';
+};
+
+export type SendWorkspaceInvitationEmailErrors = {
+    /**
+     * Invalid invitation email request
+     */
+    400: unknown;
+    /**
+     * Authentication required
+     */
+    401: unknown;
+    /**
+     * Invitation unavailable
+     */
+    404: unknown;
+    /**
+     * Invitation email service unavailable
+     */
+    502: unknown;
+};
+
+export type SendWorkspaceInvitationEmailResponses = {
+    /**
+     * Invitation email sent
+     */
+    204: void;
+};
+
+export type SendWorkspaceInvitationEmailResponse = SendWorkspaceInvitationEmailResponses[keyof SendWorkspaceInvitationEmailResponses];
 
 export type ZoomImportMeetingsData = {
     body: ZoomImportMeetingsRequest;

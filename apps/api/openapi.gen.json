@@ -10610,7 +10610,10 @@
           "encryptionKeyId",
           "expiresAt",
           "workspaceId",
-          "accountUserId"
+          "accountUserId",
+          "personalWorkspaceId",
+          "workspaces",
+          "workspaceKeyGrants"
         ],
         "properties": {
           "accountUserId": {
@@ -10627,11 +10630,26 @@
           "expiresAt": {
             "type": "string"
           },
+          "personalWorkspaceId": {
+            "type": "string"
+          },
           "transport": {
             "type": "string"
           },
           "workspaceId": {
             "type": "string"
+          },
+          "workspaceKeyGrants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceE2eeKeyGrant"
+            }
+          },
+          "workspaces": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CloudsyncWorkspace"
+            }
           }
         }
       },

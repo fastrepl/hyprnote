@@ -1,11 +1,14 @@
 import { sealWorkspaceE2eeKeyForRecipients } from "@anlg/plugin-db";
 
-import type { ProjectedCloudsyncCredentials } from "./cloudsync-credentials";
+import type {
+  ProjectedCloudsyncCredentials,
+  ProjectedReplicaCredentials,
+} from "./cloudsync-credentials";
 
 import { env } from "~/env";
 
 export async function provisionMissingWorkspaceKeys(
-  credentials: ProjectedCloudsyncCredentials,
+  credentials: ProjectedCloudsyncCredentials | ProjectedReplicaCredentials,
   accessToken: string,
   accountUserId: string,
   signal: AbortSignal,

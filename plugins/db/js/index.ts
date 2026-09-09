@@ -326,10 +326,14 @@ export async function configureCloudsyncToken(
 export async function configureE2eeReplica(
   workspaceId: string,
   e2eeWitness: CloudsyncE2eeWitness,
+  workspaceProjection?: CloudsyncWorkspaceProjection,
+  workspaceKeyGrants: CloudsyncWorkspaceKeyGrant[] = [],
 ): Promise<CloudsyncTokenConfigurationResult> {
   return invoke("plugin:db|configure_e2ee_replica", {
     workspaceId,
     e2eeWitness,
+    workspaceProjection: workspaceProjection ?? null,
+    workspaceKeyGrants,
   });
 }
 

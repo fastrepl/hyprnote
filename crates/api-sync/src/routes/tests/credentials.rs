@@ -120,6 +120,42 @@ async fn rejects_malformed_workspace_key_grants_without_contacting_supabase() {
 #[tokio::test]
 async fn issues_replica_credentials_without_contacting_sqlitecloud() {
     let server = MockServer::start().await;
+    mock_workspace_projection(
+        &server,
+        json!([
+            {
+                "id": "membership-team",
+                "user_id": "user-123",
+                "role": "member",
+                "created_at": "2026-07-16T09:01:00Z",
+                "updated_at": "2026-07-16T10:01:00Z",
+                "workspace": {
+                    "id": "workspace-team",
+                    "owner_user_id": "user-456",
+                    "kind": "shared",
+                    "name": "Acme",
+                    "created_at": "2026-07-16T09:00:00Z",
+                    "updated_at": "2026-07-16T10:00:00Z"
+                }
+            },
+            personal_workspace("user-123")
+        ]),
+    )
+    .await;
+    mock_workspace_key_grants(
+        &server,
+        json!([
+            {
+                "workspace_id": "workspace-team",
+                "key_id": "AAAAAAAAAAAAAAAAAAAAAA",
+                "ephemeral_public_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "nonce": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "ciphertext": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+                "is_active": true
+            }
+        ]),
+    )
+    .await;
     mock_e2ee_key_claim(&server, TEST_KEY_ID).await;
 
     let response = test_router(&server, "issuer-key", &["hyprnote_pro"])
@@ -140,7 +176,19 @@ async fn issues_replica_credentials_without_contacting_sqlitecloud() {
     assert_eq!(body["encryptionKeyId"], TEST_KEY_ID);
     assert_eq!(body["workspaceId"], "user-123");
     assert_eq!(body["accountUserId"], "user-123");
+    assert_eq!(body["personalWorkspaceId"], "user-123");
+    assert_eq!(body["workspaces"][0]["id"], "user-123");
+    assert_eq!(body["workspaces"][0]["role"], "owner");
+    assert_eq!(body["workspaces"][1]["id"], "workspace-team");
+    assert_eq!(body["workspaces"][1]["kind"], "shared");
+    assert_eq!(
+        body["workspaceKeyGrants"][0]["workspaceId"],
+        "workspace-team"
+    );
+    assert_eq!(body["workspaceKeyGrants"][0]["isActive"], true);
     assert!(body["expiresAt"].as_str().unwrap().ends_with('Z'));
+    assert!(body.get("databaseId").is_none());
+    assert!(body.get("token").is_none());
     assert!(
         server
             .received_requests()
@@ -166,6 +214,7 @@ async fn publishes_the_member_identity_before_issuing_replica_credentials() {
         }])))
         .mount(&server)
         .await;
+    mock_workspace_projection(&server, json!([personal_workspace("user-123")])).await;
     mock_e2ee_key_claim(&server, TEST_KEY_ID).await;
 
     let response = test_router(&server, "issuer-key", &["hyprnote_pro"])
@@ -185,8 +234,9 @@ async fn publishes_the_member_identity_before_issuing_replica_credentials() {
         requests[0].url.path(),
         "/rest/v1/rpc/publish_e2ee_member_identity"
     );
+    assert_eq!(requests[1].url.path(), "/rest/v1/workspace_memberships");
     assert_eq!(
-        requests[1].url.path(),
+        requests[2].url.path(),
         "/rest/v1/rpc/claim_personal_workspace_e2ee_key"
     );
 }

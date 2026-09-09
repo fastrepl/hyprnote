@@ -88,6 +88,9 @@ pub struct ReplicaCredentials {
     expires_at: String,
     workspace_id: String,
     account_user_id: String,
+    personal_workspace_id: String,
+    workspaces: Vec<CloudsyncWorkspace>,
+    workspace_key_grants: Vec<WorkspaceE2eeKeyGrant>,
 }
 
 #[derive(Serialize, utoipa::ToSchema)]
@@ -284,6 +287,10 @@ async fn create_replica_credentials(
         .ok_or_else(|| SyncError::BadRequest("E2EE key identity is required".to_string()))?
         .to_str()
         .map_err(|_| SyncError::BadRequest("E2EE key identity is invalid".to_string()))?;
+    let workspace_rows = fetch_workspace_projection(&state, &auth).await?;
+    let (personal_workspace_id, workspaces) =
+        validate_workspace_projection(workspace_rows, &auth.claims.sub)?;
+    let workspace_key_grants = fetch_workspace_key_grants(&state, &auth.token, &workspaces).await?;
     let encryption_key_id =
         claim_personal_e2ee_key(&state, &auth.claims.sub, requested_key_id).await?;
     claim_sync_device(&state, &auth.claims.sub, &headers).await?;
@@ -296,8 +303,11 @@ async fn create_replica_credentials(
             encryption_version: CLOUDSYNC_ENCRYPTION_VERSION,
             encryption_key_id,
             expires_at,
-            workspace_id: auth.claims.sub.clone(),
+            workspace_id: personal_workspace_id.clone(),
             account_user_id: auth.claims.sub,
+            personal_workspace_id,
+            workspaces,
+            workspace_key_grants,
         }),
     ))
 }

@@ -662,11 +662,25 @@ impl PluginDbRuntime {
         &self,
         account_user_id: String,
         e2ee_witness: crate::CloudsyncE2eeWitness,
-        recovery_key: anlg_e2ee::RecoveryKey,
+        workspace_keys: E2eeWorkspaceKeyConfiguration,
+        workspace_projection: Option<anlg_db_app::CloudsyncWorkspaceProjection>,
         auth_generation: u64,
     ) -> Result<crate::CloudsyncTokenConfigurationResult> {
         let _control_operation = self.cloudsync_control_guard().await?;
         self.ensure_legacy_migration_ready().await?;
+        if workspace_keys.personal_workspace_id != account_user_id {
+            return Err(crate::Error::E2eeIdentityRequired);
+        }
+        if let Some(projection) = workspace_projection.as_ref() {
+            if projection.account_user_id != account_user_id
+                || projection.personal_workspace_id != account_user_id
+            {
+                return Err(
+                    anlg_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection.into(),
+                );
+            }
+            anlg_db_app::validate_cloudsync_workspace_projection(projection)?;
+        }
         let cancellation = crate::e2ee_witness::E2eeWitnessCancellation::default();
         let operation = async {
             self.ensure_cloudsync_configuration_active(auth_generation, &cancellation)?;
@@ -678,7 +692,7 @@ impl PluginDbRuntime {
                 self.db.cloudsync_stop().await?;
             }
             self.ensure_cloudsync_configuration_active(auth_generation, &cancellation)?;
-            self.set_e2ee_recovery_key(&account_user_id, &recovery_key)?;
+            self.set_e2ee_workspace_keys(workspace_keys)?;
             if !self
                 .claim_replica_workspace(&account_user_id, &cancellation)
                 .await?
@@ -686,22 +700,44 @@ impl PluginDbRuntime {
                 return Ok(crate::CloudsyncTokenConfigurationResult::AccountMismatch);
             }
             self.ensure_cloudsync_configuration_active(auth_generation, &cancellation)?;
-            let witness =
+            if let Some(projection) = workspace_projection.as_ref() {
+                self.apply_replica_workspace_projection(projection, &cancellation)
+                    .await?;
+                self.ensure_cloudsync_configuration_active(auth_generation, &cancellation)?;
+            }
+            let personal_witness =
                 crate::e2ee_witness::E2eeWitnessClient::new(e2ee_witness, &account_user_id)?;
-            let key = self
-                .e2ee_sync_hook
-                .workspace_key(&account_user_id)
-                .ok_or(crate::Error::E2eeIdentityRequired)?;
+            let keys = self.e2ee_sync_hook.snapshot();
+            if !keys.contains_key(&account_user_id) {
+                return Err(crate::Error::E2eeIdentityRequired);
+            }
+            let mut witnesses = HashMap::with_capacity(keys.len());
+            for workspace_id in keys.keys() {
+                let witness = if workspace_id == &account_user_id {
+                    personal_witness.clone()
+                } else {
+                    personal_witness.for_workspace(workspace_id)?
+                };
+                witnesses.insert(workspace_id.clone(), witness);
+            }
             self.e2ee_sync_hook
                 .prepare_local_snapshot(self.db.pool(), &cancellation)
                 .await
                 .map_err(|error| std::io::Error::other(error.to_string()))?;
             cancellation.check()?;
-            witness
-                .initialize_cancellable(self.db.pool(), &key, &cancellation)
-                .await?;
-            self.ensure_cloudsync_configuration_active(auth_generation, &cancellation)?;
-            self.e2ee_sync_hook.set_replica_witness(witness);
+            let mut workspace_ids = keys.keys().collect::<Vec<_>>();
+            workspace_ids.sort_unstable();
+            for workspace_id in workspace_ids {
+                witnesses[workspace_id]
+                    .initialize_keyring_cancellable(
+                        self.db.pool(),
+                        &keys[workspace_id],
+                        &cancellation,
+                    )
+                    .await?;
+                self.ensure_cloudsync_configuration_active(auth_generation, &cancellation)?;
+            }
+            self.e2ee_sync_hook.set_replica_witnesses(witnesses);
             Ok(crate::CloudsyncTokenConfigurationResult::Configured)
         };
         tokio::pin!(operation);
@@ -1229,6 +1265,48 @@ impl PluginDbRuntime {
                 Err(crate::Error::CloudsyncConfigurationCancelled)
             }
             Err(error) if is_permanent_cloudsync_workspace_rejection(&error) => Ok(false),
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    // The replica transport has no server-side subscription to reconcile, so
+    // the projection only needs to land the workspace rows locally. Revoked
+    // workspaces stop syncing once their key and witness are gone; their
+    // sessions stay on disk until a later local cleanup removes them.
+    async fn apply_replica_workspace_projection(
+        &self,
+        projection: &anlg_db_app::CloudsyncWorkspaceProjection,
+        cancellation: &crate::e2ee_witness::E2eeWitnessCancellation,
+    ) -> Result<()> {
+        cancellation.check()?;
+        let _write_guard = self.synced_write_barrier.write().await;
+        cancellation.check()?;
+        let staged = anlg_db_app::stage_cloudsync_workspace_reconciliation_cancellable(
+            self.db.pool(),
+            projection,
+            || cancellation.is_cancelled(),
+        )
+        .await;
+        match staged {
+            Ok(_) => {}
+            Err(anlg_db_app::CloudsyncWorkspaceError::ProjectionCancelled) => {
+                return Err(crate::Error::CloudsyncConfigurationCancelled);
+            }
+            Err(error) => return Err(error.into()),
+        }
+        cancellation.check()?;
+        match anlg_db_app::commit_cloudsync_workspace_projection_cancellable(
+            self.db.pool(),
+            projection,
+            false,
+            || cancellation.is_cancelled(),
+        )
+        .await
+        {
+            Ok(_) => Ok(()),
+            Err(anlg_db_app::CloudsyncWorkspaceError::ProjectionCancelled) => {
+                Err(crate::Error::CloudsyncConfigurationCancelled)
+            }
             Err(error) => Err(error.into()),
         }
     }

@@ -43,8 +43,6 @@ base64 = { workspace = true }
 chrono = { workspace = true }
 chrono-tz = { workspace = true }
 dirs = { workspace = true }
-open = { workspace = true }
-zbus = { version = "5", default-features = false, features = ["tokio"] }
 futures-util = { workspace = true }
 gpui = { workspace = true }
 hound = { workspace = true }
@@ -54,6 +52,7 @@ image = { workspace = true, features = ["gif", "jpeg", "png"] }
 keyring = { workspace = true }
 kuchikiki = "0.8.8-speedreader"
 mime_guess = "2"
+open = { workspace = true }
 pico-args = { workspace = true }
 ractor = { workspace = true, features = ["async-trait"] }
 regex = { workspace = true }
@@ -71,6 +70,7 @@ unicode-normalization = "0.1"
 unicode-segmentation = "1"
 url = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 gtk = "0.18"

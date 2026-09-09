@@ -56,6 +56,36 @@ const CAPTURE_IDENTITY_SQL = `
     AND participant.human_id <> ''
     AND participant.source <> 'excluded'
     AND participant.deleted_at IS NULL
+    AND participant.human_id <> session.owner_user_id
+    AND NOT EXISTS (
+      SELECT 1
+      FROM humans AS self_human
+      LEFT JOIN humans AS participant_human
+        ON participant_human.id = participant.human_id
+        AND participant_human.deleted_at IS NULL
+      LEFT JOIN session_participants AS owner_participant
+        ON owner_participant.session_id = session.id
+        AND owner_participant.human_id = session.owner_user_id
+        AND owner_participant.deleted_at IS NULL
+      WHERE self_human.id = session.owner_user_id
+        AND self_human.deleted_at IS NULL
+        AND (
+          (
+            NULLIF(lower(self_human.email), '') IS NOT NULL
+            AND lower(self_human.email) = lower(COALESCE(
+              NULLIF(participant_human.email, ''),
+              participant.email
+            ))
+          )
+          OR (
+            NULLIF(lower(owner_participant.email), '') IS NOT NULL
+            AND lower(owner_participant.email) = lower(COALESCE(
+              NULLIF(participant_human.email, ''),
+              participant.email
+            ))
+          )
+        )
+    )
   WHERE session.deleted_at IS NULL
   ORDER BY session.id, participant.human_id
 `;
@@ -272,12 +302,6 @@ function LiveCaptureConfigSyncReady({
         return;
       }
 
-      // An empty assignment list is not a no-op: the engine drops the names it
-      // holds. Wait for the transcript query's first rows before pushing.
-      if (transcriptSessionId === live.sessionId && !hasTranscriptSnapshot) {
-        return;
-      }
-
       const languages = getLiveConfigLanguages(
         settingsValues.ai_language,
         settingsValues.spoken_languages,
@@ -302,7 +326,7 @@ function LiveCaptureConfigSyncReady({
         ),
         self_human_id: session?.owner_user_id || null,
         speaker_assignments:
-          transcriptSessionId === live.sessionId
+          transcriptSessionId === live.sessionId && hasTranscriptSnapshot
             ? getLiveSpeakerAssignments(transcriptRows)
             : [],
       };

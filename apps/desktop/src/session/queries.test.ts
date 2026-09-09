@@ -90,15 +90,65 @@ describe("session SQLite operations", () => {
     });
   });
 
-  it("returns the existing note for an event without writing", async () => {
+  it("attaches missing calendar participants to an existing event note", async () => {
     mocks.execute
       .mockResolvedValueOnce([event])
-      .mockResolvedValueOnce([{ id: "session-existing" }]);
+      .mockResolvedValueOnce([{ id: "session-existing" }])
+      .mockResolvedValueOnce([]);
 
     await expect(getOrCreateSessionForEventId("event-1")).resolves.toBe(
       "session-existing",
     );
-    expect(mocks.executeTransaction).not.toHaveBeenCalled();
+
+    const statements = mocks.executeTransaction.mock.calls[0][0] as Array<{
+      sql: string;
+      params: unknown[];
+    }>;
+    expect(
+      statements.some((statement) => statement.sql.includes("humans")),
+    ).toBe(true);
+    expect(
+      statements.some((statement) =>
+        statement.sql.includes("session_participants"),
+      ),
+    ).toBe(true);
+    expect(statements[0]?.params).toContain("alice@example.com");
+  });
+
+  it("does not attach the calendar self copy to an existing event note", async () => {
+    mocks.execute
+      .mockResolvedValueOnce([
+        {
+          ...event,
+          participants_json: JSON.stringify([
+            {
+              name: "John",
+              email: "john@example.com",
+              is_current_user: true,
+            },
+            { name: "Artem", email: "artem@example.com" },
+          ]),
+        },
+      ])
+      .mockResolvedValueOnce([{ id: "session-existing" }])
+      .mockResolvedValueOnce([]);
+
+    await expect(getOrCreateSessionForEventId("event-1")).resolves.toBe(
+      "session-existing",
+    );
+
+    const statements = mocks.executeTransaction.mock.calls[0][0] as Array<{
+      sql: string;
+      params: unknown[];
+    }>;
+    const params = statements.flatMap((statement) => statement.params);
+    expect(params).toContain("artem@example.com");
+    expect(params).not.toContain("john@example.com");
+    expect(
+      statements.every((statement) =>
+        statement.sql.includes("? <> session.owner_user_id"),
+      ),
+    ).toBe(true);
   });
 
   it("commits title and raw note changes in one ordered transaction", async () => {

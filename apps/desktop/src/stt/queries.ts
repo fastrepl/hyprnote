@@ -281,11 +281,9 @@ export async function getSessionTranscriptRecords(
   return rows.map(mapTranscriptRow);
 }
 
-export function useSessionParticipantHumanIds(sessionId: string): string[] {
-  const { data = EMPTY_IDS } = useLiveQuery<ParticipantHumanSqlRow, string[]>({
-    // Drop excluded people and any contact that is the current user (or a
-    // calendar copy with the same email) so a 1:1 meeting still has one remote.
-    sql: `
+// Drop excluded people and any contact that is the current user (or a
+// calendar copy with the same email) so a 1:1 meeting still has one remote.
+export const SESSION_REMOTE_PARTICIPANT_IDS_SQL = `
       SELECT DISTINCT participant.human_id
       FROM session_participants AS participant
       LEFT JOIN humans AS human
@@ -304,17 +302,53 @@ export function useSessionParticipantHumanIds(sessionId: string): string[] {
           NULLIF(lower(COALESCE(NULLIF(human.email, ''), participant.email)), '') IS NULL
           OR NOT EXISTS (
             SELECT 1
-            FROM humans AS self_human
-            JOIN sessions AS session
-              ON session.owner_user_id = self_human.id
-            WHERE session.id = participant.session_id
+            FROM sessions AS session
+            LEFT JOIN humans AS self_human
+              ON self_human.id = session.owner_user_id
               AND self_human.deleted_at IS NULL
-              AND NULLIF(lower(self_human.email), '') IS NOT NULL
-              AND lower(self_human.email) = lower(COALESCE(NULLIF(human.email, ''), participant.email))
+            LEFT JOIN session_participants AS owner_participant
+              ON owner_participant.session_id = session.id
+              AND owner_participant.human_id = session.owner_user_id
+              AND owner_participant.deleted_at IS NULL
+            WHERE session.id = participant.session_id
+              AND (
+                (
+                  NULLIF(lower(self_human.email), '') IS NOT NULL
+                  AND lower(self_human.email) = lower(COALESCE(
+                    NULLIF(human.email, ''),
+                    participant.email
+                  ))
+                )
+                OR (
+                  NULLIF(lower(owner_participant.email), '') IS NOT NULL
+                  AND lower(owner_participant.email) = lower(COALESCE(
+                    NULLIF(human.email, ''),
+                    participant.email
+                  ))
+                )
+              )
           )
         )
       ORDER BY participant.human_id
-    `,
+    `;
+
+export async function getSessionParticipantHumanIds(
+  sessionId: string,
+): Promise<string[]> {
+  if (!sessionId) {
+    return [];
+  }
+
+  const rows = await liveQueryClient.execute<ParticipantHumanSqlRow>(
+    SESSION_REMOTE_PARTICIPANT_IDS_SQL,
+    [sessionId],
+  );
+  return rows.map((row) => row.human_id).filter(Boolean);
+}
+
+export function useSessionParticipantHumanIds(sessionId: string): string[] {
+  const { data = EMPTY_IDS } = useLiveQuery<ParticipantHumanSqlRow, string[]>({
+    sql: SESSION_REMOTE_PARTICIPANT_IDS_SQL,
     params: [sessionId],
     enabled: Boolean(sessionId),
     mapRows: (rows) => rows.map((row) => row.human_id),

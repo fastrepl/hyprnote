@@ -311,7 +311,7 @@ describe("EventListeners notification events", () => {
     });
   });
 
-  test("live capture config sync waits for the transcript snapshot before pushing", async () => {
+  test("live capture config sync pushes remotes before the transcript snapshot", async () => {
     vi.useFakeTimers();
     useConfigValuesMock.mockReturnValue({
       ai_language: "ko",
@@ -319,7 +319,6 @@ describe("EventListeners notification events", () => {
       current_stt_provider: "soniox",
       current_stt_model: "stt-v4",
     });
-    // The transcript query answers later than the participant query here.
     liveQuerySubscribeMock.mockImplementation(
       async (sql, _params, handlers) => {
         if (!String(sql).includes("FROM transcripts")) {
@@ -343,18 +342,19 @@ describe("EventListeners notification events", () => {
     ]);
     await vi.runOnlyPendingTimersAsync();
 
-    expect(updateCaptureConfigMock).not.toHaveBeenCalled();
+    expect(updateCaptureConfigMock).toHaveBeenCalledTimes(1);
+    expect(updateCaptureConfigMock).toHaveBeenCalledWith({
+      session_id: "session-1",
+      languages: ["ko"],
+      participant_human_ids: ["human-remote"],
+      self_human_id: "human-self",
+      speaker_assignments: [],
+    });
 
     findLiveQueryHandlers("FROM transcripts").onData([]);
     await vi.runOnlyPendingTimersAsync();
 
     expect(updateCaptureConfigMock).toHaveBeenCalledTimes(1);
-    expect(updateCaptureConfigMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        session_id: "session-1",
-        speaker_assignments: [],
-      }),
-    );
   });
 
   test("live capture config sync runs without names when the transcript read fails", async () => {

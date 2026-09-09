@@ -34,6 +34,23 @@ pub struct Options {
     pub filters: Vec<Filter>,
 }
 
+/// tao's `set_theme`: `gtk-application-prefer-dark-theme` follows the app's
+/// resolved theme, so the GTK dialogs opened from here match it. Only GTK
+/// has the setting.
+pub fn set_prefer_dark(dark: bool) {
+    #[cfg(target_os = "linux")]
+    if crate::gtk_loop::ensure_running() {
+        crate::gtk_loop::invoke(move || {
+            use gtk::prelude::*;
+            if let Some(settings) = gtk::Settings::default() {
+                settings.set_gtk_application_prefer_dark_theme(dark);
+            }
+        });
+    }
+    #[cfg(not(target_os = "linux"))]
+    let _ = dark;
+}
+
 /// `MessageDialogButtons::OkCancelCustom(ok, cancel)` with the builder's
 /// default kind, `Info`.
 pub struct MessageOptions {

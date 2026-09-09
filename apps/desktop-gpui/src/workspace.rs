@@ -1882,6 +1882,7 @@ impl Render for Workspace {
         let resolved = Theme::resolve(&self.theme_preference, system_dark);
         if resolved != self.theme {
             self.theme = resolved;
+            crate::dialogs::set_prefer_dark(resolved == Theme::dark());
             self.title_input.update(cx, |input, cx| {
                 input.set_style(
                     TextInputStyle {

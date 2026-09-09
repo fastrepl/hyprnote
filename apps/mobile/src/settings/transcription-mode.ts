@@ -9,6 +9,7 @@ export function supportsLiveTranscription(provider: string, model: string) {
     case "cartesia":
     case "dashscope":
     case "xai":
+    case "meta":
       return true;
     case "assemblyai":
       return !["universal-3-pro", "universal-3-5-pro"].includes(model);

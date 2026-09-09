@@ -16,7 +16,7 @@
   "devDependencies": {
     "drizzle-kit": "^0.31.3",
     "typescript": "~5.8.3",
-    "vitest": "^4.1.4"
+    "vitest": "^5.0.0"
   },
   "scripts": {
     "introspect": "drizzle-kit introspect",

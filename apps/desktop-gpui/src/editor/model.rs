@@ -236,7 +236,7 @@ impl Doc {
         let new_type = if caret.offset >= text_len || node_type == "codeBlock" {
             "paragraph".to_string()
         } else {
-            node_type
+            node_type.clone()
         };
         let mut new_block = Map::new();
         new_block.insert("type".into(), Value::String(new_type.clone()));
@@ -278,6 +278,17 @@ impl Doc {
             }
         } else if let Some(parent) = node_at_mut(&mut self.root, parent_path) {
             content_mut(parent).insert(index[0] + 1, new_block);
+            // `splitBlock`: a split at the start of a non-empty block of a
+            // non-default type leaves the empty first half as the default
+            // block (`setNodeMarkup(first, deflt)`), so Enter before a
+            // heading's text opens a paragraph above it.
+            if caret.offset == 0
+                && text_len > 0
+                && node_type != "paragraph"
+                && let Some(first) = content_mut(parent).get_mut(index[0])
+            {
+                *first = json!({ "type": "paragraph" });
+            }
         }
         self.reindex();
         Caret {
@@ -2065,6 +2076,23 @@ mod tests {
         assert_eq!(
             doc.root()["content"][1],
             json!({ "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "tle" }] })
+        );
+        // Start of a non-empty heading: the empty half above becomes a
+        // paragraph (`setNodeMarkup(first, deflt)`); an empty heading splits
+        // into itself plus a paragraph.
+        let c = doc.split_block(caret(1, 0));
+        assert_eq!(c, caret(2, 0));
+        assert_eq!(doc.root()["content"][1], json!({ "type": "paragraph" }));
+        assert_eq!(
+            doc.root()["content"][2],
+            json!({ "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "tle" }] })
+        );
+        let mut doc =
+            Doc::parse(r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":1}}]}"#);
+        doc.split_block(caret(0, 0));
+        assert_eq!(
+            doc.root()["content"],
+            json!([{ "type": "heading", "attrs": { "level": 1 } }, { "type": "paragraph" }])
         );
     }
 

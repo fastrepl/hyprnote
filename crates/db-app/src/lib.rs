@@ -489,6 +489,11 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         scope: anlg_db_migrate::MigrationScope::Plain,
         sql: include_str!("../migrations/20260909130000_e2ee_parked_records.sql"),
     },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909140000_e2ee_edit_conflicts",
+        scope: anlg_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20260909140000_e2ee_edit_conflicts.sql"),
+    },
 ];
 
 pub fn schema() -> anlg_db_migrate::DbSchema {

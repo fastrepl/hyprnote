@@ -97,6 +97,7 @@ async fn migrations_apply_cleanly() {
             "e2ee_apply_guard",
             "e2ee_ciphertext_archive",
             "e2ee_dirty_rows",
+            "e2ee_field_conflicts",
             "e2ee_local_device",
             "e2ee_local_state",
             "e2ee_parked_records",

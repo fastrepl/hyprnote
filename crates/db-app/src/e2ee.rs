@@ -102,6 +102,7 @@ pub struct E2eeReplicaStats {
     pub rejected_rollbacks: u64,
     pub rejected_unwitnessed: u64,
     pub parked_records: u64,
+    pub recorded_conflicts: u64,
     pub remaining_replica_changes: bool,
 }
 
@@ -117,6 +118,8 @@ struct LocalState {
     value_tag: String,
     payload_hash: String,
     payload: String,
+    edited_at_ms: Option<i64>,
+    republish: bool,
 }
 
 #[derive(sqlx::FromRow)]
@@ -151,6 +154,7 @@ struct DirtyRow {
     table_name: String,
     row_id: String,
     generation: i64,
+    dirtied_at_ms: i64,
 }
 
 struct PreparedEncryptedField {
@@ -171,11 +175,16 @@ struct WitnessVersion {
     payload_hash: String,
 }
 
+mod conflicts;
 mod cooperative;
 mod replica_apply;
 mod replica_encrypt;
 mod replica_storage;
 
+pub use conflicts::{
+    E2eeFieldConflict, list_e2ee_field_conflicts, resolve_e2ee_field_conflict,
+    restore_e2ee_field_conflict, unresolved_e2ee_field_conflict_count,
+};
 use cooperative::yield_once;
 pub use replica_apply::{
     apply_e2ee_replica_changes, apply_e2ee_replica_changes_with_witness,

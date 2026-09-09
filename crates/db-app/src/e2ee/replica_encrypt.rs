@@ -240,7 +240,8 @@ async fn load_dirty_rows_inner(
     let mut workspace_ids = keys.keys().collect::<Vec<_>>();
     workspace_ids.sort_unstable();
     let mut query = QueryBuilder::<Sqlite>::new(
-        "SELECT dirty.workspace_id, dirty.table_name, dirty.row_id, dirty.generation
+        "SELECT dirty.workspace_id, dirty.table_name, dirty.row_id, dirty.generation,
+                dirty.dirtied_at_ms
          FROM e2ee_dirty_rows AS dirty
          WHERE dirty.workspace_id IN (",
     );
@@ -256,6 +257,13 @@ async fn load_dirty_rows_inner(
         .push(" ORDER BY dirty.workspace_id, dirty.table_name, dirty.row_id LIMIT ")
         .push_bind(max_rows);
     Ok(query.build_query_as().fetch_all(pool).await?)
+}
+
+fn current_time_ms() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|elapsed| i64::try_from(elapsed.as_millis()).unwrap_or(i64::MAX))
+        .unwrap_or(0)
 }
 
 pub(super) async fn load_dirty_rows_page(
@@ -379,6 +387,12 @@ async fn prepare_dirty_row_cancellable(
         .await?;
     check_e2ee_cancellation(is_cancelled)?;
     let manifest_id = key.blind_field_id(&dirty.table_name, &dirty.row_id, ROW_MANIFEST_FIELD);
+    // Rows dirtied before the write-time column existed fall back to now.
+    let edited_at_ms = if dirty.dirtied_at_ms > 0 {
+        dirty.dirtied_at_ms
+    } else {
+        current_time_ms()
+    };
     let tombstone_tag = key.value_tag(
         &dirty.table_name,
         &dirty.row_id,
@@ -423,6 +437,7 @@ async fn prepare_dirty_row_cancellable(
                 witness_versions.get(&record_id),
                 recreating,
                 false,
+                Some(edited_at_ms),
                 value,
             )? {
                 fields.push(field);
@@ -443,6 +458,7 @@ async fn prepare_dirty_row_cancellable(
             witness_versions.get(&manifest_id),
             row_changed,
             false,
+            Some(edited_at_ms),
             json!(true),
         )? {
             fields.insert(0, field);
@@ -460,6 +476,7 @@ async fn prepare_dirty_row_cancellable(
             witness_versions.get(&manifest_id),
             false,
             true,
+            Some(edited_at_ms),
             Value::Null,
         )?
     {
@@ -516,14 +533,25 @@ fn prepare_encrypted_field(
     witness_version: Option<&WitnessVersion>,
     force: bool,
     deleted: bool,
+    edited_at_ms: Option<i64>,
     value: Value,
 ) -> E2eeReplicaResult<Option<PreparedEncryptedField>> {
     let record_id = key.blind_field_id(table, row_id, field);
     let value_tag = key.value_tag(table, row_id, field, deleted, &value);
     let previous = states.get(&record_id);
-    if !force && previous.is_some_and(|state| state.value_tag == value_tag) {
+    // A republish re-seals the value this device already holds above a
+    // superseded revision; it keeps the edit time of that value.
+    let republish = previous.is_some_and(|state| state.republish);
+    if !force && !republish && previous.is_some_and(|state| state.value_tag == value_tag) {
         return Ok(None);
     }
+    let edited_at_ms = if republish {
+        previous
+            .and_then(|state| state.edited_at_ms)
+            .or(edited_at_ms)
+    } else {
+        edited_at_ms
+    };
 
     let revision = previous
         .map(|state| state.revision)
@@ -532,7 +560,7 @@ fn prepare_encrypted_field(
         .checked_add(1)
         .ok_or(E2eeReplicaError::InvalidRow)?;
     let revision = u64::try_from(revision).map_err(|_| E2eeReplicaError::InvalidRow)?;
-    let sealed = key.seal_field(
+    let sealed = key.seal_field_at(
         workspace_id,
         table,
         row_id,
@@ -540,6 +568,7 @@ fn prepare_encrypted_field(
         writer_id,
         revision,
         deleted,
+        edited_at_ms.and_then(|ms| u64::try_from(ms).ok()),
         value,
     )?;
     let payload_hash = anlg_e2ee::payload_hash(&sealed.payload);
@@ -557,6 +586,8 @@ fn prepare_encrypted_field(
             value_tag,
             payload_hash,
             payload: sealed.payload,
+            edited_at_ms,
+            republish: false,
         },
     }))
 }

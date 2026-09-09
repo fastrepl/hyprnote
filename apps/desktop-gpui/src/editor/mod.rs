@@ -2031,8 +2031,7 @@ impl BodyEditor {
             return;
         };
         if caret.offset == 0 {
-            // `revertBlockToParagraph`, then `joinBackward` (which lifts the
-            // first item out of a list instead of joining across it).
+            // `revertBlockToParagraph`, `joinTaskItemBackward`, `joinBackward`.
             if matches!(
                 self.doc.block_type(caret.block).as_deref(),
                 Some("heading" | "codeBlock")
@@ -2042,26 +2041,29 @@ impl BodyEditor {
                 self.changed(cx);
                 return;
             }
-            if self.doc.is_first_list_item(caret.block) {
-                self.record_edit(EditKind::Structural);
-                if let Some(next) = self.doc.lift_list_item(caret.block) {
-                    self.caret = Some(next);
-                }
-                self.changed(cx);
-                return;
-            }
-            // `joinBackward` at a blockquote's first block: no cut inside
-            // the quote, and `deleteBarrier` cannot join a paragraph with
-            // the quote, so the block lifts out (`liftTarget`).
-            if self.doc.parent_type(caret.block).as_deref() == Some("blockquote")
+            if self.doc.parent_type(caret.block).as_deref() == Some("taskItem")
                 && self.doc.is_first_child(caret.block)
             {
-                self.record_edit(EditKind::Structural);
-                if let Some(next) = self.doc.lift_out_of_blockquote(caret.block) {
-                    self.caret = Some(next);
+                if self.doc.is_first_list_item(caret.block) {
+                    // The first task keeps its text by lifting; an empty one
+                    // falls through to `joinBackward`.
+                    if !self.doc.text(caret.block).is_empty() {
+                        self.record_edit(EditKind::Structural);
+                        if let Some(next) = self.doc.lift_list_item(caret.block) {
+                            self.caret = Some(next);
+                        }
+                        self.changed(cx);
+                        return;
+                    }
+                } else {
+                    // Later tasks merge their paragraph into the previous task.
+                    self.record_edit(EditKind::Structural);
+                    if let Some(next) = self.doc.join_task_item_backward(caret.block) {
+                        self.caret = Some(next);
+                    }
+                    self.changed(cx);
+                    return;
                 }
-                self.changed(cx);
-                return;
             }
             self.record_edit(EditKind::Structural);
             if let Some(next) = self.doc.join_backward(caret.block) {
@@ -2120,9 +2122,10 @@ impl BodyEditor {
         };
         let text = self.doc.text(caret.block);
         if caret.offset >= text.len() {
-            if caret.block + 1 < self.doc.textblock_count() {
-                self.record_edit(EditKind::Structural);
-                self.doc.join_backward(caret.block + 1);
+            // `joinForward`.
+            self.record_edit(EditKind::Structural);
+            if let Some(next) = self.doc.join_forward(caret.block) {
+                self.caret = Some(next);
                 self.changed(cx);
             }
             return;

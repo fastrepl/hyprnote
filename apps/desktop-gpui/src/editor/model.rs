@@ -517,30 +517,247 @@ impl Doc {
 
     /// `joinBackward` from the start of a textblock: its content joins the
     /// previous textblock. Returns the caret at the join point.
+    /// `joinBackward` at the start of textblock `block`: the cut before the
+    /// nearest ancestor with a sibling before it runs `deleteBarrier`; with
+    /// no such cut the block lifts out of its wrappers (`liftTarget`).
     pub fn join_backward(&mut self, block: usize) -> Option<Caret> {
-        if block == 0 || block >= self.textblocks.len() {
+        let path = self.textblocks.get(block)?.clone();
+        for depth in (0..path.len()).rev() {
+            if path[depth] > 0 {
+                let parent_path = path[..depth].to_vec();
+                let before_textblocks = node_at(&self.root, &parent_path)
+                    .and_then(|parent| children(parent).get(path[depth] - 1))
+                    .map(textblock_count_in)
+                    .unwrap_or(0);
+                return Some(match self.delete_barrier(&parent_path, path[depth])? {
+                    Barrier::DeletedBefore => Caret {
+                        block: block - before_textblocks,
+                        offset: 0,
+                    },
+                    Barrier::Joined(Some(offset)) | Barrier::TextJoined(offset) => Caret {
+                        block: block - 1,
+                        offset,
+                    },
+                    Barrier::Joined(None) | Barrier::Wrapped | Barrier::Lifted => {
+                        Caret { block, offset: 0 }
+                    }
+                });
+            }
+        }
+        if path.len() > 1 {
+            self.lift_to(&path, 0)?;
+            return Some(Caret { block, offset: 0 });
+        }
+        None
+    }
+
+    /// `joinTaskItemBackward` for a task after the first: its paragraph's
+    /// content joins the previous task's last paragraph and its remaining
+    /// blocks follow, the task itself going away.
+    pub fn join_task_item_backward(&mut self, block: usize) -> Option<Caret> {
+        let (list_path, item_index) = self.list_item_position(block)?;
+        if item_index == 0 {
             return None;
         }
-        let path = self.textblocks[block].clone();
-        let previous_path = self.textblocks[block - 1].clone();
-        let node = node_at(&self.root, &path)?.clone();
-        let moved = children(&node).to_vec();
-        let previous = node_at_mut(&mut self.root, &previous_path)?;
-        let join_offset = plain_text(previous).len();
-        let inline = inline_content_mut(previous);
+        let list = node_at(&self.root, &list_path)?;
+        let items = children(list);
+        let previous = items.get(item_index - 1)?.clone();
+        let current = items.get(item_index)?.clone();
+        let previous_last = children(&previous).len().checked_sub(1)?;
+        if kind(&children(&previous)[previous_last]) != "paragraph"
+            || kind(children(&current).first()?) != "paragraph"
+        {
+            return None;
+        }
+        let offset = plain_text(&children(&previous)[previous_last]).len();
+        let moved = children(children(&current).first()?).to_vec();
+        let rest: Vec<Value> = children(&current)[1..].to_vec();
+        let list = node_at_mut(&mut self.root, &list_path)?;
+        let items = content_mut(list);
+        items.remove(item_index);
+        let previous = items.get_mut(item_index - 1)?;
+        let kids = content_mut(previous);
+        let last = kids.get_mut(previous_last)?;
+        let inline = inline_content_mut(last);
         inline.extend(moved);
         merge_adjacent_text(inline);
         if inline.is_empty() {
-            previous
-                .as_object_mut()
-                .map(|object| object.remove("content"));
+            last.as_object_mut().map(|object| object.remove("content"));
         }
-        self.remove_node(&path);
+        kids.extend(rest);
         self.reindex();
         Some(Caret {
             block: block - 1,
-            offset: join_offset,
+            offset,
         })
+    }
+
+    /// `joinForward` at the end of textblock `block`: `deleteBarrier` at the
+    /// cut after the nearest ancestor with a sibling after it. The caret
+    /// stays where it was unless its own empty block was deleted.
+    pub fn join_forward(&mut self, block: usize) -> Option<Caret> {
+        let path = self.textblocks.get(block)?.clone();
+        let offset = self.text(block).len();
+        for depth in (0..path.len()).rev() {
+            let count = node_at(&self.root, &path[..depth])
+                .map(|parent| children(parent).len())
+                .unwrap_or(0);
+            if path[depth] + 1 < count {
+                let parent_path = path[..depth].to_vec();
+                return Some(match self.delete_barrier(&parent_path, path[depth] + 1)? {
+                    Barrier::DeletedBefore => Caret {
+                        block: block.min(self.textblocks.len().saturating_sub(1)),
+                        offset: 0,
+                    },
+                    _ => Caret { block, offset },
+                });
+            }
+        }
+        None
+    }
+
+    /// prosemirror-commands' `deleteBarrier` at the cut between children
+    /// `cut - 1` and `cut` of the node at `parent_path`: join compatible
+    /// nodes (`joinMaybeClear`, an empty one before the cut being deleted
+    /// instead), else move the node after the cut into the one before,
+    /// wrapped as its content requires, else lift the first textblock after
+    /// the cut up to the parent, else join the textblocks on either side.
+    fn delete_barrier(&mut self, parent_path: &[usize], cut: usize) -> Option<Barrier> {
+        let parent = node_at(&self.root, parent_path)?;
+        let before = children(parent).get(cut - 1)?.clone();
+        let after = children(parent).get(cut)?.clone();
+        let before_kind = kind(&before).to_string();
+        let after_kind = kind(&after).to_string();
+        if compatible_content(&before_kind, &after_kind) {
+            if children(&before).is_empty()
+                && !is_leaf_kind(&before_kind)
+                && can_remove_child(parent, cut - 1)
+            {
+                let parent = node_at_mut(&mut self.root, parent_path)?;
+                content_mut(parent).remove(cut - 1);
+                self.reindex();
+                return Some(Barrier::DeletedBefore);
+            }
+            let joinable = !is_leaf_kind(&before_kind) && !is_leaf_kind(&after_kind);
+            if can_remove_child(parent, cut) && (is_textblock_kind(&after_kind) || joinable) {
+                let moved = clear_incompatible(children(&after).to_vec(), &before_kind);
+                let parent = node_at_mut(&mut self.root, parent_path)?;
+                let siblings = content_mut(parent);
+                siblings.remove(cut);
+                let target = siblings.get_mut(cut - 1)?;
+                let outcome = if is_textblock_kind(&before_kind) {
+                    let offset = plain_text(target).len();
+                    let inline = inline_content_mut(target);
+                    inline.extend(moved);
+                    merge_adjacent_text(inline);
+                    if inline.is_empty() {
+                        target
+                            .as_object_mut()
+                            .map(|object| object.remove("content"));
+                    }
+                    Barrier::Joined(Some(offset))
+                } else {
+                    content_mut(target).extend(moved);
+                    Barrier::Joined(None)
+                };
+                self.reindex();
+                return Some(outcome);
+            }
+        }
+        let can_del_after = can_remove_child(parent, cut);
+        if can_del_after
+            && !is_leaf_kind(&before_kind)
+            && let Some(wrappers) = find_wrapping(&before_kind, &after_kind)
+        {
+            let mut wrapped = after.clone();
+            for wrapper in wrappers.iter().rev() {
+                wrapped = wrap_in(wrapper, wrapped);
+            }
+            let parent = node_at_mut(&mut self.root, parent_path)?;
+            let siblings = content_mut(parent);
+            siblings.remove(cut);
+            content_mut(siblings.get_mut(cut - 1)?).push(wrapped);
+            // `$joinAt`: a following node of the same type joins on too.
+            if siblings
+                .get(cut)
+                .is_some_and(|next| kind(next) == before_kind)
+                && !is_leaf_kind(&before_kind)
+            {
+                let next = siblings.remove(cut);
+                content_mut(siblings.get_mut(cut - 1)?).extend(children(&next).iter().cloned());
+            }
+            self.reindex();
+            return Some(Barrier::Wrapped);
+        }
+        if let Some(relative) = first_textblock_path(&after) {
+            let mut path = parent_path.to_vec();
+            path.push(cut);
+            path.extend(relative);
+            if path.len() > parent_path.len() + 1
+                && self.lift_to(&path, parent_path.len()).is_some()
+            {
+                return Some(Barrier::Lifted);
+            }
+        }
+        if can_del_after
+            && let Some(last_before) = last_textblock_path(&before)
+            && let Some(first_after) = first_textblock_path(&after)
+            && first_after.iter().all(|index| *index == 0)
+            && after_is_single_chain(&after)
+        {
+            let after_text = node_at(&after, &first_after)?.clone();
+            let mut into = parent_path.to_vec();
+            into.push(cut - 1);
+            into.extend(last_before);
+            let into_kind = node_at(&self.root, &into)
+                .map(kind)
+                .unwrap_or("")
+                .to_string();
+            let moved = clear_incompatible(children(&after_text).to_vec(), &into_kind);
+            let target = node_at_mut(&mut self.root, &into)?;
+            let offset = plain_text(target).len();
+            let inline = inline_content_mut(target);
+            inline.extend(moved);
+            merge_adjacent_text(inline);
+            if inline.is_empty() {
+                target
+                    .as_object_mut()
+                    .map(|object| object.remove("content"));
+            }
+            let parent = node_at_mut(&mut self.root, parent_path)?;
+            content_mut(parent).remove(cut);
+            self.reindex();
+            return Some(Barrier::TextJoined(offset));
+        }
+        None
+    }
+
+    /// `tr.lift(range, target)` for the single block at `path`: it becomes a
+    /// child of the node at depth `target_depth`, every wrapper in between
+    /// splitting around it, the halves keeping the wrapper's type and attrs
+    /// and an empty half disappearing. `None` when the target does not admit
+    /// the block or a half would be invalid (a list item without its leading
+    /// paragraph), like `liftTarget` finding no target.
+    fn lift_to(&mut self, path: &[usize], target_depth: usize) -> Option<()> {
+        if target_depth + 1 >= path.len() {
+            return None;
+        }
+        let target = node_at(&self.root, &path[..target_depth])?;
+        let block = node_at(&self.root, path)?.clone();
+        if !admits(kind(target), kind(&block)) {
+            return None;
+        }
+        let top_index = path[target_depth];
+        let top = children(target).get(top_index)?.clone();
+        let (before, after) = split_around(&top, &path[target_depth + 1..])?;
+        let mut replacement = Vec::new();
+        replacement.extend(before);
+        replacement.push(block);
+        replacement.extend(after);
+        let target = node_at_mut(&mut self.root, &path[..target_depth])?;
+        content_mut(target).splice(top_index..=top_index, replacement);
+        self.reindex();
+        Some(())
     }
 
     /// The textblock's parent is a blockquote: its index there and the
@@ -563,28 +780,9 @@ impl Doc {
     /// quote of their own (none when there are none). `None` when the block
     /// is not directly inside a blockquote.
     pub fn lift_out_of_blockquote(&mut self, block: usize) -> Option<Caret> {
-        let (quote_path, index, _) = self.blockquote_position(block)?;
-        let quote = node_at(&self.root, &quote_path)?.clone();
-        let siblings = children(&quote);
-        let requote = |blocks: &[Value]| {
-            let mut requoted = quote.clone();
-            requoted
-                .as_object_mut()
-                .map(|object| object.insert("content".into(), Value::Array(blocks.to_vec())));
-            requoted
-        };
-        let mut replacement = Vec::new();
-        if index > 0 {
-            replacement.push(requote(&siblings[..index]));
-        }
-        replacement.push(siblings[index].clone());
-        if index + 1 < siblings.len() {
-            replacement.push(requote(&siblings[index + 1..]));
-        }
-        let (parent_path, quote_index) = quote_path.split_at(quote_path.len() - 1);
-        let parent = node_at_mut(&mut self.root, parent_path)?;
-        content_mut(parent).splice(quote_index[0]..=quote_index[0], replacement);
-        self.reindex();
+        let (quote_path, _, _) = self.blockquote_position(block)?;
+        let path = self.textblocks.get(block)?.clone();
+        self.lift_to(&path, quote_path.len() - 1)?;
         Some(Caret { block, offset: 0 })
     }
 
@@ -675,8 +873,37 @@ impl Doc {
             self.reindex();
         }
         // `to` is now directly after `from`.
-        self.join_backward(from.block + 1);
+        self.join_textblocks(from.block + 1);
         from
+    }
+
+    /// Moves textblock `block`'s inline content onto the end of the textblock
+    /// before it and removes it (with any list item or list left empty),
+    /// whatever the two blocks' ancestry: how a deleted range's ends meet.
+    fn join_textblocks(&mut self, block: usize) -> Option<Caret> {
+        if block == 0 || block >= self.textblocks.len() {
+            return None;
+        }
+        let path = self.textblocks[block].clone();
+        let previous_path = self.textblocks[block - 1].clone();
+        let node = node_at(&self.root, &path)?.clone();
+        let previous = node_at_mut(&mut self.root, &previous_path)?;
+        let moved = clear_incompatible(children(&node).to_vec(), kind(previous));
+        let join_offset = plain_text(previous).len();
+        let inline = inline_content_mut(previous);
+        inline.extend(moved);
+        merge_adjacent_text(inline);
+        if inline.is_empty() {
+            previous
+                .as_object_mut()
+                .map(|object| object.remove("content"));
+        }
+        self.remove_node(&path);
+        self.reindex();
+        Some(Caret {
+            block: block - 1,
+            offset: join_offset,
+        })
     }
 
     /// Whether every character between the carets carries `mark`
@@ -1380,6 +1607,11 @@ impl Doc {
         let (list_path, item_index) = self.list_item_position(block)?;
         let (grand_path, list_index) = list_path.split_at(list_path.len() - 1);
         let list_index = list_index[0];
+        if node_at(&self.root, grand_path)
+            .is_some_and(|grand| matches!(kind(grand), "listItem" | "taskItem"))
+        {
+            return self.lift_to_outer_list(block, &list_path, item_index);
+        }
         let list = node_at_mut(&mut self.root, &list_path)?;
         let items = content_mut(list);
         let item = items.remove(item_index);
@@ -1419,6 +1651,55 @@ impl Doc {
             tail.insert("content".into(), Value::Array(remaining_after));
             siblings.insert(insert_at + lifted_len, Value::Object(tail));
         }
+        self.reindex();
+        Some(Caret { block, offset: 0 })
+    }
+
+    /// `liftToOuterList`: an item of a list nested in another item outdents
+    /// to a sibling of that outer item. The inner items after it nest under
+    /// it as their own list, the outer item's blocks after the inner list
+    /// become a further item, and the outer item keeps what came before.
+    fn lift_to_outer_list(
+        &mut self,
+        block: usize,
+        list_path: &[usize],
+        item_index: usize,
+    ) -> Option<Caret> {
+        let (outer_item_path, inner_index) = list_path.split_at(list_path.len() - 1);
+        let inner_index = inner_index[0];
+        let (outer_list_path, outer_index) = outer_item_path.split_at(outer_item_path.len() - 1);
+        let outer_index = outer_index[0];
+        let inner = node_at(&self.root, list_path)?.clone();
+        let items = children(&inner);
+        let outer_item = node_at(&self.root, outer_item_path)?.clone();
+        let outer_kids = children(&outer_item);
+        let with_content = |node: &Value, content: Vec<Value>| {
+            let mut copy = node.clone();
+            copy["content"] = Value::Array(content);
+            copy
+        };
+        let mut lifted = items.get(item_index)?.clone();
+        if item_index + 1 < items.len() {
+            content_mut(&mut lifted).push(with_content(&inner, items[item_index + 1..].to_vec()));
+        }
+        let mut before_kids = outer_kids.get(..inner_index)?.to_vec();
+        if item_index > 0 {
+            before_kids.push(with_content(&inner, items[..item_index].to_vec()));
+        }
+        let after_kids = outer_kids.get(inner_index + 1..)?.to_vec();
+        // A trailing item has to start with a paragraph (`paragraph block*`).
+        if after_kids
+            .first()
+            .is_some_and(|first| kind(first) != "paragraph")
+        {
+            return None;
+        }
+        let mut replacement = vec![with_content(&outer_item, before_kids), lifted];
+        if !after_kids.is_empty() {
+            replacement.push(with_content(&outer_item, after_kids));
+        }
+        let outer_list = node_at_mut(&mut self.root, outer_list_path)?;
+        content_mut(outer_list).splice(outer_index..=outer_index, replacement);
         self.reindex();
         Some(Caret { block, offset: 0 })
     }
@@ -1625,6 +1906,212 @@ fn takes_block(kind: &str, index: usize) -> bool {
         "listItem" | "taskItem" => index >= 1,
         _ => false,
     }
+}
+
+/// What `deleteBarrier` did at a cut.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Barrier {
+    /// The empty node before the cut was deleted.
+    DeletedBefore,
+    /// The node after the cut joined the one before; the offset where two
+    /// textblocks met.
+    Joined(Option<usize>),
+    /// The node after the cut moved into the one before, wrapped as needed.
+    Wrapped,
+    /// The first textblock after the cut lifted up to the cut's parent.
+    Lifted,
+    /// The textblocks on either side of the barrier joined at the offset.
+    TextJoined(usize),
+}
+
+const BLOCK_KINDS: [&str; 11] = [
+    "paragraph",
+    "heading",
+    "codeBlock",
+    "blockquote",
+    "bulletList",
+    "orderedList",
+    "taskList",
+    "image",
+    "horizontalRule",
+    "clip",
+    "fileAttachment",
+];
+
+fn kind(node: &Value) -> &str {
+    node.get("type").and_then(Value::as_str).unwrap_or("")
+}
+
+fn is_textblock_kind(kind: &str) -> bool {
+    TEXTBLOCKS.contains(&kind)
+}
+
+/// Nodes without content of their own (atoms, text).
+fn is_leaf_kind(kind: &str) -> bool {
+    !matches!(
+        kind,
+        "doc"
+            | "blockquote"
+            | "paragraph"
+            | "heading"
+            | "codeBlock"
+            | "bulletList"
+            | "orderedList"
+            | "taskList"
+            | "listItem"
+            | "taskItem"
+    )
+}
+
+/// The note schema's content expressions: whether `parent` admits a `child`
+/// node anywhere in its content.
+fn admits(parent: &str, child: &str) -> bool {
+    match parent {
+        "doc" | "blockquote" | "listItem" | "taskItem" => BLOCK_KINDS.contains(&child),
+        "paragraph" | "heading" => {
+            child == "text" || child == "hardBreak" || child.starts_with("mention-")
+        }
+        "codeBlock" => child == "text",
+        "bulletList" | "orderedList" => child == "listItem",
+        "taskList" => child == "taskItem",
+        _ => false,
+    }
+}
+
+/// `NodeType.compatibleContent`: the same type, or content expressions that
+/// share a node type.
+fn compatible_content(a: &str, b: &str) -> bool {
+    a == b
+        || BLOCK_KINDS
+            .iter()
+            .chain(["text", "hardBreak", "mention-human", "listItem", "taskItem"].iter())
+            .any(|probe| admits(a, probe) && admits(b, probe))
+}
+
+/// `ContentMatch.findWrapping`: the wrappers that let `container` hold a
+/// `child` — none, a list item, or no way at all.
+fn find_wrapping(container: &str, child: &str) -> Option<Vec<&'static str>> {
+    if admits(container, child) {
+        return Some(Vec::new());
+    }
+    ["listItem", "taskItem"]
+        .into_iter()
+        .find(|wrapper| admits(container, wrapper) && admits(wrapper, child))
+        .map(|wrapper| vec![wrapper])
+}
+
+/// `wrapper.create(null, content)`: a task item takes the schema defaults
+/// with fresh ids, like the identity sweep would give it.
+fn wrap_in(wrapper: &str, content: Value) -> Value {
+    if wrapper == "taskItem" {
+        let attrs =
+            super::tasks::item_attrs("todo", &super::tasks::new_id(), &super::tasks::new_id());
+        return json!({ "type": "taskItem", "attrs": attrs, "content": [content] });
+    }
+    json!({ "type": wrapper, "content": [content] })
+}
+
+/// `parent.canReplace(index, index + 1)` with nothing: the content stays
+/// valid without that child (`block+` and `listItem+` need one left, a list
+/// item its leading paragraph).
+fn can_remove_child(parent: &Value, index: usize) -> bool {
+    let kids = children(parent);
+    match kind(parent) {
+        "doc" | "blockquote" | "bulletList" | "orderedList" | "taskList" => kids.len() > 1,
+        "listItem" | "taskItem" => {
+            kids.len() > 1
+                && (index != 0 || kids.get(1).is_some_and(|next| kind(next) == "paragraph"))
+        }
+        _ => false,
+    }
+}
+
+/// `clearIncompatible` for inline content joined into `into`: a code block
+/// keeps text only, without marks.
+fn clear_incompatible(inline: Vec<Value>, into: &str) -> Vec<Value> {
+    if into != "codeBlock" {
+        return inline;
+    }
+    inline
+        .into_iter()
+        .filter(|child| kind(child) == "text")
+        .map(|child| json!({ "type": "text", "text": child["text"] }))
+        .collect()
+}
+
+fn textblock_count_in(node: &Value) -> usize {
+    if is_textblock_kind(kind(node)) {
+        return 1;
+    }
+    children(node).iter().map(textblock_count_in).sum()
+}
+
+fn first_textblock_path(node: &Value) -> Option<Vec<usize>> {
+    if is_textblock_kind(kind(node)) {
+        return Some(Vec::new());
+    }
+    children(node)
+        .iter()
+        .enumerate()
+        .find_map(|(index, child)| {
+            let mut path = vec![index];
+            path.extend(first_textblock_path(child)?);
+            Some(path)
+        })
+}
+
+fn last_textblock_path(node: &Value) -> Option<Vec<usize>> {
+    if is_textblock_kind(kind(node)) {
+        return Some(Vec::new());
+    }
+    children(node)
+        .iter()
+        .enumerate()
+        .rev()
+        .find_map(|(index, child)| {
+            let mut path = vec![index];
+            path.extend(last_textblock_path(child)?);
+            Some(path)
+        })
+}
+
+/// The node is a chain of single children ending in a textblock.
+fn after_is_single_chain(node: &Value) -> bool {
+    if is_textblock_kind(kind(node)) {
+        return true;
+    }
+    children(node).len() == 1 && after_is_single_chain(&children(node)[0])
+}
+
+/// Splits `node` around the descendant at `rel`: the copies of `node` (and
+/// of each wrapper down the path) holding what comes before and after that
+/// descendant. `Some(None)` for an empty half; `None` when a half would be
+/// invalid (a list item not starting with a paragraph).
+fn split_around(node: &Value, rel: &[usize]) -> Option<(Option<Value>, Option<Value>)> {
+    let index = rel[0];
+    let kids = children(node);
+    let (inner_before, inner_after) = if rel.len() == 1 {
+        (None, None)
+    } else {
+        split_around(kids.get(index)?, &rel[1..])?
+    };
+    let mut before_kids: Vec<Value> = kids.get(..index)?.to_vec();
+    before_kids.extend(inner_before);
+    let mut after_kids: Vec<Value> = Vec::new();
+    after_kids.extend(inner_after);
+    after_kids.extend(kids.get(index + 1..)?.iter().cloned());
+    let half = |half_kids: Vec<Value>| -> Option<Option<Value>> {
+        if half_kids.is_empty() {
+            return Some(None);
+        }
+        if matches!(kind(node), "listItem" | "taskItem") && kind(&half_kids[0]) != "paragraph" {
+            return None;
+        }
+        let mut copy = node.clone();
+        copy["content"] = Value::Array(half_kids);
+        Some(Some(copy))
+    };
+    Some((half(before_kids)?, half(after_kids)?))
 }
 
 fn collect_textblocks(node: &Value, path: &mut Vec<usize>, out: &mut Vec<Vec<usize>>) {
@@ -2177,16 +2664,32 @@ mod tests {
             doc.to_json(),
             r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"first"}]}]},{"type":"listItem","content":[{"type":"paragraph"}]}]}]}"#
         );
-        // Backspace at the start of the new item removes it and rejoins.
+        // Backspace at the start of the new item joins the items
+        // (`joinMaybeClear` on two list items), then the paragraphs.
+        let c = doc.join_backward(1).unwrap();
+        assert_eq!(c, caret(1, 0));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"first"}]},{"type":"paragraph"}]}]}]}"#
+        );
         let c = doc.join_backward(1).unwrap();
         assert_eq!(c, caret(0, 5));
         assert_eq!(doc.to_json(), body);
     }
 
     #[test]
-    fn backspace_at_block_start_joins_and_removes_empty_lists() {
+    fn backspace_at_block_start_lifts_out_of_a_list_then_joins() {
+        // `deleteBarrier` between a paragraph and a list lifts the first
+        // item's paragraph out (the list going with its only item); the next
+        // Backspace joins the paragraphs.
         let body = r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}"#;
         let mut doc = Doc::parse(body);
+        let c = doc.join_backward(1).unwrap();
+        assert_eq!(c, caret(1, 0));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]},{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}"#
+        );
         let c = doc.join_backward(1).unwrap();
         assert_eq!(c, caret(0, 1));
         assert_eq!(
@@ -2194,6 +2697,99 @@ mod tests {
             r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"ab"}]}]}"#
         );
         assert!(doc.join_backward(0).is_none());
+    }
+
+    #[test]
+    fn delete_barrier_follows_the_recorded_sequences() {
+        // L3: Delete at the end of a paragraph before a list lifts the first
+        // item's paragraph out; Delete again joins the text.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"one"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}"#,
+        );
+        assert_eq!(doc.join_forward(0), Some(caret(0, 3)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"one"}]},{"type":"paragraph","content":[{"type":"text","text":"a"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}"#
+        );
+        assert_eq!(doc.join_forward(0), Some(caret(0, 3)));
+        assert_eq!(doc.text(0), "onea");
+
+        // L4: Backspace at a paragraph after a list wraps it into a new item;
+        // again, and the items join.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]}]},{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}"#,
+        );
+        assert_eq!(doc.join_backward(1), Some(caret(1, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}"#
+        );
+        assert_eq!(doc.join_backward(1), Some(caret(1, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]},{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}"#
+        );
+
+        // L5: Delete at the end of the last item wraps the paragraph after
+        // the list into a new item.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]},{"type":"paragraph","content":[{"type":"text","text":"c"}]}]}"#,
+        );
+        assert_eq!(doc.join_forward(0), Some(caret(0, 1)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c"}]}]}]}]}"#
+        );
+
+        // L7b: after an item ending in a nested list, Backspace wraps the
+        // following paragraph into that nested list.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c"}]}]}]},{"type":"paragraph","content":[{"type":"text","text":"d"}]}]}]}]}"#,
+        );
+        assert_eq!(doc.join_backward(2), Some(caret(2, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"d"}]}]}]}]}]}]}"#
+        );
+
+        // L8: a paragraph after a blockquote moves into it.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q"}]}]},{"type":"paragraph","content":[{"type":"text","text":"p"}]}]}"#,
+        );
+        assert_eq!(doc.join_backward(1), Some(caret(1, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q"}]},{"type":"paragraph","content":[{"type":"text","text":"p"}]}]}]}"#
+        );
+
+        // H2: an empty heading before the cut is deleted, not joined into.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":1}},{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}"#,
+        );
+        assert_eq!(doc.join_backward(1), Some(caret(0, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}"#
+        );
+
+        // C1: joined into a code block, text loses its marks.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"codeBlock","content":[{"type":"text","text":"code"}]},{"type":"paragraph","content":[{"type":"text","text":"bo"},{"type":"text","marks":[{"type":"bold"}],"text":"ld"}]}]}"#,
+        );
+        assert_eq!(doc.join_forward(0), Some(caret(0, 4)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"codeBlock","content":[{"type":"text","text":"codebold"}]}]}"#
+        );
+
+        // Delete at the end of an empty paragraph deletes it; the caret moves
+        // to the start of what followed.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph"},{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"h"}]}]}"#,
+        );
+        assert_eq!(doc.join_forward(0), Some(caret(0, 0)));
+        assert_eq!(doc.textblock_count(), 1);
+        assert_eq!(doc.block_type(0).as_deref(), Some("heading"));
     }
 
     #[test]
@@ -2636,5 +3232,28 @@ mod tests {
             r#"{"type":"doc","content":[{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q1"}]}]},{"type":"paragraph"},{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"q2"}]}]}]}"#
         );
         assert_eq!(doc.lift_empty_block(1), None);
+    }
+
+    #[test]
+    fn lifting_a_nested_item_outdents_it_like_lift_to_outer_list() {
+        // Recorded in the Tauri app: Shift-Tab on `c2`.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c1"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c2"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c3"}]}]}]},{"type":"paragraph","content":[{"type":"text","text":"d"}]}]}]}]}"#,
+        );
+        assert_eq!(doc.lift_list_item(3), Some(caret(3, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c1"}]}]}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c2"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c3"}]}]}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"d"}]}]}]}]}"#
+        );
+        // Enter on an empty nested item (the only one): a sibling of the
+        // outer item, the inner list gone.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c"}]}]},{"type":"listItem","content":[{"type":"paragraph"}]}]}]}]}]}"#,
+        );
+        assert_eq!(doc.lift_list_item(2), Some(caret(2, 0)));
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"c"}]}]}]}]},{"type":"listItem","content":[{"type":"paragraph"}]}]}]}"#
+        );
     }
 }

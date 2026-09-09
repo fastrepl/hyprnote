@@ -47,7 +47,7 @@ pub(crate) enum BatchPhase {
 const AUDIO_EXTENSIONS: [&str; 8] = ["wav", "mp3", "ogg", "mp4", "m4a", "flac", "webm", "aac"];
 
 /// `DIRECT_BATCH_PROVIDERS`
-const DIRECT_BATCH_PROVIDERS: [&str; 24] = [
+const DIRECT_BATCH_PROVIDERS: [&str; 25] = [
     "deepgram",
     "cartesia",
     "soniox",
@@ -59,6 +59,7 @@ const DIRECT_BATCH_PROVIDERS: [&str; 24] = [
     "gladia",
     "elevenlabs",
     "mistral",
+    "meta",
     "pyannote",
     "aquavoice",
     "cohere",

@@ -127,6 +127,7 @@ const MODEL_PRIORITY_PATTERNS: &[&str] = &[
     r"(?:^|/)kimi-k3$",
     r"(?:^|/)deepseek-v4-(?:pro|flash)$",
     r"(?:^|/)glm-5\.3$",
+    r"(?:^|/)muse-spark-1\.3$",
 ];
 
 static PRIORITY: LazyLock<Vec<Regex>> = LazyLock::new(|| {
@@ -1540,6 +1541,42 @@ mod tests {
         let result = process_unsloth_models(&ids(&["zeta-gguf", "alpha-gguf", "embed-x"]));
         assert_eq!(result.models, ids(&["alpha-gguf", "zeta-gguf"]));
         assert_eq!(result.ignored[0].reasons, vec![IgnoreReason::CommonKeyword]);
+    }
+
+    /// `list-openai.test.ts`: `lists Meta Muse Spark models with the current release first`.
+    #[test]
+    fn lists_meta_muse_spark_models_with_the_current_release_first() {
+        let result = process_generic_models(
+            &ids(&[
+                "muse-spark-1.3-contributor",
+                "muse-voice-transcribe-1.0",
+                "muse-spark-1.3",
+                "muse-image-1.0",
+                "muse-spark-1.2-contributor",
+                "muse-spark-1.2",
+                "muse-spark-1.1",
+            ]),
+            true,
+            &[InputModality::Text],
+        );
+        assert_eq!(
+            result.models,
+            ids(&[
+                "muse-spark-1.3",
+                "muse-spark-1.1",
+                "muse-spark-1.2",
+                "muse-spark-1.2-contributor",
+                "muse-spark-1.3-contributor",
+            ])
+        );
+        assert_eq!(
+            result
+                .ignored
+                .iter()
+                .map(|m| m.id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["muse-voice-transcribe-1.0", "muse-image-1.0"]
+        );
     }
 
     #[test]

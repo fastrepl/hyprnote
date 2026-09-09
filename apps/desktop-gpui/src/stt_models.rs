@@ -19,6 +19,7 @@ const MODEL_LABELS: &[(&str, &str)] = &[
     ("stt-v5", "Soniox 5"),
     ("stt-rt-v5", "Soniox 5"),
     ("stt-async-v5", "Soniox 5"),
+    ("muse-voice-transcribe-1.0", "Muse Voice Transcribe"),
     ("stt-v4", "Soniox 4"),
     ("stt-rt-v4", "Soniox 4"),
     ("stt-async-v4", "Soniox 4"),
@@ -173,6 +174,10 @@ mod tests {
         assert_eq!(display_model_id("nova-3"), "Nova 3");
         assert_eq!(display_model_id("nova-3-general"), "Nova 3");
         assert_eq!(display_model_id("stt-rt-v5"), "Soniox 5");
+        assert_eq!(
+            display_model_id("muse-voice-transcribe-1.0"),
+            "Muse Voice Transcribe"
+        );
         assert_eq!(
             display_model_id("gpt-4o-mini-transcribe"),
             "GPT-4o mini Transcribe"

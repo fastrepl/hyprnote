@@ -51,6 +51,7 @@ mod shell;
 mod sidebar_layout;
 mod speaker_assignment;
 mod squircle;
+mod startup;
 mod stats;
 mod storage;
 mod store_file;
@@ -382,6 +383,22 @@ fn main() -> anyhow::Result<()> {
     let forwarded = match deeplink::claim(&deeplink::socket_path(&db_path), &args.urls) {
         deeplink::Claim::Forwarded => return Ok(()),
         deeplink::Claim::Primary(receiver) => receiver,
+    };
+    // Held until the app exits so Nightly and stable never share the open
+    // database at the same time.
+    let db_dir = db_path
+        .parent()
+        .map(std::path::Path::to_path_buf)
+        .unwrap_or_default();
+    let _channel_lock = match startup::acquire_channel_lock(&args.identifier, &db_dir) {
+        startup::ChannelLockState::Acquired(lock) => lock,
+        startup::ChannelLockState::PeerRunning { peer } => {
+            startup::exit_for_running_peer_channel(&args.identifier, peer)
+        }
+        startup::ChannelLockState::Unavailable(reason) => {
+            eprintln!("starting without the channel lock: {reason}");
+            None
+        }
     };
     let (deeplink_sender, deeplink_receiver) = std::sync::mpsc::channel::<String>();
     let startup_urls = args.urls.clone();

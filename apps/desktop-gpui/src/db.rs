@@ -4932,7 +4932,31 @@ async fn data_version(
 ///
 /// Mirrors `apps/desktop/src-tauri/src/db.rs`: prefer the raw identifier
 /// folder when it already holds a database and the storage default does not.
+pub const STABLE_BUNDLE_ID: &str = "com.hyprnote.stable";
+pub const NIGHTLY_BUNDLE_ID: &str = "com.hyprnote.nightly";
+
+/// Nightly previews run against the user's real notes, so it opens stable's
+/// database while keeping its own settings, store and sign-in
+/// (`shared_database_peer` / `database_identifier` in the Tauri app).
+pub fn shared_database_peer(identifier: &str) -> Option<&'static str> {
+    match identifier {
+        NIGHTLY_BUNDLE_ID => Some(STABLE_BUNDLE_ID),
+        STABLE_BUNDLE_ID => Some(NIGHTLY_BUNDLE_ID),
+        _ => None,
+    }
+}
+
+fn database_identifier(identifier: &str) -> &str {
+    if identifier == NIGHTLY_BUNDLE_ID {
+        STABLE_BUNDLE_ID
+    } else {
+        identifier
+    }
+}
+
+/// `desktop_db_dir(identifier).join("app.db")`.
 pub fn default_db_path(identifier: &str) -> anyhow::Result<PathBuf> {
+    let identifier = database_identifier(identifier);
     let data_dir = dirs::data_dir().context("application data directory is unavailable")?;
     let default_dir = anlg_storage::global::compute_default_base(identifier)
         .context("application data directory is unavailable")?;

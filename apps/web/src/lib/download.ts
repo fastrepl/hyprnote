@@ -19,6 +19,14 @@ export const windowsStoreDownloadUrl =
 
 export const comingSoonPlatforms = ["Apple Watch", "Galaxy Watch"] as const;
 
+export const platformIcons = {
+  macOS: "simple-icons:apple",
+  Windows: "simple-icons:windows",
+  Linux: "simple-icons:linux",
+  iOS: "simple-icons:apple",
+  Android: "simple-icons:android",
+} as const;
+
 export const mobileDownloadSections = [
   {
     platform: "ios",

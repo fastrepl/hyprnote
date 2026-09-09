@@ -1,9 +1,10 @@
+import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { DownloadSimple } from "@anlg/ui/components/icons";
 
 import { SiteFooter } from "@/components/site-footer";
-import { nightlyDownloadSections } from "@/lib/download";
+import { nightlyDownloadSections, platformIcons } from "@/lib/download";
 import { getCanonicalUrl } from "@/lib/seo";
 
 export const Route = createFileRoute("/_view/download/nightly/")({
@@ -64,7 +65,12 @@ function NightlyDownloads() {
           <div className="grid gap-9">
             {nightlyDownloadSections.map((section) => (
               <section key={section.name}>
-                <h2 className="font-hand mb-3 text-3xl font-semibold">
+                <h2 className="font-hand mb-3 flex items-center gap-2.5 text-3xl leading-none font-semibold">
+                  <Icon
+                    icon={platformIcons[section.name]}
+                    className="text-2xl"
+                    aria-hidden="true"
+                  />
                   {section.name}
                 </h2>
                 <ul className="border-blueprint-line-strong divide-blueprint-line-strong divide-y border-y">

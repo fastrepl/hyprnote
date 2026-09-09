@@ -9,16 +9,9 @@ import {
   comingSoonPlatforms,
   desktopDownloadSections,
   mobileDownloadSections,
+  platformIcons,
 } from "@/lib/download";
 import { getCanonicalUrl } from "@/lib/seo";
-
-const platformIcons = {
-  macOS: "simple-icons:apple",
-  Windows: "simple-icons:windows",
-  Linux: "simple-icons:linux",
-  iOS: "simple-icons:apple",
-  Android: "simple-icons:android",
-} as const;
 
 const downloadSections = [
   ...desktopDownloadSections,

@@ -13,6 +13,22 @@ export function getInvitationRouteFailure({
   return acceptanceFailed ? "accept-retry" : null;
 }
 
+export function getSharedNoteAccessGate({
+  requestStatus,
+  signedIn,
+}: {
+  requestStatus: "pending" | "approved" | "denied" | "cancelled" | null;
+  signedIn: boolean;
+}): "sign-in" | "pending" | "approved" | "request" {
+  if (!signedIn) {
+    return "sign-in";
+  }
+  if (requestStatus === "pending" || requestStatus === "approved") {
+    return requestStatus;
+  }
+  return "request";
+}
+
 export function getLinkSharedNoteRouteGate({
   authenticatedNotePending,
   continuationFailed,

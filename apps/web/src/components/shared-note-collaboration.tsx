@@ -22,7 +22,7 @@ import {
   cancelMySharedNoteAccessRequest,
   getMySharedNoteAccessRequest,
   listSharedNoteManagerAccess,
-  requestSharedNoteCommentAccess,
+  requestSharedNoteAccess,
   reviewSharedNoteAccessRequest,
 } from "@/functions/shared-notes";
 import { formatSharedNoteAccessRequestDescription } from "@/lib/shared-note-collaboration";
@@ -92,7 +92,9 @@ export function SharedNoteCollaboration({
   });
   const requestMutation = useMutation({
     mutationFn: async () => {
-      const result = await requestSharedNoteCommentAccess({ data: shareId });
+      const result = await requestSharedNoteAccess({
+        data: { shareId, capability: "commenter" },
+      });
       if (result.status !== "ready") {
         throw new Error("access request unavailable");
       }
@@ -162,7 +164,7 @@ export function SharedNoteCollaboration({
 
   return (
     <section
-      aria-label="Comment access"
+      aria-label={manageAccess ? "Access requests" : "Comment access"}
       className="surface-subtle border-color-subtle mt-8 rounded-2xl border px-4 py-4 sm:px-5"
     >
       {!signedIn ? (
@@ -353,9 +355,7 @@ function ManagerRequests({
 
   return (
     <div>
-      <h2 className="text-color text-sm font-medium">
-        Comment access requests
-      </h2>
+      <h2 className="text-color text-sm font-medium">Access requests</h2>
       {requests.length > 0 && (
         <ul className="mt-3 space-y-2">
           {requests.map((request) => {

@@ -3,6 +3,7 @@ import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import { useCallback } from "react";
 
 import { useShareRouteContinuation } from "@/components/share-route-continuation";
+import { SharedNoteAccessGate } from "@/components/shared-note-access-gate";
 import { LinkSharedNoteActions } from "@/components/shared-note-actions";
 import { SharedNoteChatPanel } from "@/components/shared-note-chat-panel";
 import { SharedNoteCollaboration } from "@/components/shared-note-collaboration";
@@ -206,10 +207,16 @@ export function LinkSharedNoteClient({
   const linkSnapshot =
     snapshotQuery.data?.status === "ready" ? snapshotQuery.data.snapshot : null;
   const snapshot = authenticatedNote?.snapshot ?? linkSnapshot;
-  if (!snapshot) {
-    return <SharedNoteUnavailable />;
-  }
   const returnPath = buildSharedNoteWebPath(pathname, scheme);
+  if (!snapshot) {
+    return (
+      <SharedNoteAccessGate
+        returnPath={returnPath}
+        shareId={validShareId.data}
+        signedIn={currentUserId !== null}
+      />
+    );
+  }
 
   return (
     <>

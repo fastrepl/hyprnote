@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   getInvitationRouteFailure,
   getLinkSharedNoteRouteGate,
+  getSharedNoteAccessGate,
 } from "./shared-note-route-state.ts";
 
 test("keeps failed invitation acceptance retryable", () => {
@@ -63,5 +64,39 @@ test("authenticated access outranks continuation failures", () => {
       linkSnapshotPending: false,
     }),
     "continuation-error",
+  );
+});
+
+test("signed-out visitors sign in before they can request access", () => {
+  assert.equal(
+    getSharedNoteAccessGate({ requestStatus: null, signedIn: false }),
+    "sign-in",
+  );
+  assert.equal(
+    getSharedNoteAccessGate({ requestStatus: "pending", signedIn: false }),
+    "sign-in",
+  );
+});
+
+test("signed-in visitors see their latest access request state", () => {
+  assert.equal(
+    getSharedNoteAccessGate({ requestStatus: null, signedIn: true }),
+    "request",
+  );
+  assert.equal(
+    getSharedNoteAccessGate({ requestStatus: "pending", signedIn: true }),
+    "pending",
+  );
+  assert.equal(
+    getSharedNoteAccessGate({ requestStatus: "approved", signedIn: true }),
+    "approved",
+  );
+  assert.equal(
+    getSharedNoteAccessGate({ requestStatus: "denied", signedIn: true }),
+    "request",
+  );
+  assert.equal(
+    getSharedNoteAccessGate({ requestStatus: "cancelled", signedIn: true }),
+    "request",
   );
 });

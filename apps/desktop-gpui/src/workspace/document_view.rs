@@ -288,8 +288,8 @@ impl DocumentRenderer {
             )
             .child(
                 // `.prosemirror-editor { min-height: 100% }`: the editor fills
-                // the viewport, and a press below the last block places the
-                // caret at the end (`trailing-empty-line-click`).
+                // the viewport, and a press below the last block focuses the
+                // trailing empty line (`note-input`'s container mousedown).
                 div()
                     .id("editor-tail")
                     .flex_1()
@@ -298,7 +298,9 @@ impl DocumentRenderer {
                     .cursor_text()
                     .on_mouse_down(MouseButton::Left, move |_: &MouseDownEvent, window, cx| {
                         cx.stop_propagation();
-                        click_editor.update(cx, |editor, cx| editor.place_caret_at_end(window, cx));
+                        click_editor.update(cx, |editor, cx| {
+                            editor.focus_trailing_empty_line(window, cx)
+                        });
                     }),
             )
             .into_any_element()

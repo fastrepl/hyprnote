@@ -873,8 +873,25 @@ impl BodyEditor {
         self.focus_handle.focus(window);
     }
 
-    /// Clicking below the last block puts the caret at the end, like
-    /// `trailing-empty-line-click.ts`.
+    /// `focusTrailingEmptyLine` (a press in the note area outside the
+    /// editor's blocks): the caret goes to the end of a document ending in a
+    /// blank paragraph; any other ending gets a fresh paragraph appended for
+    /// the caret, as one history step.
+    pub fn focus_trailing_empty_line(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.doc.ensure_textblock();
+        if !self.doc.ends_in_blank_paragraph() {
+            self.record_edit(EditKind::Structural);
+            self.doc.append_paragraph();
+            let block = self.doc.textblock_count() - 1;
+            self.set_head(Caret { block, offset: 0 }, false, cx);
+            self.focus_handle.focus(window);
+            self.changed(cx);
+            return;
+        }
+        self.place_caret_at_end(window, cx);
+    }
+
+    /// `Selection.atEnd(doc)` plus focus.
     pub fn place_caret_at_end(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.doc.ensure_textblock();
         let block = self.doc.textblock_count() - 1;

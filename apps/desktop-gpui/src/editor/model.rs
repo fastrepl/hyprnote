@@ -84,6 +84,30 @@ impl Doc {
         }
     }
 
+    /// `doc.lastChild` is a paragraph whose `textContent.trim()` is empty:
+    /// text nodes only, so a paragraph holding just a mention or a hard
+    /// break counts as blank.
+    pub fn ends_in_blank_paragraph(&self) -> bool {
+        children(&self.root).last().is_some_and(|last| {
+            last.get("type").and_then(Value::as_str) == Some("paragraph")
+                && children(last)
+                    .iter()
+                    .filter(|child| child.get("type").and_then(Value::as_str) == Some("text"))
+                    .all(|child| {
+                        child
+                            .get("text")
+                            .and_then(Value::as_str)
+                            .is_none_or(|text| text.trim().is_empty())
+                    })
+        })
+    }
+
+    /// `tr.insert(doc.content.size, paragraph.create())`.
+    pub fn append_paragraph(&mut self) {
+        self.root_content_mut().push(json!({ "type": "paragraph" }));
+        self.reindex();
+    }
+
     pub fn insert_text(&mut self, caret: Caret, text: &str) -> Caret {
         let Some(path) = self.textblocks.get(caret.block).cloned() else {
             return caret;
@@ -2448,5 +2472,32 @@ mod tests {
             Value::Null,
         )]));
         assert_eq!(doc.link_across(caret(0, 0), caret(0, 5)), None);
+    }
+
+    #[test]
+    fn trailing_empty_line_rule_follows_text_content() {
+        // A list at the end: a paragraph is appended.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]}]}]}"#,
+        );
+        assert!(!doc.ends_in_blank_paragraph());
+        doc.append_paragraph();
+        assert!(doc.ends_in_blank_paragraph());
+        assert_eq!(doc.textblock_count(), 2);
+        assert_eq!(doc.text(1), "");
+        // Whitespace-only text is blank; a mention alone contributes no
+        // `textContent`; a filled paragraph is not blank.
+        assert!(Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"  "}]}]}"#
+        )
+        .ends_in_blank_paragraph());
+        assert!(Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"mention-human","attrs":{"id":"h1","label":"Ada"}}]}]}"#
+        )
+        .ends_in_blank_paragraph());
+        assert!(!Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Z"}]}]}"#
+        )
+        .ends_in_blank_paragraph());
     }
 }

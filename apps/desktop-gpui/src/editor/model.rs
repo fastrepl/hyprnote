@@ -870,16 +870,85 @@ impl Doc {
         if let Some(caret) = self.delete_range_between(from, to) {
             return caret;
         }
+        self.join_delete_between(from, to)
+    }
+
+    /// `insertText(text, from, to)` over a selection spanning blocks:
+    /// `replaceRangeWith` fits the text where the range starts, so the
+    /// start block keeps its type and what follows the range joins it
+    /// (unlike `deleteRange`). The caret lands after the text. `None` when
+    /// the port cannot represent the document or the text spans lines.
+    pub fn replace_between_with_text(
+        &mut self,
+        from: Caret,
+        to: Caret,
+        text: &str,
+        marks: &[&'static str],
+    ) -> Option<Caret> {
+        if text.is_empty() || text.contains('\n') {
+            return None;
+        }
+        let schema = super::pm::schema::schema();
+        let doc = super::pm::node::Node::from_json(schema, &self.root)?;
+        let (from, to) = (
+            super::paste::position(&doc, from)?,
+            super::paste::position(&doc, to)?,
+        );
+        let marks: Vec<Value> = marks.iter().map(|mark| json!({ "type": mark })).collect();
+        let node = super::pm::node::Node::from_json(
+            schema,
+            &json!({ "type": "text", "text": text, "marks": marks }),
+        )?;
+        let slice = super::pm::node::Slice::new(super::pm::node::Fragment::from(vec![node]), 0, 0);
+        let applied = super::pm::transform::replace_range(schema, &doc, from, to, &slice)?;
+        let pos = super::pm::clipboard::near_text(schema, &applied.doc, applied.end, -1)
+            .or_else(|| super::pm::clipboard::near_text(schema, &applied.doc, applied.end, 1))?;
+        let caret = super::paste::caret(&applied.doc, pos)?;
+        self.replace_root(applied.doc.to_json(schema));
+        Some(caret)
+    }
+
+    /// Whether `splitBlock` could split after `deleteRange` removed the
+    /// selection: the position the deletion leaves sits inside a textblock.
+    /// A range starting at a block's start whose block goes with it leaves
+    /// a position between blocks, where the Tauri editor's Enter falls back
+    /// to WebKit's own handling.
+    pub fn deletion_leaves_split_point(&self, from: Caret, to: Caret) -> Option<bool> {
+        let schema = super::pm::schema::schema();
+        let doc = super::pm::node::Node::from_json(schema, &self.root)?;
+        let (from, to) = (
+            super::paste::position(&doc, from)?,
+            super::paste::position(&doc, to)?,
+        );
+        let applied = super::pm::transform::replace_range(
+            schema,
+            &doc,
+            from,
+            to,
+            &super::pm::node::Slice::empty(),
+        )?;
+        let at = applied.doc.resolve(applied.end);
+        Some(at.parent().is_textblock(schema))
+    }
+
+    /// The pre-ProseMirror deletion across blocks: the ends emptied and the
+    /// end block's remainder joined into the start block, which keeps its
+    /// type. What WebKit's native handling leaves when an editor command
+    /// declines the selection.
+    pub fn join_delete_between(&mut self, from: Caret, to: Caret) -> Caret {
+        let (from, to) = order(from, to);
+        if from.block == to.block {
+            self.delete_range(from.block, from.offset..to.offset);
+            return from;
+        }
         let first_len = self.text(from.block).len();
         self.delete_range(from.block, from.offset..first_len);
         self.delete_range(to.block, 0..to.offset);
-        // Drop the blocks strictly in between, last first so indices hold.
         for block in (from.block + 1..to.block).rev() {
             let path = self.textblocks[block].clone();
             self.remove_node(&path);
             self.reindex();
         }
-        // `to` is now directly after `from`.
         self.join_textblocks(from.block + 1);
         from
     }
@@ -3308,6 +3377,45 @@ mod tests {
         assert_eq!(
             doc.to_json(),
             r#"{"type":"doc","content":[{"type":"heading","attrs":{"level":1}}]}"#
+        );
+    }
+
+    #[test]
+    fn typing_over_a_selection_into_a_list_fits_like_replace_range_with() {
+        // S6 and S8 recorded in the Tauri app.
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"one"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}"#,
+        );
+        assert_eq!(
+            doc.replace_between_with_text(caret(0, 0), caret(2, 0), "Z", &[]),
+            Some(caret(0, 1))
+        );
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Zb"}]}]}"#
+        );
+        let mut doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]},{"type":"paragraph","content":[{"type":"text","text":"two"}]}]}"#,
+        );
+        assert_eq!(
+            doc.replace_between_with_text(caret(1, 0), caret(2, 0), "Z", &[]),
+            Some(caret(1, 1))
+        );
+        assert_eq!(
+            doc.to_json(),
+            r#"{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"a"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Ztwo"}]}]}]}]}"#
+        );
+        // S7: the deletion of that first range leaves no split point.
+        let doc = Doc::parse(
+            r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"one"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"b"}]}]}]}]}"#,
+        );
+        assert_eq!(
+            doc.deletion_leaves_split_point(caret(0, 0), caret(1, 0)),
+            Some(false)
+        );
+        assert_eq!(
+            doc.deletion_leaves_split_point(caret(0, 1), caret(1, 0)),
+            Some(true)
         );
     }
 }

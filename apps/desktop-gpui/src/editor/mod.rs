@@ -2150,6 +2150,21 @@ impl BodyEditor {
         // (`$from` has no depth to split at) and WebKit's own handling only
         // deletes the selection.
         let all_selected = self.all_selected;
+        // `splitBlock` deletes the selection and splits at the mapped
+        // start; when `deleteRange` leaves that position between blocks the
+        // split is impossible, the chain declines, and WebKit's own handling
+        // joins the ends into the start block without a break.
+        if !all_selected
+            && let Some((from, to)) = self.selection()
+            && from.block != to.block
+            && self.doc.deletion_leaves_split_point(from, to) == Some(false)
+        {
+            self.caret = Some(self.doc.join_delete_between(from, to));
+            self.anchor = None;
+            self.all_selected = false;
+            self.changed(cx);
+            return;
+        }
         self.delete_selection();
         if all_selected {
             self.changed(cx);
@@ -2428,6 +2443,35 @@ impl EntityInputHandler for BodyEditor {
         cx: &mut Context<Self>,
     ) {
         self.doc.ensure_textblock();
+        // Typed text over a selection spanning blocks is
+        // `insertText(text, from, to)`: one `replaceRangeWith`, not a
+        // deletion and an insertion.
+        if range_utf16.is_none()
+            && self.marked_range.is_none()
+            && !self.pasting
+            && !self.all_selected
+            && let Some((from, to)) = self.selection()
+            && from.block != to.block
+        {
+            let marks = self
+                .stored_marks
+                .clone()
+                .unwrap_or_else(|| self.doc.marks_at(from));
+            let snapshot = self.doc.to_json();
+            self.record_edit(EditKind::Structural);
+            if let Some(caret) = self
+                .doc
+                .replace_between_with_text(from, to, new_text, &marks)
+            {
+                self.caret = Some(caret);
+                self.anchor = None;
+                self.marked_range = None;
+                self.layouts = vec![None; self.doc.textblock_count()];
+                self.changed(cx);
+                return;
+            }
+            debug_assert_eq!(self.doc.to_json(), snapshot);
+        }
         // Typing over a selection replaces it, carrying a link across the
         // range like `insertText(text, from, to)` does.
         let mut carried_link = None;

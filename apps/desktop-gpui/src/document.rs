@@ -35,6 +35,8 @@ pub enum Block {
     },
     List {
         ordered: bool,
+        /// `orderedList`'s `start` (`counter-reset: ol-counter start-1`).
+        start: u64,
         items: Vec<ListItem>,
     },
     Blockquote(Vec<Block>),
@@ -168,14 +170,17 @@ fn block(node: &Value) -> Option<Block> {
         }),
         "bulletList" => Some(Block::List {
             ordered: false,
+            start: 1,
             items: children(node).iter().map(list_item).collect(),
         }),
         "orderedList" => Some(Block::List {
             ordered: true,
+            start: attr(node, "start").and_then(Value::as_u64).unwrap_or(1),
             items: children(node).iter().map(list_item).collect(),
         }),
         "taskList" => Some(Block::List {
             ordered: false,
+            start: 1,
             items: children(node).iter().map(list_item).collect(),
         }),
         "blockquote" => Some(Block::Blockquote(
@@ -397,7 +402,7 @@ mod tests {
         assert_eq!(spans[3].link.as_deref(), Some("https://anarlog.so"));
         assert_eq!(blocks[2], Block::Paragraph(vec![]));
         assert!(
-            matches!(&blocks[3], Block::List { ordered: false, items } if items[0].checked.is_none())
+            matches!(&blocks[3], Block::List { ordered: false, items, .. } if items[0].checked.is_none())
         );
         assert!(matches!(&blocks[4], Block::List { items, .. } if items[0].checked == Some(true)));
         assert_eq!(blocks[5], Block::Code("let x = 1;".into()));

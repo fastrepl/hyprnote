@@ -109,6 +109,15 @@ pub(super) struct DocumentRenderer {
     inline_box_height: f32,
     /// Lets the atoms open tooltips (an image's `title`).
     tooltips: Option<super::tooltip::TooltipHost>,
+    /// `currentColor` while inside a blockquote (`color: muted-foreground`).
+    text_color: Cell<Option<gpui::Rgba>>,
+    /// Inside a blockquote: its paragraphs and headings carry no
+    /// `padding-block` of their own (only `.note-typography > *` and
+    /// `li > p` do), and siblings are spaced by `blockquote > * + *`.
+    in_blockquote: Cell<bool>,
+    /// How many ordered lists enclose the list being rendered: `ol ol` markers
+    /// count in lower-alpha, `ol ol ol` in lower-roman, then the cycle repeats.
+    ordered_depth: Cell<usize>,
 }
 
 impl Workspace {
@@ -165,6 +174,9 @@ impl Workspace {
             inline_block_gap,
             inline_box_height,
             tooltips: None,
+            text_color: Cell::new(None),
+            in_blockquote: Cell::new(false),
+            ordered_depth: Cell::new(0),
         }
     }
 
@@ -559,7 +571,11 @@ impl DocumentRenderer {
                     .child(self.prose(spans, &style, line))
                     .into_any_element()
             }
-            Block::List { ordered, items } => div()
+            Block::List {
+                ordered,
+                start,
+                items,
+            } => div()
                 .flex()
                 .flex_col()
                 .mb(px(4.0))
@@ -573,7 +589,7 @@ impl DocumentRenderer {
                             .top_0()
                             .text_size(px(CHAT_PX))
                             .line_height(line)
-                            .child(SharedString::from(format!("{}.", index + 1)))
+                            .child(SharedString::from(format!("{}.", *start + index as u64)))
                             .into_any_element()
                     } else {
                         div()
@@ -732,7 +748,11 @@ impl DocumentRenderer {
                     .child(self.prose(spans, &style, line))
                     .into_any_element()
             }
-            Block::List { ordered, items } => div()
+            Block::List {
+                ordered,
+                start,
+                items,
+            } => div()
                 .flex()
                 .flex_col()
                 .children(items.iter().enumerate().map(|(index, item)| {
@@ -746,7 +766,7 @@ impl DocumentRenderer {
                             .text_size(px(PREVIEW_PX))
                             .line_height(line)
                             .text_color(color)
-                            .child(SharedString::from(format!("{}.", index + 1)))
+                            .child(SharedString::from(format!("{}.", *start + index as u64)))
                             .into_any_element()
                     } else {
                         div()
@@ -867,16 +887,31 @@ impl DocumentRenderer {
         std::iter::once(title).chain(self.blocks(rest, 0)).collect()
     }
 
+    /// The body style in the current `currentColor`.
+    fn block_base(&self) -> TextStyle {
+        let mut base = self.base.clone();
+        if let Some(color) = self.text_color.get() {
+            base.color = color.into();
+        }
+        base
+    }
+
     fn block(&self, block: &Block, depth: usize) -> AnyElement {
         let theme = self.theme;
         // `.note-typography > * { padding-block: 0.125em }`
         let pad = px(BODY_PX * 0.125);
+        // A textblock's own vertical padding: none inside a blockquote.
+        let text_pad = if self.in_blockquote.get() {
+            px(0.0)
+        } else {
+            pad
+        };
         match block {
             // The editor's paragraphs compute `text-wrap: wrap` (measured on
             // the running app), not the global `p { text-wrap: pretty }`.
             Block::Paragraph(spans) => self.textblock(
-                div().py(pad).min_h(px(BODY_PX * 1.5 + 4.0)),
-                self.prose(spans, &self.base, px(BODY_PX * 1.5)),
+                div().py(text_pad).min_h(px(BODY_PX * 1.5) + text_pad * 2.0),
+                self.prose(spans, &self.block_base(), px(BODY_PX * 1.5)),
             ),
             Block::Heading { level, spans } => {
                 let (em, weight, ratio) = match level {
@@ -885,88 +920,127 @@ impl DocumentRenderer {
                     _ => (1.0, gpui::FontWeight::SEMIBOLD, 1.5),
                 };
                 let font_px = BODY_PX * em;
-                let mut style = self.base.clone();
+                let mut style = self.block_base();
                 style.font_weight = weight;
                 style.font_size = px(font_px).into();
                 self.textblock(
                     div()
                         // `padding-block: 0.125em` scales with the heading's own size.
-                        .py(px(font_px * 0.125))
+                        .py(if self.in_blockquote.get() {
+                            px(0.0)
+                        } else {
+                            px(font_px * 0.125)
+                        })
                         .text_size(px(font_px))
                         .line_height(px(webkit_line_height(font_px, ratio))),
                     self.prose(spans, &style, px(webkit_line_height(font_px, ratio))),
                 )
             }
-            Block::List { ordered, items } => div()
-                .flex()
-                .flex_col()
-                // `li > ul::before`: a 1px guide rail at `left: calc(-1em - 0.5px)`
-                // in `currentColor` at 30%, centred under the parent marker.
-                // WebKit snaps the half pixel to the nearer device pixel.
-                .when(depth > 0, |list| {
-                    list.relative().child(
+            Block::List {
+                ordered,
+                start,
+                items,
+            } => {
+                let current = self.text_color.get().unwrap_or(theme.foreground);
+                let ordered_depth = self.ordered_depth.get();
+                if *ordered {
+                    self.ordered_depth.set(ordered_depth + 1);
+                }
+                let list = div()
+                    .flex()
+                    .flex_col()
+                    // `li > ul::before`: a 1px guide rail at `left: calc(-1em - 0.5px)`
+                    // in `currentColor` at 30%, centred under the parent marker.
+                    // WebKit snaps the half pixel to the nearer device pixel.
+                    .when(depth > 0, |list| {
+                        list.relative().child(
+                            div()
+                                .absolute()
+                                .top_0()
+                                .left(px(-BODY_PX))
+                                .w(px(1.0))
+                                .h_full()
+                                .bg(alpha(current, 0.3)),
+                        )
+                    })
+                    .children(items.iter().enumerate().map(|(index, item)| {
+                        // The marker renders before the item's blocks, so the next
+                        // textblock index is the item's first paragraph.
+                        let first_block = self.next_textblock.get();
+                        let checked = item.checked == Some(true);
+                        self.strike_next.set(checked);
+                        let number =
+                            ordered.then(|| ordered_marker(*start + index as u64, ordered_depth));
                         div()
-                            .absolute()
-                            .top_0()
-                            .left(px(-BODY_PX))
-                            .w(px(1.0))
-                            .h_full()
-                            .bg(alpha(theme.foreground, 0.3)),
-                    )
-                })
-                .children(items.iter().enumerate().map(|(index, item)| {
-                    // The marker renders before the item's blocks, so the next
-                    // textblock index is the item's first paragraph.
-                    let first_block = self.next_textblock.get();
-                    let checked = item.checked == Some(true);
-                    self.strike_next.set(checked);
-                    div()
-                        .relative()
-                        .flex()
-                        .child(
-                            // `li { padding-left: 1.5em }`; bullets are centred at
-                            // `left: 0.5em`, `top: 0.125em + 0.75em`, ordered markers fill a
-                            // `1em` box at `left: 0` with centred text; a task item's
-                            // checkbox sits at `left: 0.75rem` of its `-0.75rem` li.
+                            .relative()
+                            .flex()
+                            .child(
+                                // `li { padding-left: 1.5em }`; bullets are centred at
+                                // `left: 0.5em`, `top: 0.125em + 0.75em`, ordered markers fill a
+                                // `1em` box at `left: 0` with centred text; a task item's
+                                // checkbox sits at `left: 0.75rem` of its `-0.75rem` li.
+                                div()
+                                    .relative()
+                                    .flex_shrink_0()
+                                    .w(px(BODY_PX * 1.5))
+                                    .h(px(BODY_PX * 1.5 + 4.0))
+                                    .child(self.marker(item.checked, number, depth, first_block)),
+                            )
+                            .child(
+                                // `li[data-checked="true"] > div { opacity: 0.5 }`
+                                div()
+                                    .flex()
+                                    .flex_col()
+                                    .min_w_0()
+                                    .flex_1()
+                                    .when(checked, |content| content.opacity(0.5))
+                                    .children(self.blocks(&item.blocks, depth + 1)),
+                            )
+                    }))
+                    .into_any_element();
+                self.ordered_depth.set(ordered_depth);
+                list
+            }
+            // `blockquote { border-left: 3px solid border; padding-inline: 1em
+            // 0.75rem; padding-block: 0.125em; color: muted-foreground }`, the
+            // colour being `currentColor` for everything inside, and
+            // `blockquote > * + * { margin-top: 0.5em }`.
+            Block::Blockquote(blocks) => {
+                let outer = self.text_color.replace(Some(theme.muted_foreground));
+                let was_nested = self.in_blockquote.replace(true);
+                let children: Vec<AnyElement> = blocks
+                    .iter()
+                    .enumerate()
+                    .map(|(index, block)| {
+                        let element = self.block(block, depth + 1);
+                        if index == 0 {
+                            element
+                        } else {
                             div()
-                                .relative()
-                                .flex_shrink_0()
-                                .w(px(BODY_PX * 1.5))
-                                .h(px(BODY_PX * 1.5 + 4.0))
-                                .child(self.marker(
-                                    item.checked,
-                                    *ordered,
-                                    index,
-                                    depth,
-                                    first_block,
-                                )),
-                        )
-                        .child(
-                            // `li[data-checked="true"] > div { opacity: 0.5 }`
-                            div()
-                                .flex()
-                                .flex_col()
-                                .min_w_0()
-                                .flex_1()
-                                .when(checked, |content| content.opacity(0.5))
-                                .children(self.blocks(&item.blocks, depth + 1)),
-                        )
-                }))
-                .into_any_element(),
-            Block::Blockquote(blocks) => div()
-                .py(pad)
-                .pl_3()
-                .border_l_2()
-                .border_color(theme.border)
-                .text_color(theme.muted_foreground)
-                .children(self.blocks(blocks, depth + 1))
-                .into_any_element(),
+                                .mt(px(BODY_PX * 0.5))
+                                .child(element)
+                                .into_any_element()
+                        }
+                    })
+                    .collect();
+                self.in_blockquote.set(was_nested);
+                self.text_color.set(outer);
+                div()
+                    .py(pad)
+                    .pl(px(BODY_PX))
+                    .pr(px(12.0))
+                    .border_l(px(3.0))
+                    .border_color(theme.border)
+                    .text_color(theme.muted_foreground)
+                    .children(children)
+                    .into_any_element()
+            }
             Block::Code(code) => {
                 // `pre`: 0.875em, line-height 1.4286, `margin-block: 0.5em`,
                 // `padding: 1em 0.75em`, `rounded-md`, wrapping (`pre-wrap`).
                 let font_px = BODY_PX * 0.875;
                 let line_height = px(webkit_line_height(font_px, 1.4286));
-                let mut style = self.base.clone();
+                let mut style = self.block_base();
                 style.font_size = px(font_px).into();
                 if let Some(family) = &self.mono_family {
                     style.font_family = family.clone();
@@ -1313,13 +1387,13 @@ impl DocumentRenderer {
     fn marker(
         &self,
         checked: Option<bool>,
-        ordered: bool,
-        index: usize,
+        number: Option<String>,
         depth: usize,
         first_block: usize,
     ) -> AnyElement {
         let theme = self.theme;
-        let ink = alpha(theme.foreground, 0.65);
+        // `color-mix(in oklab, currentColor, transparent 35%)`
+        let ink = alpha(self.text_color.get().unwrap_or(theme.foreground), 0.65);
         let centre = |size: f32| {
             div()
                 .absolute()
@@ -1330,7 +1404,7 @@ impl DocumentRenderer {
         if let Some(checked) = checked {
             return self.task_checkbox(checked, first_block);
         }
-        if ordered {
+        if let Some(number) = number {
             // `ol > li::before { top: 0.125em; left: 0; width: 1em; line-height: 1.5 }`
             return div()
                 .absolute()
@@ -1342,7 +1416,7 @@ impl DocumentRenderer {
                 .text_color(ink)
                 .text_size(px(BODY_PX))
                 .line_height(px(BODY_PX * 1.5))
-                .child(SharedString::from(format!("{}.", index + 1)))
+                .child(SharedString::from(number))
                 .into_any_element();
         }
         match depth % 3 {
@@ -1470,6 +1544,9 @@ impl DocumentRenderer {
             inline_block_gap: self.inline_block_gap,
             inline_box_height: self.inline_box_height,
             tooltips: None,
+            text_color: Cell::new(None),
+            in_blockquote: Cell::new(false),
+            ordered_depth: Cell::new(0),
         };
         renderer.text(spans, &base)
     }
@@ -1577,5 +1654,79 @@ impl DocumentRenderer {
             }
         }
         (text, highlights)
+    }
+}
+
+/// `counter(ol-counter, <style>) "."`: decimal, lower-alpha and lower-roman
+/// cycling with the ordered-list nesting depth.
+fn ordered_marker(number: u64, ordered_depth: usize) -> String {
+    let counter = match ordered_depth % 3 {
+        0 => number.to_string(),
+        1 => lower_alpha(number),
+        _ => lower_roman(number),
+    };
+    format!("{counter}.")
+}
+
+/// CSS `lower-alpha`: a..z, then aa, ab, …; zero and below fall back to decimal.
+fn lower_alpha(number: u64) -> String {
+    if number == 0 {
+        return "0".to_string();
+    }
+    let mut n = number;
+    let mut letters = Vec::new();
+    while n > 0 {
+        n -= 1;
+        letters.push((b'a' + (n % 26) as u8) as char);
+        n /= 26;
+    }
+    letters.iter().rev().collect()
+}
+
+/// CSS `lower-roman` for 1..=3999; decimal outside that range.
+fn lower_roman(number: u64) -> String {
+    if number == 0 || number >= 4000 {
+        return number.to_string();
+    }
+    const TABLE: [(u64, &str); 13] = [
+        (1000, "m"),
+        (900, "cm"),
+        (500, "d"),
+        (400, "cd"),
+        (100, "c"),
+        (90, "xc"),
+        (50, "l"),
+        (40, "xl"),
+        (10, "x"),
+        (9, "ix"),
+        (5, "v"),
+        (4, "iv"),
+        (1, "i"),
+    ];
+    let mut n = number;
+    let mut out = String::new();
+    for (value, numeral) in TABLE {
+        while n >= value {
+            out.push_str(numeral);
+            n -= value;
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod marker_tests {
+    use super::*;
+
+    #[test]
+    fn ordered_markers_follow_the_css_counters() {
+        assert_eq!(ordered_marker(1, 0), "1.");
+        assert_eq!(ordered_marker(3, 0), "3.");
+        assert_eq!(ordered_marker(1, 1), "a.");
+        assert_eq!(ordered_marker(27, 1), "aa.");
+        assert_eq!(ordered_marker(4, 2), "iv.");
+        assert_eq!(ordered_marker(1999, 2), "mcmxcix.");
+        assert_eq!(ordered_marker(2, 3), "2.");
+        assert_eq!(ordered_marker(0, 2), "0.");
     }
 }

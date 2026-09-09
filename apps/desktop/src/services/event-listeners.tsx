@@ -69,17 +69,22 @@ const CAPTURE_IDENTITY_SQL = `
         AND owner_participant.deleted_at IS NULL
       WHERE self_human.id = session.owner_user_id
         AND self_human.deleted_at IS NULL
-        AND lower(COALESCE(
-          NULLIF(participant_human.email, ''),
-          participant.email
-        )) IN (
-          lower(self_human.email),
-          lower(owner_participant.email)
+        AND (
+          (
+            NULLIF(lower(self_human.email), '') IS NOT NULL
+            AND lower(self_human.email) = lower(COALESCE(
+              NULLIF(participant_human.email, ''),
+              participant.email
+            ))
+          )
+          OR (
+            NULLIF(lower(owner_participant.email), '') IS NOT NULL
+            AND lower(owner_participant.email) = lower(COALESCE(
+              NULLIF(participant_human.email, ''),
+              participant.email
+            ))
+          )
         )
-        AND NULLIF(lower(COALESCE(
-          NULLIF(self_human.email, ''),
-          owner_participant.email
-        )), '') IS NOT NULL
     )
   WHERE session.deleted_at IS NULL
   ORDER BY session.id, participant.human_id

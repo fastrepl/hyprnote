@@ -311,14 +311,22 @@ export const SESSION_REMOTE_PARTICIPANT_IDS_SQL = `
               AND owner_participant.human_id = session.owner_user_id
               AND owner_participant.deleted_at IS NULL
             WHERE session.id = participant.session_id
-              AND lower(COALESCE(NULLIF(human.email, ''), participant.email)) IN (
-                lower(self_human.email),
-                lower(owner_participant.email)
+              AND (
+                (
+                  NULLIF(lower(self_human.email), '') IS NOT NULL
+                  AND lower(self_human.email) = lower(COALESCE(
+                    NULLIF(human.email, ''),
+                    participant.email
+                  ))
+                )
+                OR (
+                  NULLIF(lower(owner_participant.email), '') IS NOT NULL
+                  AND lower(owner_participant.email) = lower(COALESCE(
+                    NULLIF(human.email, ''),
+                    participant.email
+                  ))
+                )
               )
-              AND NULLIF(lower(COALESCE(
-                NULLIF(self_human.email, ''),
-                owner_participant.email
-              )), '') IS NOT NULL
           )
         )
       ORDER BY participant.human_id

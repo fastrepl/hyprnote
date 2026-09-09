@@ -80,6 +80,9 @@ jobs:
             Nightly notes must never be published in the website changelog.
             Changelog should be generated from commits between ${{ steps.version.outputs.prev }} ~ ${{ steps.version.outputs.current }}.
             Follow guidelines in packages/changelog/content/AGENTS.md.
+            Look up each merged PR author. If the PR came from someone
+            outside the Fastrepl org (not MEMBER, OWNER, COLLABORATOR, or a
+            bot), acknowledge them inline on that changelog item.
 
             2.
             Create a PR with title "Prepare Changelog for ${{ steps.version.outputs.version }}"

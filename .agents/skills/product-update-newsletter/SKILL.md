@@ -264,7 +264,8 @@ Run before sending and report pass or fail per item.
 Automated:
 
 - Version string consistent across subject and body, with no prior version anywhere.
-- Every changelog item is represented in the copy.
+- Every changelog item is represented in the copy, including contributor
+  thanks when a change came from someone outside the Fastrepl org.
 - All H3 sections match the `SP,IMG,SP` pattern.
 - All images report `complete && naturalWidth > 0`.
 - No stray artifacts: `/image`, orphan `/`, double spaces, duplicated greeting.

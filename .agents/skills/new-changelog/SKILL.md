@@ -56,3 +56,23 @@ summary: "One concise, user-facing sentence for the changelog index preview."
 Keep `summary` plain text. Do not use markdown or custom tags in it. The web
 changelog index renders this field directly, so it should describe the release
 at a glance without leaking implementation details.
+
+Follow the writing rules in `packages/changelog/content/AGENTS.md`, including
+[contributor credit](../../../packages/changelog/content/AGENTS.md#contributor-credit).
+
+## Contributor credit
+
+If a user-facing change came from a pull request by someone outside the
+Fastrepl org, acknowledge them on that changelog item. Do not credit org
+members, collaborators, owners, or bots.
+
+Look up each merged PR in the version range and credit the author when
+`author_association` is not `MEMBER`, `OWNER`, or `COLLABORATOR`, and the
+user is not a bot. Put the thanks at the end of the item, after the
+user-facing sentence, and link the GitHub username. Do not put credits in
+`summary`.
+
+```md
+- Use the actual default microphone on Linux instead of silently recording
+  from ALSA's null device. Thanks [@jacopone](https://github.com/jacopone).
+```

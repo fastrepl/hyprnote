@@ -1241,6 +1241,14 @@ mod tests {
                 r#"["{\"workspace_id\":\"user-a\",\"account_user_id\":\"user-a\"}"]"#.to_string(),
             )
             .unwrap();
+        bridge
+            .execute(
+                "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
+                 VALUES ('session', 'user-a', 'user-a', 'Note')"
+                    .to_string(),
+                "[]".to_string(),
+            )
+            .unwrap();
         let recovery_key = anlg_e2ee::RecoveryKey::generate().unwrap();
 
         let result = bridge
@@ -1253,6 +1261,42 @@ mod tests {
             .unwrap();
 
         assert_eq!(result, "account_mismatch");
+    }
+
+    #[test]
+    fn configure_e2ee_replica_releases_a_binding_whose_account_owns_no_rows() {
+        let (_dir, bridge) = new_bridge(None);
+        bridge
+            .execute(
+                "UPDATE app_settings SET value_json = ? WHERE id = 'cloudsync_workspace_binding'"
+                    .to_string(),
+                r#"["{\"workspace_id\":\"user-a\",\"account_user_id\":\"user-a\"}"]"#.to_string(),
+            )
+            .unwrap();
+        let recovery_key = anlg_e2ee::RecoveryKey::generate().unwrap();
+
+        let result = bridge
+            .configure_e2ee_replica(
+                "user-b".to_string(),
+                "http://127.0.0.1:9/sync/e2ee/witness/user-b".to_string(),
+                "access-token".to_string(),
+                recovery_key.expose_code().to_string(),
+            )
+            .unwrap();
+
+        assert_eq!(result, "configured");
+        let binding = bridge
+            .execute(
+                "SELECT json_extract(value_json, '$.workspace_id') AS workspace_id,
+                        json_extract(value_json, '$.account_user_id') AS account_user_id
+                 FROM app_settings WHERE id = 'cloudsync_workspace_binding'"
+                    .to_string(),
+                "[]".to_string(),
+            )
+            .unwrap();
+        let binding: serde_json::Value = serde_json::from_str(&binding).unwrap();
+        assert_eq!(binding[0]["workspace_id"], "user-b");
+        assert_eq!(binding[0]["account_user_id"], "user-b");
     }
 
     #[test]

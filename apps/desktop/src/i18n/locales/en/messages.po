@@ -55,6 +55,16 @@ msgstr "{0} opened on"
 msgid "{0} pending edits"
 msgstr "{0} pending edits"
 
+#. placeholder {0}: parked.tooLarge
+#: src/settings/sync/health.tsx
+msgid "{0} records are too large to apply"
+msgstr "{0} records are too large to apply"
+
+#. placeholder {0}: parked.pendingUpdate
+#: src/settings/sync/health.tsx
+msgid "{0} records are waiting for an app update"
+msgstr "{0} records are waiting for an app update"
+
 #. placeholder {0}: Math.round((percentage ?? 0) * 100)
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "{0}% complete"
@@ -63,6 +73,10 @@ msgstr "{0}% complete"
 #: src/sidebar/timeline/utils/index.ts
 msgid "{absDays} days ago"
 msgstr "{absDays} days ago"
+
+#: src/settings/sync/health.tsx
+msgid "{conflictedNotes} notes have a version from another device"
+msgstr "{conflictedNotes} notes have a version from another device"
 
 #: src/settings/stats/badge-collection.tsx
 msgid "{count} of {total} collected"
@@ -129,9 +143,21 @@ msgstr "1 day"
 msgid "1 month"
 msgstr "1 month"
 
+#: src/settings/sync/health.tsx
+msgid "1 note has a version from another device"
+msgstr "1 note has a version from another device"
+
 #: src/session/components/pending-proposals-banner.tsx
 msgid "1 pending edit"
 msgstr "1 pending edit"
+
+#: src/settings/sync/health.tsx
+msgid "1 record is too large to apply"
+msgstr "1 record is too large to apply"
+
+#: src/settings/sync/health.tsx
+msgid "1 record is waiting for an app update"
+msgstr "1 record is waiting for an app update"
 
 #: src/settings/general/audio-settings.tsx
 msgid "1 week"
@@ -2029,6 +2055,10 @@ msgstr "Duration"
 msgid "Each example must be 12,000 characters or fewer."
 msgstr "Each example must be 12,000 characters or fewer."
 
+#: src/session/components/version-history-dialog.tsx
+msgid "Earlier versions of this note, newest first."
+msgstr "Earlier versions of this note, newest first."
+
 #: src/main/windows-title-bar.tsx
 #: src/settings/dictionary/index.tsx
 #: src/sidebar/automations.tsx
@@ -2065,6 +2095,10 @@ msgstr "Email unavailable. Invite link copied instead."
 #: src/templates/template-icon-picker.tsx
 msgid "Emojis"
 msgstr "Emojis"
+
+#: src/session/components/version-history-dialog.tsx
+msgid "Empty note"
+msgstr "Empty note"
 
 #: src/settings/developers/webhooks.tsx
 msgid "Enable"
@@ -2507,6 +2541,10 @@ msgstr "Hide sync log"
 msgid "High"
 msgstr "High"
 
+#: src/session/components/note-conflict-banner.tsx
+msgid "History"
+msgstr "History"
+
 #. placeholder {0}: history.position
 #. placeholder {1}: history.total
 #: src/chat/components/input/index.tsx
@@ -2709,6 +2747,10 @@ msgstr "Keep notes encrypted and synced across your devices."
 #: src/settings/sync/index.tsx
 msgid "Keep synced notes readable only on your devices."
 msgstr "Keep synced notes readable only on your devices."
+
+#: src/session/components/note-conflict-banner.tsx
+msgid "Keep this version"
+msgstr "Keep this version"
 
 #: src/settings/sync/index.tsx
 msgid "Keep your recovery key saved somewhere safe. You can still use it if another approved device is unavailable."
@@ -3266,6 +3308,10 @@ msgstr "No description provided."
 msgid "No devices registered yet."
 msgstr "No devices registered yet."
 
+#: src/session/components/version-history-dialog.tsx
+msgid "No earlier versions yet."
+msgstr "No earlier versions yet."
+
 #: src/templates/template-icon-picker.tsx
 msgid "No emoji found"
 msgstr "No emoji found"
@@ -3643,6 +3689,10 @@ msgstr "Organization"
 #: src/contacts/organization-details.tsx
 msgid "Organization name"
 msgstr "Organization name"
+
+#: src/session/components/version-history-dialog.tsx
+msgid "Other device's version"
+msgstr "Other device's version"
 
 #: src/settings/general/permissions.tsx
 msgid "Others"
@@ -4156,6 +4206,7 @@ msgid "Restart App"
 msgstr "Restart App"
 
 #: src/main/windows-title-bar.tsx
+#: src/session/components/version-history-dialog.tsx
 msgid "Restore"
 msgstr "Restore"
 
@@ -5068,6 +5119,10 @@ msgstr "Sync"
 msgid "Sync failed"
 msgstr "Sync failed"
 
+#: src/settings/sync/health.tsx
+msgid "Sync health"
+msgstr "Sync health"
+
 #: src/settings/sync/index.tsx
 msgid "Sync log"
 msgstr "Sync log"
@@ -5093,6 +5148,7 @@ msgstr "Sync status unavailable"
 msgid "Sync your changes before signing out."
 msgstr "Sync your changes before signing out."
 
+#: src/session/components/version-history-dialog.tsx
 #: src/settings/sync/index.tsx
 msgid "Synced"
 msgstr "Synced"
@@ -5240,6 +5296,7 @@ msgstr "Thinking..."
 msgid "This adds a copy you can edit without changing the shared item."
 msgstr "This adds a copy you can edit without changing the shared item."
 
+#: src/session/components/version-history-dialog.tsx
 #: src/settings/sync/index.tsx
 msgid "This device"
 msgstr "This device"
@@ -5267,6 +5324,10 @@ msgstr "This is a prerecorded demo, so your camera stays off. Click Join & recor
 #: src/settings/sync/index.tsx
 msgid "This name is synced to your other devices signed in to this account."
 msgstr "This name is synced to your other devices signed in to this account."
+
+#: src/session/components/note-conflict-banner.tsx
+msgid "This note was edited on another device at the same time. The later edit was kept."
+msgstr "This note was edited on another device at the same time. The later edit was kept."
 
 #: src/chat/components/session-provider.tsx
 msgid "This recording is using batch transcription, so the transcript isn't available to chat yet. Ask again after transcription finishes, or switch to a Pro model for live transcription."
@@ -5618,6 +5679,10 @@ msgstr "Use the AI meeting summary"
 msgid "Use the meeting's action items and summary tasks."
 msgstr "Use the meeting's action items and summary tasks."
 
+#: src/session/components/note-conflict-banner.tsx
+msgid "Use the other version"
+msgstr "Use the other version"
+
 #: src/settings/team/index.tsx
 msgid "Use this domain for links shared from this workspace."
 msgstr "Use this domain for links shared from this workspace."
@@ -5645,6 +5710,11 @@ msgstr "Verify domain"
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "Verifying the SQLite migration status"
 msgstr "Verifying the SQLite migration status"
+
+#: src/session/components/outer-header/overflow/index.tsx
+#: src/session/components/version-history-dialog.tsx
+msgid "Version history"
+msgstr "Version history"
 
 #: src/main/windows-title-bar.tsx
 msgid "View"

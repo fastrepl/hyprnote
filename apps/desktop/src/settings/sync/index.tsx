@@ -46,6 +46,7 @@ import { cn, formatDistanceToNow } from "@anlg/utils";
 
 import { E2eeSetupDialog } from "../general/e2ee-setup";
 import { detectCloudStorageService } from "../general/storage/path-utils";
+import { SyncHealthSection } from "./health";
 
 import { trackAnalyticsEvent } from "~/analytics";
 import { useAuth } from "~/auth";
@@ -1006,6 +1007,8 @@ export function SettingsSync() {
             <Trans>Sync now</Trans>
           </Button>
         </div>
+
+        <SyncHealthSection />
 
         <div className="border-border/60 overflow-hidden rounded-xl border">
           <button

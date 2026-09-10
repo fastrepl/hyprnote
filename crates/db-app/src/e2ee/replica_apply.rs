@@ -5,12 +5,16 @@ use anlg_e2ee::WorkspaceKeyring;
 use serde_json::{Value, json};
 use sqlx::{QueryBuilder, Sqlite, SqlitePool, Transaction};
 
+use super::conflicts::{ConflictCopy, ConflictLoser, record_conflict};
 use super::cooperative::yield_once;
+use super::merge::merge_concurrent_field;
 use super::replica_storage::{
-    E2eeParkReason, ParkedRecord, clear_stale_apply_guards, delete_row, insert_apply_guard,
-    insert_row, load_row_local_states, normalize_replica_payload_hashes, park_records, read_field,
-    record_version_order, remove_apply_guard, replica_records_still_current, restore_local_payload,
-    row_changed_since_snapshot, row_exists, table_columns, update_field, upsert_local_state,
+    E2eeParkReason, ParkedRecord, clear_stale_apply_guards, delete_row, dirty_row_edited_at_ms,
+    insert_apply_guard, insert_row, load_or_create_writer_id, load_row_local_states,
+    mark_local_state_for_republish, normalize_replica_payload_hashes, park_records,
+    queue_dirty_row, read_field, record_version_order, remove_apply_guard,
+    replica_records_still_current, restore_local_payload, row_changed_since_snapshot, row_exists,
+    table_columns, update_field, upsert_local_state,
 };
 use super::witness::repair_e2ee_replica_from_witness_bounded_cancellable;
 use super::{
@@ -494,7 +498,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
         for record in records {
             rollback_if_cancelled!(transaction, is_cancelled);
             let is_stale = match states.get(&record.record_id) {
-                Some(state) => record_version_order(state, &record)? == Ordering::Less,
+                Some(state) => incoming_is_stale(state, &record)?,
                 None => false,
             };
             if is_stale {
@@ -550,7 +554,10 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             )
             .await?;
             rollback_if_cancelled!(transaction, is_cancelled);
-            if locally_changed {
+            // A remote delete or recreate of a row this device also changed
+            // waits until the local change publishes. Plain field edits go on
+            // to the field loop, which orders each field by edit time.
+            if locally_changed && (manifest.field.deleted || !row_was_present) {
                 stats.skipped_local_changes += records.len() as u64 + 1;
                 remove_apply_guard(&mut transaction, &workspace_id, &table, &row_id).await?;
                 rollback_if_cancelled!(transaction, is_cancelled);
@@ -575,6 +582,8 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                     value_tag,
                     payload_hash: manifest.payload_hash,
                     payload: manifest.payload,
+                    edited_at_ms: edited_at_ms_i64(manifest.field.edited_at_ms),
+                    republish: false,
                 };
                 upsert_local_state(&mut transaction, &state).await?;
                 rollback_if_cancelled!(transaction, is_cancelled);
@@ -630,6 +639,8 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                 value_tag,
                 payload_hash: manifest.payload_hash,
                 payload: manifest.payload,
+                edited_at_ms: edited_at_ms_i64(manifest.field.edited_at_ms),
+                republish: false,
             };
             upsert_local_state(&mut transaction, &state).await?;
             rollback_if_cancelled!(transaction, is_cancelled);
@@ -645,12 +656,14 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
         }
 
         let mut deferred_pending_ids = HashSet::new();
+        let mut republish_merged_row = false;
         for record in records {
             rollback_if_cancelled!(transaction, is_cancelled);
             let record_key = keyring
                 .get(&record.field.key_id)
                 .ok_or(E2eeReplicaError::InvalidRow)?;
             let field_name = record.field.field.as_str();
+            let mut merged_value: Option<Value> = None;
             if field_name == ROW_MANIFEST_FIELD
                 || field_name == "id"
                 || field_name == "workspace_id"
@@ -681,8 +694,136 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                     key.value_tag(&table, &row_id, field_name, false, &current) == state.value_tag
                 });
                 if !matches_snapshot {
-                    stats.skipped_local_changes += 1;
-                    deferred_pending_ids.insert(record.record_id.clone());
+                    // This device changed the field since it last synced, so
+                    // the two edits are concurrent. The later edit wins and
+                    // the other is kept as a conflict copy. Without edit times
+                    // the local change wins, as before.
+                    let local_edited_at_ms =
+                        dirty_row_edited_at_ms(&mut transaction, &workspace_id, &table, &row_id)
+                            .await?;
+                    rollback_if_cancelled!(transaction, is_cancelled);
+                    let local_writer_id = load_or_create_writer_id(&mut transaction).await?;
+                    rollback_if_cancelled!(transaction, is_cancelled);
+                    let incoming_wins = match (record.field.edited_at_ms, local_edited_at_ms) {
+                        (Some(incoming), Some(local)) => {
+                            let incoming = i64::try_from(incoming).unwrap_or(i64::MAX);
+                            incoming > local
+                                || (incoming == local && record.field.writer_id > local_writer_id)
+                        }
+                        _ => false,
+                    };
+                    // Documents merge block by block; only regions both sides
+                    // rewrote fall back to the later edit, and then the other
+                    // side's whole document is kept as the conflict copy.
+                    let merged = merge_concurrent_field(
+                        keyring,
+                        &workspace_id,
+                        &table,
+                        field_name,
+                        state,
+                        &current,
+                        &record.field.value,
+                        !incoming_wins,
+                    );
+                    let record_loser = merged.as_ref().is_none_or(|merged| merged.had_conflicts);
+                    if let Some(merged) = merged {
+                        merged_value = Some(merged.value);
+                    }
+                    if !record_loser {
+                        // Clean merge: nothing was lost.
+                    } else if incoming_wins {
+                        let local_value_tag = keyring
+                            .active()
+                            .value_tag(&table, &row_id, field_name, false, &current);
+                        let recorded = field_keeps_conflict_copies(field_name)
+                            && record_conflict(
+                                &mut transaction,
+                                &ConflictCopy {
+                                    id: format!("{}:local:{local_value_tag}", record.record_id),
+                                    workspace_id: &workspace_id,
+                                    table_name: &table,
+                                    row_id: &row_id,
+                                    field_name,
+                                    lost_side: ConflictLoser::Local,
+                                    writer_id: &local_writer_id,
+                                    revision: state.revision,
+                                    edited_at_ms: local_edited_at_ms,
+                                    value: &current,
+                                },
+                            )
+                            .await?;
+                        rollback_if_cancelled!(transaction, is_cancelled);
+                        stats.recorded_conflicts += u64::from(recorded);
+                    } else {
+                        let recorded = field_keeps_conflict_copies(field_name)
+                            && record_conflict(
+                                &mut transaction,
+                                &ConflictCopy {
+                                    id: format!("{}:{}", record.record_id, record.payload_hash),
+                                    workspace_id: &workspace_id,
+                                    table_name: &table,
+                                    row_id: &row_id,
+                                    field_name,
+                                    lost_side: ConflictLoser::Remote,
+                                    writer_id: &record.field.writer_id,
+                                    revision: i64::try_from(record.field.revision)
+                                        .map_err(|_| E2eeReplicaError::InvalidRow)?,
+                                    edited_at_ms: edited_at_ms_i64(record.field.edited_at_ms),
+                                    value: &record.field.value,
+                                },
+                            )
+                            .await?;
+                        rollback_if_cancelled!(transaction, is_cancelled);
+                        stats.recorded_conflicts += u64::from(recorded);
+                        if merged_value.is_none() {
+                            stats.skipped_local_changes += 1;
+                            deferred_pending_ids.insert(record.record_id.clone());
+                            continue;
+                        }
+                    }
+                } else if let (Some(incoming), Some(local)) =
+                    (record.field.edited_at_ms, state.edited_at_ms)
+                    && incoming_edit_is_older(
+                        i64::try_from(incoming).unwrap_or(i64::MAX),
+                        &record.field.writer_id,
+                        local,
+                        &state.writer_id,
+                    )
+                {
+                    // The record won the revision race but was written before
+                    // the value this device already holds. Keep the later
+                    // edit, remember the earlier one, and republish above the
+                    // incoming revision so every replica converges on it.
+                    let recorded = field_keeps_conflict_copies(field_name)
+                        && record_conflict(
+                            &mut transaction,
+                            &ConflictCopy {
+                                id: format!("{}:{}", record.record_id, record.payload_hash),
+                                workspace_id: &workspace_id,
+                                table_name: &table,
+                                row_id: &row_id,
+                                field_name,
+                                lost_side: ConflictLoser::Remote,
+                                writer_id: &record.field.writer_id,
+                                revision: i64::try_from(record.field.revision)
+                                    .map_err(|_| E2eeReplicaError::InvalidRow)?,
+                                edited_at_ms: Some(i64::try_from(incoming).unwrap_or(i64::MAX)),
+                                value: &record.field.value,
+                            },
+                        )
+                        .await?;
+                    rollback_if_cancelled!(transaction, is_cancelled);
+                    mark_local_state_for_republish(
+                        &mut transaction,
+                        &record.record_id,
+                        i64::try_from(record.field.revision)
+                            .map_err(|_| E2eeReplicaError::InvalidRow)?,
+                    )
+                    .await?;
+                    rollback_if_cancelled!(transaction, is_cancelled);
+                    queue_dirty_row(&mut transaction, &workspace_id, &table, &row_id).await?;
+                    rollback_if_cancelled!(transaction, is_cancelled);
+                    stats.recorded_conflicts += u64::from(recorded);
                     continue;
                 }
             }
@@ -693,10 +834,14 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                 &workspace_id,
                 &row_id,
                 field_name,
-                &record.field.value,
+                merged_value.as_ref().unwrap_or(&record.field.value),
             )
             .await?;
             rollback_if_cancelled!(transaction, is_cancelled);
+            if merged_value.is_some() {
+                republish_merged_row = true;
+                stats.merged_fields += 1;
+            }
             let value_tag =
                 record_key.value_tag(&table, &row_id, field_name, false, &record.field.value);
             let state = LocalState {
@@ -711,11 +856,21 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                 value_tag,
                 payload_hash: record.payload_hash,
                 payload: record.payload,
+                edited_at_ms: edited_at_ms_i64(record.field.edited_at_ms),
+                republish: false,
             };
             upsert_local_state(&mut transaction, &state).await?;
             rollback_if_cancelled!(transaction, is_cancelled);
             states.insert(state.record_id.clone(), state);
             stats.applied_fields += 1;
+        }
+        if republish_merged_row {
+            // A merged document differs from the incoming record, so the next
+            // encrypt round publishes it with a fresh edit time. Queued after
+            // the field loop so the row's write time stays that of the local
+            // edit while the remaining fields are ordered.
+            queue_dirty_row(&mut transaction, &workspace_id, &table, &row_id).await?;
+            rollback_if_cancelled!(transaction, is_cancelled);
         }
         remove_apply_guard(&mut transaction, &workspace_id, &table, &row_id).await?;
         rollback_if_cancelled!(transaction, is_cancelled);
@@ -737,6 +892,49 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
     stats.remaining_replica_changes |= has_pending_e2ee_replica_entries(pool, keys).await?;
     check_e2ee_apply_cancellation(is_cancelled)?;
     Ok(stats)
+}
+
+// Bookkeeping columns still resolve by edit time, but their values mean
+// nothing to the user, so they never produce conflict copies.
+fn field_keeps_conflict_copies(field_name: &str) -> bool {
+    !matches!(
+        field_name,
+        "updated_at"
+            | "created_at"
+            | "updated_by"
+            | "created_by"
+            | "content_version"
+            | "deleted_at"
+    )
+}
+
+fn edited_at_ms_i64(edited_at_ms: Option<u64>) -> Option<i64> {
+    edited_at_ms.map(|ms| i64::try_from(ms).unwrap_or(i64::MAX))
+}
+
+fn incoming_edit_is_older(
+    incoming_edited_at_ms: i64,
+    incoming_writer_id: &str,
+    local_edited_at_ms: i64,
+    local_writer_id: &str,
+) -> bool {
+    incoming_edited_at_ms < local_edited_at_ms
+        || (incoming_edited_at_ms == local_edited_at_ms && incoming_writer_id < local_writer_id)
+}
+
+// Lower revisions are replays and are always rejected. Equal revisions from
+// different writers are concurrent edits: when both carry an edit time the
+// field loop orders them by it; otherwise the writer order decides as before.
+fn incoming_is_stale(state: &LocalState, record: &DecryptedRecord) -> E2eeReplicaResult<bool> {
+    let state_revision = u64::try_from(state.revision).map_err(|_| E2eeReplicaError::InvalidRow)?;
+    Ok(match record.field.revision.cmp(&state_revision) {
+        Ordering::Less => true,
+        Ordering::Greater => false,
+        Ordering::Equal => match (record.field.edited_at_ms, state.edited_at_ms) {
+            (Some(_), Some(_)) => false,
+            _ => record_version_order(state, record)? == Ordering::Less,
+        },
+    })
 }
 
 async fn delete_reconciled_replica_entries(

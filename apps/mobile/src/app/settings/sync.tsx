@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { useSyncExternalStore } from "react";
 
 import { useAuth } from "@/auth/context";
+import { useSyncHealth } from "@/data/conflicts";
 import {
   SettingsError,
   SettingsPage,
@@ -31,6 +32,7 @@ export default function SyncSettings() {
   );
   const presentation = syncStatusPresentation(snapshot);
   const storage = useRecordingStorage();
+  const health = useSyncHealth();
   const data = storage.data?.[0];
   const cloudSyncEnabled = useCloudSyncOptIn(auth.session?.user.id ?? null);
   const showOptIn = !auth.bypass && auth.billing.isPro;
@@ -122,6 +124,41 @@ export default function SyncSettings() {
         )}
         <SettingsError error={optIn.error || sync.error || refresh.error} />
       </FieldGroup.Section>
+      {(health.conflictedNotes > 0 ||
+        health.awaitingUpdate > 0 ||
+        health.tooLarge > 0) && (
+        <FieldGroup.Section title="Sync health">
+          {health.conflictedNotes > 0 && (
+            <SettingsRow
+              title={`${health.conflictedNotes} ${
+                health.conflictedNotes === 1 ? "note has" : "notes have"
+              } a version from another device`}
+            />
+          )}
+          {health.awaitingUpdate > 0 && (
+            <SettingsRow
+              title={`${health.awaitingUpdate} ${
+                health.awaitingUpdate === 1 ? "record is" : "records are"
+              } waiting for an app update`}
+            />
+          )}
+          {health.tooLarge > 0 && (
+            <SettingsRow
+              title={`${health.tooLarge} ${
+                health.tooLarge === 1 ? "record is" : "records are"
+              } too large to apply`}
+            />
+          )}
+          {health.conflictedNotes > 0 && (
+            <FieldGroup.SectionFooter>
+              <Text>
+                Open the note to keep the version on this device or use the
+                other one.
+              </Text>
+            </FieldGroup.SectionFooter>
+          )}
+        </FieldGroup.Section>
+      )}
       <FieldGroup.Section title="Recordings">
         <SettingsRow
           title="On this device"

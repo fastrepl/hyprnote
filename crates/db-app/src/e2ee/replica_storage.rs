@@ -156,7 +156,7 @@ pub(super) async fn load_row_local_states_from_pool(
 ) -> E2eeReplicaResult<HashMap<String, LocalState>> {
     let states: Vec<LocalState> = sqlx::query_as(
         "SELECT record_id, workspace_id, table_name, row_id, field_name, revision,
-                writer_id, value_tag, payload_hash, '' AS payload
+                writer_id, value_tag, payload_hash, '' AS payload, edited_at_ms, republish
          FROM e2ee_local_state
          WHERE workspace_id = ? AND table_name = ? AND row_id = ?",
     )
@@ -179,7 +179,7 @@ pub(super) async fn load_row_local_states(
 ) -> E2eeReplicaResult<HashMap<String, LocalState>> {
     let states: Vec<LocalState> = sqlx::query_as(
         "SELECT record_id, workspace_id, table_name, row_id, field_name, revision,
-                writer_id, value_tag, payload_hash, payload
+                writer_id, value_tag, payload_hash, payload, edited_at_ms, republish
          FROM e2ee_local_state_resolved
          WHERE workspace_id = ? AND table_name = ? AND row_id = ?",
     )
@@ -258,8 +258,8 @@ pub(super) async fn upsert_local_state(
     sqlx::query(
         "INSERT INTO e2ee_local_state (
            record_id, workspace_id, table_name, row_id, field_name, revision,
-           writer_id, value_tag, payload_hash
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           writer_id, value_tag, payload_hash, edited_at_ms, republish
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(record_id) DO UPDATE SET
            workspace_id = excluded.workspace_id,
            table_name = excluded.table_name,
@@ -269,6 +269,8 @@ pub(super) async fn upsert_local_state(
            writer_id = excluded.writer_id,
            value_tag = excluded.value_tag,
            payload_hash = excluded.payload_hash,
+           edited_at_ms = excluded.edited_at_ms,
+           republish = excluded.republish,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
     )
     .bind(&state.record_id)
@@ -280,6 +282,8 @@ pub(super) async fn upsert_local_state(
     .bind(&state.writer_id)
     .bind(&state.value_tag)
     .bind(&state.payload_hash)
+    .bind(state.edited_at_ms)
+    .bind(state.republish)
     .execute(&mut **transaction)
     .await?;
     reconcile_e2ee_witness_pending(transaction, &state.record_id).await?;
@@ -404,6 +408,67 @@ pub(super) async fn reconcile_e2ee_witness_pending(
     .execute(&mut **transaction)
     .await?;
     Ok(())
+}
+
+/// The value this device holds is newer than a record that arrived with a
+/// higher revision. Keep the value and have the next encrypt round publish it
+/// above that revision, with its original edit time, so every replica lands on
+/// the later edit.
+pub(super) async fn mark_local_state_for_republish(
+    transaction: &mut Transaction<'_, Sqlite>,
+    record_id: &str,
+    superseding_revision: i64,
+) -> E2eeReplicaResult<()> {
+    sqlx::query(
+        "UPDATE e2ee_local_state
+         SET revision = MAX(revision, ?),
+             republish = 1,
+             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+         WHERE record_id = ?",
+    )
+    .bind(superseding_revision)
+    .bind(record_id)
+    .execute(&mut **transaction)
+    .await?;
+    Ok(())
+}
+
+pub(super) async fn queue_dirty_row(
+    transaction: &mut Transaction<'_, Sqlite>,
+    workspace_id: &str,
+    table: &str,
+    row_id: &str,
+) -> E2eeReplicaResult<()> {
+    sqlx::query(
+        "INSERT INTO e2ee_dirty_rows (workspace_id, table_name, row_id)
+         VALUES (?, ?, ?)
+         ON CONFLICT (workspace_id, table_name, row_id) DO UPDATE SET
+           generation = e2ee_dirty_rows.generation + 1",
+    )
+    .bind(workspace_id)
+    .bind(table)
+    .bind(row_id)
+    .execute(&mut **transaction)
+    .await?;
+    Ok(())
+}
+
+pub(super) async fn dirty_row_edited_at_ms(
+    transaction: &mut Transaction<'_, Sqlite>,
+    workspace_id: &str,
+    table: &str,
+    row_id: &str,
+) -> E2eeReplicaResult<Option<i64>> {
+    let dirtied_at_ms: Option<i64> = sqlx::query_scalar(
+        "SELECT dirtied_at_ms FROM e2ee_dirty_rows
+         WHERE workspace_id = ? AND table_name = ? AND row_id = ?",
+    )
+    .bind(workspace_id)
+    .bind(table)
+    .bind(row_id)
+    .fetch_optional(&mut **transaction)
+    .await?;
+    Ok(dirtied_at_ms.filter(|ms| *ms > 0))
 }
 
 pub(super) async fn load_or_create_writer_id(

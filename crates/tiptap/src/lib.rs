@@ -15,5 +15,6 @@ pub fn tiptap_json_to_md(json: &serde_json::Value) -> Result<String, String> {
     mdast_to_markdown(&mdast)
 }
 
+pub mod merge;
 #[cfg(test)]
 mod tests;

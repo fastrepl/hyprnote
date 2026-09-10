@@ -9,9 +9,13 @@ use anlg_desktop_db_runtime::{
     CloudsyncWorkspaceProjectionEntry, DesktopDbRuntime, QueryEventSink,
     cloudsync_config::{E2eeSecretReader, load_e2ee_recovery_key},
 };
+use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
 const API_URL: Option<&str> = option_env!("VITE_API_URL");
+const REFRESH_LEAD_MS: u64 = 2 * 60 * 1000;
+const RETRY_DELAY_MS: u64 = 60 * 1000;
+const MIN_REFRESH_DELAY_MS: u64 = 1000;
 const DEVICE_NAME_HEADER: &str = "x-anarlog-device-name";
 const E2EE_KEY_ID_HEADER: &str = "X-Anarlog-E2EE-Key-Id";
 const MEMBER_KEY_HEADER: &str = "x-anarlog-e2ee-member-public-key";
@@ -40,16 +44,46 @@ pub enum CredentialBlock {
     Unavailable,
 }
 
+impl CredentialBlock {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::ActivationFailed => "activation_failed",
+            Self::ApprovalPending => "approval_pending",
+            Self::ClockSkew => "clock_skew",
+            Self::DeviceLimit => "device_limit",
+            Self::IdentityMismatch => "identity_mismatch",
+            Self::KeychainAccess => "keychain_access",
+            Self::NotEntitled => "not_entitled",
+            Self::ReauthRequired => "reauth_required",
+            Self::SetupRequired => "setup_required",
+            Self::Unavailable => "unavailable",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {
     pub status: CloudsyncStatus,
     pub block: Option<CredentialBlock>,
 }
 
+#[derive(Debug)]
+struct CredentialBlockError(CredentialBlock);
+
+impl std::fmt::Display for CredentialBlockError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "CloudSync credentials rejected")
+    }
+}
+
+impl std::error::Error for CredentialBlockError {}
+
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct LegacyCredentials {
+    pub encryption_version: u8,
+    pub encryption_key_id: String,
     pub database_id: String,
     pub token: String,
     pub expires_at: String,
@@ -93,6 +127,32 @@ pub enum CredentialResponse {
     Replica(ReplicaCredentials),
     E2ee(E2eeCredentials),
     Legacy(LegacyCredentials),
+}
+
+impl CredentialResponse {
+    fn encryption_key_id(&self) -> &str {
+        match self {
+            Self::Replica(credentials) => &credentials.encryption_key_id,
+            Self::E2ee(credentials) => &credentials.encryption_key_id,
+            Self::Legacy(credentials) => &credentials.encryption_key_id,
+        }
+    }
+
+    fn expires_at(&self) -> &str {
+        match self {
+            Self::Replica(credentials) => &credentials.expires_at,
+            Self::E2ee(credentials) => &credentials.expires_at,
+            Self::Legacy(credentials) => &credentials.expires_at,
+        }
+    }
+
+    fn account_user_id(&self) -> &str {
+        match self {
+            Self::Replica(credentials) => &credentials.account_user_id,
+            Self::E2ee(credentials) => &credentials.account_user_id,
+            Self::Legacy(credentials) => &credentials.workspace_id,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -164,23 +224,20 @@ pub fn sanitize_device_name(name: Option<&str>) -> Option<String> {
     (!ascii.is_empty()).then_some(ascii)
 }
 
-pub fn credential_block_for_code(code: Option<&str>) -> CredentialBlock {
-    match code {
-        Some("sync_device_limit_reached") => CredentialBlock::DeviceLimit,
-        Some("reauth_required") => CredentialBlock::ReauthRequired,
-        Some("clock_skew") => CredentialBlock::ClockSkew,
-        Some("identity_mismatch") => CredentialBlock::IdentityMismatch,
-        Some("approval_pending") => CredentialBlock::ApprovalPending,
-        Some("keychain_access") => CredentialBlock::KeychainAccess,
-        Some("setup_required") => CredentialBlock::SetupRequired,
-        Some("not_entitled") => CredentialBlock::NotEntitled,
-        _ => CredentialBlock::NotEntitled,
+fn forbidden_credential_block(code: Option<&str>) -> CredentialBlock {
+    if code == Some("sync_device_limit_reached") {
+        CredentialBlock::DeviceLimit
+    } else {
+        CredentialBlock::NotEntitled
     }
 }
 
-#[allow(dead_code)]
-pub fn refresh_delay(expires_at: u64, now: u64) -> Duration {
-    Duration::from_secs(expires_at.saturating_sub(now).saturating_sub(300).max(60))
+pub fn refresh_delay(expires_at_ms: u64, now_ms: u64) -> Duration {
+    let time_until_expiry_ms = expires_at_ms.saturating_sub(now_ms);
+    let refresh_lead_ms = REFRESH_LEAD_MS.min(MIN_REFRESH_DELAY_MS.max(time_until_expiry_ms / 5));
+    Duration::from_millis(
+        MIN_REFRESH_DELAY_MS.max(time_until_expiry_ms.saturating_sub(refresh_lead_ms)),
+    )
 }
 
 pub struct GpuiE2eeSecrets {
@@ -206,6 +263,8 @@ pub struct Cloudsync<S: QueryEventSink> {
     pub http: reqwest::Client,
     state: Mutex<State>,
     generation: AtomicU64,
+    timer: Mutex<Option<tokio::task::JoinHandle<()>>>,
+    handle: tokio::runtime::Handle,
     app_id: String,
 }
 
@@ -213,6 +272,7 @@ impl<S: QueryEventSink> Cloudsync<S> {
     pub fn new(
         runtime: Arc<DesktopDbRuntime<S>>,
         auth: Arc<crate::auth::Auth>,
+        handle: tokio::runtime::Handle,
         app_id: impl Into<String>,
     ) -> Self {
         Self {
@@ -224,13 +284,62 @@ impl<S: QueryEventSink> Cloudsync<S> {
                 block: None,
             }),
             generation: AtomicU64::new(0),
+            timer: Mutex::new(None),
+            handle,
             app_id: app_id.into(),
         }
     }
 
-    #[allow(dead_code)]
     pub fn state(&self) -> State {
         self.state.lock().expect("cloudsync state poisoned").clone()
+    }
+
+    fn cancel_timer(&self) {
+        if let Some(timer) = self.timer.lock().expect("cloudsync timer poisoned").take() {
+            timer.abort();
+        }
+    }
+
+    fn schedule(self: &Arc<Self>, generation: u64, delay: Duration, enabled: bool) {
+        let service = Arc::clone(self);
+        let task = self.handle.spawn(async move {
+            tokio::time::sleep(delay).await;
+            if service.generation.load(Ordering::SeqCst) == generation {
+                service
+                    .timer
+                    .lock()
+                    .expect("cloudsync timer poisoned")
+                    .take();
+                let _ = service.activate_with_enabled(enabled).await;
+            }
+        });
+        *self.timer.lock().expect("cloudsync timer poisoned") = Some(task);
+    }
+
+    fn api_url() -> anyhow::Result<&'static str> {
+        API_URL.ok_or_else(|| anyhow!("VITE_API_URL is not configured"))
+    }
+
+    fn credential_request(
+        &self,
+        url: String,
+        access_token: &str,
+        encryption_key_id: &str,
+        member_public_key: &str,
+        device_name: Option<&str>,
+    ) -> reqwest::RequestBuilder {
+        let request = self
+            .http
+            .post(url)
+            .bearer_auth(access_token)
+            .header(E2EE_KEY_ID_HEADER, encryption_key_id)
+            .header(MEMBER_KEY_HEADER, member_public_key)
+            .header(TRANSPORTS_HEADER, "replica")
+            .header("x-device-fingerprint", anlg_host::fingerprint());
+        match device_name {
+            Some(device_name) => request.header(DEVICE_NAME_HEADER, device_name),
+            None => request,
+        }
     }
 
     pub async fn request_credentials(
@@ -239,60 +348,67 @@ impl<S: QueryEventSink> Cloudsync<S> {
         encryption_key_id: &str,
         member_public_key: &str,
     ) -> anyhow::Result<CredentialResponse> {
-        let api_url = API_URL.ok_or_else(|| anyhow::anyhow!("VITE_API_URL is not configured"))?;
+        let api_url = Self::api_url()?;
         let device_name =
             sysinfo::System::host_name().and_then(|name| sanitize_device_name(Some(&name)));
-        let mut request = self
-            .http
-            .post(format!("{api_url}/sync/token"))
-            .bearer_auth(access_token)
-            .header(E2EE_KEY_ID_HEADER, encryption_key_id)
-            .header(MEMBER_KEY_HEADER, member_public_key)
-            .header(TRANSPORTS_HEADER, "replica")
-            .header("x-device-fingerprint", anlg_host::fingerprint());
-        if let Some(device_name) = device_name {
-            request = request.header(DEVICE_NAME_HEADER, device_name);
-        }
-        let response = request.send().await?;
+        let response = self
+            .credential_request(
+                format!("{api_url}/sync/token"),
+                access_token,
+                encryption_key_id,
+                member_public_key,
+                device_name.as_deref(),
+            )
+            .send()
+            .await?;
         let response = if response.status() == reqwest::StatusCode::NOT_FOUND {
-            let mut fallback = self
-                .http
-                .post(format!("{api_url}/sync/replica/credentials"))
-                .bearer_auth(access_token)
-                .header(E2EE_KEY_ID_HEADER, encryption_key_id)
-                .header(MEMBER_KEY_HEADER, member_public_key)
-                .header(TRANSPORTS_HEADER, "replica")
-                .header("x-device-fingerprint", anlg_host::fingerprint());
-            if let Some(device_name) =
-                sysinfo::System::host_name().and_then(|name| sanitize_device_name(Some(&name)))
-            {
-                fallback = fallback.header(DEVICE_NAME_HEADER, device_name);
-            }
-            fallback.send().await?
+            self.credential_request(
+                format!("{api_url}/sync/replica/credentials"),
+                access_token,
+                encryption_key_id,
+                member_public_key,
+                device_name.as_deref(),
+            )
+            .send()
+            .await?
         } else {
             response
         };
-        if response.status() == reqwest::StatusCode::FORBIDDEN {
-            let code = response
-                .json::<serde_json::Value>()
-                .await
-                .ok()
-                .and_then(|value| value["error"]["code"].as_str().map(str::to_string));
-            let block = credential_block_for_code(code.as_deref());
-            *self.state.lock().expect("cloudsync state poisoned") = State {
-                status: CloudsyncStatus::Blocked,
-                block: Some(block),
-            };
-            anyhow::bail!("CloudSync credentials rejected");
+        match response.status() {
+            reqwest::StatusCode::NOT_FOUND | reqwest::StatusCode::NOT_IMPLEMENTED => {
+                return Err(anyhow::Error::new(CredentialBlockError(
+                    CredentialBlock::Unavailable,
+                )));
+            }
+            reqwest::StatusCode::UNAUTHORIZED => {
+                return Err(anyhow::Error::new(CredentialBlockError(
+                    CredentialBlock::ReauthRequired,
+                )));
+            }
+            reqwest::StatusCode::FORBIDDEN => {
+                let code = response
+                    .json::<serde_json::Value>()
+                    .await
+                    .ok()
+                    .and_then(|value| value["error"]["code"].as_str().map(str::to_string));
+                return Err(anyhow::Error::new(CredentialBlockError(
+                    forbidden_credential_block(code.as_deref()),
+                )));
+            }
+            status if !status.is_success() => {
+                return Err(anyhow!("CloudSync credential exchange returned {status}"));
+            }
+            _ => {}
         }
-        Ok(response.error_for_status()?.json().await?)
+        Ok(response.json().await?)
     }
 
-    pub async fn activate(&self) -> anyhow::Result<()> {
+    pub async fn activate(self: &Arc<Self>) -> anyhow::Result<()> {
         self.activate_with_enabled(true).await
     }
 
-    pub async fn activate_with_enabled(&self, enabled: bool) -> anyhow::Result<()> {
+    pub async fn activate_with_enabled(self: &Arc<Self>, enabled: bool) -> anyhow::Result<()> {
+        self.cancel_timer();
         let generation = self.generation.fetch_add(1, Ordering::SeqCst) + 1;
         let Some(session) = self.auth.session().map_err(anyhow::Error::msg)? else {
             self.runtime.suspend_cloudsync_for_sign_out().await?;
@@ -310,6 +426,7 @@ impl<S: QueryEventSink> Cloudsync<S> {
             };
             return Ok(());
         }
+        let api_url = Self::api_url()?;
         let Some(user) = session.user.as_ref() else {
             anyhow::bail!("authenticated session has no user");
         };
@@ -328,18 +445,66 @@ impl<S: QueryEventSink> Cloudsync<S> {
             return Ok(());
         };
         let member_public_key = recovery.member_identity_key()?.public_key();
-        let credentials = self
+        let credentials = match self
             .request_credentials(
                 &session.access_token,
                 &recovery.key_id(),
                 &member_public_key,
             )
-            .await?;
+            .await
+        {
+            Ok(credentials) => credentials,
+            Err(error) => {
+                if let Some(block) = error
+                    .downcast_ref::<CredentialBlockError>()
+                    .map(|error| error.0)
+                {
+                    self.runtime.suspend_cloudsync().await?;
+                    *self.state.lock().expect("cloudsync state poisoned") = State {
+                        status: CloudsyncStatus::Blocked,
+                        block: Some(block),
+                    };
+                    return Ok(());
+                }
+                self.schedule(generation, Duration::from_millis(RETRY_DELAY_MS), enabled);
+                return Ok(());
+            }
+        };
         if generation != self.generation.load(Ordering::SeqCst) {
+            return Ok(());
+        }
+        if credentials.encryption_key_id() != recovery.key_id() {
+            self.runtime.suspend_cloudsync().await?;
+            *self.state.lock().expect("cloudsync state poisoned") = State {
+                status: CloudsyncStatus::Blocked,
+                block: Some(CredentialBlock::IdentityMismatch),
+            };
+            return Ok(());
+        }
+        let expires_at_ms = match chrono::DateTime::parse_from_rfc3339(credentials.expires_at())
+            .ok()
+            .and_then(|date| date.timestamp_millis().try_into().ok())
+        {
+            Some(expires_at_ms) => expires_at_ms,
+            None => {
+                self.schedule(generation, Duration::from_millis(RETRY_DELAY_MS), enabled);
+                return Ok(());
+            }
+        };
+        if credentials.account_user_id() != user.id {
+            self.runtime.suspend_cloudsync().await?;
+            *self.state.lock().expect("cloudsync state poisoned") = State {
+                status: CloudsyncStatus::Blocked,
+                block: Some(CredentialBlock::IdentityMismatch),
+            };
             return Ok(());
         }
         let result = match credentials {
             CredentialResponse::Replica(credentials) => {
+                let witness_workspace_id = credentials
+                    .personal_workspace_id
+                    .clone()
+                    .unwrap_or_else(|| credentials.workspace_id.clone());
                 let projection = credentials.personal_workspace_id.map(|personal| {
                     CloudsyncWorkspaceProjection {
                         account_user_id: credentials.account_user_id.clone(),
@@ -359,8 +524,8 @@ impl<S: QueryEventSink> Cloudsync<S> {
                         CloudsyncE2eeWitness {
                             endpoint: format!(
                                 "{api}/sync/e2ee/witness/{id}",
-                                api = API_URL.unwrap_or(""),
-                                id = user.id
+                                api = api_url,
+                                id = witness_workspace_id
                             ),
                             access_token: session.access_token.clone(),
                         },
@@ -387,7 +552,7 @@ impl<S: QueryEventSink> Cloudsync<S> {
                         &secrets,
                         credentials.database_id,
                         credentials.token,
-                        credentials.workspace_id,
+                        credentials.account_user_id,
                         Some(projection),
                         Some(
                             credentials
@@ -399,7 +564,7 @@ impl<S: QueryEventSink> Cloudsync<S> {
                         CloudsyncE2eeWitness {
                             endpoint: format!(
                                 "{api}/sync/e2ee/witness/{id}",
-                                api = API_URL.unwrap_or(""),
+                                api = api_url,
                                 id = credentials.personal_workspace_id
                             ),
                             access_token: session.access_token.clone(),
@@ -419,7 +584,7 @@ impl<S: QueryEventSink> Cloudsync<S> {
                         CloudsyncE2eeWitness {
                             endpoint: format!(
                                 "{api}/sync/e2ee/witness/{id}",
-                                api = API_URL.unwrap_or(""),
+                                api = api_url,
                                 id = credentials.workspace_id
                             ),
                             access_token: session.access_token.clone(),
@@ -428,12 +593,23 @@ impl<S: QueryEventSink> Cloudsync<S> {
                     .await
             }
         };
-        result.map_err(anyhow::Error::msg)?;
-        self.runtime.start_cloudsync().await?;
+        if let Err(error) = result {
+            self.schedule(generation, Duration::from_millis(RETRY_DELAY_MS), enabled);
+            return Err(anyhow::Error::msg(error));
+        }
+        if let Err(error) = self.runtime.start_cloudsync().await {
+            self.schedule(generation, Duration::from_millis(RETRY_DELAY_MS), enabled);
+            return Err(error.into());
+        }
         *self.state.lock().expect("cloudsync state poisoned") = State {
             status: CloudsyncStatus::Syncing,
             block: None,
         };
+        let now_ms = chrono::Utc::now()
+            .timestamp_millis()
+            .try_into()
+            .unwrap_or(0);
+        self.schedule(generation, refresh_delay(expires_at_ms, now_ms), enabled);
         Ok(())
     }
 }
@@ -457,18 +633,24 @@ mod tests {
 
     #[test]
     fn computes_refresh_delay() {
-        assert_eq!(refresh_delay(1_000, 900), Duration::from_secs(60));
-        assert_eq!(refresh_delay(2_000, 900), Duration::from_secs(800));
+        assert_eq!(
+            refresh_delay(1_000, 900),
+            Duration::from_millis(MIN_REFRESH_DELAY_MS)
+        );
+        assert_eq!(
+            refresh_delay(2_000_000, 900_000),
+            Duration::from_millis(980_000)
+        );
     }
 
     #[test]
     fn maps_credential_blocks() {
         assert_eq!(
-            credential_block_for_code(Some("sync_device_limit_reached")),
+            forbidden_credential_block(Some("sync_device_limit_reached")),
             CredentialBlock::DeviceLimit
         );
         assert_eq!(
-            credential_block_for_code(Some("unknown")),
+            forbidden_credential_block(Some("unknown")),
             CredentialBlock::NotEntitled
         );
     }
@@ -476,7 +658,7 @@ mod tests {
     #[test]
     fn deserializes_all_credential_variants() {
         let legacy = serde_json::from_str::<CredentialResponse>(
-            r#"{"databaseId":"db","token":"token","expiresAt":"2025-01-01T00:00:00Z","workspaceId":"workspace"}"#,
+            r#"{"encryptionVersion":2,"encryptionKeyId":"key","databaseId":"db","token":"token","expiresAt":"2025-01-01T00:00:00Z","workspaceId":"workspace"}"#,
         )
         .unwrap();
         assert!(matches!(legacy, CredentialResponse::Legacy(_)));

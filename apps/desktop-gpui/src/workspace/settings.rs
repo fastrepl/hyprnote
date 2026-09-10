@@ -1787,6 +1787,15 @@ impl Workspace {
     fn render_account_signed_in(&self, cx: &Context<Self>) -> Div {
         let theme = self.theme;
         let account = self.auth_service.account_info();
+        let cloudsync = self.cloudsync_service.state();
+        let cloudsync_label = match (cloudsync.status, cloudsync.block) {
+            (crate::cloudsync::CloudsyncStatus::Syncing, _) => "syncing".to_string(),
+            (crate::cloudsync::CloudsyncStatus::Off, _) => "off".to_string(),
+            (crate::cloudsync::CloudsyncStatus::Blocked, Some(block)) => {
+                format!("blocked ({})", block.as_str())
+            }
+            (crate::cloudsync::CloudsyncStatus::Blocked, None) => "blocked".to_string(),
+        };
         let label = account
             .as_ref()
             .and_then(|account| account.full_name.as_deref().or(account.email.as_deref()))
@@ -1819,6 +1828,12 @@ impl Workspace {
                                     .child(email),
                             )
                         },
+                    )
+                    .child(
+                        div()
+                            .tw_text_sm()
+                            .text_color(theme.muted_foreground)
+                            .child(format!("Cloud sync: {cloudsync_label}")),
                     ),
             )
             .child(
@@ -1833,6 +1848,13 @@ impl Workspace {
                     .hover(|element| element.bg(theme.accent))
                     .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
                         this.auth_service.sign_out();
+                        let cloudsync = this.cloudsync_service.clone();
+                        cx.spawn(async move |_this, _cx| {
+                            if let Err(error) = cloudsync.activate().await {
+                                tracing::warn!(%error, "failed to suspend CloudSync after sign-out");
+                            }
+                        })
+                        .detach();
                         this.auth = super::toast::Auth::SignedOut;
                         cx.notify();
                     }))

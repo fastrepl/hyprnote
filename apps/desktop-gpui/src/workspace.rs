@@ -450,6 +450,7 @@ impl Workspace {
         let cloudsync_service = std::sync::Arc::new(Cloudsync::new(
             store.db_runtime().clone(),
             auth_service.clone(),
+            store.runtime().clone(),
             store.identifier(),
         ));
         crate::ui::set_ui_font(font_family.clone());

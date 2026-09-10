@@ -5478,6 +5478,7 @@ dependencies = [
  "db-app",
  "db-core",
  "deeplink-core",
+ "desktop-updater",
  "detect",
  "dirs 6.0.0",
  "export-core",
@@ -5498,6 +5499,7 @@ dependencies = [
  "local-api-core",
  "markdown",
  "mime_guess",
+ "minisign-verify",
  "notification",
  "open",
  "owhisper-interface",
@@ -5507,6 +5509,7 @@ dependencies = [
  "reqwest 0.13.2",
  "rodio",
  "search-index",
+ "semver",
  "serde",
  "serde_json",
  "sha2 0.11.0",
@@ -5531,6 +5534,17 @@ dependencies = [
  "x11-clipboard",
  "x11rb",
  "zbus",
+]
+
+[[package]]
+name = "desktop-updater"
+version = "0.1.0"
+dependencies = [
+ "semver",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -20099,6 +20113,7 @@ dependencies = [
 name = "tauri-plugin-updater2"
 version = "0.1.0"
 dependencies = [
+ "desktop-updater",
  "semver",
  "serde",
  "specta",

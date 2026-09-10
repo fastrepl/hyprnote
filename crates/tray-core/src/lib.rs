@@ -2,6 +2,7 @@
 //! and the GPUI shell: the agenda / menu-bar schedule logic, the icon
 //! bitmaps, and the menu labels, so both shells show the same tray.
 
+pub mod contract;
 pub mod schedule;
 
 pub use schedule::{

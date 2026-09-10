@@ -1,5 +1,7 @@
 # Overview
 
+Linear is the system of record for Anarlog. Before starting work, search Linear (issues, docs, comments, and [Agent lessons](https://linear.app/fastrepl-inc/document/agent-lessons-45018045d01e)) and reuse or create an `ANLG-` issue. Record decisions, progress, and lessons there — follow `~/.claude/AGENTS.md`.
+
 Anarlog is a pnpm and Rust workspace. Read the nearest `AGENTS.md` before changing a component.
 
 - `apps/desktop/`: Tauri 2 with React, TypeScript, Vite, and Tailwind. Zustand owns UI state; TanStack Query/Form own queries, mutations, and forms.

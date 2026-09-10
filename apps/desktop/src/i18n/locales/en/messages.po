@@ -1631,6 +1631,11 @@ msgstr "Could not save the folder."
 msgid "Could not send the meeting notes to Slack."
 msgstr "Could not send the meeting notes to Slack."
 
+#. placeholder {0}: error.message
+#: src/auth/start-fresh-dialog.tsx
+msgid "Could not start fresh: {0}"
+msgstr "Could not start fresh: {0}"
+
 #: src/session-sharing/index.tsx
 msgid "Could not start sign-in."
 msgstr "Could not start sign-in."
@@ -4205,6 +4210,10 @@ msgstr "Restart"
 msgid "Restart App"
 msgstr "Restart App"
 
+#: src/auth/start-fresh-dialog.tsx
+msgid "Restarting…"
+msgstr "Restarting…"
+
 #: src/main/windows-title-bar.tsx
 #: src/session/components/version-history-dialog.tsx
 msgid "Restore"
@@ -4920,6 +4929,15 @@ msgstr "Start a Pro trial or add your own LLM API key to generate a summary from
 msgid "Start Anarlog at login"
 msgstr "Start Anarlog at login"
 
+#: src/auth/context.tsx
+#: src/auth/start-fresh-dialog.tsx
+msgid "Start fresh"
+msgstr "Start fresh"
+
+#: src/auth/start-fresh-dialog.tsx
+msgid "Start fresh on this device?"
+msgstr "Start fresh on this device?"
+
 #: src/settings/general/meeting-settings.tsx
 msgid "Start listening when a scheduled meeting begins."
 msgstr "Start listening when a scheduled meeting begins."
@@ -5261,8 +5279,12 @@ msgid "The note may have been unshared or moved out of a workspace you can acces
 msgstr "The note may have been unshared or moved out of a workspace you can access."
 
 #: src/auth/context.tsx
-msgid "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here."
-msgstr "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here."
+msgid "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here, or start fresh on this device."
+msgstr "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here, or start fresh on this device."
+
+#: src/auth/start-fresh-dialog.tsx
+msgid "The notes on this device belong to another Anarlog account. Starting fresh sets them aside as a backup file and restarts Anarlog with an empty workspace for the account you signed in with. Nothing from the old notes is uploaded."
+msgstr "The notes on this device belong to another Anarlog account. Starting fresh sets them aside as a backup file and restarts Anarlog with an empty workspace for the account you signed in with. Nothing from the old notes is uploaded."
 
 #: src/shared/control.tsx
 msgid "The page you're looking for doesn't exist."

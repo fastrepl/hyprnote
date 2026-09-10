@@ -1631,6 +1631,11 @@ msgstr ""
 msgid "Could not send the meeting notes to Slack."
 msgstr ""
 
+#. placeholder {0}: error.message
+#: src/auth/start-fresh-dialog.tsx
+msgid "Could not start fresh: {0}"
+msgstr ""
+
 #: src/session-sharing/index.tsx
 msgid "Could not start sign-in."
 msgstr ""
@@ -4205,6 +4210,10 @@ msgstr ""
 msgid "Restart App"
 msgstr ""
 
+#: src/auth/start-fresh-dialog.tsx
+msgid "Restarting…"
+msgstr ""
+
 #: src/main/windows-title-bar.tsx
 #: src/session/components/version-history-dialog.tsx
 msgid "Restore"
@@ -4920,6 +4929,15 @@ msgstr ""
 msgid "Start Anarlog at login"
 msgstr "Byrja Anarlog við innritan"
 
+#: src/auth/context.tsx
+#: src/auth/start-fresh-dialog.tsx
+msgid "Start fresh"
+msgstr ""
+
+#: src/auth/start-fresh-dialog.tsx
+msgid "Start fresh on this device?"
+msgstr ""
+
 #: src/settings/general/meeting-settings.tsx
 msgid "Start listening when a scheduled meeting begins."
 msgstr ""
@@ -5261,7 +5279,11 @@ msgid "The note may have been unshared or moved out of a workspace you can acces
 msgstr ""
 
 #: src/auth/context.tsx
-msgid "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here."
+msgid "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here, or start fresh on this device."
+msgstr ""
+
+#: src/auth/start-fresh-dialog.tsx
+msgid "The notes on this device belong to another Anarlog account. Starting fresh sets them aside as a backup file and restarts Anarlog with an empty workspace for the account you signed in with. Nothing from the old notes is uploaded."
 msgstr ""
 
 #: src/shared/control.tsx

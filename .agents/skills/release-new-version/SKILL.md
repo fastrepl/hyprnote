@@ -24,7 +24,9 @@ Do not trigger a stable release from an unmerged branch. Complete the release su
   and can be dispatched manually from `main`. It runs desktop JS/i18n and native
   CI, including source CloudSync rebuilds, before building and publishing all
   desktop platforms through `desktop_cd.yaml` with `channel=nightly`.
-- Nightly versions are `<shared-version>-nightly.<workflow-run-id>`. Each build
+- Nightly versions are `<shared-version>-nightly.<n>`, where `<n>` counts up
+  from 1 for each base version (`1.4.24-nightly.1`, `1.4.24-nightly.2`, ...)
+  and resets when `release-version.json` moves to the next stable. Each build
   snapshots `packages/changelog/nightly.md` into the app and a GitHub prerelease
   tagged `desktop_nightly_v<nightly-version>`. Maintain that file as curated,
   user-facing changes since the previous stable release; do not generate a raw

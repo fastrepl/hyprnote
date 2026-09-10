@@ -106,10 +106,17 @@ fn resolve_listen_params_for_provider(
 
 /// A stereo capture keeps the direct mic on channel 0 and the remote party on
 /// channel 1. Providers that downmix return one mixed channel instead, which the
-/// desktop can still diarize, so they run only after every provider that keeps
-/// the split has been tried. The sort is stable within each group.
-fn prefer_channel_preserving_providers(provider_chain: &mut [SelectedProvider], channels: u8) {
-    if channels > 1 {
+/// desktop can still diarize, so for a single-language request they run only
+/// after every provider that keeps the split has been tried. A request that
+/// spans several languages keeps the router's order instead: the
+/// channel-preserving providers transcribe batch audio in one detected language,
+/// so promoting them would drop the other language's speech, which is worse than
+/// losing the channel split. The sort is stable within each group.
+fn prefer_channel_preserving_providers(
+    provider_chain: &mut [SelectedProvider],
+    listen_params: &ListenParams,
+) {
+    if listen_params.channels > 1 && listen_params.languages.len() <= 1 {
         provider_chain
             .sort_by_key(|selected| !selected.provider().preserves_batch_channel_identity());
     }
@@ -126,7 +133,7 @@ pub(super) async fn handle_anarlog_batch(
 ) -> Response {
     let mut provider_chain =
         state.resolve_anarlog_provider_chain_for_mode(RoutingMode::Batch, params);
-    prefer_channel_preserving_providers(&mut provider_chain, listen_params.channels);
+    prefer_channel_preserving_providers(&mut provider_chain, &listen_params);
 
     if provider_chain.is_empty() {
         return (
@@ -481,36 +488,57 @@ mod tests {
         chain.iter().map(SelectedProvider::provider).collect()
     }
 
+    fn ordered_chain(state: &AppState, codes: &[&str], channels: u8) -> Vec<Provider> {
+        let params = language_params(codes);
+        let mut chain = state.resolve_anarlog_provider_chain_for_mode(RoutingMode::Batch, &params);
+        prefer_channel_preserving_providers(
+            &mut chain,
+            &ListenParams {
+                channels,
+                languages: codes
+                    .iter()
+                    .map(|code| code.parse::<ISO639>().unwrap().into())
+                    .collect(),
+                ..Default::default()
+            },
+        );
+        chain_providers(&chain)
+    }
+
     #[test]
     fn stereo_batch_orders_channel_preserving_providers_first() {
         let state = test_state(&[Provider::Deepgram, Provider::Soniox]);
-        let params = language_params(&["en"]);
 
-        let mut mono_chain =
-            state.resolve_anarlog_provider_chain_for_mode(RoutingMode::Batch, &params);
-        prefer_channel_preserving_providers(&mut mono_chain, 1);
         assert_eq!(
-            chain_providers(&mono_chain),
+            ordered_chain(&state, &["en"], 1),
             vec![Provider::Soniox, Provider::Deepgram]
         );
-
-        let mut stereo_chain =
-            state.resolve_anarlog_provider_chain_for_mode(RoutingMode::Batch, &params);
-        prefer_channel_preserving_providers(&mut stereo_chain, 2);
         assert_eq!(
-            chain_providers(&stereo_chain),
+            ordered_chain(&state, &["en"], 2),
             vec![Provider::Deepgram, Provider::Soniox]
+        );
+    }
+
+    #[test]
+    fn stereo_mixed_language_batch_keeps_full_coverage_provider_first() {
+        let state = test_state(&[Provider::Deepgram, Provider::Soniox]);
+
+        // Deepgram only reaches hu+en through language detection, which transcribes
+        // one language. Soniox covers both, so it stays ahead even though it mixes
+        // the channels.
+        assert_eq!(
+            ordered_chain(&state, &["hu", "en"], 2),
+            vec![Provider::Soniox, Provider::Deepgram]
         );
     }
 
     #[tokio::test]
     async fn stereo_mixed_language_batch_downmixes_instead_of_failing() {
-        let state = test_state(&[Provider::Deepgram, Provider::Soniox]);
+        let state = test_state(&[Provider::Soniox]);
         let params = language_params(&["hu", "en"]);
 
-        // Deepgram cannot code-switch hu+en, so Soniox is the whole chain. It must
-        // be attempted (the missing file fails its upload) instead of being
-        // rejected for downmixing the stereo capture.
+        // Soniox must be attempted (the missing file fails its upload) instead of
+        // being rejected for downmixing the stereo capture.
         let response = handle_anarlog_batch(
             &state,
             &params,
@@ -537,12 +565,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn mixed_hungarian_english_does_not_fall_back_to_single_language_detection() {
+    async fn mixed_language_without_full_coverage_provider_falls_back_to_detection() {
         let state = test_state(&[Provider::Deepgram]);
         let params = language_params(&["hu", "en"]);
 
-        // Detection accepts both hints but transcribes only the dominant language.
-        // Reject this chain before opening audio or sending any provider request.
+        // With no provider covering both languages, Deepgram's detection fallback
+        // is attempted (the missing file fails it) rather than rejected outright.
         let response = handle_anarlog_batch(
             &state,
             &params,
@@ -557,12 +585,13 @@ mod tests {
         )
         .await;
 
-        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(response.status(), StatusCode::BAD_GATEWAY);
         let body = axum::body::to_bytes(response.into_body(), 1024)
             .await
             .unwrap();
         let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(body["error"], "no_providers_available");
+        assert_eq!(body["error"], "all_providers_failed");
+        assert_eq!(body["providers_tried"], serde_json::json!(["Deepgram"]));
     }
 
     #[test]

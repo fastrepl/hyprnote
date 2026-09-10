@@ -7,6 +7,7 @@ mod assets;
 mod audio;
 mod audio_player;
 mod audio_retention;
+mod auth;
 mod automations;
 mod automations_engine;
 mod badges;

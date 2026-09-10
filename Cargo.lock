@@ -5463,6 +5463,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "desktop-auth"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "specta",
+ "storage",
+ "supabase-auth",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
 name = "desktop-db-runtime"
 version = "0.1.0"
 dependencies = [
@@ -5492,7 +5506,6 @@ dependencies = [
  "wiremock",
 ]
 
-[[package]]
 name = "desktop-gpui"
 version = "0.0.0"
 dependencies = [
@@ -5508,6 +5521,7 @@ dependencies = [
  "db-app",
  "db-core",
  "deeplink-core",
+ "desktop-auth",
  "detect",
  "dirs 6.0.0",
  "export-core",
@@ -5543,6 +5557,7 @@ dependencies = [
  "smallvec 1.15.1",
  "sqlx",
  "storage",
+ "supabase-auth",
  "tempfile",
  "template-app",
  "template-app-legacy",
@@ -18985,6 +19000,8 @@ dependencies = [
 name = "tauri-plugin-auth"
 version = "0.1.0"
 dependencies = [
+ "desktop-auth",
+ "desktop-auth",
  "serde",
  "serde_json",
  "specta",

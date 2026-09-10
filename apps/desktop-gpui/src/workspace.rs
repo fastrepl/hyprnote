@@ -251,6 +251,7 @@ pub struct Workspace {
     chat_sent_history: Vec<crate::text_area::Draft>,
     mention_humans: Vec<crate::contacts::Human>,
     mention_organizations: Vec<crate::contacts::Organization>,
+    pub(crate) auth_service: std::sync::Arc<crate::auth::Auth>,
     auth: toast::Auth,
     /// `getDismissedToasts` from `store.json`.
     dismissed_toasts: Vec<String>,
@@ -443,6 +444,7 @@ impl Workspace {
         cx: &mut Context<Self>,
     ) -> Self {
         let font_family = crate::theme::ui_font_family(cx.text_system()).map(SharedString::from);
+        let auth_service = std::sync::Arc::new(crate::auth::Auth::new(store.identifier()));
         crate::ui::set_ui_font(font_family.clone());
         let mono_font_family =
             crate::theme::mono_font_family(cx.text_system()).map(SharedString::from);
@@ -533,6 +535,7 @@ impl Workspace {
             chat_sent_history: Vec::new(),
             mention_humans: Vec::new(),
             mention_organizations: Vec::new(),
+            auth_service,
             auth: toast::Auth::Loading,
             dismissed_toasts: Vec::new(),
             theme_preference: "system".to_string(),
@@ -628,6 +631,14 @@ impl Workspace {
         this.reload_sessions(cx);
         this.reload_settings(cx);
         this.watch_changes(cx);
+        let auth_service = this.auth_service.clone();
+        cx.spawn(async move |_this, _cx| {
+            loop {
+                auth_service.refresh().await;
+                tokio::time::sleep(std::time::Duration::from_secs(300)).await;
+            }
+        })
+        .detach();
         this.observe_window_activity(window, cx);
         match mode {
             Mode::Main => {

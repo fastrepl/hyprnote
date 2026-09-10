@@ -74,6 +74,7 @@ struct BatchRoutingTrace {
 struct BatchRoutingAttempt {
     provider: String,
     resolved_model: Option<String>,
+    mixes_channels: bool,
     retries: usize,
     result: String,
 }
@@ -103,6 +104,17 @@ fn resolve_listen_params_for_provider(
     resolved_params
 }
 
+/// A stereo capture keeps the direct mic on channel 0 and the remote party on
+/// channel 1. Providers that downmix return one mixed channel instead, which the
+/// desktop can still diarize, so they run only after every provider that keeps
+/// the split has been tried. The sort is stable within each group.
+fn prefer_channel_preserving_providers(provider_chain: &mut [SelectedProvider], channels: u8) {
+    if channels > 1 {
+        provider_chain
+            .sort_by_key(|selected| !selected.provider().preserves_batch_channel_identity());
+    }
+}
+
 pub(super) async fn handle_anarlog_batch(
     state: &AppState,
     params: &QueryParams,
@@ -112,7 +124,9 @@ pub(super) async fn handle_anarlog_batch(
     content_type: &str,
     max_response_bytes: Option<usize>,
 ) -> Response {
-    let provider_chain = state.resolve_anarlog_provider_chain_for_mode(RoutingMode::Batch, params);
+    let mut provider_chain =
+        state.resolve_anarlog_provider_chain_for_mode(RoutingMode::Batch, params);
+    prefer_channel_preserving_providers(&mut provider_chain, listen_params.channels);
 
     if provider_chain.is_empty() {
         return (
@@ -160,7 +174,16 @@ pub(super) async fn handle_anarlog_batch(
         let provider = selected.provider();
         let provider_listen_params = resolve_listen_params_for_provider(provider, &listen_params);
         let resolved_model = provider_listen_params.model.clone();
+        let mixes_channels =
+            provider_listen_params.channels > 1 && !provider.preserves_batch_channel_identity();
         providers_tried.push(provider);
+        if mixes_channels {
+            tracing::info!(
+                anarlog.stt.provider.name = ?provider,
+                anarlog.attempt.number = attempt + 1,
+                "multichannel_batch_downmixed_by_provider"
+            );
+        }
 
         match transcribe_with_retry(selected, provider_listen_params, audio_path, &retry_config)
             .await
@@ -174,6 +197,7 @@ pub(super) async fn handle_anarlog_batch(
                 trace.attempts.push(BatchRoutingAttempt {
                     provider: provider.to_string(),
                     resolved_model,
+                    mixes_channels,
                     retries,
                     result: "success".to_string(),
                 });
@@ -193,6 +217,7 @@ pub(super) async fn handle_anarlog_batch(
                 trace.attempts.push(BatchRoutingAttempt {
                     provider: provider.to_string(),
                     resolved_model,
+                    mixes_channels,
                     retries,
                     result: e.kind().to_string(),
                 });
@@ -255,11 +280,6 @@ pub(super) async fn transcribe_with_provider(
     audio_path: &Path,
 ) -> Result<BatchResponse, BatchAttemptError> {
     let provider = selected.provider();
-    if params.channels > 1 && !provider.preserves_batch_channel_identity() {
-        return Err(BatchAttemptError::Unsupported(format!(
-            "{provider:?} does not preserve channel identity for multichannel batch audio",
-        )));
-    }
     let api_base = selected
         .upstream_url()
         .unwrap_or(provider.default_api_base());
@@ -419,14 +439,15 @@ mod tests {
     use super::*;
     use anlg_language::ISO639;
 
-    #[tokio::test]
-    async fn mixed_hungarian_english_does_not_fall_back_to_single_language_detection() {
+    fn test_state(providers: &[Provider]) -> AppState {
         use crate::config::{CallbackConfig, SttProxyConfig, SupabaseConfig};
-        use crate::query_params::QueryValue;
 
-        let state = super::super::super::make_state(
+        super::super::super::make_state(
             SttProxyConfig {
-                api_keys: [(Provider::Deepgram, "test-key".to_string())].into(),
+                api_keys: providers
+                    .iter()
+                    .map(|provider| (*provider, "test-key".to_string()))
+                    .collect(),
                 default_provider: Provider::Deepgram,
                 connect_timeout: Duration::from_secs(1),
                 analytics: None,
@@ -442,12 +463,83 @@ mod tests {
                 },
             },
             Default::default(),
-        );
+        )
+    }
+
+    fn language_params(codes: &[&str]) -> QueryParams {
+        use crate::query_params::QueryValue;
+
         let mut params = QueryParams::default();
         params.insert(
             "language".to_string(),
-            QueryValue::Multi(vec!["hu".into(), "en".into()]),
+            QueryValue::Multi(codes.iter().map(|code| (*code).to_string()).collect()),
         );
+        params
+    }
+
+    fn chain_providers(chain: &[SelectedProvider]) -> Vec<Provider> {
+        chain.iter().map(SelectedProvider::provider).collect()
+    }
+
+    #[test]
+    fn stereo_batch_orders_channel_preserving_providers_first() {
+        let state = test_state(&[Provider::Deepgram, Provider::Soniox]);
+        let params = language_params(&["en"]);
+
+        let mut mono_chain =
+            state.resolve_anarlog_provider_chain_for_mode(RoutingMode::Batch, &params);
+        prefer_channel_preserving_providers(&mut mono_chain, 1);
+        assert_eq!(
+            chain_providers(&mono_chain),
+            vec![Provider::Soniox, Provider::Deepgram]
+        );
+
+        let mut stereo_chain =
+            state.resolve_anarlog_provider_chain_for_mode(RoutingMode::Batch, &params);
+        prefer_channel_preserving_providers(&mut stereo_chain, 2);
+        assert_eq!(
+            chain_providers(&stereo_chain),
+            vec![Provider::Deepgram, Provider::Soniox]
+        );
+    }
+
+    #[tokio::test]
+    async fn stereo_mixed_language_batch_downmixes_instead_of_failing() {
+        let state = test_state(&[Provider::Deepgram, Provider::Soniox]);
+        let params = language_params(&["hu", "en"]);
+
+        // Deepgram cannot code-switch hu+en, so Soniox is the whole chain. It must
+        // be attempted (the missing file fails its upload) instead of being
+        // rejected for downmixing the stereo capture.
+        let response = handle_anarlog_batch(
+            &state,
+            &params,
+            ListenParams {
+                channels: 2,
+                languages: vec![ISO639::Hu.into(), ISO639::En.into()],
+                ..Default::default()
+            },
+            Path::new("missing-stereo-mixed-language-recording.wav"),
+            0,
+            "audio/wav",
+            None,
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::BAD_GATEWAY);
+        let body = axum::body::to_bytes(response.into_body(), 1024)
+            .await
+            .unwrap();
+        let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body["error"], "all_providers_failed");
+        assert_eq!(body["providers_tried"], serde_json::json!(["Soniox"]));
+        assert_eq!(body["detail"], "audio processing failed");
+    }
+
+    #[tokio::test]
+    async fn mixed_hungarian_english_does_not_fall_back_to_single_language_detection() {
+        let state = test_state(&[Provider::Deepgram]);
+        let params = language_params(&["hu", "en"]);
 
         // Detection accepts both hints but transcribes only the dominant language.
         // Reject this chain before opening audio or sending any provider request.

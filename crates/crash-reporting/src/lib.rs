@@ -71,9 +71,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Mutex, OnceLock};
+
+    static STATE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
     #[test]
     fn init_without_dsn_returns_none() {
+        let _lock = STATE_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         assert!(
             init(
                 Options {
@@ -90,6 +94,7 @@ mod tests {
 
     #[test]
     fn init_disabled_by_environment_returns_none() {
+        let _lock = STATE_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         if std::env::var_os("ANARLOG_DISABLE_SENTRY").is_none() {
             unsafe { std::env::set_var("ANARLOG_DISABLE_SENTRY", "1") };
             let result = init(
@@ -108,6 +113,7 @@ mod tests {
 
     #[test]
     fn enabled_round_trip() {
+        let _lock = STATE_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         set_enabled(false);
         assert!(!enabled());
         set_enabled(true);

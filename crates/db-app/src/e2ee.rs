@@ -103,6 +103,7 @@ pub struct E2eeReplicaStats {
     pub rejected_unwitnessed: u64,
     pub parked_records: u64,
     pub recorded_conflicts: u64,
+    pub merged_fields: u64,
     pub remaining_replica_changes: bool,
 }
 
@@ -177,6 +178,7 @@ struct WitnessVersion {
 
 mod conflicts;
 mod cooperative;
+mod merge;
 mod replica_apply;
 mod replica_encrypt;
 mod replica_storage;

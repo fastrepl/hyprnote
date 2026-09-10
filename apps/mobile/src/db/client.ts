@@ -13,6 +13,7 @@ import {
   type QueryEventListener,
 } from "@anlg/mobile-bridge";
 
+import { applyPendingLocalDatabaseReset } from "@/db/reset";
 import { captureOperationalError } from "@/lib/error-reporting";
 import {
   requestReplicaCredentials,
@@ -29,6 +30,16 @@ function filePath(uri: string): string {
 
 function getBridge(): MobileDbBridgeLike {
   if (!bridge) {
+    try {
+      const backup = applyPendingLocalDatabaseReset();
+      if (backup)
+        console.warn(`[db] started fresh; previous database kept as ${backup}`);
+    } catch (error) {
+      captureOperationalError(error, {
+        operation: "database_reset",
+        level: "warning",
+      });
+    }
     const databaseDirectory = new Directory(Paths.document, "SQLite");
     databaseDirectory.create({ intermediates: true, idempotent: true });
     const databaseUri = new File(databaseDirectory, "anarlog.db").uri;

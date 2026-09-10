@@ -47,6 +47,7 @@ import {
 } from "./sign-out-coordination";
 
 import { trackAnalyticsEvent } from "~/analytics";
+import { StartFreshDialog } from "~/auth/start-fresh-dialog";
 import { useLatestRef } from "~/shared/hooks/useLatestRef";
 import { useMountEffect } from "~/shared/hooks/useMountEffect";
 import {
@@ -86,6 +87,7 @@ async function settleWithin<T>(
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [fingerprint, setFingerprint] = useState<string | null>(null);
+  const [startFreshOpen, setStartFreshOpen] = useState(false);
   const currentWindowLabel = getCurrentWebviewWindow().label;
   const managesCloudsync = currentWindowLabel === "main";
   // Prevents double initSession in React StrictMode, which can cause refresh token races
@@ -274,8 +276,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       sonnerToast.error(
-        t`The notes on this device are linked to another Anarlog account. Sign in with the account previously used here.`,
-        { id: ACCOUNT_MISMATCH_TOAST_ID },
+        t`The notes on this device are linked to another Anarlog account. Sign in with the account previously used here, or start fresh on this device.`,
+        {
+          id: ACCOUNT_MISMATCH_TOAST_ID,
+          duration: Number.POSITIVE_INFINITY,
+          action: {
+            label: t`Start fresh`,
+            onClick: () => setStartFreshOpen(true),
+          },
+        },
       );
       await rejectAuthChange(transition, true);
 
@@ -1114,5 +1123,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      {managesCloudsync && (
+        <StartFreshDialog
+          open={startFreshOpen}
+          onOpenChange={setStartFreshOpen}
+        />
+      )}
+    </AuthContext.Provider>
+  );
 }

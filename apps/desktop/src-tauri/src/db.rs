@@ -3,6 +3,7 @@ use std::sync::Arc;
 use anlg_db_core::Db;
 
 const DB_FILENAME: &str = "app.db";
+const DB_RESET_MARKER: &str = "app.db.reset-requested";
 pub(crate) const STABLE_BUNDLE_ID: &str = "com.hyprnote.stable";
 pub(crate) const NIGHTLY_BUNDLE_ID: &str = "com.hyprnote.nightly";
 const DEFAULT_CLOUDSYNC_INTERVAL_MS: u64 = 30_000;
@@ -15,6 +16,14 @@ pub async fn open_desktop_db(identifier: &str) -> Result<Arc<Db>, String> {
     std::fs::create_dir_all(&dir)
         .map_err(|error| format!("failed to create application data directory: {error}"))?;
 
+    match apply_pending_database_reset(&dir) {
+        Ok(Some(backup)) => eprintln!(
+            "moved the application database aside for a fresh start: {}",
+            backup.display()
+        ),
+        Ok(None) => {}
+        Err(error) => eprintln!("failed to reset the application database: {error}"),
+    }
     let db_path = dir.join(DB_FILENAME);
 
     // During an update relaunch the previous process can hold the database for
@@ -39,6 +48,44 @@ pub async fn open_desktop_db(identifier: &str) -> Result<Arc<Db>, String> {
     };
 
     Ok(Arc::new(db))
+}
+
+/// "Start fresh on this device" only leaves a marker; the next launch moves the
+/// database aside before opening it, so the running process never has to tear
+/// down a live database and sync runtime. The old file stays as a backup.
+pub fn request_database_reset(identifier: &str) -> Result<(), String> {
+    let dir = desktop_db_dir(identifier)
+        .ok_or_else(|| "application data directory is unavailable".to_string())?;
+    std::fs::create_dir_all(&dir)
+        .map_err(|error| format!("failed to create application data directory: {error}"))?;
+    std::fs::write(dir.join(DB_RESET_MARKER), b"")
+        .map_err(|error| format!("failed to request a database reset: {error}"))
+}
+
+fn apply_pending_database_reset(
+    dir: &std::path::Path,
+) -> Result<Option<std::path::PathBuf>, String> {
+    let marker = dir.join(DB_RESET_MARKER);
+    if !marker.is_file() {
+        return Ok(None);
+    }
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|elapsed| elapsed.as_secs())
+        .unwrap_or(0);
+    let backup = dir.join(format!("{DB_FILENAME}.{stamp}.bak"));
+    for suffix in ["", "-wal", "-shm"] {
+        let source = dir.join(format!("{DB_FILENAME}{suffix}"));
+        if !source.exists() {
+            continue;
+        }
+        let target = dir.join(format!("{DB_FILENAME}.{stamp}.bak{suffix}"));
+        std::fs::rename(&source, &target)
+            .map_err(|error| format!("failed to move {} aside: {error}", source.display()))?;
+    }
+    std::fs::remove_file(&marker)
+        .map_err(|error| format!("failed to clear the database reset marker: {error}"))?;
+    Ok(Some(backup))
 }
 
 pub fn is_transient_lock_error(error: &impl std::fmt::Display) -> bool {
@@ -172,6 +219,31 @@ pub(crate) fn desktop_db_dir(identifier: &str) -> Option<std::path::PathBuf> {
 mod tests {
     use super::*;
     use std::collections::HashMap;
+
+    #[test]
+    fn a_reset_marker_moves_the_database_aside_once() {
+        let dir = tempfile::tempdir().unwrap();
+        for suffix in ["", "-wal", "-shm"] {
+            std::fs::write(dir.path().join(format!("{DB_FILENAME}{suffix}")), b"data").unwrap();
+        }
+        assert_eq!(apply_pending_database_reset(dir.path()).unwrap(), None);
+        std::fs::write(dir.path().join(DB_RESET_MARKER), b"").unwrap();
+
+        let backup = apply_pending_database_reset(dir.path())
+            .unwrap()
+            .expect("database moved aside");
+
+        assert!(backup.is_file());
+        assert!(
+            backup.with_extension("bak-wal").is_file() || {
+                let name = format!("{}-wal", backup.file_name().unwrap().to_string_lossy());
+                dir.path().join(name).is_file()
+            }
+        );
+        assert!(!dir.path().join(DB_FILENAME).exists());
+        assert!(!dir.path().join(DB_RESET_MARKER).exists());
+        assert_eq!(apply_pending_database_reset(dir.path()).unwrap(), None);
+    }
 
     #[test]
     fn transient_lock_errors_are_recognized() {

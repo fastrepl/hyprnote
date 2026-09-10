@@ -149,4 +149,26 @@ mod tests {
         assert_eq!(migrated["other"], "keep");
         assert!(migrated.get("auth").is_none());
     }
+
+    #[test]
+    fn existing_new_auth_path_is_kept_in_place() {
+        let temp = tempfile::tempdir().unwrap();
+        let legacy_base = temp.path().join("legacy");
+        let local_base = temp.path().join("local").join("com.example.app");
+        let legacy_auth = legacy_base.join(FILENAME);
+        let legacy_store = legacy_base.join("store.json");
+        let new_auth = local_base.join(FILENAME);
+        std::fs::create_dir_all(&local_base).unwrap();
+        std::fs::write(&new_auth, r#"{"session":"live"}"#).unwrap();
+
+        assert_eq!(
+            resolve_auth_path_from_paths(&legacy_auth, &legacy_store, &new_auth),
+            new_auth
+        );
+        assert_eq!(
+            std::fs::read_to_string(&new_auth).unwrap(),
+            r#"{"session":"live"}"#
+        );
+        assert!(!legacy_auth.exists());
+    }
 }

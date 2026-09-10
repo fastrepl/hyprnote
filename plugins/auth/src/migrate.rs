@@ -2,11 +2,11 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
+#[cfg(all(target_os = "linux", not(test)))]
+use anlg_desktop_auth::{LinuxSecurePersistence, Persistence, SecretStore};
 use tauri::Manager;
 
 const FILENAME: &str = anlg_desktop_auth::paths::FILENAME;
-#[cfg(any(target_os = "linux", test))]
-const CLI_FALLBACK_FILENAME: &str = anlg_desktop_auth::paths::CLI_FALLBACK_FILENAME;
 
 pub(crate) fn auth_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> crate::Result<PathBuf> {
     let new_auth_path = new_auth_path(app)?;
@@ -29,81 +29,8 @@ const AUTH_KEY: &str = "supabase-storage";
 pub(crate) fn load_linux_auth<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
 ) -> crate::Result<HashMap<String, String>> {
-    let auth_path = auth_path(app)?;
-    let cli_fallback_path = cli_fallback_auth_path(&auth_path);
-
-    // A locked or unavailable keyring must not abort plugin setup, otherwise the app
-    // cannot start and the plaintext session can never be migrated. `Ok(None)` means
-    // there is no secret yet; `Err` only means it could not be read this time, which
-    // is a distinction the migration below depends on.
-    let secure_read = tauri_plugin_store2::read_secret_blocking(app, AUTH_SCOPE, AUTH_KEY);
-    let keyring_readable = secure_read.is_ok();
-    let secure_data = match secure_read {
-        Ok(data) => data,
-        Err(error) => {
-            tracing::warn!(%error, "failed_to_read_auth_from_secret_service");
-            None
-        }
-    };
-
-    if cli_fallback_path.is_file() {
-        match read_auth_file(&cli_fallback_path) {
-            Ok(auth) => {
-                if keyring_readable {
-                    if let Err(error) = persist_linux_auth(app, &auth) {
-                        tracing::warn!(%error, "failed_to_reconcile_cli_auth_with_secret_service");
-                    }
-                }
-                return Ok(auth);
-            }
-            Err(error) => {
-                tracing::warn!(%error, "ignoring_unreadable_cli_auth_fallback");
-                discard_plaintext_auth(&cli_fallback_path);
-            }
-        }
-    }
-
-    if let Some(data) = secure_data {
-        match serde_json::from_str::<HashMap<String, String>>(&data) {
-            // Only drop the plaintext copy once the secure payload is known to be usable.
-            Ok(auth) => {
-                discard_plaintext_auth(&auth_path);
-                return Ok(auth);
-            }
-            Err(error) => {
-                tracing::warn!(%error, "ignoring_unreadable_secret_service_auth");
-            }
-        }
-    }
-
-    if !auth_path.is_file() {
-        return Ok(HashMap::new());
-    }
-
-    let auth = match read_auth_file(&auth_path) {
-        Ok(auth) => auth,
-        Err(error) => {
-            // Matches the keyring path: a corrupt or truncated auth.json costs the
-            // session, but must not stop the app from launching. Dropping it also
-            // breaks the loop where a half-removed file fails to parse every launch.
-            tracing::warn!(%error, "ignoring_unreadable_plaintext_auth");
-            discard_plaintext_auth(&auth_path);
-            return Ok(HashMap::new());
-        }
-    };
-
-    // Writing now could clobber a secret that exists but could not be read, so an
-    // unreadable keyring keeps the plaintext copy and retries on a later launch.
-    if !keyring_readable {
-        return Ok(auth);
-    }
-
-    // persist_linux_auth drops the plaintext copy itself once the keyring owns it.
-    if let Err(error) = persist_linux_auth(app, &auth) {
-        tracing::warn!(%error, "failed_to_migrate_auth_to_secret_service");
-    }
-
-    Ok(auth)
+    let persistence = linux_persistence(app, auth_path(app)?);
+    Ok(persistence.load()?)
 }
 
 #[cfg(all(target_os = "linux", not(test)))]
@@ -111,54 +38,55 @@ pub(crate) fn persist_linux_auth<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     auth: &HashMap<String, String>,
 ) -> crate::Result<()> {
-    if auth.is_empty() {
-        return clear_linux_auth(app);
-    }
-
-    let data = serde_json::to_string(auth)?;
-    tauri_plugin_store2::write_secret_blocking(app, AUTH_SCOPE, AUTH_KEY, &data)
-        .map_err(crate::Error::Storage)?;
-
-    drop_plaintext_auth_for(app);
+    linux_persistence(app, auth_path(app)?).save(auth)?;
     Ok(())
 }
 
 #[cfg(all(target_os = "linux", not(test)))]
 pub(crate) fn clear_linux_auth<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> crate::Result<()> {
-    tauri_plugin_store2::delete_secret_blocking(app, AUTH_SCOPE, AUTH_KEY)
-        .map_err(crate::Error::Storage)?;
-    drop_plaintext_auth_for(app);
+    linux_persistence(app, auth_path(app)?).clear()?;
     Ok(())
 }
 
-// The keyring is authoritative once it has been written or cleared, so a plaintext
-// copy left behind by a failed migration must not outlive it and silently restore
-// the session on the next launch.
 #[cfg(all(target_os = "linux", not(test)))]
-fn drop_plaintext_auth_for<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
-    match auth_path(app) {
-        Ok(path) => {
-            discard_plaintext_auth(&path);
-            discard_plaintext_auth(&cli_fallback_auth_path(&path));
-        }
-        Err(error) => tracing::warn!(%error, "failed_to_resolve_auth_path"),
+fn linux_persistence<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    auth_path: PathBuf,
+) -> LinuxSecurePersistence {
+    LinuxSecurePersistence::new(Box::new(TauriSecretStore { app: app.clone() }), auth_path)
+}
+
+#[cfg(all(target_os = "linux", not(test)))]
+struct TauriSecretStore<R: tauri::Runtime> {
+    app: tauri::AppHandle<R>,
+}
+
+#[cfg(all(target_os = "linux", not(test)))]
+impl<R: tauri::Runtime> SecretStore for TauriSecretStore<R> {
+    fn read(&self) -> std::result::Result<Option<String>, String> {
+        tauri_plugin_store2::read_secret_blocking(&self.app, AUTH_SCOPE, AUTH_KEY)
+            .map_err(|error| error.to_string())
+    }
+
+    fn write(&self, value: &str) -> std::result::Result<(), String> {
+        tauri_plugin_store2::write_secret_blocking(&self.app, AUTH_SCOPE, AUTH_KEY, value)
+            .map_err(|error| error.to_string())
+    }
+
+    fn delete(&self) -> std::result::Result<(), String> {
+        tauri_plugin_store2::delete_secret_blocking(&self.app, AUTH_SCOPE, AUTH_KEY)
+            .map_err(|error| error.to_string())
     }
 }
 
-#[cfg(all(target_os = "linux", not(test)))]
-fn read_auth_file(path: &Path) -> crate::Result<HashMap<String, String>> {
-    let data = std::fs::read_to_string(path).map_err(crate::Error::Io)?;
-    Ok(serde_json::from_str(&data)?)
-}
-
-#[cfg(any(target_os = "linux", test))]
+#[cfg(test)]
 fn cli_fallback_auth_path(auth_path: &Path) -> PathBuf {
-    auth_path.with_file_name(CLI_FALLBACK_FILENAME)
+    anlg_desktop_auth::paths::cli_fallback_auth_path(auth_path)
 }
 
 // A leftover auth.json is less harmful than refusing a session the secure store
 // already holds, so cleanup failures are reported rather than propagated.
-#[cfg(any(all(target_os = "linux", not(test)), target_os = "windows"))]
+#[cfg(target_os = "windows")]
 pub(crate) fn discard_plaintext_auth(path: &Path) {
     if let Err(error) = remove_plaintext_auth(path) {
         tracing::warn!(
@@ -169,7 +97,7 @@ pub(crate) fn discard_plaintext_auth(path: &Path) {
     }
 }
 
-#[cfg(any(all(target_os = "linux", not(test)), target_os = "windows", test))]
+#[cfg(any(target_os = "windows", test))]
 pub(crate) fn remove_plaintext_auth(path: &Path) -> std::io::Result<()> {
     anlg_desktop_auth::paths::discard_plaintext_auth(path)
 }

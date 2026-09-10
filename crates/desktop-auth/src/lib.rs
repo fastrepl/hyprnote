@@ -8,6 +8,11 @@ use anlg_supabase_auth::session::{Session, find_session};
 
 pub mod paths;
 
+#[cfg(target_os = "linux")]
+mod linux;
+#[cfg(target_os = "linux")]
+pub use linux::{LinuxSecurePersistence, SecretStore};
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
 #[serde(rename_all = "camelCase")]
@@ -27,6 +32,8 @@ pub enum Error {
     Refresh(#[from] anlg_supabase_auth::refresh::Error),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
+    #[error("invalid auth session: {0}")]
+    InvalidSession(String),
     #[error("auth persistence failed: {0}")]
     Persistence(String),
 }
@@ -116,14 +123,20 @@ impl SessionManager {
         Ok(Some(serde_json::from_str(&value)?))
     }
 
-    pub async fn install_tokens(&self, access_token: &str, refresh_token: &str) -> Result<Session> {
+    pub async fn install_tokens(
+        &self,
+        _access_token: &str,
+        refresh_token: &str,
+    ) -> Result<Session> {
         let client = self
             .client
             .as_ref()
             .ok_or_else(|| Error::Persistence("refresh client is not configured".into()))?;
-        let mut session = client.refresh_session(refresh_token).await?;
+        let session = client.refresh_session(refresh_token).await?;
         if session.access_token.is_empty() {
-            session.access_token = access_token.to_string();
+            return Err(Error::InvalidSession(
+                "refresh returned no access token".to_string(),
+            ));
         }
         self.save_session(&session)?;
         Ok(session)

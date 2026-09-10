@@ -227,10 +227,10 @@
   "mistral-api-key": [],
   "mistral-data-retention-policy": [
     {
-      "filename": "mistral-data-flow.png",
-      "content": "Your prompt\nMistral EU-hosted service\nDefault: limited retention for abuse monitoring\nEligible customers: zero-retention option\nTraining: only if you explicitly opt in",
-      "context": "Data-flow diagram summarizing how Mistral handles prompts. The three outcomes are default limited retention, an optional zero-retention path, and training that happens only with explicit opt-in. Training must not look like a default outcome.",
-      "visualQuery": "flowchart",
+      "filename": "mistral-training-defaults.png",
+      "content": "Title: Mistral Training Defaults By Plan\nVibe Free, Pro, Team: Trains by default, you opt out\nVibe Enterprise: Opted out by default, admin controls opt in\nStudio Free mode: Trains by default, you opt out\nStudio Pay as you go: Separate opt out toggle in Admin Panel",
+      "context": "Table showing Mistral default training status across Vibe and Mistral Studio plans as of September 2026. Only Vibe Enterprise is opted out of training by default; every other tier trains on input and output unless the user or admin opts out.",
+      "visualQuery": "table",
       "orientation": "horizontal",
       "width": 1200
     }

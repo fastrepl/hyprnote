@@ -24,13 +24,17 @@ pub use witness::{
 
 pub const E2EE_DOMAIN_TABLES: &[&str] = &[
     "action_items",
+    "daily_notes",
+    "folders",
     "humans",
     "organizations",
     "session_attachments",
     "session_documents",
     "session_participants",
+    "session_tags",
     "sessions",
     "synced_preferences",
+    "tags",
     "transcripts",
 ];
 

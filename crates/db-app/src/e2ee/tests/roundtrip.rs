@@ -108,13 +108,17 @@ async fn reconstructs_every_protected_table_and_applies_deletions() {
     let source = test_db().await;
     for (table, id) in [
         ("action_items", "action-1"),
+        ("daily_notes", "daily-1"),
+        ("folders", "folder-1"),
         ("humans", "human-1"),
         ("organizations", "organization-1"),
         ("session_attachments", "attachment-1"),
         ("session_documents", "document-1"),
         ("session_participants", "participant-1"),
+        ("session_tags", "session-tag-1"),
         ("sessions", "session-1"),
         ("synced_preferences", "preference-1"),
+        ("tags", "tag-1"),
         ("transcripts", "transcript-1"),
     ] {
         let sql = format!("INSERT INTO {table} (id, workspace_id) VALUES (?, 'workspace-a')");

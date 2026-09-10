@@ -501,6 +501,32 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         },
         sql: include_str!("../migrations/20260909150000_session_document_versions.sql"),
     },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909160000_e2ee_dirty_tags_triggers",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter { table_name: "tags" },
+        sql: include_str!("../migrations/20260909160000_e2ee_dirty_tags_triggers.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909160100_e2ee_dirty_session_tags_triggers",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "session_tags",
+        },
+        sql: include_str!("../migrations/20260909160100_e2ee_dirty_session_tags_triggers.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909160200_e2ee_dirty_folders_triggers",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "folders",
+        },
+        sql: include_str!("../migrations/20260909160200_e2ee_dirty_folders_triggers.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909160300_e2ee_dirty_daily_notes_triggers",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "daily_notes",
+        },
+        sql: include_str!("../migrations/20260909160300_e2ee_dirty_daily_notes_triggers.sql"),
+    },
 ];
 
 pub fn schema() -> anlg_db_migrate::DbSchema {

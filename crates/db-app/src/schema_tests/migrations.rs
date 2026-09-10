@@ -302,10 +302,11 @@ async fn search_index_migrations_apply_to_initialized_cloudsync_tables() {
     )
     .await
     .unwrap();
-    // synced_preferences does not exist yet at this point in the migration history.
+    // Tables created after this point in the migration history cannot be
+    // initialized here; their migrations run below.
     for table_name in E2EE_DOMAIN_TABLES
         .iter()
-        .filter(|table_name| **table_name != "synced_preferences")
+        .filter(|table_name| !matches!(**table_name, "synced_preferences" | "folders"))
     {
         db.cloudsync_init(table_name, None, None).await.unwrap();
     }

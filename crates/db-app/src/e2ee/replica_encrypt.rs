@@ -4,6 +4,10 @@ use anlg_e2ee::{WorkspaceKey, WorkspaceKeyring};
 use serde_json::{Value, json};
 use sqlx::{Column, QueryBuilder, Row, Sqlite, SqlitePool, Transaction};
 
+use super::chunks::{
+    ChunkPart, chunk_count_field, chunk_field, chunk_size_for, parse_array, parse_chunk_field,
+    split_chunks,
+};
 use super::cooperative::yield_once;
 use super::replica_storage::{
     load_or_create_writer_id, load_row_local_states_from_pool, sqlite_value, upsert_local_state,
@@ -405,7 +409,7 @@ async fn prepare_dirty_row_cancellable(
             .get(&manifest_id)
             .is_some_and(|state| state.value_tag == tombstone_tag);
     let mut values = Vec::new();
-    let mut record_ids = vec![manifest_id.clone()];
+    let mut retired_fields = Vec::new();
     if let Some(row) = row.as_ref() {
         for (index, column) in row.columns().iter().enumerate() {
             check_e2ee_cancellation(is_cancelled)?;
@@ -413,10 +417,47 @@ async fn prepare_dirty_row_cancellable(
             if matches!(field_name, "id" | "workspace_id") {
                 continue;
             }
-            values.push((field_name.to_string(), sqlite_value(row, index)?));
-            record_ids.push(key.blind_field_id(&dirty.table_name, &dirty.row_id, field_name));
+            let value = sqlite_value(row, index)?;
+            if let Some(chunk_size) = chunk_size_for(&dirty.table_name, field_name)
+                && let Some(items) = parse_array(&value)
+            {
+                let chunks = split_chunks(&items, chunk_size);
+                for (chunk_index, chunk) in chunks.iter().enumerate() {
+                    values.push((
+                        chunk_field(field_name, chunk_index),
+                        Value::Array(chunk.clone()),
+                    ));
+                }
+                values.push((chunk_count_field(field_name), json!(chunks.len())));
+                // Chunks the array no longer reaches are sealed as null so
+                // every replica drops them.
+                let previous_count = states
+                    .values()
+                    .filter_map(|state| {
+                        match parse_chunk_field(&dirty.table_name, &state.field_name) {
+                            Some((column, ChunkPart::Index(index))) if column == field_name => {
+                                Some(index + 1)
+                            }
+                            _ => None,
+                        }
+                    })
+                    .max()
+                    .unwrap_or(0);
+                for chunk_index in chunks.len()..previous_count {
+                    values.push((chunk_field(field_name, chunk_index), Value::Null));
+                }
+                retired_fields.push(field_name.to_string());
+                continue;
+            }
+            values.push((field_name.to_string(), value));
         }
     }
+    let mut record_ids = vec![manifest_id.clone()];
+    record_ids.extend(
+        values.iter().map(|(field_name, _)| {
+            key.blind_field_id(&dirty.table_name, &dirty.row_id, field_name)
+        }),
+    );
     check_e2ee_cancellation(is_cancelled)?;
     let witness_versions = load_witness_versions(pool, &dirty.workspace_id, &record_ids).await?;
     check_e2ee_cancellation(is_cancelled)?;
@@ -484,7 +525,11 @@ async fn prepare_dirty_row_cancellable(
     }
 
     check_e2ee_cancellation(is_cancelled)?;
-    Ok(PreparedDirtyRow { dirty, fields })
+    Ok(PreparedDirtyRow {
+        dirty,
+        fields,
+        retired_fields,
+    })
 }
 
 async fn load_witness_versions(
@@ -701,6 +746,23 @@ pub(super) async fn persist_prepared_dirty_row_cancellable(
             check_e2ee_cancellation(is_cancelled)?;
             return Ok(0);
         }
+    }
+
+    for field_name in &prepared.retired_fields {
+        if let Err(error) = check_e2ee_cancellation(is_cancelled) {
+            transaction.rollback().await?;
+            return Err(error);
+        }
+        sqlx::query(
+            "DELETE FROM e2ee_local_state
+             WHERE workspace_id = ? AND table_name = ? AND row_id = ? AND field_name = ?",
+        )
+        .bind(&prepared.dirty.workspace_id)
+        .bind(&prepared.dirty.table_name)
+        .bind(&prepared.dirty.row_id)
+        .bind(field_name)
+        .execute(&mut *transaction)
+        .await?;
     }
 
     for field in &prepared.fields {

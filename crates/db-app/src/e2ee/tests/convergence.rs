@@ -275,9 +275,12 @@ async fn local_transcript_edit_rebases_above_witnessed_field_and_tombstone() {
         .await
         .unwrap();
 
-    let local_words_payload: String =
+    // Transcript words sync as chunks; the local edit publishes as chunk
+    // records while the row manifest rebases above the witnessed tombstone.
+    let chunk_id = key.blind_field_id("transcripts", "transcript-1", "words_json#0");
+    let local_chunk_payload: String =
         sqlx::query_scalar("SELECT payload FROM e2ee_records WHERE id = ?")
-            .bind(&words_id)
+            .bind(&chunk_id)
             .fetch_one(db.pool())
             .await
             .unwrap();
@@ -287,14 +290,16 @@ async fn local_transcript_edit_rebases_above_witnessed_field_and_tombstone() {
             .fetch_one(db.pool())
             .await
             .unwrap();
-    let rebased_words = key
-        .open_field("workspace-a", &words_id, &local_words_payload)
+    let rebased_chunk = key
+        .open_field("workspace-a", &chunk_id, &local_chunk_payload)
         .unwrap();
     let rebased_manifest = key
         .open_field("workspace-a", &manifest_id, &local_manifest_payload)
         .unwrap();
-    assert_eq!(rebased_words.value, json!(local_words));
-    assert!(rebased_words.revision > 7);
+    assert_eq!(
+        rebased_chunk.value,
+        serde_json::from_str::<Value>(local_words).unwrap()
+    );
     assert!(!rebased_manifest.deleted);
     assert!(rebased_manifest.revision > 8);
 
@@ -410,17 +415,26 @@ async fn chunked_recreation_materializes_late_transcript_and_summary_fields() {
         .await
         .unwrap();
 
-    let words_id = key.blind_field_id("transcripts", "transcript-1", "words_json");
+    // Transcript words sync as chunk records plus a chunk count.
+    let words_chunk_id = key.blind_field_id("transcripts", "transcript-1", "words_json#0");
+    let words_count_id = key.blind_field_id("transcripts", "transcript-1", "words_json#n");
     let body_id = key.blind_field_id("session_documents", "summary-1", "body");
     let transcript_manifest_id =
         key.blind_field_id("transcripts", "transcript-1", ROW_MANIFEST_FIELD);
     let summary_manifest_id =
         key.blind_field_id("session_documents", "summary-1", ROW_MANIFEST_FIELD);
-    let words_payload: String = sqlx::query_scalar("SELECT payload FROM e2ee_records WHERE id = ?")
-        .bind(&words_id)
-        .fetch_one(source.pool())
-        .await
-        .unwrap();
+    let words_chunk_payload: String =
+        sqlx::query_scalar("SELECT payload FROM e2ee_records WHERE id = ?")
+            .bind(&words_chunk_id)
+            .fetch_one(source.pool())
+            .await
+            .unwrap();
+    let words_count_payload: String =
+        sqlx::query_scalar("SELECT payload FROM e2ee_records WHERE id = ?")
+            .bind(&words_count_id)
+            .fetch_one(source.pool())
+            .await
+            .unwrap();
     let body_payload: String = sqlx::query_scalar("SELECT payload FROM e2ee_records WHERE id = ?")
         .bind(&body_id)
         .fetch_one(source.pool())
@@ -528,7 +542,11 @@ async fn chunked_recreation_materializes_late_transcript_and_summary_fields() {
     );
     assert_eq!(defaults, ("[]".to_string(), String::new()));
 
-    for (id, payload) in [(&words_id, &words_payload), (&body_id, &body_payload)] {
+    for (id, payload) in [
+        (&words_chunk_id, &words_chunk_payload),
+        (&words_count_id, &words_count_payload),
+        (&body_id, &body_payload),
+    ] {
         sqlx::query(
             "INSERT INTO e2ee_records (id, workspace_id, payload)
                  VALUES (?, 'workspace-a', ?)",

@@ -8,6 +8,7 @@ use serde_json::{Value, json};
 use sqlx::sqlite::SqliteRow;
 use sqlx::{QueryBuilder, Row, Sqlite, SqlitePool, Transaction, TypeInfo, ValueRef};
 
+use super::chunks::{chunk_size_for, chunk_value, parse_array, parse_chunk_field, split_chunks};
 use super::{
     DecryptedRecord, E2EE_DOMAIN_TABLES, E2eeReplicaError, E2eeReplicaResult, LocalState,
     ROW_MANIFEST_FIELD, check_e2ee_cancellation, yield_once,
@@ -701,7 +702,28 @@ pub(super) async fn delete_row(
     Ok(())
 }
 
+/// Reads a field as it would be sealed: a real column's value, or for a
+/// virtual chunk field the chunk (or chunk count) cut from its column.
 pub(super) async fn read_field(
+    transaction: &mut Transaction<'_, Sqlite>,
+    table: &str,
+    workspace_id: &str,
+    row_id: &str,
+    field: &str,
+) -> E2eeReplicaResult<Option<Value>> {
+    if let Some((column, part)) = parse_chunk_field(table, field) {
+        let Some(value) = read_column(transaction, table, workspace_id, row_id, column).await?
+        else {
+            return Ok(None);
+        };
+        let chunk_size = chunk_size_for(table, column).unwrap_or(1);
+        let items = parse_array(&value).unwrap_or_default();
+        return Ok(Some(chunk_value(&split_chunks(&items, chunk_size), part)));
+    }
+    read_column(transaction, table, workspace_id, row_id, field).await
+}
+
+pub(super) async fn read_column(
     transaction: &mut Transaction<'_, Sqlite>,
     table: &str,
     workspace_id: &str,

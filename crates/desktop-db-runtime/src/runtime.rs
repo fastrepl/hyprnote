@@ -5,9 +5,8 @@ use anlg_db_core::Db;
 use anlg_db_core::{DbOpenError, DbOpenOptions, DbStorage};
 use anlg_db_execute::{DbExecutor, ProxyQueryMethod, ProxyQueryResult};
 use anlg_db_reactive::{LiveQueryRuntime, QueryEventSink, SubscriptionRegistration};
-use tauri::ipc::Channel;
 
-use crate::{QueryEvent, Result, TransactionStatement};
+use crate::{Result, TransactionStatement};
 
 mod e2ee_sync;
 mod open;
@@ -17,7 +16,7 @@ mod sync_result;
 mod witness_watch;
 
 use e2ee_sync::E2eeSyncHook;
-pub(crate) use e2ee_sync::{CloudsyncTokenConfiguration, E2eeWorkspaceKeyConfiguration};
+pub use e2ee_sync::{CloudsyncTokenConfiguration, E2eeWorkspaceKeyConfiguration};
 #[cfg(test)]
 use open::{app_db_open_options, database_uses_cloudsync_schema, open_app_db_without_cloudsync};
 pub use open::{open_app_db, open_app_db_unmigrated};
@@ -52,29 +51,6 @@ const CLOUDSYNC_FOCUS_NUDGE_THROTTLE: std::time::Duration = std::time::Duration:
 
 fn focus_nudge_due(last: Option<std::time::Instant>, now: std::time::Instant) -> bool {
     last.is_none_or(|last| now.duration_since(last) >= CLOUDSYNC_FOCUS_NUDGE_THROTTLE)
-}
-
-#[derive(Clone)]
-pub struct QueryEventChannel(Channel<QueryEvent>);
-
-impl QueryEventChannel {
-    pub fn new(channel: Channel<QueryEvent>) -> Self {
-        Self(channel)
-    }
-}
-
-impl QueryEventSink for QueryEventChannel {
-    fn send_result(&self, rows: Vec<serde_json::Value>) -> std::result::Result<(), String> {
-        self.0
-            .send(QueryEvent::Result(rows))
-            .map_err(|error| error.to_string())
-    }
-
-    fn send_error(&self, error: String) -> std::result::Result<(), String> {
-        self.0
-            .send(QueryEvent::Error(error))
-            .map_err(|error| error.to_string())
-    }
 }
 
 struct ExplicitRollbackTransaction {
@@ -132,14 +108,14 @@ impl Drop for ExplicitRollbackTransaction {
     }
 }
 
-pub struct PluginDbRuntime {
+pub struct DesktopDbRuntime<S: QueryEventSink> {
     db: std::sync::Arc<Db>,
     schema_ready: tokio::sync::OnceCell<()>,
     startup_tx: tokio::sync::watch::Sender<Option<std::result::Result<(), String>>>,
     startup_status: std::sync::RwLock<crate::StartupStatus>,
     synced_write_barrier: tokio::sync::RwLock<()>,
     executor: DbExecutor,
-    live_query_runtime: LiveQueryRuntime<QueryEventChannel>,
+    live_query_runtime: LiveQueryRuntime<S>,
     e2ee_sync_hook: std::sync::Arc<E2eeSyncHook>,
     scheduled_cloudsync_full_resync: std::sync::Arc<std::sync::Mutex<CloudsyncFullResyncSchedule>>,
     cloudsync_full_resync_task: tokio::sync::Mutex<Option<CloudsyncFullResyncTask>>,
@@ -151,9 +127,7 @@ pub struct PluginDbRuntime {
     cloudsync_configuration_error: std::sync::Mutex<Option<String>>,
     _replica_sync: replica_sync::ReplicaSyncTask,
     _witness_watch: witness_watch::WitnessWatchTask,
-    #[cfg(test)]
     pause_transaction_after_begin: std::sync::atomic::AtomicBool,
-    #[cfg(test)]
     transaction_started: tokio::sync::Notify,
 }
 
@@ -190,24 +164,31 @@ impl CloudsyncOperationCancellation<'_> {
     }
 }
 
-fn ensure_db_sync_runtime() {
-    if tokio::runtime::Handle::try_current().is_ok() {
-        return;
+#[cfg(test)]
+#[derive(Clone, Default)]
+struct TestQueryEventSink;
+
+#[cfg(test)]
+impl QueryEventSink for TestQueryEventSink {
+    fn send_result(&self, _rows: Vec<serde_json::Value>) -> std::result::Result<(), String> {
+        Ok(())
     }
-    let (tx, rx) = std::sync::mpsc::sync_channel(1);
-    tauri::async_runtime::spawn(async move {
-        let _ = tx.send(tokio::runtime::Handle::current());
-    });
-    if let Ok(handle) = rx.recv_timeout(std::time::Duration::from_secs(2)) {
-        anlg_db_sync::set_runtime_handle(handle);
+
+    fn send_error(&self, _error: String) -> std::result::Result<(), String> {
+        Ok(())
     }
 }
 
-impl PluginDbRuntime {
-    pub fn new(db: std::sync::Arc<Db>) -> Self {
-        ensure_db_sync_runtime();
-        let handle = anlg_db_sync::runtime_handle();
-        let _enter = handle.as_ref().map(|h| h.enter());
+#[cfg(test)]
+impl DesktopDbRuntime<TestQueryEventSink> {
+    fn for_test(db: std::sync::Arc<Db>) -> Self {
+        Self::new(db, tokio::runtime::Handle::current())
+    }
+}
+
+impl<S: QueryEventSink> DesktopDbRuntime<S> {
+    pub fn new(db: std::sync::Arc<Db>, handle: tokio::runtime::Handle) -> Self {
+        let _enter = handle.enter();
         let e2ee_sync_hook = std::sync::Arc::new(E2eeSyncHook::default());
         db.set_cloudsync_sync_hook(e2ee_sync_hook.clone());
         let witness_watch = witness_watch::spawn_witness_watch(
@@ -240,9 +221,7 @@ impl PluginDbRuntime {
             cloudsync_focus_nudge_at: Default::default(),
             cloudsync_configuration_error: Default::default(),
             _replica_sync: replica_sync,
-            #[cfg(test)]
             pause_transaction_after_begin: Default::default(),
-            #[cfg(test)]
             transaction_started: Default::default(),
         }
     }
@@ -295,14 +274,12 @@ impl PluginDbRuntime {
         self.request_active_sync();
     }
 
-    #[cfg(test)]
-    pub(crate) fn pause_next_transaction_after_begin(&self) {
+    pub fn pause_next_transaction_after_begin(&self) {
         self.pause_transaction_after_begin
             .store(true, std::sync::atomic::Ordering::Release);
     }
 
-    #[cfg(test)]
-    pub(crate) async fn wait_for_transaction_after_begin(&self) {
+    pub async fn wait_for_transaction_after_begin(&self) {
         self.transaction_started.notified().await;
     }
 
@@ -339,7 +316,7 @@ impl PluginDbRuntime {
             .load(std::sync::atomic::Ordering::Acquire)
     }
 
-    pub(crate) fn begin_cloudsync_auth_configuration(&self) -> u64 {
+    pub fn begin_cloudsync_auth_configuration(&self) -> u64 {
         let generation = self
             .cloudsync_auth_generation
             .fetch_add(1, std::sync::atomic::Ordering::AcqRel)
@@ -462,7 +439,7 @@ impl PluginDbRuntime {
         self.request_active_sync();
     }
 
-    pub(crate) async fn ensure_app_schema(&self) -> Result<()> {
+    pub async fn ensure_app_schema(&self) -> Result<()> {
         self.schema_ready
             .get_or_try_init(|| async {
                 anlg_db_app::prepare_schema_with_progress(self.db.as_ref(), |progress| {
@@ -488,7 +465,7 @@ impl PluginDbRuntime {
         Ok(())
     }
 
-    pub(crate) fn set_startup_status_if_running(&self, status: crate::StartupStatus) {
+    pub fn set_startup_status_if_running(&self, status: crate::StartupStatus) {
         let mut current = self.startup_status.write().unwrap();
         if matches!(
             current.phase,
@@ -507,7 +484,7 @@ impl PluginDbRuntime {
         self.startup_status.read().unwrap().clone()
     }
 
-    pub(crate) fn finish_startup(&self, result: std::result::Result<(), String>) {
+    pub fn finish_startup(&self, result: std::result::Result<(), String>) {
         let phase = if result.is_ok() {
             crate::StartupPhase::Ready
         } else {
@@ -533,7 +510,7 @@ impl PluginDbRuntime {
 
     async fn ensure_legacy_migration_ready(&self) -> Result<()> {
         self.ensure_app_schema().await?;
-        if crate::import::legacy_migration_ready(self.db.pool()).await? {
+        if crate::legacy::legacy_migration_ready(self.db.pool()).await? {
             return Ok(());
         }
 
@@ -562,7 +539,6 @@ impl PluginDbRuntime {
         self.ensure_app_schema().await?;
         let mut transaction =
             ExplicitRollbackTransaction::new(self.db.pool().begin_with("BEGIN IMMEDIATE").await?);
-        #[cfg(test)]
         if self
             .pause_transaction_after_begin
             .swap(false, std::sync::atomic::Ordering::AcqRel)
@@ -628,19 +604,14 @@ impl PluginDbRuntime {
 
     pub async fn cleanup_legacy_files(&self) -> Result<crate::LegacyCleanupResult> {
         let _write_guard = self.synced_write_barrier.read().await;
-        crate::import::cleanup_legacy_files(self.db.pool()).await
-    }
-
-    pub async fn rerun_legacy_import(&self, dry_run: bool) -> Result<String> {
-        let _write_guard = self.synced_write_barrier.read().await;
-        crate::import::rerun_legacy_import(self.db.pool(), dry_run).await
+        crate::legacy::cleanup_legacy_files(self.db.pool()).await
     }
 
     pub async fn subscribe(
         &self,
         sql: String,
         params: Vec<serde_json::Value>,
-        sink: QueryEventChannel,
+        sink: S,
     ) -> Result<SubscriptionRegistration> {
         self.ensure_app_schema().await?;
         Ok(self.live_query_runtime.subscribe(sql, params, sink).await?)
@@ -658,7 +629,7 @@ impl PluginDbRuntime {
         Ok(())
     }
 
-    pub(crate) async fn configure_replica_transport_at_generation(
+    pub async fn configure_replica_transport_at_generation(
         &self,
         account_user_id: String,
         e2ee_witness: crate::CloudsyncE2eeWitness,
@@ -809,7 +780,7 @@ impl PluginDbRuntime {
         .await
     }
 
-    pub(crate) async fn configure_cloudsync_token_with_projection_at_generation(
+    pub async fn configure_cloudsync_token_with_projection_at_generation(
         &self,
         configuration: CloudsyncTokenConfiguration,
         workspace_keys: Option<E2eeWorkspaceKeyConfiguration>,
@@ -1449,7 +1420,7 @@ impl PluginDbRuntime {
         Ok(false)
     }
 
-    pub(crate) async fn cloudsync_write_filters_match(&self) -> Result<bool> {
+    pub async fn cloudsync_write_filters_match(&self) -> Result<bool> {
         let settings_exist: bool = sqlx::query_scalar(
             "SELECT EXISTS(
                SELECT 1 FROM sqlite_master

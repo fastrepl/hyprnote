@@ -2,8 +2,6 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { completeDestructiveButtonHold } from "~/test-utils/destructive-button";
-
 const mocks = vi.hoisted(() => ({
   anchorNode: null as HTMLDivElement | null,
   openNew: vi.fn(),
@@ -578,9 +576,7 @@ describe("TimelineView", () => {
       ).toBeTruthy();
       expect(screen.getByRole("dialog").className).toContain("max-w-[320px]");
 
-      completeDestructiveButtonHold(
-        screen.getByRole("button", { name: "Delete" }),
-      );
+      fireEvent.click(screen.getByRole("button", { name: "Delete" }));
 
       expect(mocks.deleteSession).toHaveBeenCalledTimes(2);
       expect(mocks.deleteSession).toHaveBeenCalledWith("selected-note", {

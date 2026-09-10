@@ -10,8 +10,6 @@ import {
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { completeDestructiveButtonHold } from "~/test-utils/destructive-button";
-
 const mocks = vi.hoisted(() => ({
   billingCheckout: {
     buildWebAppUrl: vi.fn(() => Promise.resolve("https://anarlog.so/team")),
@@ -882,7 +880,7 @@ describe("SettingsTeam", () => {
 
     renderTeam();
 
-    completeDestructiveButtonHold(
+    fireEvent.click(
       await screen.findByRole("button", { name: "Delete workspace" }),
     );
 
@@ -894,7 +892,7 @@ describe("SettingsTeam", () => {
     ).toBeTruthy();
     expect(mocks.client.deleteWorkspace).not.toHaveBeenCalled();
 
-    completeDestructiveButtonHold(
+    fireEvent.click(
       within(dialog).getByRole("button", { name: "Delete workspace" }),
     );
 

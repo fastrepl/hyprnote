@@ -6,6 +6,7 @@ edition = "2024"
 [features]
 default = []
 specta = ["dep:specta"]
+test-hooks = []
 
 [dependencies]
 anlg-db-app = { workspace = true }

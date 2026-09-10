@@ -39,6 +39,7 @@ uuid = { workspace = true, features = ["v4"] }
 
 [dev-dependencies]
 anlg-db-core = { workspace = true, features = ["test-utils"] }
+anlg-desktop-db-runtime = { workspace = true, features = ["test-hooks"] }
 anyhow = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }

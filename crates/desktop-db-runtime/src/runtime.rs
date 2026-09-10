@@ -127,7 +127,9 @@ pub struct DesktopDbRuntime<S: QueryEventSink> {
     cloudsync_configuration_error: std::sync::Mutex<Option<String>>,
     _replica_sync: replica_sync::ReplicaSyncTask,
     _witness_watch: witness_watch::WitnessWatchTask,
+    #[cfg(any(test, feature = "test-hooks"))]
     pause_transaction_after_begin: std::sync::atomic::AtomicBool,
+    #[cfg(any(test, feature = "test-hooks"))]
     transaction_started: tokio::sync::Notify,
 }
 
@@ -188,6 +190,7 @@ impl DesktopDbRuntime<TestQueryEventSink> {
 
 impl<S: QueryEventSink> DesktopDbRuntime<S> {
     pub fn new(db: std::sync::Arc<Db>, handle: tokio::runtime::Handle) -> Self {
+        anlg_db_sync::set_runtime_handle(handle.clone());
         let _enter = handle.enter();
         let e2ee_sync_hook = std::sync::Arc::new(E2eeSyncHook::default());
         db.set_cloudsync_sync_hook(e2ee_sync_hook.clone());
@@ -221,7 +224,9 @@ impl<S: QueryEventSink> DesktopDbRuntime<S> {
             cloudsync_focus_nudge_at: Default::default(),
             cloudsync_configuration_error: Default::default(),
             _replica_sync: replica_sync,
+            #[cfg(any(test, feature = "test-hooks"))]
             pause_transaction_after_begin: Default::default(),
+            #[cfg(any(test, feature = "test-hooks"))]
             transaction_started: Default::default(),
         }
     }
@@ -274,11 +279,13 @@ impl<S: QueryEventSink> DesktopDbRuntime<S> {
         self.request_active_sync();
     }
 
+    #[cfg(any(test, feature = "test-hooks"))]
     pub fn pause_next_transaction_after_begin(&self) {
         self.pause_transaction_after_begin
             .store(true, std::sync::atomic::Ordering::Release);
     }
 
+    #[cfg(any(test, feature = "test-hooks"))]
     pub async fn wait_for_transaction_after_begin(&self) {
         self.transaction_started.notified().await;
     }
@@ -539,6 +546,7 @@ impl<S: QueryEventSink> DesktopDbRuntime<S> {
         self.ensure_app_schema().await?;
         let mut transaction =
             ExplicitRollbackTransaction::new(self.db.pool().begin_with("BEGIN IMMEDIATE").await?);
+        #[cfg(any(test, feature = "test-hooks"))]
         if self
             .pause_transaction_after_begin
             .swap(false, std::sync::atomic::Ordering::AcqRel)

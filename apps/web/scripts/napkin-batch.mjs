@@ -1,6 +1,7 @@
 #!/usr/bin/env node
+import { createClient } from "@supabase/supabase-js";
 import { spawn } from "node:child_process";
-import { access, readdir, readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,8 +9,8 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const webDir = resolve(scriptDir, "..");
 const ARTICLES_DIR = resolve(webDir, "content/articles");
 const MANIFEST_PATH = resolve(ARTICLES_DIR, "figures.json");
-const SINGLE_SCRIPT = resolve(scriptDir, "napkin-to-public.mjs");
-const PUBLIC_BLOG_DIR = resolve(webDir, "public/images/blog");
+const SINGLE_SCRIPT = resolve(scriptDir, "napkin-to-supabase.mjs");
+const BLOG_BUCKET = "blog";
 
 function parseArgs(argv) {
   const args = {};
@@ -97,12 +98,16 @@ function storagePath(slug, filename) {
 }
 
 async function figureExists(slug, filename) {
-  try {
-    await access(resolve(PUBLIC_BLOG_DIR, storagePath(slug, filename)));
-    return true;
-  } catch {
-    return false;
-  }
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+  const { data, error } = await supabase.storage
+    .from(BLOG_BUCKET)
+    .list(`articles/${slug}`, { search: filename });
+  if (error) throw error;
+  return data.some((entry) => entry.name === filename);
 }
 
 function runSingle(slug, figure, { upsert, dryRun }) {
@@ -145,7 +150,7 @@ function runSingle(slug, figure, { upsert, dryRun }) {
     child.on("error", reject);
     child.on("close", (code) => {
       if (code === 0) resolvePromise();
-      else reject(new Error(`napkin-to-public exited with code ${code}`));
+      else reject(new Error(`napkin-to-supabase exited with code ${code}`));
     });
   });
 }

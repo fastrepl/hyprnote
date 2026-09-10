@@ -147,6 +147,10 @@ export async function getOrCreateSessionForEventId(
 
   const existingSessionId = await findSessionForEvent(event);
   if (existingSessionId) {
+    await ensureEventParticipants(
+      existingSessionId,
+      parseEventParticipants(event.participants_json),
+    );
     return existingSessionId;
   }
 
@@ -203,71 +207,9 @@ export async function getOrCreateSessionForEventId(
     createEmptyNoteStatement(sessionId, now),
   ];
 
-  const seenEmails = new Set<string>();
-  for (const participant of participants) {
-    const email = participant.email?.trim();
-    if (!email) continue;
-    const emailKey = email.toLowerCase();
-    if (seenEmails.has(emailKey)) continue;
-    seenEmails.add(emailKey);
-
-    const humanId = humansByEmail.get(emailKey) ?? id();
-    if (!humansByEmail.has(emailKey)) {
-      statements.push({
-        sql: `
-          INSERT INTO humans (
-            id, workspace_id, owner_user_id, name, email, created_at,
-            updated_at, deleted_at
-          )
-          SELECT ?, session.workspace_id, session.owner_user_id, ?, ?, ?, ?, NULL
-          FROM sessions AS session
-          WHERE session.id = ? AND session.deleted_at IS NULL
-            AND NOT EXISTS (
-              SELECT 1
-              FROM humans
-              WHERE lower(email) = lower(?) AND deleted_at IS NULL
-            )
-        `,
-        params: [
-          humanId,
-          participant.name || email,
-          email,
-          now,
-          now,
-          sessionId,
-          email,
-        ],
-      });
-    }
-
-    statements.push({
-      sql: `
-        INSERT INTO session_participants (
-          id, workspace_id, owner_user_id, session_id, human_id, display_name,
-          email, source, created_at, updated_at, deleted_at
-        )
-        SELECT ?, session.workspace_id, session.owner_user_id, session.id,
-          ?, ?, ?, 'auto', ?, ?, NULL
-        FROM sessions AS session
-        WHERE session.id = ? AND session.deleted_at IS NULL
-          AND NOT EXISTS (
-            SELECT 1
-            FROM session_participants
-            WHERE session_id = session.id AND human_id = ? AND deleted_at IS NULL
-          )
-      `,
-      params: [
-        id(),
-        humanId,
-        participant.name || email,
-        email,
-        now,
-        now,
-        sessionId,
-        humanId,
-      ],
-    });
-  }
+  statements.push(
+    ...eventParticipantStatements(sessionId, participants, humansByEmail, now),
+  );
 
   const rowsAffected = await executeTransaction(statements);
 
@@ -319,6 +261,134 @@ async function findSessionForEvent(
     ],
   );
   return rows[0]?.id ?? null;
+}
+
+async function ensureEventParticipants(
+  sessionId: string,
+  participants: EventParticipant[],
+): Promise<void> {
+  if (participants.length === 0) {
+    return;
+  }
+
+  const humansByEmail = await findHumansByEmail(participants);
+  const statements = eventParticipantStatements(
+    sessionId,
+    participants,
+    humansByEmail,
+    new Date().toISOString(),
+  );
+  if (statements.length === 0) {
+    return;
+  }
+
+  await executeTransaction(statements);
+}
+
+function eventParticipantStatements(
+  sessionId: string,
+  participants: EventParticipant[],
+  humansByEmail: Map<string, string>,
+  now: string,
+): Array<{ sql: string; params: string[] }> {
+  const statements: Array<{ sql: string; params: string[] }> = [];
+  const seenEmails = new Set<string>();
+
+  for (const participant of participants) {
+    if (participant.is_current_user === true) continue;
+    const email = participant.email?.trim();
+    if (!email) continue;
+    const emailKey = email.toLowerCase();
+    if (seenEmails.has(emailKey)) continue;
+    seenEmails.add(emailKey);
+
+    const humanId = humansByEmail.get(emailKey) ?? id();
+    if (!humansByEmail.has(emailKey)) {
+      statements.push({
+        sql: `
+          INSERT INTO humans (
+            id, workspace_id, owner_user_id, name, email, created_at,
+            updated_at, deleted_at
+          )
+          SELECT ?, session.workspace_id, session.owner_user_id, ?, ?, ?, ?, NULL
+          FROM sessions AS session
+          WHERE session.id = ? AND session.deleted_at IS NULL
+            AND ? <> session.owner_user_id
+            AND NOT EXISTS (
+              SELECT 1
+              FROM humans
+              WHERE lower(email) = lower(?) AND deleted_at IS NULL
+            )
+        `,
+        params: [
+          humanId,
+          participant.name || email,
+          email,
+          now,
+          now,
+          sessionId,
+          humanId,
+          email,
+        ],
+      });
+    }
+
+    statements.push({
+      sql: `
+        INSERT INTO session_participants (
+          id, workspace_id, owner_user_id, session_id, human_id, display_name,
+          email, source, created_at, updated_at, deleted_at
+        )
+        SELECT ?, session.workspace_id, session.owner_user_id, session.id,
+          ?, ?, ?, 'auto', ?, ?, NULL
+        FROM sessions AS session
+        WHERE session.id = ? AND session.deleted_at IS NULL
+          AND ? <> session.owner_user_id
+          AND NOT EXISTS (
+            SELECT 1
+            FROM humans AS owner
+            WHERE owner.id = session.owner_user_id
+              AND owner.deleted_at IS NULL
+              AND NULLIF(lower(owner.email), '') IS NOT NULL
+              AND lower(owner.email) = lower(?)
+          )
+          AND NOT EXISTS (
+            SELECT 1
+            FROM session_participants AS existing
+            WHERE existing.session_id = session.id
+              AND existing.deleted_at IS NULL
+              AND (
+                existing.human_id = ?
+                OR (
+                  existing.human_id = session.owner_user_id
+                  AND NULLIF(lower(existing.email), '') IS NOT NULL
+                  AND lower(existing.email) = lower(?)
+                )
+                OR (
+                  NULLIF(lower(existing.email), '') IS NOT NULL
+                  AND lower(existing.email) = lower(?)
+                )
+              )
+          )
+      `,
+      params: [
+        id(),
+        humanId,
+        participant.name || email,
+        email,
+        now,
+        now,
+        sessionId,
+        humanId,
+        email,
+        humanId,
+        email,
+        email,
+      ],
+    });
+  }
+
+  return statements;
 }
 
 async function findHumansByEmail(

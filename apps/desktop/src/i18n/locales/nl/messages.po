@@ -55,6 +55,16 @@ msgstr ""
 msgid "{0} pending edits"
 msgstr ""
 
+#. placeholder {0}: parked.tooLarge
+#: src/settings/sync/health.tsx
+msgid "{0} records are too large to apply"
+msgstr ""
+
+#. placeholder {0}: parked.pendingUpdate
+#: src/settings/sync/health.tsx
+msgid "{0} records are waiting for an app update"
+msgstr ""
+
 #. placeholder {0}: Math.round((percentage ?? 0) * 100)
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "{0}% complete"
@@ -62,6 +72,10 @@ msgstr ""
 
 #: src/sidebar/timeline/utils/index.ts
 msgid "{absDays} days ago"
+msgstr ""
+
+#: src/settings/sync/health.tsx
+msgid "{conflictedNotes} notes have a version from another device"
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
@@ -129,8 +143,20 @@ msgstr ""
 msgid "1 month"
 msgstr ""
 
+#: src/settings/sync/health.tsx
+msgid "1 note has a version from another device"
+msgstr ""
+
 #: src/session/components/pending-proposals-banner.tsx
 msgid "1 pending edit"
+msgstr ""
+
+#: src/settings/sync/health.tsx
+msgid "1 record is too large to apply"
+msgstr ""
+
+#: src/settings/sync/health.tsx
+msgid "1 record is waiting for an app update"
 msgstr ""
 
 #: src/settings/general/audio-settings.tsx
@@ -1609,6 +1635,11 @@ msgstr ""
 msgid "Could not send the meeting notes to Slack."
 msgstr ""
 
+#. placeholder {0}: error.message
+#: src/auth/start-fresh-dialog.tsx
+msgid "Could not start fresh: {0}"
+msgstr ""
+
 #: src/session-sharing/index.tsx
 msgid "Could not start sign-in."
 msgstr ""
@@ -2033,6 +2064,10 @@ msgstr ""
 msgid "Each example must be 12,000 characters or fewer."
 msgstr ""
 
+#: src/session/components/version-history-dialog.tsx
+msgid "Earlier versions of this note, newest first."
+msgstr ""
+
 #: src/main/windows-title-bar.tsx
 #: src/settings/dictionary/index.tsx
 #: src/sidebar/automations.tsx
@@ -2068,6 +2103,10 @@ msgstr ""
 
 #: src/templates/template-icon-picker.tsx
 msgid "Emojis"
+msgstr ""
+
+#: src/session/components/version-history-dialog.tsx
+msgid "Empty note"
 msgstr ""
 
 #: src/settings/developers/webhooks.tsx
@@ -2511,6 +2550,10 @@ msgstr ""
 msgid "High"
 msgstr ""
 
+#: src/session/components/note-conflict-banner.tsx
+msgid "History"
+msgstr ""
+
 #. placeholder {0}: history.position
 #. placeholder {1}: history.total
 #: src/chat/components/input/index.tsx
@@ -2712,6 +2755,10 @@ msgstr ""
 
 #: src/settings/sync/index.tsx
 msgid "Keep synced notes readable only on your devices."
+msgstr ""
+
+#: src/session/components/note-conflict-banner.tsx
+msgid "Keep this version"
 msgstr ""
 
 #: src/settings/sync/index.tsx
@@ -3270,6 +3317,10 @@ msgstr ""
 msgid "No devices registered yet."
 msgstr ""
 
+#: src/session/components/version-history-dialog.tsx
+msgid "No earlier versions yet."
+msgstr ""
+
 #: src/templates/template-icon-picker.tsx
 msgid "No emoji found"
 msgstr ""
@@ -3646,6 +3697,10 @@ msgstr ""
 
 #: src/contacts/organization-details.tsx
 msgid "Organization name"
+msgstr ""
+
+#: src/session/components/version-history-dialog.tsx
+msgid "Other device's version"
 msgstr ""
 
 #: src/settings/general/permissions.tsx
@@ -4159,7 +4214,12 @@ msgstr ""
 msgid "Restart App"
 msgstr ""
 
+#: src/auth/start-fresh-dialog.tsx
+msgid "Restarting…"
+msgstr ""
+
 #: src/main/windows-title-bar.tsx
+#: src/session/components/version-history-dialog.tsx
 msgid "Restore"
 msgstr ""
 
@@ -4873,6 +4933,15 @@ msgstr ""
 msgid "Start Anarlog at login"
 msgstr "Start Anarlog bij inloggen"
 
+#: src/auth/context.tsx
+#: src/auth/start-fresh-dialog.tsx
+msgid "Start fresh"
+msgstr ""
+
+#: src/auth/start-fresh-dialog.tsx
+msgid "Start fresh on this device?"
+msgstr ""
+
 #: src/settings/general/meeting-settings.tsx
 msgid "Start listening when a scheduled meeting begins."
 msgstr ""
@@ -5076,6 +5145,10 @@ msgstr ""
 msgid "Sync failed"
 msgstr ""
 
+#: src/settings/sync/health.tsx
+msgid "Sync health"
+msgstr ""
+
 #: src/settings/sync/index.tsx
 msgid "Sync log"
 msgstr ""
@@ -5101,6 +5174,7 @@ msgstr ""
 msgid "Sync your changes before signing out."
 msgstr ""
 
+#: src/session/components/version-history-dialog.tsx
 #: src/settings/sync/index.tsx
 msgid "Synced"
 msgstr ""
@@ -5213,7 +5287,11 @@ msgid "The note may have been unshared or moved out of a workspace you can acces
 msgstr ""
 
 #: src/auth/context.tsx
-msgid "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here."
+msgid "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here, or start fresh on this device."
+msgstr ""
+
+#: src/auth/start-fresh-dialog.tsx
+msgid "The notes on this device belong to another Anarlog account. Starting fresh sets them aside as a backup file and restarts Anarlog with an empty workspace for the account you signed in with. Nothing from the old notes is uploaded."
 msgstr ""
 
 #: src/shared/control.tsx
@@ -5248,6 +5326,7 @@ msgstr ""
 msgid "This adds a copy you can edit without changing the shared item."
 msgstr ""
 
+#: src/session/components/version-history-dialog.tsx
 #: src/settings/sync/index.tsx
 msgid "This device"
 msgstr ""
@@ -5274,6 +5353,10 @@ msgstr ""
 
 #: src/settings/sync/index.tsx
 msgid "This name is synced to your other devices signed in to this account."
+msgstr ""
+
+#: src/session/components/note-conflict-banner.tsx
+msgid "This note was edited on another device at the same time. The later edit was kept."
 msgstr ""
 
 #: src/chat/components/session-provider.tsx
@@ -5630,6 +5713,10 @@ msgstr ""
 msgid "Use the meeting's action items and summary tasks."
 msgstr ""
 
+#: src/session/components/note-conflict-banner.tsx
+msgid "Use the other version"
+msgstr ""
+
 #: src/settings/team/index.tsx
 msgid "Use this domain for links shared from this workspace."
 msgstr ""
@@ -5656,6 +5743,11 @@ msgstr ""
 
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "Verifying the SQLite migration status"
+msgstr ""
+
+#: src/session/components/outer-header/overflow/index.tsx
+#: src/session/components/version-history-dialog.tsx
+msgid "Version history"
 msgstr ""
 
 #: src/main/windows-title-bar.tsx

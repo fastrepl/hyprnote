@@ -69,14 +69,7 @@ pub async fn bind_cloudsync_account(
     let account_user_id = validated_account_user_id(account_user_id)?;
     let mut transaction = pool.begin_with("BEGIN IMMEDIATE").await?;
     let binding = load_or_create_binding(&mut transaction).await?;
-
-    if binding
-        .account_user_id
-        .as_deref()
-        .is_some_and(|id| id != account_user_id)
-    {
-        return Err(CloudsyncWorkspaceError::AccountMismatch);
-    }
+    let binding = release_vestigial_binding(&mut transaction, binding, account_user_id).await?;
 
     if binding.account_user_id.is_none() {
         save_binding(
@@ -134,13 +127,7 @@ async fn claim_cloudsync_workspace_in_transaction(
     check_workspace_claim_cancellation(is_cancelled)?;
     let binding = load_or_create_binding(transaction).await?;
     check_workspace_claim_cancellation(is_cancelled)?;
-    if binding
-        .account_user_id
-        .as_deref()
-        .is_some_and(|id| id != account_user_id)
-    {
-        return Err(CloudsyncWorkspaceError::AccountMismatch);
-    }
+    let binding = release_vestigial_binding(transaction, binding, account_user_id).await?;
     if binding.workspace_id == account_user_id
         && binding.account_user_id.as_deref() == Some(account_user_id)
     {
@@ -201,6 +188,62 @@ async fn claim_cloudsync_workspace_in_transaction(
     }
     check_workspace_claim_cancellation(is_cancelled)?;
     Ok(())
+}
+
+/// Signing in binds the device before anything syncs, so a binding whose account
+/// never left rows behind is vestigial: releasing it lets the next account take
+/// over without touching anyone's data. Once the bound account owns local or
+/// replica rows, the device belongs to it and other accounts are rejected.
+async fn release_vestigial_binding(
+    transaction: &mut Transaction<'_, Sqlite>,
+    binding: CloudsyncWorkspaceBinding,
+    account_user_id: &str,
+) -> Result<CloudsyncWorkspaceBinding, CloudsyncWorkspaceError> {
+    let Some(bound_account_user_id) = binding.account_user_id.as_deref() else {
+        return Ok(binding);
+    };
+    if bound_account_user_id == account_user_id {
+        return Ok(binding);
+    }
+    if workspace_owns_local_rows(transaction, bound_account_user_id).await? {
+        return Err(CloudsyncWorkspaceError::AccountMismatch);
+    }
+
+    // A claimed binding uses the account id as the local workspace id. Starting
+    // from a fresh id keeps the claim from treating the previous account as a
+    // local identity to merge into the next one.
+    let workspace_id = if binding.workspace_id == bound_account_user_id {
+        uuid::Uuid::new_v4().to_string()
+    } else {
+        binding.workspace_id
+    };
+    Ok(CloudsyncWorkspaceBinding {
+        workspace_id,
+        account_user_id: None,
+    })
+}
+
+async fn workspace_owns_local_rows(
+    transaction: &mut Transaction<'_, Sqlite>,
+    workspace_id: &str,
+) -> Result<bool, CloudsyncWorkspaceError> {
+    for table_name in crate::E2EE_DOMAIN_TABLES
+        .iter()
+        .chain(std::iter::once(&"e2ee_records"))
+    {
+        let mut query = QueryBuilder::<Sqlite>::new(format!(
+            "SELECT EXISTS(SELECT 1 FROM {table_name} WHERE workspace_id = "
+        ));
+        query.push_bind(workspace_id).push(")");
+        let owns_rows: bool = query
+            .build_query_scalar()
+            .fetch_one(&mut **transaction)
+            .await?;
+        if owns_rows {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 fn check_workspace_claim_cancellation(

@@ -54,6 +54,7 @@ import {
   createLiveTranscript,
   createTranscript,
   flushLiveTranscriptDeltasToDatabase,
+  getSessionParticipantHumanIds,
   getSessionTranscriptRecords,
   mergeTranscriptSegments,
   removeHumanSpeakerAssignments,
@@ -297,8 +298,30 @@ describe("transcript SQLite queries", () => {
     expect(mocks.queryOptions[0]?.sql).toContain("deleted_at IS NULL");
     expect(mocks.queryOptions[0]?.sql).toContain("source <> 'excluded'");
     expect(mocks.queryOptions[0]?.sql).toContain("owner_user_id");
+    expect(mocks.queryOptions[0]?.sql).toContain("owner_participant");
+    expect(mocks.queryOptions[0]?.sql).toContain(
+      "NULLIF(lower(self_human.email), '') IS NOT NULL",
+    );
+    expect(mocks.queryOptions[0]?.sql).toContain(
+      "NULLIF(lower(owner_participant.email), '') IS NOT NULL",
+    );
     expect(mocks.queryOptions[0]?.sql).toContain(
       "COALESCE(NULLIF(human.email, ''), participant.email)",
+    );
+  });
+
+  it("loads remote participant ids without waiting for the live query", async () => {
+    mocks.execute.mockResolvedValueOnce([
+      { human_id: "human-artem" },
+      { human_id: "" },
+    ]);
+
+    await expect(getSessionParticipantHumanIds("session-1")).resolves.toEqual([
+      "human-artem",
+    ]);
+    expect(mocks.execute).toHaveBeenCalledWith(
+      expect.stringContaining("source <> 'excluded'"),
+      ["session-1"],
     );
   });
 

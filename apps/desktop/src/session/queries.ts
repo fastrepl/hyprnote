@@ -1,4 +1,16 @@
 export {
+  applySessionConflict,
+  previewFromBody,
+  resolveSessionConflicts,
+  restoreSessionDocumentBody,
+  useSessionConflicts,
+  useSessionDocumentVersions,
+} from "./queries/conflicts";
+export type {
+  SessionConflictRecord,
+  SessionDocumentVersionRecord,
+} from "./queries/conflicts";
+export {
   buildSessionTombstoneStatements,
   finalizeSessionDeletion,
   isSessionDeleted,

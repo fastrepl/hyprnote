@@ -9,8 +9,6 @@ import {
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { completeDestructiveButtonHold } from "~/test-utils/destructive-button";
-
 const mocks = vi.hoisted(() => ({
   createNamedFolder: vi.fn(),
   deleteLocalFolderMaterial: vi.fn(),
@@ -294,9 +292,7 @@ describe("Folders workspace", () => {
         "Notes stay in All notes. This folder, its nested folders, and all their materials will be deleted.",
       ),
     ).toBeTruthy();
-    completeDestructiveButtonHold(
-      screen.getByRole("button", { name: "Delete folder" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete folder" }));
 
     await waitFor(() => {
       expect(mocks.deleteNamedFolder).toHaveBeenCalledWith("Work");

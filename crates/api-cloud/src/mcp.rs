@@ -26,6 +26,7 @@ impl CloudMcpServer {
         output_schema = rmcp::handler::server::tool::schema_for_type::<access::MeetingPage>(),
         meta = oauth_security_meta(),
         annotations(
+            title = "List meetings",
             read_only_hint = true,
             destructive_hint = false,
             idempotent_hint = true,
@@ -61,6 +62,7 @@ impl CloudMcpServer {
         output_schema = rmcp::handler::server::tool::schema_for_type::<access::Meeting>(),
         meta = oauth_security_meta(),
         annotations(
+            title = "Get meeting",
             read_only_hint = true,
             destructive_hint = false,
             idempotent_hint = true,
@@ -87,6 +89,7 @@ impl CloudMcpServer {
         output_schema = rmcp::handler::server::tool::schema_for_type::<access::TranscriptPage>(),
         meta = oauth_security_meta(),
         annotations(
+            title = "Get meeting transcript",
             read_only_hint = true,
             destructive_hint = false,
             idempotent_hint = true,
@@ -118,6 +121,7 @@ impl CloudMcpServer {
         output_schema = rmcp::handler::server::tool::schema_for_type::<access::MeetingPage>(),
         meta = oauth_security_meta(),
         annotations(
+            title = "Get recurring meeting history",
             read_only_hint = true,
             destructive_hint = false,
             idempotent_hint = true,
@@ -152,6 +156,7 @@ impl CloudMcpServer {
         output_schema = rmcp::handler::server::tool::schema_for_type::<access::MeetingExport>(),
         meta = oauth_security_meta(),
         annotations(
+            title = "Export meeting",
             read_only_hint = true,
             destructive_hint = false,
             idempotent_hint = true,

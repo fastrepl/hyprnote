@@ -19,4 +19,5 @@ Expo (SDK 57) app for Anarlog. Expo has changed significantly — read the exact
 
 - Local writes never wait on network. Remote side effects are best-effort afterwards.
 - Keep schema/SQL parity with desktop; do not invent mobile-only columns or enums.
+- Store marketing version lives in `apps/mobile/release-version.json` and is independent of desktop `release-version.json`. Bump it with `node scripts/release-version.mjs --mobile <major.minor.patch>`.
 - UX reference: `design/README.md`.

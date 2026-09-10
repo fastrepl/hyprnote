@@ -5,12 +5,20 @@ use anlg_e2ee::WorkspaceKeyring;
 use serde_json::{Value, json};
 use sqlx::{QueryBuilder, Sqlite, SqlitePool, Transaction};
 
+use super::chunks::{
+    ChunkPart, chunk_count_field, chunk_field, chunk_size_for, join_chunks, parse_array,
+    parse_chunk_field, split_chunks,
+};
+use super::conflicts::{ConflictCopy, ConflictLoser, record_conflict};
 use super::cooperative::yield_once;
+use super::merge::merge_concurrent_field;
 use super::replica_storage::{
-    clear_stale_apply_guards, delete_row, insert_apply_guard, insert_row, load_row_local_states,
-    normalize_replica_payload_hashes, read_field, record_version_order, remove_apply_guard,
-    replica_records_still_current, restore_local_payload, row_changed_since_snapshot, row_exists,
-    table_columns, update_field, upsert_local_state,
+    E2eeParkReason, ParkedRecord, clear_stale_apply_guards, delete_row, dirty_row_edited_at_ms,
+    insert_apply_guard, insert_row, load_or_create_writer_id, load_row_local_states,
+    load_row_local_states_from_pool, mark_local_state_for_republish,
+    normalize_replica_payload_hashes, park_records, queue_dirty_row, read_column, read_field,
+    record_version_order, remove_apply_guard, replica_records_still_current, restore_local_payload,
+    row_changed_since_snapshot, row_exists, table_columns, update_field, upsert_local_state,
 };
 use super::witness::repair_e2ee_replica_from_witness_bounded_cancellable;
 use super::{
@@ -171,6 +179,7 @@ pub(super) async fn load_changed_e2ee_record_metadata(
          )
          SELECT
            page.id,
+           page.workspace_id,
            page.generation,
            COALESCE(
              LENGTH(CAST(replica.id AS BLOB))
@@ -266,6 +275,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
     let mut selected_ids = Vec::new();
     let mut selected_generations = HashMap::new();
     let mut reconciled = Vec::new();
+    let mut parked = Vec::new();
     let mut selected_bytes = 0_usize;
     for record in &metadata {
         check_e2ee_apply_cancellation(is_cancelled)?;
@@ -279,7 +289,15 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
         let record_bytes =
             usize::try_from(record.record_bytes).map_err(|_| E2eeReplicaError::InvalidRow)?;
         if record_bytes > max_bytes {
-            return Err(E2eeReplicaError::ReplicaApplyTooLarge);
+            parked.push(ParkedRecord {
+                record_id: record.id.clone(),
+                workspace_id: record.workspace_id.clone(),
+                generation: record.generation,
+                reason: E2eeParkReason::TooLarge,
+                table_name: String::new(),
+                field_name: String::new(),
+            });
+            continue;
         }
         if !selected_ids.is_empty() && selected_bytes.saturating_add(record_bytes) > max_bytes {
             stats.remaining_replica_changes = true;
@@ -291,6 +309,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
     }
     delete_reconciled_replica_entries(pool, &reconciled, is_cancelled).await?;
 
+    let mut column_cache = HashMap::<String, HashSet<String>>::new();
     if !selected_ids.is_empty() {
         check_e2ee_apply_cancellation(is_cancelled)?;
         let records = load_encrypted_records_by_id(pool, &selected_ids).await?;
@@ -307,20 +326,52 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             }
             let field = key.open_field(&record.workspace_id, &record.id, &record.payload)?;
             check_e2ee_apply_cancellation(is_cancelled)?;
-            if !E2EE_DOMAIN_TABLES.contains(&field.table.as_str()) {
-                return Err(E2eeReplicaError::InvalidField);
+            // A newer client may sync tables or columns this build does not
+            // have yet. Park those records instead of failing the round; the
+            // rest of the row still applies.
+            let park_reason = if !E2EE_DOMAIN_TABLES.contains(&field.table.as_str()) {
+                Some(E2eeParkReason::UnknownTable)
+            } else if field.field == ROW_MANIFEST_FIELD {
+                None
+            } else {
+                if !column_cache.contains_key(&field.table) {
+                    check_e2ee_apply_cancellation(is_cancelled)?;
+                    let columns = table_columns(pool, &field.table).await?;
+                    check_e2ee_apply_cancellation(is_cancelled)?;
+                    column_cache.insert(field.table.clone(), columns);
+                }
+                let columns = &column_cache[&field.table];
+                let known = columns.contains(&field.field)
+                    || parse_chunk_field(&field.table, &field.field)
+                        .is_some_and(|(column, _)| columns.contains(column));
+                (field.field == "id" || field.field == "workspace_id" || !known)
+                    .then_some(E2eeParkReason::UnknownField)
+            };
+            if let Some(reason) = park_reason {
+                parked.push(ParkedRecord {
+                    record_id: record.id.clone(),
+                    workspace_id: record.workspace_id.clone(),
+                    generation: selected_generations[&record.id],
+                    reason,
+                    table_name: field.table,
+                    field_name: field.field,
+                });
+                continue;
             }
             let group = (record.workspace_id, field.table, field.row_id);
             group_pending
                 .entry(group.clone())
                 .or_default()
                 .push((record.id.clone(), selected_generations[&record.id]));
-            groups.entry(group).or_default().insert(field.field);
+            let chunk_fields = groups.entry(group).or_default();
+            if field.field.contains('#') {
+                chunk_fields.insert(field.field);
+            }
         }
         delete_reconciled_replica_entries(pool, &reconciled, is_cancelled).await?;
     }
+    stats.parked_records += park_replica_records(pool, &parked, is_cancelled).await?;
 
-    let mut column_cache = HashMap::<String, HashSet<String>>::new();
     let mut attempted_bytes = 0_usize;
     macro_rules! rollback_if_cancelled {
         ($transaction:ident, $is_cancelled:expr) => {
@@ -329,7 +380,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             }
         };
     }
-    for (attempted_rows, (group, changed_fields)) in groups.into_iter().enumerate() {
+    for (attempted_rows, (group, pending_chunk_fields)) in groups.into_iter().enumerate() {
         if attempted_rows >= max_rows {
             stats.remaining_replica_changes = true;
             break;
@@ -354,23 +405,39 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                 columns
             }
         };
-        if changed_fields.iter().any(|field| {
-            field != ROW_MANIFEST_FIELD
-                && (field == "id" || field == "workspace_id" || !columns.contains(field))
-        }) {
-            return Err(E2eeReplicaError::InvalidField);
-        }
 
         check_e2ee_apply_cancellation(is_cancelled)?;
-        let encrypted_records = load_encrypted_row_group(
+        let mut chunk_fields = pending_chunk_fields;
+        for column in columns
+            .iter()
+            .filter(|column| chunk_size_for(&table, column).is_some())
+        {
+            chunk_fields.insert(chunk_count_field(column));
+        }
+        for state in load_row_local_states_from_pool(pool, &workspace_id, &table, &row_id)
+            .await?
+            .into_values()
+        {
+            if parse_chunk_field(&table, &state.field_name).is_some() {
+                chunk_fields.insert(state.field_name);
+            }
+        }
+        check_e2ee_apply_cancellation(is_cancelled)?;
+        let Some(encrypted_records) = load_encrypted_row_group(
             pool,
             keyring,
             (&workspace_id, &table, &row_id),
             &columns,
+            &chunk_fields,
             max_bytes,
             is_cancelled,
         )
-        .await?;
+        .await?
+        else {
+            stats.parked_records +=
+                park_oversized_row(pool, &workspace_id, &table, &pending, is_cancelled).await?;
+            continue;
+        };
         check_e2ee_apply_cancellation(is_cancelled)?;
         let row_bytes = encrypted_records
             .iter()
@@ -383,7 +450,9 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                     .ok_or(E2eeReplicaError::InvalidRow)
             })?;
         if row_bytes > max_bytes {
-            return Err(E2eeReplicaError::ReplicaApplyTooLarge);
+            stats.parked_records +=
+                park_oversized_row(pool, &workspace_id, &table, &pending, is_cancelled).await?;
+            continue;
         }
         if attempted_rows > 0 && attempted_bytes.saturating_add(row_bytes) > max_bytes {
             stats.remaining_replica_changes = true;
@@ -401,11 +470,10 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             if field.table != table || field.row_id != row_id {
                 return Err(E2eeReplicaError::InvalidField);
             }
+            let known =
+                columns.contains(&field.field) || parse_chunk_field(&table, &field.field).is_some();
             if field.field != ROW_MANIFEST_FIELD
-                && (field.field == "id"
-                    || field.field == "workspace_id"
-                    || !columns.contains(&field.field)
-                    || field.deleted)
+                && (field.field == "id" || field.field == "workspace_id" || !known || field.deleted)
             {
                 return Err(E2eeReplicaError::InvalidField);
             }
@@ -431,6 +499,15 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                 records_by_field.insert(field_name, candidate);
             }
         }
+        load_remaining_chunk_records(
+            pool,
+            keyring,
+            (&workspace_id, &table, &row_id),
+            &columns,
+            require_witness,
+            &mut records_by_field,
+        )
+        .await?;
         let mut records = records_by_field.into_values().collect::<Vec<_>>();
 
         check_e2ee_apply_cancellation(is_cancelled)?;
@@ -454,7 +531,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
         for record in records {
             rollback_if_cancelled!(transaction, is_cancelled);
             let is_stale = match states.get(&record.record_id) {
-                Some(state) => record_version_order(state, &record)? == Ordering::Less,
+                Some(state) => incoming_is_stale(state, &record)?,
                 None => false,
             };
             if is_stale {
@@ -510,7 +587,10 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             )
             .await?;
             rollback_if_cancelled!(transaction, is_cancelled);
-            if locally_changed {
+            // A remote delete or recreate of a row this device also changed
+            // waits until the local change publishes. Plain field edits go on
+            // to the field loop, which orders each field by edit time.
+            if locally_changed && (manifest.field.deleted || !row_was_present) {
                 stats.skipped_local_changes += records.len() as u64 + 1;
                 remove_apply_guard(&mut transaction, &workspace_id, &table, &row_id).await?;
                 rollback_if_cancelled!(transaction, is_cancelled);
@@ -535,6 +615,8 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                     value_tag,
                     payload_hash: manifest.payload_hash,
                     payload: manifest.payload,
+                    edited_at_ms: edited_at_ms_i64(manifest.field.edited_at_ms),
+                    republish: false,
                 };
                 upsert_local_state(&mut transaction, &state).await?;
                 rollback_if_cancelled!(transaction, is_cancelled);
@@ -590,6 +672,8 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                 value_tag,
                 payload_hash: manifest.payload_hash,
                 payload: manifest.payload,
+                edited_at_ms: edited_at_ms_i64(manifest.field.edited_at_ms),
+                republish: false,
             };
             upsert_local_state(&mut transaction, &state).await?;
             rollback_if_cancelled!(transaction, is_cancelled);
@@ -605,12 +689,31 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
         }
 
         let mut deferred_pending_ids = HashSet::new();
+        let mut republish_merged_row = false;
+        let mut chunk_columns = BTreeMap::<String, ChunkedColumnRecords>::new();
+        let mut plain_records = Vec::with_capacity(records.len());
         for record in records {
+            match parse_chunk_field(&table, &record.field.field) {
+                Some((column, part)) => {
+                    let column = column.to_string();
+                    let entry = chunk_columns.entry(column).or_default();
+                    match part {
+                        ChunkPart::Count => entry.count = Some(record),
+                        ChunkPart::Index(index) => {
+                            entry.chunks.insert(index, record);
+                        }
+                    }
+                }
+                None => plain_records.push(record),
+            }
+        }
+        for record in plain_records {
             rollback_if_cancelled!(transaction, is_cancelled);
             let record_key = keyring
                 .get(&record.field.key_id)
                 .ok_or(E2eeReplicaError::InvalidRow)?;
             let field_name = record.field.field.as_str();
+            let mut merged_value: Option<Value> = None;
             if field_name == ROW_MANIFEST_FIELD
                 || field_name == "id"
                 || field_name == "workspace_id"
@@ -641,8 +744,136 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                     key.value_tag(&table, &row_id, field_name, false, &current) == state.value_tag
                 });
                 if !matches_snapshot {
-                    stats.skipped_local_changes += 1;
-                    deferred_pending_ids.insert(record.record_id.clone());
+                    // This device changed the field since it last synced, so
+                    // the two edits are concurrent. The later edit wins and
+                    // the other is kept as a conflict copy. Without edit times
+                    // the local change wins, as before.
+                    let local_edited_at_ms =
+                        dirty_row_edited_at_ms(&mut transaction, &workspace_id, &table, &row_id)
+                            .await?;
+                    rollback_if_cancelled!(transaction, is_cancelled);
+                    let local_writer_id = load_or_create_writer_id(&mut transaction).await?;
+                    rollback_if_cancelled!(transaction, is_cancelled);
+                    let incoming_wins = match (record.field.edited_at_ms, local_edited_at_ms) {
+                        (Some(incoming), Some(local)) => {
+                            let incoming = i64::try_from(incoming).unwrap_or(i64::MAX);
+                            incoming > local
+                                || (incoming == local && record.field.writer_id > local_writer_id)
+                        }
+                        _ => false,
+                    };
+                    // Documents merge block by block; only regions both sides
+                    // rewrote fall back to the later edit, and then the other
+                    // side's whole document is kept as the conflict copy.
+                    let merged = merge_concurrent_field(
+                        keyring,
+                        &workspace_id,
+                        &table,
+                        field_name,
+                        state,
+                        &current,
+                        &record.field.value,
+                        !incoming_wins,
+                    );
+                    let record_loser = merged.as_ref().is_none_or(|merged| merged.had_conflicts);
+                    if let Some(merged) = merged {
+                        merged_value = Some(merged.value);
+                    }
+                    if !record_loser {
+                        // Clean merge: nothing was lost.
+                    } else if incoming_wins {
+                        let local_value_tag = keyring
+                            .active()
+                            .value_tag(&table, &row_id, field_name, false, &current);
+                        let recorded = field_keeps_conflict_copies(field_name)
+                            && record_conflict(
+                                &mut transaction,
+                                &ConflictCopy {
+                                    id: format!("{}:local:{local_value_tag}", record.record_id),
+                                    workspace_id: &workspace_id,
+                                    table_name: &table,
+                                    row_id: &row_id,
+                                    field_name,
+                                    lost_side: ConflictLoser::Local,
+                                    writer_id: &local_writer_id,
+                                    revision: state.revision,
+                                    edited_at_ms: local_edited_at_ms,
+                                    value: &current,
+                                },
+                            )
+                            .await?;
+                        rollback_if_cancelled!(transaction, is_cancelled);
+                        stats.recorded_conflicts += u64::from(recorded);
+                    } else {
+                        let recorded = field_keeps_conflict_copies(field_name)
+                            && record_conflict(
+                                &mut transaction,
+                                &ConflictCopy {
+                                    id: format!("{}:{}", record.record_id, record.payload_hash),
+                                    workspace_id: &workspace_id,
+                                    table_name: &table,
+                                    row_id: &row_id,
+                                    field_name,
+                                    lost_side: ConflictLoser::Remote,
+                                    writer_id: &record.field.writer_id,
+                                    revision: i64::try_from(record.field.revision)
+                                        .map_err(|_| E2eeReplicaError::InvalidRow)?,
+                                    edited_at_ms: edited_at_ms_i64(record.field.edited_at_ms),
+                                    value: &record.field.value,
+                                },
+                            )
+                            .await?;
+                        rollback_if_cancelled!(transaction, is_cancelled);
+                        stats.recorded_conflicts += u64::from(recorded);
+                        if merged_value.is_none() {
+                            stats.skipped_local_changes += 1;
+                            deferred_pending_ids.insert(record.record_id.clone());
+                            continue;
+                        }
+                    }
+                } else if let (Some(incoming), Some(local)) =
+                    (record.field.edited_at_ms, state.edited_at_ms)
+                    && incoming_edit_is_older(
+                        i64::try_from(incoming).unwrap_or(i64::MAX),
+                        &record.field.writer_id,
+                        local,
+                        &state.writer_id,
+                    )
+                {
+                    // The record won the revision race but was written before
+                    // the value this device already holds. Keep the later
+                    // edit, remember the earlier one, and republish above the
+                    // incoming revision so every replica converges on it.
+                    let recorded = field_keeps_conflict_copies(field_name)
+                        && record_conflict(
+                            &mut transaction,
+                            &ConflictCopy {
+                                id: format!("{}:{}", record.record_id, record.payload_hash),
+                                workspace_id: &workspace_id,
+                                table_name: &table,
+                                row_id: &row_id,
+                                field_name,
+                                lost_side: ConflictLoser::Remote,
+                                writer_id: &record.field.writer_id,
+                                revision: i64::try_from(record.field.revision)
+                                    .map_err(|_| E2eeReplicaError::InvalidRow)?,
+                                edited_at_ms: Some(i64::try_from(incoming).unwrap_or(i64::MAX)),
+                                value: &record.field.value,
+                            },
+                        )
+                        .await?;
+                    rollback_if_cancelled!(transaction, is_cancelled);
+                    mark_local_state_for_republish(
+                        &mut transaction,
+                        &record.record_id,
+                        i64::try_from(record.field.revision)
+                            .map_err(|_| E2eeReplicaError::InvalidRow)?,
+                    )
+                    .await?;
+                    rollback_if_cancelled!(transaction, is_cancelled);
+                    queue_dirty_row(&mut transaction, &workspace_id, &table, &row_id).await?;
+                    rollback_if_cancelled!(transaction, is_cancelled);
+                    stats.recorded_conflicts += u64::from(recorded);
                     continue;
                 }
             }
@@ -653,10 +884,19 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                 &workspace_id,
                 &row_id,
                 field_name,
-                &record.field.value,
+                merged_value.as_ref().unwrap_or(&record.field.value),
             )
             .await?;
             rollback_if_cancelled!(transaction, is_cancelled);
+            if merged_value.is_some() {
+                republish_merged_row = true;
+                stats.merged_fields += 1;
+            }
+            // A whole-column record from an older build was honoured; this
+            // build re-seals the column as chunks so current builds converge.
+            if chunk_size_for(&table, field_name).is_some() {
+                republish_merged_row = true;
+            }
             let value_tag =
                 record_key.value_tag(&table, &row_id, field_name, false, &record.field.value);
             let state = LocalState {
@@ -671,11 +911,48 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                 value_tag,
                 payload_hash: record.payload_hash,
                 payload: record.payload,
+                edited_at_ms: edited_at_ms_i64(record.field.edited_at_ms),
+                republish: false,
             };
             upsert_local_state(&mut transaction, &state).await?;
             rollback_if_cancelled!(transaction, is_cancelled);
             states.insert(state.record_id.clone(), state);
             stats.applied_fields += 1;
+        }
+        for (column, column_records) in chunk_columns {
+            rollback_if_cancelled!(transaction, is_cancelled);
+            let outcome = apply_chunked_column(
+                &mut transaction,
+                keyring,
+                (&workspace_id, &table, &row_id),
+                &column,
+                column_records,
+                &mut states,
+                row_materialized,
+            )
+            .await?;
+            rollback_if_cancelled!(transaction, is_cancelled);
+            match outcome {
+                ChunkedColumnOutcome::Deferred(record_ids) => {
+                    stats.skipped_local_changes += record_ids.len() as u64;
+                    deferred_pending_ids.extend(record_ids);
+                }
+                ChunkedColumnOutcome::Applied {
+                    applied_fields,
+                    kept_local,
+                } => {
+                    stats.applied_fields += applied_fields;
+                    republish_merged_row |= kept_local;
+                }
+            }
+        }
+        if republish_merged_row {
+            // A merged document differs from the incoming record, so the next
+            // encrypt round publishes it with a fresh edit time. Queued after
+            // the field loop so the row's write time stays that of the local
+            // edit while the remaining fields are ordered.
+            queue_dirty_row(&mut transaction, &workspace_id, &table, &row_id).await?;
+            rollback_if_cancelled!(transaction, is_cancelled);
         }
         remove_apply_guard(&mut transaction, &workspace_id, &table, &row_id).await?;
         rollback_if_cancelled!(transaction, is_cancelled);
@@ -697,6 +974,340 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
     stats.remaining_replica_changes |= has_pending_e2ee_replica_entries(pool, keys).await?;
     check_e2ee_apply_cancellation(is_cancelled)?;
     Ok(stats)
+}
+
+// Bookkeeping columns still resolve by edit time, but their values mean
+// nothing to the user, so they never produce conflict copies.
+fn field_keeps_conflict_copies(field_name: &str) -> bool {
+    !field_name.contains('#')
+        && !matches!(
+            field_name,
+            "updated_at"
+                | "created_at"
+                | "updated_by"
+                | "created_by"
+                | "content_version"
+                | "deleted_at"
+        )
+}
+
+#[derive(Default)]
+struct ChunkedColumnRecords {
+    count: Option<DecryptedRecord>,
+    chunks: BTreeMap<usize, DecryptedRecord>,
+}
+
+enum ChunkedColumnOutcome {
+    Deferred(Vec<String>),
+    Applied {
+        applied_fields: u64,
+        kept_local: bool,
+    },
+}
+
+// The chunk count record says how many chunk records the column has; fetch
+// any this row group did not already load so the column can be rebuilt whole.
+async fn load_remaining_chunk_records(
+    pool: &SqlitePool,
+    keyring: &WorkspaceKeyring,
+    row: (&str, &str, &str),
+    columns: &HashSet<String>,
+    require_witness: bool,
+    records_by_field: &mut BTreeMap<String, DecryptedRecord>,
+) -> E2eeReplicaResult<()> {
+    let (workspace_id, table, row_id) = row;
+    let mut missing = Vec::new();
+    for column in columns
+        .iter()
+        .filter(|column| chunk_size_for(table, column).is_some())
+    {
+        let Some(count) = records_by_field
+            .get(&chunk_count_field(column))
+            .and_then(|record| record.field.value.as_u64())
+        else {
+            continue;
+        };
+        for index in 0..usize::try_from(count).unwrap_or(usize::MAX).min(1 << 20) {
+            let field = chunk_field(column, index);
+            if !records_by_field.contains_key(&field) {
+                missing.extend(
+                    keyring
+                        .generations()
+                        .map(|key| key.blind_field_id(table, row_id, &field)),
+                );
+            }
+        }
+    }
+    if missing.is_empty() {
+        return Ok(());
+    }
+    missing.sort_unstable();
+    missing.dedup();
+    for record in load_encrypted_records_by_id(pool, &missing).await? {
+        if record.workspace_id != workspace_id || (require_witness && !record.witnessed) {
+            continue;
+        }
+        let Ok(field) = keyring.open_field(&record.workspace_id, &record.id, &record.payload)
+        else {
+            continue;
+        };
+        if field.table != table || field.row_id != row_id {
+            continue;
+        }
+        let payload_hash = anlg_e2ee::payload_hash(&record.payload);
+        records_by_field
+            .entry(field.field.clone())
+            .or_insert(DecryptedRecord {
+                record_id: record.id,
+                workspace_id: record.workspace_id,
+                payload_hash,
+                payload: record.payload,
+                field,
+            });
+    }
+    Ok(())
+}
+
+/// Rebuilds a chunked column from its chunk records, chunk by chunk: a chunk
+/// this device changed since it last synced is kept when its edit is later
+/// (or when edit times are unknown), otherwise the incoming chunk wins. The
+/// column is only written once every chunk the count names is available, so a
+/// partly received transcript never lands.
+async fn apply_chunked_column(
+    transaction: &mut Transaction<'_, Sqlite>,
+    keyring: &WorkspaceKeyring,
+    row: (&str, &str, &str),
+    column: &str,
+    column_records: ChunkedColumnRecords,
+    states: &mut HashMap<String, LocalState>,
+    row_materialized: bool,
+) -> E2eeReplicaResult<ChunkedColumnOutcome> {
+    let (workspace_id, table, row_id) = row;
+    let all_record_ids = || {
+        column_records
+            .count
+            .iter()
+            .chain(column_records.chunks.values())
+            .map(|record| record.record_id.clone())
+            .collect::<Vec<_>>()
+    };
+    let Some(count_record) = column_records.count.as_ref() else {
+        return Ok(ChunkedColumnOutcome::Deferred(all_record_ids()));
+    };
+    let Some(count) = count_record
+        .field
+        .value
+        .as_u64()
+        .and_then(|count| usize::try_from(count).ok())
+    else {
+        return Err(E2eeReplicaError::InvalidField);
+    };
+    if (0..count).any(|index| !column_records.chunks.contains_key(&index)) {
+        return Ok(ChunkedColumnOutcome::Deferred(all_record_ids()));
+    }
+
+    let chunk_size = chunk_size_for(table, column).unwrap_or(1);
+    let current = read_column(transaction, table, workspace_id, row_id, column).await?;
+    let local_chunks = current
+        .as_ref()
+        .and_then(parse_array)
+        .map(|items| split_chunks(&items, chunk_size))
+        .unwrap_or_default();
+    let mut local_edit: Option<(Option<i64>, String)> = None;
+    let mut merged = Vec::with_capacity(count);
+    let mut applied_fields = 0;
+    let mut kept_local = false;
+    let mut applied_states = Vec::new();
+    for index in 0..count {
+        let record = &column_records.chunks[&index];
+        let remote_chunk = record.field.value.as_array().cloned().unwrap_or_default();
+        let local_chunk = local_chunks.get(index).cloned();
+        let state = states.get(&record.record_id);
+        let keep_local = match (state, local_chunk.as_ref()) {
+            (Some(state), Some(local_chunk)) if !row_materialized => {
+                let local_value = Value::Array(local_chunk.clone());
+                let matches_snapshot = keyring.generations().any(|key| {
+                    key.value_tag(table, row_id, &record.field.field, false, &local_value)
+                        == state.value_tag
+                });
+                if matches_snapshot {
+                    // Unchanged here; take the record unless it is an older
+                    // edit that merely won the revision race.
+                    match (record.field.edited_at_ms, state.edited_at_ms) {
+                        (Some(incoming), Some(local))
+                            if state.payload_hash != record.payload_hash
+                                && incoming_edit_is_older(
+                                    i64::try_from(incoming).unwrap_or(i64::MAX),
+                                    &record.field.writer_id,
+                                    local,
+                                    &state.writer_id,
+                                ) =>
+                        {
+                            mark_local_state_for_republish(
+                                transaction,
+                                &record.record_id,
+                                i64::try_from(record.field.revision)
+                                    .map_err(|_| E2eeReplicaError::InvalidRow)?,
+                            )
+                            .await?;
+                            true
+                        }
+                        _ => false,
+                    }
+                } else if state.payload_hash == record.payload_hash {
+                    true
+                } else {
+                    if local_edit.is_none() {
+                        local_edit = Some((
+                            dirty_row_edited_at_ms(transaction, workspace_id, table, row_id)
+                                .await?,
+                            load_or_create_writer_id(transaction).await?,
+                        ));
+                    }
+                    let (local_edited_at_ms, local_writer_id) =
+                        local_edit.as_ref().expect("local edit loaded");
+                    let incoming_wins = match (record.field.edited_at_ms, local_edited_at_ms) {
+                        (Some(incoming), Some(local)) => {
+                            let incoming = i64::try_from(incoming).unwrap_or(i64::MAX);
+                            incoming > *local
+                                || (incoming == *local && record.field.writer_id > *local_writer_id)
+                        }
+                        _ => false,
+                    };
+                    !incoming_wins
+                }
+            }
+            _ => false,
+        };
+        if keep_local {
+            kept_local = true;
+            merged.push(local_chunk.unwrap_or_default());
+            continue;
+        }
+        merged.push(remote_chunk);
+        if state.is_none_or(|state| state.payload_hash != record.payload_hash) {
+            applied_states.push(record);
+        }
+    }
+
+    let joined = join_chunks(&merged);
+    if current.as_ref() != Some(&joined) {
+        update_field(transaction, table, workspace_id, row_id, column, &joined).await?;
+    }
+    for record in applied_states {
+        let key = keyring
+            .get(&record.field.key_id)
+            .ok_or(E2eeReplicaError::InvalidRow)?;
+        let state = local_state_for_record(key, table, row_id, record);
+        upsert_local_state(transaction, &state).await?;
+        states.insert(state.record_id.clone(), state);
+        applied_fields += 1;
+    }
+    if states
+        .get(&count_record.record_id)
+        .is_none_or(|state| state.payload_hash != count_record.payload_hash)
+    {
+        let key = keyring
+            .get(&count_record.field.key_id)
+            .ok_or(E2eeReplicaError::InvalidRow)?;
+        let state = local_state_for_record(key, table, row_id, count_record);
+        upsert_local_state(transaction, &state).await?;
+        states.insert(state.record_id.clone(), state);
+        applied_fields += 1;
+    }
+    // Chunk state beyond the new count is stale; drop it so a later shrink or
+    // regrowth compares against nothing.
+    let stale_ids = states
+        .values()
+        .filter(|state| {
+            matches!(
+                parse_chunk_field(table, &state.field_name),
+                Some((state_column, ChunkPart::Index(index)))
+                    if state_column == column && index >= count
+            )
+        })
+        .map(|state| state.record_id.clone())
+        .collect::<Vec<_>>();
+    for record_id in stale_ids {
+        sqlx::query("DELETE FROM e2ee_local_state WHERE record_id = ?")
+            .bind(&record_id)
+            .execute(&mut **transaction)
+            .await?;
+        states.remove(&record_id);
+    }
+    // The plain column's own state belongs to the legacy format.
+    sqlx::query(
+        "DELETE FROM e2ee_local_state
+         WHERE workspace_id = ? AND table_name = ? AND row_id = ? AND field_name = ?",
+    )
+    .bind(workspace_id)
+    .bind(table)
+    .bind(row_id)
+    .bind(column)
+    .execute(&mut **transaction)
+    .await?;
+    states.retain(|_, state| !(state.field_name == column && state.row_id == row_id));
+    Ok(ChunkedColumnOutcome::Applied {
+        applied_fields,
+        kept_local,
+    })
+}
+
+fn local_state_for_record(
+    key: &anlg_e2ee::WorkspaceKey,
+    table: &str,
+    row_id: &str,
+    record: &DecryptedRecord,
+) -> LocalState {
+    LocalState {
+        record_id: record.record_id.clone(),
+        workspace_id: record.workspace_id.clone(),
+        table_name: table.to_string(),
+        row_id: row_id.to_string(),
+        field_name: record.field.field.clone(),
+        revision: i64::try_from(record.field.revision).unwrap_or(i64::MAX),
+        writer_id: record.field.writer_id.clone(),
+        value_tag: key.value_tag(
+            table,
+            row_id,
+            &record.field.field,
+            record.field.deleted,
+            &record.field.value,
+        ),
+        payload_hash: record.payload_hash.clone(),
+        payload: record.payload.clone(),
+        edited_at_ms: edited_at_ms_i64(record.field.edited_at_ms),
+        republish: false,
+    }
+}
+
+fn edited_at_ms_i64(edited_at_ms: Option<u64>) -> Option<i64> {
+    edited_at_ms.map(|ms| i64::try_from(ms).unwrap_or(i64::MAX))
+}
+
+fn incoming_edit_is_older(
+    incoming_edited_at_ms: i64,
+    incoming_writer_id: &str,
+    local_edited_at_ms: i64,
+    local_writer_id: &str,
+) -> bool {
+    incoming_edited_at_ms < local_edited_at_ms
+        || (incoming_edited_at_ms == local_edited_at_ms && incoming_writer_id < local_writer_id)
+}
+
+// Lower revisions are replays and are always rejected. Equal revisions from
+// different writers are concurrent edits: when both carry an edit time the
+// field loop orders them by it; otherwise the writer order decides as before.
+fn incoming_is_stale(state: &LocalState, record: &DecryptedRecord) -> E2eeReplicaResult<bool> {
+    let state_revision = u64::try_from(state.revision).map_err(|_| E2eeReplicaError::InvalidRow)?;
+    Ok(match record.field.revision.cmp(&state_revision) {
+        Ordering::Less => true,
+        Ordering::Greater => false,
+        Ordering::Equal => match (record.field.edited_at_ms, state.edited_at_ms) {
+            (Some(_), Some(_)) => false,
+            _ => record_version_order(state, record)? == Ordering::Less,
+        },
+    })
 }
 
 async fn delete_reconciled_replica_entries(
@@ -759,9 +1370,10 @@ async fn load_encrypted_row_group(
     keyring: &WorkspaceKeyring,
     row: (&str, &str, &str),
     columns: &HashSet<String>,
+    chunk_fields: &BTreeSet<String>,
     max_bytes: usize,
     is_cancelled: &(impl Fn() -> bool + Sync),
-) -> E2eeReplicaResult<Vec<EncryptedRecord>> {
+) -> E2eeReplicaResult<Option<Vec<EncryptedRecord>>> {
     let (workspace_id, table, row_id) = row;
     let mut record_ids = keyring
         .generations()
@@ -769,6 +1381,7 @@ async fn load_encrypted_row_group(
             columns
                 .iter()
                 .filter(|field| !matches!(field.as_str(), "id" | "workspace_id"))
+                .chain(chunk_fields.iter())
                 .map(|field| key.blind_field_id(table, row_id, field))
                 .chain(std::iter::once(key.blind_field_id(
                     table,
@@ -778,11 +1391,13 @@ async fn load_encrypted_row_group(
         })
         .collect::<Vec<_>>();
     record_ids.sort_unstable();
+    record_ids.dedup();
 
     check_e2ee_apply_cancellation(is_cancelled)?;
     let mut query = QueryBuilder::<Sqlite>::new(
         "SELECT
            replica.id,
+           replica.workspace_id,
            0 AS generation,
            LENGTH(CAST(replica.id AS BLOB))
              + LENGTH(CAST(replica.workspace_id AS BLOB))
@@ -819,13 +1434,57 @@ async fn load_encrypted_row_group(
             .ok_or(E2eeReplicaError::InvalidRow)
     })?;
     if row_bytes > max_bytes {
-        return Err(E2eeReplicaError::ReplicaApplyTooLarge);
+        return Ok(None);
     }
     check_e2ee_apply_cancellation(is_cancelled)?;
     let records = load_encrypted_records_by_id(pool, &record_ids).await?;
     check_e2ee_apply_cancellation(is_cancelled)?;
-    Ok(records
-        .into_iter()
-        .filter(|record| record.workspace_id == workspace_id)
-        .collect())
+    Ok(Some(
+        records
+            .into_iter()
+            .filter(|record| record.workspace_id == workspace_id)
+            .collect(),
+    ))
+}
+
+async fn park_replica_records(
+    pool: &SqlitePool,
+    records: &[ParkedRecord],
+    is_cancelled: &(impl Fn() -> bool + Sync),
+) -> E2eeReplicaResult<u64> {
+    if records.is_empty() {
+        return Ok(0);
+    }
+    check_e2ee_apply_cancellation(is_cancelled)?;
+    let mut transaction = pool.begin_with("BEGIN IMMEDIATE").await?;
+    if let Err(error) = check_e2ee_apply_cancellation(is_cancelled) {
+        transaction.rollback().await?;
+        return Err(error);
+    }
+    park_records(&mut transaction, records).await?;
+    commit_e2ee_apply_transaction(transaction, is_cancelled).await?;
+    Ok(records.len() as u64)
+}
+
+// A row whose ciphertext exceeds the apply budget waits as a unit so a partial
+// row never lands; startup requeues it once a build can take it.
+async fn park_oversized_row(
+    pool: &SqlitePool,
+    workspace_id: &str,
+    table: &str,
+    pending: &[(String, i64)],
+    is_cancelled: &(impl Fn() -> bool + Sync),
+) -> E2eeReplicaResult<u64> {
+    let records = pending
+        .iter()
+        .map(|(record_id, generation)| ParkedRecord {
+            record_id: record_id.clone(),
+            workspace_id: workspace_id.to_string(),
+            generation: *generation,
+            reason: E2eeParkReason::TooLarge,
+            table_name: table.to_string(),
+            field_name: String::new(),
+        })
+        .collect::<Vec<_>>();
+    park_replica_records(pool, &records, is_cancelled).await
 }

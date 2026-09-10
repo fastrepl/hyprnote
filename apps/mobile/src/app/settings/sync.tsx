@@ -3,13 +3,15 @@ import { useRouter } from "expo-router";
 import { useSyncExternalStore } from "react";
 
 import { useAuth } from "@/auth/context";
+import { useSyncHealth } from "@/data/conflicts";
 import {
   SettingsError,
   SettingsPage,
   SettingsRow,
 } from "@/settings/components";
 import { FieldGroup } from "@/settings/field-group";
-import { Button, Text } from "@/settings/fields";
+import { Button, Switch, Text } from "@/settings/fields";
+import { StartFreshRow } from "@/settings/start-fresh-row";
 import { formatStorageBytes, useRecordingStorage } from "@/settings/storage";
 import { requestSyncDeviceList } from "@/settings/sync-devices";
 import {
@@ -18,6 +20,7 @@ import {
   subscribeMobileSync,
   syncMobileNow,
 } from "@/sync/mobile-sync";
+import { setCloudSyncOptIn, useCloudSyncOptIn } from "@/sync/opt-in";
 import { syncStatusPresentation } from "@/sync/status-presentation";
 
 export default function SyncSettings() {
@@ -30,7 +33,12 @@ export default function SyncSettings() {
   );
   const presentation = syncStatusPresentation(snapshot);
   const storage = useRecordingStorage();
+  const health = useSyncHealth();
   const data = storage.data?.[0];
+  const cloudSyncEnabled = useCloudSyncOptIn(auth.session?.user.id ?? null);
+  const showOptIn = !auth.bypass && auth.billing.isPro;
+  const optedOut = showOptIn && !cloudSyncEnabled;
+  const optIn = useMutation({ mutationFn: setCloudSyncOptIn });
   const sync = useMutation({ mutationFn: syncMobileNow });
   const refresh = useMutation({ mutationFn: auth.refreshBilling });
   const devices = useQuery({
@@ -46,16 +54,28 @@ export default function SyncSettings() {
           title={
             !auth.billing.isPro
               ? "Saved on this device"
-              : presentation.healthy
-                ? "Up to date"
-                : presentation.title
+              : optedOut
+                ? "Cloud sync is off"
+                : presentation.healthy
+                  ? "Up to date"
+                  : presentation.title
           }
           description={
             !auth.billing.isPro
               ? "Cloud sync is available during your Pro trial and with a Pro subscription. Your local notes and recordings are still available."
-              : presentation.description
+              : optedOut
+                ? "Your notes stay on this device. Turn on cloud sync to keep them end-to-end encrypted across your devices."
+                : presentation.description
           }
         />
+        {showOptIn && (
+          <Switch
+            label="Cloud sync"
+            value={cloudSyncEnabled}
+            disabled={optIn.isPending}
+            onValueChange={(value) => optIn.mutate(value)}
+          />
+        )}
         {!auth.bypass && !auth.billing.isPro && (
           <SettingsRow
             title="Explore Anarlog Pro"
@@ -103,8 +123,44 @@ export default function SyncSettings() {
             onPress={() => router.push("/settings/account")}
           />
         )}
-        <SettingsError error={sync.error || refresh.error} />
+        <StartFreshRow phase={snapshot.phase} />
+        <SettingsError error={optIn.error || sync.error || refresh.error} />
       </FieldGroup.Section>
+      {(health.conflictedNotes > 0 ||
+        health.awaitingUpdate > 0 ||
+        health.tooLarge > 0) && (
+        <FieldGroup.Section title="Sync health">
+          {health.conflictedNotes > 0 && (
+            <SettingsRow
+              title={`${health.conflictedNotes} ${
+                health.conflictedNotes === 1 ? "note has" : "notes have"
+              } a version from another device`}
+            />
+          )}
+          {health.awaitingUpdate > 0 && (
+            <SettingsRow
+              title={`${health.awaitingUpdate} ${
+                health.awaitingUpdate === 1 ? "record is" : "records are"
+              } waiting for an app update`}
+            />
+          )}
+          {health.tooLarge > 0 && (
+            <SettingsRow
+              title={`${health.tooLarge} ${
+                health.tooLarge === 1 ? "record is" : "records are"
+              } too large to apply`}
+            />
+          )}
+          {health.conflictedNotes > 0 && (
+            <FieldGroup.SectionFooter>
+              <Text>
+                Open the note to keep the version on this device or use the
+                other one.
+              </Text>
+            </FieldGroup.SectionFooter>
+          )}
+        </FieldGroup.Section>
+      )}
       <FieldGroup.Section title="Recordings">
         <SettingsRow
           title="On this device"

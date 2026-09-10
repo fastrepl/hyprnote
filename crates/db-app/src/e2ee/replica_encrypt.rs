@@ -4,6 +4,10 @@ use anlg_e2ee::{WorkspaceKey, WorkspaceKeyring};
 use serde_json::{Value, json};
 use sqlx::{Column, QueryBuilder, Row, Sqlite, SqlitePool, Transaction};
 
+use super::chunks::{
+    ChunkPart, chunk_count_field, chunk_field, chunk_size_for, parse_array, parse_chunk_field,
+    split_chunks,
+};
 use super::cooperative::yield_once;
 use super::replica_storage::{
     load_or_create_writer_id, load_row_local_states_from_pool, sqlite_value, upsert_local_state,
@@ -240,7 +244,8 @@ async fn load_dirty_rows_inner(
     let mut workspace_ids = keys.keys().collect::<Vec<_>>();
     workspace_ids.sort_unstable();
     let mut query = QueryBuilder::<Sqlite>::new(
-        "SELECT dirty.workspace_id, dirty.table_name, dirty.row_id, dirty.generation
+        "SELECT dirty.workspace_id, dirty.table_name, dirty.row_id, dirty.generation,
+                dirty.dirtied_at_ms
          FROM e2ee_dirty_rows AS dirty
          WHERE dirty.workspace_id IN (",
     );
@@ -256,6 +261,13 @@ async fn load_dirty_rows_inner(
         .push(" ORDER BY dirty.workspace_id, dirty.table_name, dirty.row_id LIMIT ")
         .push_bind(max_rows);
     Ok(query.build_query_as().fetch_all(pool).await?)
+}
+
+fn current_time_ms() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|elapsed| i64::try_from(elapsed.as_millis()).unwrap_or(i64::MAX))
+        .unwrap_or(0)
 }
 
 pub(super) async fn load_dirty_rows_page(
@@ -379,6 +391,12 @@ async fn prepare_dirty_row_cancellable(
         .await?;
     check_e2ee_cancellation(is_cancelled)?;
     let manifest_id = key.blind_field_id(&dirty.table_name, &dirty.row_id, ROW_MANIFEST_FIELD);
+    // Rows dirtied before the write-time column existed fall back to now.
+    let edited_at_ms = if dirty.dirtied_at_ms > 0 {
+        dirty.dirtied_at_ms
+    } else {
+        current_time_ms()
+    };
     let tombstone_tag = key.value_tag(
         &dirty.table_name,
         &dirty.row_id,
@@ -391,7 +409,7 @@ async fn prepare_dirty_row_cancellable(
             .get(&manifest_id)
             .is_some_and(|state| state.value_tag == tombstone_tag);
     let mut values = Vec::new();
-    let mut record_ids = vec![manifest_id.clone()];
+    let mut retired_fields = Vec::new();
     if let Some(row) = row.as_ref() {
         for (index, column) in row.columns().iter().enumerate() {
             check_e2ee_cancellation(is_cancelled)?;
@@ -399,10 +417,47 @@ async fn prepare_dirty_row_cancellable(
             if matches!(field_name, "id" | "workspace_id") {
                 continue;
             }
-            values.push((field_name.to_string(), sqlite_value(row, index)?));
-            record_ids.push(key.blind_field_id(&dirty.table_name, &dirty.row_id, field_name));
+            let value = sqlite_value(row, index)?;
+            if let Some(chunk_size) = chunk_size_for(&dirty.table_name, field_name)
+                && let Some(items) = parse_array(&value)
+            {
+                let chunks = split_chunks(&items, chunk_size);
+                for (chunk_index, chunk) in chunks.iter().enumerate() {
+                    values.push((
+                        chunk_field(field_name, chunk_index),
+                        Value::Array(chunk.clone()),
+                    ));
+                }
+                values.push((chunk_count_field(field_name), json!(chunks.len())));
+                // Chunks the array no longer reaches are sealed as null so
+                // every replica drops them.
+                let previous_count = states
+                    .values()
+                    .filter_map(|state| {
+                        match parse_chunk_field(&dirty.table_name, &state.field_name) {
+                            Some((column, ChunkPart::Index(index))) if column == field_name => {
+                                Some(index + 1)
+                            }
+                            _ => None,
+                        }
+                    })
+                    .max()
+                    .unwrap_or(0);
+                for chunk_index in chunks.len()..previous_count {
+                    values.push((chunk_field(field_name, chunk_index), Value::Null));
+                }
+                retired_fields.push(field_name.to_string());
+                continue;
+            }
+            values.push((field_name.to_string(), value));
         }
     }
+    let mut record_ids = vec![manifest_id.clone()];
+    record_ids.extend(
+        values.iter().map(|(field_name, _)| {
+            key.blind_field_id(&dirty.table_name, &dirty.row_id, field_name)
+        }),
+    );
     check_e2ee_cancellation(is_cancelled)?;
     let witness_versions = load_witness_versions(pool, &dirty.workspace_id, &record_ids).await?;
     check_e2ee_cancellation(is_cancelled)?;
@@ -423,6 +478,7 @@ async fn prepare_dirty_row_cancellable(
                 witness_versions.get(&record_id),
                 recreating,
                 false,
+                Some(edited_at_ms),
                 value,
             )? {
                 fields.push(field);
@@ -443,6 +499,7 @@ async fn prepare_dirty_row_cancellable(
             witness_versions.get(&manifest_id),
             row_changed,
             false,
+            Some(edited_at_ms),
             json!(true),
         )? {
             fields.insert(0, field);
@@ -460,6 +517,7 @@ async fn prepare_dirty_row_cancellable(
             witness_versions.get(&manifest_id),
             false,
             true,
+            Some(edited_at_ms),
             Value::Null,
         )?
     {
@@ -467,7 +525,11 @@ async fn prepare_dirty_row_cancellable(
     }
 
     check_e2ee_cancellation(is_cancelled)?;
-    Ok(PreparedDirtyRow { dirty, fields })
+    Ok(PreparedDirtyRow {
+        dirty,
+        fields,
+        retired_fields,
+    })
 }
 
 async fn load_witness_versions(
@@ -516,14 +578,25 @@ fn prepare_encrypted_field(
     witness_version: Option<&WitnessVersion>,
     force: bool,
     deleted: bool,
+    edited_at_ms: Option<i64>,
     value: Value,
 ) -> E2eeReplicaResult<Option<PreparedEncryptedField>> {
     let record_id = key.blind_field_id(table, row_id, field);
     let value_tag = key.value_tag(table, row_id, field, deleted, &value);
     let previous = states.get(&record_id);
-    if !force && previous.is_some_and(|state| state.value_tag == value_tag) {
+    // A republish re-seals the value this device already holds above a
+    // superseded revision; it keeps the edit time of that value.
+    let republish = previous.is_some_and(|state| state.republish);
+    if !force && !republish && previous.is_some_and(|state| state.value_tag == value_tag) {
         return Ok(None);
     }
+    let edited_at_ms = if republish {
+        previous
+            .and_then(|state| state.edited_at_ms)
+            .or(edited_at_ms)
+    } else {
+        edited_at_ms
+    };
 
     let revision = previous
         .map(|state| state.revision)
@@ -532,7 +605,7 @@ fn prepare_encrypted_field(
         .checked_add(1)
         .ok_or(E2eeReplicaError::InvalidRow)?;
     let revision = u64::try_from(revision).map_err(|_| E2eeReplicaError::InvalidRow)?;
-    let sealed = key.seal_field(
+    let sealed = key.seal_field_at(
         workspace_id,
         table,
         row_id,
@@ -540,6 +613,7 @@ fn prepare_encrypted_field(
         writer_id,
         revision,
         deleted,
+        edited_at_ms.and_then(|ms| u64::try_from(ms).ok()),
         value,
     )?;
     let payload_hash = anlg_e2ee::payload_hash(&sealed.payload);
@@ -557,6 +631,8 @@ fn prepare_encrypted_field(
             value_tag,
             payload_hash,
             payload: sealed.payload,
+            edited_at_ms,
+            republish: false,
         },
     }))
 }
@@ -670,6 +746,23 @@ pub(super) async fn persist_prepared_dirty_row_cancellable(
             check_e2ee_cancellation(is_cancelled)?;
             return Ok(0);
         }
+    }
+
+    for field_name in &prepared.retired_fields {
+        if let Err(error) = check_e2ee_cancellation(is_cancelled) {
+            transaction.rollback().await?;
+            return Err(error);
+        }
+        sqlx::query(
+            "DELETE FROM e2ee_local_state
+             WHERE workspace_id = ? AND table_name = ? AND row_id = ? AND field_name = ?",
+        )
+        .bind(&prepared.dirty.workspace_id)
+        .bind(&prepared.dirty.table_name)
+        .bind(&prepared.dirty.row_id)
+        .bind(field_name)
+        .execute(&mut *transaction)
+        .await?;
     }
 
     for field in &prepared.fields {

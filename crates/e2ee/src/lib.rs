@@ -341,6 +341,7 @@ impl WorkspaceKey {
         URL_SAFE_NO_PAD.encode(mac.finalize().into_bytes())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn seal_field(
         &self,
         workspace_id: &str,
@@ -350,6 +351,35 @@ impl WorkspaceKey {
         writer_id: &str,
         revision: u64,
         deleted: bool,
+        value: Value,
+    ) -> Result<SealedField> {
+        self.seal_field_at(
+            workspace_id,
+            table,
+            row_id,
+            field,
+            writer_id,
+            revision,
+            deleted,
+            None,
+            value,
+        )
+    }
+
+    /// Seals a field that also records when the local write behind it happened,
+    /// so replicas can order concurrent edits by edit time instead of by which
+    /// device published first. Older readers ignore the extra field.
+    #[allow(clippy::too_many_arguments)]
+    pub fn seal_field_at(
+        &self,
+        workspace_id: &str,
+        table: &str,
+        row_id: &str,
+        field: &str,
+        writer_id: &str,
+        revision: u64,
+        deleted: bool,
+        edited_at_ms: Option<u64>,
         value: Value,
     ) -> Result<SealedField> {
         if !is_valid_writer_id(writer_id) {
@@ -363,6 +393,7 @@ impl WorkspaceKey {
             writer_id,
             revision,
             deleted,
+            edited_at_ms,
             value,
         })
         .map_err(|_| Error::InvalidPayload)?;
@@ -443,6 +474,7 @@ impl WorkspaceKey {
             writer_id: field.writer_id,
             revision: field.revision,
             deleted: field.deleted,
+            edited_at_ms: field.edited_at_ms,
             value: field.value,
         })
     }
@@ -463,6 +495,7 @@ pub struct OpenedField {
     pub writer_id: String,
     pub revision: u64,
     pub deleted: bool,
+    pub edited_at_ms: Option<u64>,
     pub value: Value,
 }
 
@@ -478,6 +511,8 @@ struct ProtectedField<'a> {
     writer_id: &'a str,
     revision: u64,
     deleted: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    edited_at_ms: Option<u64>,
     value: Value,
 }
 
@@ -490,6 +525,8 @@ struct OwnedProtectedField {
     writer_id: String,
     revision: u64,
     deleted: bool,
+    #[serde(default)]
+    edited_at_ms: Option<u64>,
     value: Value,
 }
 

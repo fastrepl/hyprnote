@@ -484,6 +484,49 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         },
         sql: include_str!("../migrations/20260907120800_sessions_local_restoration.sql"),
     },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909130000_e2ee_parked_records",
+        scope: anlg_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20260909130000_e2ee_parked_records.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909140000_e2ee_edit_conflicts",
+        scope: anlg_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20260909140000_e2ee_edit_conflicts.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909150000_session_document_versions",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "session_documents",
+        },
+        sql: include_str!("../migrations/20260909150000_session_document_versions.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909160000_e2ee_dirty_tags_triggers",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter { table_name: "tags" },
+        sql: include_str!("../migrations/20260909160000_e2ee_dirty_tags_triggers.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909160100_e2ee_dirty_session_tags_triggers",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "session_tags",
+        },
+        sql: include_str!("../migrations/20260909160100_e2ee_dirty_session_tags_triggers.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909160200_e2ee_dirty_folders_triggers",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "folders",
+        },
+        sql: include_str!("../migrations/20260909160200_e2ee_dirty_folders_triggers.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909160300_e2ee_dirty_daily_notes_triggers",
+        scope: anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "daily_notes",
+        },
+        sql: include_str!("../migrations/20260909160300_e2ee_dirty_daily_notes_triggers.sql"),
+    },
 ];
 
 pub fn schema() -> anlg_db_migrate::DbSchema {
@@ -577,6 +620,8 @@ pub async fn prepare_schema_with_progress(
     apply_net_zero_e2ee_payload_hash_alters(db, &mut on_migration_progress).await?;
     anlg_db_migrate::migrate_with_progress(db, schema(), on_migration_progress).await?;
     repair_missing_core_tables(db.pool(), templates_missing_before_migration).await?;
+    // A build that just migrated may now understand records an older build parked.
+    requeue_parked_e2ee_records(db.pool()).await?;
     backfill_session_share_activation(db.pool()).await?;
     ensure_cloudsync_workspace_binding(db.pool()).await?;
     Ok(())

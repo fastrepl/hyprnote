@@ -46,7 +46,7 @@ const phaseCopy: Record<
   account_mismatch: {
     title: "This device belongs to another account",
     description:
-      "Your local notes were created by a different account, so sync stays off to protect both workspaces.",
+      "Your local notes were created by a different account, so sync stays off to protect both workspaces. Sign in with that account, or start fresh on this device to keep using this one.",
   },
 };
 

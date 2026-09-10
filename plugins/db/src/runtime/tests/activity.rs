@@ -411,7 +411,7 @@ async fn local_account_binding_is_not_deferred_by_cloudsync_activity() {
 async fn local_account_binding_times_out_before_mutation_and_remains_fail_closed() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
     anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
-    let runtime = PluginDbRuntime::new(db);
+    let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
     let control = runtime.cloudsync_control_operation.lock().await;
 
     let error = runtime
@@ -439,9 +439,23 @@ async fn local_account_binding_times_out_before_mutation_and_remains_fail_closed
             .await
             .unwrap()
     );
+    // Only an account that owns local rows keeps the device bound.
+    assert!(
+        runtime
+            .bind_cloudsync_account("user-b".to_string())
+            .await
+            .unwrap()
+    );
+    anlg_db_app::claim_cloudsync_workspace(db.pool(), "user-b")
+        .await
+        .unwrap();
+    sqlx::query("INSERT INTO sessions (id, workspace_id, title) VALUES ('note', 'user-b', 'Note')")
+        .execute(db.pool())
+        .await
+        .unwrap();
     assert!(
         !runtime
-            .bind_cloudsync_account("user-b".to_string())
+            .bind_cloudsync_account("user-a".to_string())
             .await
             .unwrap()
     );

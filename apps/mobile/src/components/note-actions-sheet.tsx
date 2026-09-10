@@ -14,6 +14,7 @@ export type NoteActionsSheetProps = {
   onImportRecording: () => void;
   onSelectFolder: () => void;
   onToggleListening: () => void;
+  onVersionHistory: () => void;
   visible: boolean;
 };
 
@@ -26,6 +27,7 @@ export function NoteActionsSheet({
   onImportRecording,
   onSelectFolder,
   onToggleListening,
+  onVersionHistory,
   visible,
 }: NoteActionsSheetProps) {
   const styles = useStyles();
@@ -91,6 +93,17 @@ export function NoteActionsSheet({
           >
             <Ionicons name="download-outline" size={20} color={Colors.ink} />
             <Text style={styles.actionLabel}>Export</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => select(onVersionHistory)}
+            style={({ pressed }) => [
+              styles.action,
+              pressed && styles.actionPressed,
+            ]}
+          >
+            <Ionicons name="time-outline" size={20} color={Colors.ink} />
+            <Text style={styles.actionLabel}>Version history</Text>
           </Pressable>
           {!listening && !hasRecordingHistory && (
             <Pressable

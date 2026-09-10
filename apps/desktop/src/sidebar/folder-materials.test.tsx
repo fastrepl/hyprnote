@@ -8,8 +8,6 @@ import {
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { completeDestructiveButtonHold } from "~/test-utils/destructive-button";
-
 const mocks = vi.hoisted(() => ({
   createNamedFolder: vi.fn(),
   deleteLocalFolderMaterial: vi.fn(),
@@ -177,9 +175,7 @@ describe("FolderMaterialsPanel", () => {
     render(<FolderMaterialsPanel folderPath="CS 101" />);
 
     fireEvent.click(screen.getByLabelText("Delete folder"));
-    completeDestructiveButtonHold(
-      screen.getByRole("button", { name: "Delete folder" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete folder" }));
 
     await waitFor(() => {
       expect(mocks.deleteNamedFolder).toHaveBeenCalledWith("CS 101");

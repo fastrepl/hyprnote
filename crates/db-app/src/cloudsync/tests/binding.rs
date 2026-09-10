@@ -76,23 +76,131 @@ async fn account_binding_is_durable_without_rekeying_rows() {
 }
 
 #[tokio::test]
-async fn account_binding_rejects_switching_before_and_after_claim() {
+async fn account_binding_switches_until_the_bound_account_owns_rows() {
     let db = test_db().await;
+    let local_workspace = ensure_cloudsync_workspace_binding(db.pool()).await.unwrap();
+    sqlx::query(
+        "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
+         VALUES ('local-session', ?, ?, 'Local note')",
+    )
+    .bind(&local_workspace)
+    .bind(&local_workspace)
+    .execute(db.pool())
+    .await
+    .unwrap();
 
     bind_cloudsync_account(db.pool(), "user-a").await.unwrap();
-    let error = bind_cloudsync_account(db.pool(), "user-b")
+    bind_cloudsync_account(db.pool(), "user-b").await.unwrap();
+
+    assert_eq!(
+        read_binding(db.pool()).await,
+        (local_workspace.clone(), Some("user-b".to_string()))
+    );
+
+    claim_cloudsync_workspace(db.pool(), "user-b")
+        .await
+        .unwrap();
+    let session_workspace: String =
+        sqlx::query_scalar("SELECT workspace_id FROM sessions WHERE id = 'local-session'")
+            .fetch_one(db.pool())
+            .await
+            .unwrap();
+    assert_eq!(session_workspace, "user-b");
+
+    bind_cloudsync_account(db.pool(), "user-b").await.unwrap();
+    let error = bind_cloudsync_account(db.pool(), "user-a")
         .await
         .unwrap_err();
     assert!(matches!(error, CloudsyncWorkspaceError::AccountMismatch));
+    let error = claim_cloudsync_workspace(db.pool(), "user-a")
+        .await
+        .unwrap_err();
+    assert!(matches!(error, CloudsyncWorkspaceError::AccountMismatch));
+    assert_eq!(
+        read_binding(db.pool()).await,
+        ("user-b".to_string(), Some("user-b".to_string()))
+    );
+}
 
+#[tokio::test]
+async fn claimed_binding_without_rows_is_released_to_the_next_account() {
+    let db = test_db().await;
     claim_cloudsync_workspace(db.pool(), "user-a")
         .await
         .unwrap();
-    bind_cloudsync_account(db.pool(), "user-a").await.unwrap();
+    assert_eq!(
+        read_binding(db.pool()).await,
+        ("user-a".to_string(), Some("user-a".to_string()))
+    );
+    sqlx::query("INSERT INTO sessions (id, workspace_id, title) VALUES ('unowned', '', 'Draft')")
+        .execute(db.pool())
+        .await
+        .unwrap();
+
+    claim_cloudsync_workspace(db.pool(), "user-b")
+        .await
+        .unwrap();
+
+    assert_eq!(
+        read_binding(db.pool()).await,
+        ("user-b".to_string(), Some("user-b".to_string()))
+    );
+    assert!(
+        cloudsync_workspace_is_claimed_by(db.pool(), "user-b")
+            .await
+            .unwrap()
+    );
+    let session_workspace: String =
+        sqlx::query_scalar("SELECT workspace_id FROM sessions WHERE id = 'unowned'")
+            .fetch_one(db.pool())
+            .await
+            .unwrap();
+    assert_eq!(session_workspace, "user-b");
+    let previous_account_humans: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM humans WHERE id = 'user-a'")
+            .fetch_one(db.pool())
+            .await
+            .unwrap();
+    assert_eq!(previous_account_humans, 0);
+}
+
+#[tokio::test]
+async fn encrypted_replica_rows_keep_the_binding_with_their_account() {
+    let db = test_db().await;
+    claim_cloudsync_workspace(db.pool(), "user-a")
+        .await
+        .unwrap();
+    sqlx::query(
+        "INSERT INTO e2ee_records (id, workspace_id, payload)
+         VALUES ('record', 'user-a', 'ciphertext')",
+    )
+    .execute(db.pool())
+    .await
+    .unwrap();
+
     let error = bind_cloudsync_account(db.pool(), "user-b")
         .await
         .unwrap_err();
     assert!(matches!(error, CloudsyncWorkspaceError::AccountMismatch));
+    let error = claim_cloudsync_workspace(db.pool(), "user-b")
+        .await
+        .unwrap_err();
+    assert!(matches!(error, CloudsyncWorkspaceError::AccountMismatch));
+    assert_eq!(
+        read_binding(db.pool()).await,
+        ("user-a".to_string(), Some("user-a".to_string()))
+    );
+}
+
+async fn read_binding(pool: &SqlitePool) -> (String, Option<String>) {
+    sqlx::query_as(
+        "SELECT json_extract(value_json, '$.workspace_id'),
+                json_extract(value_json, '$.account_user_id')
+         FROM app_settings WHERE id = 'cloudsync_workspace_binding'",
+    )
+    .fetch_one(pool)
+    .await
+    .unwrap()
 }
 
 #[tokio::test]
@@ -598,8 +706,12 @@ async fn claim_tombstones_duplicate_self_participants_before_rekeying() {
 }
 
 #[tokio::test]
-async fn claim_rejects_account_switching() {
+async fn claim_rejects_account_switching_once_the_workspace_owns_rows() {
     let db = test_db().await;
+    sqlx::query("INSERT INTO sessions (id, workspace_id, title) VALUES ('session', '', 'Note')")
+        .execute(db.pool())
+        .await
+        .unwrap();
     claim_cloudsync_workspace(db.pool(), "user-a")
         .await
         .unwrap();
@@ -609,6 +721,12 @@ async fn claim_rejects_account_switching() {
         .unwrap_err();
 
     assert!(matches!(error, CloudsyncWorkspaceError::AccountMismatch));
+    let session_workspace: String =
+        sqlx::query_scalar("SELECT workspace_id FROM sessions WHERE id = 'session'")
+            .fetch_one(db.pool())
+            .await
+            .unwrap();
+    assert_eq!(session_workspace, "user-a");
 }
 
 #[tokio::test]

@@ -8,6 +8,7 @@ use serde_json::{Value, json};
 use sqlx::sqlite::SqliteRow;
 use sqlx::{QueryBuilder, Row, Sqlite, SqlitePool, Transaction, TypeInfo, ValueRef};
 
+use super::chunks::{chunk_size_for, chunk_value, parse_array, parse_chunk_field, split_chunks};
 use super::{
     DecryptedRecord, E2EE_DOMAIN_TABLES, E2eeReplicaError, E2eeReplicaResult, LocalState,
     ROW_MANIFEST_FIELD, check_e2ee_cancellation, yield_once,
@@ -156,7 +157,7 @@ pub(super) async fn load_row_local_states_from_pool(
 ) -> E2eeReplicaResult<HashMap<String, LocalState>> {
     let states: Vec<LocalState> = sqlx::query_as(
         "SELECT record_id, workspace_id, table_name, row_id, field_name, revision,
-                writer_id, value_tag, payload_hash, '' AS payload
+                writer_id, value_tag, payload_hash, '' AS payload, edited_at_ms, republish
          FROM e2ee_local_state
          WHERE workspace_id = ? AND table_name = ? AND row_id = ?",
     )
@@ -179,7 +180,7 @@ pub(super) async fn load_row_local_states(
 ) -> E2eeReplicaResult<HashMap<String, LocalState>> {
     let states: Vec<LocalState> = sqlx::query_as(
         "SELECT record_id, workspace_id, table_name, row_id, field_name, revision,
-                writer_id, value_tag, payload_hash, payload
+                writer_id, value_tag, payload_hash, payload, edited_at_ms, republish
          FROM e2ee_local_state_resolved
          WHERE workspace_id = ? AND table_name = ? AND row_id = ?",
     )
@@ -258,8 +259,8 @@ pub(super) async fn upsert_local_state(
     sqlx::query(
         "INSERT INTO e2ee_local_state (
            record_id, workspace_id, table_name, row_id, field_name, revision,
-           writer_id, value_tag, payload_hash
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           writer_id, value_tag, payload_hash, edited_at_ms, republish
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(record_id) DO UPDATE SET
            workspace_id = excluded.workspace_id,
            table_name = excluded.table_name,
@@ -269,6 +270,8 @@ pub(super) async fn upsert_local_state(
            writer_id = excluded.writer_id,
            value_tag = excluded.value_tag,
            payload_hash = excluded.payload_hash,
+           edited_at_ms = excluded.edited_at_ms,
+           republish = excluded.republish,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
     )
     .bind(&state.record_id)
@@ -280,6 +283,8 @@ pub(super) async fn upsert_local_state(
     .bind(&state.writer_id)
     .bind(&state.value_tag)
     .bind(&state.payload_hash)
+    .bind(state.edited_at_ms)
+    .bind(state.republish)
     .execute(&mut **transaction)
     .await?;
     reconcile_e2ee_witness_pending(transaction, &state.record_id).await?;
@@ -406,6 +411,67 @@ pub(super) async fn reconcile_e2ee_witness_pending(
     Ok(())
 }
 
+/// The value this device holds is newer than a record that arrived with a
+/// higher revision. Keep the value and have the next encrypt round publish it
+/// above that revision, with its original edit time, so every replica lands on
+/// the later edit.
+pub(super) async fn mark_local_state_for_republish(
+    transaction: &mut Transaction<'_, Sqlite>,
+    record_id: &str,
+    superseding_revision: i64,
+) -> E2eeReplicaResult<()> {
+    sqlx::query(
+        "UPDATE e2ee_local_state
+         SET revision = MAX(revision, ?),
+             republish = 1,
+             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+         WHERE record_id = ?",
+    )
+    .bind(superseding_revision)
+    .bind(record_id)
+    .execute(&mut **transaction)
+    .await?;
+    Ok(())
+}
+
+pub(super) async fn queue_dirty_row(
+    transaction: &mut Transaction<'_, Sqlite>,
+    workspace_id: &str,
+    table: &str,
+    row_id: &str,
+) -> E2eeReplicaResult<()> {
+    sqlx::query(
+        "INSERT INTO e2ee_dirty_rows (workspace_id, table_name, row_id)
+         VALUES (?, ?, ?)
+         ON CONFLICT (workspace_id, table_name, row_id) DO UPDATE SET
+           generation = e2ee_dirty_rows.generation + 1",
+    )
+    .bind(workspace_id)
+    .bind(table)
+    .bind(row_id)
+    .execute(&mut **transaction)
+    .await?;
+    Ok(())
+}
+
+pub(super) async fn dirty_row_edited_at_ms(
+    transaction: &mut Transaction<'_, Sqlite>,
+    workspace_id: &str,
+    table: &str,
+    row_id: &str,
+) -> E2eeReplicaResult<Option<i64>> {
+    let dirtied_at_ms: Option<i64> = sqlx::query_scalar(
+        "SELECT dirtied_at_ms FROM e2ee_dirty_rows
+         WHERE workspace_id = ? AND table_name = ? AND row_id = ?",
+    )
+    .bind(workspace_id)
+    .bind(table)
+    .bind(row_id)
+    .fetch_optional(&mut **transaction)
+    .await?;
+    Ok(dirtied_at_ms.filter(|ms| *ms > 0))
+}
+
 pub(super) async fn load_or_create_writer_id(
     transaction: &mut Transaction<'_, Sqlite>,
 ) -> E2eeReplicaResult<String> {
@@ -423,6 +489,114 @@ pub(super) async fn load_or_create_writer_id(
         .execute(&mut **transaction)
         .await?;
     Ok(writer_id)
+}
+
+/// Why a received record is waiting for a more capable build instead of
+/// blocking the sync round.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum E2eeParkReason {
+    UnknownTable,
+    UnknownField,
+    TooLarge,
+}
+
+impl E2eeParkReason {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::UnknownTable => "unknown_table",
+            Self::UnknownField => "unknown_field",
+            Self::TooLarge => "too_large",
+        }
+    }
+}
+
+pub(super) struct ParkedRecord {
+    pub record_id: String,
+    pub workspace_id: String,
+    pub generation: i64,
+    pub reason: E2eeParkReason,
+    pub table_name: String,
+    pub field_name: String,
+}
+
+pub(super) async fn park_records(
+    transaction: &mut Transaction<'_, Sqlite>,
+    records: &[ParkedRecord],
+) -> E2eeReplicaResult<()> {
+    if records.is_empty() {
+        return Ok(());
+    }
+    let mut query = QueryBuilder::<Sqlite>::new(
+        "INSERT INTO e2ee_parked_records (record_id, workspace_id, reason, table_name, field_name) ",
+    );
+    query.push_values(records, |mut row, record| {
+        row.push_bind(&record.record_id)
+            .push_bind(&record.workspace_id)
+            .push_bind(record.reason.as_str())
+            .push_bind(&record.table_name)
+            .push_bind(&record.field_name);
+    });
+    query.push(
+        " ON CONFLICT(record_id) DO UPDATE SET
+           workspace_id = excluded.workspace_id,
+           reason = excluded.reason,
+           table_name = excluded.table_name,
+           field_name = excluded.field_name",
+    );
+    query.build().execute(&mut **transaction).await?;
+
+    let mut query = QueryBuilder::<Sqlite>::new(
+        "DELETE FROM e2ee_replica_pending WHERE (record_id, generation) IN (",
+    );
+    query.push_values(records, |mut row, record| {
+        row.push_bind(&record.record_id)
+            .push_bind(record.generation);
+    });
+    query.push(")").build().execute(&mut **transaction).await?;
+    Ok(())
+}
+
+/// Moves every parked record back into the apply queue. Runs at startup, after
+/// migrations, so a build that gained a table, a column, or a larger limit
+/// retries what an older build had to skip.
+pub async fn requeue_parked_e2ee_records(pool: &SqlitePool) -> sqlx::Result<u64> {
+    let mut transaction = pool.begin_with("BEGIN IMMEDIATE").await?;
+    let requeued = sqlx::query(
+        "INSERT INTO e2ee_replica_pending (record_id, workspace_id)
+         SELECT record_id, workspace_id FROM e2ee_parked_records
+         WHERE true
+         ON CONFLICT(record_id) DO UPDATE SET
+           workspace_id = excluded.workspace_id,
+           generation = e2ee_replica_pending.generation + 1",
+    )
+    .execute(&mut *transaction)
+    .await?
+    .rows_affected();
+    sqlx::query("DELETE FROM e2ee_parked_records")
+        .execute(&mut *transaction)
+        .await?;
+    transaction.commit().await?;
+    Ok(requeued)
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, sqlx::FromRow)]
+pub struct E2eeParkedRecordSummary {
+    pub reason: String,
+    pub table_name: String,
+    pub count: i64,
+}
+
+pub async fn parked_e2ee_record_summary(
+    pool: &SqlitePool,
+) -> sqlx::Result<Vec<E2eeParkedRecordSummary>> {
+    sqlx::query_as(
+        "SELECT reason, table_name, COUNT(*) AS count
+         FROM e2ee_parked_records
+         GROUP BY reason, table_name
+         ORDER BY reason, table_name",
+    )
+    .fetch_all(pool)
+    .await
 }
 
 pub(super) fn record_version_order(
@@ -528,7 +702,28 @@ pub(super) async fn delete_row(
     Ok(())
 }
 
+/// Reads a field as it would be sealed: a real column's value, or for a
+/// virtual chunk field the chunk (or chunk count) cut from its column.
 pub(super) async fn read_field(
+    transaction: &mut Transaction<'_, Sqlite>,
+    table: &str,
+    workspace_id: &str,
+    row_id: &str,
+    field: &str,
+) -> E2eeReplicaResult<Option<Value>> {
+    if let Some((column, part)) = parse_chunk_field(table, field) {
+        let Some(value) = read_column(transaction, table, workspace_id, row_id, column).await?
+        else {
+            return Ok(None);
+        };
+        let chunk_size = chunk_size_for(table, column).unwrap_or(1);
+        let items = parse_array(&value).unwrap_or_default();
+        return Ok(Some(chunk_value(&split_chunks(&items, chunk_size), part)));
+    }
+    read_column(transaction, table, workspace_id, row_id, field).await
+}
+
+pub(super) async fn read_column(
     transaction: &mut Transaction<'_, Sqlite>,
     table: &str,
     workspace_id: &str,

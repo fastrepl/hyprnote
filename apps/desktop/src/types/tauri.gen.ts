@@ -66,6 +66,14 @@ async switchToNativeShell() : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async requestLocalDatabaseReset() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("request_local_database_reset") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async completeAppExit() : Promise<void> {
     await TAURI_INVOKE("complete_app_exit");
 },

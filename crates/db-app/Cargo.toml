@@ -8,6 +8,7 @@ anlg-cloudsync = { workspace = true }
 anlg-db-core = { workspace = true }
 anlg-db-migrate = { workspace = true }
 anlg-e2ee = { workspace = true }
+anlg-tiptap = { workspace = true }
 
 base64 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

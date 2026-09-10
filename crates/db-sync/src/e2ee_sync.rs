@@ -48,6 +48,15 @@ pub enum ReplicaSyncOutcome {
     Paused,
 }
 
+fn warn_parked_records(stats: &anlg_db_app::E2eeReplicaStats) {
+    if stats.parked_records > 0 {
+        tracing::warn!(
+            parked_records = stats.parked_records,
+            "parked encrypted records this build cannot apply yet; they retry after an update"
+        );
+    }
+}
+
 fn ordered_witness_workspace_ids(
     keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
     witnesses: &HashMap<String, E2eeWitnessClient>,
@@ -515,6 +524,7 @@ impl E2eeSyncHook {
                 std::io::Error::other(format!("E2EE replica application failed: {error}"))
             })?;
             cancellation.check()?;
+            warn_parked_records(&stats);
             if stats.remaining_replica_changes {
                 self.request_reconciliation();
             }
@@ -710,11 +720,13 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                 } else {
                     anlg_db_app::E2eeReplicaStats::default()
                 };
+                warn_parked_records(&stats);
                 tracing::debug!(
                     applied_fields = stats.applied_fields,
                     skipped_local_changes = stats.skipped_local_changes,
                     rejected_rollbacks = stats.rejected_rollbacks,
                     rejected_unwitnessed = stats.rejected_unwitnessed,
+                    parked_records = stats.parked_records,
                     snapshot_complete,
                     "applied encrypted CloudSync replica"
                 );

@@ -1,4 +1,5 @@
 import type {
+  SessionAccessRequestState,
   SharedNoteCapability,
   SharedNoteCommentAnchor,
 } from "@/lib/shared-notes";
@@ -93,6 +94,14 @@ export function hasSharedNoteCollaborationAccess(
     | undefined,
 ) {
   return result?.status === "ready";
+}
+
+// The latest request may be a viewer request made from the access gate; the
+// comment panel must not present it as a comment-access outcome.
+export function selectSharedNoteCommentAccessRequest(
+  request: SessionAccessRequestState | null,
+): SessionAccessRequestState | null {
+  return request && request.requestedCapability !== "viewer" ? request : null;
 }
 
 export function formatSharedNoteAccessRequestDescription(

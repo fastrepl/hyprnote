@@ -24,13 +24,17 @@ pub use witness::{
 
 pub const E2EE_DOMAIN_TABLES: &[&str] = &[
     "action_items",
+    "daily_notes",
+    "folders",
     "humans",
     "organizations",
     "session_attachments",
     "session_documents",
     "session_participants",
+    "session_tags",
     "sessions",
     "synced_preferences",
+    "tags",
     "transcripts",
 ];
 
@@ -101,6 +105,9 @@ pub struct E2eeReplicaStats {
     pub skipped_local_changes: u64,
     pub rejected_rollbacks: u64,
     pub rejected_unwitnessed: u64,
+    pub parked_records: u64,
+    pub recorded_conflicts: u64,
+    pub merged_fields: u64,
     pub remaining_replica_changes: bool,
 }
 
@@ -116,6 +123,8 @@ struct LocalState {
     value_tag: String,
     payload_hash: String,
     payload: String,
+    edited_at_ms: Option<i64>,
+    republish: bool,
 }
 
 #[derive(sqlx::FromRow)]
@@ -129,6 +138,7 @@ struct EncryptedRecord {
 #[derive(sqlx::FromRow)]
 struct EncryptedRecordMetadata {
     id: String,
+    workspace_id: String,
     generation: i64,
     record_bytes: i64,
     witnessed: bool,
@@ -149,6 +159,7 @@ struct DirtyRow {
     table_name: String,
     row_id: String,
     generation: i64,
+    dirtied_at_ms: i64,
 }
 
 struct PreparedEncryptedField {
@@ -160,6 +171,8 @@ struct PreparedEncryptedField {
 struct PreparedDirtyRow {
     dirty: DirtyRow,
     fields: Vec<PreparedEncryptedField>,
+    /// Plain columns now synced as chunks; their old field state is dropped.
+    retired_fields: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -169,11 +182,18 @@ struct WitnessVersion {
     payload_hash: String,
 }
 
+mod chunks;
+mod conflicts;
 mod cooperative;
+mod merge;
 mod replica_apply;
 mod replica_encrypt;
 mod replica_storage;
 
+pub use conflicts::{
+    E2eeFieldConflict, list_e2ee_field_conflicts, resolve_e2ee_field_conflict,
+    restore_e2ee_field_conflict, unresolved_e2ee_field_conflict_count,
+};
 use cooperative::yield_once;
 pub use replica_apply::{
     apply_e2ee_replica_changes, apply_e2ee_replica_changes_with_witness,
@@ -203,6 +223,10 @@ use replica_encrypt::{
 #[cfg(test)]
 use replica_storage::load_or_create_writer_id;
 use replica_storage::reconcile_e2ee_witness_pending;
+pub use replica_storage::{
+    E2eeParkReason, E2eeParkedRecordSummary, parked_e2ee_record_summary,
+    requeue_parked_e2ee_records,
+};
 
 #[cfg(test)]
 mod tests;

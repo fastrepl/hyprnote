@@ -3,6 +3,7 @@ import type { StoreApi } from "zustand";
 
 import {
   commands as listenerCommands,
+  type CaptureConfigUpdate,
   type CaptureParams,
 } from "@anlg/plugin-transcription";
 import type { TranscriptionParams } from "@anlg/plugin-transcription";
@@ -56,12 +57,7 @@ export type GeneralActions = {
   setMuted: (value: boolean) => void;
   setBatchTranscriptionPending: (sessionId: string, pending: boolean) => void;
   setTriggerAppIds: (appIds: string[] | null) => void;
-  updateCaptureConfig: (
-    update: Pick<
-      CaptureParams,
-      "session_id" | "languages" | "participant_human_ids" | "self_human_id"
-    >,
-  ) => Promise<void>;
+  updateCaptureConfig: (update: CaptureConfigUpdate) => Promise<void>;
   startTranscription: (
     params: TranscriptionParams,
     options?: {
@@ -196,6 +192,7 @@ export const createGeneralSlice = <
       languages: update.languages,
       participant_human_ids: update.participant_human_ids ?? [],
       self_human_id: update.self_human_id ?? null,
+      speaker_assignments: update.speaker_assignments ?? [],
     });
   },
   startTranscription: async (params, options) => {

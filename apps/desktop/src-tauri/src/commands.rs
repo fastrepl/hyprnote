@@ -85,6 +85,14 @@ pub fn switch_to_native_shell<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Re
 
 #[tauri::command]
 #[specta::specta]
+pub fn request_local_database_reset<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<(), String> {
+    crate::db::request_database_reset(&app.config().identifier)
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn complete_app_exit<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
     crate::mark_exit_flush_complete();
     app.exit(0);

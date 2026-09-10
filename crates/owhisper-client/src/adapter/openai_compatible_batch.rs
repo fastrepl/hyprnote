@@ -6,7 +6,7 @@ use reqwest::multipart::Form;
 use serde::Deserialize;
 
 use crate::adapter::http::{ensure_success, streaming_file_part};
-use crate::adapter::{ClientWithMiddleware, append_path_if_missing};
+use crate::adapter::{ClientWithMiddleware, MIXED_CAPTURE_CHANNEL, append_path_if_missing};
 use crate::error::Error;
 
 pub(crate) struct OpenAICompatibleBatchConfig<'a> {
@@ -19,6 +19,13 @@ pub(crate) struct OpenAICompatibleBatchConfig<'a> {
     pub include_language: bool,
 }
 
+pub(crate) fn resolve_model<'a>(params: &'a ListenParams, default_model: &'a str) -> &'a str {
+    match params.model.as_deref() {
+        Some(model) if !crate::providers::is_meta_model(model) => model,
+        _ => default_model,
+    }
+}
+
 pub(crate) async fn transcribe(
     client: &ClientWithMiddleware,
     api_base: &str,
@@ -27,10 +34,7 @@ pub(crate) async fn transcribe(
     file_path: &Path,
     config: OpenAICompatibleBatchConfig<'_>,
 ) -> Result<Response, Error> {
-    let model = match params.model.as_deref() {
-        Some(model) if !crate::providers::is_meta_model(model) => model,
-        _ => config.default_model,
-    };
+    let model = resolve_model(params, config.default_model);
 
     let mut form = Form::new().text("model", model.to_string());
 
@@ -65,9 +69,19 @@ pub(crate) async fn transcribe(
         .multipart(form)
         .send()
         .await?;
-    let payload: CompatibleResponse = ensure_success(response).await?.json().await?;
 
-    Ok(convert_response(config.provider, payload))
+    parse_response(config.provider, response).await
+}
+
+/// Reads and converts a provider response, shared by the multipart path above
+/// and OpenRouter's JSON `input_audio` + `provider.options` path, which needs
+/// the same response shape but a different request encoding.
+pub(crate) async fn parse_response(
+    provider: &str,
+    response: reqwest::Response,
+) -> Result<Response, Error> {
+    let payload: CompatibleResponse = ensure_success(response).await?.json().await?;
+    Ok(convert_response(provider, payload))
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -90,6 +104,13 @@ struct CompatibleSegment {
     end: f64,
     #[serde(default)]
     words: Vec<CompatibleWord>,
+    /// Some providers diarize at segment/phrase granularity rather than per
+    /// word (e.g. Azure, whose native diarization is phrase-scoped — see
+    /// `adapter::azure_speech`, which propagates `phrase.speaker` onto every
+    /// word in that phrase). `convert_response` backfills word-level speaker
+    /// from this when a word has none of its own.
+    #[serde(default, deserialize_with = "deserialize_optional_speaker")]
+    speaker: Option<usize>,
 }
 
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -128,9 +149,14 @@ where
 }
 
 fn convert_response(provider: &str, payload: CompatibleResponse) -> Response {
-    let words = if payload.words.is_empty() {
-        payload
-            .segments
+    let CompatibleResponse {
+        text,
+        words: top_level_words,
+        segments,
+    } = payload;
+
+    let mut words = if top_level_words.is_empty() {
+        segments
             .iter()
             .flat_map(|segment| {
                 if segment.words.is_empty() {
@@ -139,7 +165,7 @@ fn convert_response(provider: &str, payload: CompatibleResponse) -> Response {
                         start: segment.start,
                         end: segment.end,
                         confidence: 1.0,
-                        speaker: None,
+                        speaker: segment.speaker,
                     }]
                 } else {
                     segment.words.clone()
@@ -147,18 +173,32 @@ fn convert_response(provider: &str, payload: CompatibleResponse) -> Response {
             })
             .collect()
     } else {
-        payload.words
+        top_level_words
     };
-    let transcript = if payload.text.trim().is_empty() {
-        payload
-            .segments
+
+    // A flat top-level `words` array (needed for word timestamps) commonly
+    // carries no speaker of its own even when segments are diarized — backfill
+    // each word's speaker from whichever segment it temporally falls within.
+    for word in &mut words {
+        if word.speaker.is_some() {
+            continue;
+        }
+        if let Some(segment) = segments.iter().find(|segment| {
+            segment.speaker.is_some() && word.start >= segment.start && word.start < segment.end
+        }) {
+            word.speaker = segment.speaker;
+        }
+    }
+
+    let transcript = if text.trim().is_empty() {
+        segments
             .iter()
             .map(|segment| segment.text.trim())
             .filter(|text| !text.is_empty())
             .collect::<Vec<_>>()
             .join(" ")
     } else {
-        payload.text.trim().to_string()
+        text.trim().to_string()
     };
 
     Response {
@@ -177,7 +217,17 @@ fn convert_response(provider: &str, payload: CompatibleResponse) -> Response {
                             start: word.start,
                             end: word.end,
                             confidence: word.confidence,
-                            channel: 0,
+                            // Channel 0 (DirectMic) is treated downstream as
+                            // always exactly one speaker (a real single mic),
+                            // so a diarized word from a single mixed-audio
+                            // batch upload must use the mixed-capture channel
+                            // instead, or the render pipeline collapses every
+                            // provider speaker back into one label.
+                            channel: if word.speaker.is_some() {
+                                MIXED_CAPTURE_CHANNEL
+                            } else {
+                                0
+                            },
                             speaker: word.speaker,
                         })
                         .collect(),
@@ -215,5 +265,70 @@ mod tests {
         assert_eq!(word_alternative.words[1].speaker, Some(2));
         assert_eq!(segment_alternative.transcript, "Fallback segment.");
         assert_eq!(segment_alternative.words[0].start, 1.0);
+    }
+
+    #[test]
+    fn backfills_word_speaker_from_segment_when_only_segments_are_diarized() {
+        // Mirrors Azure's real diarization shape (phrase/segment-scoped, not
+        // per-word) as routed through OpenRouter: a flat top-level `words`
+        // array with no speaker of its own, alongside diarized `segments`.
+        let payload: CompatibleResponse = serde_json::from_value(serde_json::json!({
+            "text": "Hello there. Hi, how are you?",
+            "segments": [
+                { "id": 0, "start": 0.0, "end": 1.2, "text": "Hello there.", "speaker": 0 },
+                { "id": 1, "start": 1.5, "end": 3.1, "text": "Hi, how are you?", "speaker": 1 }
+            ],
+            "words": [
+                { "word": "Hello", "start": 0.0, "end": 0.4 },
+                { "word": "there.", "start": 0.4, "end": 1.2 },
+                { "word": "Hi,", "start": 1.5, "end": 1.9 },
+                { "word": "how", "start": 1.9, "end": 2.2 }
+            ]
+        }))
+        .unwrap();
+
+        let response = convert_response("openrouter", payload);
+        let words = &response.results.channels[0].alternatives[0].words;
+
+        assert_eq!(words[0].speaker, Some(0));
+        assert_eq!(words[1].speaker, Some(0));
+        assert_eq!(words[2].speaker, Some(1));
+        assert_eq!(words[3].speaker, Some(1));
+        assert!(
+            words
+                .iter()
+                .all(|word| word.channel == MIXED_CAPTURE_CHANNEL)
+        );
+    }
+
+    #[test]
+    fn leaves_word_speaker_untouched_when_the_provider_already_set_it() {
+        let payload: CompatibleResponse = serde_json::from_value(serde_json::json!({
+            "text": "Hello world.",
+            "segments": [{ "start": 0.0, "end": 1.0, "text": "Hello world.", "speaker": 5 }],
+            "words": [{ "word": "Hello", "start": 0.0, "end": 0.4, "speaker": 1 }]
+        }))
+        .unwrap();
+
+        let response = convert_response("openrouter", payload);
+        let words = &response.results.channels[0].alternatives[0].words;
+
+        assert_eq!(words[0].speaker, Some(1));
+        assert_eq!(words[0].channel, MIXED_CAPTURE_CHANNEL);
+    }
+
+    #[test]
+    fn undiarized_words_stay_on_channel_zero() {
+        let payload: CompatibleResponse = serde_json::from_value(serde_json::json!({
+            "text": "Hello world.",
+            "words": [{ "word": "Hello", "start": 0.0, "end": 0.4 }]
+        }))
+        .unwrap();
+
+        let response = convert_response("groq", payload);
+        let words = &response.results.channels[0].alternatives[0].words;
+
+        assert_eq!(words[0].speaker, None);
+        assert_eq!(words[0].channel, 0);
     }
 }

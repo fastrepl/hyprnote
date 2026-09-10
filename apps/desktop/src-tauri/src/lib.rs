@@ -675,6 +675,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::is_app_store_build,
             commands::is_native_shell_available,
             commands::switch_to_native_shell::<tauri::Wry>,
+            commands::request_local_database_reset::<tauri::Wry>,
             commands::complete_app_exit::<tauri::Wry>,
             commands::get_tinybase_values::<tauri::Wry>,
             commands::get_pinned_tabs::<tauri::Wry>,

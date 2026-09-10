@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback } from "react";
 
+import { SharedNoteAccessGate } from "@/components/shared-note-access-gate";
 import {
   AccountSharedNoteActions,
   StableSharedNoteActions,
@@ -102,6 +103,7 @@ export const Route = createFileRoute("/share/$shareId")({
 
 function Component() {
   const { authenticatedResult, preview, stableResult } = Route.useLoaderData();
+  const { shareId } = Route.useParams();
   const { user } = Route.useRouteContext();
   const { scheme } = Route.useSearch();
   const authenticatedNote =
@@ -136,7 +138,20 @@ function Component() {
     return <SharedNoteTransientError />;
   }
   if (!snapshot) {
-    return <SharedNoteUnavailable />;
+    const validShareId = shareIdSchema.safeParse(shareId);
+    if (!validShareId.success) {
+      return <SharedNoteUnavailable />;
+    }
+    return (
+      <SharedNoteAccessGate
+        returnPath={buildSharedNoteWebPath(
+          `/share/${encodeURIComponent(validShareId.data)}/`,
+          scheme,
+        )}
+        shareId={validShareId.data}
+        signedIn={user !== null}
+      />
+    );
   }
 
   const returnPath = buildSharedNoteWebPath(

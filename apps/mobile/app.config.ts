@@ -1,6 +1,6 @@
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
-import releaseVersion from "../../release-version.json" with { type: "json" };
+import releaseVersion from "./release-version.json" with { type: "json" };
 
 type AppVariant = "dev" | "staging" | "stable";
 

@@ -97,8 +97,10 @@ async fn migrations_apply_cleanly() {
             "e2ee_apply_guard",
             "e2ee_ciphertext_archive",
             "e2ee_dirty_rows",
+            "e2ee_field_conflicts",
             "e2ee_local_device",
             "e2ee_local_state",
+            "e2ee_parked_records",
             "e2ee_records",
             "e2ee_replica_payload_hashes",
             "e2ee_replica_pending",
@@ -122,6 +124,7 @@ async fn migrations_apply_cleanly() {
             "search_index_state",
             "session_attachments",
             "session_disclosure_attempts",
+            "session_document_versions",
             "session_documents",
             "session_participant_consent",
             "session_participants",
@@ -299,10 +302,11 @@ async fn search_index_migrations_apply_to_initialized_cloudsync_tables() {
     )
     .await
     .unwrap();
-    // synced_preferences does not exist yet at this point in the migration history.
+    // Tables created after this point in the migration history cannot be
+    // initialized here; their migrations run below.
     for table_name in E2EE_DOMAIN_TABLES
         .iter()
-        .filter(|table_name| **table_name != "synced_preferences")
+        .filter(|table_name| !matches!(**table_name, "synced_preferences" | "folders"))
     {
         db.cloudsync_init(table_name, None, None).await.unwrap();
     }

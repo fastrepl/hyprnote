@@ -33,6 +33,7 @@ import { AppLock } from "@/settings/app-lock";
 import { createStyleHook, useColors } from "@/settings/theme-provider";
 import { ThemeProvider, useAppColorScheme } from "@/settings/theme-provider";
 import { MobileSyncLifecycle } from "@/sync/mobile-sync-lifecycle";
+import { useCloudSyncOptIn } from "@/sync/opt-in";
 import { initializeWatchConnectivity } from "@/watch-connectivity";
 
 void initializeErrorReporting().catch(() => {});
@@ -105,6 +106,7 @@ function Gate() {
     getMobileCaptureActive,
   );
   const [signingIn, setSigningIn] = useState(false);
+  const cloudSyncEnabled = useCloudSyncOptIn(auth.session?.user.id ?? null);
 
   const handleSignIn = async (method: SignInMethod) => {
     setSigningIn(true);
@@ -143,9 +145,10 @@ function Gate() {
     <>
       {session && auth.billing.isPro && (
         <MobileSyncLifecycle
-          key={`${session.user.id}:${session.access_token}`}
+          key={`${session.user.id}:${session.access_token}:${cloudSyncEnabled}`}
           accessToken={session.access_token}
           accountUserId={session.user.id}
+          syncEnabled={cloudSyncEnabled}
         />
       )}
       <Screens accountUserId={session?.user.id ?? null} />

@@ -1857,8 +1857,11 @@ describe("AuthProvider", () => {
     expect(mocks.clearAuthStorage).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId("session").textContent).toBe("none");
     expect(mocks.toastError).toHaveBeenCalledWith(
-      "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here.",
-      { id: "auth-account-mismatch" },
+      "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here, or start fresh on this device.",
+      expect.objectContaining({
+        id: "auth-account-mismatch",
+        action: expect.objectContaining({ label: "Start fresh" }),
+      }),
     );
   });
 
@@ -1888,8 +1891,11 @@ describe("AuthProvider", () => {
       expect.any(Function),
     );
     expect(mocks.toastError).toHaveBeenCalledWith(
-      "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here.",
-      { id: "auth-account-mismatch" },
+      "The notes on this device are linked to another Anarlog account. Sign in with the account previously used here, or start fresh on this device.",
+      expect.objectContaining({
+        id: "auth-account-mismatch",
+        action: expect.objectContaining({ label: "Start fresh" }),
+      }),
     );
   });
 

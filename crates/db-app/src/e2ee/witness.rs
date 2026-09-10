@@ -186,7 +186,7 @@ async fn pending_e2ee_witness_uploads_inner(
 
     let mut query = QueryBuilder::<Sqlite>::new(
         "SELECT record_id, workspace_id, table_name, row_id, field_name, revision,
-                writer_id, value_tag, payload_hash, payload
+                writer_id, value_tag, payload_hash, payload, edited_at_ms, republish
          FROM e2ee_local_state_resolved
          WHERE workspace_id = ",
     );

@@ -143,7 +143,13 @@ impl DeepgramAdapter {
             return LanguageSupport::NotSupported;
         }
 
-        Self::language_support_impl(languages, model)
+        match Self::language_support_impl(languages, model) {
+            support @ LanguageSupport::Supported { .. } => support,
+            LanguageSupport::NotSupported if Self::supports_batch_language_detection(languages) => {
+                LanguageSupport::min(languages.iter().map(Self::single_language_support))
+            }
+            LanguageSupport::NotSupported => LanguageSupport::NotSupported,
+        }
     }
 
     fn language_support_impl(
@@ -406,6 +412,12 @@ mod tests {
             &languages,
             Some("nova-3-general")
         ));
+    }
+
+    #[test]
+    fn batch_supports_language_detection_fallback_for_unsupported_multi_languages() {
+        let en_pl: Vec<Language> = vec![ISO639::En.into(), ISO639::Pl.into()];
+        assert!(DeepgramAdapter::is_supported_languages_batch(&en_pl, None));
     }
 
     #[test]

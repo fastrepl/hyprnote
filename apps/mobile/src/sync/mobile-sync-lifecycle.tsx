@@ -14,12 +14,18 @@ import {
 export function MobileSyncLifecycle({
   accessToken,
   accountUserId,
+  syncEnabled,
 }: {
   accessToken: string;
   accountUserId: string;
+  syncEnabled: boolean;
 }) {
   useMountEffect(() => {
-    const deactivate = activateMobileSync({ accessToken, accountUserId });
+    // Claiming the local database for an account is the user's call, so a
+    // signed-in Pro session alone never starts sync.
+    const deactivate = syncEnabled
+      ? activateMobileSync({ accessToken, accountUserId })
+      : () => {};
     const uploads = activateMobileAttachmentUploads({ accessToken });
     let transcriptionRetryTimer: ReturnType<typeof setInterval> | undefined;
     let syncWasReady = false;

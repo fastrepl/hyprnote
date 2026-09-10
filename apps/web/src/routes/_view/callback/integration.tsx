@@ -15,6 +15,7 @@ import {
   DEFAULT_DESKTOP_SCHEME,
   flowSearchSchema,
 } from "@/functions/desktop-flow";
+import { integrationCallbackCopy } from "@/lib/integration-callback-copy";
 
 const commonSearch = {
   integration_id: z.string(),
@@ -121,17 +122,14 @@ function Component() {
   ]);
 
   const isSuccess = search.status === "success";
+  const copy = integrationCallbackCopy({
+    status: search.status,
+    disconnectedConnectionId: search.disconnected_connection_id,
+  });
 
   if (search.flow === "desktop") {
     return (
-      <AuthShell
-        title={isSuccess ? "You’re connected" : "Connection didn’t work"}
-        description={
-          isSuccess
-            ? "Return to Anarlog to keep going."
-            : "Something went wrong while connecting."
-        }
-      >
+      <AuthShell title={copy.title} description={copy.description}>
         {isSuccess ? (
           <div className="flex flex-col gap-3">
             <button

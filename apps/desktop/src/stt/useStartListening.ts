@@ -21,7 +21,10 @@ import {
   getLiveTranscriptionConfig,
   getTranscriptionLanguages,
 } from "~/stt/capabilities";
-import { useSessionParticipantHumanIds } from "~/stt/queries";
+import {
+  getSessionParticipantHumanIds,
+  useSessionParticipantHumanIds,
+} from "~/stt/queries";
 
 export {
   CLOUDSYNC_CAPTURE_LEASE_ATTEMPTS,
@@ -89,17 +92,25 @@ export function useStartListeningState(
         );
       }
     };
-    const [keywords, liveTranscriptionConfig] = await Promise.all([
-      import("./useKeywords").then(({ getSessionKeywords }) =>
-        getSessionKeywords({ sessionId, dictionaryTerms }),
-      ),
-      getLiveTranscriptionConfig({
-        provider: conn?.provider,
-        model: conn?.model,
-        languages: getTranscriptionLanguages(aiLanguage, spokenLanguages),
-      }),
-      lifecycle.ready,
-    ]);
+    const [keywords, liveTranscriptionConfig, remoteParticipantHumanIds] =
+      await Promise.all([
+        import("./useKeywords").then(({ getSessionKeywords }) =>
+          getSessionKeywords({ sessionId, dictionaryTerms }),
+        ),
+        getLiveTranscriptionConfig({
+          provider: conn?.provider,
+          model: conn?.model,
+          languages: getTranscriptionLanguages(aiLanguage, spokenLanguages),
+        }),
+        getSessionParticipantHumanIds(sessionId).catch((error) => {
+          console.error(
+            "[listener] failed to read session participants before capture",
+            error,
+          );
+          return participantHumanIds;
+        }),
+        lifecycle.ready,
+      ]);
     if (!canStartLiveSession(sessionId)) {
       await releaseCloudsyncDeferral();
       return;
@@ -144,7 +155,7 @@ export function useStartListeningState(
           keywords,
           mic_device: microphoneDevice || null,
           transcription_mode: liveTranscriptionConfig.transcriptionMode,
-          participant_human_ids: participantHumanIds,
+          participant_human_ids: remoteParticipantHumanIds,
           self_human_id: session?.user_id || null,
         },
         {

@@ -484,6 +484,11 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         },
         sql: include_str!("../migrations/20260907120800_sessions_local_restoration.sql"),
     },
+    anlg_db_migrate::MigrationStep {
+        id: "20260909130000_e2ee_parked_records",
+        scope: anlg_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20260909130000_e2ee_parked_records.sql"),
+    },
 ];
 
 pub fn schema() -> anlg_db_migrate::DbSchema {
@@ -577,6 +582,8 @@ pub async fn prepare_schema_with_progress(
     apply_net_zero_e2ee_payload_hash_alters(db, &mut on_migration_progress).await?;
     anlg_db_migrate::migrate_with_progress(db, schema(), on_migration_progress).await?;
     repair_missing_core_tables(db.pool(), templates_missing_before_migration).await?;
+    // A build that just migrated may now understand records an older build parked.
+    requeue_parked_e2ee_records(db.pool()).await?;
     backfill_session_share_activation(db.pool()).await?;
     ensure_cloudsync_workspace_binding(db.pool()).await?;
     Ok(())

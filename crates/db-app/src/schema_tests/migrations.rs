@@ -99,6 +99,7 @@ async fn migrations_apply_cleanly() {
             "e2ee_dirty_rows",
             "e2ee_local_device",
             "e2ee_local_state",
+            "e2ee_parked_records",
             "e2ee_records",
             "e2ee_replica_payload_hashes",
             "e2ee_replica_pending",

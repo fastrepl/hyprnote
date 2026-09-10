@@ -7,10 +7,10 @@ use sqlx::{QueryBuilder, Sqlite, SqlitePool, Transaction};
 
 use super::cooperative::yield_once;
 use super::replica_storage::{
-    clear_stale_apply_guards, delete_row, insert_apply_guard, insert_row, load_row_local_states,
-    normalize_replica_payload_hashes, read_field, record_version_order, remove_apply_guard,
-    replica_records_still_current, restore_local_payload, row_changed_since_snapshot, row_exists,
-    table_columns, update_field, upsert_local_state,
+    E2eeParkReason, ParkedRecord, clear_stale_apply_guards, delete_row, insert_apply_guard,
+    insert_row, load_row_local_states, normalize_replica_payload_hashes, park_records, read_field,
+    record_version_order, remove_apply_guard, replica_records_still_current, restore_local_payload,
+    row_changed_since_snapshot, row_exists, table_columns, update_field, upsert_local_state,
 };
 use super::witness::repair_e2ee_replica_from_witness_bounded_cancellable;
 use super::{
@@ -171,6 +171,7 @@ pub(super) async fn load_changed_e2ee_record_metadata(
          )
          SELECT
            page.id,
+           page.workspace_id,
            page.generation,
            COALESCE(
              LENGTH(CAST(replica.id AS BLOB))
@@ -258,7 +259,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
     check_e2ee_apply_cancellation(is_cancelled)?;
     normalize_replica_payload_hashes(pool, keys, is_cancelled).await?;
     check_e2ee_apply_cancellation(is_cancelled)?;
-    let mut groups = BTreeMap::<(String, String, String), BTreeSet<String>>::new();
+    let mut groups = BTreeSet::<(String, String, String)>::new();
     let mut group_pending = BTreeMap::<(String, String, String), Vec<(String, i64)>>::new();
     let mut stats = E2eeReplicaStats::default();
     let metadata = load_changed_e2ee_record_metadata(pool, keys).await?;
@@ -266,6 +267,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
     let mut selected_ids = Vec::new();
     let mut selected_generations = HashMap::new();
     let mut reconciled = Vec::new();
+    let mut parked = Vec::new();
     let mut selected_bytes = 0_usize;
     for record in &metadata {
         check_e2ee_apply_cancellation(is_cancelled)?;
@@ -279,7 +281,15 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
         let record_bytes =
             usize::try_from(record.record_bytes).map_err(|_| E2eeReplicaError::InvalidRow)?;
         if record_bytes > max_bytes {
-            return Err(E2eeReplicaError::ReplicaApplyTooLarge);
+            parked.push(ParkedRecord {
+                record_id: record.id.clone(),
+                workspace_id: record.workspace_id.clone(),
+                generation: record.generation,
+                reason: E2eeParkReason::TooLarge,
+                table_name: String::new(),
+                field_name: String::new(),
+            });
+            continue;
         }
         if !selected_ids.is_empty() && selected_bytes.saturating_add(record_bytes) > max_bytes {
             stats.remaining_replica_changes = true;
@@ -291,6 +301,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
     }
     delete_reconciled_replica_entries(pool, &reconciled, is_cancelled).await?;
 
+    let mut column_cache = HashMap::<String, HashSet<String>>::new();
     if !selected_ids.is_empty() {
         check_e2ee_apply_cancellation(is_cancelled)?;
         let records = load_encrypted_records_by_id(pool, &selected_ids).await?;
@@ -307,20 +318,48 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             }
             let field = key.open_field(&record.workspace_id, &record.id, &record.payload)?;
             check_e2ee_apply_cancellation(is_cancelled)?;
-            if !E2EE_DOMAIN_TABLES.contains(&field.table.as_str()) {
-                return Err(E2eeReplicaError::InvalidField);
+            // A newer client may sync tables or columns this build does not
+            // have yet. Park those records instead of failing the round; the
+            // rest of the row still applies.
+            let park_reason = if !E2EE_DOMAIN_TABLES.contains(&field.table.as_str()) {
+                Some(E2eeParkReason::UnknownTable)
+            } else if field.field == ROW_MANIFEST_FIELD {
+                None
+            } else {
+                if !column_cache.contains_key(&field.table) {
+                    check_e2ee_apply_cancellation(is_cancelled)?;
+                    let columns = table_columns(pool, &field.table).await?;
+                    check_e2ee_apply_cancellation(is_cancelled)?;
+                    column_cache.insert(field.table.clone(), columns);
+                }
+                let columns = &column_cache[&field.table];
+                (field.field == "id"
+                    || field.field == "workspace_id"
+                    || !columns.contains(&field.field))
+                .then_some(E2eeParkReason::UnknownField)
+            };
+            if let Some(reason) = park_reason {
+                parked.push(ParkedRecord {
+                    record_id: record.id.clone(),
+                    workspace_id: record.workspace_id.clone(),
+                    generation: selected_generations[&record.id],
+                    reason,
+                    table_name: field.table,
+                    field_name: field.field,
+                });
+                continue;
             }
             let group = (record.workspace_id, field.table, field.row_id);
             group_pending
                 .entry(group.clone())
                 .or_default()
                 .push((record.id.clone(), selected_generations[&record.id]));
-            groups.entry(group).or_default().insert(field.field);
+            groups.insert(group);
         }
         delete_reconciled_replica_entries(pool, &reconciled, is_cancelled).await?;
     }
+    stats.parked_records += park_replica_records(pool, &parked, is_cancelled).await?;
 
-    let mut column_cache = HashMap::<String, HashSet<String>>::new();
     let mut attempted_bytes = 0_usize;
     macro_rules! rollback_if_cancelled {
         ($transaction:ident, $is_cancelled:expr) => {
@@ -329,7 +368,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             }
         };
     }
-    for (attempted_rows, (group, changed_fields)) in groups.into_iter().enumerate() {
+    for (attempted_rows, group) in groups.into_iter().enumerate() {
         if attempted_rows >= max_rows {
             stats.remaining_replica_changes = true;
             break;
@@ -354,15 +393,9 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                 columns
             }
         };
-        if changed_fields.iter().any(|field| {
-            field != ROW_MANIFEST_FIELD
-                && (field == "id" || field == "workspace_id" || !columns.contains(field))
-        }) {
-            return Err(E2eeReplicaError::InvalidField);
-        }
 
         check_e2ee_apply_cancellation(is_cancelled)?;
-        let encrypted_records = load_encrypted_row_group(
+        let Some(encrypted_records) = load_encrypted_row_group(
             pool,
             keyring,
             (&workspace_id, &table, &row_id),
@@ -370,7 +403,12 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             max_bytes,
             is_cancelled,
         )
-        .await?;
+        .await?
+        else {
+            stats.parked_records +=
+                park_oversized_row(pool, &workspace_id, &table, &pending, is_cancelled).await?;
+            continue;
+        };
         check_e2ee_apply_cancellation(is_cancelled)?;
         let row_bytes = encrypted_records
             .iter()
@@ -383,7 +421,9 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                     .ok_or(E2eeReplicaError::InvalidRow)
             })?;
         if row_bytes > max_bytes {
-            return Err(E2eeReplicaError::ReplicaApplyTooLarge);
+            stats.parked_records +=
+                park_oversized_row(pool, &workspace_id, &table, &pending, is_cancelled).await?;
+            continue;
         }
         if attempted_rows > 0 && attempted_bytes.saturating_add(row_bytes) > max_bytes {
             stats.remaining_replica_changes = true;
@@ -761,7 +801,7 @@ async fn load_encrypted_row_group(
     columns: &HashSet<String>,
     max_bytes: usize,
     is_cancelled: &(impl Fn() -> bool + Sync),
-) -> E2eeReplicaResult<Vec<EncryptedRecord>> {
+) -> E2eeReplicaResult<Option<Vec<EncryptedRecord>>> {
     let (workspace_id, table, row_id) = row;
     let mut record_ids = keyring
         .generations()
@@ -783,6 +823,7 @@ async fn load_encrypted_row_group(
     let mut query = QueryBuilder::<Sqlite>::new(
         "SELECT
            replica.id,
+           replica.workspace_id,
            0 AS generation,
            LENGTH(CAST(replica.id AS BLOB))
              + LENGTH(CAST(replica.workspace_id AS BLOB))
@@ -819,13 +860,57 @@ async fn load_encrypted_row_group(
             .ok_or(E2eeReplicaError::InvalidRow)
     })?;
     if row_bytes > max_bytes {
-        return Err(E2eeReplicaError::ReplicaApplyTooLarge);
+        return Ok(None);
     }
     check_e2ee_apply_cancellation(is_cancelled)?;
     let records = load_encrypted_records_by_id(pool, &record_ids).await?;
     check_e2ee_apply_cancellation(is_cancelled)?;
-    Ok(records
-        .into_iter()
-        .filter(|record| record.workspace_id == workspace_id)
-        .collect())
+    Ok(Some(
+        records
+            .into_iter()
+            .filter(|record| record.workspace_id == workspace_id)
+            .collect(),
+    ))
+}
+
+async fn park_replica_records(
+    pool: &SqlitePool,
+    records: &[ParkedRecord],
+    is_cancelled: &(impl Fn() -> bool + Sync),
+) -> E2eeReplicaResult<u64> {
+    if records.is_empty() {
+        return Ok(0);
+    }
+    check_e2ee_apply_cancellation(is_cancelled)?;
+    let mut transaction = pool.begin_with("BEGIN IMMEDIATE").await?;
+    if let Err(error) = check_e2ee_apply_cancellation(is_cancelled) {
+        transaction.rollback().await?;
+        return Err(error);
+    }
+    park_records(&mut transaction, records).await?;
+    commit_e2ee_apply_transaction(transaction, is_cancelled).await?;
+    Ok(records.len() as u64)
+}
+
+// A row whose ciphertext exceeds the apply budget waits as a unit so a partial
+// row never lands; startup requeues it once a build can take it.
+async fn park_oversized_row(
+    pool: &SqlitePool,
+    workspace_id: &str,
+    table: &str,
+    pending: &[(String, i64)],
+    is_cancelled: &(impl Fn() -> bool + Sync),
+) -> E2eeReplicaResult<u64> {
+    let records = pending
+        .iter()
+        .map(|(record_id, generation)| ParkedRecord {
+            record_id: record_id.clone(),
+            workspace_id: workspace_id.to_string(),
+            generation: *generation,
+            reason: E2eeParkReason::TooLarge,
+            table_name: table.to_string(),
+            field_name: String::new(),
+        })
+        .collect::<Vec<_>>();
+    park_replica_records(pool, &records, is_cancelled).await
 }

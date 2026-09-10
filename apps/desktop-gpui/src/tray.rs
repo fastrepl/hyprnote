@@ -494,6 +494,7 @@ mod platform {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use anlg_tray_core::contract;
 
     fn row(id: &str, title: &str, started: &str, ended: &str) -> EventRow {
         EventRow {
@@ -597,5 +598,37 @@ mod tests {
                 .unwrap()
                 .timestamp_millis() as f64
         );
+    }
+
+    #[test]
+    fn schedule_conversion_preserves_contract_titles() {
+        let case = contract::cases()
+            .into_iter()
+            .find(|case| case.name == "upcoming today")
+            .unwrap();
+        let rows: Vec<EventRow> = case
+            .events
+            .iter()
+            .map(|event| EventRow {
+                id: event.id.clone(),
+                title: event.title.clone(),
+                started_at: chrono::DateTime::from_timestamp_millis(event.starts_at_ms as i64)
+                    .unwrap()
+                    .to_rfc3339(),
+                ended_at: event
+                    .ends_at_ms
+                    .map(|value| {
+                        chrono::DateTime::from_timestamp_millis(value as i64)
+                            .unwrap()
+                            .to_rfc3339()
+                    })
+                    .unwrap_or_default(),
+                ..Default::default()
+            })
+            .collect();
+        let now = chrono::DateTime::from_timestamp_millis(case.now_ms as i64).unwrap();
+        let converted = schedule_events(&rows, |_| false, now, &Utc);
+        assert_eq!(converted[0].title, case.events[0].title);
+        assert_eq!(converted[0].id, case.events[0].id);
     }
 }

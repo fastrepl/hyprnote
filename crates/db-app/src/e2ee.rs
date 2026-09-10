@@ -171,6 +171,8 @@ struct PreparedEncryptedField {
 struct PreparedDirtyRow {
     dirty: DirtyRow,
     fields: Vec<PreparedEncryptedField>,
+    /// Plain columns now synced as chunks; their old field state is dropped.
+    retired_fields: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -180,6 +182,7 @@ struct WitnessVersion {
     payload_hash: String,
 }
 
+mod chunks;
 mod conflicts;
 mod cooperative;
 mod merge;

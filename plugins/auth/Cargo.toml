@@ -16,6 +16,7 @@ tempfile = { workspace = true }
 
 [dependencies]
 anlg-storage = { workspace = true }
+anlg-desktop-auth = { workspace = true, features = ["specta"] }
 anlg-supabase-auth = { workspace = true, features = ["client"] }
 tauri-plugin-settings = { workspace = true }
 tauri-plugin-store2 = { workspace = true }

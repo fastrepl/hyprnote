@@ -1,20 +1,19 @@
+#[cfg(all(target_os = "linux", not(test)))]
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use tauri::Manager;
 
-use crate::PLUGIN_NAME;
-
-const FILENAME: &str = "auth.json";
+const FILENAME: &str = anlg_desktop_auth::paths::FILENAME;
 #[cfg(any(target_os = "linux", test))]
-const CLI_FALLBACK_FILENAME: &str = "auth.cli.json";
+const CLI_FALLBACK_FILENAME: &str = anlg_desktop_auth::paths::CLI_FALLBACK_FILENAME;
 
 pub(crate) fn auth_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> crate::Result<PathBuf> {
     let new_auth_path = new_auth_path(app)?;
     let legacy_auth_path = legacy_auth_path(app)?;
     let legacy_store_json_path = legacy_store_json_path(app)?;
 
-    Ok(resolve_auth_path_from_paths(
+    Ok(anlg_desktop_auth::paths::resolve_auth_path_from_paths(
         &legacy_auth_path,
         &legacy_store_json_path,
         &new_auth_path,
@@ -172,16 +171,7 @@ pub(crate) fn discard_plaintext_auth(path: &Path) {
 
 #[cfg(any(all(target_os = "linux", not(test)), target_os = "windows", test))]
 pub(crate) fn remove_plaintext_auth(path: &Path) -> std::io::Result<()> {
-    if !path.is_file() {
-        return Ok(());
-    }
-
-    let file = std::fs::OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(path)?;
-    file.sync_all()?;
-    std::fs::remove_file(path)
+    anlg_desktop_auth::paths::discard_plaintext_auth(path)
 }
 
 fn new_auth_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> std::io::Result<PathBuf> {
@@ -241,107 +231,35 @@ fn legacy_base_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> std::io::Re
     Ok(Path::new(base.as_str()).to_path_buf())
 }
 
+#[cfg(test)]
 fn migrate_auth_state(
     legacy_auth_path: &Path,
     legacy_store_json_path: &Path,
     new_auth_path: &Path,
 ) -> std::io::Result<()> {
-    if let Some(parent) = new_auth_path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-
-    if legacy_auth_path.is_file() {
-        std::fs::rename(legacy_auth_path, new_auth_path)?;
-        return Ok(());
-    }
-
-    if new_auth_path.is_file() {
-        return Ok(());
-    }
-
-    migrate_from_store_json(legacy_store_json_path, new_auth_path)
+    anlg_desktop_auth::paths::migrate_auth_state(
+        legacy_auth_path,
+        legacy_store_json_path,
+        new_auth_path,
+    )
 }
 
+#[cfg(test)]
 fn resolve_auth_path_from_paths(
     legacy_auth_path: &Path,
     legacy_store_json_path: &Path,
     new_auth_path: &Path,
 ) -> PathBuf {
-    if let Err(error) = migrate_auth_state(legacy_auth_path, legacy_store_json_path, new_auth_path)
-    {
-        tracing::warn!(
-            legacy_auth_path = %legacy_auth_path.display(),
-            legacy_store_json_path = %legacy_store_json_path.display(),
-            new_auth_path = %new_auth_path.display(),
-            error = %error,
-            "failed to migrate auth state"
-        );
-    }
-
-    if new_auth_path.is_file() {
-        return new_auth_path.to_path_buf();
-    }
-
-    if legacy_auth_path.is_file() {
-        return legacy_auth_path.to_path_buf();
-    }
-
-    new_auth_path.to_path_buf()
-}
-
-fn migrate_from_store_json(store_json_path: &Path, auth_path: &Path) -> std::io::Result<()> {
-    if !store_json_path.exists() {
-        return Ok(());
-    }
-
-    let content = std::fs::read_to_string(store_json_path)?;
-    let mut store: serde_json::Map<String, serde_json::Value> =
-        serde_json::from_str(&content).map_err(invalid_data)?;
-
-    let auth_str = match store
-        .remove(PLUGIN_NAME)
-        .and_then(|v| v.as_str().map(|s| s.to_owned()))
-    {
-        Some(s) => s,
-        None => return Ok(()),
-    };
-
-    let _: HashMap<String, String> = serde_json::from_str(&auth_str).map_err(invalid_data)?;
-
-    anlg_storage::fs::atomic_write(auth_path, &auth_str)?;
-    anlg_storage::fs::atomic_write(
-        store_json_path,
-        &serde_json::to_string(&store).map_err(invalid_data)?,
-    )?;
-
-    Ok(())
+    anlg_desktop_auth::paths::resolve_auth_path_from_paths(
+        legacy_auth_path,
+        legacy_store_json_path,
+        new_auth_path,
+    )
 }
 
 #[cfg(any(target_os = "windows", test))]
 fn remove_auth_from_store_json(store_json_path: &Path) -> std::io::Result<()> {
-    if !store_json_path.is_file() {
-        return Ok(());
-    }
-
-    let content = std::fs::read_to_string(store_json_path)?;
-    let mut store: serde_json::Map<String, serde_json::Value> = match serde_json::from_str(&content)
-    {
-        Ok(store) => store,
-        Err(_) => {
-            // The legacy store is already unreadable. Replace it so a partial
-            // auth payload cannot survive after the encrypted store is authoritative.
-            return anlg_storage::fs::atomic_write(store_json_path, "{}");
-        }
-    };
-
-    if store.remove(PLUGIN_NAME).is_none() {
-        return Ok(());
-    }
-
-    anlg_storage::fs::atomic_write(
-        store_json_path,
-        &serde_json::to_string(&store).map_err(invalid_data)?,
-    )
+    anlg_desktop_auth::paths::remove_auth_from_store_json(store_json_path)
 }
 
 fn invalid_data(e: impl std::fmt::Display) -> std::io::Error {
@@ -439,7 +357,7 @@ mod test {
         let migrated_store: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(&legacy_store_json_path).unwrap())
                 .unwrap();
-        assert!(migrated_store.get(PLUGIN_NAME).is_none());
+        assert!(migrated_store.get(crate::PLUGIN_NAME).is_none());
         assert_eq!(
             migrated_store.get("other").unwrap(),
             &serde_json::json!("value")
@@ -580,7 +498,7 @@ mod test {
 
         let store: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(store_path).unwrap()).unwrap();
-        assert!(store.get(PLUGIN_NAME).is_none());
+        assert!(store.get(crate::PLUGIN_NAME).is_none());
         assert_eq!(store.get("other"), Some(&serde_json::json!("value")));
     }
 
@@ -605,7 +523,7 @@ mod test {
     fn legacy_store_json(auth_json: &str, extra: Option<(&str, serde_json::Value)>) -> String {
         let mut store = serde_json::Map::new();
         store.insert(
-            PLUGIN_NAME.to_string(),
+            crate::PLUGIN_NAME.to_string(),
             serde_json::Value::String(auth_json.to_string()),
         );
         if let Some((key, value)) = extra {

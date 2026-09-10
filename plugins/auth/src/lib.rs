@@ -15,17 +15,8 @@ static WINDOWS_TEST_MANIFEST_DIRECTIVES: [u8; 184] = *b" /MANIFEST:EMBED /MANIFE
 
 pub use error::{Error, Result};
 pub use ext::*;
+pub use anlg_desktop_auth::AccountInfo;
 use tauri::Manager;
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct AccountInfo {
-    pub user_id: String,
-    pub email: Option<String>,
-    pub full_name: Option<String>,
-    pub avatar_url: Option<String>,
-    pub stripe_customer_id: Option<String>,
-}
 
 const PLUGIN_NAME: &str = "auth";
 

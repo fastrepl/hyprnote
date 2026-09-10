@@ -9,9 +9,8 @@ use super::cooperative::yield_once;
 use super::replica_storage::{
     E2eeParkReason, ParkedRecord, clear_stale_apply_guards, delete_row, insert_apply_guard,
     insert_row, load_row_local_states, normalize_replica_payload_hashes, park_records, read_field,
-    record_version_order, remove_apply_guard, replica_records_still_current,
-    restore_local_payload, row_changed_since_snapshot, row_exists, table_columns, update_field,
-    upsert_local_state,
+    record_version_order, remove_apply_guard, replica_records_still_current, restore_local_payload,
+    row_changed_since_snapshot, row_exists, table_columns, update_field, upsert_local_state,
 };
 use super::witness::repair_e2ee_replica_from_witness_bounded_cancellable;
 use super::{

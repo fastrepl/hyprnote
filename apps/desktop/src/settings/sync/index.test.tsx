@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => ({
   billing: { isPro: true, isReady: true, upgradeToPro: vi.fn() },
   toastWarning: vi.fn(),
   credentialBlock: null as string | null,
+  syncHealthRows: [] as Array<Record<string, unknown>>,
   platform: "macos",
   syncEnabled: true,
   session: {
@@ -61,6 +62,16 @@ vi.mock("@tauri-apps/plugin-os", () => ({
 
 vi.mock("~/auth", () => ({
   useAuth: () => ({ session: mocks.session, signOut: mocks.signOut }),
+}));
+
+vi.mock("~/db", () => ({
+  useLiveQuery: ({
+    mapRows,
+  }: {
+    mapRows?: (rows: Array<Record<string, unknown>>) => unknown;
+  }) => ({
+    data: mapRows ? mapRows(mocks.syncHealthRows) : mocks.syncHealthRows,
+  }),
 }));
 
 vi.mock("~/auth/billing-context", () => ({

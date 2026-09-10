@@ -5,6 +5,7 @@ import React, { useEffect, useRef } from "react";
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
 
 import { FloatingActionButton } from "./components/floating";
+import { NoteConflictBanner } from "./components/note-conflict-banner";
 import {
   NoteInput,
   shouldShowTranscriptTabSpinner,
@@ -286,7 +287,10 @@ function TabContentNoteInner({
       >
         <div className="flex h-full min-h-0 flex-col">
           {!lockOverlay ? (
-            <PendingProposalsBanner sessionId={sessionId} />
+            <>
+              <NoteConflictBanner sessionId={sessionId} />
+              <PendingProposalsBanner sessionId={sessionId} />
+            </>
           ) : null}
           {showTopAudioPlayer && !lockOverlay ? (
             <div

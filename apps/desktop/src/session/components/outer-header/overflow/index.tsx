@@ -5,6 +5,7 @@ import {
   AppWindow,
   ArrowsClockwise,
   CalendarBlank,
+  ClockCounterClockwise,
   DotsThree,
   FileArrowDown,
   FileText,
@@ -41,6 +42,7 @@ import {
   useCurrentNoteHasContent,
   useHasTranscript,
 } from "~/session/components/shared";
+import { VersionHistoryDialog } from "~/session/components/version-history-dialog";
 import { openStandaloneNoteWindow } from "~/session/window";
 import { useConfigValue } from "~/shared/config";
 import type { EditorView } from "~/store/zustand/tabs/schema";
@@ -61,6 +63,8 @@ export function OverflowButton({
   const [open, setOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [hasOpenedExportModal, setHasOpenedExportModal] = useState(false);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
+  const [hasOpenedVersionHistory, setHasOpenedVersionHistory] = useState(false);
   const hasTranscript = useHasTranscript(sessionId);
   const currentNoteHasContent = useCurrentNoteHasContent(
     sessionId,
@@ -97,6 +101,11 @@ export function OverflowButton({
     setOpen(false);
     setHasOpenedExportModal(true);
     requestAnimationFrame(() => setIsExportModalOpen(true));
+  };
+  const openVersionHistory = () => {
+    setOpen(false);
+    setHasOpenedVersionHistory(true);
+    requestAnimationFrame(() => setIsVersionHistoryOpen(true));
   };
   const handleUploadAudio = () => {
     setOpen(false);
@@ -162,6 +171,15 @@ export function OverflowButton({
               <FileArrowDown />
               <span>
                 <Trans>Export</Trans>
+              </span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={openVersionHistory}
+              className="cursor-pointer"
+            >
+              <ClockCounterClockwise />
+              <span>
+                <Trans>Version history</Trans>
               </span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -237,6 +255,13 @@ export function OverflowButton({
           currentView={currentView}
           open={isExportModalOpen}
           onOpenChange={setIsExportModalOpen}
+        />
+      )}
+      {hasOpenedVersionHistory && (
+        <VersionHistoryDialog
+          sessionId={sessionId}
+          open={isVersionHistoryOpen}
+          onOpenChange={setIsVersionHistoryOpen}
         />
       )}
     </>

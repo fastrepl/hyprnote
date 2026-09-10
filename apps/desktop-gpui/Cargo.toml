@@ -16,8 +16,8 @@ anlg-audio-actual = { workspace = true }
 anlg-audio-mock = { workspace = true }
 anlg-db-app = { workspace = true }
 anlg-db-core = { workspace = true }
-anlg-desktop-auth = { workspace = true }
 anlg-deeplink-core = { workspace = true }
+anlg-desktop-auth = { workspace = true }
 anlg-detect = { workspace = true, features = ["list"] }
 anlg-export-core = { workspace = true }
 anlg-fs-sync-core = { workspace = true }

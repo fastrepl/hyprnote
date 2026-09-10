@@ -13,9 +13,9 @@ mod windows;
 #[unsafe(link_section = ".drectve")]
 static WINDOWS_TEST_MANIFEST_DIRECTIVES: [u8; 184] = *b" /MANIFEST:EMBED /MANIFESTDEPENDENCY:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"\0";
 
+pub use anlg_desktop_auth::AccountInfo;
 pub use error::{Error, Result};
 pub use ext::*;
-pub use anlg_desktop_auth::AccountInfo;
 use tauri::Manager;
 
 const PLUGIN_NAME: &str = "auth";

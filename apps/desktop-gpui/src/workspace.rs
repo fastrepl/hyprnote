@@ -29,7 +29,7 @@ mod instruction;
 mod llm_models;
 mod meeting_info;
 mod mention_popup;
-mod menu;
+pub(crate) mod menu;
 mod note;
 mod note_search_bar;
 mod notifications;
@@ -213,6 +213,13 @@ pub struct Workspace {
     /// A `requestAppAttention` is outstanding until the window is focused.
     attention_requested: bool,
     open_menu: Option<Menu>,
+    /// Radix's roving focus in the open menu, the items its keys act on (as
+    /// this frame rendered them), the focus the open menu holds and the one
+    /// it took it from.
+    menu_keyboard: menu::MenuKeyboard,
+    menu_runtime: std::cell::RefCell<Option<menu::MenuRuntime>>,
+    menu_focus: FocusHandle,
+    menu_previous_focus: Option<FocusHandle>,
     /// `editTargetRef`: the element focused when a title bar menu opened, so
     /// an Edit item runs on it after the press moved focus.
     menu_edit_target: Option<FocusHandle>,
@@ -507,6 +514,10 @@ impl Workspace {
             window_active: true,
             attention_requested: false,
             open_menu: None,
+            menu_keyboard: menu::MenuKeyboard::default(),
+            menu_runtime: std::cell::RefCell::new(None),
+            menu_focus: cx.focus_handle(),
+            menu_previous_focus: None,
             menu_edit_target: None,
             edit_context_menu: None,
             open_note: None,
@@ -1844,6 +1855,8 @@ impl Render for Workspace {
         self.viewport_height = f32::from(window.viewport_size().height);
         self.viewport_width = f32::from(window.viewport_size().width);
         self.begin_tooltip_frame(window, cx);
+        // The menus rendered this frame record their items below.
+        self.menu_runtime.borrow_mut().take();
         // `MainChatPanels` lays out the body before the sidebar group inside
         // it; the width guard then reacts to what fits.
         let main_layout = self.main_layout(window);
@@ -1870,11 +1883,11 @@ impl Render for Workspace {
         // Checked once this frame is drawn: during `render` the tree is the
         // previous frame's, which would unfocus a field mounted this frame.
         let root_focus = self.focus_handle.clone();
+        let menu_focus = self.menu_focus.clone();
         window.on_next_frame(move |window, cx| {
-            if window
-                .focused(cx)
-                .is_none_or(|focused| !root_focus.contains(&focused, window))
-            {
+            if window.focused(cx).is_none_or(|focused| {
+                focused != menu_focus && !root_focus.contains(&focused, window)
+            }) {
                 window.focus(&root_focus);
             }
         });
@@ -1937,7 +1950,7 @@ impl Render for Workspace {
         let sidebar_dragging = self.sidebar_drag.is_some();
         let chat_panel_dragging = self.chat_panel_dragging();
         let section_resizing = self.section_resizing();
-        div()
+        let root = div()
             .id("window")
             .track_focus(&self.focus_handle)
             .key_context(actions::KEY_CONTEXT)
@@ -2225,7 +2238,9 @@ impl Render for Workspace {
                     .map(|toast| gpui::deferred(toast).with_priority(11)),
             )
             .children(self.render_open_note_dialog(window, cx))
-            .into_any_element()
+            .into_any_element();
+        self.sync_menu_focus(window, cx);
+        root
     }
 }
 

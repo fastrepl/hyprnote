@@ -469,6 +469,7 @@ fn main() -> anyhow::Result<()> {
         text_input::bind_keys(cx);
         text_area::bind_keys(cx);
         editor::bind_keys(cx);
+        workspace::menu::bind_keys(cx);
         // The plugin saves on `ExitRequested`: the open main window's frame
         // is written when the app quits (the tray's Quit, the shell switch).
         let quit_identifier = identifier.clone();

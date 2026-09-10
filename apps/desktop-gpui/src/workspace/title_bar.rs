@@ -370,6 +370,106 @@ impl Workspace {
     ) -> AnyElement {
         let theme = self.theme;
         let edit_target = std::rc::Rc::new(edit_target);
+        // The title bar's Radix menus take the keyboard; the webview's native
+        // editing context menu leaves the field focused.
+        let keyboard = id != "edit-context-menu";
+        let mut runtime_items: Vec<Option<super::menu::RuntimeItem>> =
+            Vec::with_capacity(entries.len());
+
+        let items = entries
+            .into_iter()
+            .enumerate()
+            .map(|(index, entry)| match entry {
+                MenuEntry::Separator => {
+                    runtime_items.push(None);
+                    div()
+                        .mx(px(-4.0))
+                        .my_1()
+                        .h(px(1.0))
+                        .bg(theme.accent)
+                        .into_any_element()
+                }
+                MenuEntry::Item {
+                    label,
+                    shortcut,
+                    action,
+                    url,
+                } => {
+                    let action = action.map(std::rc::Rc::new);
+                    let run: super::menu::Run = {
+                        let edit_target = edit_target.clone();
+                        let action = action.clone();
+                        std::rc::Rc::new(
+                            move |this: &mut Self, window: &mut Window, cx: &mut Context<Self>| {
+                                this.set_menu(None, window, cx);
+                                this.menu_edit_target = None;
+                                if this.edit_context_menu.take().is_some() {
+                                    cx.notify();
+                                }
+                                if let Some(url) = url {
+                                    crate::opener::open_url(url);
+                                }
+                                if let Some(action) = &action {
+                                    // `runEditCommand`: the item runs on the
+                                    // element that had focus when the menu opened.
+                                    if let Some(target) = edit_target.as_ref() {
+                                        window.focus(target);
+                                    }
+                                    window.dispatch_action(action.boxed_clone(), cx);
+                                }
+                            },
+                        )
+                    };
+                    runtime_items.push(Some(super::menu::RuntimeItem {
+                        label: label.clone(),
+                        enabled: true,
+                        submenu: false,
+                        activate: run.clone(),
+                    }));
+                    let highlighted = keyboard && self.menu_keyboard.is_highlighted(id, index);
+                    div()
+                        .id(("menu-item", index))
+                        .flex()
+                        .items_center()
+                        .gap_2()
+                        .px_2()
+                        .py(px(6.0))
+                        .rounded(px(14.0))
+                        .cursor_default()
+                        .when(!keyboard, |item| {
+                            item.hover(move |style| style.bg(theme.accent))
+                        })
+                        .when(highlighted, |item| item.bg(theme.accent))
+                        .when(keyboard, |item| {
+                            item.on_hover(cx.listener(move |this, hovered: &bool, _, cx| {
+                                this.menu_hover(id, false, index, *hovered, cx);
+                            }))
+                        })
+                        .on_click(cx.listener(move |this, _: &ClickEvent, window, cx| {
+                            run(this, window, cx);
+                        }))
+                        .child(label)
+                        .when_some(shortcut, |item, shortcut| {
+                            item.child(
+                                div()
+                                    .ml_auto()
+                                    .tw_text_xs()
+                                    .text_color(alpha(theme.foreground, 0.6))
+                                    .child(SharedString::from(shortcut_label(shortcut))),
+                            )
+                        })
+                        .into_any_element()
+                }
+            })
+            .collect::<Vec<_>>();
+        if keyboard {
+            *self.menu_runtime.borrow_mut() = Some(super::menu::MenuRuntime {
+                id,
+                items: runtime_items,
+                sub_items: None,
+                set_sub: None,
+            });
+        }
 
         let panel = div()
             .id(id)
@@ -390,64 +490,13 @@ impl Workspace {
                 if this.edit_context_menu.take().is_some() {
                     cx.notify();
                 }
-            }))
-            .children(entries.into_iter().enumerate().map(|(index, entry)| {
-                match entry {
-                    MenuEntry::Separator => div()
-                        .mx(px(-4.0))
-                        .my_1()
-                        .h(px(1.0))
-                        .bg(theme.accent)
-                        .into_any_element(),
-                    MenuEntry::Item {
-                        label,
-                        shortcut,
-                        action,
-                        url,
-                    } => div()
-                        .id(("menu-item", index))
-                        .flex()
-                        .items_center()
-                        .gap_2()
-                        .px_2()
-                        .py(px(6.0))
-                        .rounded(px(14.0))
-                        .cursor_default()
-                        .hover(move |style| style.bg(theme.accent))
-                        .on_click({
-                            let edit_target = edit_target.clone();
-                            cx.listener(move |this, _: &ClickEvent, window, cx| {
-                                this.set_menu(None, window, cx);
-                                this.menu_edit_target = None;
-                                if this.edit_context_menu.take().is_some() {
-                                    cx.notify();
-                                }
-                                if let Some(url) = url {
-                                    crate::opener::open_url(url);
-                                }
-                                if let Some(action) = &action {
-                                    // `runEditCommand`: the item runs on the
-                                    // element that had focus when the menu opened.
-                                    if let Some(target) = edit_target.as_ref() {
-                                        window.focus(target);
-                                    }
-                                    window.dispatch_action(action.boxed_clone(), cx);
-                                }
-                            })
-                        })
-                        .child(label)
-                        .when_some(shortcut, |item, shortcut| {
-                            item.child(
-                                div()
-                                    .ml_auto()
-                                    .tw_text_xs()
-                                    .text_color(alpha(theme.foreground, 0.6))
-                                    .child(SharedString::from(shortcut_label(shortcut))),
-                            )
-                        })
-                        .into_any_element(),
-                }
             }));
+        let panel = if keyboard {
+            self.menu_keyboard_host(panel, cx)
+        } else {
+            panel
+        };
+        let panel = panel.children(items);
 
         deferred(
             anchored()

@@ -59,12 +59,11 @@ fn utf16_slice(text: &str, from: usize, to: usize) -> String {
     units = 0;
     let mut end = text.len();
     for (byte, ch) in text.char_indices() {
-        let next = units + ch.len_utf16();
-        if to <= next {
-            end = byte + ch.len_utf8();
+        if to <= units {
+            end = byte;
             break;
         }
-        units = next;
+        units += ch.len_utf16();
     }
     text[start.min(end)..end].to_string()
 }
@@ -709,7 +708,11 @@ mod tests {
         let s = schema();
         let text = Node::text(s, "a😀b", Vec::new());
         assert_eq!(text.node_size(), 4);
+        assert_eq!(text.cut(0, Some(0)).text_content(), "");
         assert_eq!(text.cut(1, Some(3)).text_content(), "😀");
+        assert_eq!(text.cut(1, Some(2)).text_content(), "😀");
+        assert_eq!(text.cut(2, Some(3)).text_content(), "😀");
+        assert_eq!(text.cut(3, None).text_content(), "b");
 
         let doc = Node::new(
             s,

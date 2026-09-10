@@ -22,6 +22,15 @@ pub trait E2eeSecretReader: Send + Sync {
     ) -> Pin<Box<dyn Future<Output = Result<Option<String>, String>> + Send + '_>>;
 }
 
+pub trait E2eeSecretWriter: E2eeSecretReader {
+    fn write(
+        &self,
+        scope: &str,
+        key: &str,
+        value: &str,
+    ) -> Pin<Box<dyn Future<Output = Result<(), String>> + Send + '_>>;
+}
+
 pub fn canonical_e2ee_account_user_id(account_user_id: &str) -> Result<String, String> {
     uuid::Uuid::parse_str(account_user_id.trim())
         .map(|id| id.to_string())
@@ -56,6 +65,40 @@ pub async fn load_e2ee_recovery_key(
     .await?
     .map(|value| anlg_e2ee::RecoveryKey::parse(&value).map_err(|error| error.to_string()))
     .transpose()
+}
+
+pub fn create_e2ee_recovery_code() -> Result<String, String> {
+    anlg_e2ee::RecoveryKey::generate()
+        .map(|key| key.expose_code().to_string())
+        .map_err(|error| error.to_string())
+}
+
+pub fn inspect_e2ee_recovery_key(code: &str) -> Result<String, String> {
+    anlg_e2ee::RecoveryKey::parse(code)
+        .map(|key| key.key_id())
+        .map_err(|error| error.to_string())
+}
+
+pub async fn import_e2ee_recovery_key(
+    secrets: &dyn E2eeSecretWriter,
+    account_user_id: &str,
+    code: &str,
+) -> Result<(), String> {
+    let key_name = e2ee_recovery_key_name(account_user_id)?;
+    if load_e2ee_recovery_key(secrets, account_user_id)
+        .await?
+        .is_some()
+    {
+        return Err("E2EE recovery key is already configured".to_string());
+    }
+    let recovery_key = anlg_e2ee::RecoveryKey::parse(code).map_err(|error| error.to_string())?;
+    secrets
+        .write(
+            E2EE_SECRET_SCOPE,
+            &key_name,
+            recovery_key.expose_code().as_str(),
+        )
+        .await
 }
 
 pub fn shared_workspace_ids(
@@ -211,5 +254,64 @@ impl<S: QueryEventSink> crate::DesktopDbRuntime<S> {
         .await;
         self.record_cloudsync_configuration_result("configure_replica", &result);
         result
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Mutex;
+
+    struct TestSecrets(Mutex<Option<String>>);
+
+    impl E2eeSecretReader for TestSecrets {
+        fn read(
+            &self,
+            _scope: &str,
+            _key: &str,
+        ) -> Pin<Box<dyn Future<Output = Result<Option<String>, String>> + Send + '_>> {
+            let value = self.0.lock().unwrap().clone();
+            Box::pin(async move { Ok(value) })
+        }
+    }
+
+    impl E2eeSecretWriter for TestSecrets {
+        fn write(
+            &self,
+            _scope: &str,
+            _key: &str,
+            value: &str,
+        ) -> Pin<Box<dyn Future<Output = Result<(), String>> + Send + '_>> {
+            *self.0.lock().unwrap() = Some(value.to_string());
+            Box::pin(async { Ok(()) })
+        }
+    }
+
+    #[test]
+    fn inspect_round_trips_generated_recovery_key() {
+        let code = create_e2ee_recovery_code().unwrap();
+        let key = anlg_e2ee::RecoveryKey::parse(&code).unwrap();
+        assert_eq!(inspect_e2ee_recovery_key(&code).unwrap(), key.key_id());
+    }
+
+    #[tokio::test]
+    async fn import_rejects_invalid_recovery_key() {
+        let secrets = TestSecrets(Mutex::new(None));
+        let error =
+            import_e2ee_recovery_key(&secrets, "00000000-0000-0000-0000-000000000000", "garbage")
+                .await
+                .unwrap_err();
+        assert!(!error.is_empty());
+    }
+
+    #[tokio::test]
+    async fn import_rejects_existing_recovery_key() {
+        let code = create_e2ee_recovery_code().unwrap();
+        let secrets = TestSecrets(Mutex::new(Some(code)));
+        let error =
+            import_e2ee_recovery_key(&secrets, "00000000-0000-0000-0000-000000000000", "garbage")
+                .await
+                .unwrap_err();
+        assert_eq!(error, "E2EE recovery key is already configured");
     }
 }

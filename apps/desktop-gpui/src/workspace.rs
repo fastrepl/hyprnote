@@ -254,6 +254,12 @@ pub struct Workspace {
     mention_organizations: Vec<crate::contacts::Organization>,
     pub(crate) auth_service: std::sync::Arc<crate::auth::Auth>,
     pub(crate) cloudsync_service: std::sync::Arc<Cloudsync<GpuiQueryEventSink>>,
+    e2ee_setup_mode: Option<settings::E2eeSetupMode>,
+    e2ee_setup_code: Option<String>,
+    e2ee_setup_input: gpui::Entity<TextInput>,
+    e2ee_setup_code_input: gpui::Entity<TextInput>,
+    e2ee_setup_pending: bool,
+    e2ee_setup_error: Option<String>,
     auth: toast::Auth,
     /// `getDismissedToasts` from `store.json`.
     dismissed_toasts: Vec<String>,
@@ -485,6 +491,42 @@ impl Workspace {
             }
         })
         .detach();
+        let e2ee_setup_input = cx.new(|cx| {
+            TextInput::new(
+                "Enter recovery key",
+                TextInputStyle {
+                    text: theme.foreground,
+                    placeholder: theme.muted_foreground,
+                    selection: theme.selection,
+                    underline_when_focused: false,
+                    masked: false,
+                },
+                window,
+                cx,
+            )
+        });
+        cx.subscribe(&e2ee_setup_input, |this, _, event: &TextInputEvent, cx| {
+            if *event == TextInputEvent::Changed {
+                this.e2ee_setup_error = None;
+                cx.notify();
+            }
+        })
+        .detach();
+        let e2ee_setup_code_input = cx.new(|cx| {
+            TextInput::new(
+                "",
+                TextInputStyle {
+                    text: theme.foreground,
+                    placeholder: theme.muted_foreground,
+                    selection: theme.selection,
+                    underline_when_focused: false,
+                    masked: false,
+                },
+                window,
+                cx,
+            )
+            .read_only()
+        });
         let store_file = StoreFile::in_vault(store.vault_base());
         let sidebar_fraction = Self::load_sidebar_fraction(&store, &store_file);
         let chat_panel_fraction = Self::load_chat_panel_fraction(&store, &store_file);
@@ -545,6 +587,12 @@ impl Workspace {
             mention_organizations: Vec::new(),
             auth_service,
             cloudsync_service,
+            e2ee_setup_mode: None,
+            e2ee_setup_code: None,
+            e2ee_setup_input,
+            e2ee_setup_code_input,
+            e2ee_setup_pending: false,
+            e2ee_setup_error: None,
             auth: toast::Auth::Loading,
             dismissed_toasts: Vec::new(),
             theme_preference: "system".to_string(),

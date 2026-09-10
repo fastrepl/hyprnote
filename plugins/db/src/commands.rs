@@ -2,9 +2,9 @@ use tauri::ipc::Channel;
 
 use crate::{ExecuteProxyResult, ManagedState, QueryEvent, TransactionStatement};
 use anlg_desktop_db_runtime::cloudsync_config::{
-    E2EE_SECRET_READ_TIMEOUT, E2EE_SECRET_SCOPE, E2eeSecretReader, canonical_e2ee_account_user_id,
-    e2ee_recovery_key_name, load_e2ee_recovery_key as load_e2ee_recovery_key_with_secrets,
-    read_e2ee_secret_with_timeout,
+    E2EE_SECRET_READ_TIMEOUT, E2EE_SECRET_SCOPE, E2eeSecretReader, E2eeSecretWriter,
+    canonical_e2ee_account_user_id, e2ee_recovery_key_name,
+    load_e2ee_recovery_key as load_e2ee_recovery_key_with_secrets, read_e2ee_secret_with_timeout,
 };
 #[cfg(test)]
 use anlg_desktop_db_runtime::cloudsync_config::{
@@ -38,6 +38,22 @@ impl<R: tauri::Runtime> E2eeSecretReader for TauriE2eeSecrets<R> {
             self.0.clone(),
             scope.to_string(),
             key.to_string(),
+        ))
+    }
+}
+
+impl<R: tauri::Runtime> E2eeSecretWriter for TauriE2eeSecrets<R> {
+    fn write(
+        &self,
+        scope: &str,
+        key: &str,
+        value: &str,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), String>> + Send + '_>> {
+        Box::pin(tauri_plugin_store2::write_secret(
+            self.0.clone(),
+            scope.to_string(),
+            key.to_string(),
+            value.to_string(),
         ))
     }
 }
@@ -240,11 +256,9 @@ pub(crate) async fn get_e2ee_identity_status<R: tauri::Runtime>(
 pub(crate) fn inspect_e2ee_recovery_key(
     recovery_key: String,
 ) -> Result<crate::E2eeRecoveryKeyIdentity, String> {
-    let recovery_key =
-        anlg_e2ee::RecoveryKey::parse(&recovery_key).map_err(|error| error.to_string())?;
-    Ok(crate::E2eeRecoveryKeyIdentity {
-        key_id: recovery_key.key_id(),
-    })
+    let key_id =
+        anlg_desktop_db_runtime::cloudsync_config::inspect_e2ee_recovery_key(&recovery_key)?;
+    Ok(crate::E2eeRecoveryKeyIdentity { key_id })
 }
 
 #[tauri::command]
@@ -261,9 +275,7 @@ pub(crate) async fn create_e2ee_identity<R: tauri::Runtime>(
         return Err("E2EE recovery key is already configured".to_string());
     }
 
-    let recovery_key = anlg_e2ee::RecoveryKey::generate().map_err(|error| error.to_string())?;
-    let recovery_code = recovery_key.expose_code();
-    Ok(recovery_code.to_string())
+    anlg_desktop_db_runtime::cloudsync_config::create_e2ee_recovery_code()
 }
 
 #[tauri::command]
@@ -273,21 +285,10 @@ pub(crate) async fn import_e2ee_identity<R: tauri::Runtime>(
     account_user_id: String,
     recovery_key: String,
 ) -> Result<(), String> {
-    let key_name = e2ee_recovery_key_name(&account_user_id)?;
-    if load_e2ee_recovery_key(app.clone(), &account_user_id)
-        .await?
-        .is_some()
-    {
-        return Err("E2EE recovery key is already configured".to_string());
-    }
-
-    let recovery_key =
-        anlg_e2ee::RecoveryKey::parse(&recovery_key).map_err(|error| error.to_string())?;
-    tauri_plugin_store2::write_secret(
-        app,
-        E2EE_SECRET_SCOPE.to_string(),
-        key_name,
-        recovery_key.expose_code().to_string(),
+    anlg_desktop_db_runtime::cloudsync_config::import_e2ee_recovery_key(
+        &TauriE2eeSecrets(app),
+        &account_user_id,
+        &recovery_key,
     )
     .await
 }

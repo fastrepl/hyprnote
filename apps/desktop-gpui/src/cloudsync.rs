@@ -7,7 +7,10 @@ use std::time::Duration;
 use anlg_desktop_db_runtime::{
     CloudsyncE2eeWitness, CloudsyncWorkspaceKeyGrant, CloudsyncWorkspaceProjection,
     CloudsyncWorkspaceProjectionEntry, DesktopDbRuntime, QueryEventSink,
-    cloudsync_config::{E2eeSecretReader, load_e2ee_recovery_key},
+    cloudsync_config::{
+        E2eeSecretReader, E2eeSecretWriter, create_e2ee_recovery_code, import_e2ee_recovery_key,
+        inspect_e2ee_recovery_key, load_e2ee_recovery_key,
+    },
 };
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
@@ -127,6 +130,12 @@ pub enum CredentialResponse {
     Replica(ReplicaCredentials),
     E2ee(E2eeCredentials),
     Legacy(LegacyCredentials),
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct E2eeIdentityResponse {
+    key_id: String,
 }
 
 impl CredentialResponse {
@@ -257,6 +266,18 @@ impl E2eeSecretReader for GpuiE2eeSecrets {
     }
 }
 
+impl E2eeSecretWriter for GpuiE2eeSecrets {
+    fn write(
+        &self,
+        scope: &str,
+        key: &str,
+        value: &str,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), String>> + Send + '_>> {
+        let result = crate::secrets::write(&self.app_id, scope, key, value);
+        Box::pin(async move { result })
+    }
+}
+
 pub struct Cloudsync<S: QueryEventSink> {
     pub runtime: Arc<DesktopDbRuntime<S>>,
     pub auth: Arc<crate::auth::Auth>,
@@ -340,6 +361,80 @@ impl<S: QueryEventSink> Cloudsync<S> {
             Some(device_name) => request.header(DEVICE_NAME_HEADER, device_name),
             None => request,
         }
+    }
+
+    pub async fn claim_e2ee_identity(&self, key_id: &str) -> anyhow::Result<()> {
+        let api_url = Self::api_url()?;
+        let session = self
+            .auth
+            .session()
+            .map_err(anyhow::Error::msg)?
+            .ok_or_else(|| anyhow!("authentication is required"))?;
+        let response = self
+            .http
+            .put(format!("{api_url}/sync/e2ee/identity"))
+            .bearer_auth(session.access_token)
+            .json(&serde_json::json!({ "keyId": key_id }))
+            .send()
+            .await?;
+        if response.status() == reqwest::StatusCode::CONFLICT {
+            anyhow::bail!(
+                "This account already uses another recovery key. Use the key from your first device."
+            );
+        }
+        if !response.status().is_success() {
+            anyhow::bail!("Could not protect this account. Try again.");
+        }
+        let identity = response
+            .json::<E2eeIdentityResponse>()
+            .await
+            .map_err(|_| anyhow!("The server returned an invalid key identity."))?;
+        if identity.key_id != key_id {
+            anyhow::bail!("The server returned an invalid key identity.");
+        }
+        Ok(())
+    }
+
+    pub async fn create_e2ee_recovery_code(&self) -> anyhow::Result<String> {
+        let session = self
+            .auth
+            .session()
+            .map_err(anyhow::Error::msg)?
+            .ok_or_else(|| anyhow!("authentication is required"))?;
+        let Some(user) = session.user.as_ref() else {
+            anyhow::bail!("authenticated session has no user");
+        };
+        let secrets = GpuiE2eeSecrets {
+            app_id: self.app_id.clone(),
+        };
+        if load_e2ee_recovery_key(&secrets, &user.id)
+            .await
+            .map_err(anyhow::Error::msg)?
+            .is_some()
+        {
+            anyhow::bail!("E2EE recovery key is already configured");
+        }
+        create_e2ee_recovery_code().map_err(anyhow::Error::msg)
+    }
+
+    pub async fn finish_e2ee_setup(self: &Arc<Self>, code: &str) -> anyhow::Result<()> {
+        let session = self
+            .auth
+            .session()
+            .map_err(anyhow::Error::msg)?
+            .ok_or_else(|| anyhow!("authentication is required"))?;
+        let Some(user) = session.user.as_ref() else {
+            anyhow::bail!("authenticated session has no user");
+        };
+        let key_id = inspect_e2ee_recovery_key(code).map_err(anyhow::Error::msg)?;
+        self.claim_e2ee_identity(&key_id).await?;
+        let secrets = GpuiE2eeSecrets {
+            app_id: self.app_id.clone(),
+        };
+        import_e2ee_recovery_key(&secrets, &user.id, code)
+            .await
+            .map_err(anyhow::Error::msg)?;
+        self.activate().await
     }
 
     pub async fn request_credentials(

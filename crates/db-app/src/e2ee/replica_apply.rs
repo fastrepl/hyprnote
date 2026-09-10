@@ -5,8 +5,8 @@ use anlg_e2ee::WorkspaceKeyring;
 use serde_json::{Value, json};
 use sqlx::{QueryBuilder, Sqlite, SqlitePool, Transaction};
 
-use super::cooperative::yield_once;
 use super::conflicts::{ConflictCopy, ConflictLoser, record_conflict};
+use super::cooperative::yield_once;
 use super::merge::merge_concurrent_field;
 use super::replica_storage::{
     E2eeParkReason, ParkedRecord, clear_stale_apply_guards, delete_row, dirty_row_edited_at_ms,
@@ -732,51 +732,47 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                     if !record_loser {
                         // Clean merge: nothing was lost.
                     } else if incoming_wins {
-                        let local_value_tag = keyring.active().value_tag(
-                            &table,
-                            &row_id,
-                            field_name,
-                            false,
-                            &current,
-                        );
+                        let local_value_tag = keyring
+                            .active()
+                            .value_tag(&table, &row_id, field_name, false, &current);
                         let recorded = field_keeps_conflict_copies(field_name)
                             && record_conflict(
-                            &mut transaction,
-                            &ConflictCopy {
-                                id: format!("{}:local:{local_value_tag}", record.record_id),
-                                workspace_id: &workspace_id,
-                                table_name: &table,
-                                row_id: &row_id,
-                                field_name,
-                                lost_side: ConflictLoser::Local,
-                                writer_id: &local_writer_id,
-                                revision: state.revision,
-                                edited_at_ms: local_edited_at_ms,
-                                value: &current,
-                            },
-                        )
-                        .await?;
+                                &mut transaction,
+                                &ConflictCopy {
+                                    id: format!("{}:local:{local_value_tag}", record.record_id),
+                                    workspace_id: &workspace_id,
+                                    table_name: &table,
+                                    row_id: &row_id,
+                                    field_name,
+                                    lost_side: ConflictLoser::Local,
+                                    writer_id: &local_writer_id,
+                                    revision: state.revision,
+                                    edited_at_ms: local_edited_at_ms,
+                                    value: &current,
+                                },
+                            )
+                            .await?;
                         rollback_if_cancelled!(transaction, is_cancelled);
                         stats.recorded_conflicts += u64::from(recorded);
                     } else {
                         let recorded = field_keeps_conflict_copies(field_name)
                             && record_conflict(
-                            &mut transaction,
-                            &ConflictCopy {
-                                id: format!("{}:{}", record.record_id, record.payload_hash),
-                                workspace_id: &workspace_id,
-                                table_name: &table,
-                                row_id: &row_id,
-                                field_name,
-                                lost_side: ConflictLoser::Remote,
-                                writer_id: &record.field.writer_id,
-                                revision: i64::try_from(record.field.revision)
-                                    .map_err(|_| E2eeReplicaError::InvalidRow)?,
-                                edited_at_ms: edited_at_ms_i64(record.field.edited_at_ms),
-                                value: &record.field.value,
-                            },
-                        )
-                        .await?;
+                                &mut transaction,
+                                &ConflictCopy {
+                                    id: format!("{}:{}", record.record_id, record.payload_hash),
+                                    workspace_id: &workspace_id,
+                                    table_name: &table,
+                                    row_id: &row_id,
+                                    field_name,
+                                    lost_side: ConflictLoser::Remote,
+                                    writer_id: &record.field.writer_id,
+                                    revision: i64::try_from(record.field.revision)
+                                        .map_err(|_| E2eeReplicaError::InvalidRow)?,
+                                    edited_at_ms: edited_at_ms_i64(record.field.edited_at_ms),
+                                    value: &record.field.value,
+                                },
+                            )
+                            .await?;
                         rollback_if_cancelled!(transaction, is_cancelled);
                         stats.recorded_conflicts += u64::from(recorded);
                         if merged_value.is_none() {
@@ -903,7 +899,12 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
 fn field_keeps_conflict_copies(field_name: &str) -> bool {
     !matches!(
         field_name,
-        "updated_at" | "created_at" | "updated_by" | "created_by" | "content_version" | "deleted_at"
+        "updated_at"
+            | "created_at"
+            | "updated_by"
+            | "created_by"
+            | "content_version"
+            | "deleted_at"
     )
 }
 

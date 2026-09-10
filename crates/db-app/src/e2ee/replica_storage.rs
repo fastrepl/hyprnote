@@ -410,7 +410,6 @@ pub(super) async fn reconcile_e2ee_witness_pending(
     Ok(())
 }
 
-
 /// The value this device holds is newer than a record that arrived with a
 /// higher revision. Keep the value and have the next encrypt round publish it
 /// above that revision, with its original edit time, so every replica lands on

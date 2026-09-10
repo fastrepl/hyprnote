@@ -67,6 +67,7 @@ mod transcript;
 mod tray;
 mod ui;
 mod unified_diff;
+mod updater;
 mod voiceprint;
 mod webkit_local_storage;
 mod window_state;
@@ -415,6 +416,7 @@ fn main() -> anyhow::Result<()> {
         db_path,
         args.identifier.clone(),
     ))?;
+    let store_file = store_file::StoreFile::in_vault(store.vault_base());
     let audio = audio::provider(&args.identifier);
     let store = Arc::new(store);
     let search = search::SearchIndex::start(&store);
@@ -453,7 +455,6 @@ fn main() -> anyhow::Result<()> {
         cx.set_global(DeepLinks {
             server: callback_server,
         });
-        let store_file = store_file::StoreFile::in_vault(store.vault_base());
         cx.set_global(tray::Tray::start(tray::TrayState {
             app_name: tray::app_name(&identifier).to_string(),
             version_label: anlg_tray_core::labels::version(APP_VERSION, tray::channel(&identifier)),

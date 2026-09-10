@@ -5,6 +5,8 @@ use std::time::{Duration, SystemTime};
 
 use anlg_deeplink_core::AuthCallbackSearch;
 use anlg_desktop_auth::{AccountInfo, Persistence, SessionManager, paths, storage_key};
+#[cfg(target_os = "linux")]
+use anlg_desktop_auth::{LinuxSecurePersistence, SecretStore};
 
 const AUTH_SCOPE: &str = "auth";
 const AUTH_KEY: &str = "supabase-storage";
@@ -104,10 +106,12 @@ impl CallbackDeduper {
     }
 }
 
+#[cfg(not(target_os = "linux"))]
 struct FilePersistence {
     path: PathBuf,
 }
 
+#[cfg(not(target_os = "linux"))]
 impl Persistence for FilePersistence {
     fn load(&self) -> anlg_desktop_auth::Result<HashMap<String, String>> {
         match std::fs::read_to_string(&self.path) {
@@ -137,9 +141,8 @@ impl Persistence for FilePersistence {
 }
 
 #[cfg(target_os = "linux")]
-struct SecretPersistence {
+struct GpuiSecretStore {
     app_id: String,
-    fallback: FilePersistence,
 }
 
 #[cfg(target_os = "windows")]
@@ -159,10 +162,8 @@ impl Persistence for WindowsPersistence {
     }
 
     fn save(&self, data: &HashMap<String, String>) -> anlg_desktop_auth::Result<()> {
-        match anlg_storage::windows_auth::persist(&self.secure_path, data) {
-            Ok(()) => self.fallback.clear(),
-            Err(_) => self.fallback.save(data),
-        }
+        anlg_storage::windows_auth::persist(&self.secure_path, data)
+            .map_err(|error| anlg_desktop_auth::Error::Persistence(error.to_string()))
     }
 
     fn clear(&self) -> anlg_desktop_auth::Result<()> {
@@ -177,65 +178,63 @@ impl Persistence for WindowsPersistence {
 }
 
 #[cfg(target_os = "linux")]
-impl Persistence for SecretPersistence {
-    fn load(&self) -> anlg_desktop_auth::Result<HashMap<String, String>> {
-        match crate::secrets::read(&self.app_id, AUTH_SCOPE, AUTH_KEY) {
-            Ok(Some(value)) => Ok(serde_json::from_str(&value).unwrap_or_default()),
-            Ok(None) | Err(_) => self.fallback.load(),
-        }
+impl SecretStore for GpuiSecretStore {
+    fn read(&self) -> std::result::Result<Option<String>, String> {
+        crate::secrets::read(&self.app_id, AUTH_SCOPE, AUTH_KEY)
     }
 
-    fn save(&self, data: &HashMap<String, String>) -> anlg_desktop_auth::Result<()> {
-        let value = serde_json::to_string(data)?;
-        if crate::secrets::write(&self.app_id, AUTH_SCOPE, AUTH_KEY, &value).is_err() {
-            self.fallback.save(data)
-        } else {
-            Ok(())
-        }
+    fn write(&self, value: &str) -> std::result::Result<(), String> {
+        crate::secrets::write(&self.app_id, AUTH_SCOPE, AUTH_KEY, value)
     }
 
-    fn clear(&self) -> anlg_desktop_auth::Result<()> {
-        let secure_result = crate::secrets::delete(&self.app_id, AUTH_SCOPE, AUTH_KEY);
-        let fallback_result = self.fallback.clear().map_err(|error| error.to_string());
-        match (secure_result, fallback_result) {
-            (Err(error), _) => Err(anlg_desktop_auth::Error::Persistence(error)),
-            (Ok(()), Err(error)) => Err(anlg_desktop_auth::Error::Persistence(error)),
-            (Ok(()), Ok(())) => Ok(()),
-        }
+    fn delete(&self) -> std::result::Result<(), String> {
+        crate::secrets::delete(&self.app_id, AUTH_SCOPE, AUTH_KEY)
     }
 }
 
-fn persistence(identifier: &str) -> Box<dyn Persistence> {
-    let new_base = anlg_storage::global::compute_default_base(identifier).unwrap_or_else(|| {
-        dirs::data_dir()
-            .unwrap_or_else(|| Path::new(".").to_path_buf())
-            .join(identifier)
-    });
-    let data_dir = dirs::data_dir().unwrap_or_else(|| Path::new(".").to_path_buf());
-    let new_path = new_base.join(paths::FILENAME);
-    let legacy_path = data_dir.join("anarlog").join(paths::FILENAME);
-    let path = paths::resolve_auth_path_from_paths(&legacy_path, &legacy_path, &new_path);
-    #[cfg(target_os = "linux")]
-    {
-        let _ = path;
-        Box::new(SecretPersistence {
+#[cfg(target_os = "linux")]
+fn linux_persistence(identifier: &str, path: PathBuf) -> LinuxSecurePersistence {
+    LinuxSecurePersistence::new(
+        Box::new(GpuiSecretStore {
             app_id: identifier.to_string(),
-            fallback: FilePersistence { path },
-        })
-    }
-    #[cfg(not(target_os = "linux"))]
+        }),
+        path,
+    )
+}
+
+#[cfg(target_os = "linux")]
+fn persistence(identifier: &str) -> Box<dyn Persistence> {
+    let data_dir = dirs::data_dir().unwrap_or_else(|| Path::new(".").to_path_buf());
+    let local_dir = dirs::data_local_dir().unwrap_or_else(|| data_dir.clone());
+    let new_path = local_dir.join(identifier).join(paths::FILENAME);
+    let legacy_base = anlg_storage::global::compute_default_base(identifier)
+        .unwrap_or_else(|| data_dir.join(identifier));
+    let legacy_path = legacy_base.join(paths::FILENAME);
+    let store_path = legacy_base.join("store.json");
+    let path = paths::resolve_auth_path_from_paths(&legacy_path, &store_path, &new_path);
+    Box::new(linux_persistence(identifier, path))
+}
+
+#[cfg(not(target_os = "linux"))]
+fn persistence(identifier: &str) -> Box<dyn Persistence> {
+    let data_dir = dirs::data_dir().unwrap_or_else(|| Path::new(".").to_path_buf());
+    let local_dir = dirs::data_local_dir().unwrap_or_else(|| data_dir.clone());
+    let new_path = local_dir.join(identifier).join(paths::FILENAME);
+    let legacy_base = anlg_storage::global::compute_default_base(identifier)
+        .unwrap_or_else(|| data_dir.join(identifier));
+    let legacy_path = legacy_base.join(paths::FILENAME);
+    let store_path = legacy_base.join("store.json");
+    let path = paths::resolve_auth_path_from_paths(&legacy_path, &store_path, &new_path);
+    #[cfg(target_os = "windows")]
     {
-        #[cfg(target_os = "windows")]
-        {
-            return Box::new(WindowsPersistence {
-                secure_path: anlg_storage::windows_auth::secure_path(&path),
-                fallback: FilePersistence { path },
-            });
-        }
-        #[cfg(not(target_os = "windows"))]
-        {
-            Box::new(FilePersistence { path })
-        }
+        return Box::new(WindowsPersistence {
+            secure_path: anlg_storage::windows_auth::secure_path(&path),
+            fallback: FilePersistence { path },
+        });
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        Box::new(FilePersistence { path })
     }
 }
 

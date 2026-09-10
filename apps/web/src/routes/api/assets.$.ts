@@ -3,6 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 const PUBLIC_IMAGES_BASE_URL =
   "https://auth.hyprnote.com/storage/v1/object/public/public_images";
 
+const BLOG_BUCKET_PUBLIC_URL =
+  "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/blog";
+
 const SAFE_SEGMENT = /^[A-Za-z0-9._+\- ]+$/;
 
 const DEFAULT_CACHE_CONTROL = "public, max-age=31536000, immutable";
@@ -58,7 +61,7 @@ function getPublicImagesUrl(segments: string[]) {
 export const Route = createFileRoute("/api/assets/$")({
   server: {
     handlers: {
-      GET: async ({ params, request }) => {
+      GET: async ({ params }) => {
         const sanitizedPath = sanitizePath(params._splat);
 
         if (!sanitizedPath) {
@@ -74,8 +77,7 @@ export const Route = createFileRoute("/api/assets/$")({
           }
 
           const location = new URL(
-            `/images/blog/${encodePath(pathSegments)}`,
-            request.url,
+            `${BLOG_BUCKET_PUBLIC_URL}/${encodePath(pathSegments)}`,
           );
           return Response.redirect(location, 301);
         }

@@ -1,12 +1,10 @@
 #!/usr/bin/env node
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
-import { basename, dirname, extname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { createClient } from "@supabase/supabase-js";
+import { readFile } from "node:fs/promises";
+import { basename, extname } from "node:path";
 
 const NAPKIN_API_BASE = "https://api.napkin.ai";
-const scriptDir = dirname(fileURLToPath(import.meta.url));
-const webDir = resolve(scriptDir, "..");
-const PUBLIC_BLOG_DIR = resolve(webDir, "public/images/blog");
+const BLOG_BUCKET = "blog";
 const DEFAULT_STYLE_ID = "CDQPRVVJCSTPRBBCD5Q6AWSDE8S0";
 const DEFAULT_LANGUAGE = "en-US";
 const DEFAULT_POLL_INTERVAL_MS = 5000;
@@ -49,14 +47,14 @@ function parseArgs(argv) {
 
 function usage() {
   return `Usage:
-  pnpm --dir apps/web exec node scripts/napkin-to-public.mjs \\
+  pnpm --dir apps/web exec node scripts/napkin-to-supabase.mjs \\
     --slug meeting-minutes-software \\
     --filename meeting-minutes-workflow.png \\
     --content-file /tmp/figure-prompt.txt \\
     --context "Anarlog blog figure for private, bot-free meeting notes"
 
 Required:
-  --slug           Blog article slug. Writes to public/images/blog/articles/<slug>/<filename>.
+  --slug           Blog article slug. Uploads to articles/<slug>/<filename> in the Supabase "blog" bucket.
   --filename       Output filename. Extension should match --format.
   --content        Text to visualize, or use --content-file.
   --content-file   File containing text to visualize.
@@ -72,11 +70,13 @@ Useful options:
   --language en-US                  Defaults to en-US.
   --number-of-visuals 1             1-4. Defaults to 1.
   --file-index 0                    Which generated file to upload. Defaults to 0.
-  --upsert                          Replace an existing local asset.
+  --upsert                          Replace existing Supabase object.
   --dry-run                         Create/download nothing; print request and target.
 
 Environment:
   NAPKIN_API_TOKEN
+  SUPABASE_URL
+  SUPABASE_SERVICE_ROLE_KEY
 `;
 }
 
@@ -209,6 +209,48 @@ async function downloadGeneratedFile(file) {
   };
 }
 
+function getSupabaseClient() {
+  return createClient(
+    requireEnv("SUPABASE_URL"),
+    requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    },
+  );
+}
+
+async function uploadToSupabase({ storagePath, bytes, contentType, upsert }) {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.storage
+    .from(BLOG_BUCKET)
+    .upload(storagePath, bytes, {
+      cacheControl: "31536000",
+      contentType,
+      upsert,
+    });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from(BLOG_BUCKET).getPublicUrl(storagePath);
+  return data.publicUrl;
+}
+
+async function checkExistingObject(storagePath) {
+  const supabase = getSupabaseClient();
+  const [dir, filename] = [
+    storagePath.split("/").slice(0, -1).join("/"),
+    storagePath.split("/").at(-1),
+  ];
+  const { data, error } = await supabase.storage.from(BLOG_BUCKET).list(dir, {
+    search: filename,
+  });
+  if (error) throw error;
+  return data.some((entry) => entry.name === filename);
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
@@ -247,10 +289,9 @@ async function main() {
   if (args.transparentBackground) request.transparent_background = true;
   if (args.colorMode) request.color_mode = String(args.colorMode);
 
-  const outputPath = resolve(PUBLIC_BLOG_DIR, storagePath);
   const target = {
-    outputPath,
-    mediaUrl: `/images/blog/${storagePath}`,
+    bucket: BLOG_BUCKET,
+    storagePath,
     format,
     contentType: MIME_BY_FORMAT[format],
     upsert: Boolean(args.upsert),
@@ -262,13 +303,11 @@ async function main() {
   }
 
   if (!args.upsert) {
-    try {
-      await access(outputPath);
+    const exists = await checkExistingObject(storagePath);
+    if (exists) {
       throw new Error(
-        `Asset already exists: ${outputPath}. Use --upsert to replace it.`,
+        `Asset already exists: ${storagePath}. Use --upsert to replace it.`,
       );
-    } catch (error) {
-      if (error.code !== "ENOENT") throw error;
     }
   }
 
@@ -285,16 +324,20 @@ async function main() {
 
   const downloaded = await downloadGeneratedFile(files[fileIndex]);
   const contentType = downloaded.contentType || MIME_BY_FORMAT[format];
-  await mkdir(dirname(outputPath), { recursive: true });
-  await writeFile(outputPath, downloaded.bytes);
+  const publicUrl = await uploadToSupabase({
+    storagePath,
+    bytes: downloaded.bytes,
+    contentType,
+    upsert: Boolean(args.upsert),
+  });
 
   console.log(
     JSON.stringify(
       {
         napkinRequestId: created.id,
         selectedFile: files[fileIndex],
-        outputPath,
-        mediaUrl: `/images/blog/${storagePath}`,
+        storagePath,
+        mediaUrl: publicUrl,
         bytes: downloaded.bytes.length,
         contentType,
       },

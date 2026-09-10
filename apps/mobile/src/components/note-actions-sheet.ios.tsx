@@ -34,6 +34,7 @@ export function NoteActionsSheet({
   onImportRecording,
   onSelectFolder,
   onToggleListening,
+  onVersionHistory,
   visible,
 }: NoteActionsSheetProps) {
   const Colors = useColors();
@@ -42,6 +43,11 @@ export function NoteActionsSheet({
   const actions = [
     { label: "Folder", icon: "folder", onPress: onSelectFolder },
     { label: "Export", icon: "square.and.arrow.up", onPress: onExport },
+    {
+      label: "Version history",
+      icon: "clock.arrow.circlepath",
+      onPress: onVersionHistory,
+    },
     ...(!listening && !hasRecordingHistory
       ? [
           {

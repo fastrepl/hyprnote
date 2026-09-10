@@ -26,14 +26,17 @@ import { FolderPickerSheet } from "@/components/folder-picker-sheet";
 import { ListeningSheet } from "@/components/listening-sheet";
 import { NoteActionsSheet } from "@/components/note-actions-sheet";
 import { NoteAttachmentCard } from "@/components/note-attachment-card";
+import { NoteConflictBanner } from "@/components/note-conflict-banner";
 import { RecordingSyncCard } from "@/components/recording-sync-card";
 import { RemoteAudioCard } from "@/components/remote-audio-card";
 import { SessionTranscript } from "@/components/session-transcript";
 import { StartListeningButton } from "@/components/start-listening-button";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
+import { VersionHistorySheet } from "@/components/version-history-sheet";
 import { Spacing, Typography } from "@/constants/theme";
 import { useSessionAudio } from "@/data/audio-catalog";
+import type { RestoredNote } from "@/data/conflicts";
 import { importRecordingIntoSession } from "@/data/import-voice-memo";
 import {
   type NoteAttachment,
@@ -276,6 +279,13 @@ export default function NoteScreen() {
   const [editorFocused, setEditorFocused] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [foldersOpen, setFoldersOpen] = useState(false);
+  const [versionsOpen, setVersionsOpen] = useState(false);
+  // A restore writes the note behind the uncontrolled inputs, so they are
+  // remounted with what was just written instead of waiting for the live
+  // query. A title-only restore leaves the body editor alone.
+  const [restored, setRestored] = useState<
+    (RestoredNote & { titleToken: number; bodyToken: number }) | null
+  >(null);
   const keyboardVisible = useKeyboardVisible();
   const recorder = useSessionRecorder(id, listening);
   const [audioRestoreError, setAudioRestoreError] = useState<string | null>(
@@ -408,6 +418,21 @@ export default function NoteScreen() {
         if (throwOnError) throw error;
       });
     }
+  };
+
+  const handleRestored = (note: RestoredNote) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    draftRef.current = {};
+    savedTitleRef.current = note.title;
+    setRestored((current) => ({
+      ...note,
+      titleToken: (current?.titleToken ?? 0) + 1,
+      bodyToken:
+        (current?.bodyToken ?? 0) + (note.bodyText === null ? 0 : 1),
+    }));
   };
 
   useMountEffect(() => {
@@ -755,10 +780,10 @@ export default function NoteScreen() {
         />
         {!isLoading && data ? (
           <TextInput
-            key={data.id}
+            key={`${data.id}:${restored?.titleToken ?? 0}`}
             accessibilityLabel="Note title"
             style={styles.title}
-            defaultValue={data.title}
+            defaultValue={restored?.title ?? data.title}
             placeholder="Untitled"
             placeholderTextColor={Colors.muted}
             returnKeyType="done"
@@ -1026,10 +1051,16 @@ export default function NoteScreen() {
                 </Text>
               </View>
             )}
+            <NoteConflictBanner
+              sessionId={id}
+              onBeforeRestore={flush}
+              onRestored={handleRestored}
+            />
             <BodyEditor
+              key={`${data.id}:${restored?.bodyToken ?? 0}`}
               accessoryId={`note-editor-controls-${data.id}`}
-              defaultBodyFormat={data.bodyFormat}
-              defaultValue={data.noteText}
+              defaultBodyFormat={restored?.bodyFormat ?? data.bodyFormat}
+              defaultValue={restored?.bodyText ?? data.noteText}
               editable={data.plainEditable}
               onAttach={handleAttachFile}
               onChangeText={(body, bodyFormat) => onEdit({ body, bodyFormat })}
@@ -1053,6 +1084,7 @@ export default function NoteScreen() {
         onSelectFolder={() => setFoldersOpen(true)}
         onImportRecording={() => void handleImportRecording()}
         onToggleListening={handleListeningAction}
+        onVersionHistory={() => setVersionsOpen(true)}
         visible={actionsOpen}
       />
 
@@ -1060,6 +1092,14 @@ export default function NoteScreen() {
         sessionId={id}
         visible={foldersOpen}
         onClose={() => setFoldersOpen(false)}
+      />
+
+      <VersionHistorySheet
+        sessionId={id}
+        visible={versionsOpen}
+        onBeforeRestore={flush}
+        onClose={() => setVersionsOpen(false)}
+        onRestored={handleRestored}
       />
 
       {active && !keyboardVisible && (

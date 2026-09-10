@@ -49,7 +49,7 @@ enum Delivery {
 pub(crate) enum Classified {
     DeepLink(DeepLink),
     ShareOpen(ShareOpenRequest),
-    Invalid,
+    Invalid(anlg_deeplink_core::Error),
 }
 
 pub(crate) fn classify(url: &str) -> Classified {
@@ -60,7 +60,7 @@ pub(crate) fn classify(url: &str) -> Classified {
         Ok(anlg_deeplink_core::IncomingDeepLink::ShareOpen(request)) => {
             Classified::ShareOpen(request)
         }
-        Err(_) => Classified::Invalid,
+        Err(error) => Classified::Invalid(error),
     }
 }
 
@@ -106,10 +106,8 @@ fn process_url<R: Runtime>(app_handle: &AppHandle<R>, url: &url::Url, delivery: 
                 }
             }
         }
-        Classified::Invalid => {
-            if let Err(error) = anlg_deeplink_core::IncomingDeepLink::from_str(url_str) {
-                tracing::debug!(?error, url = %redacted, "deeplink_parse_failed");
-            }
+        Classified::Invalid(error) => {
+            tracing::debug!(?error, url = %redacted, "deeplink_parse_failed");
         }
     }
 }
@@ -218,7 +216,7 @@ mod contract_tests {
                         case.name
                     );
                 }
-                (Classified::Invalid, "invalid") => {}
+                (Classified::Invalid(_), "invalid") => {}
                 (classified, expected) => {
                     panic!("{}: expected {expected}, got {classified:?}", case.name)
                 }

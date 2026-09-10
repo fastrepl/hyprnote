@@ -4,6 +4,7 @@
 //! and maintain the same index the same way.
 
 mod collections;
+pub mod contract;
 mod error;
 pub mod query;
 pub mod schema;

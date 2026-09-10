@@ -6,6 +6,7 @@ edition = "2024"
 [features]
 default = []
 specta = ["dep:specta"]
+contract-fixtures = []
 
 [dependencies]
 anlg-language = { workspace = true, features = ["detect"] }

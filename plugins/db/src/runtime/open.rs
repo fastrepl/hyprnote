@@ -85,6 +85,9 @@ pub(super) async fn open_app_db_without_cloudsync(
     Ok(db)
 }
 
+// App triggers may read the cloudsync_workspace_binding setting; only the
+// extension's own triggers, which reference cloudsync_ tables, mean the
+// database was initialized for sqlite-sync.
 pub(super) async fn database_uses_cloudsync_schema(
     db: &Db,
 ) -> std::result::Result<bool, sqlx::Error> {
@@ -93,7 +96,13 @@ pub(super) async fn database_uses_cloudsync_schema(
             SELECT 1
             FROM sqlite_master
             WHERE (type = 'table' AND name = 'cloudsync_table_settings')
-               OR (type = 'trigger' AND instr(lower(COALESCE(sql, '')), 'cloudsync_') > 0)
+               OR (
+                 type = 'trigger'
+                 AND instr(
+                   replace(lower(COALESCE(sql, '')), 'cloudsync_workspace_binding', ''),
+                   'cloudsync_'
+                 ) > 0
+               )
         )",
     )
     .fetch_one(db.pool())

@@ -652,11 +652,12 @@ async fn e2ee_dirty_rows_migration_seeds_existing_domain_rows_and_tombstones() {
     .await
     .unwrap();
 
-    // Only the domain tables that predate the dirty-rows migration were backfilled.
+    // Only the domain tables that exist before the dirty-rows migration can be
+    // seeded here; later tables are backfilled by their own trigger migrations.
     let backfilled_tables: Vec<&str> = E2EE_DOMAIN_TABLES
         .iter()
         .copied()
-        .filter(|table_name| *table_name != "synced_preferences")
+        .filter(|table_name| !matches!(*table_name, "synced_preferences" | "folders"))
         .collect();
     for table_name in &backfilled_tables {
         let insert_sql = format!(
@@ -1021,10 +1022,11 @@ async fn e2ee_dirty_triggers_apply_to_initialized_cloudsync_tables() {
     )
     .await
     .unwrap();
-    // synced_preferences does not exist yet at this point in the migration history.
+    // Tables created after this point in the migration history cannot be
+    // initialized here; their migrations run below.
     for table_name in E2EE_DOMAIN_TABLES
         .iter()
-        .filter(|table_name| **table_name != "synced_preferences")
+        .filter(|table_name| !matches!(**table_name, "synced_preferences" | "folders"))
     {
         db.cloudsync_init(table_name, None, None).await.unwrap();
     }

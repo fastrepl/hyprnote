@@ -47,4 +47,5 @@ mod revision_conflicts;
 mod roundtrip;
 mod session_deletion;
 mod snapshots;
+mod synced_tables;
 mod witness_queue;

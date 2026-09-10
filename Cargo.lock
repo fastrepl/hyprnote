@@ -5506,6 +5506,7 @@ dependencies = [
  "wiremock",
 ]
 
+[[package]]
 name = "desktop-gpui"
 version = "0.0.0"
 dependencies = [
@@ -5522,6 +5523,7 @@ dependencies = [
  "db-core",
  "deeplink-core",
  "desktop-auth",
+ "desktop-db-runtime",
  "detect",
  "dirs 6.0.0",
  "export-core",
@@ -5529,6 +5531,7 @@ dependencies = [
  "futures-util",
  "gpui",
  "gtk",
+ "host",
  "hound",
  "html5ever 0.29.1",
  "iana-time-zone",
@@ -5558,6 +5561,7 @@ dependencies = [
  "sqlx",
  "storage",
  "supabase-auth",
+ "sysinfo 0.38.4",
  "tempfile",
  "template-app",
  "template-app-legacy",
@@ -19000,7 +19004,6 @@ dependencies = [
 name = "tauri-plugin-auth"
 version = "0.1.0"
 dependencies = [
- "desktop-auth",
  "desktop-auth",
  "serde",
  "serde_json",

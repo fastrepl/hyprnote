@@ -17,9 +17,13 @@ impl Workspace {
             DeepLink::OnboardingDemoComplete(_) => self.stop_active_welcome_demo(cx),
             DeepLink::AuthCallback(search) => {
                 let auth = self.auth_service.clone();
+                let cloudsync = self.cloudsync_service.clone();
                 cx.spawn(
                     async move |this, cx| match auth.handle_callback(search).await {
                         Ok(()) => {
+                            if let Err(error) = cloudsync.activate().await {
+                                tracing::warn!(%error, "failed to activate CloudSync after sign-in");
+                            }
                             this.update(cx, |this, cx| {
                                 this.auth = super::toast::Auth::SignedIn;
                                 this.instruction = None;

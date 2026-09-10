@@ -16,6 +16,7 @@ mod capture_marker;
 mod chat;
 mod chat_panel_layout;
 mod chat_tools;
+mod cloudsync;
 mod contact_summary;
 mod contacts;
 mod cuelume;

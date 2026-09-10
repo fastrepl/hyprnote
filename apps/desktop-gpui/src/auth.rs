@@ -7,6 +7,7 @@ use anlg_deeplink_core::AuthCallbackSearch;
 use anlg_desktop_auth::{AccountInfo, Persistence, SessionManager, paths, storage_key};
 #[cfg(target_os = "linux")]
 use anlg_desktop_auth::{LinuxSecurePersistence, SecretStore};
+use anlg_supabase_auth::session::Session;
 
 const AUTH_SCOPE: &str = "auth";
 const AUTH_KEY: &str = "supabase-storage";
@@ -38,6 +39,10 @@ impl Auth {
 
     pub fn account_info(&self) -> Option<AccountInfo> {
         self.session.account_info().ok().flatten()
+    }
+
+    pub fn session(&self) -> Result<Option<Session>, String> {
+        self.session.session().map_err(|error| error.to_string())
     }
 
     pub fn sign_out(&self) {

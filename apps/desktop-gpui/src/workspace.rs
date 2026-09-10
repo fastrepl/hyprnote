@@ -68,7 +68,8 @@ use gpui::{
 };
 
 use crate::actions;
-use crate::db::{NotePreview, ProviderSettings, Store};
+use crate::cloudsync::Cloudsync;
+use crate::db::{GpuiQueryEventSink, NotePreview, ProviderSettings, Store};
 use crate::editor::{BodyEditor, EditorEvent};
 use crate::store_file::StoreFile;
 use crate::text_input::{TextInput, TextInputEvent, TextInputStyle};
@@ -251,6 +252,14 @@ pub struct Workspace {
     chat_sent_history: Vec<crate::text_area::Draft>,
     mention_humans: Vec<crate::contacts::Human>,
     mention_organizations: Vec<crate::contacts::Organization>,
+    pub(crate) auth_service: std::sync::Arc<crate::auth::Auth>,
+    pub(crate) cloudsync_service: std::sync::Arc<Cloudsync<GpuiQueryEventSink>>,
+    e2ee_setup_mode: Option<settings::E2eeSetupMode>,
+    e2ee_setup_code: Option<String>,
+    e2ee_setup_input: gpui::Entity<TextInput>,
+    e2ee_setup_code_input: gpui::Entity<TextInput>,
+    e2ee_setup_pending: bool,
+    e2ee_setup_error: Option<String>,
     auth: toast::Auth,
     /// `getDismissedToasts` from `store.json`.
     dismissed_toasts: Vec<String>,
@@ -443,6 +452,13 @@ impl Workspace {
         cx: &mut Context<Self>,
     ) -> Self {
         let font_family = crate::theme::ui_font_family(cx.text_system()).map(SharedString::from);
+        let auth_service = std::sync::Arc::new(crate::auth::Auth::new(store.identifier()));
+        let cloudsync_service = std::sync::Arc::new(Cloudsync::new(
+            store.db_runtime().clone(),
+            auth_service.clone(),
+            store.runtime().clone(),
+            store.identifier(),
+        ));
         crate::ui::set_ui_font(font_family.clone());
         let mono_font_family =
             crate::theme::mono_font_family(cx.text_system()).map(SharedString::from);
@@ -475,6 +491,42 @@ impl Workspace {
             }
         })
         .detach();
+        let e2ee_setup_input = cx.new(|cx| {
+            TextInput::new(
+                "Enter recovery key",
+                TextInputStyle {
+                    text: theme.foreground,
+                    placeholder: theme.muted_foreground,
+                    selection: theme.selection,
+                    underline_when_focused: false,
+                    masked: false,
+                },
+                window,
+                cx,
+            )
+        });
+        cx.subscribe(&e2ee_setup_input, |this, _, event: &TextInputEvent, cx| {
+            if *event == TextInputEvent::Changed {
+                this.e2ee_setup_error = None;
+                cx.notify();
+            }
+        })
+        .detach();
+        let e2ee_setup_code_input = cx.new(|cx| {
+            TextInput::new(
+                "",
+                TextInputStyle {
+                    text: theme.foreground,
+                    placeholder: theme.muted_foreground,
+                    selection: theme.selection,
+                    underline_when_focused: false,
+                    masked: false,
+                },
+                window,
+                cx,
+            )
+            .read_only()
+        });
         let store_file = StoreFile::in_vault(store.vault_base());
         let sidebar_fraction = Self::load_sidebar_fraction(&store, &store_file);
         let chat_panel_fraction = Self::load_chat_panel_fraction(&store, &store_file);
@@ -533,6 +585,14 @@ impl Workspace {
             chat_sent_history: Vec::new(),
             mention_humans: Vec::new(),
             mention_organizations: Vec::new(),
+            auth_service,
+            cloudsync_service,
+            e2ee_setup_mode: None,
+            e2ee_setup_code: None,
+            e2ee_setup_input,
+            e2ee_setup_code_input,
+            e2ee_setup_pending: false,
+            e2ee_setup_error: None,
             auth: toast::Auth::Loading,
             dismissed_toasts: Vec::new(),
             theme_preference: "system".to_string(),
@@ -628,6 +688,32 @@ impl Workspace {
         this.reload_sessions(cx);
         this.reload_settings(cx);
         this.watch_changes(cx);
+        let auth_service = this.auth_service.clone();
+        let cloudsync_service = this.cloudsync_service.clone();
+        let store = this.store.clone();
+        cx.spawn(async move |_this, _cx| {
+            loop {
+                auth_service.refresh().await;
+                let enabled = store
+                    .load_provider_settings()
+                    .await
+                    .ok()
+                    .and_then(|settings| settings.ok())
+                    .map(|settings| {
+                        settings.bool_setting(
+                            "cloud_sync_enabled",
+                            &["general", "cloud_sync_enabled"],
+                            true,
+                        )
+                    })
+                    .unwrap_or(true);
+                if let Err(error) = cloudsync_service.activate_with_enabled(enabled).await {
+                    tracing::warn!(%error, "failed to activate CloudSync");
+                }
+                tokio::time::sleep(std::time::Duration::from_secs(300)).await;
+            }
+        })
+        .detach();
         this.observe_window_activity(window, cx);
         match mode {
             Mode::Main => {

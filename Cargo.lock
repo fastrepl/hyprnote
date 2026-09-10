@@ -7377,9 +7377,9 @@ dependencies = [
 
 [[package]]
 name = "glib"
-version = "0.20.0"
+version = "0.20.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fee90a615ce05be7a32932cfb8adf2c4bbb4700e80d37713c981fb24c0c56238"
+checksum = "ffc4b6e352d4716d84d7dde562dd9aee2a7d48beb872dd9ece7f2d1515b2d683"
 dependencies = [
  "bitflags 2.11.1",
  "futures-channel",
@@ -7394,7 +7394,6 @@ dependencies = [
  "libc",
  "memchr",
  "smallvec 1.15.1",
- "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -10562,7 +10561,7 @@ version = "0.1.0"
 dependencies = [
  "gdk",
  "gdk-pixbuf",
- "glib 0.20.0",
+ "glib 0.20.12",
  "gtk",
  "indexmap 2.14.0",
  "notification-interface",

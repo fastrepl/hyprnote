@@ -34,6 +34,14 @@ pub async fn run(mut args: Args) -> Result<u8> {
         cli::Command::Auth { .. } => unreachable!("auth returns before opening the database"),
         cli::Command::Doctor => unreachable!("doctor returns before opening the database"),
         cli::Command::Meetings { source, command } => {
+            if matches!(&command, cli::MeetingCommand::PilotUsage { .. })
+                && !matches!(source, cli::MeetingSource::Local)
+            {
+                return Err(Error::operation(
+                    "read pilot capture usage",
+                    "explicit local source required",
+                ));
+            }
             if let cli::MeetingCommand::Delete {
                 id,
                 if_export_sha256,
@@ -62,7 +70,7 @@ pub async fn run(mut args: Args) -> Result<u8> {
             if matches!(&command, cli::MeetingCommand::Capabilities) {
                 output::emit(&output::json(
                     "meetings.capabilities",
-                    &serde_json::json!({"recorder_version":VERSION,"managed_initialization":1,"managed_settings":1,"intelligence_disabled":true,"conditional_delete":1,"attachment_export":1,"calendar_identity_export":1,"capture_completion":1}),
+                    &serde_json::json!({"recorder_version":VERSION,"managed_initialization":1,"managed_settings":1,"intelligence_disabled":true,"conditional_delete":1,"attachment_export":1,"calendar_identity_export":1,"hold_inventory_export":1,"hold_orphan_inventory":1,"hold_filesystem_inventory":1,"hold_resumable_filesystem_inventory":1,"capture_completion":1,"pilot_usage":1}),
                     None,
                 )?);
                 return Ok(0);

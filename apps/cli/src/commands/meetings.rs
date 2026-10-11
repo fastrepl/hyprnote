@@ -93,6 +93,26 @@ impl DataSource {
 
 pub async fn run(source: &DataSource, command: MeetingCommand, json: bool) -> Result<()> {
     match command {
+        MeetingCommand::PilotUsage { from_ms, until_ms } => match source {
+            DataSource::Local(db) if json => super::meeting_pilot::run(db, from_ms, until_ms).await,
+            _ => Err(local_only("JSON meetings pilot-usage")),
+        },
+        MeetingCommand::HoldList {
+            after,
+            limit,
+            database_only,
+        } => match source {
+            DataSource::Local(db) if json => {
+                super::meeting_hold::list(db, &after, limit, database_only).await
+            }
+            _ => Err(local_only("JSON meetings hold-list")),
+        },
+        MeetingCommand::HoldExport { id, database_only } => match source {
+            DataSource::Local(db) if json => {
+                super::meeting_hold::export(db, &id, database_only).await
+            }
+            _ => Err(local_only("JSON meetings hold-export")),
+        },
         MeetingCommand::Delete { .. }
         | MeetingCommand::Capabilities
         | MeetingCommand::InitializeManaged => {

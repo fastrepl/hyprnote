@@ -173,6 +173,7 @@ export function isPreviousCallOnMic({
         return (
           startMs !== undefined &&
           endMs !== undefined &&
+          startMs <= meetingStartMs - PREVIOUS_CALL_MIN_HOLD_MS &&
           startMs - EARLY_JOIN_MS <= heldSinceMs &&
           heldSinceMs < endMs
         );

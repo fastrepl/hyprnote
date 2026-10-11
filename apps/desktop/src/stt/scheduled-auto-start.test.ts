@@ -745,20 +745,35 @@ describe("isPreviousCallOnMic", () => {
       earlierEndMs: NOW,
       expected: false,
     },
-  ])("$name", ({ heldSinceMs, earlierEndMs, expected }) => {
-    const next = meeting("next", 0);
-    const earlier = meeting("earlier", -30 * 60_000, {
-      ended_at: new Date(earlierEndMs).toISOString(),
-    });
+    {
+      name: "starts an early join made before a meeting that began just ahead of it",
+      heldSinceMs: NOW - 10 * 60_000,
+      earlierStartMs: NOW - 5 * 60_000,
+      earlierEndMs: NOW + 25 * 60_000,
+      expected: false,
+    },
+  ])(
+    "$name",
+    ({
+      heldSinceMs,
+      earlierStartMs = NOW - 30 * 60_000,
+      earlierEndMs,
+      expected,
+    }) => {
+      const next = meeting("next", 0);
+      const earlier = meeting("earlier", earlierStartMs - NOW, {
+        ended_at: new Date(earlierEndMs).toISOString(),
+      });
 
-    expect(
-      isPreviousCallOnMic({
-        holds: new Map([["com.microsoft.teams2", heldSinceMs]]),
-        meeting: next,
-        rows: [earlier, next],
-      }),
-    ).toBe(expected);
-  });
+      expect(
+        isPreviousCallOnMic({
+          holds: new Map([["com.microsoft.teams2", heldSinceMs]]),
+          meeting: next,
+          rows: [earlier, next],
+        }),
+      ).toBe(expected);
+    },
+  );
 });
 
 describe("getScheduledAutoStartAction", () => {

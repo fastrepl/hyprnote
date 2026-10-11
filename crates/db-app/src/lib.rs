@@ -20,6 +20,7 @@ mod session_lifecycle_ops;
 mod session_move_ops;
 mod session_ops;
 mod session_participant_ops;
+mod session_purge;
 mod session_review_ops;
 mod session_transcript_ops;
 mod session_types;
@@ -52,6 +53,7 @@ pub use session_lifecycle_ops::*;
 pub use session_move_ops::*;
 pub use session_ops::*;
 pub use session_participant_ops::*;
+pub use session_purge::*;
 pub use session_review_ops::*;
 pub use session_transcript_ops::*;
 pub use session_types::*;
@@ -597,6 +599,11 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         id: "20261011120000_managed_app_settings",
         scope: anlg_db_migrate::MigrationScope::Plain,
         sql: include_str!("../migrations/20261011120000_managed_app_settings.sql"),
+    },
+    anlg_db_migrate::MigrationStep {
+        id: "20261011120100_local_meeting_purges",
+        scope: anlg_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20261011120100_local_meeting_purges.sql"),
     },
 ];
 

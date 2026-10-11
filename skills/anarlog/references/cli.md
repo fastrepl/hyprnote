@@ -64,3 +64,13 @@ Global database overrides:
 anarlog --db-path /path/to/app.db --json meetings list
 anarlog --base /path/to/anarlog-data --json meetings list
 ```
+
+### Managed local capture
+
+`anarlog meetings capabilities` reports managed-settings, calendar-identity, recording-attachment, capture-completion, and conditional-delete support without opening a database.
+
+`anarlog meetings delete` permanently removes a completed local meeting, its document history, transcripts, recordings, and derived search index. It requires `--source local`, `--if-export-sha256` (the SHA-256 of the complete JSON export output, including its final newline), and `--require-transcription-complete`. Close the desktop app first. A changed export, unfinished transcript, cloud attachment, or shared record prevents deletion. An interrupted file removal can be resumed with the same meeting ID and hash.
+
+A version 1 `managed_settings.json` beside the active `app.db` contains a `settings` object. Only supported capture settings are accepted, and secrets are rejected. Managed rows override user changes; malformed policy prevents database startup. `intelligence_disabled: true` disables all model connections, including local models. Transcription credentials remain in the OS credential store.
+
+`meetings initialize-managed` (`anarlog --json meetings --source local initialize-managed`) creates or migrates the local database before first desktop launch. An existing `managed_settings.json` that disables intelligence is required; the desktop must be closed. No recording or permission prompt is started.

@@ -1,12 +1,12 @@
 ---
-meta_title: "Best Free Transcription Software in 2026: 6 Useful Options"
+meta_title: "Best Free Transcription Software in 2026: Apps & Open Source"
 display_title: "Best Free Transcription Software in 2026"
-meta_description: "Compare six free transcription tools by usage limits, local or cloud processing, meeting capture, exports, and the point where you need to pay."
+meta_description: "Compare free transcription apps and open-source tools for Mac, Windows, Linux, and browsers. Check file limits, exports, local processing, and paid upgrades."
 author:
   - "John Jeong"
 featured: false
 category: "Comparisons"
-date: "2026-09-11"
+date: "2026-10-11"
 ---
 
 Free transcription software is not one category.
@@ -15,29 +15,39 @@ A local desktop app can transcribe without a monthly quota. A browser tool is fa
 
 The short version:
 
-- **Choose Anarlog** for live, bot-free meeting transcription with local data ownership and no transcription-minute cap.
+- **Choose Anarlog** for bot-free meetings and a local meeting record, with built-in on-device transcription on supported Apple Silicon Macs.
 - **Choose MacWhisper** for private audio or video file transcription on a Mac.
 - **Choose Riverside** for an occasional browser upload without creating an account.
 - **Choose Transcript LOL** when the source is a URL or cloud file and two short transcripts per day are enough.
 - **Choose Otter** for automatic calendar meetings and a searchable cloud meeting workspace.
-- **Choose Notta** for multilingual cloud transcription, while treating its three-minute free-session limit as an evaluation tier.
-- **Choose oTranscribe** for a permanently free manual program with zero cloud upload, on any desktop OS.
+- **Choose Notta** to evaluate multilingual cloud transcription after checking regional limits and export access.
+- **Choose oTranscribe** to type a transcript yourself while playing a local file in your desktop browser.
 - **Choose Whisper or whisper.cpp** for a free automatic engine you run yourself, if you are comfortable with a command line.
 
 ## Free transcription software compared
 
 | Tool | What is actually free | Best fit | Processing model | Main free limit |
 | --- | --- | --- | --- | --- |
-| Anarlog | Unlimited local transcription and BYOK or local AI | Live meetings with local ownership | Local-first desktop app | You provide an AI key or local model for free AI summaries |
+| Anarlog | Local meeting storage, BYOK, and supported local models | Bot-free meetings with local ownership | Desktop app; built-in local speech models require Apple Silicon | Provider API usage can cost extra; Windows and Linux are beta |
 | MacWhisper | Unlimited on-device file transcription with smaller local models | Private files on a Mac | Local desktop app | Larger models and meeting recording require Pro |
 | Riverside | Unlimited standalone audio and video uploads | One-off browser transcription | Cloud web tool | Free output treats multi-speaker audio as one speaker |
-| Transcript LOL | Two transcripts per day, up to 20 minutes each | Short files, cloud drives, and media URLs | Cloud web tool | No summaries or chat on free; one upload at a time |
-| Otter | 300 minutes per month | Automatic meeting capture and follow-up | Cloud workspace with bot and bot-free capture options | 30 minutes per conversation and three lifetime file imports |
-| Notta | 120 or 200 minutes per month, depending on region | Multilingual cloud transcription | Cloud workspace with bot and desktop capture | Three minutes per conversation |
+| Transcript LOL | Two transcripts per day, up to 20 minutes each | Short files, cloud drives, and media URLs | Cloud web tool | One upload at a time; confirm export entitlements |
+| Otter | 300 minutes per month | Automatic meeting capture and follow-up | Cloud workspace with bot and bot-free capture options | First 30 minutes of each transcript accessible; three lifetime file imports |
+| Notta | Pricing shows 120 minutes/month; a regional FAQ lists 200 in the US | Multilingual cloud evaluation | Cloud workspace with bot and desktop capture | Retrieved pricing/help limits access to three minutes; downloads require Pro |
+| oTranscribe | Manual transcription without an account or quota | Typing a transcript with playback shortcuts | Desktop browser; local files stay in the browser | You type every word; it is not automatic speech-to-text |
+| Whisper / whisper.cpp | Open-source automatic transcription without per-minute charges | Local files on Mac, Windows, or Linux | Self-managed local model | Requires installation, model storage, and suitable hardware |
+
+## Start with your operating system and recording
+
+For **Mac audio and video files**, MacWhisper is the graphical local option. For **live meetings on an Apple Silicon Mac**, Anarlog combines capture, supported on-device transcription, notes, and a local meeting archive. Prepare the speech model before you need to work offline; local summaries need a local AI model too.
+
+For **Windows or Linux files**, Whisper or whisper.cpp provides an automatic local route if you can manage the installation. oTranscribe is simpler to open, but you do the typing. Our [free transcription software for Windows guide](/blog/free-transcription-software-windows/) covers the desktop choices in more detail.
+
+For **a browser upload**, compare the per-file limit and export formats before sending the recording. Riverside and Transcript LOL process uploads in the cloud. A free monthly allowance does not help if the service limits transcript access to three minutes of a one-hour interview.
 
 ![Four practical paths through free transcription software](https://static.anarlog.so/blog/articles/free-transcription-software/free-transcription-paths.png)
 
-Start with what you need to capture, where you are willing to process it, and whether the free limit survives normal use.
+The figure highlights four common automatic workflows. The table also includes manual transcription and a self-managed open-source engine.
 
 ## How we evaluated these tools
 
@@ -49,13 +59,13 @@ We used five practical filters:
 4. **The data path is understandable.** Local tools keep processing on your computer by default. Cloud tools require you to evaluate the vendor's current privacy and retention terms.
 5. **The upgrade trigger is honest.** We call out the point where a free plan stops being useful instead of hiding it below a feature list.
 
-We checked each vendor's current product, pricing, and privacy pages for this update. Plans still change often, so follow the source links before committing a workflow.
+We checked each vendor's current product, pricing, and privacy pages on October 11, 2026. This is a comparison of documented access and limits, not an accuracy benchmark. Follow the source links before committing a workflow.
 
 ## 1. Anarlog: best for free live meeting transcription with local control
 
-[Anarlog](/) is an open-source AI meeting notetaker for macOS, Windows, and Linux. It captures microphone and system audio from your computer, so no meeting bot needs to join Zoom, Microsoft Teams, Google Meet, or an in-person conversation.
+[Anarlog](/) is an open-source AI meeting notetaker for macOS, with Windows and Linux builds in beta. It captures microphone and system audio from your computer, so no meeting bot needs to join Zoom, Microsoft Teams, Google Meet, or an in-person conversation.
 
-![Current Anarlog meeting summary with recent meetings in the sidebar](https://static.anarlog.so/blog/library/products/anarlog/desktop/2026-08-20-meeting-summary.jpg)
+![Anarlog meeting summary with recent meetings in the sidebar](https://static.anarlog.so/blog/library/products/anarlog/desktop/2026-08-20-meeting-summary.jpg)
 
 *Anarlog keeps a structured meeting summary beside the local meeting history.*
 
@@ -63,15 +73,17 @@ The canonical meeting record lives in local SQLite. Notes, transcripts, and meet
 
 ### What the free plan includes
 
-- Unlimited local transcription with no monthly minute quota
+- Built-in on-device transcription on supported Apple Silicon Macs, with no monthly minute quota
 - Bot-free capture of microphone and system audio
 - Local storage for meetings, notes, and transcripts
 - Bring-your-own-key support for AI providers
 - Local AI through tools such as Ollama or LM Studio
 - Search, templates, imports, and portable exports
-- An MIT-licensed codebase that can be audited or forked
+- An MIT-licensed community application that can be audited or forked
 
-The free path is most useful when you already have an API key or are comfortable running a local model for summaries. Local transcription itself does not require a paid Anarlog subscription.
+Built-in Soniqo, Apple Speech, and on-device file transcription require Apple Silicon. Apple Speech also requires a compatible macOS 26 setup. On Windows, Linux, or Intel Macs, configure a supported provider, such as a local Deepgram-compatible server, or use Anarlog Cloud. See the current [platform requirements](https://docs.anarlog.so/desktop-installation) and [on-device model guide](https://docs.anarlog.so/help#use-on-device-models).
+
+Local transcription does not require a paid Anarlog subscription on supported hardware. Bring-your-own-key access is included, but the provider may charge for usage. If you need both transcription and summaries to stay offline, configure local models for both; a local meeting archive alone does not make a cloud provider local.
 
 ### When you would pay
 
@@ -84,14 +96,14 @@ The free path is most useful when you already have an API key or are comfortable
 
 ![MacWhisper transcript with the AI chat panel and model selector](https://static.anarlog.so/blog/library/products/macwhisper/transcription/2026-08-30-chat.png)
 
-*MacWhisper's current product page shows a local transcript beside its optional AI chat panel. Source: [MacWhisper](https://macwhisper.com/).*
+*MacWhisper's product illustration shows a transcript beside its optional AI chat panel. The free local transcription features are listed below. Source: [MacWhisper](https://macwhisper.com/).*
 
 Its free version includes smaller Whisper models, more than 100 languages, and TXT, SRT, and VTT export. Because the audio stays on the device when you use local models, it is a strong fit for interviews, lectures, and recordings you do not want to upload to a browser service. MacWhisper's [privacy documentation](https://docs.macwhisper.com/article/52-keeping-transcriptions-private) explains the exceptions: cloud transcription, translation, or AI providers receive data when you explicitly use those services.
 
 ### What the free version includes
 
 - Unlimited local file transcription
-- Tiny, Base, and Small Whisper models
+- A selection of local Whisper models; check the app for the models available without Pro
 - Microphone recording and basic dictation
 - TXT, SRT, and VTT export
 - Local processing on macOS
@@ -103,26 +115,26 @@ MacWhisper Pro is a one-time purchase through the official site. It adds larger 
 
 ## 3. Riverside: best for a one-off transcript without signup
 
-[Riverside's standalone transcriber](https://riverside.com/transcription) accepts audio or video in a browser and does not require an account. Riverside says the utility is free to use without a transcription quota, supports more than 100 languages, and exports TXT or SRT.
+[Riverside's standalone transcriber](https://riverside.com/transcription) accepts audio or video in a browser and does not require an account. Riverside says the utility accepts unlimited files, supports more than 100 languages, and exports TXT or SRT.
 
-![Riverside speaker-detected transcript displayed as timestamped conversation blocks](https://static.anarlog.so/blog/library/products/riverside/transcription/2026-08-30-speaker-transcript.webp)
+![Riverside transcript illustration with timestamped conversation blocks](https://static.anarlog.so/blog/library/products/riverside/transcription/2026-08-30-speaker-transcript.webp)
 
-*Riverside's first-party transcription page shows a speaker-labeled transcript generated from recorded audio. Source: [Riverside](https://riverside.com/transcription).*
+*Riverside's product illustration shows timestamped transcript blocks. The free standalone tool assigns all speech to one speaker. Source: [Riverside](https://riverside.com/transcription).*
 
 That makes it the lowest-friction option in this list for a single non-sensitive file. Upload, wait for the transcript, download it, and leave.
 
-The trade-off is context. This is a cloud upload, not an on-device workflow. The free standalone tool also assigns all text in a multi-speaker file to one speaker. Riverside's paid recording platform adds speaker detection, editing, captions, and the rest of its creator workflow.
+This is a cloud upload. The free standalone tool assigns all text in a multi-speaker file to one speaker; it does not discard the other speakers' words. Riverside's account-based recording and editing platform has separate speaker controls and upload quotas. The standalone page promises unlimited files, but does not specify an unlimited file size or recording duration.
 
 Riverside's [privacy policy](https://riverside.com/privacy-policy) treats recordings and transcripts as Content Data and describes how that data may be used to provide and improve the service. Read the current policy before uploading confidential interviews or meetings.
 
 
 ## 4. Transcript LOL: best for short files and media URLs
 
-[Transcript LOL](https://transcript.lol/) is a cloud transcription tool designed around flexible input. It accepts files, cloud drives, and links from media platforms. Its free tier allows two transcripts per day, each up to 20 minutes, with TXT, DOCX, PDF, SRT, and VTT exports.
+[Transcript LOL](https://transcript.lol/) is a cloud transcription tool designed around flexible input. It accepts files, cloud drives, and links from media platforms. Its [free tier](https://transcript.lol/pricing) allows two transcripts per day, each up to 20 minutes, with one upload processed at a time.
 
-![Transcript LOL transcript with automatic speaker names and timestamps](https://static.anarlog.so/blog/library/products/transcript-lol/transcription/2026-08-30-speaker-detection.webp)
+![Transcript LOL example transcript with Lex Fridman and Sam Altman speaker labels](https://static.anarlog.so/blog/library/products/transcript-lol/transcription/2026-08-30-speaker-detection.webp)
 
-*Transcript LOL's product example shows automatic speaker detection inside the transcript. Source: [Transcript LOL](https://transcript.lol/).*
+*Transcript LOL's product example shows speaker-labeled transcript passages. Source: [Transcript LOL](https://transcript.lol/).*
 
 That daily reset can be more useful than a one-time trial. It works well for short clips, voice notes, and individual podcast or video segments. It is less useful for full-length interviews because the 20-minute limit applies to every free upload.
 
@@ -132,10 +144,9 @@ That daily reset can be more useful than a one-time trial. It works well for sho
 - Up to 20 minutes per transcript
 - One upload processed at a time
 - File, cloud-drive, and supported URL inputs
-- Speaker detection
-- TXT, DOCX, PDF, SRT, and VTT export
+- Low-priority processing
 
-Summaries, custom prompts, chat, longer files, and priority processing require the paid plan. Transcript LOL says in its [privacy policy](https://transcript.lol/legal/privacy) that it does not use customer content to train AI models, but the files are still processed through a cloud service.
+Transcript LOL advertises speaker detection and TXT, DOCX, PDF, SRT, and VTT exports for the product, but its public free-plan card does not explicitly assign every one of those features to Free. Verify the speaker and export controls in your account before relying on them. Compare paid plans when you need longer files or priority processing. Its [privacy policy](https://transcript.lol/legal/privacy) says it does not use customer content to train AI models, but files are still processed through a cloud service.
 
 
 ## 5. Otter: best for automatic meeting capture on a free plan
@@ -146,18 +157,18 @@ Summaries, custom prompts, chat, longer files, and priority processing require t
 
 *Otter's official Notetaker overview shows the calendar, visible guest, and transcript workflow. Source: [Otter](https://help.otter.ai/hc/en-us/articles/4425393298327-Otter-Notetaker-Overview).*
 
-Its Basic plan includes 300 transcription minutes per month, with a 30-minute cap per conversation. Otter Notetaker can join Zoom, Google Meet, and Microsoft Teams as a participant. Otter also offers bot-free recording through desktop, mobile, and browser capture paths, so the bot is an option rather than the only workflow.
+Its Basic plan includes 300 transcription minutes per month, with access to the first 30 minutes of each conversation or import. Otter Notetaker can join Zoom, Google Meet, and Microsoft Teams as a participant. Otter also offers bot-free recording through desktop, mobile, and browser capture paths, so the bot is an option rather than the only workflow.
 
 ### What the free plan includes
 
 - 300 transcription minutes per month
-- Unlimited meetings, up to 30 minutes per conversation
+- Unlimited meetings, with the first 30 minutes of each transcript accessible
 - Three audio or video file imports for the lifetime of the account
-- The 25 most recent conversations in history
+- Access to the 25 most recent conversations; older ones are archived rather than deleted
 - Speaker identification, editable text, playback, and basic AI Chat
 - TXT and MP3 export
 
-The free plan is generous for short recurring calls but poor for a backlog of recordings because file imports are limited to three for the life of the account. PDF, DOCX, SRT, longer meetings, more imports, and deeper workflow features require a paid plan. Verify the current numbers on [Otter's pricing page](https://otter.ai/pricing).
+The free plan is useful for short recurring calls but poor for a backlog of recordings because imports are limited to three for the life of the account. [Otter's Basic-plan help](https://help.otter.ai/hc/en-us/articles/360047538094-Conversation-import-and-app-limits-on-the-Basic-free-plan) clarifies that recording or importing can continue beyond 30 minutes, while transcript access is restricted. Paid plans unlock longer transcripts, archived history, more imports, and additional exports. Verify the current numbers on [Otter's pricing page](https://otter.ai/pricing).
 
 Otter is a cloud workspace. Its [privacy policy](https://otter.ai/privacy-policy) describes using de-identified audio recordings and transcriptions to improve and train its proprietary AI technology. If that boundary does not fit your meeting, use a local workflow instead.
 
@@ -170,26 +181,28 @@ Otter is a cloud workspace. Its [privacy policy](https://otter.ai/privacy-policy
 
 *Notta's first-party product image shows the same meeting record across desktop and mobile. Source: [Notta](https://www.notta.ai/en/features/ai-transcription).*
 
-The free tier looks larger in minutes than it feels in use. Notta's public pages show different monthly allowances by region, including 120 and 200 minutes, but each free conversation stops at three minutes. That is enough to test quality on your own accent and audio setup. It is not enough for a normal meeting or interview.
+Notta's public pages disagree on the allowance. The retrieved [English pricing page](https://www.notta.ai/en/pricing) lists 120 minutes per month, three minutes per conversation, and 50 uploads per month. Its [regional comparison FAQ](https://www.notta.ai/en/compare/notta-vs-happy-scribe) lists 200 minutes in the US and 120 outside the US. That FAQ does not establish the US offer's per-record access limit or upload allowance, so confirm the plan shown in your account.
+
+Notta's [import help](https://support.notta.ai/hc/en-us/articles/15358519267611) describes the three-minute restriction as the accessible transcript length. It does not mean every source recording must be three minutes or shorter. The restricted transcript is useful for testing an accent or recording setup, but not for reading a complete meeting.
 
 ### What the free plan includes
 
-- A monthly transcription allowance, with regional variation
-- Three minutes per conversation
-- Up to 50 file uploads per month
+- A monthly transcription allowance; confirm the region-specific offer
+- Three minutes of transcript access per record in the retrieved pricing/help
+- Up to 50 file uploads per month in the retrieved pricing/help
 - A limited number of AI summaries
 - Real-time transcription, mobile apps, and speaker identification
 
-Paid plans raise the recording duration, add transcript export and translation capabilities, and expand collaboration and integrations. Check [Notta's pricing page](https://www.notta.ai/en/pricing) because the regional free allowance and paid pricing can differ.
+Standard transcript downloads require [Pro or above](https://support.notta.ai/hc/en-us/articles/15289070397851-Download-transcription-file). Check this before choosing Notta for an export workflow: free monthly minutes and free downloadable output are separate entitlements.
 
 
 ## Completely free manual and open-source programs
 
-The six tools above are all *automatic*: you give them audio, and they produce a transcript with no typing. That is not the only kind of genuinely free program. If you want something you can install once, keep forever, and never pay for even at scale, two options are worth knowing about, with a real trade-off attached to each.
+The six apps above offer automatic speech-to-text. The next two options serve different readers: oTranscribe gives you a manual editor, while Whisper and whisper.cpp give you an automatic engine you operate yourself. Neither has a transcription subscription, but both require your time, and local models also use your computer's storage and compute.
 
-### oTranscribe: manual transcription with zero cloud upload
+### oTranscribe: manual transcription of local files
 
-[oTranscribe](https://otranscribe.com/) is a free, open-source browser app built by journalist Elliot Bentley as a MuckRock Foundation project. It does not transcribe automatically. It puts an audio or video player and a text editor in the same window so you type your own transcript without switching applications. For someone on Windows or Linux searching for "a free program to transcribe audio to text", where MacWhisper is not an option, this is the direct answer.
+[oTranscribe](https://otranscribe.com/) is a free, open-source browser app built by journalist Elliot Bentley as a MuckRock Foundation project. It does not transcribe automatically. It puts an audio or video player and a text editor in the same window so you type your own transcript without switching applications. It works for Windows or Linux users who want playback controls and a manual editor; choose a speech-to-text engine if you need the program to write the transcript.
 
 ![oTranscribe's transcription workspace with a file-upload prompt and a plain-text editor](https://static.anarlog.so/blog/library/products/otranscribe/interface/2026-09-11-manual-editor.png)
 
@@ -198,19 +211,21 @@ The six tools above are all *automatic*: you give them audio, and they produce a
 ### What it includes
 
 - No signup, no install beyond a browser, and no daily or monthly limit
-- The audio file and transcript never leave your computer
+- Local audio and video files stay in the browser
 - Keyboard shortcuts to pause, rewind, and insert a timestamp without leaving the keyboard
 - Autosave to browser storage as you type
 - Export to Markdown, plain text, or Google Docs
 - MIT-licensed and open source
 
-The trade-off is in the name: there is no speech-to-text model here, so you are typing the transcript yourself while the player does the pausing and rewinding for you. Use it when privacy matters more than speed, or when one file needs doing today and an account is not worth creating.
+There is no speech-to-text model here, so you type while the player handles pausing and rewinding. The [official help](https://otranscribe.com/help/) describes local files and browser storage. Use a local file and a local export when you want to avoid uploading the recording or transcript. Export regularly: clearing browser storage can remove your working transcript. A YouTube source and a Google Docs export use external services; they are different data paths from opening a file on your computer.
 
 ### Whisper and whisper.cpp: free automatic transcription for developers
 
 [OpenAI's Whisper](https://github.com/openai/whisper) is an open-source speech-recognition model, and [whisper.cpp](https://github.com/ggml-org/whisper.cpp) is a widely used C/C++ port that runs it efficiently on ordinary laptop hardware, including Apple Silicon and consumer Windows and Linux machines. Both are free to download and run locally, with no per-minute cost and no account.
 
 Unlike oTranscribe, this is automatic: point it at an audio file from the command line and it produces a transcript entirely on your machine. The catch is packaging, not capability. Running the raw model means installing dependencies, picking a model size for your hardware, and working from a terminal instead of a graphical app. MacWhisper exists precisely to remove that friction: it wraps the same class of local model in a normal interface, at the cost of being Mac-only and partly paid instead of free and cross-platform.
+
+Download the model and dependencies before working offline. The free route here means running the open-source software locally; a hosted transcription API is a separate service with its own usage charges.
 
 Rev, Sonix, Trint, and Happy Scribe are a different case. Each offers a trial or a small starter allowance, and the automatic transcription becomes paid the moment that credit runs out, so none of them belong on a genuinely free list either.
 
@@ -229,23 +244,25 @@ Use the input and privacy boundary to decide:
 
 For sensitive material, do not stop at a product's marketing page. Confirm consent requirements, the exact capture path, enabled AI providers, retention settings, and the current privacy agreement for every service that receives the audio.
 
+Before choosing a tool for a one-hour interview, check whether its free plan lets you read the final minute and download the format you need. Otter's free transcript access covers the first 30 minutes; the retrieved Notta help covers three; Transcript LOL limits each free upload to 20 minutes. A monthly minute allowance cannot override those per-record limits. Test an ordinary non-sensitive recording within the stated limits, then confirm speaker labels, transcript access, and export before relying on the tool for a deadline.
+
 ## Frequently asked questions
 
 ### Is there completely free transcription software?
 
-Yes. Anarlog provides unlimited local meeting transcription, MacWhisper provides unlimited local file transcription on Mac, Riverside offers a free standalone browser transcriber, and oTranscribe and whisper.cpp are free and open source on any desktop OS. The catch differs: local apps need your computer to run the model, a browser tool requires uploading the file to a cloud service, and oTranscribe specifically is manual rather than automatic.
+Yes. MacWhisper provides ongoing local file transcription on Mac, Anarlog offers built-in local transcription on supported Apple Silicon Macs, and Whisper or whisper.cpp runs locally on Mac, Windows, or Linux without per-minute charges. Riverside offers a free standalone cloud transcriber. oTranscribe is also free, but you type the transcript yourself. Hardware requirements, cloud uploads, and manual work are the tradeoffs to compare.
 
 ### What is the best free transcribing software for Mac?
 
-Use MacWhisper for existing audio and video files. Use Anarlog for live meetings, system audio, notes, and a searchable local meeting history. Both offer ongoing local transcription without a monthly minute bucket, but they solve different jobs.
+Use MacWhisper for existing audio and video files. Use Anarlog for meetings, system audio, notes, and a searchable local meeting history. Anarlog's built-in local speech models require Apple Silicon, so check your Mac and selected provider before assuming the entire workflow stays on-device.
 
 ### Can I transcribe audio for free without uploading it?
 
-Yes. Use an on-device tool such as MacWhisper or whisper.cpp for files, oTranscribe for manual transcription, or Anarlog for live meetings and imported recordings. Keep the speech-to-text model and any summary model local if the audio must not leave your computer.
+Yes. Use MacWhisper or whisper.cpp for local files, oTranscribe for manual transcription of a local file, or Anarlog with supported local speech models. Keep any summary model local as well. Avoid cloud transcription, cloud AI, YouTube inputs, and cloud exports when your requirement is an entirely local workflow.
 
 ### Which free transcription software works for meetings?
 
-Anarlog captures meetings from your desktop without a bot. Otter can automatically join scheduled meetings or record through its desktop and browser tools. Notta also supports meeting bots and desktop capture, but its free three-minute conversation limit makes it better for testing than routine meetings.
+Anarlog captures meetings from your desktop without a bot; built-in local transcription requires supported Apple Silicon hardware. Otter can automatically join scheduled meetings or record through its desktop and browser tools. Notta offers meeting capture too, but its retrieved free-plan help limits transcript access to three minutes per record. Confirm regional entitlements before using it for routine meetings.
 
 ### Are free transcription tools accurate?
 
@@ -253,6 +270,6 @@ Accuracy depends more on the recording than the price label. Clear audio, separa
 
 ### What is a free program to transcribe audio to text?
 
-It depends on whether you need automatic speech-to-text or are willing to type it yourself. For a fully automatic, permanently free program, use Anarlog for live meetings or MacWhisper for existing files on a Mac; on Windows or Linux, whisper.cpp runs the same class of open-source model from the command line. For a completely free manual option on any desktop OS, use oTranscribe: nothing uploads, there is no account, and you control playback while you type.
+For automatic local speech-to-text, use MacWhisper for files on a Mac, Anarlog's supported on-device models for Apple Silicon meeting workflows, or Whisper / whisper.cpp for a self-managed Mac, Windows, or Linux setup. For a free manual editor, open a local file in oTranscribe and type while controlling playback. Manual transcription is useful, but it should not be mistaken for an automatic transcriber.
 
 <CtaCard/>

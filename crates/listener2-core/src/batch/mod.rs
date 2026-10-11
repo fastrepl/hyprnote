@@ -244,7 +244,7 @@ async fn run_batch_inner(
         }
     };
 
-    let listen_params = build_listen_params(&params, metadata.channels, metadata.sample_rate);
+    let listen_params = build_listen_params(&params, 1, metadata.sample_rate);
 
     let post_process = (runtime.clone(), params.clone(), listen_params.clone());
     let mut output = match params.provider {

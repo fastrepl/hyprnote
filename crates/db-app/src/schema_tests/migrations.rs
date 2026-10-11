@@ -177,6 +177,7 @@ async fn migrations_apply_cleanly() {
             "humans",
             "local_library_attachment_state",
             "local_library_connections",
+            "managed_app_settings",
             "migration_import_items",
             "migration_import_runs",
             "migration_import_targets",

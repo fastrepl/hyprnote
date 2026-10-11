@@ -1,196 +1,126 @@
 ---
-meta_title: "Best Open Source Meeting Transcription Software in 2026"
+meta_title: "Open Source Meeting Transcription: Apps vs Dictation (2026)"
 display_title: "Open Source Alternatives to Otter AI and Fireflies"
-meta_description: "Review of the best open source meeting transcription tools you can fork, self-host, and customize. Compare features, pricing, and deployment options."
+meta_description: "Compare open-source meeting transcription apps Anarlog and Meetily with Amical dictation. Check audio capture, local models, platforms, editions, and limits."
 author:
   - "John Jeong"
 featured: true
 category: "Comparisons"
-date: "2025-10-23"
+date: "2026-10-11"
 ---
 
-Looking for meeting transcription tools that you can fork, fix, and make your own? This article reviews three open-source options that give you complete control over your meeting data.
+An open-source speech-to-text app is not necessarily a meeting recorder. To replace an Otter or Fireflies workflow, check whether it captures both your microphone and the other participants, keeps a transcript, and produces the notes you need afterward.
 
-We'll compare Anarlog, Meetily, and Amical—the only three open-source meeting transcription tools that let you inspect every line of code, modify any component, and own your data forever.
+**Anarlog and Meetily support microphone plus system-audio meeting capture. Amical is a dictation app; its current documentation still marks meeting transcription as coming soon.** This comparison covers those three projects without treating planned features as available.
 
-## What are the best open-source meeting transcription software?
+If you need a browser server or a custom processing pipeline, start with our [self-hosted AI notetaker guide](/blog/selfhosted-ai-notetakers/). For other file and meeting workflows, browse the [transcription guides](/guides/transcription/).
 
+## Compare meeting capture, local models, and cost
 
-| Feature                | Anarlog                                | Meetily                   | Amical                       |
-| ---------------------- | ----------------------------------- | ------------------------- | ---------------------------- |
-| **Best For**           | Control over data and AI stack      | Pure transcription needs  | Hands-free typing everywhere |
-| **Transcription**      | Real-time via Whisper               | Real-time via Whisper.cpp | Real-time via Whisper        |
-| **Platforms**          | macOS, Windows, Linux                   | Windows, macOS, Linux | macOS (Windows in progress) |
-| **License**            | MIT                                 | MIT                       | MIT                          |
-| **Meeting Support**    | All platforms, no bots              | All platforms, no bots    | Dictation; meeting capture planned |
-| **Local Models**       | Whisper, Ollama, LM Studio          | Whisper.cpp, Ollama       | Whisper, Ollama              |
-| **Cloud Options**      | OpenAI, Gemini, Claude, custom APIs | Claude, Groq, OpenAI      | OpenAI, custom APIs          |
-| **Individual Use**     | Free forever                        | Free (MIT license)        | Free (MIT license)           |
-| **Organization Plans** | Pro ($14/mo or $140/yr), Enterprise (custom) | Custom (2-100 users) | None currently               |
-| **GitHub Stars**       | 6.4k+                               | 7.8k+                     | 96                           |
+| Feature | Anarlog | Meetily Community | Amical desktop |
+| --- | --- | --- | --- |
+| **Best fit** | Live meetings with your own notes and chosen AI | Local meeting capture and summaries | Dictating into another app |
+| **Meeting audio** | Microphone and system audio, without a meeting bot | Microphone and system audio, without a meeting bot | Mic + system meeting transcription is planned |
+| **Local speech** | Soniqo Parakeet, Apple Speech, or a whisper.cpp file on supported Apple Silicon Macs; local server alternative | Whisper or Parakeet | Whisper |
+| **Local text AI** | Ollama, LM Studio, Unsloth, or eligible Apple Intelligence | Ollama | Ollama or an OpenAI-compatible local server |
+| **Desktop platforms** | macOS, Windows, Linux; model support differs | Windows/macOS installers; Linux source build | macOS and Windows; Linux unsupported |
+| **Open-source license** | MIT community code | MIT Community edition | MIT |
+| **Paid options** | Pro: $14/month or $140/year; separate commercial Enterprise scope | Commercial Pro: $10/user/month annually; $25 regular monthly | Cloud Premium: $10/month or $84/year; Enterprise custom |
 
+Prices and feature status were checked on October 11, 2026. Open-source code, hosted AI, and commercial editions have separate terms. Paying for an API provider is also separate from downloading an app.
 
-## Top open-source meeting transcription software: detailed reviews
+## 1. Anarlog: meeting notes with control over the AI stack
 
-### 1. Anarlog
-
-[Anarlog](/) is an open-source AI notepad for meetings that gives you control over your data and AI stack. Meeting data is stored locally in SQLite, with Markdown export available when you need a portable copy.
-
-The interface pairs a lightweight note editor with recent meetings and optional calendar context. You can start from a blank note, capture the call, and keep the resulting transcript and summary in the same local workspace.
-
-While you're writing, Anarlog listens to both your microphone and system audio. Once the meeting ends, it enhances your manual notes into actionable AI summaries based on your chosen template.
-
-**Available as:** Native macOS app, with Windows and Linux builds in beta.
+[Anarlog](/) pairs a note editor with meeting recording, transcription, summaries, and chat. You can write your own memo during a call and use it alongside the transcript when generating a summary. Canonical sessions, notes, transcripts, and metadata live in local SQLite; attachments are separate local files, and Markdown is an export format.
 
 ![Anarlog](https://static.anarlog.so/blog/library/products/anarlog/desktop/2026-08-27-new-note.png)
 
-#### **Top Features**
+**What it does:** capture microphone and computer audio, import recordings, search meetings, apply summary templates, and let you choose the speech and text AI independently. System-audio capture works across conferencing apps without adding a participant bot.
 
-- Multiple deployment options: keep everything on your device, deploy on your own servers, or use the managed cloud service
-- Real-time transcription with no bots or calendar permissions required
-- Works with Zoom, Teams, Google Meet, and in-person meetings without any setup
-- Your choice of AI: managed cloud, bring your own API keys (OpenAI, Anthropic, Mistral, and others), or run local models via Ollama or LM Studio
-- AI chat to query your transcripts and search across your entire meeting history
-- Custom templates for different meeting types
-- Import existing recordings or transcripts
-- 45+ language support including English, Spanish, French, German, Japanese, and more
-- Floating panel and keyboard shortcuts for quick recording controls
-- Smart consent management for enterprises with options from simple pop-ups to verbal consent recognition
+### Check the model requirements first
 
-**Pros**
+The current [model documentation](https://docs.anarlog.so/models-and-providers) distinguishes live transcription from processing after a recording:
 
-- Your choice of AI stack: managed cloud, bring your own keys, or run local models
-- Free forever for local transcription, BYOK, and all core features
-- Can work completely offline, suitable for air-gapped environments
-- Open source codebase allows for inspection, customization, and community contributions
-- Export Markdown when it fits your workflow
+- **Soniqo Parakeet Streaming** runs during a meeting; **Parakeet Batch** processes the recording afterward. Both require Apple Silicon. Batch is the recommended built-in option for hour-long calls and adds speaker labels for its supported languages.
+- **Apple Speech** requires a supported Apple Silicon Mac, macOS 26, and compatible system language assets.
+- **On-device file** accepts a whisper.cpp `.bin` model for transcription after recording on Apple Silicon. It is not the same as a live Whisper stream.
+- **Windows, Linux, and Intel Macs** can use a Deepgram-compatible server on the computer or local network, a hosted provider with your own key, or Anarlog Cloud. Built-in on-device speech models are not available on those systems.
 
-**Cons**
+Summaries have a separate **Intelligence** selection. Choose Ollama, LM Studio, Unsloth, or eligible Apple Intelligence if the text processing must stay local too. Selecting local transcription alone does not make every enabled feature offline. Prepare models before disconnecting and follow the [offline Mac setup guide](/blog/offline-meeting-transcription-mac/).
 
-- macOS is the most mature build; Windows and Linux builds are in beta
-- No mobile app currently available
+### Free, Pro, and Enterprise boundaries
 
-#### Pricing
+The community app is MIT-licensed. The [Free plan](/pricing/) includes local transcription and bring-your-own-key workflows; those API calls can still incur provider charges. Pro costs $14/month or $140/year and adds managed AI, encrypted CloudSync, sharing, and calendar integrations.
 
-The Free plan supports on-device transcription and your own API keys. Pro is $14/month or $140/year and adds hosted transcription, cloud AI, encrypted CloudSync, and calendar integrations.
+Hosted AI receives the input it needs. Optional sharing has a different data path from encrypted CloudSync, so review the [security information](/security/) when selecting a configuration.
 
-&nbsp;
+A desktop download also does not establish a team-hosted capture service. Anarlog's customer-hosted capture and data-plane work is available through [early-partner Enterprise evaluations](/enterprise/) under separate commercial terms.
 
-### 2. Meetily
+**Choose Anarlog if** you want manual notes, meeting transcripts, and summaries in one workspace with an explicit choice of AI provider. Check the speech path on your hardware before committing to an offline workflow.
 
-[Meetily](https://meetily.zackriya.com/) is a privacy-first AI meeting assistant that runs entirely on your local machine. Unlike Anarlog, which combines note-taking with transcription, Meetily focuses on recording, transcribing, and summarizing meetings.
+## 2. Meetily: local meeting capture, with edition-specific extras
 
-**Available as:** Native apps for Windows, macOS, and Linux
+[Meetily Community](https://github.com/Zackriya-Solutions/meetily) captures mic and system audio, transcribes with Whisper or Parakeet, and supports audio import. It can generate summaries with Ollama or a configured cloud provider. Cloud summaries send text to that provider; a local speech model does not make that text request local.
 
 ![Meetily](https://static.anarlog.so/blog/articles/open-source-meeting-transcription-software/meetily.webp)
 
-#### Top features
+Windows and macOS have installers; Linux Community is a source build. You do not need development tools just to use an installer. Hardware acceleration depends on the build: macOS packages enable Metal/CoreML, while the packaged Windows Whisper build uses Vulkan. CUDA requires an appropriately configured NVIDIA source build.
 
-- **Real-time transcription with Whisper.cpp** uses an optimized implementation that runs significantly faster than standard Python-based Whisper.
-- **AI-powered meeting summaries** generate summaries using local LLMs through Ollama or connect to cloud providers (Claude, Groq, OpenAI).
-- **Dual audio capture** records both microphone and system audio simultaneously with intelligent ducking and clipping prevention.
-- **GPU acceleration support** automatically detects and uses hardware acceleration: Metal/CoreML on macOS, CUDA for NVIDIA, Vulkan for AMD/Intel.
-- **Semantic search via ChromaDB** enables searching by concepts and related discussions, not just exact keywords.
-- **Universal meeting platform support** works with Zoom, Teams, Google Meet, Webex, and any platform without requiring bots.
-- **SQLite local storage** keeps all data locally in a lightweight database that's easy to back up and migrate.
-- **REST API access** exposes endpoints for integrating with other tools and workflows.
+### Community versus Pro
 
-#### Pros
+The current [Pro comparison](https://meetily.ai/pro/) separates the free MIT Community edition from commercial Pro:
 
-- Runs on all major operating systems (Windows, macOS, Linux)
-- Focused approach to transcription without extra complexity
-- Permissive MIT license for maximum flexibility
+- Community includes local transcription, local or BYOK summaries, and audio import.
+- Pro adds speaker identification, custom summary templates, PDF/DOCX/Markdown exports, and MCP, webhook, and CLI integrations.
+- Pro costs $10 per user per month billed annually, compared with the $25 regular monthly price. Enterprise uses custom commercial terms.
 
-#### Cons
+Pro's current product page lists speaker identification as available, even though an older section of the Community README still describes it as planned. Check the edition you install rather than assuming every feature is part of the MIT release.
 
-- Initial setup requires C++, CMake, and other development tools
-- Pre-built releases aren't notarized, causing security warnings
-- Summarization quality varies with smaller local models
-- No manual note-taking integration
-- No public pricing information for organizational tiers
-- Steeper learning curve than consumer-focused alternatives
+**Choose Meetily if** local capture and summaries are the main workflow. Check whether speaker labels or advanced exports require Pro before treating Community as a complete replacement for your existing service.
 
-#### Pricing
+## 3. Amical: useful dictation, meeting capture still planned
 
-Free for individuals under MIT license. Organizational (2-100 users) and enterprise (100+ users) plans are available at custom pricing, but rates aren't publicly listed.
-
-### 3. Amical
-
-[Amical](https://amical.ai/) is an open-source AI dictation tool that transforms how you type across your computer. While it supports meeting transcription, its primary focus is hands-free typing with context-aware formatting that adapts to whatever application you're using.
-
-**Available as:** Mac app (desktop application, Windows support in progress)
+[Amical](https://amical.ai/docs) converts speech into text in the focused app. It is useful for drafting an email or dictating a follow-up after a call. Its MIT desktop project supports macOS and Windows; the README says Linux is unsupported because a native helper is missing.
 
 ![Amical floating recorder dictating a structured follow-up email in Gmail](https://static.anarlog.so/blog/library/products/amical/dictation/2026-08-30-demo.gif)
 
-*Amical's official README demo shows its floating recorder turning speech into a structured Gmail draft. Source: [Amical on GitHub](https://github.com/amicalhq/amical#-overview).*
+*The official [README demo](https://github.com/amicalhq/amical#-overview) shows a dictated Gmail draft.*
 
-#### Top features
+The [desktop quick start](https://amical.ai/docs/quick-start) documents push-to-talk, hands-free dictation, and microphone/accessibility permissions. It marks Meeting Transcriptions and Voice Commands as coming soon. The README likewise lists mic-plus-system meeting transcription as planned. Do not choose it on the assumption that it records both sides of a call today.
 
-- **Context-aware intelligent formatting** automatically adjusts tone and style based on the application -- professional for Gmail, casual for Instagram, conversational for Slack.
-- **Floating desktop widget** provides a small, positioned-anywhere widget for quick dictation access without leaving your active application.
-- **Custom hotkeys configuration** lets you create keyboard shortcuts for starting/stopping dictation and executing commands hands-free.
-- **Multi-language native support** transcribes in 50+ languages with native-level accuracy, including seamless mixed-language dictation.
-- **Custom vocabulary training** teaches Amical industry-specific terms, proper nouns, project names, and technical jargon for improved accuracy.
-- **Voice commands and shortcuts** let you create personalized voice commands to automate repetitive tasks completely hands-free.
-- **Meeting transcription capability** records live meetings with both mic and system audio, though this feature is still in development.
-- **Automatic grammar correction** fixes pronouns, adds contextual elements like emojis, and corrects grammar in real-time.
-- **Works system-wide** so you can dictate in any text field across all applications without switching tools.
-- **Transcription history** provides a searchable archive of all dictated text with export options (in development).
+Amical's [local-model guide](https://amical.ai/docs/local-ai-models) separates Whisper speech models from language processing through Ollama or a local OpenAI-compatible endpoint. Download models and select the local path before relying on offline dictation.
 
-#### Pros
+### Local use versus cloud plans
 
-- Excellent multi-language support with seamless language switching
-- Completely free with no paid tiers or subscriptions
-- Custom vocabulary dramatically improves accuracy for specialized work
-- Hands-free workflow with voice commands and shortcuts
-- MIT licensed for maximum flexibility
+The current [pricing page](https://amical.ai/pricing) includes unlimited local dictation on Free plus 2,000 cloud words per week. Premium offers unlimited cloud dictation at $10/month or $7/month billed as $84/year. Enterprise is custom.
 
-#### Cons
+**Choose Amical if** dictation into other applications is your need. For meeting capture, evaluate Anarlog or Meetily instead and revisit Amical when its documented feature status changes.
 
-- In active development toward first stable release—expect bugs
-- Meeting transcription features less mature than Anarlog or Meetily
-- macOS is the primary focus; Windows support exists but less polished
-- App not notarized, causing security warnings
-- Smaller community and contributor base (96 GitHub stars vs 6k-8k for others)
+## How to test an open-source alternative before switching
 
-#### Pricing
+Use a short call representative of your real work:
 
-Completely free with no paid tiers.
+1. Wear your usual headset and confirm the recording includes your voice and the remote participant. A microphone-only dictation test does not establish system-audio capture.
+2. Select speech and summary providers separately. After downloading local models, disconnect if offline operation is a requirement and check both stages.
+3. Try the languages, overlapping speech, and terminology you actually encounter. Review the transcript and speaker labels before relying on the results.
+4. Export a transcript and summary, then confirm the format and edition meet your workflow. Inspect the relevant code license separately from commercial services.
 
-## Which open-source transcription tool should you choose?
-
-For most developers and privacy-conscious professionals, **Anarlog** is worth evaluating. It keeps meeting data local by default, lets you choose an AI provider, and supports Markdown export when a portable copy fits the workflow.
-
-The code is open source under the MIT license, so you can verify exactly how your data is processed. Need enterprise deployment? Self-host it on your own infrastructure. Want to modify the summarization logic? Fork it and make it yours.
-
-Setup is straightforward. No complex configuration, no security warnings to bypass, no hidden dependencies.
-
-Ready to try it? [Download Anarlog](/download) or [check out the source code on GitHub](https://github.com/fastrepl/anarlog).
+For a meeting editor with portable exports, [download Anarlog](/download/) and check the [source](https://github.com/fastrepl/anarlog). For broader free options, compare [free transcription software](/blog/free-transcription-software/).
 
 ## Frequently asked questions
 
-### 1. Are open-source transcription tools really free?
+### Are all open-source transcription apps free?
 
-Yes, all three are open source. Anarlog and Amical are [free](/blog/free-transcription-software/) for all users. Anarlog is free forever for local transcription and BYOK. The managed cloud service is $14/month or $140/year.
+The three community projects above use MIT licenses, but services and editions differ. Local use can avoid API charges, while cloud processing, managed plans, and commercial upgrades can cost money. Check the exact edition and model path.
 
-Meetily is free for individual users under the MIT license. Organizations (2-100 users) and enterprises (100+ users) can request custom plans, but pricing isn't publicly listed.
+### Can these tools replace a meeting bot?
 
-### 2. Do I need a powerful computer to run local transcription software?
+Anarlog and Meetily capture computer audio and your microphone on your device. Amical's documented workflow is dictation; meeting capture is still planned. For a shared server rather than a desktop recorder, compare the separate [self-hosted deployment options](/blog/selfhosted-ai-notetakers/).
 
-You need a reasonably modern machine. An M-series Mac works best for Anarlog, though Intel Macs function with reduced performance. Meetily and Amical have similar requirements—at least 8GB RAM (16GB recommended) and a decent CPU. GPU acceleration helps but isn't required for basic use.
+### Does open source guarantee that meeting data stays local?
 
-### 3. Can I use these tools offline?
+No. You can inspect the code, but your configuration determines the processing path. Review speech, summaries, sharing, sync, and integrations separately. A cloud summary can receive transcript text even when speech recognition runs locally.
 
-Yes. All three can transcribe meetings completely offline using local AI models. You only need internet if you choose to use cloud AI providers for enhanced summaries.
+### How much hardware do I need?
 
-### 4. How accurate is the transcription?
-
-With larger Whisper models, accuracy typically reaches 90-95% for clear English audio. Accuracy drops with background noise, heavy accents, or specialized terminology. Custom vocabulary features (where available) can improve accuracy for industry-specific terms.
-
-### 5. What about HIPAA, GDPR, and compliance?
-
-Local processing can reduce the number of external processors in a workflow, but it does not make a tool automatically compliant. Regulated teams still need to assess retention, access controls, agreements, security controls, and every enabled provider.
-
-Anarlog offers Pro for individual hosted AI and sync, Team for paid shared workspaces, and a custom Enterprise plan for organization-wide security, policy, and deployment controls. Meetily also offers custom organizational and enterprise plans for teams that need dedicated support.
-
-&nbsp;
+There is no single RAM requirement for all three apps and every model. Check the model size, platform support, and acceleration path, then test a representative recording. Anarlog's built-in speech options require supported Apple Silicon hardware; its local-server route is a separate setup.

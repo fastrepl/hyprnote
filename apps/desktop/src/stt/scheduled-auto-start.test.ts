@@ -728,6 +728,12 @@ describe("isPreviousCallOnMic", () => {
       expected: true,
     },
     {
+      name: "sees a call that joined the earlier meeting a few minutes early",
+      heldSinceMs: NOW - 32 * 60_000,
+      earlierEndMs: NOW,
+      expected: true,
+    },
+    {
       name: "starts an early join that took the mic in free time",
       heldSinceMs: NOW - 12 * 60_000,
       earlierEndMs: NOW - 15 * 60_000,

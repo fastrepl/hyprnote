@@ -29,6 +29,8 @@ export const SCHEDULED_AUTO_START_GRACE_MS = 5 * 60_000;
 // A meeting app that has held the mic this long before a meeting starts is
 // still on an earlier call. Early joins happen closer to the start.
 const PREVIOUS_CALL_MIN_HOLD_MS = 10 * 60_000;
+// People often join a call a few minutes before its scheduled start.
+const EARLY_JOIN_MS = 5 * 60_000;
 
 const TICK_MS = 15_000;
 const MIC_HOLD_POLL_MS = 30_000;
@@ -171,7 +173,7 @@ export function isPreviousCallOnMic({
         return (
           startMs !== undefined &&
           endMs !== undefined &&
-          startMs <= heldSinceMs &&
+          startMs - EARLY_JOIN_MS <= heldSinceMs &&
           heldSinceMs < endMs
         );
       }),

@@ -77,7 +77,6 @@ pub async fn read(db: &anlg_db_core::Db, from_ms: i64, until_ms: i64) -> Result<
         ..Coverage::default()
     };
     let mut measured_keys = HashSet::new();
-    let mut measured_sessions = HashSet::new();
     let mut intervals = Vec::new();
     for row in settings
         .iter()
@@ -106,7 +105,6 @@ pub async fn read(db: &anlg_db_core::Db, from_ms: i64, until_ms: i64) -> Result<
             "capture_stop:{}:{}",
             value.session_id, value.transcript_id
         ));
-        measured_sessions.insert(value.session_id);
         if value.started_at_ms < until_ms && value.stopped_at_ms > from_ms {
             intervals.push(CaptureInterval {
                 started_at_ms: value.started_at_ms,
@@ -131,8 +129,15 @@ pub async fn read(db: &anlg_db_core::Db, from_ms: i64, until_ms: i64) -> Result<
     }
     coverage.legacy_sessions_without_measurement = candidates
         .into_iter()
-        .filter(|id| !measured_sessions.contains(id))
-        .count();
+        .filter(|candidate| {
+            !measured_keys.contains(&format!(
+                "capture_stop:{}:{}",
+                candidate.session_id, candidate.transcript_id
+            ))
+        })
+        .map(|candidate| candidate.session_id)
+        .collect::<HashSet<_>>()
+        .len();
     intervals.sort_by_key(|value| (value.started_at_ms, value.ended_at_ms));
     coverage.measured_captures = intervals.len();
     tx.rollback().await.map_err(|_| failure())?;
@@ -197,5 +202,30 @@ mod tests {
                 && !text.contains("private-pending-id")
         );
         assert!(read(&db, until, from).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn legacy_capture_in_measured_session_still_counts_as_unmeasured() {
+        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let from = 1_790_812_800_000_i64;
+        let until = from + 86_400_000;
+        sqlx::query("INSERT INTO sessions(id,title) VALUES('meeting','')")
+            .execute(db.pool())
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO transcripts(id,session_id,source,started_at_ms,words_json) VALUES('measured','meeting','live_capture',?1,'[]'),('legacy','meeting','live_capture',?1,'[]')")
+            .bind(from + 1000).execute(db.pool()).await.unwrap();
+        let usage = serde_json::json!({"version":1,"sessionId":"meeting","transcriptId":"measured","startedAtMs":from+1000,"stoppedAtMs":from+60000,"requestedLiveTranscription":true,"liveTranscriptionActiveAtStop":false});
+        sqlx::query(
+            "INSERT INTO app_settings(id,value_json) VALUES('capture_usage:meeting:measured',?)",
+        )
+        .bind(usage.to_string())
+        .execute(db.pool())
+        .await
+        .unwrap();
+        let json = serde_json::to_value(read(&db, from, until).await.unwrap()).unwrap();
+        assert_eq!(json["coverage"]["measured_captures"], 1);
+        assert_eq!(json["coverage"]["legacy_sessions_without_measurement"], 1);
     }
 }

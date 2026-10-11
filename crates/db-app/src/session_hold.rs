@@ -23,6 +23,13 @@ pub async fn list_local_hold_sessions(
     sources.push("SELECT row_id AS id FROM e2ee_local_state WHERE table_name='sessions'".into());
     sources.push("SELECT substr(id,length('capture_lifecycle_pending:')+1) AS id FROM app_settings WHERE id GLOB 'capture_lifecycle_pending:*'".into());
     sources.push("SELECT substr(id,length('capture_audio_saved:')+1) AS id FROM app_settings WHERE id GLOB 'capture_audio_saved:*'".into());
+    for prefix in ["capture_stop:", "capture_incomplete:"] {
+        sources.push(format!(
+            "SELECT substr(rest,1,length(rtrim(rest,replace(rest,':','')))-1) AS id
+             FROM (SELECT substr(id,{}) AS rest FROM app_settings WHERE id GLOB '{prefix}*')",
+            prefix.len() + 1
+        ));
+    }
     sources.push("SELECT json_extract(value_json,'$.sessionId') AS id FROM app_settings WHERE CASE WHEN json_valid(value_json) THEN id='capture_usage:'||json_extract(value_json,'$.sessionId')||':'||json_extract(value_json,'$.transcriptId') ELSE 0 END".into());
     sqlx::query_scalar(sqlx::AssertSqlSafe(format!(
         "SELECT DISTINCT id FROM ({}) WHERE id<>'' AND id>? ORDER BY id COLLATE BINARY LIMIT ?",
@@ -107,7 +114,10 @@ pub async fn local_hold_tables(
                  OR id IN ('capture_lifecycle_pending:'||?1,'capture_audio_saved:'||?1,
                            'auto_enhance_pending:'||?1,'capture_incomplete:'||?1||':audio-recovery',
                            'capture_incomplete:'||?1||':audio-cleanup')
-                 OR id IN (SELECT 'capture_incomplete:'||?1||':'||id FROM transcripts WHERE session_id=?1)",
+                 OR id IN (SELECT 'capture_incomplete:'||?1||':'||id FROM transcripts WHERE session_id=?1)
+                 OR ((id GLOB 'capture_stop:*' OR id GLOB 'capture_incomplete:*')
+                     AND substr(id,instr(id,':')+1,length(?1)+1)=?1||':'
+                     AND instr(substr(id,instr(id,':')+length(?1)+2),':')=0)",
                 capture_stop_session_predicate()
             )
         } else if !related.is_empty() {

@@ -268,3 +268,51 @@ impl<W: Write> Stream<W> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[tokio::test]
+    async fn orphaned_capture_markers_stay_discoverable_and_exportable() {
+        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+        anlg_db_app::prepare_schema(&db).await.unwrap();
+        for id in [
+            "capture_stop:stopped-meeting:transcript",
+            "capture_incomplete:incomplete-meeting:audio-recovery",
+        ] {
+            sqlx::query("INSERT INTO app_settings(id,value_json) VALUES(?,'1')")
+                .bind(id)
+                .execute(db.pool())
+                .await
+                .unwrap();
+        }
+        let mut tx = db.pool().begin().await.unwrap();
+        let ids = anlg_db_app::list_local_hold_sessions(&mut tx, "", 200)
+            .await
+            .unwrap();
+        assert_eq!(ids, ["incomplete-meeting", "stopped-meeting"]);
+        let tables = anlg_db_app::local_hold_tables(&mut tx).await.unwrap();
+        let settings = tables
+            .iter()
+            .find(|table| table.name == "app_settings")
+            .unwrap();
+        for (session, expected) in [
+            ("stopped-meeting", "capture_stop:stopped-meeting:transcript"),
+            (
+                "incomplete-meeting",
+                "capture_incomplete:incomplete-meeting:audio-recovery",
+            ),
+            ("stopped", ""),
+        ] {
+            let rows: Vec<String> = sqlx::query_scalar(sqlx::AssertSqlSafe(format!(
+                "SELECT id FROM app_settings WHERE ({})",
+                settings.predicate
+            )))
+            .bind(session)
+            .fetch_all(&mut *tx)
+            .await
+            .unwrap();
+            let expected: Vec<&str> = [expected].into_iter().filter(|id| !id.is_empty()).collect();
+            assert_eq!(rows, expected);
+        }
+    }
+}

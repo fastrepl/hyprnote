@@ -47,16 +47,22 @@ pub async fn count_pilot_pending_sessions(
     .await
 }
 
+#[derive(sqlx::FromRow)]
+pub struct PilotLegacyCandidate {
+    pub session_id: String,
+    pub transcript_id: String,
+}
+
 pub async fn list_pilot_legacy_session_candidates(
     conn: &mut SqliteConnection,
     from_ms: i64,
     until_ms: i64,
-) -> Result<Vec<String>, sqlx::Error> {
-    sqlx::query_scalar(
-        "SELECT DISTINCT substr(session_id,1,501) AS session_id FROM transcripts
+) -> Result<Vec<PilotLegacyCandidate>, sqlx::Error> {
+    sqlx::query_as(
+        "SELECT substr(session_id,1,501) AS session_id, substr(id,1,501) AS transcript_id FROM transcripts
          WHERE source IN ('live_capture','batch_transcription')
            AND started_at_ms >= ? AND started_at_ms < ?
-         ORDER BY session_id LIMIT ?",
+         ORDER BY session_id, id LIMIT ?",
     )
     .bind(from_ms)
     .bind(until_ms)

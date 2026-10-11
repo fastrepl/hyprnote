@@ -1932,6 +1932,7 @@ msgstr ""
 msgid "Couldn't open device add-ons. Try again."
 msgstr ""
 
+#: src/auth/context.tsx
 #: src/settings/referrals.tsx
 msgid "Couldn't open sign-in. Try again."
 msgstr ""
@@ -5501,6 +5502,10 @@ msgstr "Muestra las palabras en el panel flotante mientras hablas. Usa una conex
 msgid "Sign in"
 msgstr ""
 
+#: src/auth/context.tsx
+msgid "Sign in again"
+msgstr ""
+
 #: src/settings/sync/index.tsx
 msgid "Sign in before enabling encrypted cloud sync"
 msgstr ""
@@ -6870,6 +6875,10 @@ msgstr ""
 
 #: src/settings/referrals.tsx
 msgid "Your referrals"
+msgstr ""
+
+#: src/auth/context.tsx
+msgid "Your session has expired. Sign in again to reconnect."
 msgstr ""
 
 #: src/services/enhancer/summary-notification.ts

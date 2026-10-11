@@ -1932,6 +1932,7 @@ msgstr "Couldn't open connected accounts. Try again."
 msgid "Couldn't open device add-ons. Try again."
 msgstr "Couldn't open device add-ons. Try again."
 
+#: src/auth/context.tsx
 #: src/settings/referrals.tsx
 msgid "Couldn't open sign-in. Try again."
 msgstr "Couldn't open sign-in. Try again."
@@ -5501,6 +5502,10 @@ msgstr "Show words in the floating panel as you speak. Uses a live connection to
 msgid "Sign in"
 msgstr "Sign in"
 
+#: src/auth/context.tsx
+msgid "Sign in again"
+msgstr "Sign in again"
+
 #: src/settings/sync/index.tsx
 msgid "Sign in before enabling encrypted cloud sync"
 msgstr "Sign in before enabling encrypted cloud sync"
@@ -6871,6 +6876,10 @@ msgstr "Your recovery key encrypts synced notes before they leave this device. A
 #: src/settings/referrals.tsx
 msgid "Your referrals"
 msgstr "Your referrals"
+
+#: src/auth/context.tsx
+msgid "Your session has expired. Sign in again to reconnect."
+msgstr "Your session has expired. Sign in again to reconnect."
 
 #: src/services/enhancer/summary-notification.ts
 msgid "Your summary is ready."

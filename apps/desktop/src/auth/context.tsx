@@ -63,6 +63,7 @@ import {
 } from "~/shared/utils";
 
 const ACCOUNT_MISMATCH_TOAST_ID = "auth-account-mismatch";
+const SESSION_EXPIRED_TOAST_ID = "auth-session-expired";
 // Account admission runs behind the CloudSync plugin queue. If that queue is
 // jammed, auth must not stay hidden forever; admission finishes late instead.
 const ACCOUNT_ADMISSION_TIMEOUT_MS = 15_000;
@@ -113,6 +114,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const commitSession = useCallback(
     (nextSession: Session | null, admitted = false) => {
+      if (
+        !nextSession ||
+        (sessionRef.current &&
+          nextSession.refresh_token !== sessionRef.current.refresh_token)
+      ) {
+        toast.dismiss(SESSION_EXPIRED_TOAST_ID);
+      }
       sessionRef.current = nextSession;
       admittedUserIdRef.current =
         nextSession &&
@@ -661,6 +669,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const signIn = useCallback(async () => {
+    trackAnalyticsEvent("auth_started", {
+      entry_point: "desktop_sign_in",
+      method: "browser_handoff",
+    });
+    try {
+      const url = await buildWebAppUrl("/auth");
+      await openUrlWithInstruction(url, "sign-in", (u) =>
+        openerCommands.openUrl(u, null),
+      );
+    } catch (error) {
+      trackAnalyticsEvent("auth_failed", {
+        entry_point: "desktop_sign_in",
+        method: "browser_handoff",
+        failure_stage: "open_browser",
+      });
+      throw error;
+    }
+  }, []);
+
+  const handleRefreshFailure = useCallback(
+    (error: unknown, attemptedSession: Session | null) => {
+      if (
+        !attemptedSession ||
+        authTransitionEventRef.current === "SIGNED_OUT" ||
+        (sessionRef.current &&
+          sessionRef.current.refresh_token !==
+            attemptedSession.refresh_token) ||
+        typeof error !== "object" ||
+        error === null ||
+        !("code" in error) ||
+        (error.code !== "refresh_token_already_used" &&
+          error.code !== "refresh_token_not_found")
+      ) {
+        return;
+      }
+      toast.error(t`Your session has expired. Sign in again to reconnect.`, {
+        id: SESSION_EXPIRED_TOAST_ID,
+        duration: Infinity,
+        action: {
+          label: t`Sign in again`,
+          onClick: () => {
+            void signIn().catch(() => {
+              toast.error(t`Couldn't open sign-in. Try again.`);
+            });
+          },
+          dismissOnClick: false,
+        },
+      });
+    },
+    [signIn],
+  );
+
   useEffect(() => {
     if (!supabase) {
       return;
@@ -669,7 +730,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!initStartedRef.current) {
       initStartedRef.current = true;
       const initialTransition = authTransitionRef.current;
-      void loadInitialSession(supabase).then((initialSession) => {
+      void loadInitialSession(supabase, (error, storedSession) => {
+        if (initialTransition === authTransitionRef.current) {
+          handleRefreshFailure(error, storedSession);
+        }
+      }).then((initialSession) => {
         if (initialTransition === authTransitionRef.current) {
           void enqueueAuthChange("INITIAL_SESSION", initialSession);
         }
@@ -704,6 +769,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [
     applyAdmittedSessionRefresh,
     enqueueAuthChange,
+    handleRefreshFailure,
     isAdmittedSessionRefresh,
   ]);
 
@@ -742,7 +808,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             void (async () => {
               const transition = authTransitionRef.current;
               try {
+                const attemptedSession = sessionRef.current;
                 const { data, error } = await client.auth.getSession();
+                if (!cancelled && transition === authTransitionRef.current) {
+                  handleRefreshFailure(error, attemptedSession);
+                }
                 if (
                   cancelled ||
                   error ||
@@ -758,6 +828,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   currentSession.expires_at * 1000 <= Date.now() + 120_000
                 ) {
                   const refreshed = await client.auth.refreshSession();
+                  if (!cancelled && transition === authTransitionRef.current) {
+                    handleRefreshFailure(refreshed.error, currentSession);
+                  }
                   if (cancelled || refreshed.error || !refreshed.data.session) {
                     return;
                   }
@@ -809,27 +882,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unlisten?.();
       void client.auth.stopAutoRefresh();
     };
-  }, [managesCloudsync, rejectAccountMismatch]);
-
-  const signIn = useCallback(async () => {
-    trackAnalyticsEvent("auth_started", {
-      entry_point: "desktop_sign_in",
-      method: "browser_handoff",
-    });
-    try {
-      const url = await buildWebAppUrl("/auth");
-      await openUrlWithInstruction(url, "sign-in", (u) =>
-        openerCommands.openUrl(u, null),
-      );
-    } catch (error) {
-      trackAnalyticsEvent("auth_failed", {
-        entry_point: "desktop_sign_in",
-        method: "browser_handoff",
-        failure_stage: "open_browser",
-      });
-      throw error;
-    }
-  }, []);
+  }, [handleRefreshFailure, managesCloudsync, rejectAccountMismatch]);
 
   const signOutFromMain = useCallback(async (): Promise<boolean> => {
     if (!supabase) {
@@ -1033,8 +1086,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null;
       }
 
+      const attemptedSession = sessionRef.current;
       const { data, error } = await supabase.auth.refreshSession();
       if (error) {
+        handleRefreshFailure(error, attemptedSession);
         return null;
       }
       return data.session;
@@ -1055,10 +1110,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let requestSession = sessionRef.current;
       try {
         const { data, error } = await supabase.auth.getSession();
+        handleRefreshFailure(error, requestSession);
         if (!error && data.session) {
           requestSession = data.session;
         }
-      } catch {
+      } catch (error) {
+        handleRefreshFailure(error, requestSession);
         // Fall back to the in-memory session below.
       }
 
@@ -1084,7 +1141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       return expiresAt > Date.now() ? requestSession : null;
-    }, [refreshSession]);
+    }, [handleRefreshFailure, refreshSession]);
 
   const getHeaders = useCallback(() => {
     if (!session) {

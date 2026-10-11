@@ -11,9 +11,13 @@ import {
 import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { openUrlWithInstruction } from "@anlg/plugin-windows";
+
 import { useAuth } from "./auth-context";
 import type { CloudsyncAccountAdmission } from "./cloudsync";
 import { AuthProvider } from "./context";
+
+import { buildWebAppUrl } from "~/shared/utils";
 
 const mocks = vi.hoisted(() => ({
   analyticsClearGroups: vi.fn(),
@@ -225,11 +229,12 @@ function SessionProbe() {
         Refresh
       </button>
       <button
-        onClick={() =>
+        onClick={() => {
+          setRequestAccessToken("pending");
           void getSessionForRequest().then((requestSession) => {
             setRequestAccessToken(requestSession?.access_token ?? "none");
-          })
-        }
+          });
+        }}
       >
         Get request session
       </button>
@@ -503,6 +508,78 @@ describe("AuthProvider", () => {
     });
     expect(mocks.refreshCloudsyncForSession).not.toHaveBeenCalled();
   });
+
+  it.each(["refresh_token_already_used", "over_request_rate_limit"])(
+    "recovers %s without discarding the local account or signing with an expired token",
+    async (code) => {
+      const expired = makeSession("bound-account");
+      expired.expires_at = Math.floor(Date.now() / 1000) - 60;
+      mocks.readPersistedAuthSession.mockResolvedValue(expired);
+      mocks.getSession.mockResolvedValue({
+        data: { session: null },
+        error: { code, status: code === "over_request_rate_limit" ? 429 : 400 },
+      });
+      mocks.refreshSession.mockResolvedValue({
+        data: { session: null },
+        error: { code, status: code === "over_request_rate_limit" ? 429 : 400 },
+      });
+      renderAuthProvider();
+      await waitFor(() => {
+        expect(screen.getByTestId("session").textContent).toBe(expired.user.id);
+        expect(mocks.focusCallback).not.toBeNull();
+      });
+      mocks.toastError.mockClear();
+      await act(async () => mocks.focusCallback?.({ payload: true }));
+      await waitFor(() => {
+        if (code === "refresh_token_already_used") {
+          expect(mocks.toastError).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({ id: "auth-session-expired" }),
+          );
+        }
+      });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Get request session" }),
+      );
+      await waitFor(() => {
+        expect(screen.getByTestId("request-access-token").textContent).toBe(
+          "none",
+        );
+      });
+      expect(mocks.clearAuthStorage).not.toHaveBeenCalled();
+      expect(screen.getByTestId("session").textContent).toBe(expired.user.id);
+
+      if (code === "refresh_token_already_used") {
+        const notification = mocks.toastError.mock.calls.find(
+          ([, options]) => options?.id === "auth-session-expired",
+        );
+        expect(notification).toBeDefined();
+        vi.mocked(buildWebAppUrl).mockResolvedValue("https://anarlog.so/auth");
+        notification![1].action.onClick();
+        await waitFor(() => {
+          expect(openUrlWithInstruction).toHaveBeenCalledWith(
+            "https://anarlog.so/auth",
+            "sign-in",
+            expect.any(Function),
+          );
+        });
+      } else {
+        expect(mocks.toastError).not.toHaveBeenCalled();
+      }
+
+      const recovered = makeSession("bound-account");
+      recovered.access_token = "new-access-token";
+      recovered.refresh_token = "new-refresh-token";
+      act(() => mocks.authCallback?.("TOKEN_REFRESHED", recovered));
+      await waitFor(() => {
+        expect(screen.getByTestId("authorization").textContent).toBe(
+          "bearer new-access-token",
+        );
+      });
+      expect(mocks.toastDismiss).toHaveBeenCalledWith("auth-session-expired");
+      expect(mocks.clearAuthStorage).not.toHaveBeenCalled();
+    },
+  );
 
   it("refreshes an expiring session before an authenticated request", async () => {
     const staleSession = makeSession("bound-account");

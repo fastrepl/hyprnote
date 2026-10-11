@@ -1,6 +1,6 @@
 pkgbase = anarlog-bin
 	pkgdesc = AI notepad for meetings — local-first, E2EE desktop note-taking app
-	pkgver = 1.4.29
+	pkgver = 1.4.30
 	pkgrel = 1
 	url = https://anarlog.so
 	arch = x86_64
@@ -22,11 +22,11 @@ pkgbase = anarlog-bin
 	provides = anarlog
 	conflicts = anarlog
 	options = !strip
-	source = LICENSE-1.4.29::https://raw.githubusercontent.com/fastrepl/anarlog/desktop_v1.4.29/LICENSE
+	source = LICENSE-1.4.30::https://raw.githubusercontent.com/fastrepl/anarlog/desktop_v1.4.30/LICENSE
 	sha256sums = ba9cc3a7e074c5cfe3985d6956f24c9f7575592a0483e314c9fcb4f72ee1b615
-	source_x86_64 = anarlog-1.4.29-x86_64.deb::https://github.com/fastrepl/anarlog/releases/download/desktop_v1.4.29/anarlog-linux-x86_64.deb
-	sha256sums_x86_64 = f52ec21fb2ec7c4259845674439422bfdb68142f9685a11093ae8eb7f423183a
-	source_aarch64 = anarlog-1.4.29-aarch64.deb::https://github.com/fastrepl/anarlog/releases/download/desktop_v1.4.29/anarlog-linux-aarch64.deb
-	sha256sums_aarch64 = 4ea21505143ba55390211b50d506e2a8dda0ea4d8dd06ab1da735a3be92b5e54
+	source_x86_64 = anarlog-1.4.30-x86_64.deb::https://github.com/fastrepl/anarlog/releases/download/desktop_v1.4.30/anarlog-linux-x86_64.deb
+	sha256sums_x86_64 = db010134bc5ca292596818c3c23f68809b2b0161c9e4490969fde3de371fc126
+	source_aarch64 = anarlog-1.4.30-aarch64.deb::https://github.com/fastrepl/anarlog/releases/download/desktop_v1.4.30/anarlog-linux-aarch64.deb
+	sha256sums_aarch64 = 78d57a1a53db9be3f5ec19fad48bcf410b8f8b8cf9f1652cf0099a317c1ef42a
 
 pkgname = anarlog-bin

@@ -1,0 +1,21 @@
+{
+  "version": "0.1.5",
+  "sourceSha": "fd841ca6b9d42f3c34a287a346726a7d1dd3805a",
+  "channel": "beta",
+  "availability": [
+    {
+      "platform": "ios",
+      "destination": "testflight",
+      "build": "15",
+      "publishedAt": "2026-10-11T14:09:20Z",
+      "evidenceUrl": "https://expo.dev/accounts/john_fastrepl/projects/anarlog-mobile/submissions/8dad4823-adc4-414b-95cd-dc191c626941"
+    },
+    {
+      "platform": "android",
+      "destination": "play-internal",
+      "build": "13",
+      "publishedAt": "2026-10-11T14:35:12Z",
+      "evidenceUrl": "https://play.google.com/console/u/0/developers/7939625230028134337/app/4975795460338937539/tracks/4700991317844909953/releases/1/details"
+    }
+  ]
+}

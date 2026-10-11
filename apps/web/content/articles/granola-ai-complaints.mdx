@@ -4,12 +4,12 @@ display_title: "What People Get Frustrated About With Granola"
 meta_description: "What Google, Reddit, and Semrush show about Granola: language limits, 30-day history locks, silent recording failures, and why people look for alternatives."
 author: "John Jeong"
 category: "Comparisons"
-date: "2026-08-30"
+date: "2026-10-11"
 ---
 
 Granola is one of the better-designed AI meeting notepads. It stays out of the participant list, lets you type what matters, and fills in the rest from the transcript. That is why people keep recommending it.
 
-It is also why the complaints are specific. People who bounce off Granola usually liked the notepad. They ran into a limit that the product treats as a feature: a short language list, a history wall on the free plan, a capture path that can fail quietly, or a workspace that keeps the record after the audio is gone.
+It is also why the complaints are specific. People who bounce off Granola usually liked the notepad. They ran into a platform-specific language limit, a history wall on the free plan, a capture path that can fail quietly, or a workspace that keeps the record after the audio is gone.
 
 We already have a [Granola AI alternatives guide](/blog/granola-ai-alternatives/) for the product-by-product comparison. This post maps the frustrations that keep showing up in Google results, Reddit threads, and Semrush traffic data, with Granola's own docs as the check against stale reviews.
 
@@ -27,27 +27,25 @@ Reddit and aggregated review dumps are thinner and noisier. [SearchTools](https:
 
 *Granola's first-party product image of the notepad working beside a call. Source: [Granola](https://www.granola.ai/).*
 
-## Language support is still a real limit
+## Language support depends on platform and mode
 
-Language is the frustration that holds up after Granola added multi-language support. The product is no longer English-only. The remaining limit is narrower, and it still matters if your meetings are not mostly English.
+Older complaints about Granola's ten-language desktop list are outdated. The remaining limits depend on the platform and transcription mode.
 
-Granola's [multi-language docs](https://docs.granola.ai/help-center/customising-granola/multi-language) currently list ten languages on desktop: English, French, German, Spanish, Italian, Portuguese, Dutch, Japanese, Russian, and Hindi. iOS and Android add Mandarin Chinese, Finnish, Korean, Polish, Turkish, Ukrainian, and Vietnamese. The app UI stays English-only.
+Granola's [multi-language docs](https://docs.granola.ai/help-center/customising-granola/multi-language), checked October 11, list 31 desktop languages and 17 mobile languages. Korean and Mandarin are now on desktop; Polish and Ukrainian are listed for mobile only.
 
 | Constraint | What Granola does today |
 | --- | --- |
-| Desktop transcription | 10 languages on the Multi-language setting |
-| Mobile transcription | Those 10, plus Mandarin, Finnish, Korean, Polish, Turkish, Ukrainian, and Vietnamese |
+| Desktop transcription | 31 supported languages |
+| Mobile transcription | 17 supported languages |
 | App interface | English only |
 | Mixed-language desktop calls | Supported when Multi-language is on |
 | Mixed-language mobile calls | The app picks one language for the whole meeting |
-| Company jargon | Internal Jargon is disabled in Multi-language mode |
+| Summary language | Desktop offers English or majority-language output; mobile uses the majority language |
 | Old meetings | You cannot change the transcription language after the fact |
 
-That table is the whole argument. Mandarin and Korean exist on the phone and not on the Mac or Windows app, which is where most scheduled work calls happen. A Hindi or Portuguese desktop meeting is in-scope. A Korean customer call on a laptop is not, unless you take it from the phone. A Brazilian team that also speaks English can use Multi-language on desktop, then lose Internal Jargon for product names and acronyms.
+Korean-English and Mandarin-English desktop meetings are now supported use cases. Mobile still chooses one transcription language for the meeting. Test company names and acronyms in the mode you intend to use.
 
-Independent reviews keep hitting the same wall. [tl;dv's 2026 Granola review](https://tldv.io/blog/granola-review/) called out the short desktop list and noted that Chinese was missing there. Other write-ups describe the jargon tradeoff as a forced choice: accurate company vocabulary, or mixed-language capture, not both. Granola's own docs agree. English mode is still the quality recommendation when most of the meeting is English.
-
-This is also where search demand and product coverage drift apart. Semrush puts India and Brazil in Granola's top five countries. Hindi and Portuguese are on the desktop list. Korean, Polish, Turkish, Arabic, Thai, and Indonesian are not, or they appear only on mobile. If your calendar is a mix of those, the language setting becomes a weekly decision instead of a default.
+Use the current platform list rather than an older review when evaluating a language. The app interface remains English, and an existing transcript cannot be reprocessed simply by changing the language setting.
 
 Anarlog takes a different cut. Transcription language coverage follows the provider you pick, and the [language settings](https://docs.anarlog.so/languages) keep summary language separate from additional spoken languages. That is not "we support every language equally." It is "you can change the STT model when a language is missing," instead of waiting on Granola's provider list.
 
@@ -55,7 +53,7 @@ Anarlog takes a different cut. Transcription language coverage follows the provi
 
 Granola's Basic plan is free and does not cap the number of meetings. The limit moved to time. [Granola's billing docs](https://docs.granola.ai/help-center/managing-your-account/subscriptions-and-billing) say you can only see and use notes from the last 30 days in the app. Older notes are not deleted. They stay stored. They become visible again if you pay for Business at $14 per user per month.
 
-That is the complaint people mean when they say the free plan became a hostage window. You can keep recording. You cannot keep working from last quarter without upgrading or exporting. The official escape hatch is a CSV from Settings, emailed later, with titles and summaries for all notes. [Granola's current billing docs](https://docs.granola.ai/help-center/managing-your-account/subscriptions-and-billing) say full transcripts are not included. Treat the export as an index, not an archive.
+You can keep recording, but older notes disappear from the Basic app view. They can still be exported. [Granola's current export documentation](https://docs.granola.ai/help-center/sharing/exporting-notes), checked October 11, says Settings → Profile → Generate CSV includes titles, summaries, and transcripts for notes you own with a generated summary, including older Basic notes. Deleted notes and notes without a summary are excluded. The emailed download link expires after 24 hours; Enterprise administrators must enable exports. Keep a backup and check its contents before relying on it as your archive.
 
 Business also unlocks Notion, HubSpot, Attio, Affinity, Zapier, MCP, and API access. Slack is the integration that remains on Basic. If the reason you are evaluating Granola is "I want my notes in the tools I already use," the free plan is a demo of the notepad, not of the workflow.
 
@@ -91,12 +89,12 @@ None of that makes Granola reckless. It does mean "no bot" is not the same as "n
 
 ## When these frustrations matter, and when they do not
 
-Stay with Granola if the notepad is the product you wanted: you type during calls, English or one of the ten desktop languages covers your week, you will pay for history, and you can live without audio playback. The note quality is why the brand searches are so large.
+Stay with Granola if the notepad is the product you wanted: you type during calls, its current platform language list covers your week, you will pay for in-app history or maintain exports, and you can live without audio playback. The note quality is why the brand searches are so large.
 
 Look elsewhere when the recurring complaints match your actual meetings:
 
-- you need Korean, Mandarin, or another language that desktop Granola does not transcribe
-- you need jargon and mixed languages in the same call
+- your language is missing from the platform you use
+- its language mode does not reliably preserve your mixed-language conversation and terminology
 - you cannot lose a meeting to a silent failure with no tape
 - you need named speakers in group calls
 - you need notes older than 30 days without paying to unlock them
@@ -104,7 +102,7 @@ Look elsewhere when the recurring complaints match your actual meetings:
 
 If the issue is the notepad versus a meeting bot, read the [bot-free AI meeting assistant guide](/blog/bot-free-ai-meeting-assistants/). If the issue is ownership after the call, [local AI meeting notes](/blog/local-ai-meeting-notes/) is the better comparison. If you already know you want a different product, the [Granola alternatives](/blog/granola-ai-alternatives/) piece is the workflow-by-workflow map.
 
-Anarlog is the open-source option we built for the last group: bot-free capture, local SQLite as the meeting record, transcription and AI you can point at a local model or your own keys, and language coverage that follows the provider instead of a fixed ten-language desktop list. It will not attend a meeting when your computer is closed, and you are responsible for backups. That is the trade.
+Anarlog is the open-source option we built for the last group: bot-free capture, local SQLite as the meeting record, transcription and AI you can point at a local model or your own keys, and language coverage that follows your chosen provider or model. It will not attend a meeting when your computer is closed, and you are responsible for backups. That is the trade.
 
 ![Anarlog Settings → Intelligence with the list of configurable AI providers](https://static.anarlog.so/blog/library/products/anarlog/desktop/2026-09-23-settings-intelligence-providers.png)
 

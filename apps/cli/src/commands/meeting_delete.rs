@@ -165,12 +165,15 @@ pub async fn run(args: &Args, id: &str, expected: &str, json: bool) -> Result<()
         let exported =
             anlg_agent_access::get_local_meeting_export(reader.pool(), id.to_owned()).await?;
         reader.pool().close().await;
-        let bytes = format!("{}\n", output::json("meetings.export", &exported, None)?);
-        let actual = Sha256::digest(bytes.as_bytes())
-            .iter()
-            .map(|b| format!("{b:02x}"))
-            .collect::<String>();
-        if actual != expected {
+        // Stdout ends with a newline; `--output` files do not. Accept either.
+        let body = output::json("meetings.export", &exported, None)?;
+        let digest = |text: &str| {
+            Sha256::digest(text.as_bytes())
+                .iter()
+                .map(|b| format!("{b:02x}"))
+                .collect::<String>()
+        };
+        if digest(&format!("{body}\n")) != expected && digest(&body) != expected {
             return Err(invalid("snapshot changed"));
         }
         if exported.capture_pending
@@ -184,6 +187,18 @@ pub async fn run(args: &Args, id: &str, expected: &str, json: bool) -> Result<()
             })
         {
             return Err(invalid("transcription is incomplete"));
+        }
+        // Pending proposals are not part of the export, so purging would
+        // silently discard edits made after it.
+        let pending_proposals: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM session_proposals WHERE session_id=? AND status='pending')",
+        )
+        .bind(id)
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(|_| invalid("cannot read proposals"))?;
+        if pending_proposals {
+            return Err(invalid("meeting has pending proposals"));
         }
         let mut paths = vec!["search_index".to_string()];
         let mut sessions = Vec::new();
@@ -313,6 +328,46 @@ mod tests {
         ])
         .unwrap();
         (dir, args, hash)
+    }
+
+    #[tokio::test]
+    async fn saved_export_file_hash_is_accepted() {
+        let (dir, args, _) = fixture().await;
+        let db = db::open(&args).await.unwrap();
+        let exported = anlg_agent_access::get_local_meeting_export(db.pool(), "meeting-1".into())
+            .await
+            .unwrap();
+        let body = output::json("meetings.export", &exported, None).unwrap();
+        db.pool().close().await;
+        let hash = Sha256::digest(body.as_bytes())
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect::<String>();
+        run(&args, "meeting-1", &hash, true).await.unwrap();
+        assert!(
+            !dir.path()
+                .join("sessions/project/meeting-1/audio.wav")
+                .exists()
+        );
+    }
+
+    #[tokio::test]
+    async fn pending_proposal_blocks_purge() {
+        let (dir, args, hash) = fixture().await;
+        let db = db::open_write(&args).await.unwrap();
+        sqlx::query(
+            "INSERT INTO session_proposals(id,session_id) VALUES('proposal-1','meeting-1')",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+        db.pool().close().await;
+        assert!(run(&args, "meeting-1", &hash, true).await.is_err());
+        assert!(
+            dir.path()
+                .join("sessions/project/meeting-1/audio.wav")
+                .exists()
+        );
     }
 
     #[tokio::test]

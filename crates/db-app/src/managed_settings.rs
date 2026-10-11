@@ -154,6 +154,22 @@ mod tests {
         .await
         .unwrap();
         assert_eq!(disabled, "true");
+        std::fs::write(
+            dir.path().join("managed_settings.json"),
+            br#"{"schema_version":1,"settings":{"intelligence_disabled":true}}"#,
+        )
+        .unwrap();
+        apply_managed_settings(db.pool()).await.unwrap();
+        sqlx::query("UPDATE app_settings SET value_json='true' WHERE id='telemetry_consent'")
+            .execute(db.pool())
+            .await
+            .unwrap();
+        assert!(
+            sqlx::query("DELETE FROM app_settings WHERE id='intelligence_disabled'")
+                .execute(db.pool())
+                .await
+                .is_err()
+        );
         std::fs::write(dir.path().join("managed_settings.json"), b"malformed").unwrap();
         assert!(apply_managed_settings(db.pool()).await.is_err());
         assert!(

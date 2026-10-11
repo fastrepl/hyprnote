@@ -306,7 +306,7 @@ export function getSessionSpeakerCount(
     humanIds.add(selfHumanId);
   }
 
-  return humanIds.size > 1 ? humanIds.size : undefined;
+  return undefined;
 }
 
 export const useRunBatch = (sessionId: string) => {

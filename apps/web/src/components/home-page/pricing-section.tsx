@@ -10,15 +10,17 @@ import { cn } from "@anlg/utils";
 
 export function PricingSection({
   compareLink = false,
+  headingLevel: Heading = "h2",
 }: {
   compareLink?: boolean;
+  headingLevel?: "h1" | "h2";
 }) {
   return (
     <section id="pricing" className="pt-24 pb-8 md:pt-28 md:pb-10">
       <div>
-        <h2 className="font-hand text-3xl leading-none font-semibold text-[#756b5d]">
+        <Heading className="font-hand text-3xl leading-none font-semibold text-[#756b5d]">
           Simple pricing
-        </h2>
+        </Heading>
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#4f4940]">
           Start local for free, add cloud features and collaboration with Pro,
           and get organization-wide controls with Enterprise.

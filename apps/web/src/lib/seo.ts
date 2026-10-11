@@ -14,7 +14,7 @@ export function getCanonicalUrl(path = "/") {
 }
 export const ROOT_TITLE = "Private AI Meeting Notetaker | Anarlog";
 export const ROOT_DESCRIPTION =
-  "Anarlog is the open-source, privacy-first, local-first alternative to Granola AI. Take notes during private meetings, turn them into editable summaries, and keep your local meeting data and AI stack under your control.";
+  "Anarlog is the open-source, local-first alternative to Granola. Take private meeting notes, get editable AI summaries, and keep your data and AI stack yours.";
 export const ROOT_KEYWORDS =
   "private meeting notes, open source meeting notes, local-first AI notepad, Granola AI alternative, AI meeting notes, local meeting transcription, bot-free AI notes, offline meeting notes, on-device AI, BYOK AI, meeting transcription, meeting summaries, data ownership";
 

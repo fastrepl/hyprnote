@@ -16,7 +16,7 @@ import { getCanonicalUrl } from "@/lib/seo";
 
 const title = "Pricing · Anarlog";
 const description =
-  "Compare Anarlog Free, Pro, and Enterprise. Pro includes system-wide dictation, cloud features, and team collaboration for $14/person/month or $140/person/year. Enterprise is custom.";
+  "Compare Anarlog Free, Pro, and Enterprise. Pro adds dictation, cloud features, and team collaboration for $14/person/month or $140/person/year.";
 
 const verifiedOnLabel = new Date(PRICING_VERIFIED_ON).toLocaleDateString(
   "en-US",
@@ -51,7 +51,7 @@ function PricingPage() {
             </Link>
           </section>
 
-          <PricingSection />
+          <PricingSection headingLevel="h1" />
 
           <section className="pt-12 pb-8 md:pt-16 md:pb-10">
             <h2 className="font-hand text-3xl leading-none font-semibold text-[#756b5d]">

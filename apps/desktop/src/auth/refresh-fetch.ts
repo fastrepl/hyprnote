@@ -21,6 +21,7 @@ export function createRefreshFetch({
     `${supabaseUrl.replace(/\/+$/, "")}/`,
   );
   const inFlight = new Map<string, Promise<Response>>();
+  let rejectedRefresh: { credential: string; response: Response } | null = null;
 
   return async (input, init) => {
     const url = new URL(
@@ -66,6 +67,10 @@ export function createRefreshFetch({
       // Malformed requests still share a cooldown for their exact payload.
     }
     const refresh = async () => {
+      // Revoked refresh credentials need a new sign-in, not another network retry.
+      if (rejectedRefresh?.credential === credential) {
+        return rejectedRefresh.response;
+      }
       const permit = await beginRefresh(credential);
       if (permit.leaseId === null) {
         return Response.json(
@@ -97,6 +102,21 @@ export function createRefreshFetch({
           statusText: upstream.statusText,
           headers: upstream.headers,
         });
+        if (response.status === 400) {
+          const error = await response
+            .clone()
+            .json()
+            .catch(() => null);
+          const code = error?.code ?? error?.error_code;
+          if (
+            code === "refresh_token_already_used" ||
+            code === "refresh_token_not_found"
+          ) {
+            rejectedRefresh = { credential, response };
+          }
+        } else if (response.ok) {
+          rejectedRefresh = null;
+        }
         return response;
       } finally {
         clearTimeout(timeout);

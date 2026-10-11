@@ -1932,6 +1932,7 @@ msgstr ""
 msgid "Couldn't open device add-ons. Try again."
 msgstr ""
 
+#: src/auth/context.tsx
 #: src/settings/referrals.tsx
 msgid "Couldn't open sign-in. Try again."
 msgstr "로그인 화면을 열지 못했어요. 다시 시도해 주세요."
@@ -5501,6 +5502,10 @@ msgstr ""
 msgid "Sign in"
 msgstr ""
 
+#: src/auth/context.tsx
+msgid "Sign in again"
+msgstr ""
+
 #: src/settings/sync/index.tsx
 msgid "Sign in before enabling encrypted cloud sync"
 msgstr ""
@@ -6871,6 +6876,10 @@ msgstr ""
 #: src/settings/referrals.tsx
 msgid "Your referrals"
 msgstr "내 초대 내역"
+
+#: src/auth/context.tsx
+msgid "Your session has expired. Sign in again to reconnect."
+msgstr ""
 
 #: src/services/enhancer/summary-notification.ts
 msgid "Your summary is ready."

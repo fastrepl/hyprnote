@@ -186,3 +186,67 @@ test.each(["rate-limit", "offline"])(
     }
   },
 );
+
+test("revoked refresh tokens stay rejected without network retries until a new sign-in replaces them", async () => {
+  const storageKey = "revoked-auth";
+  const expired = {
+    access_token: "expired-token",
+    refresh_token: "revoked-token",
+    token_type: "bearer",
+    expires_at: Math.floor(Date.now() / 1000) - 60,
+    user: { id: "test-user" },
+  };
+  const storage = new Map([[storageKey, JSON.stringify(expired)]]);
+  let upstreamAttempts = 0;
+  const fetch = createRefreshFetch({
+    supabaseUrl: "https://project.supabase.co",
+    fetch: async () => {
+      upstreamAttempts += 1;
+      return Response.json(
+        {
+          code: "refresh_token_already_used",
+          message: "Refresh token revoked",
+        },
+        { status: 400, headers: { "X-Supabase-Api-Version": "2024-01-01" } },
+      );
+    },
+    beginRefresh: async () => ({ leaseId: 1, retryAfterMs: 0 }),
+    finishRefresh: async () => {},
+  });
+  const client = createClient("https://project.supabase.co", "test-key", {
+    global: { fetch },
+    auth: {
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      storageKey,
+      storage: {
+        getItem: (key) => storage.get(key) ?? null,
+        setItem: (key, value) => {
+          storage.set(key, value);
+        },
+        removeItem: () => {},
+      },
+    },
+  });
+  try {
+    for (let read = 0; read < 5; read += 1) {
+      expect((await client.auth.getSession()).error?.code).toBe(
+        "refresh_token_already_used",
+      );
+    }
+    expect(upstreamAttempts).toBe(1);
+    expect(storage.get(storageKey)).toBe(JSON.stringify(expired));
+    const signedIn = {
+      ...expired,
+      access_token: "new-access-token",
+      refresh_token: "new-refresh-token",
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+    };
+    storage.set(storageKey, JSON.stringify(signedIn));
+    const recovered = await client.auth.getSession();
+    expect(recovered.error).toBeNull();
+    expect(recovered.data.session?.access_token).toBe("new-access-token");
+  } finally {
+    client.auth.stopAutoRefresh();
+  }
+});

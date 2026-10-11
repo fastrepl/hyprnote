@@ -112,6 +112,11 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify(
           getStructuredDataGraph([
             getOrganizationJsonLd(),
+            {
+              "@type": "WebSite",
+              name: "Anarlog",
+              url: getCanonicalUrl(),
+            },
             getSoftwareApplicationJsonLd({
               description: ROOT_DESCRIPTION,
               featureList,

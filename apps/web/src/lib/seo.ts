@@ -84,7 +84,7 @@ export function getSoftwareApplicationJsonLd({
     name: "Anarlog",
     url,
     description,
-    applicationCategory: "ProductivityApplication",
+    applicationCategory: "BusinessApplication",
     operatingSystem: ["macOS", "Windows", "Linux"],
     downloadUrl: getCanonicalUrl("/download"),
     publisher: getOrganizationJsonLd(),

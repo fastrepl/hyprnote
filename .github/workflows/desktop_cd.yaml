@@ -158,7 +158,13 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        include: ${{ inputs.channel == 'staging' && fromJSON('[{"target":"aarch64-apple-darwin","arch":"aarch64","artifact_name":"silicon"}]') || fromJSON('[{"target":"aarch64-apple-darwin","arch":"aarch64","artifact_name":"silicon"},{"target":"x86_64-apple-darwin","arch":"x86_64","artifact_name":"intel"}]') }}
+        include:
+          - target: aarch64-apple-darwin
+            arch: aarch64
+            artifact_name: silicon
+          - target: x86_64-apple-darwin
+            arch: x86_64
+            artifact_name: intel
     defaults:
       run:
         shell: bash

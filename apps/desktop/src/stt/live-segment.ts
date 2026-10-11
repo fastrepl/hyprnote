@@ -199,7 +199,7 @@ export function getMaxSpeakerNumberForParticipants(
     ids.add(selfHumanId);
   }
 
-  return ids.size > 1 ? ids.size : undefined;
+  return undefined;
 }
 
 export function mergeRenderedAndLiveSegments(

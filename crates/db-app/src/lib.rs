@@ -12,6 +12,7 @@ mod event_ops;
 mod event_types;
 mod folder_catalog_ops;
 mod legacy_import;
+mod managed_settings;
 mod session_audio_ops;
 mod session_content_ops;
 mod session_deletion;
@@ -44,6 +45,7 @@ pub use event_ops::*;
 pub use event_types::*;
 pub use folder_catalog_ops::*;
 pub use legacy_import::*;
+pub use managed_settings::*;
 pub use session_audio_ops::*;
 pub use session_content_ops::*;
 pub use session_lifecycle_ops::*;
@@ -591,6 +593,11 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         scope: anlg_db_migrate::MigrationScope::Plain,
         sql: include_str!("../migrations/20261005090000_e2ee_cloud_authority.sql"),
     },
+    anlg_db_migrate::MigrationStep {
+        id: "20261011120000_managed_app_settings",
+        scope: anlg_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20261011120000_managed_app_settings.sql"),
+    },
 ];
 
 pub fn schema() -> anlg_db_migrate::DbSchema {
@@ -688,6 +695,7 @@ pub async fn prepare_schema_with_progress(
     requeue_parked_e2ee_records(db.pool()).await?;
     backfill_session_share_activation(db.pool()).await?;
     ensure_cloudsync_workspace_binding(db.pool()).await?;
+    apply_managed_settings(db.pool()).await?;
     Ok(())
 }
 

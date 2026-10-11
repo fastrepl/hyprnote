@@ -1,9 +1,9 @@
 ---
 meta_title: "6 Best Granola AI Alternatives in 2026"
-meta_description: "Compare six Granola AI alternatives for local-first meeting records, bot-free capture, browser transcription, multilingual notes, automation, and local AI."
+meta_description: "Compare six Granola AI alternatives by free-plan limits, local processing, capture method, and exports. Includes a checklist for moving your existing notes."
 author: "John Jeong"
 category: "Comparisons"
-date: "2026-07-22"
+date: "2026-10-11"
 ---
 
 Granola is one of the better-designed AI meeting notepads because it does not try to remove you from note-taking. You write what matters, Granola captures the conversation in the background, and its AI fills in the details afterward.
@@ -42,13 +42,31 @@ Those changes make the real comparison more specific. You should switch when ano
 | --- | --- | --- | --- | --- |
 | **Anarlog** | Desktop system audio, no meeting bot | Local SQLite with Markdown export | Local-first meeting workflows | Windows and Linux builds are beta |
 | **Jamie** | Desktop and mobile capture, no meeting bot | Jamie workspace | Multilingual bot-free notes with EU hosting | Managed service rather than a local file workflow |
-| **Tactiq** | Browser extension using meeting captions | Tactiq workspace and exports | Live browser transcripts | Depends on supported browsers and meeting web apps |
+| **Tactiq** | Browser extension; Mac app beta for Zoom desktop | Tactiq workspace and exports | Live browser transcripts or Zoom desktop capture | The Mac app does not yet support Meet or Teams |
 | **Notta** | Desktop, mobile, browser, imports, and meeting workflows | Notta workspace or local Privacy Mode | Multilingual and cross-device work | Capture and storage behavior varies by mode |
 | **Otter** | Meeting bot, desktop app, or browser extension | Otter workspace | Unattended attendance and searchable archives | The visible-bot workflow stores more meeting media |
 | **Meetily** | Local desktop capture | Local or self-managed data | Open-source, self-managed meeting AI | More setup and operational responsibility |
 | **Granola** | Device audio paired with personal notes | Granola workspace | Collaborative, human-guided meeting notes | The archive remains centered on Granola |
 
-Pricing changes too often to be the foundation of a durable comparison. Check the current plan against your actual meeting volume, history requirements, integrations, export needs, and team size before deciding.
+## Free Granola alternatives: compare the limits first
+
+Free plans can limit meeting length, monthly transcription, AI summaries, or access to older notes. Those are different constraints. A plan with enough monthly minutes may still cut off a single meeting before it finishes.
+
+The following limits were checked against each product's official pricing page on October 11, 2026. Recheck the linked plan before subscribing.
+
+| Tool | Free option | Limit that matters when switching |
+| --- | --- | --- |
+| [Anarlog](/pricing/) | Unlimited on-device transcription, local notes, chat, and exports | Local models use your hardware; your own cloud API keys can incur provider charges. Hosted services and CloudSync are paid features. |
+| [Jamie](https://www.meetjamie.ai/pricing) | 10 AI notes per month | Meetings are limited to 30 minutes on Free. |
+| [Tactiq](https://tactiq.io/buy) | 10 transcripts and 5 AI credits per month | Transcription and AI actions have separate allowances. |
+| [Notta](https://www.notta.ai/en/pricing) | 120 transcription minutes per month | Each conversation is limited to 3 minutes; the monthly total does not make it a full-meeting free plan. |
+| [Otter](https://otter.ai/pricing) | 300 transcription minutes per month | 30 minutes per conversation, 3 lifetime file imports, and access to the 25 most recent conversations. |
+| [Meetily](https://meetily.ai/pricing) | Free open-source Community edition | Local processing needs suitable hardware; Pro adds features including advanced exports. The 14-day Pro trial is separate from Community. |
+| [Granola](https://www.granola.ai/pricing) | Basic at $0 | Visible meeting history is limited to 30 days. Business is $14/user/month with unlimited history; Enterprise is $35/user/month. |
+
+Granola's history limit is an access limit, not a statement that older notes are deleted. Its [historical export](https://docs.granola.ai/help-center/sharing/exporting-notes) includes eligible notes older than 30 days even on Basic. If keeping an archive is your reason to switch, test export completeness as well as the replacement's recording limits.
+
+For a free local workflow, start with Anarlog or Meetily Community and test model speed on your own computer. For a managed service, calculate both the number and length of your meetings. Twenty 45-minute calls need 900 minutes, and neither Jamie's 30-minute Free limit nor Notta's 3-minute limit covers one complete call.
 
 ## 1. Anarlog: best for local-first meeting data and AI-provider control
 
@@ -81,7 +99,7 @@ If storage architecture is your main concern, read our deeper guide to [local AI
 
 ## 2. Jamie: best for a managed, multilingual bot-free assistant
 
-[Jamie](https://www.meetjamie.ai/en) records online, hybrid, and in-person meetings without adding a bot. Its current product page advertises notes in more than 100 languages, automatic speaker labeling, European hosting, and integrations with tools including Notion, Google Docs, OneNote, and HubSpot.
+[Jamie](https://www.meetjamie.ai/en) records online, hybrid, and in-person meetings without adding a bot. Its current [plan comparison](https://www.meetjamie.ai/pricing) lists notes and transcripts in 99+ languages, speaker recognition, European hosting, and integrations with tools including Notion, Google Docs, OneNote, and HubSpot.
 
 <Image src="https://static.anarlog.so/blog/library/products/jamie/meeting-notes/2026-07-22-meeting-notes.webp" alt="Jamie workspace showing a generated meeting note and AI assistant" />
 
@@ -111,6 +129,8 @@ If Jamie is the product you are replacing, the [Jamie AI alternatives guide](/bl
 
 [Tactiq](https://tactiq.io/) is a browser extension for Google Meet, Zoom, and Microsoft Teams. It displays a live transcript beside the meeting without sending a separate participant into the call.
 
+Tactiq also offers a [native Mac app in beta](https://tactiq.io/download). It currently transcribes Zoom desktop calls and syncs with the same Tactiq account. Google Meet and Microsoft Teams still require the Chrome extension; the Mac app is not a replacement for every browser workflow.
+
 <Image src="https://static.anarlog.so/blog/library/products/tactiq/microsoft-teams/tactiq-2026-07-17-live-transcript.png" alt="Microsoft Teams web meeting with the Tactiq Live Transcript panel beside the call" />
 
 *Tactiq's official Teams guide shows the Live Transcript panel inside a browser meeting. Source: [Tactiq](https://help.tactiq.io/en/articles/9560779-how-to-use-tactiq-with-microsoft-teams).*
@@ -128,7 +148,7 @@ The live transcript is the reason to choose Tactiq. You can follow the conversat
 **Consider the tradeoffs:**
 
 - Microsoft Teams transcription requires the web app or PWA, not the native desktop client.
-- The browser, meeting platform, and caption behavior become dependencies.
+- For the extension, the browser, meeting platform, and caption behavior become dependencies.
 - Tactiq supports many languages, but it does not currently support multiple spoken languages in the same meeting.
 
 Tactiq is less like a local meeting memory system and more like an efficient transcription layer for browser calls.
@@ -232,11 +252,22 @@ Score the result on five questions:
 
 That test will tell you more than another grid of checkmarks.
 
+## How to switch from Granola without losing your notes
+
+Keep a copy of your existing meeting history before changing your workflow. Granola supports both individual note copying and a historical CSV export.
+
+1. **Export your history.** In Granola, open your workspace's Settings, then **Profile > Generate CSV** and select the relevant workspaces. Granola emails the file within a few hours; download it within 24 hours while signed into the same account.
+2. **Check what made it into the file.** The [export documentation](https://docs.granola.ai/help-center/sharing/exporting-notes) says the CSV contains your own notes with summaries, including older Basic-plan history. Deleted notes and notes without summaries are excluded. Enterprise admins may need to enable exports.
+3. **Keep summaries and transcripts distinct.** Granola's [Copy notes action](https://docs.granola.ai/help-center/sharing/sharing-notes) copies the enhanced summary as Markdown. Use the transcript panel's copy icon when you also need the full conversation.
+4. **Test the replacement before moving the archive.** Keep the CSV as a backup and check which formats your chosen tool can import. A vendor export is not a promise that another app imports its complete structure. Verify one meeting's title, notes, transcript, and speakers first.
+
+For an on-device setup, use the [transcription guides](/guides/transcription/) to compare tools and prepare local models before your next call.
+
 ## Frequently asked questions
 
 ### What is the best free alternative to Granola?
 
-Anarlog is a strong fit when you want local transcription, a local meeting record, and bring-your-own-key or local-model workflows. Tactiq and several managed products also offer free tiers, but their current limits can change. Compare meeting quotas, history access, AI credits, and exports—not just whether the signup page says free.
+Anarlog and Meetily Community fit an ongoing local workflow without a monthly transcription allowance. Anarlog's Free plan includes on-device transcription and exports; cloud API usage can still cost money. For managed capture, Jamie Free offers 10 AI notes per month at up to 30 minutes each, Tactiq Free lists 10 transcripts and 5 AI credits per month, and Otter Basic lists 300 minutes with a 30-minute conversation limit. Notta Free's 3-minute conversation limit makes it a short-sample option. Use the free-plan table above to match the limit to your actual calls.
 
 ### Which Granola alternatives do not use meeting bots?
 
@@ -248,7 +279,7 @@ Anarlog keeps meeting data locally in SQLite and can run transcription locally. 
 
 ### Is Granola private because it has no meeting bot?
 
-Not necessarily. A missing participant icon tells you how audio is captured, not the complete data path. Review where audio is processed, whether it is retained, where transcripts and notes live, which AI providers receive content, and what deletion and export controls exist. Granola says desktop audio is discarded after real-time transcription, while transcripts and notes persist in its workspace. [Is Granola AI safe?](/blog/is-granola-ai-safe) covers consent defaults, training, HIPAA, and the Chamberlain class action.
+Not necessarily. A missing participant icon tells you how audio is captured, not the complete data path. Review where audio is processed, whether it is retained, where transcripts and notes live, which AI providers receive content, and what deletion and export controls exist. Granola says desktop audio is discarded after real-time transcription, while transcripts and notes persist in its workspace. [Is Granola AI safe?](/blog/is-granola-ai-safe/) covers consent defaults, training, HIPAA, and the Chamberlain class action.
 
 ### What is the closest open-source alternative to Granola?
 

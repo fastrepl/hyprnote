@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   getScheduledAutoStartAction,
   hasPendingAutoStart,
+  isPreviousCallOnMic,
   SCHEDULED_AUTO_START_GRACE_MS,
   type ScheduledMeetingRow,
   ScheduledMeetingAutoStart,
@@ -25,7 +26,14 @@ const mocks = vi.hoisted(() => ({
   subscribeMeetings: vi.fn(),
   subscribeListener: vi.fn(),
   subscribeTabs: vi.fn(),
+  listMicUsingApplications: vi.fn(),
+  listenDetectEvent: vi.fn(),
   tabs: [] as Tab[],
+}));
+
+vi.mock("@anlg/plugin-detect", () => ({
+  commands: { listMicUsingApplications: mocks.listMicUsingApplications },
+  events: { detectEvent: { listen: mocks.listenDetectEvent } },
 }));
 
 vi.mock("@anlg/plugin-windows", () => ({
@@ -116,6 +124,7 @@ function meeting(
   return {
     id,
     started_at: new Date(NOW + offsetMs).toISOString(),
+    ended_at: new Date(NOW + offsetMs + 30 * 60_000).toISOString(),
     meeting_link: `https://zoom.us/j/${id}`,
     tracking_id_event: `tracking-${id}`,
     recurrence_series_id: "",
@@ -295,6 +304,10 @@ describe("startScheduledMeeting", () => {
     mocks.subscribeMeetings.mockReset().mockResolvedValue(async () => {});
     mocks.subscribeListener.mockReset().mockReturnValue(() => {});
     mocks.subscribeTabs.mockReset().mockReturnValue(() => {});
+    mocks.listMicUsingApplications
+      .mockReset()
+      .mockResolvedValue({ status: "ok", data: [] });
+    mocks.listenDetectEvent.mockReset().mockResolvedValue(() => {});
     mocks.tabs = [];
   });
 
@@ -514,6 +527,55 @@ describe("startScheduledMeeting", () => {
     expect(mocks.openNew).not.toHaveBeenCalled();
   });
 
+  test("waits for an earlier call that is still on the mic, then starts when it ends", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW - 15 * 60_000);
+    const teams = { id: "com.microsoft.teams2", name: "Microsoft Teams" };
+    mocks.listMicUsingApplications.mockResolvedValue({
+      status: "ok",
+      data: [teams],
+    });
+    render(createElement(ScheduledMeetingAutoStart));
+    mocks.subscribeMeetings.mock.calls[0][2].onData([
+      meeting("earlier", -30 * 60_000),
+      meeting("next", 0),
+    ]);
+
+    await vi.advanceTimersByTimeAsync(15 * 60_000);
+    expect(mocks.getOrCreateSessionForEventId).not.toHaveBeenCalled();
+
+    mocks.listMicUsingApplications.mockResolvedValue({
+      status: "ok",
+      data: [],
+    });
+    mocks.listenDetectEvent.mock.calls[0][0]({
+      payload: { type: "micStopped", apps: [teams] },
+    });
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(mocks.getOrCreateSessionForEventId).toHaveBeenCalledWith("next");
+    expect(mocks.openNew).toHaveBeenCalledTimes(1);
+  });
+
+  test("waits for a call that ran past its meeting long before the next one", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW - 50 * 60_000);
+    const teams = { id: "com.microsoft.teams2", name: "Microsoft Teams" };
+    mocks.listMicUsingApplications.mockResolvedValue({
+      status: "ok",
+      data: [teams],
+    });
+    render(createElement(ScheduledMeetingAutoStart));
+    mocks.subscribeMeetings.mock.calls[0][2].onData([
+      meeting("earlier", -60 * 60_000),
+      meeting("next", 0),
+    ]);
+
+    await vi.advanceTimersByTimeAsync(50 * 60_000);
+
+    expect(mocks.getOrCreateSessionForEventId).not.toHaveBeenCalled();
+  });
+
   test("starts when a due unanswered meeting becomes accepted", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(NOW);
@@ -655,6 +717,87 @@ describe("startScheduledMeeting", () => {
     expect(mocks.openUrl).toHaveBeenCalledWith("https://zoom.us/j/newer", null);
     expect(mocks.openNew).toHaveBeenCalledTimes(1);
   });
+});
+
+describe("isPreviousCallOnMic", () => {
+  test.each([
+    {
+      name: "sees a call that took the mic during the earlier meeting",
+      heldSinceMs: NOW - 20 * 60_000,
+      earlierEndMs: NOW,
+      expected: true,
+    },
+    {
+      name: "sees a call that joined the earlier meeting a few minutes early",
+      heldSinceMs: NOW - 32 * 60_000,
+      earlierEndMs: NOW,
+      expected: true,
+    },
+    {
+      name: "starts an early join that took the mic in free time",
+      heldSinceMs: NOW - 12 * 60_000,
+      earlierEndMs: NOW - 15 * 60_000,
+      expected: false,
+    },
+    {
+      name: "starts a join from just before the meeting",
+      heldSinceMs: NOW - 2 * 60_000,
+      earlierEndMs: NOW,
+      expected: false,
+    },
+    {
+      name: "starts an early join made before a meeting that began just ahead of it",
+      heldSinceMs: NOW - 10 * 60_000,
+      earlierStartMs: NOW - 5 * 60_000,
+      earlierEndMs: NOW + 25 * 60_000,
+      expected: false,
+    },
+    {
+      name: "sees an early join to a recorded meeting that began just ahead of it",
+      heldSinceMs: NOW - 11 * 60_000,
+      earlierStartMs: NOW - 8 * 60_000,
+      earlierEndMs: NOW + 22 * 60_000,
+      lastRecordingEndedMs: NOW - 3 * 60_000,
+      expected: true,
+    },
+    {
+      name: "starts an early join when the meeting just ahead of it was not recorded",
+      heldSinceMs: NOW - 11 * 60_000,
+      earlierStartMs: NOW - 8 * 60_000,
+      earlierEndMs: NOW + 22 * 60_000,
+      lastRecordingEndedMs: NOW - 30 * 60_000,
+      expected: false,
+    },
+  ])(
+    "$name",
+    ({
+      heldSinceMs,
+      earlierStartMs = NOW - 30 * 60_000,
+      earlierEndMs,
+      lastRecordingEndedMs,
+      expected,
+    }: {
+      heldSinceMs: number;
+      earlierStartMs?: number;
+      earlierEndMs: number;
+      lastRecordingEndedMs?: number;
+      expected: boolean;
+    }) => {
+      const next = meeting("next", 0);
+      const earlier = meeting("earlier", earlierStartMs - NOW, {
+        ended_at: new Date(earlierEndMs).toISOString(),
+      });
+
+      expect(
+        isPreviousCallOnMic({
+          holds: new Map([["com.microsoft.teams2", heldSinceMs]]),
+          meeting: next,
+          rows: [earlier, next],
+          lastRecordingEndedMs,
+        }),
+      ).toBe(expected);
+    },
+  );
 });
 
 describe("getScheduledAutoStartAction", () => {

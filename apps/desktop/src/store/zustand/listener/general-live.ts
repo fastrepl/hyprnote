@@ -442,6 +442,7 @@ const createSessionEventHandlers = <T extends LiveStore>(
       try {
         const stopped = onStopped(targetSessionId, {
           durationSeconds: stoppedSeconds,
+          stoppedAtMs: payload.stopped_at_ms,
           chunkedAudio: payload.chunked_audio,
           audioDeletionFailed:
             payload.error?.includes("audio_deletion_failed:") ?? false,

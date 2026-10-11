@@ -93,6 +93,11 @@ impl DataSource {
 
 pub async fn run(source: &DataSource, command: MeetingCommand, json: bool) -> Result<()> {
     match command {
+        MeetingCommand::Delete { .. }
+        | MeetingCommand::Capabilities
+        | MeetingCommand::InitializeManaged => {
+            unreachable!("handled before opening a data source")
+        }
         MeetingCommand::List {
             query,
             series_id,
@@ -233,6 +238,17 @@ pub async fn run(source: &DataSource, command: MeetingCommand, json: bool) -> Re
             output: path,
             force,
         } => {
+            if matches!(format, ExportFormat::Json)
+                && let DataSource::Local(db) = source
+            {
+                let meeting = anlg_agent_access::get_local_meeting_export(db.pool(), id).await?;
+                let content = if json {
+                    output::json("meetings.export", &meeting, None)?
+                } else {
+                    output::raw_json(&meeting)?
+                };
+                return output::write_or_emit(&content, path.as_deref(), force);
+            }
             let meeting = source.get_meeting_export(id).await?;
             let content = match (format, json) {
                 (ExportFormat::Markdown, false) => meeting.to_markdown(),

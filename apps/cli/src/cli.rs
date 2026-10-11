@@ -46,6 +46,9 @@ impl Args {
             },
             Command::Doctor => "doctor",
             Command::Meetings { command, .. } => match command {
+                MeetingCommand::Delete { .. } => "meetings_delete",
+                MeetingCommand::Capabilities => "meetings_capabilities",
+                MeetingCommand::InitializeManaged => "meetings_initialize_managed",
                 MeetingCommand::List { .. } => "meetings_list",
                 MeetingCommand::Folders { .. } => "meetings_folders",
                 MeetingCommand::Get { .. } => "meetings_get",
@@ -167,6 +170,18 @@ pub enum MeetingSource {
 
 #[derive(Debug, Subcommand)]
 pub enum MeetingCommand {
+    /// Describe managed capture capabilities without opening a database
+    Capabilities,
+    /// Prepare the local database using an existing managed settings policy.
+    InitializeManaged,
+    /// Permanently remove an exact, completed local meeting and its recordings
+    Delete {
+        id: String,
+        #[arg(long)]
+        if_export_sha256: String,
+        #[arg(long, required = true)]
+        require_transcription_complete: bool,
+    },
     /// List meetings, optionally filtered by text, recurring series, or folder
     List {
         #[arg(short, long)]

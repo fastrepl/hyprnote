@@ -148,15 +148,19 @@ function trackMicHolds(
 }
 
 // True when a meeting app took the mic during another scheduled meeting and
-// has held it since. A hold that began in free time is an early join.
+// has held it since. A hold that began in free time is an early join. When
+// the earlier meeting began shortly before this one, an early join could be
+// for either meeting, so it only counts if Anarlog recorded the earlier one.
 export function isPreviousCallOnMic({
   holds,
   meeting,
   rows,
+  lastRecordingEndedMs,
 }: {
   holds: ReadonlyMap<string, number>;
   meeting: ScheduledMeetingRow;
   rows: ScheduledMeetingRow[];
+  lastRecordingEndedMs?: number;
 }): boolean {
   const meetingStartMs = parseEventInstant(meeting.started_at)?.getTime();
   if (meetingStartMs === undefined) {
@@ -173,7 +177,10 @@ export function isPreviousCallOnMic({
         return (
           startMs !== undefined &&
           endMs !== undefined &&
-          startMs <= meetingStartMs - PREVIOUS_CALL_MIN_HOLD_MS &&
+          startMs < meetingStartMs &&
+          (startMs <= meetingStartMs - PREVIOUS_CALL_MIN_HOLD_MS ||
+            (lastRecordingEndedMs !== undefined &&
+              lastRecordingEndedMs > startMs)) &&
           startMs - EARLY_JOIN_MS <= heldSinceMs &&
           heldSinceMs < endMs
         );
@@ -373,6 +380,7 @@ export function ScheduledMeetingAutoStart() {
     const eventRevisions = new Map<string, number>();
     const ineligibleEventRevisions = new Map<string, number>();
     const micHolds = new Map<string, number>();
+    let lastRecordingEndedMs: number | undefined;
 
     const pollMicHolds = async () => {
       const now = Date.now();
@@ -507,7 +515,14 @@ export function ScheduledMeetingAutoStart() {
         return;
       }
 
-      if (isPreviousCallOnMic({ holds: micHolds, meeting: next, rows })) {
+      if (
+        isPreviousCallOnMic({
+          holds: micHolds,
+          meeting: next,
+          rows,
+          lastRecordingEndedMs,
+        })
+      ) {
         // The earlier recording ended but its call did not; starting now would
         // file the rest of that call under this meeting.
         scheduleTick(TICK_MS);
@@ -565,7 +580,11 @@ export function ScheduledMeetingAutoStart() {
     configChangedRef.current = tick;
     const unsubscribeTabs = useTabs.subscribe(tick);
     const unsubscribeListener = listenerStore.subscribe((state, previous) => {
-      if (state.live.status !== previous.live.status) tick();
+      if (state.live.status === previous.live.status) return;
+      if (previous.live.status === "active") {
+        lastRecordingEndedMs = Date.now();
+      }
+      tick();
     });
 
     let unlistenMicStopped: (() => void) | undefined;

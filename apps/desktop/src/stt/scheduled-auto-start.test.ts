@@ -752,13 +752,36 @@ describe("isPreviousCallOnMic", () => {
       earlierEndMs: NOW + 25 * 60_000,
       expected: false,
     },
+    {
+      name: "sees an early join to a recorded meeting that began just ahead of it",
+      heldSinceMs: NOW - 11 * 60_000,
+      earlierStartMs: NOW - 8 * 60_000,
+      earlierEndMs: NOW + 22 * 60_000,
+      lastRecordingEndedMs: NOW - 3 * 60_000,
+      expected: true,
+    },
+    {
+      name: "starts an early join when the meeting just ahead of it was not recorded",
+      heldSinceMs: NOW - 11 * 60_000,
+      earlierStartMs: NOW - 8 * 60_000,
+      earlierEndMs: NOW + 22 * 60_000,
+      lastRecordingEndedMs: NOW - 30 * 60_000,
+      expected: false,
+    },
   ])(
     "$name",
     ({
       heldSinceMs,
       earlierStartMs = NOW - 30 * 60_000,
       earlierEndMs,
+      lastRecordingEndedMs,
       expected,
+    }: {
+      heldSinceMs: number;
+      earlierStartMs?: number;
+      earlierEndMs: number;
+      lastRecordingEndedMs?: number;
+      expected: boolean;
     }) => {
       const next = meeting("next", 0);
       const earlier = meeting("earlier", earlierStartMs - NOW, {
@@ -770,6 +793,7 @@ describe("isPreviousCallOnMic", () => {
           holds: new Map([["com.microsoft.teams2", heldSinceMs]]),
           meeting: next,
           rows: [earlier, next],
+          lastRecordingEndedMs,
         }),
       ).toBe(expected);
     },

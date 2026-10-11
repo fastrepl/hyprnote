@@ -261,7 +261,7 @@ fn max_speaker_number_for_participants(
     participants.sort();
     participants.dedup();
 
-    (participants.len() > 1).then_some(participants.len())
+    None
 }
 
 fn offset_transcript_data(

@@ -248,6 +248,12 @@ export const useHandleDetectEvents = (store: ListenerStore) => {
           ) {
             return;
           }
+          if (
+            pending.sessionId &&
+            cancelAutoStopEndedNotification(pending.sessionId)
+          ) {
+            void notificationCommands.clearNotifications();
+          }
           // Track them so the recording stops when the call itself ends.
           captureTriggerApps(meetingAppsStillOnCall);
           return;

@@ -444,6 +444,31 @@ describe("ListenerProvider detect events", () => {
       expect(stopSpy).toHaveBeenCalledTimes(1);
     });
 
+    test("withdraws an open stop prompt when the call is still on the mic", async () => {
+      const { stopSpy, handler } = await renderActiveWithTriggers([
+        chrome.id,
+        recorder.id,
+      ]);
+
+      listMicUsingApplicationsMock.mockResolvedValue({
+        status: "ok",
+        data: [],
+      });
+      handler({ payload: { type: "micStopped", apps: [chrome, recorder] } });
+      await vi.advanceTimersByTimeAsync(AUTO_STOP_CONFIRM_DELAY_MS);
+      const promptKey = showNotificationMock.mock.calls[0][0].key;
+
+      listMicUsingApplicationsMock.mockResolvedValue({
+        status: "ok",
+        data: [teams],
+      });
+      handler({ payload: { type: "micStopped", apps: [recorder] } });
+      await vi.advanceTimersByTimeAsync(AUTO_STOP_CONFIRM_DELAY_MS);
+
+      expect(consumeAutoStopEndedNotificationKey(promptKey)).toBeNull();
+      expect(stopSpy).not.toHaveBeenCalled();
+    });
+
     test("ignores a mic snapshot that returns after the recording changed", async () => {
       const { store, stopSpy, handler } = await renderActiveWithTriggers([
         recorder.id,

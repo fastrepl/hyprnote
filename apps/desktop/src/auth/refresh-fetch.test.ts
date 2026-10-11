@@ -187,7 +187,7 @@ test.each(["rate-limit", "offline"])(
   },
 );
 
-test("revoked refresh tokens stay rejected without network retries until a new sign-in replaces them", async () => {
+test("revoked refresh tokens stay rejected across other credential failures and successful sign-ins", async () => {
   const storageKey = "revoked-auth";
   const expired = {
     access_token: "expired-token",
@@ -200,8 +200,12 @@ test("revoked refresh tokens stay rejected without network retries until a new s
   let upstreamAttempts = 0;
   const fetch = createRefreshFetch({
     supabaseUrl: "https://project.supabase.co",
-    fetch: async () => {
+    fetch: async (input, init) => {
       upstreamAttempts += 1;
+      const body = await new Request(input, init).json();
+      if (body.refresh_token === "other-valid-token") {
+        return Response.json({ access_token: "other-access-token" });
+      }
       return Response.json(
         {
           code: "refresh_token_already_used",
@@ -236,6 +240,18 @@ test("revoked refresh tokens stay rejected without network retries until a new s
     }
     expect(upstreamAttempts).toBe(1);
     expect(storage.get(storageKey)).toBe(JSON.stringify(expired));
+    const url =
+      "https://project.supabase.co/auth/v1/token?grant_type=refresh_token";
+    for (const refreshToken of ["other-revoked-token", "other-valid-token"]) {
+      await fetch(url, {
+        method: "POST",
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+      expect((await client.auth.getSession()).error?.code).toBe(
+        "refresh_token_already_used",
+      );
+    }
+    expect(upstreamAttempts).toBe(3);
     const signedIn = {
       ...expired,
       access_token: "new-access-token",

@@ -21,7 +21,7 @@ export function createRefreshFetch({
     `${supabaseUrl.replace(/\/+$/, "")}/`,
   );
   const inFlight = new Map<string, Promise<Response>>();
-  let rejectedRefresh: { credential: string; response: Response } | null = null;
+  const rejectedRefresh = new Map<string, Response>();
 
   return async (input, init) => {
     const url = new URL(
@@ -68,9 +68,8 @@ export function createRefreshFetch({
     }
     const refresh = async () => {
       // Revoked refresh credentials need a new sign-in, not another network retry.
-      if (rejectedRefresh?.credential === credential) {
-        return rejectedRefresh.response;
-      }
+      const rejected = rejectedRefresh.get(credential);
+      if (rejected) return rejected;
       const permit = await beginRefresh(credential);
       if (permit.leaseId === null) {
         return Response.json(
@@ -112,10 +111,12 @@ export function createRefreshFetch({
             code === "refresh_token_already_used" ||
             code === "refresh_token_not_found"
           ) {
-            rejectedRefresh = { credential, response };
+            // Bound retained credentials without forgetting them on unrelated sign-ins.
+            if (rejectedRefresh.size >= 32) {
+              rejectedRefresh.delete(rejectedRefresh.keys().next().value!);
+            }
+            rejectedRefresh.set(credential, response);
           }
-        } else if (response.ok) {
-          rejectedRefresh = null;
         }
         return response;
       } finally {

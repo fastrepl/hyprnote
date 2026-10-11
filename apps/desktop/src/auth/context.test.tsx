@@ -526,6 +526,17 @@ describe("AuthProvider", () => {
       renderAuthProvider();
       await waitFor(() => {
         expect(screen.getByTestId("session").textContent).toBe(expired.user.id);
+        expect(mocks.focusCallback).not.toBeNull();
+      });
+      mocks.toastError.mockClear();
+      await act(async () => mocks.focusCallback?.({ payload: true }));
+      await waitFor(() => {
+        if (code === "refresh_token_already_used") {
+          expect(mocks.toastError).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({ id: "auth-session-expired" }),
+          );
+        }
       });
       fireEvent.click(
         screen.getByRole("button", { name: "Get request session" }),

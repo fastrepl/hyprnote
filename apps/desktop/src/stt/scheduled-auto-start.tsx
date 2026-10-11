@@ -373,15 +373,21 @@ export function ScheduledMeetingAutoStart() {
 
     const pollMicHolds = async () => {
       const now = Date.now();
-      const meetingNear = rows.some((row) => {
-        const start = parseEventInstant(row.started_at)?.getTime();
-        return (
-          start !== undefined &&
-          now >= start - MIC_HOLD_LOOKAHEAD_MS &&
-          now <= start + SCHEDULED_AUTO_START_GRACE_MS
-        );
-      });
-      if (!autoStartRef.current || !meetingNear) {
+      // Watch during meetings too, and keep a hold until the app releases
+      // the mic, so a call that overran its meeting is still seen as such.
+      const shouldWatch =
+        micHolds.size > 0 ||
+        rows.some((row) => {
+          const start = parseEventInstant(row.started_at)?.getTime();
+          const end = parseEventInstant(row.ended_at)?.getTime();
+          if (start === undefined) return false;
+          const inMeeting = end !== undefined && now >= start && now < end;
+          const startNear =
+            now >= start - MIC_HOLD_LOOKAHEAD_MS &&
+            now <= start + SCHEDULED_AUTO_START_GRACE_MS;
+          return inMeeting || startNear;
+        });
+      if (!autoStartRef.current || !shouldWatch) {
         micHolds.clear();
         return;
       }

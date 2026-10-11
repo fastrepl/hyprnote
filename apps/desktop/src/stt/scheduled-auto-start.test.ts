@@ -557,6 +557,25 @@ describe("startScheduledMeeting", () => {
     expect(mocks.openNew).toHaveBeenCalledTimes(1);
   });
 
+  test("waits for a call that ran past its meeting long before the next one", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW - 50 * 60_000);
+    const teams = { id: "com.microsoft.teams2", name: "Microsoft Teams" };
+    mocks.listMicUsingApplications.mockResolvedValue({
+      status: "ok",
+      data: [teams],
+    });
+    render(createElement(ScheduledMeetingAutoStart));
+    mocks.subscribeMeetings.mock.calls[0][2].onData([
+      meeting("earlier", -60 * 60_000),
+      meeting("next", 0),
+    ]);
+
+    await vi.advanceTimersByTimeAsync(50 * 60_000);
+
+    expect(mocks.getOrCreateSessionForEventId).not.toHaveBeenCalled();
+  });
+
   test("starts when a due unanswered meeting becomes accepted", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(NOW);

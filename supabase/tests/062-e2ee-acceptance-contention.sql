@@ -28,10 +28,22 @@ select throws_ok(
   $$select * from public.accept_e2ee_replica_batch((select id from contention_owner), (select id from contention_owner),
     '10000000-0000-4000-8000-000000000002', (select head_sequence from contention_receipt), false, (select events from contention_input))$$,
   '55P03', null, 'A concurrent acceptance fails immediately instead of occupying a waiting connection');
-select throws_ok(
-  $$select * from public.accept_e2ee_replica_batch((select id from contention_owner), (select id from contention_owner),
-    '10000000-0000-4000-8000-000000000002', 0, false, (select events from contention_input))$$,
-  '40001', 'Replica base changed; pull before retrying', 'A new stale mutation is rejected without waiting for the workspace lock');
+create function pg_temp.stale_replica_conflict() returns boolean language plpgsql as $$
+declare
+  error_message text;
+  error_detail text;
+begin
+  perform public.accept_e2ee_replica_batch((select id from contention_owner), (select id from contention_owner),
+    '10000000-0000-4000-8000-000000000002', 0, false, (select events from contention_input));
+  return false;
+exception when sqlstate 'PGRST' then
+  get stacked diagnostics error_message = message_text, error_detail = pg_exception_detail;
+  return error_message::jsonb->>'code' = '40001'
+    and (error_detail::jsonb->>'status')::integer = 409;
+end;
+$$;
+select ok(pg_temp.stale_replica_conflict(),
+  'A stale mutation returns the API conflict without triggering PostgREST serialization retries or waiting for a lock');
 select extensions.dblink_exec('replica_lock', 'ROLLBACK');
 select extensions.dblink_exec('replica_lock', 'BEGIN');
 select * from extensions.dblink('replica_lock',

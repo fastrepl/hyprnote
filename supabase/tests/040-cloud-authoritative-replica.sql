@@ -17,7 +17,7 @@ select results_eq(
  $$select * from first_receipt$$, 'A lost response replays its immutable receipt');
 select throws_ok(
  $$select * from public.accept_e2ee_replica_batch(tests.get_supabase_uid('replica_owner'), tests.get_supabase_uid('replica_owner'), '10000000-0000-4000-8000-000000000002', 0, false, (select events from replica_input))$$,
- '40001','Replica base changed; pull before retrying','A stale writer cannot append');
+ 'PGRST','{"code":"40001","message":"Replica base changed; pull before retrying","details":null,"hint":null}','A stale writer cannot append');
 select throws_ok(
  $$select * from public.accept_e2ee_replica_batch(tests.get_supabase_uid('replica_owner'), tests.get_supabase_uid('replica_owner'), '10000000-0000-4000-8000-000000000001', 1, false, (select events from replica_input))$$,
  '22023','Mutation identity was reused','Restored counters cannot reuse an identity for a different mutation');

@@ -35,6 +35,7 @@ import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
+import { Route as GuidesTranscriptionIndexRouteImport } from './routes/guides/transcription/index'
 import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as TeamInviteInvitationIdRouteImport } from './routes/team/invite/$invitationId'
@@ -193,6 +194,12 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   path: '/app',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const GuidesTranscriptionIndexRoute =
+  GuidesTranscriptionIndexRouteImport.update({
+    id: '/guides/transcription/',
+    path: '/guides/transcription/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ViewDownloadIndexRoute = ViewDownloadIndexRouteImport.update({
   id: '/download/',
   path: '/download/',
@@ -387,6 +394,7 @@ export interface FileRoutesByFullPath {
   '/team/invite/$invitationId': typeof TeamInviteInvitationIdRoute
   '/app/': typeof ViewAppIndexRoute
   '/download/': typeof ViewDownloadIndexRoute
+  '/guides/transcription/': typeof GuidesTranscriptionIndexRoute
   '/api/og/blog/$slug': typeof ApiOgBlogSlugRoute
   '/download/nightly/': typeof ViewDownloadNightlyIndexRoute
   '/api/og/share/link/$shareId': typeof ApiOgShareLinkShareIdRoute
@@ -441,6 +449,7 @@ export interface FileRoutesByTo {
   '/team/invite/$invitationId': typeof TeamInviteInvitationIdRoute
   '/app': typeof ViewAppIndexRoute
   '/download': typeof ViewDownloadIndexRoute
+  '/guides/transcription': typeof GuidesTranscriptionIndexRoute
   '/api/og/blog/$slug': typeof ApiOgBlogSlugRoute
   '/download/nightly': typeof ViewDownloadNightlyIndexRoute
   '/api/og/share/link/$shareId': typeof ApiOgShareLinkShareIdRoute
@@ -498,6 +507,7 @@ export interface FileRoutesById {
   '/team/invite/$invitationId': typeof TeamInviteInvitationIdRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/download/': typeof ViewDownloadIndexRoute
+  '/guides/transcription/': typeof GuidesTranscriptionIndexRoute
   '/api/og/blog/$slug': typeof ApiOgBlogSlugRoute
   '/_view/download/nightly/': typeof ViewDownloadNightlyIndexRoute
   '/api/og/share/link/$shareId': typeof ApiOgShareLinkShareIdRoute
@@ -555,6 +565,7 @@ export interface FileRouteTypes {
     | '/team/invite/$invitationId'
     | '/app/'
     | '/download/'
+    | '/guides/transcription/'
     | '/api/og/blog/$slug'
     | '/download/nightly/'
     | '/api/og/share/link/$shareId'
@@ -609,6 +620,7 @@ export interface FileRouteTypes {
     | '/team/invite/$invitationId'
     | '/app'
     | '/download'
+    | '/guides/transcription'
     | '/api/og/blog/$slug'
     | '/download/nightly'
     | '/api/og/share/link/$shareId'
@@ -665,6 +677,7 @@ export interface FileRouteTypes {
     | '/team/invite/$invitationId'
     | '/_view/app/'
     | '/_view/download/'
+    | '/guides/transcription/'
     | '/api/og/blog/$slug'
     | '/_view/download/nightly/'
     | '/api/og/share/link/$shareId'
@@ -706,6 +719,7 @@ export interface RootRouteChildren {
   ShareLinkShareIdRoute: typeof ShareLinkShareIdRoute
   SharePublicPublicSlugRoute: typeof SharePublicPublicSlugRoute
   TeamInviteInvitationIdRoute: typeof TeamInviteInvitationIdRoute
+  GuidesTranscriptionIndexRoute: typeof GuidesTranscriptionIndexRoute
   ApiOgBlogSlugRoute: typeof ApiOgBlogSlugRoute
   ApiOgShareLinkShareIdRoute: typeof ApiOgShareLinkShareIdRoute
   ApiOgSharePublicPublicSlugRoute: typeof ApiOgSharePublicPublicSlugRoute
@@ -895,6 +909,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app'
       preLoaderRoute: typeof ViewAppRouteRouteImport
       parentRoute: typeof ViewRouteRoute
+    }
+    '/guides/transcription/': {
+      id: '/guides/transcription/'
+      path: '/guides/transcription'
+      fullPath: '/guides/transcription/'
+      preLoaderRoute: typeof GuidesTranscriptionIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_view/download/': {
       id: '/_view/download/'
@@ -1183,6 +1204,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShareLinkShareIdRoute: ShareLinkShareIdRoute,
   SharePublicPublicSlugRoute: SharePublicPublicSlugRoute,
   TeamInviteInvitationIdRoute: TeamInviteInvitationIdRoute,
+  GuidesTranscriptionIndexRoute: GuidesTranscriptionIndexRoute,
   ApiOgBlogSlugRoute: ApiOgBlogSlugRoute,
   ApiOgShareLinkShareIdRoute: ApiOgShareLinkShareIdRoute,
   ApiOgSharePublicPublicSlugRoute: ApiOgSharePublicPublicSlugRoute,

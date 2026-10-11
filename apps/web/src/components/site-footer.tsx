@@ -17,6 +17,7 @@ const footerGroups = [
     links: [
       { label: "About", to: "/about/" },
       { label: "Blog", to: "/blog/" },
+      { label: "Transcription guides", to: "/guides/transcription/" },
       { label: "Changelog", to: "/changelog/" },
       { label: "Docs", href: "https://docs.anarlog.so" },
       { label: "Status", href: "https://status.anarlog.so" },

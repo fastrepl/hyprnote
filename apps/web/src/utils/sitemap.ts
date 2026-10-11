@@ -38,6 +38,10 @@ export function getSitemap(): Sitemap<TRoutes | "/security/" | "/about/"> {
         priority: 0.8,
         changeFrequency: "weekly",
       },
+      "/guides/transcription/": {
+        priority: 0.8,
+        changeFrequency: "monthly",
+      },
       "/changelog/": {
         priority: 0.7,
         changeFrequency: "weekly",

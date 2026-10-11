@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight } from "@anlg/ui/components/icons";
 import { mdxComponents } from "@/components/mdx-components";
 import { SiteFooter } from "@/components/site-footer";
 import { formatBlogDate } from "@/lib/blog-date";
+import { getRelatedArticles, isTranscriptionArticle } from "@/lib/blog-related";
 import { prepareBlogTable } from "@/lib/blog-table";
 import {
   getBlogOgImageUrl,
@@ -85,7 +86,12 @@ export const Route = createFileRoute("/blog/$slug")({
               }),
               getBreadcrumbListJsonLd([
                 { name: "Home", item: getCanonicalUrl() },
-                { name: "Blog", item: getCanonicalUrl("/blog") },
+                isTranscriptionArticle(article.slug)
+                  ? {
+                      name: "Transcription guides",
+                      item: getCanonicalUrl("/guides/transcription"),
+                    }
+                  : { name: "Blog", item: getCanonicalUrl("/blog") },
                 { name: article.title, item: url },
               ]),
             ]),
@@ -112,13 +118,23 @@ function Component() {
           </Link>
         </header>
 
-        <Link
-          to="/blog/"
-          className="mt-16 inline-flex items-center gap-1 text-sm text-[#756b5d] hover:text-[#181613]"
+        <nav
+          aria-label="Article navigation"
+          className="text-brand-dark mt-16 flex flex-wrap items-center gap-5 text-sm"
         >
-          <ArrowLeft size={14} aria-hidden="true" />
-          Blog
-        </Link>
+          <Link
+            to="/blog/"
+            className="inline-flex items-center gap-1 hover:underline"
+          >
+            <ArrowLeft size={14} aria-hidden="true" />
+            Blog
+          </Link>
+          {isTranscriptionArticle(article.slug) && (
+            <Link to="/guides/transcription/" className="hover:underline">
+              Transcription guides
+            </Link>
+          )}
+        </nav>
 
         <header className="pt-10 pb-12">
           <h1 className="font-hand text-5xl leading-[1.02] font-semibold tracking-normal text-balance text-black md:text-6xl">
@@ -157,44 +173,6 @@ function Component() {
 
       <SiteFooter />
     </main>
-  );
-}
-
-function getRelatedArticles(
-  article: Article,
-  articleSummaries: ArticleSummary[],
-) {
-  const sortedArticles = [...articleSummaries].sort(
-    (a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime() ||
-      a.slug.localeCompare(b.slug),
-  );
-  const articleIndex = sortedArticles.findIndex(
-    (candidate) => candidate.slug === article.slug,
-  );
-
-  if (articleIndex === -1) {
-    return [];
-  }
-
-  const neighbors = [
-    sortedArticles[articleIndex - 1],
-    sortedArticles[articleIndex + 1],
-  ].filter((candidate): candidate is ArticleSummary => Boolean(candidate));
-  const sameCategory = sortedArticles.find(
-    (candidate) =>
-      candidate.slug !== article.slug &&
-      candidate.category === article.category &&
-      !neighbors.some((neighbor) => neighbor.slug === candidate.slug),
-  );
-  const fallback = sortedArticles.find(
-    (candidate) =>
-      candidate.slug !== article.slug &&
-      !neighbors.some((neighbor) => neighbor.slug === candidate.slug),
-  );
-
-  return [...neighbors, sameCategory ?? fallback].filter(
-    (candidate): candidate is ArticleSummary => Boolean(candidate),
   );
 }
 

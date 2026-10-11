@@ -61,6 +61,18 @@ function Component() {
           <h1 className="font-hand text-6xl leading-[0.98] font-semibold tracking-normal text-balance text-black md:text-8xl">
             Blog
           </h1>
+          <Link
+            to="/guides/transcription/"
+            className="border-border-subtle hover:bg-surface-subtle mt-8 block rounded-lg border p-5"
+          >
+            <h2 className="font-hand text-brand-dark text-3xl font-semibold tracking-normal">
+              Start with the transcription guides
+            </h2>
+            <p className="text-brand-dark mt-2 leading-7">
+              Choose a tool for your platform, prepare local models, or set up
+              transcription for Zoom, Google Meet, and Teams.
+            </p>
+          </Link>
           <div
             role="group"
             aria-label="Filter blog articles by category"

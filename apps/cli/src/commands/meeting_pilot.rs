@@ -127,17 +127,7 @@ pub async fn read(db: &anlg_db_core::Db, from_ms: i64, until_ms: i64) -> Result<
             _ => coverage.invalid_metadata_records += 1,
         }
     }
-    coverage.legacy_sessions_without_measurement = candidates
-        .into_iter()
-        .filter(|candidate| {
-            !measured_keys.contains(&format!(
-                "capture_stop:{}:{}",
-                candidate.session_id, candidate.transcript_id
-            ))
-        })
-        .map(|candidate| candidate.session_id)
-        .collect::<HashSet<_>>()
-        .len();
+    coverage.legacy_sessions_without_measurement = candidates.len();
     intervals.sort_by_key(|value| (value.started_at_ms, value.ended_at_ms));
     coverage.measured_captures = intervals.len();
     tx.rollback().await.map_err(|_| failure())?;

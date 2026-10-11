@@ -47,22 +47,22 @@ pub async fn count_pilot_pending_sessions(
     .await
 }
 
-#[derive(sqlx::FromRow)]
-pub struct PilotLegacyCandidate {
-    pub session_id: String,
-    pub transcript_id: String,
-}
-
+/// Sessions with a capture in the window that has no `capture_usage` record.
+/// Malformed usage records are reported separately as invalid metadata.
 pub async fn list_pilot_legacy_session_candidates(
     conn: &mut SqliteConnection,
     from_ms: i64,
     until_ms: i64,
-) -> Result<Vec<PilotLegacyCandidate>, sqlx::Error> {
-    sqlx::query_as(
-        "SELECT substr(session_id,1,501) AS session_id, substr(id,1,501) AS transcript_id FROM transcripts
-         WHERE source IN ('live_capture','batch_transcription')
-           AND started_at_ms >= ? AND started_at_ms < ?
-         ORDER BY session_id, id LIMIT ?",
+) -> Result<Vec<String>, sqlx::Error> {
+    sqlx::query_scalar(
+        "SELECT DISTINCT substr(t.session_id,1,501) AS session_id FROM transcripts t
+         WHERE t.source IN ('live_capture','batch_transcription')
+           AND t.started_at_ms >= ? AND t.started_at_ms < ?
+           AND NOT EXISTS (
+             SELECT 1 FROM app_settings u
+             WHERE u.id='capture_usage:'||t.session_id||':'||t.id
+           )
+         ORDER BY session_id LIMIT ?",
     )
     .bind(from_ms)
     .bind(until_ms)

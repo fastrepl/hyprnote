@@ -1,0 +1,43 @@
+name: windows_fast
+on:
+  workflow_dispatch:
+jobs:
+  windows_ci:
+    runs-on: windows-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - uses: ./.github/actions/rust_install
+        with:
+          platform: windows
+      - uses: ./.github/actions/pnpm_install
+      - name: Build CLI sidecar
+        shell: bash
+        run: |
+          cargo build --locked --release -p anarlog-cli --target x86_64-pc-windows-msvc
+          cp \
+            target/x86_64-pc-windows-msvc/release/anarlog.exe \
+            apps/desktop/src-tauri/resources/cli/anarlog-cli-x86_64-pc-windows-msvc.exe
+          ./scripts/sidecar.sh \
+            ./apps/desktop/src-tauri/tauri.conf.staging.json \
+            resources/cli/anarlog-cli
+      - run: pnpm -F ui build
+      - run: pnpm -F desktop tauri build --ci --bundles nsis --no-sign --target x86_64-pc-windows-msvc --config ./src-tauri/tauri.conf.staging.json --features devtools --verbose
+        env:
+          POSTHOG_API_KEY: phc_windows_ci
+          VITE_POSTHOG_API_KEY: phc_windows_ci
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN_HYPRNOTE_2 }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_APP_URL: https://anarlog.so
+          VITE_API_URL: https://api.anarlog.so
+          VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anarlog-windows-x64-nsis-${{ github.sha }}
+          path: apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+          if-no-files-found: error
+          retention-days: 7

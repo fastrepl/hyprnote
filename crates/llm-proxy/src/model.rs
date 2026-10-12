@@ -13,9 +13,19 @@ const MODEL_LATEST_SONNET: &str = "~anthropic/claude-sonnet-latest";
 pub const SELECTABLE_MODELS: &[&str] = &[
     MODEL_LATEST_SONNET,
     "~anthropic/claude-opus-latest",
+    "~anthropic/claude-haiku-latest",
     "~openai/gpt-sol-latest",
+    "~openai/gpt-astra-latest",
+    "~openai/gpt-terra-latest",
+    "~openai/gpt-luna-latest",
     "~google/gemini-pro-latest",
     "~google/gemini-flash-latest",
+    "~x-ai/grok-latest",
+    "~moonshotai/kimi-latest",
+    "~deepseek/deepseek-pro-latest",
+    "~deepseek/deepseek-flash-latest",
+    "~z-ai/glm-latest",
+    "~z-ai/glm-flash-latest",
 ];
 
 #[derive(
@@ -257,6 +267,10 @@ mod tests {
         assert_eq!(
             resolver.resolve(&ctx(Some("~anthropic/claude-opus-latest"), false)),
             vec!["~anthropic/claude-opus-latest", MODEL_LATEST_SONNET],
+        );
+        assert_eq!(
+            resolver.resolve(&ctx(Some("~deepseek/deepseek-pro-latest"), false)),
+            vec!["~deepseek/deepseek-pro-latest", MODEL_LATEST_SONNET],
         );
         assert_eq!(
             resolver.resolve(&ctx(Some(MODEL_LATEST_SONNET), false)),

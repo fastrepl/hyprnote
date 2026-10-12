@@ -83,7 +83,7 @@
       "anchors": [
         {
           "anchor": "Anarlog",
-          "href": "https://anarlog.so",
+          "href": "https://anarlog.so/",
           "icon": "house"
         },
         {
@@ -108,7 +108,7 @@
     "primary": {
       "type": "button",
       "label": "Download Anarlog",
-      "href": "https://anarlog.so/download"
+      "href": "https://anarlog.so/download/"
     }
   },
   "contextual": {

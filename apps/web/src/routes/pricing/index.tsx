@@ -53,6 +53,14 @@ function PricingPage() {
 
           <PricingSection headingLevel="h1" />
 
+          <p className="text-color-muted mt-6 text-sm leading-6">
+            YC founder? Check the{" "}
+            <Link to="/yc/" className="text-color underline underline-offset-4">
+              YC founder perk
+            </Link>{" "}
+            for eligibility and verification.
+          </p>
+
           <section className="pt-12 pb-8 md:pt-16 md:pb-10">
             <h2 className="font-hand text-3xl leading-none font-semibold text-[#756b5d]">
               How we compare
@@ -170,7 +178,7 @@ function Row({ row, highlight }: { row: ComparisonRow; highlight?: boolean }) {
             <a
               href={row.url}
               target="_blank"
-              rel="noopener noreferrer nofollow"
+              rel="noopener noreferrer"
               className="text-[#4f4940] underline decoration-[#d9cdb8] underline-offset-4 hover:text-[#181613]"
             >
               {row.name}

@@ -39,13 +39,16 @@ export const Route = createFileRoute("/_view/download/")({
   head: () => ({
     links: [{ rel: "canonical", href: getCanonicalUrl("/download") }],
     meta: [
-      { title: "Download Anarlog" },
+      { title: "Download Anarlog for Mac, Windows & Linux" },
       {
         name: "description",
         content:
-          "Download Anarlog for macOS, Windows, or Linux. iOS and Android apps are coming in October.",
+          "Download Anarlog for macOS, Windows, or Linux. Choose your chip and installer, check local AI requirements, and follow the desktop setup guide.",
       },
-      { property: "og:title", content: "Download Anarlog" },
+      {
+        property: "og:title",
+        content: "Download Anarlog for Mac, Windows & Linux",
+      },
       { property: "og:url", content: getCanonicalUrl("/download") },
     ],
   }),
@@ -385,6 +388,72 @@ function Component() {
             </section>
           </div>
         )}
+
+        <section
+          aria-labelledby="desktop-setup"
+          className="border-color-subtle border-t pt-10 pb-6"
+        >
+          <h2 id="desktop-setup" className="font-hand text-3xl font-semibold">
+            Choose and install your desktop build
+          </h2>
+          <p className="text-color mt-5 text-sm leading-7">
+            These downloads install the latest stable desktop app. Choose the
+            package for your operating system and processor. Windows and Linux
+            support are in beta; include your app version and platform when
+            reporting a problem. Mobile launch information appears separately
+            above.
+          </p>
+          <ul className="text-color mt-4 list-disc space-y-3 pl-5 text-sm leading-7">
+            <li>
+              On macOS 15 or later, choose Apple Silicon for an M-series chip or
+              Intel for an Intel-based Mac. Find your chip in Apple menu → About
+              This Mac. Open the DMG, then move Anarlog to Applications.
+            </li>
+            <li>
+              On Windows, use the x64 installer or Microsoft Store. Run the
+              installer and follow its setup steps. The Store manages
+              installation and updates for its version.
+            </li>
+            <li>
+              On Linux, match x64 or ARM64 to your machine. AppImage is a
+              portable build that you make executable before opening. Use DEB or
+              the APT repository on Debian and Ubuntu, or the maintained
+              PKGBUILD on Arch.
+            </li>
+          </ul>
+          <p className="text-color mt-5 text-sm leading-7">
+            Recording support and local AI support are separate. Built-in
+            Soniqo, Apple Speech, and on-device file transcription require
+            supported Apple Silicon hardware. On other platforms, configure a
+            supported local transcription server or a hosted provider. Choose
+            your summary model separately in Intelligence settings; downloading
+            the app alone does not make every AI feature offline.
+          </p>
+          <p className="text-color mt-4 text-sm leading-7">
+            Follow the{" "}
+            <a
+              href="https://docs.anarlog.so/desktop-installation"
+              className="text-color underline underline-offset-4"
+            >
+              desktop installation guide
+            </a>{" "}
+            for package commands and platform requirements, then{" "}
+            <a
+              href="https://docs.anarlog.so/quickstart"
+              className="text-color underline underline-offset-4"
+            >
+              record your first meeting
+            </a>
+            . For capture or launch problems, use the{" "}
+            <a
+              href="https://docs.anarlog.so/troubleshooting"
+              className="text-color underline underline-offset-4"
+            >
+              troubleshooting guide
+            </a>
+            .
+          </p>
+        </section>
       </div>
 
       <SiteFooter />

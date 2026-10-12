@@ -40,6 +40,20 @@ html[data-rounded-window] #root {
 @source "../../../../packages/pricing/src";
 
 @theme {
+  /*
+   * Abrish design tokens.
+   * These are additive: existing semantic Anarlog theme variables and components
+   * remain unchanged. Use these tokens selectively in recruiter-facing UI.
+   */
+  --color-abrish-navy: #152541;
+  --color-abrish-coral: #f04452;
+  --color-abrish-coral-hover: #dc3545;
+  --color-abrish-ivory: #faf7f0;
+  --color-abrish-surface: #fffdfa;
+  --color-abrish-border: #e7e3dc;
+  --color-abrish-muted: #657187;
+  --color-abrish-coral-soft: #fff0ef;
+
   --font-sans:
     system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-hand: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;

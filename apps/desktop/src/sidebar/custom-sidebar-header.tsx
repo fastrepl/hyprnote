@@ -118,7 +118,7 @@ function CustomSidebarHeaderButton({
       disabled={disabled}
       className={cn([
         "relative z-50 flex size-7 shrink-0 items-center justify-center rounded-full",
-        "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
+        "text-muted-foreground transition-colors hover:bg-[#FCE8E7] hover:text-[#172642] dark:hover:bg-accent dark:hover:text-foreground",
         "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
         "disabled:text-muted-foreground/70 disabled:hover:text-muted-foreground/70 disabled:hover:bg-transparent",
       ])}

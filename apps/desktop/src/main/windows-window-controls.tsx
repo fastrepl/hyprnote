@@ -98,7 +98,7 @@ function WindowControlButton({
       className={cn([
         "text-foreground flex h-10 w-[46px] items-center justify-center transition-colors",
         close
-          ? "hover:bg-[#c42b1c] hover:text-white"
+          ? "hover:bg-[#F04452] hover:text-white"
           : "hover:bg-foreground/10",
         "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden focus-visible:ring-inset",
       ])}

@@ -78,7 +78,7 @@ export function WindowsTitleBar({
     <header
       data-tauri-drag-region
       data-testid="windows-title-bar"
-      className="bg-background flex h-10 shrink-0 items-stretch"
+      className="flex h-10 shrink-0 items-stretch border-b border-[#E9E2D8] bg-[#FAF7F1] dark:border-border dark:bg-background"
     >
       <div
         data-tauri-drag-region
@@ -123,7 +123,7 @@ export function WindowsTitleBar({
         >
           <TitleBarMenu label={t`File`} onPointerDown={rememberEditTarget}>
             <DropdownMenuItem onSelect={createNewNote}>
-              {t`New Note`}
+              {t`New Interview`}
               <DropdownMenuShortcut>Ctrl+N</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem

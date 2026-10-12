@@ -32,7 +32,7 @@ Local transcription and local summaries are separate choices. Selecting Ollama f
 
 ![Anarlog Settings → Transcription with the model dropdown open, showing on-device options](https://static.anarlog.so/blog/library/products/anarlog/desktop/2026-09-23-settings-transcription-dropdown.png)
 
-1. **Check model availability.** The built-in on-device transcription paths require a supported Apple Silicon Mac. Open **Settings → Transcription** and check the available models for your installed release. Apple Speech additionally requires macOS 26 and a supported language.
+1. **Check model availability.** The built-in on-device transcription paths require a supported Apple Silicon Mac. Intel Macs, Windows, and Linux need a separate Deepgram-compatible local server or a hosted speech provider. Open **Settings → Transcription** and check the available models for your installed release. Apple Speech additionally requires macOS 26 and a supported language.
 2. **Prepare speech-to-text.** Download a Soniqo model and select it under **Model being used**. Alternatively, configure Apple Speech's language assets or choose **On-device file** with a downloaded whisper.cpp `.bin`. Read the model's **Live** or **After recording** label; after-recording models do not produce a live transcript.
 3. **Prepare summaries separately.** Download a text model in LM Studio, Ollama, or Unsloth, start its local server on the same computer, and select it in **Settings → Intelligence**. Choose a model that fits your available memory alongside the meeting app. Experimental Apple Intelligence is another option on eligible Macs running macOS 26 or later.
 4. **Run a short offline check.** After all downloads finish, disconnect from the internet and record your own short sample. Verify capture, transcription, summary generation, and export. If a step fails, inspect its selected provider and the local server before relying on it in a meeting.
@@ -42,195 +42,110 @@ The canonical meeting record is stored in local SQLite; recordings and attachmen
 
 Sources: Anarlog's [offline setup](https://docs.anarlog.so/offline), [model compatibility](https://docs.anarlog.so/models-and-providers), and [privacy policy](/privacy/). This is a setup procedure you can verify on your own hardware, not a claim that every model or operating system supports offline transcription.
 
-## 5 Tools for Local AI Meeting Notes: A Closer Look
+## Five local meeting workflows
 
-### 1. Anarlog
+### 1. Anarlog: meeting notes with a selectable AI stack
 
 ![Current Anarlog meeting summary view](https://static.anarlog.so/blog/library/products/anarlog/desktop/2026-08-20-meeting-summary.jpg "char-editor-width=80")
 
-[Anarlog](https://anarlog.so) is an open-source AI notepad for meetings, built for people who want complete control over their data and AI stack. It captures system audio from any meeting platform without joining your call and without requiring calendar permissions.
+[Anarlog](/) captures microphone and system audio without adding a meeting bot. You can write a memo during the call, then generate a summary from your notes and the transcript. Sessions and text live in local SQLite, while recordings and attachments are separate files. Markdown is a portable export.
 
-You can take notes during the meeting in Anarlog's built-in editor while it transcribes in the background, and the AI combines both into a structured summary after the call.
+**Local path:** select a supported on-device speech model and a local Intelligence model independently. A whisper.cpp file is for processing after recording; it does not provide a live Whisper transcript. Intel Macs, Windows, and Linux can connect to a Deepgram-compatible local server instead of relying on built-in Mac speech models. The setup above covers the supported Mac path.
 
-The AI stack is yours to choose: Anarlog's managed cloud service, your own API keys, or fully local models through Ollama or LM Studio for offline operation. The canonical meeting record stays in local SQLite; attachments and recordings remain local files, and you decide whether to enable cloud services.
+**External path:** your own API keys and Anarlog Cloud use hosted providers. Encrypted CloudSync, sharing, the Cloud API, calendars, and chat web search also have their own data paths. Review [security](/security/) and the current [model documentation](https://docs.anarlog.so/models-and-providers) before choosing a configuration.
 
-#### How local is it actually
+**Tradeoff:** running speech and summary models together uses your computer's resources. Test your actual model choices and meeting length. Choose Anarlog when you want manual notes, transcripts, summaries, and exports in one local workspace.
 
-- Transcription: choose an available on-device speech model or a hosted provider. Built-in on-device transcription currently requires a supported Apple Silicon Mac. Ollama and LM Studio serve text models for summaries, not this speech-to-text step.
-- Summarization: your choice. Managed cloud, BYOK API keys, or local models. You control the boundary.
-- Storage: the canonical meeting record is local SQLite on your device, with portable exports when you need them.
-- Open-source codebase. Your security team can audit exactly how data is handled.
+**Pricing:** [Free](/pricing/) includes local and BYOK workflows; provider charges are separate. Pro is $14/month or $140/year and includes managed AI, encrypted CloudSync, sharing, and calendar integrations.
 
-If you use on-device transcription and local models without enabling CloudSync or sharing, meeting content does not need to be sent to an AI provider. If you use an API key or managed AI, review what that provider receives. For organizations restricting cloud meeting tools, validate the exact configuration with security and legal teams.
-
-#### Where it falls short
-
-- macOS is the most mature build; Windows and Linux builds are in beta.
-- This offline setup describes the desktop app; do not assume the same models are available on another platform.
-- Verify any export or integration separately: sending meeting content to another service changes the data boundary.
-- CloudSync and sharing are optional features; the canonical meeting record remains local by default.
-
-#### Pricing
-
-The Free plan supports on-device transcription and your own API keys. Pro is $14/month or $140/year and adds hosted transcription, cloud AI, encrypted CloudSync, and calendar integrations.
-
-### 2. Meetily
+### 2. Meetily: local capture with separate Community and Pro editions
 
 ![Meetily workspace with transcript, summary, decisions, and action items](https://static.anarlog.so/blog/articles/local-ai-meeting-notes/image-20.png "char-editor-width=80")
 
-[Meetily](https://meetily.ai) is an open-source meeting assistant (MIT license) that runs transcription entirely on your device using Whisper or Parakeet models.
+[Meetily Community](https://github.com/Zackriya-Solutions/meetily) captures microphone and system audio, transcribes with Whisper or Parakeet, and imports recordings. Windows and macOS have installers; Linux Community is built from source.
 
-It captures system audio [without a bot](/blog/bot-free-ai-meeting-assistants/), works with Zoom, Teams, Meet, and anything else that produces audio on your machine. Parakeet is the default engine and runs significantly faster than Whisper with lower resource usage, with GPU acceleration built in for Apple Silicon, NVIDIA, and AMD hardware.
+**Local path:** speech runs on your hardware; select Ollama for local summaries. macOS packages use Metal/CoreML. The packaged Windows Whisper build uses Vulkan; CUDA requires a configured NVIDIA source build rather than automatic selection by the installer.
 
-Summaries are pluggable: use Ollama for fully local processing, or connect your own API key to Claude, Groq, or OpenRouter. The app is built in Rust with a Next.js frontend and ships as a single installer for macOS and Windows. Linux users can build from source.
+**External path:** BYOK summaries send transcript text to the selected provider. Enable exports and integrations only for destinations you want to receive that content.
 
-#### How local is it actually
+**Tradeoff:** the current [edition comparison](https://meetily.ai/pro/) puts speaker identification, custom templates, advanced PDF/DOCX/Markdown exports, and MCP/webhook/CLI integrations in commercial Pro. Speaker identification is available in Pro, rather than a universally unfinished feature.
 
-- Transcription: 100% local. Whisper or Parakeet models running on your hardware.
-- Summarization: pluggable. Ollama for fully local, or BYOK with cloud providers.
-- Storage: local SQLite database. Audio files stored on your device.
-- GPU acceleration: Apple Silicon (Metal), NVIDIA (CUDA), AMD/Intel (Vulkan).
+**Pricing:** Community is free under MIT. Pro is $10 per user per month billed annually, or $25 regular monthly; Enterprise is custom. Check the edition before assuming the MIT download includes every Pro capability.
 
-The team is transparent that local model summarization does not match cloud quality yet, especially on longer meetings. They document the tradeoffs in their blog and are actively working on closing the gap.
-
-#### Where it falls short
-
-- Speaker diarization is still in development.
-- Local summarization quality lags cloud on long meetings.
-- Linux requires building from source.
-- No mobile app.
-
-#### Pricing
-
-Community Edition is free forever. Pro is at $10/month, billed annually, includes enhanced accuracy models, auto-meeting detection, PDF/DOCX export, and custom templates.
-
-### 3. Shadow
+### 3. Shadow: Mac meeting capture with external AI Skills
 
 ![Shadow action-item extraction panel with task assignments](https://static.anarlog.so/blog/articles/local-ai-meeting-notes/screenshot-2026-04-10-at-7-43-38-pm.png "char-editor-width=80")
 
-[Shadow](https://shadow.do) captures both channels of a meeting: what is said and what is shown on screen. It runs on macOS, records system audio without a bot, and automatically takes timestamped screenshots of whatever is displayed during your call: slides, code, dashboards, design mockups. Those screenshots are embedded directly in your notes alongside the transcript.
+[Shadow](https://www.shadow.do/) records on the Mac without a participant bot. It detects calls, captures meeting screenshots, and supports editable prompts called Skills. It is a fit when visual context matters alongside the transcript, but it is not the only screen-capture tool in this comparison.
 
-This matters the moment someone says "look at the numbers on slide four" and you need to know what those numbers were. Every other tool on this list captures audio only. Shadow also has autopilot mode that detects meetings and starts recording without you pressing anything, real-time speaker identification, and custom post-meeting AI "Skills" that run automatically.
+**Local path:** its [privacy guide](https://www.shadow.do/help/privacy-and-data) documents on-device audio capture, transcription, speaker diarization, and a local Markdown/media vault.
 
-#### How local is it actually
+**External path:** automatic meeting titles, Action and Meeting Skills, Ask, Share to Web, and webhooks can send the relevant transcript, screenshot, notes, or other context. A locally captured screenshot becomes external data when selected as context for an external feature.
 
-- Transcription: local. Audio never leaves your Mac.
-- Screen capture: local. Screenshots stored on device.
-- Summarization: cloud LLM APIs by default. Can be disabled, but you lose summaries, action items, and the "Ask Shadow" chatbot.
-- Export: .md files to a local folder. Works with Obsidian out of the box, webhooks for Zapier/Make/n8n.
+**Tradeoff:** for a local-content workflow, disable automatic titles and automated Skills, avoid Ask and external sharing/webhooks, and review inputs before running a Skill. Keeping transcription local does not establish offline AI summaries.
 
-Shadow is local for capture but not fully local for intelligence. The AI features route through external APIs. You can turn them off and keep just the transcript and screenshots, but then you lose the analysis layer.
+**Pricing:** [Free](https://www.shadow.do/pricing) includes unlimited transcription, audio recording, and Smart Screenshots, with a two-week Plus trial. Plus adds unlimited AI features; Shadow's [current billing comparison](https://www.shadow.do/blog/shadow-vs-bluedot-bot-free-meeting-assistant-2026) lists $8/month annually or $12 month-to-month.
 
-#### Where it falls short
-
-- macOS only.
-- AI features use cloud APIs, so not fully local end-to-end.
-- Free tier caps AI-powered features at 25 lifetime meetings.
-- No real-time collaborative editing.
-
-#### Pricing
-
-Free for unlimited transcription and 25 lifetime meetings for AI features. Plus, at $8/month, billed annually.
-
-### 4. Talat
+### 4. Talat: local defaults on Mac and Windows
 
 ![Talat meeting summary with timestamped topics and key discussion points](https://static.anarlog.so/blog/articles/local-ai-meeting-notes/image-25.png "char-editor-width=80")
 
-[Talat](https://talat.app) runs transcription and summarization entirely on your Mac's Neural Engine. It captures both sides of your call (system audio and microphone), transcribes in real time with speaker identification, and generates summaries using a local LLM (Qwen3-4B-4bit by default). The whole app is 20 MB. It detects when a conferencing app grabs your microphone and starts recording in the background.
+[Talat](https://talat.app/) supports macOS 15+ on Apple Silicon and Windows 10+. It captures both sides of calls, supports recording imports, and offers Apple and Google calendar integration. Built-in summaries now use Qwen3.5-4B, with optional alternative providers.
 
-The focus is configurability. You choose your LLM provider: the built-in local model, OpenAI, Anthropic, OpenRouter, or Ollama. You can write custom summarization prompts, auto-export notes to Obsidian, fire webhooks when a meeting ends, and run an MCP server so AI coding tools can query your meeting history. No analytics, no telemetry, no data collection.
+**Local path:** recording, speech recognition, speaker handling, summaries, and the meeting database run locally by default. Its [capabilities page](https://talat.app/capabilities) also documents screenshots taken with a hotkey during a recording, with local text recognition and placement in the transcript. This differs from Shadow's automatic meeting-window screenshots and Screenpipe's broader desktop history.
 
-#### How local is it actually
+**External path:** the [privacy policy](https://talat.app/privacy) separates optional cloud LLM requests and Google Calendar access from local meeting content. It also documents a diagnostic/license ping carrying installation, version, platform, onboarding, and license/trial details. No third-party behavioral tracking does not mean no network traffic.
 
-- Transcription: 100% on-device via FluidAudio on Apple's Neural Engine. Audio never leaves your Mac.
-- Summarization: local by default (Qwen3-4B-4bit). Optional BYOK with OpenAI, Anthropic, OpenRouter, or Ollama.
-- Storage: local database. Auto-export to Obsidian, webhooks, MCP server.
-- Zero analytics, zero telemetry.
+**Tradeoff:** check optional providers, calendars, webhooks, and export destinations before treating the entire workflow as local. Test speaker labels and summaries on a representative call.
 
-If you never configure a cloud LLM, nothing leaves your machine. Talat was [featured in TechCrunch](https://techcrunch.com/2026/03/24/talats-ai-meeting-notes-stay-on-your-machine-not-in-the-cloud/) in March 2026 and is a one-time purchase from a bootstrapped two-person team.
+**Pricing:** ten hours of recording are free to try. Current options include $89/year and a $189 lifetime license, plus monthly billing. Once the recording allowance ends, existing meetings remain searchable, exportable, and available for summaries; new recording requires a paid plan.
 
-#### Where it falls short
-
-- macOS only, M-series chips only (M1 or later).
-- Pre-release software. Speaker diarization is rough.
-- Local LLM summarization can be hit or miss on longer meetings.
-- No calendar integration yet (planned).
-
-#### Pricing
-
-$49 one-time purchase (pre-release price). $99 at version 1.0. 10 hours of free recordings to try before buying.
-
-### 5. Screenpipe
+### 5. Screenpipe: local desktop history with broader capture scope
 
 ![Screenpipe meeting transcript beneath a shared project document](https://static.anarlog.so/blog/articles/local-ai-meeting-notes/image-26.png "char-editor-width=80")
 
-[Screenpipe](https://screenpi.pe) records your screen and audio 24/7, transcribes everything locally with Whisper, and indexes it in a searchable local database.
+[Screenpipe](https://github.com/screenpipe/screenpipe) combines screen context and audio into searchable computer history on macOS, Windows, and Linux. Meeting notes are one use of that history rather than the whole product.
 
-It is not a meeting tool. It is an open-source AI memory layer for your entire desktop that happens to be very good at meeting notes, because meeting notes are a side effect of it always running.
+**Local path:** local SQLite/media storage, Whisper speech, and local AI such as Ollama. Accessibility data and screenshots add screen context; MCP and scheduled workflows can use that history.
 
-After a call, you ask the AI: "Summarize my meeting from 2 to 3pm and list action items." Screenpipe searches your audio transcripts and screen content from that time window.
+**External path:** cloud transcription, AI, sync, integrations, and organization-managed storage can transmit data. The repository also documents product analytics and crash diagnostics, with an Analytics setting to disable telemetry. A local capture database does not make an attached cloud assistant local.
 
-It captures what audio-only tools miss: the URL someone dropped in the Zoom chat, the spreadsheet someone shared, the code someone walked through in a terminal. It also runs as an MCP server, so Cursor, Claude Code, and Cline can query your meeting history directly.
+**Tradeoff:** the capture scope is broader than a meeting recorder. Review filters, permissions, retention, and AI access, then measure resource use on your machine instead of assuming a fixed monthly storage budget.
 
-#### How local is it actually
+#### Source license and app subscriptions
 
-- Transcription: local Whisper by default. Optional Deepgram (cloud) for faster processing.
-- Summarization: any model. Ollama for local, or connect cloud models.
-- Storage: local SQLite database in ~/.screenpipe/data/.
-- Screen capture: local. Accessibility APIs + OCR fallback.
-- Runs on macOS, Windows, and Linux. MIT-licensed open source.
+The current [source license](https://github.com/screenpipe/screenpipe/blob/main/LICENSE.md) is the Screenpipe Commercial License. It allows personal non-commercial use, nonprofit/education/research use, and a seven-day organizational evaluation. Commercial source use requires a paid license. Official prebuilt apps have separate subscription/app terms. Previously published MIT versions retain MIT; that does not make the current source MIT-licensed.
 
-#### Where it falls short
+Current [app pricing](https://screenpipe.com/onboarding) offers Free, Basic at $250/year, and Business at $500 per seat/year, with monthly and capacity options. Business includes personal device sync and team seat management; shared context across teammates is not currently included. The README says existing lifetime licenses remain valid, while new lifetime purchases are no longer sold.
 
-- Not purpose-built for meetings. Always running, always capturing.
-- Higher resource usage (~5-10% CPU, ~20 GB storage/month).
-- Setup is more involved: configuring audio devices, transcription engines, pipe automations.
-- $400 is steep if you only want meeting notes.
+## Choose the workflow, then verify the boundary
 
-#### Pricing
+- **Notes plus a transcript:** Anarlog pairs your memo with captured meeting audio and lets you select speech and summary providers.
+- **Local capture and summaries:** Meetily offers a free Community route; check Pro for speaker identification and advanced exports.
+- **Visual meeting context:** Shadow automates meeting screenshots, while Talat documents manual screenshot capture. Screenpipe covers broader desktop activity.
+- **Local defaults with packaged models:** Talat includes a local summary model and supports Mac and Windows.
+- **Searchable computer history:** Screenpipe connects screen and audio history to AI tools; review capture scope and current license terms first.
 
-$400 lifetime (one-time). All features, all future updates. $600 lifetime + 1 year of Pro (cloud sync, priority support).
+For an open-source comparison, see [meeting capture versus dictation](/blog/open-source-meeting-transcription-software/). For a local meeting editor, [download Anarlog](/download/) and run the short offline check above before relying on it during a real call.
 
-**Which Local AI Meeting Notetaker Is Right for You?**
+## Frequently asked questions
 
-Local processing means accepting tradeoffs. Local models are not as accurate as cloud transcription on messy audio, speaker diarization is still maturing across the board, and most of these tools are macOS-only or macOS-first. The gap is closing fast, though, and for anyone handling sensitive conversations, the architectural guarantee that your audio never left your device is worth more than a privacy policy that can change with a terms-of-service update.
+### Is Granola a local AI notetaker?
 
-Anarlog is the strongest choice if you want an open-source app with AI-provider choice, a canonical local SQLite record, and portable exports.
+Granola captures audio on a device but uses cloud transcription and AI providers and stores transcripts and notes in its hosted infrastructure. Its [security page](https://www.granola.ai/security) describes those boundaries. Device capture alone does not establish local processing. Compare [Granola alternatives](/blog/granola-ai-alternatives/) if you need different storage or AI choices.
 
-Meetily is the strongest open-source option here if you prioritize a more established Windows build or a fully self-managed setup.
+### Can I use local meeting notes offline?
 
-Shadow is the only tool that captures what is on screen alongside what is said.
+Prepare speech and summary models before disconnecting, then verify both stages. Local capture and transcription do not guarantee local summaries or integrations. Shadow's external AI features need a connection; the configurable tools require the correct provider selections. Check activation and model-download requirements separately.
 
-Talat is for people who loved Granola but could not accept cloud dependency, and it is the only one-time purchase purpose-built meeting tool here.
+### Are local models as accurate as cloud services?
 
-Screenpipe is the power user's option: not just meeting notes but a searchable memory of your entire workday.
+There is no universal winner established by this comparison. The model, language, audio quality, overlapping speech, and available resources matter. Test a sample that resembles your meetings and inspect the transcript, speaker labels, and summary before switching.
 
-If you want to start with local AI meeting notes that give you full ownership, [try Anarlog](https://anarlog.so). It is free, open-source, and works offline with local models. Your first meeting's canonical record stays in local SQLite, and you can export Markdown for another tool when you need it.
+### Does local storage mean nothing leaves the computer?
 
-## Frequently Asked Questions
+No. Hosted AI can receive meeting content, a webhook can transmit an export, and diagnostics can send device metadata even when the main record lives locally. Check each enabled path rather than relying on the word local.
 
-### 1. Is Granola a local AI notetaker?
+### What hardware should I check?
 
-No. Granola captures system audio locally, which is why it gets grouped with local tools, but the similarity ends there. Your audio is sent to Deepgram for transcription, your transcript is processed through GPT-4o or Claude for summarization, and your notes are stored on AWS servers. There is no offline mode and no option to run local models. Granola is a cloud tool with a local audio capture step.
-
-If you want the same notepad-first workflow with different storage or AI choices, compare these [alternatives to Granola](/blog/granola-ai-alternatives/).
-
-### 2. Can I use these tools for in-person meetings?
-
-Yes. Tools that capture microphone input (Anarlog, Meetily, Talat, Screenpipe) work for in-person conversations. Place your laptop near the speakers and let the mic pick up the room. Speaker diarization accuracy varies since it was primarily designed for virtual calls with separate audio channels.
-
-### 3. Do local meeting notetakers work offline?
-
-If both transcription and summarization use local models, yes. Anarlog needs both a downloaded on-device speech model on a supported Apple Silicon Mac and a local summary model such as Ollama; follow the setup steps above. Meetily with Parakeet + Ollama, Talat with its built-in LLM, and Screenpipe with local Whisper plus a local summary model can also work without an internet connection. Shadow's transcription works offline but the AI summary features need a connection.
-
-### 4. What hardware do I need to run local transcription?
-
-Requirements depend on the app and both selected models. Anarlog's built-in local transcription currently requires a supported Apple Silicon Mac; Apple Speech requires macOS 26 and supported language assets. Local summary models have their own memory requirements. Check the [current model compatibility list](https://docs.anarlog.so/models-and-providers), leave memory for your meeting app, and test a representative recording. There is no single RAM minimum that guarantees every Whisper or summary model will run well.
-
-### 5. Is it legal to record meetings without telling participants?
-
-Recording laws vary by jurisdiction. In many US states and most of Europe, you need consent from all parties to record a conversation. The fact that these tools do not send a bot into the meeting makes them less visible, but that does not remove your legal obligation to inform participants. Always tell the people on your call that you are recording.
-
-### 6. Are local AI meeting notes as accurate as cloud-based tools?
-
-It depends on the model and your hardware. Cloud transcription services like Deepgram still have an edge on messy audio, heavy accents, and cross-talk. But local models like Parakeet and Whisper Large V3 have closed the gap significantly, especially on clear audio from a decent microphone. For most one-on-one and small group calls, the difference is negligible.
+Check the app's platform requirements and the speech and summary models together. Anarlog's built-in speech models require supported Apple Silicon hardware; its local-server alternative is separate. Leave resources for your conferencing app and test a recording of the length you need.

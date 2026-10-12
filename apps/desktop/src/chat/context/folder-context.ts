@@ -12,8 +12,10 @@ export async function renderFolderContext(
   const instructions = folderId ? await loadFolderInstructions(folderId) : "";
   const label = folderId || "No folder";
   const lines = [
-    `Folder context: ${label}`,
-    "Answer from notes in this folder. Use get_meeting or search_meetings with the listed IDs when you need full notes or transcripts. Use read_folder_material with a listed material ID to read a syllabus or other folder file.",
+    `Folder context: ${label} (${sessions.length} ${sessions.length === 1 ? "note" : "notes"})`,
+    folderId
+      ? "Answer from notes in this folder. Use get_meeting or search_meetings with the listed IDs when you need full notes or transcripts. Use list_meetings with this folder_path to enumerate every note. Use read_folder_material with a listed material ID to read a syllabus or other folder file."
+      : "Answer from these unfiled notes. Use get_meeting or search_meetings with the listed IDs when you need full notes or transcripts.",
   ];
 
   if (instructions.trim()) {
@@ -46,7 +48,11 @@ export async function renderFolderContext(
 
   const hiddenCount = sessions.length - visible.length;
   if (hiddenCount > 0) {
-    lines.push(`- and ${hiddenCount} more`);
+    lines.push(
+      folderId
+        ? `- and ${hiddenCount} more (use list_meetings with folder_path "${folderId}" to enumerate every note)`
+        : `- and ${hiddenCount} more`,
+    );
   }
 
   return lines.join("\n");

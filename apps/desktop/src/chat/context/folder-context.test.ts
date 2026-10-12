@@ -45,8 +45,8 @@ describe("folder chat context", () => {
 
     await expect(renderFolderContext("CS 101")).resolves.toEqual(
       [
-        "Folder context: CS 101",
-        "Answer from notes in this folder. Use get_meeting or search_meetings with the listed IDs when you need full notes or transcripts. Use read_folder_material with a listed material ID to read a syllabus or other folder file.",
+        "Folder context: CS 101 (2 notes)",
+        "Answer from notes in this folder. Use get_meeting or search_meetings with the listed IDs when you need full notes or transcripts. Use list_meetings with this folder_path to enumerate every note. Use read_folder_material with a listed material ID to read a syllabus or other folder file.",
         "",
         "- Lecture 1 (2026-08-01T09:00:00.000Z) [session-1]",
         "- Untitled (2026-08-08T09:00:00.000Z) [session-2]",
@@ -54,6 +54,38 @@ describe("folder chat context", () => {
     );
     expect(mocks.loadFolderMaterials).toHaveBeenCalledWith("CS 101");
     expect(mocks.loadFolderInstructions).toHaveBeenCalledWith("CS 101");
+  });
+
+  it("caps the preview and points to full enumeration past 50 notes", async () => {
+    mocks.loadSessionSummariesByFolder.mockResolvedValue(
+      Array.from({ length: 51 }, (_, index) => ({
+        id: `session-${index + 1}`,
+        title: `Lecture ${index + 1}`,
+        created_at: "2026-08-01T09:00:00.000Z",
+      })),
+    );
+
+    const context = await renderFolderContext("CS 101");
+    expect(context).toContain("Folder context: CS 101 (51 notes)");
+    expect(context).toContain("- Lecture 50 (2026-08-01T09:00:00.000Z)");
+    expect(context).not.toContain("[session-51]");
+    expect(context).toContain(
+      '- and 1 more (use list_meetings with folder_path "CS 101" to enumerate every note)',
+    );
+  });
+
+  it("keeps a plain count for hidden unfiled notes without a folder path", async () => {
+    mocks.loadSessionSummariesByFolder.mockResolvedValue(
+      Array.from({ length: 51 }, (_, index) => ({
+        id: `session-${index + 1}`,
+        title: `Note ${index + 1}`,
+        created_at: "2026-08-01T09:00:00.000Z",
+      })),
+    );
+
+    const context = await renderFolderContext("");
+    expect(context).toContain("\n- and 1 more");
+    expect(context).not.toContain('No folder" to enumerate');
   });
 
   it("includes saved folder instructions", async () => {

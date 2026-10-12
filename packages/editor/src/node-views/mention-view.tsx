@@ -3,7 +3,7 @@ import { Facehash, stringHash } from "facehash";
 import type { NodeSpec } from "prosemirror-model";
 import { forwardRef, useCallback } from "react";
 
-import { Buildings, Note, User } from "@anlg/ui/components/icons";
+import { Buildings, Folder, Note, User } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
 export const mentionNodeSpec: NodeSpec = {
@@ -91,7 +91,13 @@ function MentionAvatar({
   }
 
   const Icon =
-    type === "session" ? Note : type === "organization" ? Buildings : User;
+    type === "session"
+      ? Note
+      : type === "organization"
+        ? Buildings
+        : type === "folder"
+          ? Folder
+          : User;
 
   return (
     <span className="mention-avatar mention-avatar-icon">

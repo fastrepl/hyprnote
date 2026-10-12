@@ -21,6 +21,7 @@ import { getOrCreateSessionForEventId } from "~/session/queries";
 import { WorkspaceInvitationToasts } from "~/settings/team/invitation-toast";
 import { useMyWorkspacesWithMirror } from "~/settings/team/mirror";
 import { useZoomShortcuts } from "~/shared/zoom";
+import { useSidebarNotes } from "~/sidebar/note-filter";
 import { UndoDeleteToast } from "~/sidebar/toast/undo-delete-toast";
 import { isTabInputSupported, useTabs } from "~/store/zustand/tabs";
 
@@ -74,6 +75,9 @@ const useNavigationEvents = () => {
           type: "contacts",
           state: { selected: { type: "organization", id } },
         });
+      } else if (type === "folder") {
+        useSidebarNotes.getState().setView("mine", id);
+        void navigate({ to: "/app/main" });
       }
     };
     (window as any).__ANARLOG_NAVIGATE__ = navigateFromNative;

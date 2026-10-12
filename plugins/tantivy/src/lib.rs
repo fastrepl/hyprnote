@@ -101,6 +101,7 @@ pub struct SearchRequest {
 
 pub const SCHEMA_VERSION: u32 = 2;
 
+#[derive(Clone)]
 pub struct CollectionConfig {
     pub name: String,
     pub path: String,
@@ -163,8 +164,35 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                     schema_version: SCHEMA_VERSION,
                 };
 
-                if let Err(e) = handle.tantivy().register_collection(config).await {
-                    tracing::error!("Failed to register default collection: {}", e);
+                // Registration can fail transiently (e.g. a stale writer lock
+                // from a crashed instance); without the collection, search is
+                // dead for the whole process lifetime, so retry with capped
+                // backoff until it lands. Log the first failure loudly, then
+                // keep retries at debug level to avoid spamming the log.
+                let mut delay_secs = 5u64;
+                let mut logged_error = false;
+                loop {
+                    match handle.tantivy().register_collection(config.clone()).await {
+                        Ok(()) => break,
+                        Err(e) => {
+                            if logged_error {
+                                tracing::debug!(
+                                    "Default collection still unavailable: {}; retrying in {}s",
+                                    e,
+                                    delay_secs
+                                );
+                            } else {
+                                tracing::error!(
+                                    "Failed to register default collection: {}; retrying in {}s",
+                                    e,
+                                    delay_secs
+                                );
+                                logged_error = true;
+                            }
+                            tokio::time::sleep(std::time::Duration::from_secs(delay_secs)).await;
+                            delay_secs = (delay_secs * 2).min(300);
+                        }
+                    }
                 }
             });
 

@@ -1,5 +1,7 @@
-/* `height` covers horizontal bars; without it they fall back to WebKit's 15px
- * default while vertical ones stay slim. */
+/* Slim, unobtrusive scrollbars for the Abrish desktop interface.
+ * Keep the scrollbar neutral so it does not compete with primary coral actions.
+ * Dimensions and browser fallbacks are intentionally unchanged.
+ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -10,10 +12,14 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e5e5e5;
-  border-radius: 4px;
+  background: #dfe2e7;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d5d5d5;
+  background: #c4cad3;
+  border: 1px solid transparent;
+  background-clip: padding-box;
 }

@@ -1,18 +1,49 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { useRouteContext } from "@tanstack/react-router";
 
-import { ClassicMainLayout } from "~/main/layout";
-import { useClassicMainLifecycle } from "~/main/lifecycle";
+import { TaskStorageProvider } from "@anlg/editor/task-storage";
 
-export const Route = createFileRoute("/app/main/_layout")({
-  component: Component,
-});
+import { ClassicMainServices } from "./lifecycle";
 
-function Component() {
-  useClassicMainLifecycle();
+import { AITaskProvider } from "~/ai/contexts";
+import { NotificationProvider } from "~/contexts/notifications";
+import { ShellProvider } from "~/contexts/shell";
+import { ToolRegistryProvider } from "~/contexts/tool";
+import { useStoreBackedTaskStorage } from "~/editor-bridge/task-storage";
+import { SearchEngineProvider } from "~/search/contexts/engine";
+import { OpenNoteDialogProvider } from "~/shared/open-note-dialog";
+
+export function ClassicMainLayout({
+  children,
+  includeServices = true,
+}: {
+  children: React.ReactNode;
+  includeServices?: boolean;
+}) {
+  const { aiTaskStore, toolRegistry } = useRouteContext({
+    from: "__root__",
+  });
+  const taskStorage = useStoreBackedTaskStorage();
+
+  if (!aiTaskStore) {
+    return null;
+  }
 
   return (
-    <ClassicMainLayout>
-      <Outlet />
-    </ClassicMainLayout>
+    <SearchEngineProvider>
+      <TaskStorageProvider storage={taskStorage}>
+        <OpenNoteDialogProvider>
+          <ShellProvider>
+            <ToolRegistryProvider registry={toolRegistry}>
+              <AITaskProvider store={aiTaskStore}>
+                <NotificationProvider>
+                  {includeServices ? <ClassicMainServices /> : null}
+                  {children}
+                </NotificationProvider>
+              </AITaskProvider>
+            </ToolRegistryProvider>
+          </ShellProvider>
+        </OpenNoteDialogProvider>
+      </TaskStorageProvider>
+    </SearchEngineProvider>
   );
 }

@@ -1,32 +1,30 @@
 ---
-meta_title: "5 Best Local AI Meeting Notetakers in 2026"
-meta_description: "Local AI meeting notes tools that transcribe and summarize on your device. For engineers, legal teams, and anyone whose company banned cloud recording tools."
+meta_title: "Local AI Meeting Notes: 5 Apps and Their Data Paths (2026)"
+meta_description: "Compare local AI meeting notes apps by speech processing, summaries, storage, platforms, and price. Check offline setup, cloud features, and license limits."
 author:
   - "John Jeong"
 featured: false
 category: "Comparisons"
-date: "2026-04-10"
+date: "2026-10-12"
 ---
 
-Every meeting notetaker calls itself "local" or "private" now. The word has become a marketing checkbox. But local means wildly different things depending on which tool you pick.
+Local AI meeting notes need more than a recorder that runs on your laptop. Speech recognition, summary generation, storage, and sharing can each use a different processing path.
 
-Some tools transcribe on your device but send the transcript to a cloud LLM for summarization. Some store notes locally but make them accessible via a shareable link by default. Some process everything on-device but only work on one operating system, or only on recent hardware. And some are fully local until you look at the fine print and discover your data trains their models unless you opt out.
+This guide compares Anarlog, Meetily, Shadow, Talat, and Screenpipe by those boundaries. Anarlog and Meetily let you select local speech and local summary models. Talat includes local models by default. Shadow keeps core transcription on the Mac but uses external providers for AI features. Screenpipe combines local capture with configurable AI and optional cloud services.
 
-This guide compares five tools by their documented processing and storage choices: what stays on your machine, what leaves, what the tradeoffs are, and what it costs. The Anarlog setup instructions below were checked against its documentation on September 16, 2026; they are not a cross-product accuracy benchmark.
+Product documentation and prices were checked on October 12, 2026. These are documented capabilities, not hardware or accuracy benchmark results. For desktop versus server deployment, see the [self-hosted notetaker guide](/blog/selfhosted-ai-notetakers/); for other workflows, browse our [transcription guides](/guides/transcription/).
 
-## How These Local AI Meeting Notetakers Compare
+## Compare local processing and price
 
+| Tool | Local meeting content | What can leave the device | Current pricing |
+| --- | --- | --- | --- |
+| **Anarlog** | Local SQLite; supported on-device speech or a local server; local Intelligence selection | Hosted providers, sync, sharing, calendars, Cloud API and web search | Free local/BYOK; Pro $14/month or $140/year |
+| **Meetily** | Local speech and stored recordings; Ollama summaries | Transcript text for BYOK summaries; enabled integrations | Community free; Pro $10/user/month annually or $25 regular monthly |
+| **Shadow** | Mac capture, transcription, speaker labels, and local vault | AI titles, Skills, Ask, sharing, and webhooks can transmit context | Free capture; Plus from $8/month annually |
+| **Talat** | Local recording, speech, summaries, and database by default | Optional cloud summaries, calendar connection, exports; diagnostic/license ping | 10-hour trial; $89/year or $189 lifetime; monthly option |
+| **Screenpipe** | Local screen/audio history and search by default; local model options | Cloud speech/AI, sync, integrations, and managed storage; telemetry | Free; Basic $250/year; Business $500/seat/year; monthly options |
 
-|                |                                                                    |                                |
-| -------------- | ------------------------------------------------------------------ | ------------------------------ |
-| **Tool**       | **Best For**                                                       | **Pricing**                    |
-| **Anarlog**       | Users who want a local-first meeting workflow and AI-provider choice | Free (BYOK), Pro $14/mo or $140/year |
-| **Meetily**    | Teams on Windows or Mac who want a polished open-source option     | Community free, Pro $10/mo     |
-| **Shadow**     | Client-facing roles who need screen capture alongside audio        | Free transcription, Plus $8/mo |
-| **Talat**      | People who want Granola's UX without the cloud, for a one-time fee | $49 pre-release, $99 at 1.0    |
-| **Screenpipe** | Developers who want meeting notes as part of full desktop memory   | $400 lifetime                  |
-|                |                                                                    |                                |
-
+The software license and the paid service are separate questions. Anarlog community and Meetily Community use MIT licenses. Current Screenpipe source uses its own commercial source-available license; older MIT releases retain their original license.
 
 ## How to set up an offline Anarlog meeting
 

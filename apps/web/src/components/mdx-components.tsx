@@ -4,6 +4,7 @@ import { ArrowRight } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
 import { Image as OptimizedImage } from "@/components/image";
+import { getPublicPageLinkHref } from "@/lib/seo";
 
 const BLOG_IMAGE_WIDTH = 796;
 const BLOG_IMAGE_BREAKPOINTS = [320, 480, 640, 796, 1080, 1280, 1592];
@@ -51,7 +52,7 @@ function CtaCard({
   if (!href) return null;
   return (
     <a
-      href={href}
+      href={getPublicPageLinkHref(href)}
       className="my-6 block rounded-md border border-neutral-200 p-6 no-underline transition-colors hover:border-stone-400 hover:bg-stone-50"
     >
       {title && <div className="mb-1 text-base text-stone-800">{title}</div>}
@@ -104,6 +105,10 @@ function Clip({ src }: { src: string }) {
 
 const Noop = () => null;
 
+function ArticleLink({ href, ...props }: React.ComponentProps<"a">) {
+  return <a {...props} href={href ? getPublicPageLinkHref(href) : href} />;
+}
+
 function InlineCode({ children, ...props }: React.ComponentProps<"code">) {
   return (
     <code
@@ -118,6 +123,7 @@ function InlineCode({ children, ...props }: React.ComponentProps<"code">) {
 }
 
 export const mdxComponents: Record<string, ComponentType<any>> = {
+  a: ArticleLink,
   Image,
   img: Image,
   CtaCard,

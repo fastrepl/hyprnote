@@ -52,7 +52,13 @@ The API's standard retention window is 30 days. Anthropic automatically deletes 
 
 For enterprise API customers who qualify, Anthropic also offers a Zero Data Retention agreement. Under ZDR, inputs and outputs aren't stored at rest after the API response returns. One caveat that still applies: Anthropic can retain Trust and Safety classifier results even under ZDR, to enforce its usage policy.
 
-There's a newer, sharper exception too. Since June 2026, Anthropic designates its most capable models, currently Claude Fable 5, Fable 5.1, Mythos 5, and Mythos 5.1, as "Covered Models". Any organization using one of these gets a mandatory 30-day retention window that overrides ZDR entirely, unless Anthropic expressly authorizes an exception. Anthropic's stated reasoning: some abuse patterns, like distributed jailbreak attempts or coordinated misuse campaigns, only become visible when requests are compared across a window of time rather than one at a time. Practically, if you're on a ZDR agreement and want to use a Covered Model, you need to turn on 30-day retention for that specific workspace; your other ZDR workspaces stay at zero retention. Anthropic's non-Covered models, including Claude Opus 5, still get full ZDR with no exceptions. Most meeting-summarization workloads, Anarlog's included, run fine on non-Covered models, so this mainly matters if your organization has specifically opted into the newest reasoning-class models for other work.
+There's a newer, sharper exception too. Since June 2026, Anthropic designates its most capable models, currently Claude Fable 5, Fable 5.1, Mythos 5, and Mythos 5.1, as "Covered Models". Any organization using one of these gets a mandatory 30-day retention window that overrides ZDR entirely, unless Anthropic expressly authorizes an exception.
+
+Anthropic's stated reasoning: some abuse patterns, like distributed jailbreak attempts or coordinated misuse campaigns, only become visible when requests are compared across a window of time rather than one at a time.
+
+Practically, if you're on a ZDR agreement and want to use a Covered Model, you need to turn on 30-day retention for that specific workspace; your other ZDR workspaces stay at zero retention.
+
+Anthropic's non-Covered models, including Claude Opus 5, still get full ZDR with no exceptions. Most meeting-summarization workloads, Anarlog's included, run fine on non-Covered models, so this mainly matters if your organization has specifically opted into the newest reasoning-class models for other work.
 
 ## Claude for Work, Enterprise, Edu, and Gov
 
@@ -70,7 +76,11 @@ GDPR: Anthropic supports GDPR compliance for commercial customers through a Data
 
 In June 2025, [Reddit filed a lawsuit against Anthropic](https://ppc.land/reddit-files-lawsuit-against-anthropic-over-unauthorized-claude-ai-training/) alleging that Anthropic scraped more than 100,000 Reddit posts and comments without authorization to train Claude. Reddit presented evidence that Claude reproduced deleted Reddit posts with near-perfect accuracy.
 
-The case has moved since then. Anthropic tried to move it to federal court, arguing Reddit's claims were really just copyright infringement in disguise. In March 2026, a federal judge disagreed and sent the case back to California state court, ruling that Reddit's breach-of-contract, unjust enrichment, and privacy-related claims raise "extra elements" beyond what copyright law covers: specifically, that Anthropic allegedly bypassed Reddit's technical safeguards and interfered with privacy commitments Reddit owes its own users. By August 2026, the presiding state judge was reportedly skeptical of Anthropic's remaining defenses on the privacy claims. The case is still active and unresolved as of this writing.
+The case has moved since then. Anthropic tried to move it to federal court, arguing Reddit's claims were really just copyright infringement in disguise.
+
+In March 2026, a federal judge disagreed and sent the case back to California state court, ruling that Reddit's breach-of-contract, unjust enrichment, and privacy-related claims raise "extra elements" beyond what copyright law covers: specifically, that Anthropic allegedly bypassed Reddit's technical safeguards and interfered with privacy commitments Reddit owes its own users.
+
+By August 2026, the presiding state judge was reportedly skeptical of Anthropic's remaining defenses on the privacy claims. The case is still active and unresolved as of this writing.
 
 This isn't about your personal data directly. But it's relevant context for how Anthropic has approached training data acquisition, and it matters when evaluating whether a company's stated privacy values match their actual behavior.
 

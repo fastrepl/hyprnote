@@ -5,6 +5,7 @@ import {
   getBlogOgImageUrl,
   getBlogPostingJsonLd,
   getCanonicalUrl,
+  getPublicPageLinkHref,
   getSoftwareApplicationJsonLd,
 } from "./seo.ts";
 
@@ -17,6 +18,30 @@ test("builds canonical urls with exactly one trailing slash", () => {
   );
   assert.equal(getCanonicalUrl("/download/"), "https://anarlog.so/download/");
   assert.equal(getCanonicalUrl("download"), "https://anarlog.so/download/");
+});
+
+test("article links skip canonical redirects without losing queries or anchors", () => {
+  assert.equal(
+    getPublicPageLinkHref("/blog/is-otter-ai-safe#data-collection"),
+    "/blog/is-otter-ai-safe/#data-collection",
+  );
+  assert.equal(
+    getPublicPageLinkHref("https://anarlog.so/download?source=article#desktop"),
+    "https://anarlog.so/download/?source=article#desktop",
+  );
+  for (const href of [
+    "/blog/is-otter-ai-safe/",
+    "https://docs.anarlog.so/offline",
+    "//example.com/blog/notes",
+    "/\\example.com/blog/notes",
+    "/\\[",
+    "/api/assets/manual.pdf",
+    "/auth?flow=web",
+    "#data-collection",
+    "mailto:team@fastrepl.com",
+  ]) {
+    assert.equal(getPublicPageLinkHref(href), href);
+  }
 });
 
 test("emits offers when pricing is supplied", () => {

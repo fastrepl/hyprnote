@@ -1,13 +1,16 @@
 import { Trans } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { Kbd } from "@anlg/ui/components/ui/kbd";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { FloatingChatCTA } from "~/shared/chat-cta";
 import { StandardContentWrapper } from "~/shared/main";
 import { useNewNote, useNewNoteAndListen } from "~/shared/useNewNote";
+import { createSession } from "~/session/queries";
+import { requestSessionImport } from "~/stt/session-import-intent";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 
 export function TabContentEmpty({
@@ -27,6 +30,34 @@ function EmptyView() {
   const newNoteAndListen = useNewNoteAndListen({ behavior: "current" });
   const openCurrent = useTabs((state) => state.openCurrent);
   const primaryModifier = platform() === "macos" ? "⌘" : "Ctrl";
+  const [isImporting, setIsImporting] = useState(false);
+
+  const startImport = useCallback(
+    async (kind: "audio" | "transcript") => {
+      if (isImporting) return;
+      setIsImporting(true);
+      try {
+        const sessionId = await createSession(
+          kind === "audio" ? "Audio interview" : "Imported transcript",
+        );
+        // Register first so a fast tab mount cannot miss the request.
+        requestSessionImport(sessionId, kind);
+        openCurrent({
+          type: "sessions",
+          id: sessionId,
+          state: { view: null, autoStart: null, scheduledAutoStart: null },
+        });
+      } catch (error) {
+        console.error(`[home] failed to create ${kind} session`, error);
+        toast.error(
+          error instanceof Error ? error.message : "Could not create a session.",
+        );
+      } finally {
+        setIsImporting(false);
+      }
+    },
+    [isImporting, openCurrent],
+  );
 
   const openSettings = useCallback(
     () => openCurrent({ type: "settings" }),
@@ -62,6 +93,18 @@ function EmptyView() {
               label={<Trans>New interview notes</Trans>}
               shortcut={[primaryModifier, "N"]}
               onClick={newNote}
+            />
+            <SecondaryAction
+              label={<Trans>Upload audio</Trans>}
+              shortcut={[]}
+              onClick={() => void startImport("audio")}
+              disabled={isImporting}
+            />
+            <SecondaryAction
+              label={<Trans>Import transcript</Trans>}
+              shortcut={[]}
+              onClick={() => void startImport("transcript")}
+              disabled={isImporting}
             />
           </div>
         </div>
@@ -165,15 +208,18 @@ function SecondaryAction({
   label,
   shortcut,
   onClick,
+  disabled = false,
 }: {
   label: React.ReactNode;
   shortcut: string[];
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       data-tauri-drag-region="false"
       className={cn([
         "inline-flex min-h-12 items-center justify-center gap-3 rounded-xl border border-[#E5DED3] bg-white px-4 py-3",
@@ -186,7 +232,9 @@ function SecondaryAction({
         +
       </span>
       <span>{label}</span>
-      <Kbd className="hidden sm:inline-flex">{shortcut.join(" ")}</Kbd>
+      {shortcut.length > 0 ? (
+        <Kbd className="hidden sm:inline-flex">{shortcut.join(" ")}</Kbd>
+      ) : null}
     </button>
   );
 }

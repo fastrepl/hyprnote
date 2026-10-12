@@ -11,9 +11,10 @@
 
   &::-webkit-scrollbar-thumb {
     background: hsl(var(--muted-foreground) / 0.18);
+    border-radius: 999px;
   }
 
   &::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.28);
+    background: hsl(var(--muted-foreground) / 0.3);
   }
 }

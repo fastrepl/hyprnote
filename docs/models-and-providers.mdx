@@ -47,7 +47,16 @@ For text tasks, **Anarlog → Auto** currently routes summaries, chat, and gener
 
 The alias tracks the current Claude Sonnet release instead of pinning a dated model. OpenRouter receives the prompt and chooses an available endpoint for that model.
 
-Under **Settings → Intelligence**, Pro users can also choose **Claude Sonnet**, **Claude Opus**, **GPT Sol**, **Gemini Pro**, or **Gemini Flash**. Anarlog tries the selected model first, then its managed fallback route if needed. These choices track model families; use your own provider when you need a fixed model ID. Requests containing audio continue to use the audio route below.
+Under **Settings → Intelligence**, you can choose a model family instead of Auto. The next desktop update expands the Pro picker to these choices:
+
+- **Claude Sonnet**, **Claude Opus**, and **Claude Haiku**
+- **GPT Sol**, **GPT Astra**, **GPT Terra**, and **GPT Luna**
+- **Gemini Pro** and **Gemini Flash**
+- **Grok** and **Kimi**
+- **DeepSeek Pro** and **DeepSeek Flash**
+- **GLM** and **GLM Flash**
+
+Anarlog tries your selected model first, then Claude Sonnet if needed. These choices track model families; use your own provider when you need a fixed model ID. **DeepSeek Pro** and **GLM** accept text only, so their selections disable image attachments. Requests containing audio continue to use the audio route below.
 
 Hosted Intelligence requests that contain audio use a separate ordered model pool:
 

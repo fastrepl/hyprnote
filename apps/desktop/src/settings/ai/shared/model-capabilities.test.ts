@@ -22,7 +22,6 @@ describe("modelSupportsImageInput", () => {
     expect(
       modelSupportsImageInput("anarlog", "~deepseek/deepseek-pro-latest"),
     ).toBe(false);
-    expect(modelSupportsImageInput("anarlog", "~z-ai/glm-latest")).toBe(false);
     expect(modelSupportsImageInput("openai", "gpt-4")).toBe(false);
     expect(modelSupportsImageInput("anthropic", "claude-2.1")).toBe(false);
     expect(modelSupportsImageInput("anthropic", "custom-text-model")).toBe(

@@ -19,6 +19,9 @@ describe("modelSupportsImageInput", () => {
 
   it("blocks known text-only or non-chat models", () => {
     expect(modelSupportsImageInput("openai", "gpt-3.5-turbo")).toBe(false);
+    expect(
+      modelSupportsImageInput("anarlog", "~deepseek/deepseek-pro-latest"),
+    ).toBe(false);
     expect(modelSupportsImageInput("openai", "gpt-4")).toBe(false);
     expect(modelSupportsImageInput("anthropic", "claude-2.1")).toBe(false);
     expect(modelSupportsImageInput("anthropic", "custom-text-model")).toBe(

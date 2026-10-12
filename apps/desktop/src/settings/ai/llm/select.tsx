@@ -564,9 +564,9 @@ export function getLlmProviderStatus({
       models: ANARLOG_PRO_LLM_MODELS.map(({ id }) => id),
       ignored: [],
       metadata: Object.fromEntries(
-        ANARLOG_PRO_LLM_MODELS.map(({ id }) => [
+        ANARLOG_PRO_LLM_MODELS.map(({ id, inputModalities }) => [
           id,
-          { input_modalities: ["text", "image"] as InputModality[] },
+          { input_modalities: [...inputModalities] },
         ]),
       ),
     };

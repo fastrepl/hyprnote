@@ -49,7 +49,7 @@ export function ClassicMainShellFrame() {
   );
 
   return (
-    <div className="bg-background flex h-full min-h-0 flex-col">
+    <div className="flex h-full min-h-0 flex-col bg-[#FAF7F1] dark:bg-background">
       {usesWindowsStyleTitleBar() ? (
         <WindowsTitleBar
           showSidebarTimelineChrome={showSidebarTimelineChrome}

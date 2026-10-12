@@ -41,6 +41,12 @@ import { useSessionSharedNoteIds } from "~/shared-notes/event-keys";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 import { useListener } from "~/stt/contexts";
 import { ScheduledSessionAutoStart } from "~/stt/scheduled-session-auto-start";
+import { useUploadFile } from "~/stt/useUploadFile";
+import {
+  consumeSessionImport,
+  subscribeSessionImportRequests,
+} from "~/stt/session-import-intent";
+import { toast } from "@anlg/ui/components/ui/toast";
 
 export function TabContentNote({
   standaloneWindow = false,
@@ -159,6 +165,53 @@ function TabContentNoteInner({
   const noteInputRef = React.useRef<NoteInputHandle>(null);
 
   const sessionId = tab.id;
+  const session = useSession(sessionId);
+  const { uploadAudio, uploadTranscript } = useUploadFile(sessionId);
+  const importHandledRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    // Wait until the session row is visible to the transcript writer before
+    // opening the picker; subtitle import needs the session owner ID.
+    if (!session) return;
+
+    const startRequestedImport = (kind: "audio" | "transcript") => {
+      const requestKey = `${sessionId}:${kind}`;
+      if (importHandledRef.current === requestKey) return;
+      importHandledRef.current = requestKey;
+
+      const start = kind === "audio" ? uploadAudio : uploadTranscript;
+      void start()
+        .then((selected) => {
+          if (!selected) {
+            toast.info("No file selected. The interview session is ready to use.");
+            return;
+          }
+          toast.success(
+            kind === "audio"
+              ? "Audio selected. Transcription has started."
+              : "Transcript selected. Import has started.",
+          );
+        })
+        .catch((error) => {
+          console.error(`[session] ${kind} picker failed`, error);
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "The import could not be started.",
+          );
+        });
+    };
+
+    const pending = consumeSessionImport(sessionId);
+    if (pending) startRequestedImport(pending);
+
+    return subscribeSessionImportRequests((request) => {
+      if (request.sessionId === sessionId) {
+        startRequestedImport(request.kind);
+      }
+    });
+  }, [session, sessionId, uploadAudio, uploadTranscript]);
+
   const [editingTranscriptSessionId, setEditingTranscriptSessionId] =
     React.useState<string | null>(null);
   const transcriptEditMode = editingTranscriptSessionId === sessionId;
@@ -181,7 +234,6 @@ function TabContentNoteInner({
     sessionId,
     hasTranscript && sessionMode === "inactive",
   );
-  const session = useSession(sessionId);
   const sessionEvent = session ? getSessionEvent(session) : null;
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
 

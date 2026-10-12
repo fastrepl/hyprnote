@@ -35,6 +35,7 @@ export const AUDIO_EXTENSIONS = [
   "webm",
   "aac",
 ];
+
 const AUDIO_TRANSFER_EXTENSIONS = [...AUDIO_EXTENSIONS, "qta"];
 const TRANSCRIPT_EXTENSIONS = ["vtt", "srt"];
 const MAX_IPC_AUDIO_BYTES = 4 * 1024 * 1024;
@@ -75,11 +76,13 @@ export function useUploadFile(sessionId: string) {
       if (result.type !== "started" && result.type !== "already_active") {
         return;
       }
+
       const tabsState = useTabs.getState();
       const sessionTab = tabsState.tabs.find(
         (tab): tab is Extract<Tab, { type: "sessions" }> =>
           tab.type === "sessions" && tab.id === sessionId,
       );
+
       if (sessionTab && sessionTab.state.view?.type !== "transcript") {
         tabsState.updateSessionTabState(sessionTab, {
           ...sessionTab.state,
@@ -114,6 +117,7 @@ export function useUploadFile(sessionId: string) {
         const estimatedCreatedAt = estimateUploadedAudioSessionCreatedAt(
           result.data,
         );
+
         if (!estimatedCreatedAt) {
           return;
         }
@@ -169,14 +173,17 @@ export function useUploadFile(sessionId: string) {
 
         try {
           const result = await runImport();
+
           if (result.status === "error") {
             throw new Error(result.error);
           }
+
           try {
             await catalogLocalSessionAudio(sessionId);
           } catch (error) {
             console.error("[upload] failed to catalog imported audio", error);
           }
+
           return result.data;
         } finally {
           unlisten();
@@ -210,9 +217,11 @@ export function useUploadFile(sessionId: string) {
               event: "file_uploaded",
               file_type: "audio",
             });
+
             void queryClient.invalidateQueries({
               queryKey: ["audio", sessionId, "exist"],
             });
+
             void queryClient.invalidateQueries({
               queryKey: ["audio", sessionId, "url"],
             });
@@ -234,7 +243,9 @@ export function useUploadFile(sessionId: string) {
             if (isStoppedTranscriptionError(error)) {
               return;
             }
+
             const msg = error instanceof Error ? error.message : String(error);
+
             console.error("[upload] audio import failed:", error);
             handleBatchFailed(sessionId, msg);
           }),
@@ -242,6 +253,7 @@ export function useUploadFile(sessionId: string) {
       );
 
       const cloudsyncLeaseKey = `${sessionId}:audio-import:${crypto.randomUUID()}`;
+
       void withCloudsyncActivity("transcription", cloudsyncLeaseKey, () =>
         Effect.runPromise(program),
       ).catch((error) => {
@@ -322,11 +334,13 @@ export function useUploadFile(sessionId: string) {
         );
 
         const cloudsyncLeaseKey = `${sessionId}:subtitle-import:${crypto.randomUUID()}`;
+
         void withCloudsyncActivity("transcription", cloudsyncLeaseKey, () =>
           Effect.runPromise(program),
         ).catch((error) => {
           console.error("[upload] transcript failed:", error);
         });
+
         return;
       }
 
@@ -362,6 +376,7 @@ export function useUploadFile(sessionId: string) {
       }
 
       const filePath = audioUploadFilePath(file);
+
       runAudioImport(
         async () => {
           if (filePath) {
@@ -371,6 +386,7 @@ export function useUploadFile(sessionId: string) {
           }
 
           const data = await readIpcAudioData(file);
+
           return importWithProgress(() =>
             fsSyncCommands.audioImportData(
               sessionId,
@@ -387,37 +403,33 @@ export function useUploadFile(sessionId: string) {
   );
 
   const selectAndUpload = useCallback(
-    (kind: "audio" | "transcript") => {
+    async (kind: "audio" | "transcript"): Promise<boolean> => {
       const filters =
         kind === "audio"
           ? [{ name: "Audio", extensions: AUDIO_EXTENSIONS }]
           : [{ name: "Transcript", extensions: TRANSCRIPT_EXTENSIONS }];
 
-      const program = pipe(
-        Effect.promise(() => downloadDir()),
-        Effect.flatMap((defaultPath) =>
-          Effect.promise(() =>
-            selectFile({
-              title: kind === "audio" ? "Upload Audio" : "Upload Transcript",
-              multiple: false,
-              directory: false,
-              defaultPath,
-              filters,
-            }),
-          ),
-        ),
-      );
+      try {
+        const defaultPath = await downloadDir();
 
-      Effect.runPromise(program)
-        .then((selection) => {
-          const path = Array.isArray(selection) ? selection[0] : selection;
-          if (path) {
-            processFile(path, kind);
-          }
-        })
-        .catch((error) => {
-          console.error("[upload] dialog failed:", error);
+        const selection = await selectFile({
+          title: kind === "audio" ? "Upload Audio" : "Import Transcript",
+          multiple: false,
+          directory: false,
+          defaultPath,
+          filters,
         });
+
+        const path = Array.isArray(selection) ? selection[0] : selection;
+
+        if (!path) return false;
+
+        processFile(path, kind);
+        return true;
+      } catch (error) {
+        console.error(`[upload] ${kind} picker failed:`, error);
+        throw error;
+      }
     },
     [processFile],
   );
@@ -426,6 +438,7 @@ export function useUploadFile(sessionId: string) {
     () => selectAndUpload("audio"),
     [selectAndUpload],
   );
+
   const uploadTranscript = useCallback(
     () => selectAndUpload("transcript"),
     [selectAndUpload],
@@ -449,7 +462,9 @@ function assertIpcAudioSize(size: number) {
 
 async function readIpcAudioData(file: File) {
   assertIpcAudioSize(file.size);
+
   const arrayBuffer = await file.arrayBuffer();
   assertIpcAudioSize(arrayBuffer.byteLength);
+
   return Array.from(new Uint8Array(arrayBuffer));
 }

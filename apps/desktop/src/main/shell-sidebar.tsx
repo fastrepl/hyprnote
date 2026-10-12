@@ -27,12 +27,14 @@ export function ClassicMainSidebar({
   }
 
   return (
-    <LeftSidebar
-      folderFilter={folderFilter}
-      noteFilter={noteFilter}
-      timelineHeader={timelineHeader}
-      showIgnoredTimelineEvents={showIgnoredTimelineEvents}
-      onShowIgnoredTimelineEventsChange={onShowIgnoredTimelineEventsChange}
-    />
+    <div className="h-full min-h-0 bg-[#FAF7F1] dark:bg-background">
+      <LeftSidebar
+        folderFilter={folderFilter}
+        noteFilter={noteFilter}
+        timelineHeader={timelineHeader}
+        showIgnoredTimelineEvents={showIgnoredTimelineEvents}
+        onShowIgnoredTimelineEventsChange={onShowIgnoredTimelineEventsChange}
+      />
+    </div>
   );
 }

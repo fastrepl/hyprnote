@@ -286,6 +286,9 @@ class CompactActionButton: ActionButton {
   }
 
   let progressLayer = CALayer()
+  // AppKit draws the button's label into its own layer contents, which sit beneath any
+  // sublayer. The countdown gauge lives in a sibling view behind the button instead.
+  private let gaugeView = NSView()
 
   var trailingContentInset: CGFloat = 0 {
     didSet {
@@ -339,16 +342,46 @@ class CompactActionButton: ActionButton {
       layer?.cornerCurve = .continuous
     }
 
+    gaugeView.wantsLayer = true
+    gaugeView.translatesAutoresizingMaskIntoConstraints = false
+    gaugeView.isHidden = true
+    gaugeView.layer?.masksToBounds = true
+    if #available(macOS 11.0, *) {
+      gaugeView.layer?.cornerCurve = .continuous
+    }
+
     progressLayer.backgroundColor = progressFillColor
     progressLayer.anchorPoint = CGPoint(x: 0, y: 0.5)
     progressLayer.isHidden = true
-    layer?.addSublayer(progressLayer)
+    gaugeView.layer?.addSublayer(progressLayer)
+  }
+
+  override func viewDidMoveToSuperview() {
+    super.viewDidMoveToSuperview()
+    gaugeView.removeFromSuperview()
+    guard let superview else { return }
+    superview.addSubview(gaugeView, positioned: .below, relativeTo: self)
+    NSLayoutConstraint.activate([
+      gaugeView.leadingAnchor.constraint(equalTo: leadingAnchor),
+      gaugeView.trailingAnchor.constraint(equalTo: trailingAnchor),
+      gaugeView.topAnchor.constraint(equalTo: topAnchor),
+      gaugeView.bottomAnchor.constraint(equalTo: bottomAnchor),
+    ])
+  }
+
+  override var isHidden: Bool {
+    didSet { syncGaugeVisibility() }
+  }
+
+  override var alphaValue: CGFloat {
+    didSet { gaugeView.alphaValue = alphaValue }
   }
 
   override func layout() {
     super.layout()
     CATransaction.begin()
     CATransaction.setDisableActions(true)
+    gaugeView.layer?.cornerRadius = layer?.cornerRadius ?? bounds.height / 2
     syncProgressLayerFrame()
     CATransaction.commit()
   }
@@ -358,6 +391,19 @@ class CompactActionButton: ActionButton {
     DispatchQueue.main.asyncAfter(deadline: .now() + Timing.buttonPress) {
       self.alphaValue = 1.0
     }
+  }
+
+  private var isGaugeActive = false
+
+  private func showGauge(baseColor: CGColor) {
+    isGaugeActive = true
+    gaugeView.layer?.backgroundColor = baseColor
+    layer?.backgroundColor = NSColor.clear.cgColor
+    syncGaugeVisibility()
+  }
+
+  private func syncGaugeVisibility() {
+    gaugeView.isHidden = isHidden || !isGaugeActive
   }
 
   func configureDestructiveCountdownStyle() {
@@ -425,7 +471,7 @@ class CompactActionButton: ActionButton {
     isCountdownActive = true
     progressRatio = 1.0
 
-    layer?.backgroundColor = progressBaseBackgroundColor
+    showGauge(baseColor: progressBaseBackgroundColor)
     progressLayer.backgroundColor = progressFillColor
     progressLayer.isHidden = false
     progressLayer.removeAllAnimations()
@@ -472,7 +518,7 @@ class CompactActionButton: ActionButton {
     clearProgressState()
 
     if showsProgress {
-      layer?.backgroundColor = progressBaseBackgroundColor
+      showGauge(baseColor: progressBaseBackgroundColor)
     }
 
     CATransaction.begin()

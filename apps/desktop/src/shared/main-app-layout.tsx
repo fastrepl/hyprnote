@@ -20,7 +20,7 @@ import { MeetingImportSync } from "~/services/meeting-import-sync";
 import { getOrCreateSessionForEventId } from "~/session/queries";
 import { WorkspaceInvitationToasts } from "~/settings/team/invitation-toast";
 import { useMyWorkspacesWithMirror } from "~/settings/team/mirror";
-import { leaveOverlayTab } from "~/shared/leave-overlay-tab";
+import { leaveAllOverlayTabs } from "~/shared/leave-overlay-tab";
 import { useZoomShortcuts } from "~/shared/zoom";
 import { useSidebarNotes } from "~/sidebar/note-filter";
 import { UndoDeleteToast } from "~/sidebar/toast/undo-delete-toast";
@@ -87,7 +87,7 @@ const useNavigationEvents = () => {
           tab?.type === "automations" ||
           tab?.type === "folders";
         if (isSpecialMode) {
-          leaveOverlayTab();
+          leaveAllOverlayTabs();
         }
       }
     };

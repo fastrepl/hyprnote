@@ -1,5 +1,16 @@
 import { uniqueIdfromTab, useTabs } from "~/store/zustand/tabs";
 
+export function leaveAllOverlayTabs() {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const { currentTab } = useTabs.getState();
+    if (!currentTab) return;
+    const { slotId } = currentTab;
+    leaveOverlayTab();
+    const next = useTabs.getState().currentTab;
+    if (!next || next.slotId === slotId || !next.returnToSlotId) return;
+  }
+}
+
 export function leaveOverlayTab() {
   const { tabs, currentTab, openCurrent, select, goBack, canGoBack } =
     useTabs.getState();

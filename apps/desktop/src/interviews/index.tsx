@@ -24,7 +24,7 @@ export function TabContentInterviews() {
               Interviews
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              Sessions linked to one or more participants.
+              Sessions linked to eligible, non-deleted people.
             </p>
           </div>
           <Button
@@ -56,7 +56,7 @@ export function TabContentInterviews() {
           ))}
           {sessions.length === 0 && (
             <div className="text-muted-foreground px-4 py-12 text-center text-sm">
-              No sessions with participants were found.
+              No sessions with eligible participants were found.
             </div>
           )}
         </div>

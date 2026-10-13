@@ -326,6 +326,75 @@ export async function loadOrganization(
   return rows[0] ? mapOrganizationRow(rows[0]) : null;
 }
 
+/* Batch 3: sessions with existing participant mappings for Interviews. */
+export type InterviewListRecord = {
+  id: string;
+  title: string;
+  createdAt: string;
+  candidateNames: string[];
+};
+
+type InterviewListSqlRow = {
+  id: string;
+  title: string;
+  created_at: string;
+  candidate_names: string | null;
+};
+
+const EMPTY_INTERVIEW_LIST: InterviewListRecord[] = [];
+
+export function useInterviewSessions(): InterviewListRecord[] {
+  const { data = EMPTY_INTERVIEW_LIST } = useLiveQuery<
+    InterviewListSqlRow,
+    InterviewListRecord[]
+  >({
+    sql: `
+      SELECT
+        sessions.id,
+        sessions.title,
+        sessions.created_at,
+        (
+          SELECT group_concat(candidate_name, char(10))
+          FROM (
+            SELECT DISTINCT
+              COALESCE(NULLIF(humans.name, ''), humans.email) AS candidate_name
+            FROM session_participants AS mapping
+            JOIN humans
+              ON humans.id = mapping.human_id
+              AND humans.deleted_at IS NULL
+            WHERE mapping.session_id = sessions.id
+              AND mapping.source <> 'excluded'
+              AND mapping.deleted_at IS NULL
+              AND COALESCE(NULLIF(humans.name, ''), humans.email) <> ''
+            ORDER BY candidate_name
+          )
+        ) AS candidate_names
+      FROM sessions
+      WHERE sessions.deleted_at IS NULL
+        AND EXISTS (
+          SELECT 1
+          FROM session_participants AS mapping
+          WHERE mapping.session_id = sessions.id
+            AND mapping.source <> 'excluded'
+            AND mapping.deleted_at IS NULL
+        )
+      ORDER BY sessions.created_at DESC, sessions.id
+    `,
+    mapRows: (rows) =>
+      rows.map((row) => ({
+        id: row.id,
+        title: row.title || "Untitled interview",
+        createdAt: row.created_at,
+        candidateNames: (row.candidate_names ?? "")
+          .split("\n")
+          .map((name) => name.trim())
+          .filter(Boolean),
+      })),
+  });
+
+  return data;
+}
+
 export function useHumanSessions(humanId: string): HumanSessionRecord[] {
   const { data = EMPTY_HUMAN_SESSIONS } = useLiveQuery<
     HumanSessionSqlRow,

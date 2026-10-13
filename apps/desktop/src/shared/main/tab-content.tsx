@@ -44,6 +44,9 @@ const TabContentTask = lazy(async () => ({
 const TabContentTemplate = lazy(async () => ({
   default: (await import("~/templates")).TabContentTemplate,
 }));
+const TabContentInterviews = lazy(async () => ({
+  default: (await import("~/interviews")).TabContentInterviews,
+}));
 
 export function MainTabContent({ tab }: { tab: Tab }) {
   return (
@@ -74,6 +77,9 @@ function LazyTabContent({ tab }: { tab: Tab }) {
   }
   if (tab.type === "contacts") {
     return <TabContentContact tab={tab} />;
+  }
+  if (tab.type === "interviews") {
+    return <TabContentInterviews />;
   }
   if (tab.type === "calendar") {
     return <TabContentCalendar />;

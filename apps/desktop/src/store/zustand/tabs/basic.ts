@@ -26,6 +26,7 @@ const RETURN_ORIGIN_TAB_TYPES: Tab["type"][] = [
   "calendar",
   "contacts",
   "folders",
+  "interviews",
   "settings",
   "templates",
 ];

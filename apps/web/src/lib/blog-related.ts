@@ -33,6 +33,7 @@ export const transcriptionGuideSections = [
       "how-to-transcribe-zoom-calls",
       "best-ai-notetaker-for-zoom",
       "best-ai-notetakers-google-meet",
+      "google-gemini-meeting-notes",
       "best-ai-notetaker-for-microsoft-teams",
       "best-multilingual-ai-notetaker",
     ],

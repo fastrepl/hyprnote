@@ -20,7 +20,6 @@ import {
   type DevtoolsToastPreview,
   useDevtoolsToastPreview,
 } from "~/store/zustand/devtools-toast-preview";
-import { showBatchCompletedNotification } from "~/store/zustand/listener/general-batch";
 import { listenerStore } from "~/store/zustand/listener/instance";
 import { useTabs } from "~/store/zustand/tabs";
 import {
@@ -41,7 +40,6 @@ export type DevtoolsAction =
   | "notifications:mic-detected"
   | "notifications:mic-options"
   | "notifications:auto-stop"
-  | "notifications:batch-done"
   | "notifications:clear"
   | "billing:trial-started"
   | "billing:trial-ended"
@@ -194,12 +192,6 @@ export const DEVTOOLS_MENU: DevtoolsMenuGroup[] = [
         description:
           'Show the "Did your meeting end?" countdown for the live session.',
         action: "notifications:auto-stop",
-      },
-      {
-        label: "Batch done",
-        description:
-          "Show the notification for a finished batch transcription.",
-        action: "notifications:batch-done",
       },
       {
         label: "Clear",
@@ -558,9 +550,6 @@ export function useDevtoolsActions() {
           return;
         case "notifications:auto-stop":
           void showAutoStopNotification();
-          return;
-        case "notifications:batch-done":
-          void showBatchCompletedNotification("devtool", { force: true });
           return;
         case "notifications:clear":
           void clearNotifications();

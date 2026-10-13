@@ -1,7 +1,5 @@
-import { t } from "@lingui/core/macro";
 import type { StoreApi } from "zustand";
 
-import { commands as notificationCommands } from "@anlg/plugin-notification";
 import {
   type BatchErrorCode,
   type TranscriptionEvent,
@@ -18,11 +16,7 @@ import {
 } from "./batch";
 
 import { trackAnalyticsEvent } from "~/analytics";
-import { requestAppAttention } from "~/shared/app-attention";
 import { playCompletionSound } from "~/shared/completion-sound";
-import { shouldShowNotification } from "~/shared/notification-policy";
-import { isAppWindowInactive } from "~/shared/window-activity";
-import { createBatchCompletedNotificationKey } from "~/stt/batch-completed-notification";
 import { BatchResponseProcessingError } from "~/stt/batch-response-processing-error";
 
 type BatchStore = BatchActions & BatchState;
@@ -31,7 +25,6 @@ const SYNTHETIC_BATCH_PROGRESS_INITIAL = 0.06;
 const SYNTHETIC_BATCH_PROGRESS_MAX = 0.88;
 const SYNTHETIC_BATCH_PROGRESS_INTERVAL_MS = 800;
 const SYNTHETIC_BATCH_PROGRESS_TIME_CONSTANT_MS = 32_000;
-const BATCH_COMPLETED_NOTIFICATION_TIMEOUT_SECONDS = 15;
 const SESSION_ALREADY_RUNNING_ERROR = "session already running";
 const OPENAI_PROGRESSIVE_BATCH_MODELS = new Set([
   "gpt-transcribe",
@@ -40,58 +33,8 @@ const OPENAI_PROGRESSIVE_BATCH_MODELS = new Set([
   "gpt-4o-mini-transcribe-2025-12-15",
 ]);
 
-export async function showBatchCompletedNotification(
-  sessionId: string,
-  options?: { force?: boolean },
-) {
-  if (!options?.force) {
-    if (!(await isAppWindowInactive())) {
-      return;
-    }
-    if (
-      !(await shouldShowNotification("notification_transcription_complete"))
-    ) {
-      return;
-    }
-  }
-
-  try {
-    const result = await notificationCommands.showNotification({
-      key: createBatchCompletedNotificationKey(sessionId),
-      title: t`Transcription complete`,
-      message: t`Your transcript is ready.`,
-      timeout: {
-        secs: BATCH_COMPLETED_NOTIFICATION_TIMEOUT_SECONDS,
-        nanos: 0,
-      },
-      source: { type: "session", session_id: sessionId },
-      start_time: null,
-      participants: null,
-      event_details: null,
-      action_label: t`Open Anarlog`,
-      action: null,
-      action_menu: null,
-      action_variant: null,
-      options: null,
-      footer: null,
-      icon: null,
-    });
-
-    if (result.status === "error") {
-      console.error(
-        "[runBatch] failed to show completion notification",
-        result.error,
-      );
-    }
-  } catch (error) {
-    console.error("[runBatch] failed to show completion notification", error);
-  }
-}
-
-export async function notifyBatchCompleted(sessionId: string) {
-  await showBatchCompletedNotification(sessionId);
+export async function notifyBatchCompleted() {
   void playCompletionSound();
-  void requestAppAttention();
 }
 
 export const runBatchSession = async <T extends BatchStore>(
@@ -351,7 +294,7 @@ export const runBatchSession = async <T extends BatchStore>(
   });
 
   if (options?.notifyOnCompletion !== false) {
-    await notifyBatchCompleted(sessionId);
+    await notifyBatchCompleted();
   }
 };
 

@@ -2762,8 +2762,8 @@ msgid "Get started"
 msgstr "Get started"
 
 #: src/settings/general/notification.tsx
-msgid "Get your attention when Anarlog finishes work in the background."
-msgstr "Get your attention when Anarlog finishes work in the background."
+msgid "Get your attention when a summary is ready in the background."
+msgstr "Get your attention when a summary is ready in the background."
 
 #: src/sidebar/timeline/index.tsx
 msgid "Go back to now"
@@ -4142,7 +4142,6 @@ msgstr "Open AI Settings"
 #: src/composer/index.tsx
 #: src/onboarding/final.tsx
 #: src/services/enhancer/summary-notification.ts
-#: src/store/zustand/listener/general-batch.ts
 msgid "Open Anarlog"
 msgstr "Open Anarlog"
 
@@ -5481,10 +5480,6 @@ msgid "Show when a summary is ready."
 msgstr "Show when a summary is ready."
 
 #: src/settings/general/notification.tsx
-msgid "Show when a transcript is ready."
-msgstr "Show when a transcript is ready."
-
-#: src/settings/general/notification.tsx
 msgid "Show when initial cloud sync finishes."
 msgstr "Show when initial cloud sync finishes."
 
@@ -6223,11 +6218,6 @@ msgstr "Transcript"
 msgid "Transcription"
 msgstr "Transcription"
 
-#: src/settings/general/notification.tsx
-#: src/store/zustand/listener/general-batch.ts
-msgid "Transcription complete"
-msgstr "Transcription complete"
-
 #: src/session/components/note-input/transcript/screens/empty.tsx
 #: src/stt/useRunBatch.ts
 msgid "Transcription failed"
@@ -6884,10 +6874,6 @@ msgstr "Your session has expired. Sign in again to reconnect."
 #: src/services/enhancer/summary-notification.ts
 msgid "Your summary is ready."
 msgstr "Your summary is ready."
-
-#: src/store/zustand/listener/general-batch.ts
-msgid "Your transcript is ready."
-msgstr "Your transcript is ready."
 
 #: src/settings/referrals.tsx
 msgid "Your trial or paid subscription is extended by one month. No payment from your friend is required."

@@ -63,7 +63,6 @@ export function NotificationSettingsView() {
     "notification_disabled",
     "notification_event",
     "notification_detect",
-    "notification_transcription_complete",
     "notification_summary_complete",
     "notification_cloudsync_complete",
     "notification_recording",
@@ -123,8 +122,6 @@ export function NotificationSettingsView() {
       notification_disabled: configs.notification_disabled,
       notification_event: configs.notification_event,
       notification_detect: configs.notification_detect,
-      notification_transcription_complete:
-        configs.notification_transcription_complete,
       notification_summary_complete: configs.notification_summary_complete,
       notification_cloudsync_complete: configs.notification_cloudsync_complete,
       notification_recording: configs.notification_recording,
@@ -148,8 +145,6 @@ export function NotificationSettingsView() {
         notification_disabled: value.notification_disabled,
         notification_event: value.notification_event,
         notification_detect: value.notification_detect,
-        notification_transcription_complete:
-          value.notification_transcription_complete,
         notification_summary_complete: value.notification_summary_complete,
         notification_cloudsync_complete: value.notification_cloudsync_complete,
         notification_recording: value.notification_recording,
@@ -217,18 +212,6 @@ export function NotificationSettingsView() {
       <form.Subscribe selector={(state) => state.values.notification_disabled}>
         {(notificationsDisabled) => (
           <>
-            <form.Field name="notification_transcription_complete">
-              {(field) => (
-                <SettingSwitchRow
-                  title={<Trans>Transcription complete</Trans>}
-                  description={<Trans>Show when a transcript is ready.</Trans>}
-                  checked={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={notificationsDisabled}
-                />
-              )}
-            </form.Field>
-
             <form.Field name="notification_summary_complete">
               {(field) => (
                 <SettingSwitchRow
@@ -379,7 +362,7 @@ export function NotificationSettingsView() {
                     title={<Trans>Bounce app icon</Trans>}
                     description={
                       <Trans>
-                        Get your attention when Anarlog finishes work in the
+                        Get your attention when a summary is ready in the
                         background.
                       </Trans>
                     }

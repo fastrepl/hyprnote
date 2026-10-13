@@ -261,9 +261,17 @@ Returns relevant meetings with matching content excerpts.
             }),
           ),
         );
+        const seenIds = new Set<string>();
         const results = perFolder
           .flatMap((page) => page.results)
           .sort((a, b) => b.score - a.score || b.created_at - a.created_at)
+          .filter((result) => {
+            if (seenIds.has(result.id)) {
+              return false;
+            }
+            seenIds.add(result.id);
+            return true;
+          })
           .slice(0, limit);
         return { results };
       }

@@ -9,6 +9,8 @@ use owhisper_interface::ListenParams;
 use owhisper_interface::stream::StreamResponse;
 use transcribe_proxy::{AnarlogRoutingConfig, Env, SttProxyConfig};
 
+const MIXED_CAPTURE_CHANNEL: i32 = 2;
+
 fn required_key(name: &str) -> String {
     std::env::var(name).unwrap_or_else(|_| panic!("{name} must be set"))
 }
@@ -134,32 +136,54 @@ async fn assert_batch_transcription(addr: std::net::SocketAddr) {
 
     let response: owhisper_interface::batch::Response =
         serde_json::from_str(&body).expect("Pro batch response should be valid");
-    assert_eq!(
-        response.results.channels.len(),
-        2,
-        "Pro batch transcription should preserve both input channels",
-    );
-    let direct_mic = response.results.channels[0]
-        .alternatives
-        .first()
-        .expect("direct-mic channel should include an alternative");
-    let remote_party = response.results.channels[1]
-        .alternatives
-        .first()
-        .expect("remote-party channel should include an alternative");
+    match response.results.channels.as_slice() {
+        // Soniox is primary for Pro batch (#7942) and returns one mixed-capture
+        // channel that the desktop diarizes.
+        [mixed] => {
+            let mixed = mixed
+                .alternatives
+                .first()
+                .expect("mixed channel should include an alternative");
+            assert!(
+                !mixed.transcript.trim().is_empty() && !mixed.words.is_empty(),
+                "mixed channel should contain transcript words",
+            );
+            assert!(
+                mixed
+                    .words
+                    .iter()
+                    .all(|word| word.channel == MIXED_CAPTURE_CHANNEL),
+                "downmixed words should use the mixed-capture channel",
+            );
+        }
+        [direct_mic, remote_party] => {
+            let direct_mic = direct_mic
+                .alternatives
+                .first()
+                .expect("direct-mic channel should include an alternative");
+            let remote_party = remote_party
+                .alternatives
+                .first()
+                .expect("remote-party channel should include an alternative");
 
-    assert!(
-        direct_mic.transcript.trim().is_empty() && direct_mic.words.is_empty(),
-        "silent direct-mic channel should not contain transcript words",
-    );
-    assert!(
-        !remote_party.transcript.trim().is_empty() && !remote_party.words.is_empty(),
-        "remote-party channel should contain transcript words",
-    );
-    assert!(
-        remote_party.words.iter().all(|word| word.channel == 1),
-        "remote-party words should remain on channel 1",
-    );
+            assert!(
+                direct_mic.transcript.trim().is_empty() && direct_mic.words.is_empty(),
+                "silent direct-mic channel should not contain transcript words",
+            );
+            assert!(
+                !remote_party.transcript.trim().is_empty() && !remote_party.words.is_empty(),
+                "remote-party channel should contain transcript words",
+            );
+            assert!(
+                remote_party.words.iter().all(|word| word.channel == 1),
+                "remote-party words should remain on channel 1",
+            );
+        }
+        channels => panic!(
+            "Pro batch transcription returned {} channels; expected one mixed channel or both input channels",
+            channels.len()
+        ),
+    }
 }
 
 #[ignore]

@@ -162,7 +162,7 @@ export function ColumnHeader({
               value={searchValue || ""}
               onChange={(e) => onSearchChange(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              placeholder={t`Search contacts...`}
+              placeholder={t`Search candidates...`}
               className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
             />
             {searchValue && (

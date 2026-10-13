@@ -38,7 +38,7 @@ export function RelatedNotesSection({
     <div className="p-6">
       <div className="mb-3 flex items-center gap-1">
         <h3 className="text-muted-foreground text-sm font-medium">
-          <Trans>Interview History</Trans>
+          <Trans>Related Sessions</Trans>
         </h3>
 
         {sessions.length > 1 && (
@@ -128,7 +128,7 @@ export function RelatedNotesSection({
           {sessions.length > 0 ? (
             <Trans>No results found.</Trans>
           ) : (
-            <Trans>No interview history found</Trans>
+            <Trans>No related sessions found</Trans>
           )}
         </p>
       )}

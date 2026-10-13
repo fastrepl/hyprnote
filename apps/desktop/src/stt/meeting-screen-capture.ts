@@ -53,6 +53,9 @@ export function startMeetingScreenCapture({
         return;
       }
 
+      if (stopped) {
+        return;
+      }
       const result =
         await detectCommands.captureMeetingScreenShare(resetSampler);
       resetSampler = false;

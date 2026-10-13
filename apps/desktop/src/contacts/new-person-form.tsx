@@ -21,7 +21,7 @@ export function NewPersonForm({
       setName("");
       onSave(humanId);
     } catch (error) {
-      console.error("[contacts] failed to create contact", error);
+      console.error("[contacts] failed to create candidate", error);
     }
   };
 
@@ -53,7 +53,7 @@ export function NewPersonForm({
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t`Add person`}
+            placeholder={t`Add candidate`}
             className="placeholder:text-muted-foreground w-full bg-transparent text-sm focus:outline-hidden"
             autoFocus
           />
@@ -61,7 +61,7 @@ export function NewPersonForm({
             <button
               type="submit"
               className="text-muted-foreground hover:text-muted-foreground shrink-0 transition-colors"
-              aria-label={t`Add person`}
+              aria-label={t`Add candidate`}
             >
               <ArrowElbowDownLeft className="size-4" />
             </button>

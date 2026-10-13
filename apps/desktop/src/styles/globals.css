@@ -1,3 +1,4 @@
+@import "@anlg/ui/globals.css";
 @import "./scrollbar.css" layer(base);
 @import "./scrollbar.utilities.css";
 

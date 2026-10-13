@@ -1,3 +1,4 @@
+
 import type {
   ChannelProfile as BoundChannelProfile,
   LiveTranscriptSegment,
@@ -47,6 +48,7 @@ export type SegmentKey = BoundSegmentKey;
 export type SegmentWord = BoundSegmentWord & {
   metadata?: TranscriptWordMetadata | null;
 };
+
 type SegmentWithWordMetadata<T extends { words: BoundSegmentWord[] }> = Omit<
   T,
   "words"
@@ -55,6 +57,7 @@ type SegmentWithWordMetadata<T extends { words: BoundSegmentWord[] }> = Omit<
   speaker_label?: string;
   provisional_speaker?: RenderedTranscriptSegment["provisional_speaker"];
 };
+
 export type Segment =
   | SegmentWithWordMetadata<LiveTranscriptSegment>
   | SegmentWithWordMetadata<RenderedTranscriptSegment>;
@@ -199,7 +202,7 @@ export function getMaxSpeakerNumberForParticipants(
     ids.add(selfHumanId);
   }
 
-  return undefined;
+  return ids.size >= 2 ? ids.size : undefined;
 }
 
 export function mergeRenderedAndLiveSegments(

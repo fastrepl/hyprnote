@@ -24,7 +24,11 @@ import { leaveAllOverlayTabs } from "~/shared/leave-overlay-tab";
 import { useZoomShortcuts } from "~/shared/zoom";
 import { useSidebarNotes } from "~/sidebar/note-filter";
 import { UndoDeleteToast } from "~/sidebar/toast/undo-delete-toast";
-import { isTabInputSupported, useTabs } from "~/store/zustand/tabs";
+import {
+  isTabInputSupported,
+  RETURN_ORIGIN_TAB_TYPES,
+  useTabs,
+} from "~/store/zustand/tabs";
 
 export default function MainAppLayout() {
   useNavigationEvents();
@@ -79,14 +83,7 @@ const useNavigationEvents = () => {
       } else if (type === "folder") {
         useSidebarNotes.getState().setView("mine", id);
         const tab = useTabs.getState().currentTab;
-        const isSpecialMode =
-          tab?.type === "settings" ||
-          tab?.type === "calendar" ||
-          tab?.type === "contacts" ||
-          tab?.type === "templates" ||
-          tab?.type === "automations" ||
-          tab?.type === "folders";
-        if (isSpecialMode) {
+        if (tab && RETURN_ORIGIN_TAB_TYPES.includes(tab.type)) {
           leaveAllOverlayTabs();
         }
       }

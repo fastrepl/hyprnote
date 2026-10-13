@@ -20,7 +20,6 @@ describe("folder chip navigation from overlays", () => {
     useTabs.getState().openNew({ type: "contacts" });
     expect(useTabs.getState().currentTab?.type).toBe("contacts");
 
-    // What the folder branch in main-app-layout does.
     leaveAllOverlayTabs();
 
     expect(useTabs.getState().currentTab?.type).toBe("sessions");
@@ -34,5 +33,15 @@ describe("folder chip navigation from overlays", () => {
     leaveAllOverlayTabs();
 
     expect(useTabs.getState().currentTab?.type).toBe("sessions");
+  });
+
+  test("orphaned Settings (no return origin) still reaches the home tab", () => {
+    useTabs.getState().openNew({ type: "settings" });
+    useTabs.getState().openNew({ type: "contacts" });
+    expect(useTabs.getState().currentTab?.type).toBe("contacts");
+
+    leaveAllOverlayTabs();
+
+    expect(useTabs.getState().currentTab?.type).toBe("empty");
   });
 });

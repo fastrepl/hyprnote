@@ -1,13 +1,17 @@
-import { uniqueIdfromTab, useTabs } from "~/store/zustand/tabs";
+import {
+  RETURN_ORIGIN_TAB_TYPES,
+  uniqueIdfromTab,
+  useTabs,
+} from "~/store/zustand/tabs";
 
 export function leaveAllOverlayTabs() {
   for (let attempt = 0; attempt < 10; attempt++) {
     const { currentTab } = useTabs.getState();
     if (!currentTab) return;
+    if (!RETURN_ORIGIN_TAB_TYPES.includes(currentTab.type)) return;
     const { slotId } = currentTab;
     leaveOverlayTab();
-    const next = useTabs.getState().currentTab;
-    if (!next || next.slotId === slotId || !next.returnToSlotId) return;
+    if (useTabs.getState().currentTab?.slotId === slotId) return;
   }
 }
 

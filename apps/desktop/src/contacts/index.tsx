@@ -3,13 +3,7 @@ import { useCallback } from "react";
 import type { ContactsSelection } from "@anlg/plugin-windows";
 
 import { DetailsColumn } from "./details";
-import { OrganizationDetailsColumn } from "./organization-details";
-import {
-  deleteHuman,
-  deleteOrganization,
-  useHumans,
-  useOrganizations,
-} from "./queries";
+import { deleteHuman, useHumans, useOrganizations } from "./queries";
 
 import { useOptionalAuth } from "~/auth";
 import { StandardContentWrapper } from "~/shared/main";
@@ -23,24 +17,22 @@ export function TabContentContact({
 }) {
   return (
     <StandardContentWrapper>
-      <ContactView tab={tab} />
+      <CandidateView tab={tab} />
     </StandardContentWrapper>
   );
 }
 
-function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
+function CandidateView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
   const updateContactsTabState = useTabs(
     (state) => state.updateContactsTabState,
   );
   const openCurrent = useTabs((state) => state.openCurrent);
   const invalidateResource = useTabs((state) => state.invalidateResource);
-
   const selected = tab.state.selected;
   const localOwnerUserId = useOwnerUserId();
   const auth = useOptionalAuth();
   const ownerUserId = auth?.session?.user.id ?? localOwnerUserId;
   const humans = useHumans();
-  const self = humans.find((human) => human.id === ownerUserId);
   const organizations = useOrganizations();
 
   const setSelected = useCallback(
@@ -51,9 +43,7 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
   );
 
   const handleSessionClick = useCallback(
-    (id: string) => {
-      openCurrent({ type: "sessions", id });
-    },
+    (id: string) => openCurrent({ type: "sessions", id }),
     [openCurrent],
   );
 
@@ -61,64 +51,29 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
     (id: string) => {
       invalidateResource("humans", id);
       void deleteHuman(id).catch((error) => {
-        console.error("[contacts] failed to delete contact", error);
+        console.error("[candidates] failed to delete candidate", error);
       });
       setSelected(null);
     },
     [invalidateResource, setSelected],
   );
 
-  const handleDeleteOrganization = useCallback(
-    (id: string) => {
-      invalidateResource("organizations", id);
-      void deleteOrganization(id).catch((error) => {
-        console.error("[contacts] failed to delete organization", error);
-      });
-      setSelected(null);
-    },
-    [invalidateResource, setSelected],
-  );
-
-  const effectiveSelection =
-    selected ??
-    (self ? ({ type: "person", id: self.id } as const) : null) ??
-    (humans[0]
-      ? ({ type: "person", id: humans[0].id } as const)
-      : organizations[0]
-        ? ({ type: "organization", id: organizations[0].id } as const)
-        : null);
+  const firstCandidate = humans.find((human) => human.id !== ownerUserId);
+  const selectedCandidate =
+    selected?.type === "person"
+      ? humans.find((human) => human.id === selected.id) ?? null
+      : firstCandidate ?? null;
 
   return (
     <div className="h-full">
-      {effectiveSelection?.type === "organization" ? (
-        <OrganizationDetailsColumn
-          key={effectiveSelection.id}
-          organization={
-            organizations.find(
-              (organization) => organization.id === effectiveSelection.id,
-            ) ?? null
-          }
-          humans={humans}
-          onPersonClick={(personId) =>
-            setSelected({ type: "person", id: personId })
-          }
-          onDelete={handleDeleteOrganization}
-        />
-      ) : (
-        <DetailsColumn
-          key={effectiveSelection?.id ?? "empty"}
-          human={
-            effectiveSelection?.type === "person"
-              ? (humans.find((human) => human.id === effectiveSelection.id) ??
-                null)
-              : null
-          }
-          humans={humans}
-          organizations={organizations}
-          handleSessionClick={handleSessionClick}
-          onDelete={handleDeletePerson}
-        />
-      )}
+      <DetailsColumn
+        key={selectedCandidate?.id ?? "empty"}
+        human={selectedCandidate}
+        humans={humans}
+        organizations={organizations}
+        handleSessionClick={handleSessionClick}
+        onDelete={handleDeletePerson}
+      />
     </div>
   );
 }

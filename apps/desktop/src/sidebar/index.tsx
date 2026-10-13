@@ -7,6 +7,7 @@ import { CalendarNav } from "./calendar";
 import { ContactsNav } from "./contacts";
 import { FolderMaterialsPanel } from "./folder-materials";
 import { FoldersNav } from "./folders";
+import { InterviewsNav } from "./interviews";
 import type { SidebarNoteFilter } from "./note-filter";
 import { SettingsNav } from "./settings";
 import { SharedNotesNav } from "./shared-notes";
@@ -35,6 +36,7 @@ export function LeftSidebar({
   const isSettingsMode = currentTab?.type === "settings";
   const isCalendarMode = currentTab?.type === "calendar";
   const isContactsMode = currentTab?.type === "contacts";
+  const isInterviewsMode = currentTab?.type === "interviews";
   const isTemplatesMode = currentTab?.type === "templates";
   const isAutomationsMode = currentTab?.type === "automations";
   const isFoldersMode = currentTab?.type === "folders";
@@ -42,15 +44,15 @@ export function LeftSidebar({
     isSettingsMode ||
     isCalendarMode ||
     isContactsMode ||
+    isInterviewsMode ||
     isTemplatesMode ||
     isAutomationsMode ||
     isFoldersMode;
   const isTimelineSidebarLayout = !isSpecialMode;
-  // Navs with their own CustomSidebarHeader fill the chrome row themselves; a
-  // top padding here would push the header out of it (and overflow-hidden
-  // would clip a pulled-up header).
+
   const needsChromeRowGutter =
     isSpecialMode && !hasOwnSidebarHeaderTab(currentTab);
+
   return (
     <div
       className={cn([
@@ -68,6 +70,8 @@ export function LeftSidebar({
             <CalendarNav />
           ) : isContactsMode ? (
             <ContactsNav />
+          ) : isInterviewsMode ? (
+            <InterviewsNav />
           ) : isTemplatesMode ? (
             <TemplatesNav />
           ) : isAutomationsMode ? (

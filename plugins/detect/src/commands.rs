@@ -314,6 +314,21 @@ mod tests {
         }
     }
 
+    #[tokio::test(flavor = "current_thread")]
+    async fn stalled_accessibility_walk_does_not_starve_runtime_tasks() {
+        let (release_tx, release_rx) = std::sync::mpsc::channel::<()>();
+        let walk = tokio::spawn(run_blocking(move || {
+            release_rx
+                .recv_timeout(std::time::Duration::from_secs(5))
+                .is_ok()
+        }));
+
+        tokio::task::yield_now().await;
+        let _ = release_tx.send(());
+
+        assert!(walk.await.unwrap().unwrap());
+    }
+
     #[test]
     fn meeting_ax_scope_uses_every_requested_current_mic_app_once() {
         let requested = vec![

@@ -170,11 +170,6 @@ export const SETTING_DEFINITIONS = {
     path: ["notification", "detect"],
     default: true as boolean,
   },
-  notification_transcription_complete: {
-    type: "boolean",
-    path: ["notification", "transcription_complete"],
-    default: true as boolean,
-  },
   notification_summary_complete: {
     type: "boolean",
     path: ["notification", "summary_complete"],

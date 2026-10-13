@@ -14,7 +14,7 @@ describe("shouldShowNotificationFromSettings", () => {
     expect(
       shouldShowNotificationFromSettings(
         stored({}),
-        "notification_transcription_complete",
+        "notification_summary_complete",
       ),
     ).toBe(true);
   });

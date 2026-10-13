@@ -530,7 +530,7 @@ describe("useRunBatch", () => {
     expect(startTranscriptionMock.mock.calls[0]?.[1]?.notifyOnCompletion).toBe(
       false,
     );
-    expect(notifyBatchCompletedMock).toHaveBeenCalledWith("session-1");
+    expect(notifyBatchCompletedMock).toHaveBeenCalledOnce();
     expect(saveBatchTranscriptMock.mock.invocationCallOrder[0]).toBeLessThan(
       notifyBatchCompletedMock.mock.invocationCallOrder[0],
     );

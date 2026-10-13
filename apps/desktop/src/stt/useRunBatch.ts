@@ -686,7 +686,7 @@ export const useRunBatch = (sessionId: string) => {
           }
           await acknowledgeCompletedBatch(jobId);
           if (options?.notifyOnCompletion !== false) {
-            await notifyBatchCompleted(sessionId);
+            await notifyBatchCompleted();
           }
         },
       );

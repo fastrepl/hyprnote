@@ -2762,7 +2762,7 @@ msgid "Get started"
 msgstr ""
 
 #: src/settings/general/notification.tsx
-msgid "Get your attention when Anarlog finishes work in the background."
+msgid "Get your attention when a summary is ready in the background."
 msgstr ""
 
 #: src/sidebar/timeline/index.tsx
@@ -4142,7 +4142,6 @@ msgstr ""
 #: src/composer/index.tsx
 #: src/onboarding/final.tsx
 #: src/services/enhancer/summary-notification.ts
-#: src/store/zustand/listener/general-batch.ts
 msgid "Open Anarlog"
 msgstr ""
 
@@ -5481,10 +5480,6 @@ msgid "Show when a summary is ready."
 msgstr ""
 
 #: src/settings/general/notification.tsx
-msgid "Show when a transcript is ready."
-msgstr ""
-
-#: src/settings/general/notification.tsx
 msgid "Show when initial cloud sync finishes."
 msgstr ""
 
@@ -6223,11 +6218,6 @@ msgstr ""
 msgid "Transcription"
 msgstr ""
 
-#: src/settings/general/notification.tsx
-#: src/store/zustand/listener/general-batch.ts
-msgid "Transcription complete"
-msgstr ""
-
 #: src/session/components/note-input/transcript/screens/empty.tsx
 #: src/stt/useRunBatch.ts
 msgid "Transcription failed"
@@ -6883,10 +6873,6 @@ msgstr ""
 
 #: src/services/enhancer/summary-notification.ts
 msgid "Your summary is ready."
-msgstr ""
-
-#: src/store/zustand/listener/general-batch.ts
-msgid "Your transcript is ready."
 msgstr ""
 
 #: src/settings/referrals.tsx

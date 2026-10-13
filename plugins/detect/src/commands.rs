@@ -1,7 +1,5 @@
 use tauri::Manager;
 
-use std::time::Duration;
-
 use crate::{DetectPluginExt, ScreenShareSamplerState, ax_worker::AxWorker};
 
 #[derive(Debug, serde::Serialize, specta::Type)]
@@ -129,15 +127,12 @@ pub(crate) async fn list_default_ignored_bundle_ids<R: tauri::Runtime>(
     Ok(app.detect().list_default_ignored_bundle_ids())
 }
 
-const AX_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
-const AX_SEND_TIMEOUT: Duration = Duration::from_secs(30);
-
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn inspect_meeting_accessibility<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<anlg_detect::MeetingAccessibilityInspection>, String> {
-    app.state::<AxWorker>().inspect(AX_REQUEST_TIMEOUT).await
+    app.state::<AxWorker>().inspect().await
 }
 
 #[tauri::command]
@@ -155,9 +150,7 @@ pub(crate) async fn send_meeting_chat_message<R: tauri::Runtime>(
         intersect_mic_active_bundle_ids(&mic_active_bundle_ids, &current_mic_apps);
 
     app.state::<AxWorker>()
-        .run(AX_SEND_TIMEOUT, move || {
-            anlg_detect::send_meeting_chat_message(message, verified_bundle_ids)
-        })
+        .run(move || anlg_detect::send_meeting_chat_message(message, verified_bundle_ids))
         .await
 }
 
@@ -176,9 +169,7 @@ pub(crate) async fn capture_meeting_chat_messages<R: tauri::Runtime>(
         .collect::<Vec<_>>();
 
     app.state::<AxWorker>()
-        .run(AX_REQUEST_TIMEOUT, move || {
-            anlg_detect::capture_meeting_chat_messages(verified_bundle_ids)
-        })
+        .run(move || anlg_detect::capture_meeting_chat_messages(verified_bundle_ids))
         .await
 }
 
@@ -203,7 +194,7 @@ pub(crate) async fn capture_meeting_screen_share<R: tauri::Runtime>(
 ) -> Result<MeetingScreenShareCapture, String> {
     let sampler = app.state::<ScreenShareSamplerState>().inner().clone();
     app.state::<AxWorker>()
-        .run(AX_REQUEST_TIMEOUT, move || {
+        .run(move || {
             let mut sampler = sampler.lock().map_err(|error| error.to_string())?;
             if reset {
                 *sampler = anlg_detect::ScreenShareSampler::default();

@@ -1,6 +1,5 @@
 use std::panic::AssertUnwindSafe;
 use std::sync::{Arc, Mutex, mpsc};
-use std::time::Duration;
 
 use tokio::sync::oneshot;
 
@@ -11,7 +10,9 @@ type InspectFn = dyn Fn() -> Inspections + Send + Sync;
 // Accessibility IPC is synchronous and can stall for minutes on large browser trees.
 // Every AX call runs on this one dedicated thread so a slow or hung walk can only
 // delay AX features; it never occupies the async runtime that drives capture and STT,
-// and it never runs several walks against the same app at once.
+// and it never runs several walks against the same app at once. Callers wait for the
+// real result: a timeout would read as "no meeting" to auto-stop, and would drop
+// side effects (a sent chat message, a sampler update) that already happened.
 pub(crate) struct AxWorker {
     jobs: mpsc::Sender<Job>,
     inspect: Arc<InspectFn>,
@@ -47,7 +48,6 @@ impl AxWorker {
 
     pub(crate) async fn run<T: Send + 'static>(
         &self,
-        timeout: Duration,
         f: impl FnOnce() -> T + Send + 'static,
     ) -> Result<T, String> {
         let (tx, rx) = oneshot::channel();
@@ -58,11 +58,11 @@ impl AxWorker {
                 }
             }))
             .map_err(|_| WORKER_STOPPED.to_string())?;
-        wait(rx, timeout).await
+        rx.await.map_err(|_| WORKER_STOPPED.to_string())
     }
 
     /// Concurrent callers that arrive before a queued walk starts share its result.
-    pub(crate) async fn inspect(&self, timeout: Duration) -> Result<Inspections, String> {
+    pub(crate) async fn inspect(&self) -> Result<Inspections, String> {
         let (tx, rx) = oneshot::channel();
         let queue_walk = {
             let mut pending = lock(&self.pending_inspection);
@@ -102,22 +102,11 @@ impl AxWorker {
             }
         }
 
-        wait(rx, timeout).await
+        rx.await.map_err(|_| WORKER_STOPPED.to_string())
     }
 }
 
 const WORKER_STOPPED: &str = "meeting accessibility worker is not running";
-
-async fn wait<T>(rx: oneshot::Receiver<T>, timeout: Duration) -> Result<T, String> {
-    match tokio::time::timeout(timeout, rx).await {
-        Ok(Ok(value)) => Ok(value),
-        Ok(Err(_)) => Err(WORKER_STOPPED.to_string()),
-        Err(_) => Err(format!(
-            "meeting accessibility timed out after {}s",
-            timeout.as_secs_f32()
-        )),
-    }
-}
 
 fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
     mutex
@@ -129,13 +118,14 @@ fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
 mod tests {
     use super::*;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::time::Duration;
 
     #[tokio::test(flavor = "current_thread")]
-    async fn hung_walk_times_out_without_replaying_stale_requests() {
+    async fn hung_walk_does_not_block_runtime_and_queued_inspections_share_one_walk() {
         let walks = Arc::new(AtomicUsize::new(0));
         let (release_tx, release_rx) = mpsc::channel::<()>();
         let release_rx = Mutex::new(release_rx);
-        let worker = AxWorker::new(Arc::new({
+        let worker = Arc::new(AxWorker::new(Arc::new({
             let walks = walks.clone();
             move || {
                 if walks.fetch_add(1, Ordering::SeqCst) == 0 {
@@ -143,16 +133,21 @@ mod tests {
                 }
                 Vec::new()
             }
-        }));
+        })));
 
-        let short = Duration::from_millis(50);
-        assert!(worker.inspect(short).await.is_err());
-        assert!(worker.inspect(short).await.is_err());
+        let spawn_inspect =
+            |worker: Arc<AxWorker>| tokio::spawn(async move { worker.inspect().await });
+        let hung = spawn_inspect(worker.clone());
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        let queued = [spawn_inspect(worker.clone()), spawn_inspect(worker.clone())];
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        assert!(!hung.is_finished());
 
         release_tx.send(()).unwrap();
-        let long = Duration::from_secs(5);
-        let (first, second) = tokio::join!(worker.inspect(long), worker.inspect(long));
-        assert!(first.is_ok() && second.is_ok());
+        assert!(hung.await.unwrap().is_ok());
+        for inspection in queued {
+            assert!(inspection.await.unwrap().is_ok());
+        }
         assert_eq!(walks.load(Ordering::SeqCst), 2);
     }
 }

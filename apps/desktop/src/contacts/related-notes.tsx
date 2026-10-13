@@ -27,6 +27,7 @@ export function RelatedNotesSection({
   const [search, setSearch] = useState("");
   const searchRef = useSquircleRef<HTMLDivElement>();
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+
   const visibleSessions = sortAndFilterRelatedNotes(
     sessions,
     search,
@@ -37,8 +38,9 @@ export function RelatedNotesSection({
     <div className="p-6">
       <div className="mb-3 flex items-center gap-1">
         <h3 className="text-muted-foreground text-sm font-medium">
-          <Trans>Related Notes</Trans>
+          <Trans>Interview History</Trans>
         </h3>
+
         {sessions.length > 1 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -126,7 +128,7 @@ export function RelatedNotesSection({
           {sessions.length > 0 ? (
             <Trans>No results found.</Trans>
           ) : (
-            <Trans>No related notes found</Trans>
+            <Trans>No interview history found</Trans>
           )}
         </p>
       )}
@@ -152,6 +154,7 @@ function sortAndFilterRelatedNotes(
       const dateDifference =
         getSessionTimestamp(left.createdAt) -
         getSessionTimestamp(right.createdAt);
+
       return dateDifference !== 0
         ? dateDifference * direction
         : left.id.localeCompare(right.id) * direction;

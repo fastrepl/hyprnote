@@ -54,7 +54,7 @@ describe("TabContentEmpty", () => {
     mocks.platform.mockReturnValue("macos");
   });
 
-  it("shows the home actions and global chat FAB", () => {
+  it("shows the recruiting home actions and global chat FAB", () => {
     render(
       <TabContentEmpty
         tab={{
@@ -66,7 +66,18 @@ describe("TabContentEmpty", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /New Note/ })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /Start recording/ }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /New interview notes/ }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /Upload audio/ }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /Import transcript/ }),
+    ).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "Ask Anarlog anything" }),
     ).toBeTruthy();

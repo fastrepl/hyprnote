@@ -422,6 +422,20 @@ fn normalized_identity(value: Option<&str>) -> Option<String> {
         .map(str::to_lowercase)
 }
 
+fn matches_identity(
+    left_id: Option<&str>,
+    left_email: Option<&str>,
+    right_id: Option<&str>,
+    right_email: Option<&str>,
+) -> bool {
+    normalized_identity(left_id)
+        .zip(normalized_identity(right_id))
+        .is_some_and(|(left, right)| left == right)
+        || normalized_identity(left_email)
+            .zip(normalized_identity(right_email))
+            .is_some_and(|(left, right)| left == right)
+}
+
 fn convert_google_attendance(event: &GoogleEvent) -> EventAttendance {
     let self_status = if event
         .organizer
@@ -461,16 +475,28 @@ fn convert_google_attendance(event: &GoogleEvent) -> EventAttendance {
         .organizer
         .as_ref()
         .is_some_and(|organizer| organizer.is_self != Some(true));
-    if let Some(organizer) = event.organizer.as_ref().filter(|_| has_external_organizer) {
-        seen.insert(organizer.id.as_deref(), organizer.email.as_deref());
-        AttendanceResponse::Accepted.add_to(&mut others);
-    }
+    let mut saw_external_organizer = false;
 
     for attendee in event.attendees.as_deref().unwrap_or_default() {
         if attendee.is_self == Some(true) || attendee.resource == Some(true) {
             continue;
         }
-        if attendee.organizer == Some(true) && has_external_organizer {
+        let is_external_organizer = has_external_organizer
+            && (attendee.organizer == Some(true)
+                || event.organizer.as_ref().is_some_and(|organizer| {
+                    matches_identity(
+                        attendee.id.as_deref(),
+                        attendee.email.as_deref(),
+                        organizer.id.as_deref(),
+                        organizer.email.as_deref(),
+                    )
+                }));
+        if is_external_organizer {
+            saw_external_organizer = true;
+            if !seen.insert(attendee.id.as_deref(), attendee.email.as_deref()) {
+                continue;
+            }
+            google_attendance_response(attendee.response_status.as_ref()).add_to(&mut others);
             continue;
         }
         if !seen.insert(attendee.id.as_deref(), attendee.email.as_deref()) {
@@ -480,6 +506,14 @@ fn convert_google_attendance(event: &GoogleEvent) -> EventAttendance {
             AttendanceResponse::Accepted.add_to(&mut others);
         } else {
             google_attendance_response(attendee.response_status.as_ref()).add_to(&mut others);
+        }
+    }
+
+    if !saw_external_organizer {
+        if let Some(organizer) = event.organizer.as_ref().filter(|_| has_external_organizer) {
+            if seen.insert(organizer.id.as_deref(), organizer.email.as_deref()) {
+                AttendanceResponse::Accepted.add_to(&mut others);
+            }
         }
     }
 
@@ -1251,7 +1285,7 @@ mod attendance_tests {
     }
 
     #[test]
-    fn google_uses_self_response_and_deduplicates_external_organizer() {
+    fn google_preserves_a_declined_external_organizer_response() {
         let event = google_event(serde_json::json!({
             "id": "event",
             "organizer": { "id": "organizer-id", "email": "HOST@example.com" },
@@ -1265,10 +1299,10 @@ mod attendance_tests {
 
         let attendance = attendance(&event);
         assert_eq!(attendance.self_status, SelfAttendanceStatus::Accepted);
-        assert_eq!(attendance.others.accepted, 1);
+        assert_eq!(attendance.others.accepted, 0);
         assert_eq!(attendance.others.pending, 1);
         assert_eq!(attendance.others.unknown, 1);
-        assert_eq!(attendance.others.declined, 0);
+        assert_eq!(attendance.others.declined, 1);
     }
 
     #[test]

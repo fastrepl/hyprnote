@@ -1,3 +1,4 @@
+
 import { useRef } from "react";
 
 import { commands as calendarCommands } from "@anlg/plugin-calendar";
@@ -363,7 +364,7 @@ export function useInterviewSessions(): InterviewListRecord[] {
               ON humans.id = mapping.human_id
               AND humans.deleted_at IS NULL
             WHERE mapping.session_id = sessions.id
-              AND mapping.source <> 'excluded'
+              AND COALESCE(mapping.source, '') <> 'excluded'
               AND mapping.deleted_at IS NULL
               AND COALESCE(NULLIF(humans.name, ''), humans.email) <> ''
             ORDER BY candidate_name
@@ -375,8 +376,14 @@ export function useInterviewSessions(): InterviewListRecord[] {
           SELECT 1
           FROM session_participants AS mapping
           WHERE mapping.session_id = sessions.id
-            AND mapping.source <> 'excluded'
+            AND COALESCE(mapping.source, '') <> 'excluded'
             AND mapping.deleted_at IS NULL
+            AND EXISTS (
+              SELECT 1
+              FROM humans AS eligible_human
+              WHERE eligible_human.id = mapping.human_id
+                AND eligible_human.deleted_at IS NULL
+            )
         )
       ORDER BY sessions.created_at DESC, sessions.id
     `,
@@ -412,7 +419,7 @@ export function useHumanSessions(humanId: string): HumanSessionRecord[] {
             FROM session_participants AS mapping
             WHERE mapping.session_id = sessions.id
               AND mapping.human_id = ?
-              AND mapping.source <> 'excluded'
+              AND COALESCE(mapping.source, '') <> 'excluded'
               AND mapping.deleted_at IS NULL
           ), ''),
           COALESCE((
@@ -436,8 +443,14 @@ export function useHumanSessions(humanId: string): HumanSessionRecord[] {
           FROM session_participants AS mapping
           WHERE mapping.session_id = sessions.id
             AND mapping.human_id = ?
-            AND mapping.source <> 'excluded'
+            AND COALESCE(mapping.source, '') <> 'excluded'
             AND mapping.deleted_at IS NULL
+            AND EXISTS (
+              SELECT 1
+              FROM humans AS eligible_human
+              WHERE eligible_human.id = mapping.human_id
+                AND eligible_human.deleted_at IS NULL
+            )
         )
       ORDER BY sessions.created_at DESC, sessions.id
     `,

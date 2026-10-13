@@ -423,7 +423,7 @@ export function DetailsColumn({
       ) : (
         <div className="flex flex-1 items-center justify-center">
           <p className="text-muted-foreground text-sm">
-            <Trans>Select a person to view details</Trans>
+            <Trans>Select a candidate to view details</Trans>
           </p>
         </div>
       )}

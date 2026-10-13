@@ -208,7 +208,10 @@ describe("CustomChatTransport", () => {
     });
     expect(mocks.agentOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        experimental_context: { currentSessionId: "new" },
+        experimental_context: {
+          currentSessionId: "new",
+          mentionedFolderPaths: [],
+        },
       }),
     );
   });

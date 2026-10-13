@@ -205,11 +205,28 @@ export class CustomChatTransport implements ChatTransport<AnlgUIMessage> {
       }
     }
 
+    const lastUserMessage =
+      lastUserMessageIndex >= 0
+        ? options.messages[lastUserMessageIndex]
+        : undefined;
+    const mentionedFolderPaths = [
+      ...new Set(
+        (lastUserMessage?.metadata?.contextRefs ?? []).flatMap((ref) =>
+          ref.kind === "folder" && ref.source === "manual"
+            ? [ref.folderId]
+            : [],
+        ),
+      ),
+    ];
+
     const agent = new ToolLoopAgent({
       model: this.model,
       instructions: this.systemPrompt,
       tools,
-      experimental_context: { currentSessionId } satisfies ChatToolContext,
+      experimental_context: {
+        currentSessionId,
+        mentionedFolderPaths,
+      } satisfies ChatToolContext,
       stopWhen: stepCountIs(MAX_TOOL_STEPS),
       prepareStep: async ({ messages, stepNumber }) => {
         const finalStep = stepNumber >= MAX_TOOL_STEPS - 1;

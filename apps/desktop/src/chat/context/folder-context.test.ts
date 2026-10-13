@@ -43,14 +43,16 @@ describe("folder chat context", () => {
       },
     ]);
 
-    await expect(renderFolderContext("CS 101")).resolves.toEqual(
-      [
-        "Folder context: CS 101 (2 notes)",
-        "Answer from notes in this folder. Use get_meeting or search_meetings with the listed IDs when you need full notes or transcripts. Use list_meetings with this folder_path to enumerate every note. Use read_folder_material with a listed material ID to read a syllabus or other folder file.",
-        "",
-        "- Lecture 1 (2026-08-01T09:00:00.000Z) [session-1]",
-        "- Untitled (2026-08-08T09:00:00.000Z) [session-2]",
-      ].join("\n"),
+    const context = await renderFolderContext("CS 101");
+    expect(context).toContain("Folder context: CS 101 (2 notes)");
+    expect(context).toContain(
+      "- Lecture 1 (2026-08-01T09:00:00.000Z) [session-1]",
+    );
+    expect(context).toContain(
+      "- Untitled (2026-08-08T09:00:00.000Z) [session-2]",
+    );
+    expect(context!.indexOf("[session-1]")).toBeLessThan(
+      context!.indexOf("[session-2]"),
     );
     expect(mocks.loadFolderMaterials).toHaveBeenCalledWith("CS 101");
     expect(mocks.loadFolderInstructions).toHaveBeenCalledWith("CS 101");

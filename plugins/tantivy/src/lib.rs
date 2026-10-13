@@ -147,6 +147,51 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
+// Registration can fail transiently (e.g. a stale writer lock from a
+// crashed instance); without the collection, search is dead for the whole
+// process lifetime, so retry with capped backoff until it lands. Log the
+// first failure loudly, then keep retries at debug level.
+async fn register_with_retry<F, Fut>(attempt: F)
+where
+    F: FnMut() -> Fut,
+    Fut: std::future::Future<Output = Result<()>>,
+{
+    register_with_retry_delay(attempt, std::time::Duration::from_secs(5)).await
+}
+
+async fn register_with_retry_delay<F, Fut>(mut attempt: F, initial_delay: std::time::Duration)
+where
+    F: FnMut() -> Fut,
+    Fut: std::future::Future<Output = Result<()>>,
+{
+    let max_delay = std::time::Duration::from_secs(300);
+    let mut delay = initial_delay;
+    let mut logged_error = false;
+    loop {
+        match attempt().await {
+            Ok(()) => return,
+            Err(e) => {
+                if logged_error {
+                    tracing::debug!(
+                        "Default collection still unavailable: {}; retrying in {:?}",
+                        e,
+                        delay
+                    );
+                } else {
+                    tracing::error!(
+                        "Failed to register default collection: {}; retrying in {:?}",
+                        e,
+                        delay
+                    );
+                    logged_error = true;
+                }
+                tokio::time::sleep(delay).await;
+                delay = (delay * 2).min(max_delay);
+            }
+        }
+    }
+}
+
 pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     let specta_builder = make_specta_builder();
 
@@ -164,36 +209,12 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                     schema_version: SCHEMA_VERSION,
                 };
 
-                // Registration can fail transiently (e.g. a stale writer lock
-                // from a crashed instance); without the collection, search is
-                // dead for the whole process lifetime, so retry with capped
-                // backoff until it lands. Log the first failure loudly, then
-                // keep retries at debug level to avoid spamming the log.
-                let mut delay_secs = 5u64;
-                let mut logged_error = false;
-                loop {
-                    match handle.tantivy().register_collection(config.clone()).await {
-                        Ok(()) => break,
-                        Err(e) => {
-                            if logged_error {
-                                tracing::debug!(
-                                    "Default collection still unavailable: {}; retrying in {}s",
-                                    e,
-                                    delay_secs
-                                );
-                            } else {
-                                tracing::error!(
-                                    "Failed to register default collection: {}; retrying in {}s",
-                                    e,
-                                    delay_secs
-                                );
-                                logged_error = true;
-                            }
-                            tokio::time::sleep(std::time::Duration::from_secs(delay_secs)).await;
-                            delay_secs = (delay_secs * 2).min(300);
-                        }
-                    }
-                }
+                register_with_retry(move || {
+                    let handle = handle.clone();
+                    let config = config.clone();
+                    async move { handle.tantivy().register_collection(config).await }
+                })
+                .await;
             });
 
             Ok(())
@@ -204,6 +225,32 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[tokio::test]
+    async fn register_retries_until_success() {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        let attempts = std::sync::Arc::new(AtomicUsize::new(0));
+        register_with_retry_delay(
+            {
+                let attempts = attempts.clone();
+                move || {
+                    let attempts = attempts.clone();
+                    async move {
+                        if attempts.fetch_add(1, Ordering::SeqCst) < 2 {
+                            Err(Error::IndexNotInitialized)
+                        } else {
+                            Ok(())
+                        }
+                    }
+                }
+            },
+            std::time::Duration::from_millis(1),
+        )
+        .await;
+
+        assert_eq!(attempts.load(Ordering::SeqCst), 3);
+    }
 
     #[test]
     fn export_types() {

@@ -20,6 +20,7 @@ import { MeetingImportSync } from "~/services/meeting-import-sync";
 import { getOrCreateSessionForEventId } from "~/session/queries";
 import { WorkspaceInvitationToasts } from "~/settings/team/invitation-toast";
 import { useMyWorkspacesWithMirror } from "~/settings/team/mirror";
+import { leaveOverlayTab } from "~/shared/leave-overlay-tab";
 import { useZoomShortcuts } from "~/shared/zoom";
 import { useSidebarNotes } from "~/sidebar/note-filter";
 import { UndoDeleteToast } from "~/sidebar/toast/undo-delete-toast";
@@ -77,7 +78,17 @@ const useNavigationEvents = () => {
         });
       } else if (type === "folder") {
         useSidebarNotes.getState().setView("mine", id);
-        void navigate({ to: "/app/main" });
+        const tab = useTabs.getState().currentTab;
+        const isSpecialMode =
+          tab?.type === "settings" ||
+          tab?.type === "calendar" ||
+          tab?.type === "contacts" ||
+          tab?.type === "templates" ||
+          tab?.type === "automations" ||
+          tab?.type === "folders";
+        if (isSpecialMode) {
+          leaveOverlayTab();
+        }
       }
     };
     (window as any).__ANARLOG_NAVIGATE__ = navigateFromNative;

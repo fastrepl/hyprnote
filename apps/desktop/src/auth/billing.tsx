@@ -27,7 +27,7 @@ import { TrialStartedDialog } from "../billing/trial-started-dialog";
 import { env } from "../env";
 import { waitForBillingUpdate } from "../shared/billing";
 import { configurePaidSettings } from "../shared/config/configure-paid-settings";
-import { isSwitchableAccount, startTrialOnce } from "../shared/trial-start";
+import { startTrialOnce, useAutoTrialHeld } from "../shared/trial-start";
 import { buildWebAppUrl } from "../shared/utils";
 import { useAuth } from "./auth-context";
 import { type BillingAccess, BillingContext } from "./billing-context";
@@ -168,8 +168,8 @@ export function BillingProvider({ children }: { children: ReactNode }) {
 
   // Onboarding offers a new personal-email account the switch to a work email first.
   const awaitsWorkEmailChoice =
-    canTrialQuery.data?.offer === "personal_email" &&
-    isSwitchableAccount(auth?.session?.user);
+    useAutoTrialHeld(auth?.session?.user.id) &&
+    canTrialQuery.data?.offer === "personal_email";
 
   // eslint-disable-next-line @tanstack/query/exhaustive-deps -- The user ID owns one automatic attempt; a refreshed token must not trigger another start.
   useQuery({

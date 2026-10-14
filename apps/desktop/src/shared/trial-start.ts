@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from "react";
+
 const trialStarts = new Map<string, Promise<unknown>>();
 
 export function startTrialOnce<T>(
@@ -34,4 +36,34 @@ export function isSwitchableAccount(
   }
   const age = seenAt - new Date(user.created_at).getTime();
   return age >= 0 && age < SWITCHABLE_ACCOUNT_AGE_MS;
+}
+
+const autoTrialHolds = new Set<string>();
+const autoTrialHoldListeners = new Set<() => void>();
+
+function notifyAutoTrialHolds() {
+  for (const listener of autoTrialHoldListeners) listener();
+}
+
+function subscribeAutoTrialHolds(listener: () => void) {
+  autoTrialHoldListeners.add(listener);
+  return () => {
+    autoTrialHoldListeners.delete(listener);
+  };
+}
+
+export function holdAutoTrial(userId: string): () => void {
+  autoTrialHolds.add(userId);
+  notifyAutoTrialHolds();
+  return () => {
+    autoTrialHolds.delete(userId);
+    notifyAutoTrialHolds();
+  };
+}
+
+export function useAutoTrialHeld(userId: string | undefined): boolean {
+  return useSyncExternalStore(
+    subscribeAutoTrialHolds,
+    () => userId !== undefined && autoTrialHolds.has(userId),
+  );
 }

@@ -669,13 +669,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const signIn = useCallback(async () => {
+  const signIn = useCallback(async (options?: { switchAccount?: boolean }) => {
     trackAnalyticsEvent("auth_started", {
       entry_point: "desktop_sign_in",
       method: "browser_handoff",
     });
     try {
-      const url = await buildWebAppUrl("/auth");
+      const url = await buildWebAppUrl(
+        "/auth",
+        options?.switchAccount === true ? { account: "switch" } : undefined,
+      );
       await openUrlWithInstruction(url, "sign-in", (u) =>
         openerCommands.openUrl(u, null),
       );

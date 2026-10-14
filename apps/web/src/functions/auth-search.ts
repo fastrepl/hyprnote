@@ -7,6 +7,7 @@ export const authSearchSchema = flowSearchSchema({
   redirect: z.string().optional(),
   provider: z.enum(["apple", "azure", "github", "google"]).optional(),
   view: z.enum(["email", "sso"]).optional(),
+  account: z.literal("switch").optional(),
 });
 
 export function invalidAuthSearchResponse(

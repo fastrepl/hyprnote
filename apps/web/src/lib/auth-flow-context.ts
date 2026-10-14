@@ -16,8 +16,13 @@ export type AuthFlowContext = {
 export function shouldReuseBrowserSession(search: {
   provider?: string;
   view?: string;
+  account?: string;
 }) {
-  return search.provider === undefined && search.view === undefined;
+  return (
+    search.provider === undefined &&
+    search.view === undefined &&
+    search.account === undefined
+  );
 }
 
 export function resolveAuthFlowContext({

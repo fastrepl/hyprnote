@@ -7,7 +7,7 @@ export function LoginSection({ onContinue }: { onContinue: () => void }) {
   const auth = useAuth();
 
   if (auth?.session) {
-    return <AfterLogin onContinue={onContinue} />;
+    return <AfterLogin key={auth.session.user.id} onContinue={onContinue} />;
   }
 
   return <BeforeLogin />;

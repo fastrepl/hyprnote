@@ -7,13 +7,18 @@ import type { StartTrialReason, TrialOffer } from "@anlg/api-client";
 import { createClient } from "@anlg/api-client/client";
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
 import { proTrialDaysForOffer } from "@anlg/pricing";
+import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
 import { env } from "~/env";
 import { waitForBillingUpdate } from "~/shared/billing";
 import { configurePaidSettings } from "~/shared/config/configure-paid-settings";
-import { isSwitchableAccount, startTrialOnce } from "~/shared/trial-start";
+import {
+  holdAutoTrial,
+  isSwitchableAccount,
+  startTrialOnce,
+} from "~/shared/trial-start";
 
 export type TrialPhase =
   | "checking"
@@ -37,6 +42,11 @@ export function useTrialFlow(onContinue: () => void) {
   const needsTrial =
     !!user && billing.isReady && !billing.isPaid && !billing.isTrialing;
   const canSwitchAccount = isSwitchableAccount(user);
+
+  // Keeps BillingProvider from starting the trial before the user picks.
+  useMountEffect(() =>
+    user && canSwitchAccount ? holdAutoTrial(user.id) : undefined,
+  );
 
   // auth only supplies request headers; the result is keyed by the signed-in user.
   // eslint-disable-next-line @tanstack/query/exhaustive-deps
@@ -108,7 +118,7 @@ export function useTrialFlow(onContinue: () => void) {
         event: "trial_offer_switch_to_work_email",
       });
       await auth.signOut();
-      await auth.signIn();
+      await auth.signIn({ switchAccount: true });
     },
     onError: (e) => {
       Sentry.captureException(e);

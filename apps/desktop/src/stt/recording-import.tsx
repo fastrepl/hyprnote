@@ -5,6 +5,7 @@ import { commands as fsCommands } from "@anlg/plugin-fs2";
 import { commands as settingsCommands } from "@anlg/plugin-settings";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
+import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
 import { executeTransaction, liveQueryClient } from "~/db";
 import { withCloudsyncActivity } from "~/db/cloudsync-activity";
@@ -97,101 +98,108 @@ function ReadyImport({ job }: { job: ImportJob }) {
   const stt = useAiProvidersState("stt");
   const llm = useAiProvidersState("llm");
   const billing = useBillingAccess();
+  const auth = useAuth();
+  // Signed-out users have no billing claims to load; local providers still run.
+  const billingSettled = billing.isReady || auth.session === null;
   return session &&
     settingsReady &&
     stt.isReady &&
     llm.isReady &&
-    billing.isReady ? (
+    billingSettled ? (
     <RunImport job={job} />
   ) : null;
 }
 
+const runningImports = new Set<string>();
+
 function RunImport({ job }: { job: ImportJob }) {
   const runBatch = useRunBatch(job.meeting_id);
   useMountEffect(() => {
-    const controller = new AbortController();
-    let timer: ReturnType<typeof setInterval> | undefined;
-    const update = async (
-      status: string,
-      summary = "pending",
-      error: string | null = null,
-    ) => {
-      await executeTransaction([
-        {
-          sql: `UPDATE local_recording_import_jobs SET processing_status = ?, summary_status = ?, error = ?, updated_at = unixepoch()
-          WHERE id = ? AND worker_id = ? AND processing_status NOT IN ('done', 'failed')`,
-          params: [status, summary, error, job.id, workerId],
-          ...(status !== "failed" ? { expectedRowsAffected: 1 } : {}),
-        },
-      ]);
-    };
-    const run = async () => {
-      const claimed = await liveQueryClient.execute<{ id: string }>(
-        `UPDATE local_recording_import_jobs SET worker_id = ?, processing_status = 'importing', updated_at = unixepoch()
-         WHERE id = ? AND processing_status = 'queued'
-         AND NOT EXISTS (SELECT 1 FROM managed_app_settings WHERE id = 'intelligence_disabled' AND value_json = 'true') RETURNING id`,
-        [workerId, job.id],
-      );
-      if (!claimed.length) return;
-      timer = setInterval(() => {
-        void executeTransaction([
-          {
-            sql: `UPDATE local_recording_import_jobs SET updated_at = unixepoch() WHERE id = ? AND worker_id = ? AND processing_status NOT IN ('done', 'failed')`,
-            params: [job.id, workerId],
-          },
-        ]).catch(console.error);
-      }, 10000);
-      let phase = "importing";
-      try {
-        await withCloudsyncActivity(
-          "transcription",
-          `recording-import:${job.id}`,
-          async () => {
-            controller.signal.throwIfAborted();
-            const imported = await fsSyncCommands.audioImport(
-              job.meeting_id,
-              job.file_path,
-            );
-            if (imported.status === "error") throw new Error(imported.error);
-            await catalogLocalSessionAudio(job.meeting_id);
-            phase = "transcribing";
-            await update(phase);
-            await runBatch(imported.data, {
-              signal: controller.signal,
-              promotion: { scope: "whole_session" },
-            });
-            phase = "summarizing";
-            await update(phase);
-            const enhancer = getEnhancerService();
-            if (!enhancer)
-              throw new Error(
-                "Intelligence service is not ready. Transcript was preserved.",
-              );
-            const summary = await enhancer.enhanceAndWait(
-              job.meeting_id,
-              controller.signal,
-            );
-            await update("done", summary);
-          },
-        );
-      } catch (error) {
-        // Provider errors may contain credentials; keep externally readable job errors bounded and generic.
-        await update(
-          "failed",
-          phase === "summarizing" ? "failed" : "pending",
-          `${phase} failed or was interrupted. Check the desktop app; completed meeting data was preserved.`,
-        );
-      } finally {
-        clearInterval(timer);
-      }
-    };
-    // Defer acquisition until after React's mount/cleanup probe.
-    const start = setTimeout(() => void run().catch(console.error), 0);
+    // Defer acquisition until after React's mount/cleanup probe. Once started,
+    // processing outlives this component so navigation does not fail the job.
+    const start = setTimeout(() => {
+      if (runningImports.has(job.id)) return;
+      runningImports.add(job.id);
+      void processImport(job, runBatch)
+        .catch(console.error)
+        .finally(() => runningImports.delete(job.id));
+    }, 0);
     return () => {
       clearTimeout(start);
-      controller.abort();
-      clearInterval(timer);
     };
   });
   return null;
+}
+
+async function processImport(
+  job: ImportJob,
+  runBatch: ReturnType<typeof useRunBatch>,
+) {
+  const update = async (
+    status: string,
+    summary = "pending",
+    error: string | null = null,
+  ) => {
+    await executeTransaction([
+      {
+        sql: `UPDATE local_recording_import_jobs SET processing_status = ?, summary_status = ?, error = ?, updated_at = unixepoch()
+        WHERE id = ? AND worker_id = ? AND processing_status NOT IN ('done', 'failed')`,
+        params: [status, summary, error, job.id, workerId],
+        ...(status !== "failed" ? { expectedRowsAffected: 1 } : {}),
+      },
+    ]);
+  };
+  const claimed = await liveQueryClient.execute<{ id: string }>(
+    `UPDATE local_recording_import_jobs SET worker_id = ?, processing_status = 'importing', updated_at = unixepoch()
+     WHERE id = ? AND processing_status = 'queued'
+     AND NOT EXISTS (SELECT 1 FROM managed_app_settings WHERE id = 'intelligence_disabled' AND value_json = 'true') RETURNING id`,
+    [workerId, job.id],
+  );
+  if (!claimed.length) return;
+  const timer = setInterval(() => {
+    void executeTransaction([
+      {
+        sql: `UPDATE local_recording_import_jobs SET updated_at = unixepoch() WHERE id = ? AND worker_id = ? AND processing_status NOT IN ('done', 'failed')`,
+        params: [job.id, workerId],
+      },
+    ]).catch(console.error);
+  }, 10000);
+  let phase = "importing";
+  try {
+    await withCloudsyncActivity(
+      "transcription",
+      `recording-import:${job.id}`,
+      async () => {
+        const imported = await fsSyncCommands.audioImport(
+          job.meeting_id,
+          job.file_path,
+        );
+        if (imported.status === "error") throw new Error(imported.error);
+        await catalogLocalSessionAudio(job.meeting_id);
+        phase = "transcribing";
+        await update(phase);
+        await runBatch(imported.data, {
+          promotion: { scope: "whole_session" },
+        });
+        phase = "summarizing";
+        await update(phase);
+        const enhancer = getEnhancerService();
+        if (!enhancer)
+          throw new Error(
+            "Intelligence service is not ready. Transcript was preserved.",
+          );
+        const summary = await enhancer.enhanceAndWait(job.meeting_id);
+        await update("done", summary);
+      },
+    );
+  } catch {
+    // Provider errors may contain credentials; keep externally readable job errors bounded and generic.
+    await update(
+      "failed",
+      phase === "summarizing" ? "failed" : "pending",
+      `${phase} failed or was interrupted. Check the desktop app; completed meeting data was preserved.`,
+    );
+  } finally {
+    clearInterval(timer);
+  }
 }

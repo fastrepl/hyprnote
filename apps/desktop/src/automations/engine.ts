@@ -9,9 +9,11 @@ import {
 } from "@anlg/api-client";
 import { createClient } from "@anlg/api-client/client";
 import { json2md } from "@anlg/editor/markdown";
-import { commands as fs2Commands } from "@anlg/plugin-fs2";
-import type { MarkdownExportOptions } from "@anlg/plugin-local-api";
-import { commands as localApiCommands } from "@anlg/plugin-local-api";
+import {
+  commands as localApiCommands,
+  type MarkdownExportFile,
+  type MarkdownExportOptions,
+} from "@anlg/plugin-local-api";
 
 import { hasMarkdownExportContent } from "./markdown-export";
 import {
@@ -420,10 +422,20 @@ async function executeMarkdownExport(
   directory: string,
   options?: MarkdownExportOptions,
 ): Promise<string> {
+  return (await exportMarkdownFile(sessionId, directory, options, null)).path;
+}
+
+async function exportMarkdownFile(
+  sessionId: string,
+  directory: string,
+  options: MarkdownExportOptions | undefined,
+  previous: MarkdownExportFile | null,
+): Promise<MarkdownExportFile> {
   const result = await localApiCommands.exportMeetingMarkdown(
     sessionId,
     directory,
     options ?? null,
+    previous,
   );
   if (result.status === "error") {
     throw new Error(result.error);
@@ -431,7 +443,7 @@ async function executeMarkdownExport(
   return result.data;
 }
 
-type MarkdownExportFile = { key: string; path: string; sha256: string };
+type StoredMarkdownExportFile = MarkdownExportFile & { key: string };
 
 const MAX_MARKDOWN_EXPORT_FILES = 200;
 
@@ -443,49 +455,39 @@ function workflowStepKey(
   return `${workflow.id}:${step.id}:${sessionId}`;
 }
 
-// A changed title renames the file, so remove the one this step wrote last
-// time unless the user edited it or another step now writes to it.
+// A changed title renames the file, so the exporter replaces the one this step
+// wrote last time unless another step now writes to that path.
 async function executeConfiguredMarkdownExport(
   sessionId: string,
   directory: string,
   options: MarkdownExportOptions | undefined,
   key: string,
 ): Promise<string> {
-  const path = await executeMarkdownExport(sessionId, directory, options);
-  const written = await fs2Commands.readTextFile(path);
-  if (written.status === "error") {
-    return path;
-  }
-  await serializeSettingsUpdate(async () => {
+  return await serializeSettingsUpdate(async () => {
     const { values } = await getStoredSettingValues();
     const files = parseMarkdownExportFiles(
       values.automation_markdown_export_files,
     );
-    const previous = files.find((file) => file.key === key);
     const others = files.filter((file) => file.key !== key);
-    if (
-      previous &&
-      !samePath(previous.path, path) &&
-      !others.some((file) => samePath(file.path, previous.path))
-    ) {
-      const current = await fs2Commands.readTextFile(previous.path);
-      if (
-        current.status === "ok" &&
-        (await sha256(current.data)) === previous.sha256
-      ) {
-        await fs2Commands.remove(previous.path);
-      }
-    }
-    const next = [
-      ...others,
-      { key, path, sha256: await sha256(written.data) },
-    ].slice(-MAX_MARKDOWN_EXPORT_FILES);
+    const previous = files.find((file) => file.key === key);
+    const replaceable =
+      previous && !others.some((file) => file.path === previous.path)
+        ? { path: previous.path, sha256: previous.sha256 }
+        : null;
+    const file = await exportMarkdownFile(
+      sessionId,
+      directory,
+      options,
+      replaceable,
+    );
     await setSettingValue(
       "automation_markdown_export_files",
-      JSON.stringify(next),
+      JSON.stringify(
+        [...others, { key, ...file }].slice(-MAX_MARKDOWN_EXPORT_FILES),
+      ),
     );
+    return file.path;
   });
-  return path;
 }
 
 let settingsUpdates: Promise<unknown> = Promise.resolve();
@@ -498,14 +500,9 @@ function serializeSettingsUpdate<T>(update: () => Promise<T>): Promise<T> {
   return next;
 }
 
-// Exported filenames may differ only by case on a case-insensitive disk.
-function samePath(a: string, b: string): boolean {
-  return a.toLowerCase() === b.toLowerCase();
-}
-
 function parseMarkdownExportFiles(
   value: string | undefined,
-): MarkdownExportFile[] {
+): StoredMarkdownExportFile[] {
   if (!value) {
     return [];
   }
@@ -513,7 +510,7 @@ function parseMarkdownExportFiles(
     const parsed: unknown = JSON.parse(value);
     return Array.isArray(parsed)
       ? parsed.filter(
-          (entry): entry is MarkdownExportFile =>
+          (entry): entry is StoredMarkdownExportFile =>
             typeof entry === "object" &&
             entry !== null &&
             ["key", "path", "sha256"].every(
@@ -525,16 +522,6 @@ function parseMarkdownExportFiles(
   } catch {
     return [];
   }
-}
-
-async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(value),
-  );
-  return Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, "0"),
-  ).join("");
 }
 
 async function executeSlackRecap(

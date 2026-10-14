@@ -421,6 +421,46 @@ mod test {
     }
 
     #[tokio::test]
+    async fn renamed_configured_export_replaces_only_its_unedited_previous_file() {
+        let pool = seeded_pool().await;
+        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+            .await
+            .unwrap();
+        let options = MarkdownExportOptions {
+            filename: "{title}".to_string(),
+            include_id_suffix: false,
+            ..Default::default()
+        };
+        for edited in [false, true] {
+            let directory = tempfile::tempdir().unwrap();
+            export.meeting.title = "Planning".to_string();
+            let old = commands::write_markdown_export_with_options(
+                directory.path(),
+                &export,
+                Some(&options),
+            )
+            .unwrap();
+            let previous = commands::markdown_export_file(&old).unwrap();
+            if edited {
+                std::fs::write(&old, "edited by hand").unwrap();
+            }
+            export.meeting.title = "Launch".to_string();
+            let new = commands::write_markdown_export_with_options(
+                directory.path(),
+                &export,
+                Some(&options),
+            )
+            .unwrap();
+            commands::remove_replaced_export(
+                &previous,
+                &commands::markdown_export_file(&new).unwrap(),
+            );
+            assert_eq!(old.exists(), edited);
+            assert!(new.exists());
+        }
+    }
+
+    #[tokio::test]
     async fn simultaneous_markdown_exports_complete_without_false_collisions() {
         let pool = seeded_pool().await;
         let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())

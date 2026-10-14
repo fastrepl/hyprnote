@@ -42,6 +42,12 @@ pub struct WebhookDelivery {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+pub struct MarkdownExportFile {
+    pub path: String,
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct MarkdownExportOptions {
     pub include_memo: bool,

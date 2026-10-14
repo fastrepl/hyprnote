@@ -54,9 +54,9 @@ async dispatchEvent(event: string, meetingId: string) : Promise<Result<number, s
     else return { status: "error", error: e  as any };
 }
 },
-async exportMeetingMarkdown(meetingId: string, directory: string, options: MarkdownExportOptions | null) : Promise<Result<string, string>> {
+async exportMeetingMarkdown(meetingId: string, directory: string, options: MarkdownExportOptions | null, previous: MarkdownExportFile | null) : Promise<Result<MarkdownExportFile, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-api|export_meeting_markdown", { meetingId, directory, options }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-api|export_meeting_markdown", { meetingId, directory, options, previous }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -101,6 +101,7 @@ async listCloudSnapshotIds() : Promise<Result<string[], string>> {
 export type CreatedWebhook = ({ id: string; url: string; events: string[]; active: boolean; created_at: string; last_delivery_at: string | null; last_delivery_status: string }) & { secret: string }
 export type DriveMarkdownExport = { filename: string; markdown: string }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
+export type MarkdownExportFile = { path: string; sha256: string }
 export type MarkdownExportOptions = { include_memo: boolean; include_summary: boolean; include_transcript: boolean; include_action_items: boolean; filename: string; include_id_suffix: boolean }
 export type WebhookDelivery = { delivered: boolean; status: string }
 export type WebhookInfo = { id: string; url: string; events: string[]; active: boolean; created_at: string; last_delivery_at: string | null; last_delivery_status: string }

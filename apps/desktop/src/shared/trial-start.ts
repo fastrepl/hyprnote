@@ -17,7 +17,7 @@ export function startTrialOnce<T>(
   return request;
 }
 
-// Only a just-created account may be discarded to retry with a work email.
+// Only a just-created account is offered a retry with a work email.
 const SWITCHABLE_ACCOUNT_AGE_MS = 30 * 60 * 1000;
 const firstSeenAt = new Map<string, number>();
 

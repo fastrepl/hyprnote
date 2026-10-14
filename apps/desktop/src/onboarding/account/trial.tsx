@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
-import { canStartTrial, deleteAccount, startTrial } from "@anlg/api-client";
+import { canStartTrial, startTrial } from "@anlg/api-client";
 import type { StartTrialReason, TrialOffer } from "@anlg/api-client";
 import { createClient } from "@anlg/api-client/client";
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
@@ -104,11 +104,6 @@ export function useTrialFlow(onContinue: () => void) {
 
   const switchToWorkEmail = useMutation({
     mutationFn: async () => {
-      const headers = auth.getHeaders();
-      if (!headers) throw new Error("no headers");
-      const client = createClient({ baseUrl: env.VITE_API_URL, headers });
-      const { error } = await deleteAccount({ client });
-      if (error) throw error;
       void analyticsCommands.event({
         event: "trial_offer_switch_to_work_email",
       });

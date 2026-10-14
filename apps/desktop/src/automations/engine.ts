@@ -584,7 +584,10 @@ type StoredSlackMessage = {
   messageId: string;
 };
 
-const MAX_SLACK_MESSAGES = 200;
+// Each automation keeps its last MAX_PROCESSED_SESSIONS sessions. Keeping
+// twice that many refs per automation covers every still-processed session
+// even after later updates reorder the list.
+const MAX_SLACK_MESSAGES_PER_AUTOMATION = MAX_PROCESSED_SESSIONS * 2;
 
 function parseSlackMessages(value: string | undefined): StoredSlackMessage[] {
   if (!value) {
@@ -623,17 +626,29 @@ async function findSlackMessage(
 async function saveSlackMessage(message: StoredSlackMessage): Promise<void> {
   await serializeSettingsUpdate(async () => {
     const { values } = await getStoredSettingValues();
-    const next = [
-      ...parseSlackMessages(values.automation_slack_recap_messages).filter(
-        (entry) => entry.key !== message.key,
+    const owner = slackMessageOwner(message.key);
+    const stored = parseSlackMessages(
+      values.automation_slack_recap_messages,
+    ).filter((entry) => entry.key !== message.key);
+    const sameOwner = stored.filter(
+      (entry) => slackMessageOwner(entry.key) === owner,
+    );
+    const evicted = new Set(
+      sameOwner.slice(
+        0,
+        Math.max(0, sameOwner.length + 1 - MAX_SLACK_MESSAGES_PER_AUTOMATION),
       ),
-      message,
-    ].slice(-MAX_SLACK_MESSAGES);
+    );
+    const next = [...stored.filter((entry) => !evicted.has(entry)), message];
     await setSettingValue(
       "automation_slack_recap_messages",
       JSON.stringify(next),
     );
   });
+}
+
+function slackMessageOwner(key: string): string {
+  return key.slice(0, key.lastIndexOf(":"));
 }
 
 async function hasRepeatableStep(

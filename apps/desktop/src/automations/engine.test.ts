@@ -201,6 +201,47 @@ describe("runMeetingCompletedAutomations (markdown export)", () => {
 });
 
 describe("runNoteEnhancedAutomations (slack recap)", () => {
+  it("keeps other automations' message refs when storing a new one", async () => {
+    const others = Array.from({ length: 250 }, (_, index) => ({
+      key: `wf-${index}:step-slack:session-${index}`,
+      target: "C999",
+      channel: "C999",
+      messageId: `1600.${index}`,
+    }));
+    storedSettings({
+      automation_slack_recap_enabled: true,
+      automation_slack_recap_channel: JSON.stringify({
+        id: "C123",
+        name: "general",
+      }),
+      automation_slack_recap_messages: JSON.stringify(others),
+    });
+    mockDbRows();
+    signedInSession();
+    mocks.sendSlackRecap.mockResolvedValue({
+      channel: "C123",
+      messageId: "1700.1",
+    });
+
+    await runNoteEnhancedAutomations("session-1");
+
+    expect(
+      JSON.parse(
+        mocks.setSettingValue.mock.calls.find(
+          (entry) => entry[0] === "automation_slack_recap_messages",
+        )?.[1] as string,
+      ),
+    ).toEqual([
+      ...others,
+      {
+        key: "legacy:session-1",
+        target: "C123",
+        channel: "C123",
+        messageId: "1700.1",
+      },
+    ]);
+  });
+
   it("posts the summary to the configured channel", async () => {
     storedSettings({
       automation_slack_recap_enabled: true,

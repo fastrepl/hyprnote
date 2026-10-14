@@ -1151,8 +1151,10 @@ function TrialOfferCard() {
           Pro, free for a month
         </span>
         <span className="text-xs text-stone-500">
-          Sign up with your work email · Personal email gets {PRO_TRIAL_DAYS}{" "}
-          days
+          Sign up with your work email
+        </span>
+        <span className="text-[11px] text-stone-400">
+          Personal email gets {PRO_TRIAL_DAYS} days
         </span>
       </div>
     </div>

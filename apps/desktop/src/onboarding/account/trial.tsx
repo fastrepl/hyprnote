@@ -204,7 +204,7 @@ export function useTrialFlow(onContinue: () => void) {
           done: reason,
           offer,
           trialDays:
-            trialResult?.trial_days ??
+            trialResult?.trialDays ??
             (offer ? proTrialDaysForOffer(offer) : undefined),
         };
       }

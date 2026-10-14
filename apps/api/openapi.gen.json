@@ -12383,7 +12383,7 @@
             "type": "boolean",
             "example": true
           },
-          "trial_days": {
+          "trialDays": {
             "type": [
               "integer",
               "null"

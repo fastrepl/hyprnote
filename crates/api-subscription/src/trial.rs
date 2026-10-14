@@ -93,6 +93,7 @@ pub enum StartTrialReason {
 }
 
 #[derive(Debug, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct StartTrialResponse {
     #[schema(example = true)]
     pub started: bool,

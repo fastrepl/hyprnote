@@ -1788,7 +1788,7 @@ export type StartTrialResponse = {
     offer?: null | TrialOffer;
     reason?: null | StartTrialReason;
     started: boolean;
-    trial_days?: number | null;
+    trialDays?: number | null;
 };
 
 export type StreamAlternatives = {

@@ -9,6 +9,7 @@ import {
 } from "@anlg/api-client";
 import { createClient } from "@anlg/api-client/client";
 import { json2md } from "@anlg/editor/markdown";
+import { commands as fs2Commands } from "@anlg/plugin-fs2";
 import type { MarkdownExportOptions } from "@anlg/plugin-local-api";
 import { commands as localApiCommands } from "@anlg/plugin-local-api";
 
@@ -155,6 +156,7 @@ async function runWorkflow(
     for (const step of workflow.steps) {
       details.push(
         await executeWorkflowStep(sessionId, step, {
+          stepKey: workflowStepKey(workflow, step, sessionId),
           beforeLinearCreate: markProcessed,
         }),
       );
@@ -213,7 +215,7 @@ function appendProcessedSession(
 async function executeWorkflowStep(
   sessionId: string,
   step: WorkflowStep,
-  options?: { beforeLinearCreate?: () => Promise<void> },
+  options: { beforeLinearCreate?: () => Promise<void>; stepKey: string },
 ): Promise<string> {
   if (step.type === "google_drive_export") {
     throw new Error("Google Drive requires the summary-ready workflow runner");
@@ -226,7 +228,12 @@ async function executeWorkflowStep(
     if (step.options && !hasMarkdownExportContent(step.options)) {
       throw new Error("choose at least one element to export");
     }
-    return await executeMarkdownExport(sessionId, directory, step.options);
+    return await executeConfiguredMarkdownExport(
+      sessionId,
+      directory,
+      step.options,
+      options.stepKey,
+    );
   }
   if (!step.target) {
     throw new Error(`choose a ${stepLabel(step.type)} first`);
@@ -238,7 +245,7 @@ async function executeWorkflowStep(
     return await executeLinearIssues(
       sessionId,
       step.target,
-      options?.beforeLinearCreate,
+      options.beforeLinearCreate,
     );
   }
   return await executeNotionUpdate(sessionId, step.target);
@@ -422,6 +429,112 @@ async function executeMarkdownExport(
     throw new Error(result.error);
   }
   return result.data;
+}
+
+type MarkdownExportFile = { key: string; path: string; sha256: string };
+
+const MAX_MARKDOWN_EXPORT_FILES = 200;
+
+function workflowStepKey(
+  workflow: AutomationWorkflow,
+  step: WorkflowStep,
+  sessionId: string,
+): string {
+  return `${workflow.id}:${step.id}:${sessionId}`;
+}
+
+// A changed title renames the file, so remove the one this step wrote last
+// time unless the user edited it or another step now writes to it.
+async function executeConfiguredMarkdownExport(
+  sessionId: string,
+  directory: string,
+  options: MarkdownExportOptions | undefined,
+  key: string,
+): Promise<string> {
+  const path = await executeMarkdownExport(sessionId, directory, options);
+  const written = await fs2Commands.readTextFile(path);
+  if (written.status === "error") {
+    return path;
+  }
+  await serializeSettingsUpdate(async () => {
+    const { values } = await getStoredSettingValues();
+    const files = parseMarkdownExportFiles(
+      values.automation_markdown_export_files,
+    );
+    const previous = files.find((file) => file.key === key);
+    const others = files.filter((file) => file.key !== key);
+    if (
+      previous &&
+      !samePath(previous.path, path) &&
+      !others.some((file) => samePath(file.path, previous.path))
+    ) {
+      const current = await fs2Commands.readTextFile(previous.path);
+      if (
+        current.status === "ok" &&
+        (await sha256(current.data)) === previous.sha256
+      ) {
+        await fs2Commands.remove(previous.path);
+      }
+    }
+    const next = [
+      ...others,
+      { key, path, sha256: await sha256(written.data) },
+    ].slice(-MAX_MARKDOWN_EXPORT_FILES);
+    await setSettingValue(
+      "automation_markdown_export_files",
+      JSON.stringify(next),
+    );
+  });
+  return path;
+}
+
+let settingsUpdates: Promise<unknown> = Promise.resolve();
+
+// Concurrent runs read and rewrite the same stored list, so run each
+// read-modify-write after the previous one finishes.
+function serializeSettingsUpdate<T>(update: () => Promise<T>): Promise<T> {
+  const next = settingsUpdates.then(update, update);
+  settingsUpdates = next.catch(() => undefined);
+  return next;
+}
+
+// Exported filenames may differ only by case on a case-insensitive disk.
+function samePath(a: string, b: string): boolean {
+  return a.toLowerCase() === b.toLowerCase();
+}
+
+function parseMarkdownExportFiles(
+  value: string | undefined,
+): MarkdownExportFile[] {
+  if (!value) {
+    return [];
+  }
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter(
+          (entry): entry is MarkdownExportFile =>
+            typeof entry === "object" &&
+            entry !== null &&
+            ["key", "path", "sha256"].every(
+              (field) =>
+                typeof (entry as Record<string, unknown>)[field] === "string",
+            ),
+        )
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
 }
 
 async function executeSlackRecap(
@@ -842,6 +955,7 @@ async function runWorkflowWithFileExports(
       try {
         details.push(
           await executeWorkflowStep(sessionId, step, {
+            stepKey: workflowStepKey(workflow, step, sessionId),
             beforeLinearCreate: () =>
               persistWorkflowResult(workflow.id, { sessionId }),
           }),

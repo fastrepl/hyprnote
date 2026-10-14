@@ -1,9 +1,12 @@
+import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_MARKDOWN_EXPORT_OPTIONS } from "./markdown-export";
 
 const mocks = vi.hoisted(() => ({
   exportMeetingMarkdown: vi.fn(),
+  readTextFile: vi.fn(),
+  removeFile: vi.fn(),
   prepareDriveMarkdown: vi.fn(),
   googleDrivePrepareExport: vi.fn(),
   googleDriveExportMarkdown: vi.fn(),
@@ -15,6 +18,10 @@ const mocks = vi.hoisted(() => ({
   listConnections: vi.fn(),
   linearCreateIssue: vi.fn(),
   notionAppendUpdate: vi.fn(),
+}));
+
+vi.mock("@anlg/plugin-fs2", () => ({
+  commands: { readTextFile: mocks.readTextFile, remove: mocks.removeFile },
 }));
 
 vi.mock("@anlg/plugin-local-api", () => ({
@@ -131,6 +138,8 @@ function mockDbRows({
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.setSettingValue.mockResolvedValue(undefined);
+  mocks.readTextFile.mockResolvedValue({ status: "ok", data: "# Export" });
+  mocks.removeFile.mockResolvedValue({ status: "ok", data: null });
   mocks.listConnections.mockResolvedValue({
     data: {
       connections: [
@@ -796,6 +805,51 @@ describe("configured Markdown workflows", () => {
         status: "success",
         detail: "/exports/Planning recap.md",
       });
+    },
+  );
+
+  it.each([
+    ["removes", "old summary", true],
+    ["keeps a user-edited", "edited by hand", false],
+  ])(
+    "%s file from the previous title after a regenerated summary",
+    async (_label, oldContent, removed) => {
+      storedSettings({
+        automation_workflows: JSON.stringify([
+          {
+            id: "wf-markdown",
+            enabled: true,
+            trigger: "note_enhanced",
+            steps: [
+              { id: "step-md", type: "markdown_export", directory: "/exports" },
+            ],
+            processedSessionIds: ["session-1"],
+          },
+        ]),
+        automation_markdown_export_files: JSON.stringify([
+          {
+            key: "wf-markdown:step-md:session-1",
+            path: "/exports/Planning.md",
+            sha256: createHash("sha256").update("old summary").digest("hex"),
+          },
+        ]),
+      });
+      mocks.exportMeetingMarkdown.mockResolvedValue({
+        status: "ok",
+        data: "/exports/Launch.md",
+      });
+      mocks.readTextFile.mockImplementation(async (path: string) => ({
+        status: "ok",
+        data: path === "/exports/Planning.md" ? oldContent : "new summary",
+      }));
+
+      await runNoteEnhancedAutomations("session-1");
+
+      if (removed) {
+        expect(mocks.removeFile).toHaveBeenCalledWith("/exports/Planning.md");
+      } else {
+        expect(mocks.removeFile).not.toHaveBeenCalled();
+      }
     },
   );
 

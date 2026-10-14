@@ -4,14 +4,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { beginCloudsyncActivity, endCloudsyncActivity } from "@anlg/plugin-db";
 
+import { ChatSessionHost } from "./chat-panel";
 import { ChatSession, type ChatSessionRenderProps } from "./session-provider";
 
+import { useChatContext } from "~/chat/state/chat-context";
 import { CHAT_CLOUDSYNC_RELEASE_DELAY_MS } from "~/chat/store/cloudsync-activity";
 import type { PersistedChatMessage } from "~/chat/store/persisted-messages";
 import { useChatActions } from "~/chat/store/use-chat-actions";
 import type { AnlgUIMessage } from "~/chat/types";
+import { MainShellScaffold } from "~/shared/main/shell-scaffold";
 
 const mocks = vi.hoisted(() => ({
+  currentTab: { type: "sessions" } as { type: string },
   createChatGroupWithMessage: vi.fn().mockResolvedValue(undefined),
   deleteChatMessage: vi.fn().mockResolvedValue(undefined),
   deleteChatMessagesExcept: vi.fn().mockResolvedValue(undefined),
@@ -31,6 +35,52 @@ const mocks = vi.hoisted(() => ({
   transportIdentityChangesEveryRender: false,
   upsertChatMessage: vi.fn().mockResolvedValue(undefined),
 }));
+
+vi.mock("~/store/zustand/tabs", () => ({
+  useTabs: (
+    selector: (state: { currentTab: typeof mocks.currentTab }) => unknown,
+  ) => selector({ currentTab: mocks.currentTab }),
+}));
+
+vi.mock("@tauri-apps/plugin-os", () => ({
+  platform: () => "macos",
+}));
+
+vi.mock("~/contexts/shell", () => ({
+  useShell: () => ({
+    chat: {
+      scope:
+        mocks.currentTab.type === "automations" ? "automations" : "general",
+      ...useChatContext.getState().chatByScope[
+        mocks.currentTab.type === "automations" ? "automations" : "general"
+      ],
+    },
+  }),
+}));
+
+vi.mock("./use-session-tab", () => ({
+  useSessionTab: () => ({ currentSessionId: "note-1" }),
+}));
+
+vi.mock("~/session/queries", () => ({
+  useSessionHasTranscript: () => true,
+}));
+
+vi.mock("~/stt/contexts", () => ({
+  useListener: (selector: (state: unknown) => unknown) =>
+    selector({
+      getSessionMode: () => "active",
+      live: {
+        requestedLiveTranscription: true,
+        liveTranscriptionActive: true,
+        batchTranscriptionPendingBySession: {},
+      },
+    }),
+}));
+
+vi.mock("./body", () => ({ ChatBody: () => null }));
+vi.mock("./content", () => ({ ChatContent: () => null }));
+vi.mock("./toolbar-controls", () => ({ ChatToolbarControls: () => null }));
 
 vi.mock("~/ai/hooks", () => ({
   useLanguageModel: () => undefined,
@@ -96,17 +146,32 @@ const userMessage: AnlgUIMessage = {
   parts: [{ type: "text", text: "Question" }],
 };
 
-function renderHarness() {
+function renderHarness(inMainShell = false) {
   let current: ChatSessionRenderProps | undefined;
-  const view = render(
+  const content = (
     <ChatSession chatGroupId="group-1" sessionId="session-1" unstyled>
       {(props) => {
         current = props;
         return null;
       }}
-    </ChatSession>,
+    </ChatSession>
   );
+  const renderContent = () =>
+    inMainShell ? (
+      <MainShellScaffold>
+        <ChatSessionHost>
+          {(props) => {
+            current = props ?? undefined;
+            return null;
+          }}
+        </ChatSessionHost>
+      </MainShellScaffold>
+    ) : (
+      content
+    );
+  const view = render(renderContent());
   return {
+    rerender: () => view.rerender(renderContent()),
     get props() {
       if (!current) {
         throw new Error("ChatSession did not render");
@@ -179,6 +244,13 @@ function startedNativeKey(callIndex: number) {
 
 describe("ChatSession real SDK CloudSync activity", () => {
   beforeEach(() => {
+    mocks.currentTab = { type: "sessions" };
+    useChatContext.setState({
+      chatByScope: {
+        general: { groupId: "group-1", sessionId: "session-1" },
+        automations: { groupId: "group-2", sessionId: "session-2" },
+      },
+    });
     vi.clearAllMocks();
     vi.mocked(beginCloudsyncActivity).mockReset().mockResolvedValue(undefined);
     vi.mocked(endCloudsyncActivity).mockReset().mockResolvedValue(undefined);
@@ -259,6 +331,80 @@ describe("ChatSession real SDK CloudSync activity", () => {
       userMessage.id,
       "assistant-1",
     ]);
+  });
+
+  it("finishes and saves a streaming reply across screen and scope changes with live-recording context", async () => {
+    let controller!: ReadableStreamDefaultController<UIMessageChunk>;
+    mocks.sendMessages.mockResolvedValue(
+      new ReadableStream<UIMessageChunk>({
+        start: (streamController) => {
+          controller = streamController;
+        },
+      }),
+    );
+    const harness = renderHarness(true);
+    harness.props.sendMessage(userMessage, { chatGroupId: "group-1" });
+    await waitFor(() => expect(harness.props.status).toBe("submitted"));
+    controller.enqueue({ type: "start", messageId: "assistant-1" });
+    controller.enqueue({ type: "text-start", id: "text-1" });
+    controller.enqueue({ type: "text-delta", id: "text-1", delta: "Hello" });
+    await waitFor(() => expect(harness.props.status).toBe("streaming"));
+
+    for (const type of [
+      "calendar",
+      "settings",
+      "contacts",
+      "humans",
+      "folders",
+      "templates",
+      "changelog",
+      "shared_sessions",
+      "shared_note_preview",
+      "edit",
+      "task",
+      "onboarding",
+      "empty",
+    ]) {
+      mocks.currentTab = { type };
+      harness.rerender();
+      expect(harness.props.status, type).toBe("streaming");
+    }
+    mocks.currentTab = { type: "automations" };
+    harness.rerender();
+    expect(harness.props.sessionId).toBe("session-2");
+    expect(harness.props.messages).toEqual([]);
+
+    mocks.currentTab = { type: "sessions" };
+    harness.rerender();
+    expect(harness.props.sessionId).toBe("session-1");
+    expect(harness.props.status).toBe("streaming");
+    controller.enqueue({ type: "text-delta", id: "text-1", delta: " world" });
+    await waitFor(() =>
+      expect(
+        harness.props.messages[harness.props.messages.length - 1]?.parts,
+      ).toEqual([{ type: "text", text: "Hello world", state: "streaming" }]),
+    );
+
+    mocks.currentTab = { type: "sessions" };
+    harness.rerender();
+    expect(harness.props.status).toBe("streaming");
+    mocks.currentTab = { type: "automations" };
+    harness.rerender();
+    controller.enqueue({ type: "text-end", id: "text-1" });
+    controller.enqueue({ type: "finish" });
+    controller.close();
+    await waitFor(() =>
+      expect(mocks.upsertChatMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: "assistant-1",
+          chatGroupId: "group-1",
+          content: expect.stringContaining("Hello world"),
+        }),
+      ),
+    );
+    mocks.currentTab = { type: "sessions" };
+    harness.rerender();
+    expect(harness.props.status).toBe("ready");
   });
 
   it("persists after unmount when deferred acquisition later succeeds", async () => {

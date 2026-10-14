@@ -471,7 +471,10 @@ async function executeConfiguredMarkdownExport(
     const others = files.filter((file) => file.key !== key);
     const previous = files.find((file) => file.key === key);
     const replaceable =
-      previous && !others.some((file) => file.path === previous.path)
+      previous &&
+      !others.some(
+        (file) => file.path.toLowerCase() === previous.path.toLowerCase(),
+      )
         ? { path: previous.path, sha256: previous.sha256 }
         : null;
     const file = await exportMarkdownFile(

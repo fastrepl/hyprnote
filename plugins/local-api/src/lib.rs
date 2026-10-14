@@ -461,6 +461,37 @@ mod test {
     }
 
     #[tokio::test]
+    async fn changed_filename_pattern_replaces_identical_previous_export() {
+        let pool = seeded_pool().await;
+        let export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+            .await
+            .unwrap();
+        let directory = tempfile::tempdir().unwrap();
+        let export_with = |filename: &str| {
+            let options = MarkdownExportOptions {
+                filename: filename.to_string(),
+                include_id_suffix: false,
+                ..Default::default()
+            };
+            let path = commands::write_markdown_export_with_options(
+                directory.path(),
+                &export,
+                Some(&options),
+            )
+            .unwrap();
+            (path.clone(), commands::markdown_export_file(&path).unwrap())
+        };
+        let (old, previous) = export_with("{title}");
+        let (new, current) = export_with("{title} notes");
+        assert_eq!(previous.sha256, current.sha256);
+
+        commands::remove_replaced_export(&previous, &current);
+
+        assert!(!old.exists());
+        assert!(new.exists());
+    }
+
+    #[tokio::test]
     async fn simultaneous_markdown_exports_complete_without_false_collisions() {
         let pool = seeded_pool().await;
         let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())

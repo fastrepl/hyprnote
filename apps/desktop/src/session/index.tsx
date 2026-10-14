@@ -7,6 +7,7 @@ import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
 import { computeCurrentNoteTab } from "@anlg/utils/session";
 
 import { FloatingActionButton } from "./components/floating";
+import { InterviewHeader } from "./components/interview-header";
 import { NoteConflictBanner } from "./components/note-conflict-banner";
 import {
   NoteInput,
@@ -356,6 +357,7 @@ function TabContentNoteInner({
         <div className="flex h-full min-h-0 flex-col">
           {!lockOverlay ? (
             <>
+              <InterviewHeader sessionId={sessionId} />
               <NoteConflictBanner sessionId={sessionId} />
               <PendingProposalsBanner sessionId={sessionId} />
             </>

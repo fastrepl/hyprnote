@@ -25,14 +25,6 @@ function TrialStarted({
   }
 
   const endsOn = formatTrialEnd(days);
-  const subtitle =
-    trialPhase.offer === "work_email" ? (
-      <Trans>Work email bonus · Free until {endsOn}</Trans>
-    ) : trialPhase.offer === "referral" ? (
-      <Trans>Invite bonus · Free until {endsOn}</Trans>
-    ) : (
-      <Trans>Free until {endsOn}</Trans>
-    );
 
   return (
     <TrialOfferCard
@@ -40,8 +32,8 @@ function TrialStarted({
       icon={
         <CheckCircle className="size-4 text-emerald-600" aria-hidden="true" />
       }
-      title={<Trans>Your Pro trial has started</Trans>}
-      subtitle={subtitle}
+      title={<Trans>Pro trial started</Trans>}
+      subtitle={<Trans>Until {endsOn}</Trans>}
     />
   );
 }
@@ -61,18 +53,11 @@ function ChooseTrial({
 }) {
   return (
     <div className="flex flex-col items-start gap-4">
-      {email && (
-        <StepRow status="done" label={<Trans>Signed in as {email}</Trans>} />
-      )}
       <TrialOfferCard
-        previousDays={PRO_TRIAL_DAYS}
-        days={WORK_EMAIL_PRO_TRIAL_DAYS}
-        title={
-          <Trans>
-            Get {WORK_EMAIL_PRO_TRIAL_DAYS} days instead of {PRO_TRIAL_DAYS}
-          </Trans>
-        }
-        subtitle={<Trans>Switch to your work email for a full month</Trans>}
+        fromDays={WORK_EMAIL_PRO_TRIAL_DAYS}
+        days={PRO_TRIAL_DAYS}
+        title={<Trans>Personal email</Trans>}
+        subtitle={email}
       />
       <div className="flex flex-row items-center gap-2">
         <OnboardingButton

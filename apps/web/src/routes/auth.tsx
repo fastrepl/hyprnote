@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useRef, useState, type ReactNode } from "react";
 
-import { PRO_TRIAL_DAYS, WORK_EMAIL_PRO_TRIAL_DAYS } from "@anlg/pricing/trial";
+import { WORK_EMAIL_PRO_TRIAL_DAYS } from "@anlg/pricing/trial";
 import { ArrowLeft, Buildings, Envelope } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
@@ -1141,22 +1141,14 @@ function TrialOfferCard() {
         <span className="font-hand text-[40px] leading-[0.9] font-semibold text-amber-800">
           {WORK_EMAIL_PRO_TRIAL_DAYS}
         </span>
-        <span className="mt-1.5 text-[10px] font-semibold tracking-[0.22em] text-amber-800/70 uppercase">
+        <span className="mt-1 pl-[0.22em] text-[10px] font-semibold tracking-[0.22em] text-amber-800/70 uppercase">
           days
         </span>
       </div>
       <div className="h-11 w-px shrink-0 bg-amber-900/10" />
-      <div className="flex min-w-0 flex-col gap-0.5 text-left">
-        <span className="text-[15px] font-semibold text-stone-900">
-          Pro, free for a month
-        </span>
-        <span className="text-[13px] text-stone-500">
-          Sign up with your work email
-        </span>
-        <span className="text-[11px] text-stone-400">
-          Personal email gets {PRO_TRIAL_DAYS} days
-        </span>
-      </div>
+      <span className="text-[15px] font-semibold text-stone-900">
+        Free Pro with a work email
+      </span>
     </div>
   );
 }

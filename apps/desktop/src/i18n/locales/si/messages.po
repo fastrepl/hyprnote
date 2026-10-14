@@ -2703,8 +2703,8 @@ msgstr ""
 msgid "Free months earned"
 msgstr ""
 
-#: src/onboarding/account/after-login.tsx
-msgid "Free until {endsOn}"
+#: src/onboarding/account/before-login.tsx
+msgid "Free Pro with a work email"
 msgstr ""
 
 #: src/templates/template-icon-picker.tsx
@@ -2744,10 +2744,6 @@ msgstr ""
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "Generating transcript..."
-msgstr ""
-
-#: src/onboarding/account/after-login.tsx
-msgid "Get {WORK_EMAIL_PRO_TRIAL_DAYS} days instead of {PRO_TRIAL_DAYS}"
 msgstr ""
 
 #: src/settings/sync/index.tsx
@@ -3086,10 +3082,6 @@ msgstr ""
 
 #: src/settings/referrals.tsx
 msgid "Invite {slot}"
-msgstr ""
-
-#: src/onboarding/account/after-login.tsx
-msgid "Invite bonus · Free until {endsOn}"
 msgstr ""
 
 #: src/billing/trial-payment-reminder-dialog.tsx
@@ -4389,8 +4381,8 @@ msgstr ""
 msgid "Permissions granted"
 msgstr ""
 
-#: src/onboarding/account/before-login.tsx
-msgid "Personal email gets {PRO_TRIAL_DAYS} days"
+#: src/onboarding/account/after-login.tsx
+msgid "Personal email"
 msgstr ""
 
 #: src/crm/enrich-contact.tsx
@@ -4533,10 +4525,6 @@ msgstr ""
 
 #: src/onboarding/account/after-login.tsx
 msgid "Pro trial started"
-msgstr ""
-
-#: src/onboarding/account/before-login.tsx
-msgid "Pro, free for a month"
 msgstr ""
 
 #: src/settings/appearance/app-icon.tsx
@@ -5644,18 +5632,10 @@ msgstr ""
 msgid "Sign out of Anarlog?"
 msgstr ""
 
-#: src/onboarding/account/before-login.tsx
-msgid "Sign up with your work email"
-msgstr ""
-
 #: src/onboarding/account/after-login.tsx
 #: src/onboarding/index.tsx
 #: src/settings/general/account.tsx
 msgid "Signed in"
-msgstr ""
-
-#: src/onboarding/account/after-login.tsx
-msgid "Signed in as {email}"
 msgstr ""
 
 #: src/settings/general/account.tsx
@@ -5962,10 +5942,6 @@ msgstr ""
 
 #: src/settings/general/billing.tsx
 msgid "Switch to Pro"
-msgstr ""
-
-#: src/onboarding/account/after-login.tsx
-msgid "Switch to your work email for a full month"
 msgstr ""
 
 #: src/templates/template-icon-picker.tsx
@@ -6391,6 +6367,10 @@ msgstr ""
 msgid "Unpin"
 msgstr ""
 
+#: src/onboarding/account/after-login.tsx
+msgid "Until {endsOn}"
+msgstr ""
+
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/session/components/title-input.tsx
@@ -6712,10 +6692,6 @@ msgstr ""
 msgid "whisper.cpp models"
 msgstr ""
 
-#: src/onboarding/account/after-login.tsx
-msgid "Work email bonus · Free until {endsOn}"
-msgstr ""
-
 #: src/task/tab-content.tsx
 msgid "Work on this task"
 msgstr ""
@@ -6893,10 +6869,6 @@ msgstr ""
 #: src/billing/trial-ended-dialog.tsx
 #: src/settings/general/billing.tsx
 msgid "Your Pro trial has ended"
-msgstr ""
-
-#: src/onboarding/account/after-login.tsx
-msgid "Your Pro trial has started"
 msgstr ""
 
 #: src/billing/trial-started-dialog.tsx

@@ -102,6 +102,10 @@ msgstr "{count} of {total} collected"
 msgid "{date}. Conversations: {count}"
 msgstr "{date}. Conversations: {count}"
 
+#: src/onboarding/account/after-login.tsx
+msgid "{days} days of Pro"
+msgstr "{days} days of Pro"
+
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "{entryCount} selected"
 msgstr "{entryCount} selected"
@@ -1946,6 +1950,10 @@ msgstr "Couldn't save your new badges."
 msgid "Couldn't save your profile. Try again."
 msgstr "Couldn't save your profile. Try again."
 
+#: src/onboarding/account/after-login.tsx
+msgid "Couldn't switch accounts. Please try again."
+msgstr "Couldn't switch accounts. Please try again."
+
 #: src/folders/sidebar.tsx
 #: src/settings/team/index.tsx
 msgid "Create"
@@ -2339,10 +2347,6 @@ msgstr "Edit"
 msgid "Edit date"
 msgstr "Edit date"
 
-#: src/onboarding/account/after-login.tsx
-msgid "Eligible for free trial"
-msgstr "Eligible for free trial"
-
 #: src/crm/enrich-contact.tsx
 msgid "email"
 msgstr "email"
@@ -2703,6 +2707,10 @@ msgstr "Free"
 msgid "Free months earned"
 msgstr "Free months earned"
 
+#: src/onboarding/account/after-login.tsx
+msgid "Free until {endsOn}"
+msgstr "Free until {endsOn}"
+
 #: src/templates/template-icon-picker.tsx
 msgid "Frequently used"
 msgstr "Frequently used"
@@ -2741,6 +2749,10 @@ msgstr "Generating title..."
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "Generating transcript..."
 msgstr "Generating transcript..."
+
+#: src/onboarding/account/after-login.tsx
+msgid "Get {WORK_EMAIL_PRO_TRIAL_DAYS} days instead of {PRO_TRIAL_DAYS}"
+msgstr "Get {WORK_EMAIL_PRO_TRIAL_DAYS} days instead of {PRO_TRIAL_DAYS}"
 
 #: src/settings/sync/index.tsx
 msgid "Get more slots"
@@ -3080,6 +3092,10 @@ msgstr "Invite"
 msgid "Invite {slot}"
 msgstr "Invite {slot}"
 
+#: src/onboarding/account/after-login.tsx
+msgid "Invite bonus · {days} days of Pro"
+msgstr "Invite bonus · {days} days of Pro"
+
 #: src/billing/trial-payment-reminder-dialog.tsx
 #: src/settings/referrals.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -3161,6 +3177,10 @@ msgstr "Join scheduled meetings"
 #: src/settings/team/index.tsx
 msgid "Joined {0}"
 msgstr "Joined {0}"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Keep {PRO_TRIAL_DAYS} days"
+msgstr "Keep {PRO_TRIAL_DAYS} days"
 
 #: src/settings/dictation.tsx
 msgid "Keep Anarlog running to use your shortcut in other apps."
@@ -4373,6 +4393,10 @@ msgstr "Permissions for {0}"
 msgid "Permissions granted"
 msgstr "Permissions granted"
 
+#: src/onboarding/account/before-login.tsx
+msgid "Personal email · {PRO_TRIAL_DAYS} days"
+msgstr "Personal email · {PRO_TRIAL_DAYS} days"
+
 #: src/crm/enrich-contact.tsx
 msgid "phone"
 msgstr "phone"
@@ -4510,6 +4534,14 @@ msgstr "Pro plan"
 #: src/settings/general/billing.tsx
 msgid "Pro trial"
 msgstr "Pro trial"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Pro trial started"
+msgstr "Pro trial started"
+
+#: src/onboarding/account/before-login.tsx
+msgid "Pro, free for a month"
+msgstr "Pro, free for a month"
 
 #: src/settings/appearance/app-icon.tsx
 msgid "Production"
@@ -5572,10 +5604,6 @@ msgstr "Sign in to share folders, templates, and automations."
 msgid "Sign in to share this note with others."
 msgstr "Sign in to share this note with others."
 
-#: src/onboarding/index.tsx
-msgid "Sign in to unlock powerful AI models, sync across devices, and personalization."
-msgstr "Sign in to unlock powerful AI models, sync across devices, and personalization."
-
 #: src/settings/sync/index.tsx
 msgid "Sign in to use cloud sync"
 msgstr "Sign in to use cloud sync"
@@ -5620,11 +5648,19 @@ msgstr "Sign out and sign in again to resume cloud sync."
 msgid "Sign out of Anarlog?"
 msgstr "Sign out of Anarlog?"
 
+#: src/onboarding/account/before-login.tsx
+msgid "Sign up with your work email"
+msgstr "Sign up with your work email"
+
 #: src/onboarding/account/after-login.tsx
 #: src/onboarding/index.tsx
 #: src/settings/general/account.tsx
 msgid "Signed in"
 msgstr "Signed in"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Signed in as {email}"
+msgstr "Signed in as {email}"
 
 #: src/settings/general/account.tsx
 msgid "Signing out..."
@@ -5931,6 +5967,10 @@ msgstr "Sunday"
 #: src/settings/general/billing.tsx
 msgid "Switch to Pro"
 msgstr "Switch to Pro"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Switch to your work email for a full month"
+msgstr "Switch to your work email for a full month"
 
 #: src/templates/template-icon-picker.tsx
 msgid "Symbols"
@@ -6243,10 +6283,6 @@ msgstr "Travel & Places"
 msgid "Trial"
 msgstr "Trial"
 
-#: src/onboarding/account/after-login.tsx
-msgid "Trial activated - {trialDays} days of Pro"
-msgstr "Trial activated - {trialDays} days of Pro"
-
 #: src/settings/referrals.tsx
 msgid "Trial started · Applying your free month"
 msgstr "Trial started · Applying your free month"
@@ -6537,6 +6573,10 @@ msgstr "Use Touch ID or enter your password to view."
 msgid "Use Windows Hello face, PIN, or password to view."
 msgstr "Use Windows Hello face, PIN, or password to view."
 
+#: src/onboarding/account/after-login.tsx
+msgid "Use work email"
+msgstr "Use work email"
+
 #: src/onboarding/permissions.tsx
 msgid "Use your microphone to capture your voice"
 msgstr "Use your microphone to capture your voice"
@@ -6675,6 +6715,10 @@ msgstr "When this happens"
 #: src/settings/ai/stt/local-file-model.tsx
 msgid "whisper.cpp models"
 msgstr "whisper.cpp models"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Work email · {days} days of Pro"
+msgstr "Work email · {days} days of Pro"
 
 #: src/task/tab-content.tsx
 msgid "Work on this task"

@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useRef, useState, type ReactNode } from "react";
 
+import { PRO_TRIAL_DAYS, WORK_EMAIL_PRO_TRIAL_DAYS } from "@anlg/pricing/trial";
 import { ArrowLeft, Buildings, Envelope } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
@@ -160,18 +161,8 @@ function Component() {
     <AuthShell title="Welcome to Anarlog" showEyebrow={false}>
       {view === "main" && (
         <>
+          <TrialOfferCard />
           <div className="flex flex-col gap-3">
-            {showApple && (
-              <OAuthButton
-                flow={flow}
-                scheme={scheme}
-                desktop_state={desktop_state}
-                redirect={redirect}
-                provider="apple"
-                autoStart={autoStartOAuth}
-                isLastUsed={lastSignInMethod === "apple"}
-              />
-            )}
             {showGoogle && (
               <OAuthButton
                 flow={flow}
@@ -194,16 +185,21 @@ function Component() {
                 isLastUsed={lastSignInMethod === "azure"}
               />
             )}
-            {showGithub && (
-              <OAuthButton
-                flow={flow}
-                scheme={scheme}
-                desktop_state={desktop_state}
-                redirect={redirect}
-                provider="github"
-                autoStart={autoStartOAuth}
-                isLastUsed={lastSignInMethod === "github"}
-              />
+            {showEmail && (
+              <AuthMethodButton isLastUsed={lastSignInMethod === "sso"}>
+                <button
+                  onClick={() => setView("sso")}
+                  className={authSecondaryButtonClassName}
+                >
+                  <AuthProviderContent
+                    icon={
+                      <Buildings className="size-[18px]" aria-hidden="true" />
+                    }
+                  >
+                    Sign in with SSO
+                  </AuthProviderContent>
+                </button>
+              </AuthMethodButton>
             )}
             {showEmail && (
               <AuthMethodButton isLastUsed={lastSignInMethod === "email"}>
@@ -221,21 +217,27 @@ function Component() {
                 </button>
               </AuthMethodButton>
             )}
-            {showEmail && (
-              <AuthMethodButton isLastUsed={lastSignInMethod === "sso"}>
-                <button
-                  onClick={() => setView("sso")}
-                  className={authSecondaryButtonClassName}
-                >
-                  <AuthProviderContent
-                    icon={
-                      <Buildings className="size-[18px]" aria-hidden="true" />
-                    }
-                  >
-                    Sign in with SSO
-                  </AuthProviderContent>
-                </button>
-              </AuthMethodButton>
+            {showApple && (
+              <OAuthButton
+                flow={flow}
+                scheme={scheme}
+                desktop_state={desktop_state}
+                redirect={redirect}
+                provider="apple"
+                autoStart={autoStartOAuth}
+                isLastUsed={lastSignInMethod === "apple"}
+              />
+            )}
+            {showGithub && (
+              <OAuthButton
+                flow={flow}
+                scheme={scheme}
+                desktop_state={desktop_state}
+                redirect={redirect}
+                provider="github"
+                autoStart={autoStartOAuth}
+                isLastUsed={lastSignInMethod === "github"}
+              />
             )}
           </div>
           <LegalText />
@@ -1129,5 +1131,30 @@ function OAuthButton({
         </AuthProviderContent>
       </button>
     </AuthMethodButton>
+  );
+}
+
+function TrialOfferCard() {
+  return (
+    <div className="mb-5 flex items-center gap-4 rounded-2xl border border-amber-200/70 bg-linear-to-br from-amber-50 to-white px-4 py-3 shadow-[0_6px_24px_-12px_rgba(146,64,14,0.35)]">
+      <div className="flex shrink-0 flex-col items-center">
+        <span className="font-hand text-4xl leading-none font-semibold text-amber-800">
+          {WORK_EMAIL_PRO_TRIAL_DAYS}
+        </span>
+        <span className="mt-1 text-[10px] font-medium tracking-[0.2em] text-amber-700 uppercase">
+          days
+        </span>
+      </div>
+      <div className="h-10 w-px shrink-0 bg-amber-200/80" />
+      <div className="flex min-w-0 flex-col gap-0.5 text-left">
+        <span className="text-sm font-semibold text-stone-900">
+          Pro, free for a month
+        </span>
+        <span className="text-xs text-stone-500">
+          Sign up with your work email · Personal email gets {PRO_TRIAL_DAYS}{" "}
+          days
+        </span>
+      </div>
+    </div>
   );
 }

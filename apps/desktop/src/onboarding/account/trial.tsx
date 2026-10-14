@@ -1,11 +1,12 @@
 import * as Sentry from "@sentry/react";
-import { useMutation } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 
-import { startTrial } from "@anlg/api-client";
-import type { StartTrialReason } from "@anlg/api-client";
+import { canStartTrial, deleteAccount, startTrial } from "@anlg/api-client";
+import type { StartTrialReason, TrialOffer } from "@anlg/api-client";
 import { createClient } from "@anlg/api-client/client";
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
+import { proTrialDaysForOffer } from "@anlg/pricing";
 
 import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
@@ -14,17 +15,60 @@ import { waitForBillingUpdate } from "~/shared/billing";
 import { configurePaidSettings } from "~/shared/config/configure-paid-settings";
 import { startTrialOnce } from "~/shared/trial-start";
 
+// Only a just-created account may be discarded to retry with a work email.
+const SWITCHABLE_ACCOUNT_AGE_MS = 30 * 60 * 1000;
+
 export type TrialPhase =
   | "checking"
   | "starting"
   | "already-paid"
   | "already-trialing"
-  | { done: StartTrialReason | "error" };
+  | { choose: { email: string | undefined } }
+  | {
+      done: StartTrialReason | "error";
+      offer?: TrialOffer;
+      trialDays?: number;
+    };
+
+function isSwitchableAccount(createdAt: string | undefined) {
+  if (!createdAt) return false;
+  const age = Date.now() - new Date(createdAt).getTime();
+  return age >= 0 && age < SWITCHABLE_ACCOUNT_AGE_MS;
+}
 
 export function useTrialFlow(onContinue: () => void) {
   const auth = useAuth();
   const billing = useBillingAccess();
   const hasTriggeredRef = useRef(false);
+  const [keptPersonalTrial, setKeptPersonalTrial] = useState(false);
+
+  const user = auth?.session?.user;
+  const needsTrial =
+    !!user && billing.isReady && !billing.isPaid && !billing.isTrialing;
+  const canSwitchAccount = isSwitchableAccount(user?.created_at);
+
+  // auth only supplies request headers; the result is keyed by the signed-in user.
+  // eslint-disable-next-line @tanstack/query/exhaustive-deps
+  const offerQuery = useQuery({
+    queryKey: ["onboarding-trial-offer", user?.id],
+    enabled: needsTrial && canSwitchAccount && auth.isFingerprintSettled,
+    retry: false,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const headers = auth.getHeaders();
+      if (!headers) throw new Error("no headers");
+      const client = createClient({ baseUrl: env.VITE_API_URL, headers });
+      const { data, error } = await canStartTrial({ client });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const offersWorkEmailSwitch =
+    canSwitchAccount &&
+    !keptPersonalTrial &&
+    offerQuery.data?.canStartTrial === true &&
+    offerQuery.data.offer === "personal_email";
 
   const {
     mutate: triggerTrial,
@@ -52,8 +96,9 @@ export function useTrialFlow(onContinue: () => void) {
         return data;
       });
     },
-    onSuccess: () => {
-      onContinue();
+    onSuccess: (data) => {
+      // Let the trial length sink in before moving on.
+      setTimeout(onContinue, data?.started ? 2500 : 0);
     },
     onError: async (e) => {
       Sentry.captureException(e);
@@ -65,6 +110,29 @@ export function useTrialFlow(onContinue: () => void) {
       onContinue();
     },
   });
+
+  const switchToWorkEmail = useMutation({
+    mutationFn: async () => {
+      const headers = auth.getHeaders();
+      if (!headers) throw new Error("no headers");
+      const client = createClient({ baseUrl: env.VITE_API_URL, headers });
+      const { error } = await deleteAccount({ client });
+      if (error) throw error;
+      void analyticsCommands.event({
+        event: "trial_offer_switch_to_work_email",
+      });
+      await auth.signOut();
+      await auth.signIn();
+    },
+    onError: (e) => {
+      Sentry.captureException(e);
+    },
+  });
+
+  const keepPersonalTrial = () => {
+    void analyticsCommands.event({ event: "trial_offer_kept_personal_email" });
+    setKeptPersonalTrial(true);
+  };
 
   useEffect(() => {
     if (!auth?.session || !billing.isReady || hasTriggeredRef.current) return;
@@ -92,30 +160,61 @@ export function useTrialFlow(onContinue: () => void) {
     }
 
     if (!auth.isFingerprintSettled) return;
+    if (canSwitchAccount && offerQuery.isPending) return;
+    if (offersWorkEmailSwitch || switchToWorkEmail.isPending) return;
 
     hasTriggeredRef.current = true;
     triggerTrial();
-  }, [auth, billing, onContinue, triggerTrial]);
+  }, [
+    auth,
+    billing,
+    canSwitchAccount,
+    offerQuery.isPending,
+    offersWorkEmailSwitch,
+    onContinue,
+    switchToWorkEmail.isPending,
+    triggerTrial,
+  ]);
 
-  if (!auth?.session) return null;
-  if (!billing.isReady) return "checking" as const;
+  const flow = {
+    keepPersonalTrial,
+    switchToWorkEmail: () => switchToWorkEmail.mutate(),
+    isSwitching: switchToWorkEmail.isPending,
+    switchFailed: switchToWorkEmail.isError,
+  };
 
-  if (billing.isPaid && !billing.isTrialing) return "already-paid" as const;
-  if (billing.isTrialing) return "already-trialing" as const;
+  const phase = ((): TrialPhase | null => {
+    if (!auth?.session) return null;
+    if (!billing.isReady) return "checking";
 
-  if (isPending) return "starting" as const;
+    if (billing.isPaid && !billing.isTrialing) return "already-paid";
+    if (billing.isTrialing && !isSuccess) return "already-trialing";
 
-  if (isSuccess) {
-    const reason = trialResult?.reason;
-    if (reason === "started" || reason === "not_eligible") {
-      return { done: reason };
+    if (offersWorkEmailSwitch && !isPending && !isSuccess) {
+      return { choose: { email: auth.session.user.email } };
     }
-    return { done: "error" as const };
-  }
 
-  if (isError) {
-    return { done: "error" as const };
-  }
+    if (isPending) return "starting";
 
-  return "checking" as const;
+    if (isSuccess) {
+      const reason = trialResult?.reason;
+      if (reason === "started" || reason === "not_eligible") {
+        const offer = trialResult?.offer ?? undefined;
+        return {
+          done: reason,
+          offer,
+          trialDays:
+            trialResult?.trial_days ??
+            (offer ? proTrialDaysForOffer(offer) : undefined),
+        };
+      }
+      return { done: "error" };
+    }
+
+    if (isError) return { done: "error" };
+
+    return "checking";
+  })();
+
+  return { phase, ...flow };
 }

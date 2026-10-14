@@ -1,9 +1,11 @@
 import { Trans } from "@lingui/react/macro";
 import { useState } from "react";
 
+import { PRO_TRIAL_DAYS, WORK_EMAIL_PRO_TRIAL_DAYS } from "@anlg/pricing";
 import { CircleNotch } from "@anlg/ui/components/icons";
 
 import { OnboardingButton } from "../shared";
+import { TrialOfferCard } from "./offer-card";
 
 import { useAuth } from "~/auth";
 
@@ -18,7 +20,13 @@ export function BeforeLogin() {
   };
 
   return (
-    <div className="flex flex-col items-start">
+    <div className="flex flex-col items-start gap-4">
+      <TrialOfferCard
+        days={WORK_EMAIL_PRO_TRIAL_DAYS}
+        title={<Trans>Pro, free for a month</Trans>}
+        subtitle={<Trans>Sign up with your work email</Trans>}
+        badge={<Trans>Personal email · {PRO_TRIAL_DAYS} days</Trans>}
+      />
       <div className="flex flex-row items-center gap-4">
         <OnboardingButton
           onClick={handleSignIn}

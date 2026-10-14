@@ -102,6 +102,10 @@ msgstr ""
 msgid "{date}. Conversations: {count}"
 msgstr ""
 
+#: src/onboarding/account/after-login.tsx
+msgid "{days} days of Pro"
+msgstr ""
+
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "{entryCount} selected"
 msgstr ""
@@ -1946,6 +1950,10 @@ msgstr ""
 msgid "Couldn't save your profile. Try again."
 msgstr ""
 
+#: src/onboarding/account/after-login.tsx
+msgid "Couldn't switch accounts. Please try again."
+msgstr ""
+
 #: src/folders/sidebar.tsx
 #: src/settings/team/index.tsx
 msgid "Create"
@@ -2339,10 +2347,6 @@ msgstr ""
 msgid "Edit date"
 msgstr ""
 
-#: src/onboarding/account/after-login.tsx
-msgid "Eligible for free trial"
-msgstr ""
-
 #: src/crm/enrich-contact.tsx
 msgid "email"
 msgstr ""
@@ -2703,6 +2707,10 @@ msgstr ""
 msgid "Free months earned"
 msgstr "받은 무료 개월 수"
 
+#: src/onboarding/account/after-login.tsx
+msgid "Free until {endsOn}"
+msgstr ""
+
 #: src/templates/template-icon-picker.tsx
 msgid "Frequently used"
 msgstr ""
@@ -2740,6 +2748,10 @@ msgstr ""
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "Generating transcript..."
+msgstr ""
+
+#: src/onboarding/account/after-login.tsx
+msgid "Get {WORK_EMAIL_PRO_TRIAL_DAYS} days instead of {PRO_TRIAL_DAYS}"
 msgstr ""
 
 #: src/settings/sync/index.tsx
@@ -3080,6 +3092,10 @@ msgstr ""
 msgid "Invite {slot}"
 msgstr "초대권 {slot}"
 
+#: src/onboarding/account/after-login.tsx
+msgid "Invite bonus · {days} days of Pro"
+msgstr ""
+
 #: src/billing/trial-payment-reminder-dialog.tsx
 #: src/settings/referrals.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -3160,6 +3176,10 @@ msgstr ""
 #. placeholder {0}: invitation.workspaceName
 #: src/settings/team/index.tsx
 msgid "Joined {0}"
+msgstr ""
+
+#: src/onboarding/account/after-login.tsx
+msgid "Keep {PRO_TRIAL_DAYS} days"
 msgstr ""
 
 #: src/settings/dictation.tsx
@@ -4373,6 +4393,10 @@ msgstr ""
 msgid "Permissions granted"
 msgstr ""
 
+#: src/onboarding/account/before-login.tsx
+msgid "Personal email · {PRO_TRIAL_DAYS} days"
+msgstr ""
+
 #: src/crm/enrich-contact.tsx
 msgid "phone"
 msgstr ""
@@ -4509,6 +4533,14 @@ msgstr ""
 
 #: src/settings/general/billing.tsx
 msgid "Pro trial"
+msgstr ""
+
+#: src/onboarding/account/after-login.tsx
+msgid "Pro trial started"
+msgstr ""
+
+#: src/onboarding/account/before-login.tsx
+msgid "Pro, free for a month"
 msgstr ""
 
 #: src/settings/appearance/app-icon.tsx
@@ -5572,10 +5604,6 @@ msgstr ""
 msgid "Sign in to share this note with others."
 msgstr ""
 
-#: src/onboarding/index.tsx
-msgid "Sign in to unlock powerful AI models, sync across devices, and personalization."
-msgstr ""
-
 #: src/settings/sync/index.tsx
 msgid "Sign in to use cloud sync"
 msgstr ""
@@ -5620,10 +5648,18 @@ msgstr ""
 msgid "Sign out of Anarlog?"
 msgstr ""
 
+#: src/onboarding/account/before-login.tsx
+msgid "Sign up with your work email"
+msgstr ""
+
 #: src/onboarding/account/after-login.tsx
 #: src/onboarding/index.tsx
 #: src/settings/general/account.tsx
 msgid "Signed in"
+msgstr ""
+
+#: src/onboarding/account/after-login.tsx
+msgid "Signed in as {email}"
 msgstr ""
 
 #: src/settings/general/account.tsx
@@ -5930,6 +5966,10 @@ msgstr ""
 
 #: src/settings/general/billing.tsx
 msgid "Switch to Pro"
+msgstr ""
+
+#: src/onboarding/account/after-login.tsx
+msgid "Switch to your work email for a full month"
 msgstr ""
 
 #: src/templates/template-icon-picker.tsx
@@ -6243,10 +6283,6 @@ msgstr ""
 msgid "Trial"
 msgstr ""
 
-#: src/onboarding/account/after-login.tsx
-msgid "Trial activated - {trialDays} days of Pro"
-msgstr ""
-
 #: src/settings/referrals.tsx
 msgid "Trial started · Applying your free month"
 msgstr "체험 시작 · 무료 한 달 적용 중"
@@ -6537,6 +6573,10 @@ msgstr ""
 msgid "Use Windows Hello face, PIN, or password to view."
 msgstr ""
 
+#: src/onboarding/account/after-login.tsx
+msgid "Use work email"
+msgstr ""
+
 #: src/onboarding/permissions.tsx
 msgid "Use your microphone to capture your voice"
 msgstr ""
@@ -6674,6 +6714,10 @@ msgstr ""
 
 #: src/settings/ai/stt/local-file-model.tsx
 msgid "whisper.cpp models"
+msgstr ""
+
+#: src/onboarding/account/after-login.tsx
+msgid "Work email · {days} days of Pro"
 msgstr ""
 
 #: src/task/tab-content.tsx

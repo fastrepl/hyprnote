@@ -865,6 +865,7 @@ msgstr ""
 #: src/calendar/components/event-chip.tsx
 #: src/instruction/index.tsx
 #: src/session-sharing/delivery-panel.tsx
+#: src/session/components/interview-header.tsx
 #: src/settings/general/e2ee-setup.tsx
 #: src/sidebar/custom-sidebar-header.tsx
 msgid "Back"
@@ -3637,10 +3638,6 @@ msgstr ""
 msgid "Memory Keeper"
 msgstr ""
 
-#: src/session/components/note-input/header-raw.tsx
-msgid "Memos"
-msgstr ""
-
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "Merge"
 msgstr ""
@@ -4072,6 +4069,7 @@ msgid "notes"
 msgstr ""
 
 #: src/contacts/details.tsx
+#: src/session/components/note-input/header-raw.tsx
 #: src/settings/general/account-profile.tsx
 msgid "Notes"
 msgstr ""
@@ -4311,6 +4309,7 @@ msgstr ""
 msgid "Page not found"
 msgstr ""
 
+#: src/session/components/interview-header.tsx
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Participants"
@@ -6403,6 +6402,7 @@ msgstr ""
 msgid "Unpin"
 msgstr ""
 
+#: src/session/components/interview-header.tsx
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/session/components/title-input.tsx

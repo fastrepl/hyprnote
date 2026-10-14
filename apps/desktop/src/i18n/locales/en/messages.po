@@ -102,10 +102,6 @@ msgstr "{count} of {total} collected"
 msgid "{date}. Conversations: {count}"
 msgstr "{date}. Conversations: {count}"
 
-#: src/onboarding/account/after-login.tsx
-msgid "{days} days of Pro"
-msgstr "{days} days of Pro"
-
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "{entryCount} selected"
 msgstr "{entryCount} selected"
@@ -3093,8 +3089,8 @@ msgid "Invite {slot}"
 msgstr "Invite {slot}"
 
 #: src/onboarding/account/after-login.tsx
-msgid "Invite bonus · {days} days of Pro"
-msgstr "Invite bonus · {days} days of Pro"
+msgid "Invite bonus · Free until {endsOn}"
+msgstr "Invite bonus · Free until {endsOn}"
 
 #: src/billing/trial-payment-reminder-dialog.tsx
 #: src/settings/referrals.tsx
@@ -4394,8 +4390,8 @@ msgid "Permissions granted"
 msgstr "Permissions granted"
 
 #: src/onboarding/account/before-login.tsx
-msgid "Personal email · {PRO_TRIAL_DAYS} days"
-msgstr "Personal email · {PRO_TRIAL_DAYS} days"
+msgid "Personal email gets {PRO_TRIAL_DAYS} days"
+msgstr "Personal email gets {PRO_TRIAL_DAYS} days"
 
 #: src/crm/enrich-contact.tsx
 msgid "phone"
@@ -6717,8 +6713,8 @@ msgid "whisper.cpp models"
 msgstr "whisper.cpp models"
 
 #: src/onboarding/account/after-login.tsx
-msgid "Work email · {days} days of Pro"
-msgstr "Work email · {days} days of Pro"
+msgid "Work email bonus · Free until {endsOn}"
+msgstr "Work email bonus · Free until {endsOn}"
 
 #: src/task/tab-content.tsx
 msgid "Work on this task"
@@ -6898,6 +6894,10 @@ msgstr "Your Pro trial ends in 1 day"
 #: src/settings/general/billing.tsx
 msgid "Your Pro trial has ended"
 msgstr "Your Pro trial has ended"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Your Pro trial has started"
+msgstr "Your Pro trial has started"
 
 #: src/billing/trial-started-dialog.tsx
 msgid "Your Pro trial just started"

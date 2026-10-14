@@ -25,7 +25,6 @@ export function BeforeLogin() {
         days={WORK_EMAIL_PRO_TRIAL_DAYS}
         title={<Trans>Pro, free for a month</Trans>}
         subtitle={<Trans>Sign up with your work email</Trans>}
-        badge={<Trans>Personal email · {PRO_TRIAL_DAYS} days</Trans>}
       />
       <div className="flex flex-row items-center gap-4">
         <OnboardingButton
@@ -38,6 +37,9 @@ export function BeforeLogin() {
           ) : null}
           <Trans>Get started</Trans>
         </OnboardingButton>
+        <span className="text-muted-foreground text-xs">
+          <Trans>Personal email gets {PRO_TRIAL_DAYS} days</Trans>
+        </span>
       </div>
     </div>
   );

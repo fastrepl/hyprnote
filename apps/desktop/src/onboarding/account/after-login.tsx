@@ -25,20 +25,23 @@ function TrialStarted({
   }
 
   const endsOn = formatTrialEnd(days);
-  const title =
+  const subtitle =
     trialPhase.offer === "work_email" ? (
-      <Trans>Work email · {days} days of Pro</Trans>
+      <Trans>Work email bonus · Free until {endsOn}</Trans>
     ) : trialPhase.offer === "referral" ? (
-      <Trans>Invite bonus · {days} days of Pro</Trans>
+      <Trans>Invite bonus · Free until {endsOn}</Trans>
     ) : (
-      <Trans>{days} days of Pro</Trans>
+      <Trans>Free until {endsOn}</Trans>
     );
 
   return (
     <TrialOfferCard
       days={days}
-      title={title}
-      subtitle={<Trans>Free until {endsOn}</Trans>}
+      icon={
+        <CheckCircle className="size-4 text-emerald-600" aria-hidden="true" />
+      }
+      title={<Trans>Your Pro trial has started</Trans>}
+      subtitle={subtitle}
     />
   );
 }

@@ -162,7 +162,7 @@ describe("runMeetingCompletedAutomations (markdown export)", () => {
     });
     mocks.exportMeetingMarkdown.mockResolvedValue({
       status: "ok",
-      data: "/exports/2026-08-07 Standup [abc123].md",
+      data: { path: "/exports/2026-08-07 Standup [abc123].md", sha256: "hash" },
     });
 
     await runMeetingCompletedAutomations("session-1");
@@ -170,6 +170,7 @@ describe("runMeetingCompletedAutomations (markdown export)", () => {
     expect(mocks.exportMeetingMarkdown).toHaveBeenCalledWith(
       "session-1",
       "/exports",
+      null,
       null,
     );
     expect(recordedRun("automation_markdown_export_last_run")).toMatchObject({
@@ -774,7 +775,7 @@ describe("configured Markdown workflows", () => {
       });
       mocks.exportMeetingMarkdown.mockResolvedValue({
         status: "ok",
-        data: "/exports/Planning recap.md",
+        data: { path: "/exports/Planning recap.md", sha256: "hash" },
       });
       await (
         trigger === "meeting_completed"
@@ -785,6 +786,7 @@ describe("configured Markdown workflows", () => {
         "session-1",
         "/exports",
         options,
+        null,
       );
       const saved = JSON.parse(
         mocks.setSettingValue.mock.calls
@@ -798,6 +800,90 @@ describe("configured Markdown workflows", () => {
       });
     },
   );
+
+  it("asks the exporter to replace the file from the previous title", async () => {
+    storedSettings({
+      automation_workflows: JSON.stringify([
+        {
+          id: "wf-markdown",
+          enabled: true,
+          trigger: "note_enhanced",
+          steps: [
+            { id: "step-md", type: "markdown_export", directory: "/exports" },
+          ],
+          processedSessionIds: ["session-1"],
+        },
+      ]),
+      automation_markdown_export_files: JSON.stringify([
+        {
+          key: "wf-markdown:step-md:session-1",
+          path: "/exports/Planning.md",
+          sha256: "old",
+        },
+      ]),
+    });
+    mocks.exportMeetingMarkdown.mockResolvedValue({
+      status: "ok",
+      data: { path: "/exports/Launch.md", sha256: "new" },
+    });
+
+    await runNoteEnhancedAutomations("session-1");
+
+    expect(mocks.exportMeetingMarkdown).toHaveBeenCalledWith(
+      "session-1",
+      "/exports",
+      null,
+      { path: "/exports/Planning.md", sha256: "old" },
+    );
+    expect(
+      JSON.parse(
+        mocks.setSettingValue.mock.calls.find(
+          (entry) => entry[0] === "automation_markdown_export_files",
+        )?.[1] as string,
+      ),
+    ).toEqual([
+      {
+        key: "wf-markdown:step-md:session-1",
+        path: "/exports/Launch.md",
+        sha256: "new",
+      },
+    ]);
+  });
+
+  it("rewrites the file after a regenerated summary without reposting to Slack", async () => {
+    storedSettings({
+      automation_workflows: JSON.stringify([
+        {
+          id: "wf-markdown",
+          enabled: true,
+          trigger: "note_enhanced",
+          steps: [
+            {
+              id: "step-slack",
+              type: "slack_recap",
+              target: { id: "C123", name: "general" },
+            },
+            { id: "step-md", type: "markdown_export", directory: "/exports" },
+          ],
+          processedSessionIds: ["session-1"],
+        },
+      ]),
+    });
+    mocks.exportMeetingMarkdown.mockResolvedValue({
+      status: "ok",
+      data: { path: "/exports/Planning.md", sha256: "hash" },
+    });
+
+    await runNoteEnhancedAutomations("session-1");
+
+    expect(mocks.exportMeetingMarkdown).toHaveBeenCalledWith(
+      "session-1",
+      "/exports",
+      null,
+      null,
+    );
+    expect(mocks.sendSlackRecap).not.toHaveBeenCalled();
+  });
 
   it("records an empty-selection error without writing a file", async () => {
     storedSettings({

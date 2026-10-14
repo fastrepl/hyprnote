@@ -381,6 +381,11 @@ export const SETTING_DEFINITIONS = {
     path: ["automations", "markdown_export_last_run"],
     default: "" as string,
   },
+  automation_markdown_export_files: {
+    type: "string",
+    path: ["automations", "markdown_export_files"],
+    default: "" as string,
+  },
   automation_slack_recap_enabled: {
     type: "boolean",
     path: ["automations", "slack_recap_enabled"],

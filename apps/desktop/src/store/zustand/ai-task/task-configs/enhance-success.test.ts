@@ -333,6 +333,33 @@ describe("enhanceSuccess.onSuccess", () => {
     });
   });
 
+  it("regenerates the title instead of reusing an earlier finished title", async () => {
+    const startTask = vi.fn().mockImplementation(async (_taskId, config) => {
+      config.onComplete?.("New title");
+    });
+
+    await enhanceSuccess.onSuccess?.(
+      createParams({
+        startTask,
+        getTaskState: vi.fn().mockReturnValue({
+          taskType: "title",
+          status: "success",
+          streamedText: "Old title",
+          abortController: null,
+        }),
+      }),
+    );
+
+    expect(startTask).toHaveBeenCalledWith(
+      "session-1-title",
+      expect.objectContaining({ taskType: "title" }),
+    );
+    expect(mocks.persistGeneratedTitle).toHaveBeenCalledWith({
+      text: "New title",
+      args: { sessionId: "session-1" },
+    });
+  });
+
   it("uses an existing title without starting title generation", async () => {
     mocks.loadSessionContentSnapshot.mockResolvedValue(
       createSnapshot("Existing title"),

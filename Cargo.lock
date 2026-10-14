@@ -17071,6 +17071,7 @@ dependencies = [
  "db-core",
  "hmac 0.13.0",
  "reqwest 0.13.2",
+ "same-file",
  "serde",
  "serde_json",
  "sha2 0.11.0",

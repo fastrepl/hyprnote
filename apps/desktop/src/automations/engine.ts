@@ -120,7 +120,10 @@ async function runCustomWorkflowsNow(
     }
     if (
       trigger === "note_enhanced" &&
-      (await hasRepeatableStep(sessionId, workflow))
+      (await hasRepeatableStep(sessionId, workflow).catch((error) => {
+        console.error("[automations] workflow rerun check failed", error);
+        return false;
+      }))
     ) {
       try {
         await runWorkflowWithRepeatableSteps(sessionId, workflow);

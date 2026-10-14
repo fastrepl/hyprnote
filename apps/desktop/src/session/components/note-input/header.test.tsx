@@ -335,8 +335,8 @@ let clipboardDescriptor: PropertyDescriptor | undefined;
 
 const ALL_TABS: EditorView[] = [
   { type: "enhanced", id: "note-1" },
-  { type: "raw" },
   { type: "transcript" },
+  { type: "raw" },
 ];
 
 function renderSwitcher(
@@ -720,8 +720,8 @@ describe("useEditorTabs", () => {
 
       expect(result.current).toEqual([
         { type: "enhanced", id: "summary:session-1" },
-        { type: "raw" },
         ...(canShowTranscript ? [{ type: "transcript" }] : []),
+        { type: "raw" },
       ]);
       hoisted.enhancedNotes = [{ id: "note-1" }];
       rerender();

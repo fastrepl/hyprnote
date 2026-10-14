@@ -1,3 +1,4 @@
+
 import { useCallback } from "react";
 
 import type { ContactsSelection } from "@anlg/plugin-windows";
@@ -22,16 +23,22 @@ export function TabContentContact({
   );
 }
 
-function CandidateView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
+function CandidateView({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "contacts" }>;
+}) {
   const updateContactsTabState = useTabs(
     (state) => state.updateContactsTabState,
   );
   const openCurrent = useTabs((state) => state.openCurrent);
   const invalidateResource = useTabs((state) => state.invalidateResource);
+
   const selected = tab.state.selected;
   const localOwnerUserId = useOwnerUserId();
   const auth = useOptionalAuth();
   const ownerUserId = auth?.session?.user.id ?? localOwnerUserId;
+
   const humans = useHumans();
   const organizations = useOrganizations();
 
@@ -50,19 +57,28 @@ function CandidateView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
   const handleDeletePerson = useCallback(
     (id: string) => {
       invalidateResource("humans", id);
+
       void deleteHuman(id).catch((error) => {
         console.error("[candidates] failed to delete candidate", error);
       });
-      setSelected(null);
+
+      if (selected?.type === "person" && selected.id === id) {
+        setSelected(null);
+      }
     },
-    [invalidateResource, setSelected],
+    [invalidateResource, selected, setSelected],
   );
 
   const firstCandidate = humans.find((human) => human.id !== ownerUserId);
+
   const selectedCandidate =
-    selected?.type === "person"
-      ? humans.find((human) => human.id === selected.id) ?? null
-      : firstCandidate ?? null;
+    selected?.type === "organization"
+      ? null
+      : selected?.type === "person"
+        ? humans.find((human) => human.id === selected.id) ??
+          firstCandidate ??
+          null
+        : firstCandidate ?? null;
 
   return (
     <div className="h-full">

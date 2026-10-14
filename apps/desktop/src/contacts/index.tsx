@@ -75,9 +75,7 @@ function CandidateView({
     selected?.type === "organization"
       ? null
       : selected?.type === "person"
-        ? humans.find((human) => human.id === selected.id) ??
-          firstCandidate ??
-          null
+        ? humans.find((human) => human.id === selected.id) ?? null
         : firstCandidate ?? null;
 
   return (

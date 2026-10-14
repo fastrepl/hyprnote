@@ -401,6 +401,10 @@ msgstr "Add at least one configured action before enabling."
 msgid "Add at least one example summary."
 msgstr "Add at least one example summary."
 
+#: src/contacts/new-person-form.tsx
+msgid "Add candidate"
+msgstr "Add candidate"
+
 #: src/session/folder-instructions.tsx
 msgid "Add context for this folder"
 msgstr "Add context for this folder"
@@ -453,10 +457,6 @@ msgstr "Add organization"
 #: src/settings/general/billing.tsx
 msgid "Add payment method"
 msgstr "Add payment method"
-
-#: src/contacts/new-person-form.tsx
-msgid "Add person"
-msgstr "Add person"
 
 #: src/settings/todo/github.tsx
 msgid "Add repository"
@@ -1012,6 +1012,10 @@ msgstr "Cancel the invitation for {0}? They will no longer be able to join using
 msgid "Cancel transfer"
 msgstr "Cancel transfer"
 
+#: src/main/empty.tsx
+msgid "Capture"
+msgstr "Capture"
+
 #: src/settings/stats/badge-collection.tsx
 msgid "Capture 10 conversations. More moments you can return to."
 msgstr "Capture 10 conversations. More moments you can return to."
@@ -1047,6 +1051,10 @@ msgstr "Capture meeting chat in Memos"
 #: src/settings/general/meeting-settings.tsx
 msgid "Capture shared screens in Memos"
 msgstr "Capture shared screens in Memos"
+
+#: src/main/empty.tsx
+msgid "Capture the conversation, keep the important evidence, and turn interview notes into clearer next steps."
+msgstr "Capture the conversation, keep the important evidence, and turn interview notes into clearer next steps."
 
 #: src/settings/stats/badge-collection.tsx
 msgid "Capture your first conversation. Every collection starts somewhere."
@@ -2682,6 +2690,10 @@ msgstr "Folder: {currentPath}"
 msgid "Folders"
 msgstr "Folders"
 
+#: src/main/empty.tsx
+msgid "Follow through"
+msgstr "Follow through"
+
 #: src/templates/template-icon-picker.tsx
 msgid "Food & Drink"
 msgstr "Food & Drink"
@@ -2956,6 +2968,10 @@ msgstr "If your friend signed up through your link and started their free trial,
 msgid "Import notes and transcripts from the meeting apps you already use."
 msgstr "Import notes and transcripts from the meeting apps you already use."
 
+#: src/main/empty.tsx
+msgid "Import transcript"
+msgstr "Import transcript"
+
 #. placeholder {0}: result.imported
 #. placeholder {1}: result.matched
 #. placeholder {2}: result.conflicts
@@ -3180,6 +3196,10 @@ msgstr "Keep notes current automatically."
 #: src/settings/sync/index.tsx
 msgid "Keep notes encrypted and synced across your devices."
 msgstr "Keep notes encrypted and synced across your devices."
+
+#: src/main/empty.tsx
+msgid "Keep the details you need for the next decision."
+msgstr "Keep the details you need for the next decision."
 
 #: src/session/components/note-conflict-banner.tsx
 msgid "Keep this version"
@@ -3442,6 +3462,10 @@ msgstr "macOS could not access your recovery key. Repair Keychain access, then r
 #: src/settings/general/main-language.tsx
 msgid "Main language"
 msgstr "Main language"
+
+#: src/main/empty.tsx
+msgid "Make every interview count."
+msgstr "Make every interview count."
 
 #: src/chat/components/body/empty.tsx
 msgid "Make the current summary more detailed than it is now. Add supporting context, rationale, and examples from the transcript without inventing anything."
@@ -3754,14 +3778,17 @@ msgstr "New chat"
 msgid "New folder"
 msgstr "New folder"
 
+#: src/main/windows-title-bar.tsx
+msgid "New Interview"
+msgstr "New Interview"
+
+#: src/main/empty.tsx
+msgid "New interview notes"
+msgstr "New interview notes"
+
 #: src/imports/screen.tsx
 msgid "New meetings are imported automatically while Anarlog is running."
 msgstr "New meetings are imported automatically while Anarlog is running."
-
-#: src/main/empty.tsx
-#: src/main/windows-title-bar.tsx
-msgid "New Note"
-msgstr "New Note"
 
 #. placeholder {0}: accessConfirmation?.label
 #: src/folders/folder-editor.tsx
@@ -3956,8 +3983,8 @@ msgid "No recent chats"
 msgstr "No recent chats"
 
 #: src/contacts/related-notes.tsx
-msgid "No related notes found"
-msgstr "No related notes found"
+msgid "No related sessions found"
+msgstr "No related sessions found"
 
 #: src/contacts/related-notes.tsx
 #: src/settings/ai/shared/model-combobox.tsx
@@ -4642,6 +4669,10 @@ msgstr "Recording not found. It may have been deleted."
 msgid "Recording status prompts"
 msgstr "Recording status prompts"
 
+#: src/main/empty.tsx
+msgid "Recruiter workspace"
+msgstr "Recruiter workspace"
+
 #: src/main/windows-title-bar.tsx
 msgid "Redo"
 msgstr "Redo"
@@ -4675,8 +4706,8 @@ msgid "Reinstall"
 msgstr "Reinstall"
 
 #: src/contacts/related-notes.tsx
-msgid "Related Notes"
-msgstr "Related Notes"
+msgid "Related Sessions"
+msgstr "Related Sessions"
 
 #: src/settings/general/audio-settings.tsx
 msgid "Remember speakers"
@@ -4940,6 +4971,10 @@ msgstr "Review memo"
 msgid "Review summary"
 msgstr "Review summary"
 
+#: src/main/empty.tsx
+msgid "Review the transcript and AI-generated summary."
+msgstr "Review the transcript and AI-generated summary."
+
 #: src/settings/team/index.tsx
 msgid "Review transfer"
 msgstr "Review transfer"
@@ -5070,8 +5105,8 @@ msgid "Search automations..."
 msgstr "Search automations..."
 
 #: src/contacts/shared.tsx
-msgid "Search contacts..."
-msgstr "Search contacts..."
+msgid "Search candidates..."
+msgstr "Search candidates..."
 
 #: src/templates/template-icon-picker.tsx
 msgid "Search emoji..."
@@ -5160,14 +5195,14 @@ msgstr "See all folders"
 msgid "See all templates"
 msgstr "See all templates"
 
+#: src/contacts/details.tsx
+msgid "Select a candidate to view details"
+msgstr "Select a candidate to view details"
+
 #: src/settings/ai/shared/model-combobox.tsx
 #: src/settings/ai/stt/select.tsx
 msgid "Select a model"
 msgstr "Select a model"
-
-#: src/contacts/details.tsx
-msgid "Select a person to view details"
-msgstr "Select a person to view details"
 
 #: src/settings/ai/llm/select.tsx
 #: src/settings/ai/stt/select.tsx
@@ -5284,7 +5319,6 @@ msgstr "Setting up dictation…"
 msgid "Setting up encrypted cloud sync."
 msgstr "Setting up encrypted cloud sync."
 
-#: src/main/empty.tsx
 #: src/main/windows-title-bar.tsx
 #: src/shared/open-note-dialog.tsx
 #: src/sidebar/toast/registry.tsx
@@ -5752,13 +5786,10 @@ msgstr "Start listening when a scheduled meeting begins."
 msgid "Start Pro"
 msgstr "Start Pro"
 
+#: src/main/empty.tsx
 #: src/services/event-notification/index.ts
 msgid "Start recording"
 msgstr "Start recording"
-
-#: src/main/empty.tsx
-msgid "Start Recording"
-msgstr "Start Recording"
 
 #: src/chat/components/input/index.tsx
 msgid "Start voice input"
@@ -5771,6 +5802,10 @@ msgstr "Start when meeting begins"
 #: src/session/components/note-input/raw.tsx
 msgid "Start with a favorite template"
 msgstr "Start with a favorite template"
+
+#: src/main/empty.tsx
+msgid "Start with a recording or a new set of notes."
+msgstr "Start with a recording or a new set of notes."
 
 #: src/onboarding/index.tsx
 msgid "Start with permissions"
@@ -6312,6 +6347,10 @@ msgstr "Unavailable"
 msgid "Unavailable device"
 msgstr "Unavailable device"
 
+#: src/main/empty.tsx
+msgid "Understand"
+msgstr "Understand"
+
 #: src/main/windows-title-bar.tsx
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "Undo"
@@ -6456,6 +6495,7 @@ msgstr "Upgrade to Pro to use this provider."
 msgid "Upgrade to use"
 msgstr "Upgrade to use"
 
+#: src/main/empty.tsx
 #: src/session/components/note-input/transcript/screens/empty.tsx
 #: src/session/components/outer-header/overflow/index.tsx
 msgid "Upload audio"
@@ -6701,6 +6741,10 @@ msgstr "Workspace activity from metadata only. Note content stays unreadable on 
 msgid "Workspace name"
 msgstr "Workspace name"
 
+#: src/main/empty.tsx
+msgid "Workspace settings"
+msgstr "Workspace settings"
+
 #: src/settings/team/index.tsx
 msgid "Workspace subdomain"
 msgstr "Workspace subdomain"
@@ -6806,6 +6850,10 @@ msgstr "Your info"
 #: src/settings/stats/index.tsx
 msgid "Your insights"
 msgstr "Your insights"
+
+#: src/main/empty.tsx
+msgid "Your interview workspace, ready when you are."
+msgstr "Your interview workspace, ready when you are."
 
 #: src/auth/context.tsx
 msgid "Your local notes are available. Connect this library to sync with your current account."

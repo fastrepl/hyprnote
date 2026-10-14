@@ -401,6 +401,10 @@ msgstr ""
 msgid "Add at least one example summary."
 msgstr ""
 
+#: src/contacts/new-person-form.tsx
+msgid "Add candidate"
+msgstr ""
+
 #: src/session/folder-instructions.tsx
 msgid "Add context for this folder"
 msgstr ""
@@ -452,10 +456,6 @@ msgstr ""
 #: src/billing/trial-payment-reminder-dialog.tsx
 #: src/settings/general/billing.tsx
 msgid "Add payment method"
-msgstr ""
-
-#: src/contacts/new-person-form.tsx
-msgid "Add person"
 msgstr ""
 
 #: src/settings/todo/github.tsx
@@ -1012,6 +1012,10 @@ msgstr ""
 msgid "Cancel transfer"
 msgstr ""
 
+#: src/main/empty.tsx
+msgid "Capture"
+msgstr ""
+
 #: src/settings/stats/badge-collection.tsx
 msgid "Capture 10 conversations. More moments you can return to."
 msgstr ""
@@ -1046,6 +1050,10 @@ msgstr ""
 
 #: src/settings/general/meeting-settings.tsx
 msgid "Capture shared screens in Memos"
+msgstr ""
+
+#: src/main/empty.tsx
+msgid "Capture the conversation, keep the important evidence, and turn interview notes into clearer next steps."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
@@ -2682,6 +2690,10 @@ msgstr ""
 msgid "Folders"
 msgstr ""
 
+#: src/main/empty.tsx
+msgid "Follow through"
+msgstr ""
+
 #: src/templates/template-icon-picker.tsx
 msgid "Food & Drink"
 msgstr ""
@@ -2956,6 +2968,10 @@ msgstr ""
 msgid "Import notes and transcripts from the meeting apps you already use."
 msgstr ""
 
+#: src/main/empty.tsx
+msgid "Import transcript"
+msgstr ""
+
 #. placeholder {0}: result.imported
 #. placeholder {1}: result.matched
 #. placeholder {2}: result.conflicts
@@ -3179,6 +3195,10 @@ msgstr ""
 
 #: src/settings/sync/index.tsx
 msgid "Keep notes encrypted and synced across your devices."
+msgstr ""
+
+#: src/main/empty.tsx
+msgid "Keep the details you need for the next decision."
 msgstr ""
 
 #: src/session/components/note-conflict-banner.tsx
@@ -3442,6 +3462,10 @@ msgstr ""
 #: src/settings/general/main-language.tsx
 msgid "Main language"
 msgstr "הויפּט שפּראַך"
+
+#: src/main/empty.tsx
+msgid "Make every interview count."
+msgstr ""
 
 #: src/chat/components/body/empty.tsx
 msgid "Make the current summary more detailed than it is now. Add supporting context, rationale, and examples from the transcript without inventing anything."
@@ -3754,13 +3778,16 @@ msgstr ""
 msgid "New folder"
 msgstr ""
 
-#: src/imports/screen.tsx
-msgid "New meetings are imported automatically while Anarlog is running."
+#: src/main/windows-title-bar.tsx
+msgid "New Interview"
 msgstr ""
 
 #: src/main/empty.tsx
-#: src/main/windows-title-bar.tsx
-msgid "New Note"
+msgid "New interview notes"
+msgstr ""
+
+#: src/imports/screen.tsx
+msgid "New meetings are imported automatically while Anarlog is running."
 msgstr ""
 
 #. placeholder {0}: accessConfirmation?.label
@@ -3956,7 +3983,7 @@ msgid "No recent chats"
 msgstr ""
 
 #: src/contacts/related-notes.tsx
-msgid "No related notes found"
+msgid "No related sessions found"
 msgstr ""
 
 #: src/contacts/related-notes.tsx
@@ -4642,6 +4669,10 @@ msgstr ""
 msgid "Recording status prompts"
 msgstr ""
 
+#: src/main/empty.tsx
+msgid "Recruiter workspace"
+msgstr ""
+
 #: src/main/windows-title-bar.tsx
 msgid "Redo"
 msgstr ""
@@ -4675,7 +4706,7 @@ msgid "Reinstall"
 msgstr ""
 
 #: src/contacts/related-notes.tsx
-msgid "Related Notes"
+msgid "Related Sessions"
 msgstr ""
 
 #: src/settings/general/audio-settings.tsx
@@ -4940,6 +4971,10 @@ msgstr ""
 msgid "Review summary"
 msgstr ""
 
+#: src/main/empty.tsx
+msgid "Review the transcript and AI-generated summary."
+msgstr ""
+
 #: src/settings/team/index.tsx
 msgid "Review transfer"
 msgstr ""
@@ -5070,7 +5105,7 @@ msgid "Search automations..."
 msgstr ""
 
 #: src/contacts/shared.tsx
-msgid "Search contacts..."
+msgid "Search candidates..."
 msgstr ""
 
 #: src/templates/template-icon-picker.tsx
@@ -5160,13 +5195,13 @@ msgstr ""
 msgid "See all templates"
 msgstr ""
 
+#: src/contacts/details.tsx
+msgid "Select a candidate to view details"
+msgstr ""
+
 #: src/settings/ai/shared/model-combobox.tsx
 #: src/settings/ai/stt/select.tsx
 msgid "Select a model"
-msgstr ""
-
-#: src/contacts/details.tsx
-msgid "Select a person to view details"
 msgstr ""
 
 #: src/settings/ai/llm/select.tsx
@@ -5284,7 +5319,6 @@ msgstr ""
 msgid "Setting up encrypted cloud sync."
 msgstr ""
 
-#: src/main/empty.tsx
 #: src/main/windows-title-bar.tsx
 #: src/shared/open-note-dialog.tsx
 #: src/sidebar/toast/registry.tsx
@@ -5752,12 +5786,9 @@ msgstr ""
 msgid "Start Pro"
 msgstr ""
 
+#: src/main/empty.tsx
 #: src/services/event-notification/index.ts
 msgid "Start recording"
-msgstr ""
-
-#: src/main/empty.tsx
-msgid "Start Recording"
 msgstr ""
 
 #: src/chat/components/input/index.tsx
@@ -5770,6 +5801,10 @@ msgstr "אָנהייב ווען באַגעגעניש הייבט זיך אָן"
 
 #: src/session/components/note-input/raw.tsx
 msgid "Start with a favorite template"
+msgstr ""
+
+#: src/main/empty.tsx
+msgid "Start with a recording or a new set of notes."
 msgstr ""
 
 #: src/onboarding/index.tsx
@@ -6312,6 +6347,10 @@ msgstr ""
 msgid "Unavailable device"
 msgstr ""
 
+#: src/main/empty.tsx
+msgid "Understand"
+msgstr ""
+
 #: src/main/windows-title-bar.tsx
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "Undo"
@@ -6456,6 +6495,7 @@ msgstr ""
 msgid "Upgrade to use"
 msgstr ""
 
+#: src/main/empty.tsx
 #: src/session/components/note-input/transcript/screens/empty.tsx
 #: src/session/components/outer-header/overflow/index.tsx
 msgid "Upload audio"
@@ -6701,6 +6741,10 @@ msgstr ""
 msgid "Workspace name"
 msgstr ""
 
+#: src/main/empty.tsx
+msgid "Workspace settings"
+msgstr ""
+
 #: src/settings/team/index.tsx
 msgid "Workspace subdomain"
 msgstr ""
@@ -6805,6 +6849,10 @@ msgstr ""
 
 #: src/settings/stats/index.tsx
 msgid "Your insights"
+msgstr ""
+
+#: src/main/empty.tsx
+msgid "Your interview workspace, ready when you are."
 msgstr ""
 
 #: src/auth/context.tsx

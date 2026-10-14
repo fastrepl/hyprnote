@@ -19,7 +19,7 @@ function DayCount({ days, from }: { days: number; from?: number }) {
             <motion.span
               aria-hidden="true"
               className={cn([NUMBER_CLASS, "absolute"])}
-              animate={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+              animate={{ opacity: 0, filter: "blur(4px)" }}
               transition={{ delay: 1.1, duration: 0.35, ease: EASE }}
             >
               {from}
@@ -32,8 +32,8 @@ function DayCount({ days, from }: { days: number; from?: number }) {
             </motion.span>
             <motion.span
               className={NUMBER_CLASS}
-              initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              initial={{ opacity: 0, filter: "blur(4px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
               transition={{ delay: 1.25, duration: 0.35, ease: EASE }}
             >
               {days}

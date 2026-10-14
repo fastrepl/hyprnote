@@ -799,6 +799,40 @@ describe("configured Markdown workflows", () => {
     },
   );
 
+  it("rewrites the file after a regenerated summary without reposting to Slack", async () => {
+    storedSettings({
+      automation_workflows: JSON.stringify([
+        {
+          id: "wf-markdown",
+          enabled: true,
+          trigger: "note_enhanced",
+          steps: [
+            {
+              id: "step-slack",
+              type: "slack_recap",
+              target: { id: "C123", name: "general" },
+            },
+            { id: "step-md", type: "markdown_export", directory: "/exports" },
+          ],
+          processedSessionIds: ["session-1"],
+        },
+      ]),
+    });
+    mocks.exportMeetingMarkdown.mockResolvedValue({
+      status: "ok",
+      data: "/exports/Planning.md",
+    });
+
+    await runNoteEnhancedAutomations("session-1");
+
+    expect(mocks.exportMeetingMarkdown).toHaveBeenCalledWith(
+      "session-1",
+      "/exports",
+      null,
+    );
+    expect(mocks.sendSlackRecap).not.toHaveBeenCalled();
+  });
+
   it("records an empty-selection error without writing a file", async () => {
     storedSettings({
       automation_workflows: JSON.stringify([

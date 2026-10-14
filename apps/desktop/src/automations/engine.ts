@@ -107,10 +107,21 @@ async function runCustomWorkflowsNow(
     if (workflow.steps.some((step) => step.type === "google_drive_export")) {
       if (trigger === "note_enhanced") {
         try {
-          await runWorkflowWithDrive(sessionId, workflow);
+          await runWorkflowWithFileExports(sessionId, workflow);
         } catch (error) {
           console.error("[automations] Drive workflow run failed", error);
         }
+      }
+      continue;
+    }
+    if (
+      trigger === "note_enhanced" &&
+      workflow.steps.some((step) => step.type === "markdown_export")
+    ) {
+      try {
+        await runWorkflowWithFileExports(sessionId, workflow);
+      } catch (error) {
+        console.error("[automations] workflow run failed", error);
       }
       continue;
     }
@@ -809,7 +820,9 @@ async function executeDriveStep(
   return run;
 }
 
-async function runWorkflowWithDrive(
+// File exports overwrite the same file, so they rerun on every regenerated
+// summary. Steps that post or create something run once per session.
+async function runWorkflowWithFileExports(
   sessionId: string,
   workflow: AutomationWorkflow,
 ): Promise<void> {
@@ -825,7 +838,7 @@ async function runWorkflowWithDrive(
       const run = await executeDriveStep(sessionId, workflow, step);
       if (run.status === "error") record.status = "error";
       details.push(run.detail);
-    } else if (!skipOtherSteps) {
+    } else if (!skipOtherSteps || step.type === "markdown_export") {
       try {
         details.push(
           await executeWorkflowStep(sessionId, step, {

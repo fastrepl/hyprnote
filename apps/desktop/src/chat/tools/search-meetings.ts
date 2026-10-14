@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 
+import { resolveFolderPaths, type ToolCallOptions } from "./current-session";
 import { searchMeetingContent } from "./note-files";
 import type { ToolDependencies } from "./types";
 
@@ -221,11 +222,14 @@ Returns relevant meetings with matching content excerpts.
         .optional()
         .describe("Maximum number of meetings to return"),
     }),
-    execute: async (params: {
-      query?: string;
-      filters?: SearchMeetingsFiltersInput;
-      limit?: number;
-    }) => {
+    execute: async (
+      params: {
+        query?: string;
+        filters?: SearchMeetingsFiltersInput;
+        limit?: number;
+      },
+      options?: ToolCallOptions,
+    ) => {
       const query = params.query ?? "";
       const createdAtFilter = params.filters?.created_at;
       const effectiveFilters: SearchFilters | null = createdAtFilter
@@ -243,16 +247,33 @@ Returns relevant meetings with matching content excerpts.
           }
         : null;
 
-      const folderFilter = deps.getFolderFilter?.() ?? null;
+      const folderPaths = resolveFolderPaths(deps, options);
       const limit = params.limit ?? 5;
 
-      if (folderFilter !== null) {
-        return searchFolderMeetings({
-          query,
-          folderFilter,
-          createdAt: effectiveFilters?.created_at,
-          limit,
-        });
+      if (folderPaths.length > 0) {
+        const perFolder = await Promise.all(
+          folderPaths.map((folderFilter) =>
+            searchFolderMeetings({
+              query,
+              folderFilter,
+              createdAt: effectiveFilters?.created_at,
+              limit,
+            }),
+          ),
+        );
+        const seenIds = new Set<string>();
+        const results = perFolder
+          .flatMap((page) => page.results)
+          .sort((a, b) => b.score - a.score || b.created_at - a.created_at)
+          .filter((result) => {
+            if (seenIds.has(result.id)) {
+              return false;
+            }
+            seenIds.add(result.id);
+            return true;
+          })
+          .slice(0, limit);
+        return { results };
       }
 
       const hits = await deps.search(query, effectiveFilters);

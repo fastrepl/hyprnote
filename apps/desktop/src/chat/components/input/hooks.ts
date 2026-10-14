@@ -307,7 +307,7 @@ function draftRetentionFailureMessage(failure: DraftRetentionFailure) {
   return "This unsent chat draft could not be kept because draft storage is full.";
 }
 
-function extractContextRefsFromTiptapJson(
+export function extractContextRefsFromTiptapJson(
   json: JSONContent | undefined,
 ): ContextRef[] {
   const refs: ContextRef[] = [];
@@ -349,6 +349,13 @@ function extractContextRefsFromTiptapJson(
           key: `organization:manual:${mentionId}`,
           source: "manual",
           organizationId: mentionId,
+        };
+      } else if (mentionType === "folder") {
+        ref = {
+          kind: "folder",
+          key: `folder:manual:${mentionId}`,
+          source: "manual",
+          folderId: mentionId,
         };
       }
 

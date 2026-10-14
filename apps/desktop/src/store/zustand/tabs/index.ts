@@ -41,6 +41,7 @@ import { wrapSliceWithLogging } from "~/store/zustand/shared";
 
 export type { SettingsTab, Tab, TabInput, TaskResource } from "./schema";
 export { isTabInputSupported, uniqueIdfromTab } from "./schema";
+export { RETURN_ORIGIN_TAB_TYPES } from "./basic";
 export { restorePinnedTabsToStore, restoreRecentlyOpenedToStore };
 
 type State = BasicState &

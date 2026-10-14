@@ -23,7 +23,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { Buildings, Note, User } from "@anlg/ui/components/icons";
+import { Buildings, Folder, Note, User } from "@anlg/ui/components/icons";
 
 export interface MentionItem {
   id: string;
@@ -251,6 +251,8 @@ export function MentionSuggestion({ config }: { config: MentionConfig }) {
             <User className="mention-type-icon mention-type-human" />
           ) : item.type === "organization" ? (
             <Buildings className="mention-type-icon mention-type-organization" />
+          ) : item.type === "folder" ? (
+            <Folder className="mention-type-icon mention-type-folder" />
           ) : null}
           <span className="mention-label">{item.label}</span>
         </button>

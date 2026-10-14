@@ -195,6 +195,107 @@ describe("search meetings chat tool", () => {
     expect(result).toEqual({ results: [] });
   });
 
+  it("searches mentioned folders instead of the sidebar folder", async () => {
+    const search = vi.fn();
+    const meetingSearchTool = buildSearchMeetingsTool({
+      search,
+      getFolderFilter: () => "Sidebar",
+    } as any);
+
+    vi.mocked(loadSessionSummariesByFolder).mockImplementation(
+      async (folder: string) =>
+        (folder === "Mentioned"
+          ? [
+              {
+                id: "m1",
+                title: "Mentioned note",
+                event_json: null,
+                created_at: "2026-08-01T09:00:00.000Z",
+              },
+            ]
+          : []) as any,
+    );
+    vi.mocked(searchMeetingContent).mockResolvedValue({
+      results: [
+        {
+          sessionId: "m1",
+          title: "Mentioned note",
+          snippets: [{ text: "needle" }],
+          score: 2,
+        },
+      ],
+    } as any);
+
+    const result = await (meetingSearchTool as any).execute(
+      { query: "needle" },
+      {
+        experimental_context: {
+          currentSessionId: undefined,
+          mentionedFolderPaths: ["Mentioned"],
+        },
+      },
+    );
+
+    expect(result.results).toEqual([
+      expect.objectContaining({ id: "m1", title: "Mentioned note" }),
+    ]);
+    expect(loadSessionSummariesByFolder).toHaveBeenCalledWith("Mentioned");
+    expect(loadSessionSummariesByFolder).not.toHaveBeenCalledWith("Sidebar");
+  });
+
+  it("deduplicates meetings from overlapping mentioned folders", async () => {
+    const meetingSearchTool = buildSearchMeetingsTool({
+      search: vi.fn(),
+      getFolderFilter: () => null,
+    } as any);
+
+    const alpha = {
+      id: "alpha",
+      title: "Alpha note",
+      event_json: null,
+      created_at: "2026-08-03T09:00:00.000Z",
+    };
+    const beta = {
+      id: "beta",
+      title: "Beta note",
+      event_json: null,
+      created_at: "2026-08-02T09:00:00.000Z",
+    };
+    vi.mocked(loadSessionSummariesByFolder).mockImplementation(
+      async (folder: string) =>
+        (folder === "Projects"
+          ? [alpha, beta]
+          : folder === "Projects/Alpha"
+            ? [alpha]
+            : []) as any,
+    );
+    vi.mocked(searchMeetingContent).mockImplementation(
+      async ({ sessionIds }: { sessionIds?: string[] }) =>
+        ({
+          results: (sessionIds ?? []).map((sessionId) => ({
+            sessionId,
+            title: sessionId === "alpha" ? "Alpha note" : "Beta note",
+            snippets: [{ text: "needle" }],
+            score: sessionId === "alpha" ? 3 : 2,
+          })),
+        }) as any,
+    );
+
+    const result = await (meetingSearchTool as any).execute(
+      { query: "needle", limit: 2 },
+      {
+        experimental_context: {
+          currentSessionId: undefined,
+          mentionedFolderPaths: ["Projects", "Projects/Alpha"],
+        },
+      },
+    );
+
+    expect(result.results.map((meeting: { id: string }) => meeting.id)).toEqual(
+      ["alpha", "beta"],
+    );
+  });
+
   it("returns no meetings when the active folder is empty", async () => {
     const search = vi.fn();
     const meetingSearchTool = buildSearchMeetingsTool({

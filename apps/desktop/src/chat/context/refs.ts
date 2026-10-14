@@ -98,10 +98,18 @@ export function orderPromptContextRefs(
   currentSessionId: string | undefined,
 ): ContextRef[] {
   const seenSessionIds = new Set<string>();
+  const seenFolderIds = new Set<string>();
   const ordered: ContextRef[] = [];
   let currentRef: ContextRef | undefined;
 
   for (const ref of refs) {
+    if (ref.kind === "folder") {
+      if (!seenFolderIds.has(ref.folderId)) {
+        seenFolderIds.add(ref.folderId);
+        ordered.push(ref);
+      }
+      continue;
+    }
     if (ref.kind !== "session") {
       ordered.push(ref);
       continue;

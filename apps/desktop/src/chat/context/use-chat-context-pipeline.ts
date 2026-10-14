@@ -136,7 +136,12 @@ export function useChatContextPipeline({
         sessionId: currentSessionId,
       });
     }
-    if (folderId !== undefined) {
+    const manualFolderMentioned =
+      folderId !== undefined &&
+      pendingManualRefs.some(
+        (ref) => ref.kind === "folder" && ref.folderId === folderId,
+      );
+    if (folderId !== undefined && !manualFolderMentioned) {
       refs.push({
         kind: "folder",
         key: `folder:auto:${folderId}`,

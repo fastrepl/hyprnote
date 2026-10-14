@@ -13,10 +13,7 @@ import { useBillingAccess } from "~/auth/billing-context";
 import { env } from "~/env";
 import { waitForBillingUpdate } from "~/shared/billing";
 import { configurePaidSettings } from "~/shared/config/configure-paid-settings";
-import { startTrialOnce } from "~/shared/trial-start";
-
-// Only a just-created account may be discarded to retry with a work email.
-const SWITCHABLE_ACCOUNT_AGE_MS = 30 * 60 * 1000;
+import { isSwitchableAccount, startTrialOnce } from "~/shared/trial-start";
 
 export type TrialPhase =
   | "checking"
@@ -30,12 +27,6 @@ export type TrialPhase =
       trialDays?: number;
     };
 
-function isSwitchableAccount(createdAt: string | undefined) {
-  if (!createdAt) return false;
-  const age = Date.now() - new Date(createdAt).getTime();
-  return age >= 0 && age < SWITCHABLE_ACCOUNT_AGE_MS;
-}
-
 export function useTrialFlow(onContinue: () => void) {
   const auth = useAuth();
   const billing = useBillingAccess();
@@ -45,7 +36,7 @@ export function useTrialFlow(onContinue: () => void) {
   const user = auth?.session?.user;
   const needsTrial =
     !!user && billing.isReady && !billing.isPaid && !billing.isTrialing;
-  const canSwitchAccount = isSwitchableAccount(user?.created_at);
+  const canSwitchAccount = isSwitchableAccount(user);
 
   // auth only supplies request headers; the result is keyed by the signed-in user.
   // eslint-disable-next-line @tanstack/query/exhaustive-deps

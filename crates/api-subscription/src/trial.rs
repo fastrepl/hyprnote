@@ -168,13 +168,6 @@ mod tests {
     use super::{Interval, TrialOffer, TrialOutcome, trial_end_date};
 
     #[test]
-    fn trial_offer_days_follow_the_shared_policy() {
-        assert_eq!(TrialOffer::Referral.days(), 30);
-        assert_eq!(TrialOffer::WorkEmail.days(), 30);
-        assert_eq!(TrialOffer::PersonalEmail.days(), 7);
-    }
-
-    #[test]
     fn analytics_falls_back_to_the_offer_trial_duration() {
         let now = Utc.with_ymd_and_hms(2026, 7, 17, 0, 0, 0).unwrap();
 

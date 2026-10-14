@@ -531,10 +531,12 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         throw new Error("Trial is not available for this account");
       }
       reservationId = parsedReservationId.data;
-      trialDays = await getProTrialDays(supabase);
     }
 
     try {
+      if (reservationId) {
+        trialDays = await getProTrialDays(supabase);
+      }
       const stripe = getStripeClient();
       const checkoutCode =
         !data.trial && data.code ? data.code.trim() : undefined;

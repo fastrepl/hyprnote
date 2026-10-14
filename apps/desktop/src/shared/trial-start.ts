@@ -16,3 +16,22 @@ export function startTrialOnce<T>(
   trialStarts.set(userId, request);
   return request;
 }
+
+// Only a just-created account may be discarded to retry with a work email.
+const SWITCHABLE_ACCOUNT_AGE_MS = 30 * 60 * 1000;
+const firstSeenAt = new Map<string, number>();
+
+// Measured from when this app session first saw the user, so the choice
+// does not expire while it is on screen.
+export function isSwitchableAccount(
+  user: { id: string; created_at?: string } | undefined,
+): boolean {
+  if (!user?.created_at) return false;
+  let seenAt = firstSeenAt.get(user.id);
+  if (seenAt === undefined) {
+    seenAt = Date.now();
+    firstSeenAt.set(user.id, seenAt);
+  }
+  const age = seenAt - new Date(user.created_at).getTime();
+  return age >= 0 && age < SWITCHABLE_ACCOUNT_AGE_MS;
+}

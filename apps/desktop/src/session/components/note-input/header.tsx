@@ -1,9 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 
 import { cn } from "@anlg/utils";
-import { createEditorTabs } from "@anlg/utils/session";
-
-export { createEditorTabs } from "@anlg/utils/session";
+import { createEditorTabs as createBaseEditorTabs } from "@anlg/utils/session";
 
 import { HeaderViewEnhanced } from "./header-enhanced";
 import { HeaderViewRaw } from "./header-raw";
@@ -20,6 +18,31 @@ import { deleteEnhancedNote } from "~/session/queries";
 import { useSessionSharedNoteIds } from "~/shared-notes/event-keys";
 import { type EditorView } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
+
+// Desktop tab order: Summary, Transcript, Notes (then shared summaries).
+// The shared package (also used by mobile) keeps its own order; only the
+// desktop switcher moves the Notes ("raw") view after Transcript.
+export function createEditorTabs(
+  args: Parameters<typeof createBaseEditorTabs>[0],
+): ReturnType<typeof createBaseEditorTabs> {
+  const tabs = createBaseEditorTabs(args);
+  const transcriptIndex = tabs.findIndex((view) => view.type === "transcript");
+  const rawIndex = tabs.findIndex((view) => view.type === "raw");
+
+  if (transcriptIndex === -1 || rawIndex === -1 || rawIndex > transcriptIndex) {
+    return tabs;
+  }
+
+  const rawView = tabs[rawIndex];
+  if (!rawView) {
+    return tabs;
+  }
+
+  const reordered = tabs.filter((_, index) => index !== rawIndex);
+  // Removing Notes shifts Transcript left by one, so this lands right after it.
+  reordered.splice(transcriptIndex, 0, rawView);
+  return reordered;
+}
 
 export function Header({ sessionId }: { sessionId: string }) {
   return <FolderPicker sessionId={sessionId} align="end" />;

@@ -207,18 +207,16 @@ pub(crate) fn markdown_export_file(path: &std::path::Path) -> Result<MarkdownExp
 }
 
 // A changed title renames a configured export. Remove the file the same action
-// wrote before, unless it was edited since or is the new file on a
-// case-insensitive disk.
+// wrote before, unless it was edited since or is the new file itself, such as
+// a case-only rename on a case-insensitive disk.
 pub(crate) fn remove_replaced_export(previous: &MarkdownExportFile, current: &MarkdownExportFile) {
-    if previous.path == current.path {
+    if same_file::is_same_file(&previous.path, &current.path).unwrap_or(true) {
         return;
     }
     let Ok(content) = std::fs::read(&previous.path) else {
         return;
     };
-    let hash = sha256_hex(&content);
-    if hash == previous.sha256
-        && hash != current.sha256
+    if sha256_hex(&content) == previous.sha256
         && let Err(error) = std::fs::remove_file(&previous.path)
     {
         tracing::warn!(%error, "could not remove replaced markdown export");

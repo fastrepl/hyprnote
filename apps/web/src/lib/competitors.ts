@@ -66,7 +66,7 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
   {
     name: "tl;dv",
     icon: "/icons/tldv.png",
-    url: "https://tldv.io/pricing/",
+    url: "https://tldv.io/",
     paidPlan: "Check current plans",
     freeTier: "Free plan; confirm AI allowances and retention",
     capture:

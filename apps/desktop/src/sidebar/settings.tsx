@@ -6,7 +6,10 @@ import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { cn } from "@anlg/utils";
 
 import { CustomSidebarHeader } from "./custom-sidebar-header";
-import { useSettingsNavGroups } from "./settings-nav-groups";
+import {
+  filterPrimarySettingsNavGroups,
+  useSettingsNavGroups,
+} from "./settings-nav-groups";
 
 import { useBillingAccess } from "~/auth/billing-context";
 import { type SettingsTab, useTabs } from "~/store/zustand/tabs";
@@ -14,7 +17,7 @@ import { type SettingsTab, useTabs } from "~/store/zustand/tabs";
 export function SettingsNav() {
   const { t } = useLingui();
   const { isPro } = useBillingAccess();
-  const groups = useSettingsNavGroups();
+  const groups = filterPrimarySettingsNavGroups(useSettingsNavGroups());
   const [search, setSearch] = useState("");
   const searchRef = useSquircleRef<HTMLDivElement>();
   const currentTab = useTabs((state) => state.currentTab);

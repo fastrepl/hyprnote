@@ -264,10 +264,11 @@ async fn migrations_seed_default_templates_without_overwriting_existing_rows() {
     anlg_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let rows = list_templates(db.pool()).await.unwrap();
-    assert_eq!(rows.len(), 17);
+    assert_eq!(rows.len(), 20);
     assert_eq!(
         rows.iter().map(|row| row.id.as_str()).collect::<Vec<_>>(),
         vec![
+            "default-behavioural-interview",
             "default-board-meeting",
             "default-brainstorming-session",
             "default-client-kickoff",
@@ -275,6 +276,7 @@ async fn migrations_seed_default_templates_without_overwriting_existing_rows() {
             "default-daily-standup",
             "default-executive-briefing",
             "default-incident-postmortem",
+            "default-initial-screen",
             "default-investor-pitch",
             "default-lecture-notes",
             "default-one-on-one-meeting",
@@ -285,6 +287,7 @@ async fn migrations_seed_default_templates_without_overwriting_existing_rows() {
             "default-sprint-planning",
             "default-sprint-retrospective",
             "default-technical-design-review",
+            "default-technical-interview",
         ]
     );
 

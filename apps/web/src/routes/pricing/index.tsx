@@ -193,7 +193,7 @@ function Row({ row, highlight }: { row: ComparisonRow; highlight?: boolean }) {
           )}
         </div>
       </td>
-      <td className="text-color-muted px-4 py-3 align-top">
+      <td className="text-color px-4 py-3 align-top">
         {row.capture}
         {row.captureSourceUrl ? (
           <a
@@ -206,8 +206,8 @@ function Row({ row, highlight }: { row: ComparisonRow; highlight?: boolean }) {
           </a>
         ) : null}
       </td>
-      <td className="text-color-muted px-4 py-3 align-top">{row.freeTier}</td>
-      <td className="text-color-muted px-4 py-3 align-top">{row.paidPlan}</td>
+      <td className="text-color px-4 py-3 align-top">{row.freeTier}</td>
+      <td className="text-color px-4 py-3 align-top">{row.paidPlan}</td>
     </tr>
   );
 }

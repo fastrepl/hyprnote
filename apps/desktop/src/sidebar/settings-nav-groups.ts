@@ -1,8 +1,12 @@
 import { useLingui } from "@lingui/react/macro";
 
 import {
+  ArrowsClockwise,
   Bell,
+  BookOpen,
   Buildings,
+  ChartLineUp,
+  Code,
   CalendarDots,
   CreditCard,
   DownloadSimple,
@@ -12,12 +16,15 @@ import {
   Lightning,
   type Icon,
   Lock,
+  Microphone,
   ShieldCheck,
+  Sparkle,
   Sun,
   User,
   Users,
   UsersThree,
   VideoCamera,
+  Waveform,
 } from "@anlg/ui/components/icons";
 
 import { privacyMessages } from "~/settings/general/app-settings";
@@ -53,6 +60,8 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
         { id: "app", label: t`General`, icon: Gear },
         { id: "account", label: t`Account`, icon: User },
         { id: "billing", label: t`Billing`, icon: CreditCard },
+        { id: "referrals", label: t`Invite friends`, icon: Users },
+        { id: "insights", label: t`Insights`, icon: ChartLineUp },
         {
           id: "team",
           label: t`Teams`,
@@ -61,12 +70,17 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
         },
         { id: "appearance", label: t`Appearance`, icon: Sun },
         { id: "notifications", label: t`Notifications`, icon: Bell },
+        { id: "sync", label: t`Sync`, icon: ArrowsClockwise },
       ],
     },
     {
       label: t`Workspace`,
       items: [
         { id: "meetings", label: t`Meetings`, icon: VideoCamera },
+        { id: "transcription", label: t`Transcription`, icon: Waveform },
+        { id: "dictation", label: t`Dictation`, icon: Microphone },
+        { id: "intelligence", label: t`Intelligence`, icon: Sparkle },
+        { id: "dictionary", label: t`Dictionary`, icon: BookOpen },
         {
           id: "folders",
           label: t`Folders`,
@@ -116,7 +130,36 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           icon: ShieldCheck,
         },
         { id: "permissions", label: t`Permissions`, icon: Lock },
+        { id: "developers", label: t`Developers`, icon: Code },
       ],
     },
   ];
+}
+
+/**
+ * Items intentionally omitted from the primary settings sidebar.
+ * They remain in the complete registry for global search and other entry points.
+ */
+const HIDDEN_FROM_PRIMARY_SETTINGS_NAV = new Set<SettingsTab>([
+  "referrals",
+  "insights",
+  "sync",
+  "transcription",
+  "dictation",
+  "intelligence",
+  "dictionary",
+  "developers",
+]);
+
+export function filterPrimarySettingsNavGroups(
+  groups: SettingsNavGroup[],
+): SettingsNavGroup[] {
+  return groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => !HIDDEN_FROM_PRIMARY_SETTINGS_NAV.has(item.id as SettingsTab),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
 }

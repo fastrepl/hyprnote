@@ -596,6 +596,11 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         scope: anlg_db_migrate::MigrationScope::Plain,
         sql: include_str!("../migrations/20261015090000_recruiting_templates.sql"),
     },
+        anlg_db_migrate::MigrationStep {
+        id: "20261015120000_recruiting_grounding",
+        scope: anlg_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20261015120000_recruiting_grounding.sql"),
+    },
 ];
 
 pub fn schema() -> anlg_db_migrate::DbSchema {

@@ -586,7 +586,9 @@ async fn repair_migration_recreates_missing_templates_table() {
         .fetch_one(db.pool())
         .await
         .unwrap();
-    assert_eq!(row_count, 0);
+    // The repair recreates an empty table; only the recruiting templates
+    // migration (20261015090000) seeds rows after it, so three rows remain.
+    assert_eq!(row_count, 3);
 }
 
 #[tokio::test]

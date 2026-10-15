@@ -36,7 +36,12 @@ const hoisted = vi.hoisted(() => ({
   audioExists: true,
   audioExistsResolved: true,
   hasTranscript: true,
-  enhancedNotes: [{ id: "note-1" }],
+  enhancedNotes: [{ id: "note-1" }] as Array<{
+    id: string;
+    templateId?: string | null;
+    content?: string;
+  }>,
+  currentContent: "",
   canShowTranscript: true,
   liveSegments: [] as unknown[],
   liveSessionId: null as string | null,
@@ -201,7 +206,7 @@ vi.mock("~/services/enhancer", () => ({
 vi.mock("~/session/queries", () => ({
   deleteEnhancedNote: vi.fn(() => Promise.resolve()),
   useEnhancedNote: () => ({
-    content: "",
+    content: hoisted.currentContent,
     templateId: "template-1",
     title: "Summary",
   }),
@@ -378,6 +383,8 @@ describe("SessionViewSwitcher", () => {
       "clipboard",
     );
     hoisted.enhance.mockReset();
+    hoisted.currentContent = "";
+    hoisted.enhancedNotes = [{ id: "note-1" }];
     hoisted.regenerateTranscript.mockReset();
     hoisted.startListening.mockReset();
     hoisted.stopListening.mockReset();
@@ -486,7 +493,7 @@ describe("SessionViewSwitcher", () => {
     ],
     ["Auto", "Auto", { templateId: null, templateTitle: undefined }],
   ])(
-    "regenerates the current summary in place with the %s template",
+    "fills an empty summary in place with the %s template",
     async (_label, option, expected) => {
       hoisted.userTemplates = [
         {
@@ -518,6 +525,76 @@ describe("SessionViewSwitcher", () => {
       );
     },
   );
+
+  it("keeps a summary that has text when another template is picked", async () => {
+    hoisted.currentContent = "Existing summary text";
+    hoisted.userTemplates = [
+      {
+        id: "template-2",
+        title: "Decision Log",
+        description: "",
+        pinned: false,
+        sections: [],
+      },
+    ];
+    hoisted.enhance.mockResolvedValue({ type: "started", noteId: "note-2" });
+    const { handleTabChange } = renderSwitcher({
+      editorTabs: [{ type: "enhanced", id: "note-1" }, { type: "raw" }],
+      currentTab: { type: "enhanced", id: "note-1" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Customer Call" }));
+    fireEvent.click(screen.getByRole("button", { name: /Decision Log/ }));
+
+    expect(hoisted.enhance).toHaveBeenCalledWith("session-1", {
+      templateId: "template-2",
+      templateTitle: "Decision Log",
+    });
+    await waitFor(() =>
+      expect(handleTabChange).toHaveBeenCalledWith({
+        type: "enhanced",
+        id: "note-2",
+      }),
+    );
+  });
+
+  it("opens the existing summary for a template, no regenerate", () => {
+    hoisted.currentContent = "Existing summary text";
+    hoisted.enhancedNotes = [
+      {
+        id: "note-1",
+        templateId: "template-1",
+        content: "Existing summary text",
+      },
+      { id: "note-2", templateId: "template-2", content: "Decision notes" },
+    ];
+    hoisted.userTemplates = [
+      {
+        id: "template-2",
+        title: "Decision Log",
+        description: "",
+        pinned: false,
+        sections: [],
+      },
+    ];
+    const { handleTabChange } = renderSwitcher({
+      editorTabs: [
+        { type: "enhanced", id: "note-1" },
+        { type: "enhanced", id: "note-2" },
+        { type: "raw" },
+      ],
+      currentTab: { type: "enhanced", id: "note-1" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Customer Call" }));
+    fireEvent.click(screen.getByRole("button", { name: /Decision Log/ }));
+
+    expect(hoisted.enhance).not.toHaveBeenCalled();
+    expect(handleTabChange).toHaveBeenCalledWith({
+      type: "enhanced",
+      id: "note-2",
+    });
+  });
 
   it("builds transcript copy data only when the Copy action runs", async () => {
     const writeText = vi.fn(() => Promise.resolve());

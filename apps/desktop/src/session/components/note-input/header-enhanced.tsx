@@ -18,7 +18,7 @@ import {
 import { useAITaskTask } from "~/ai/hooks";
 import { getEnhancerService } from "~/services/enhancer";
 import { useEnhancedNoteActions } from "~/session/components/note-input/enhanced-actions";
-import { useEnhancedNote } from "~/session/queries";
+import { useEnhancedNote, useEnhancedNoteRecords } from "~/session/queries";
 import {
   type MenuItemDef,
   useNativeContextMenu,
@@ -152,6 +152,7 @@ function HeaderViewEnhancedActive({
   const { viewTitle, templateIcon, templateTooltip } =
     useEnhancedViewTitle(enhancedNoteId);
   const noteMarkdown = useMemo(() => getStoredNoteMarkdown(content), [content]);
+  const noteRecords = useEnhancedNoteRecords(sessionId);
 
   const handleCopy = useCallback(() => {
     return copyTextToClipboard(noteMarkdown, {
@@ -170,6 +171,42 @@ function HeaderViewEnhancedActive({
 
       const service = getEnhancerService();
       if (!service) {
+        return;
+      }
+
+      // A summary that already has text is never replaced by a template pick.
+      // The pick opens (or creates) that template's own summary instead.
+      if (noteMarkdown.length > 0) {
+        const wantedTemplateId = selection.templateId?.trim() || null;
+        const existing = noteRecords.find(
+          (record) =>
+            record.id !== enhancedNoteId &&
+            (record.templateId?.trim() || null) === wantedTemplateId &&
+            getStoredNoteMarkdown(record.content).length > 0,
+        );
+
+        if (existing) {
+          onSelectNote?.(existing.id);
+          return;
+        }
+
+        void Promise.resolve(
+          service.enhance(sessionId, {
+            templateId: selection.templateId,
+            templateTitle: selection.templateId ? selection.title : undefined,
+          }),
+        )
+          .then((result) => {
+            if (result.type === "started" || result.type === "already_active") {
+              onSelectNote?.(result.noteId);
+            }
+          })
+          .catch((error) => {
+            console.error(
+              "[enhancer] failed to create template summary",
+              error,
+            );
+          });
         return;
       }
 
@@ -194,7 +231,14 @@ function HeaderViewEnhancedActive({
           console.error("[enhancer] failed to replace summary template", error);
         });
     },
-    [enhancedNoteId, isGenerating, onSelectNote, sessionId],
+    [
+      enhancedNoteId,
+      isGenerating,
+      noteMarkdown,
+      noteRecords,
+      onSelectNote,
+      sessionId,
+    ],
   );
   const contextMenu = useMemo<MenuItemDef[]>(() => {
     const items: MenuItemDef[] = [

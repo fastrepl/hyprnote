@@ -171,36 +171,42 @@ describe("SettingsNav", () => {
     expect(mocks.openNew).toHaveBeenCalledWith({ type });
   });
 
-  it("offers Insights instead of Stats to free users, including via search", () => {
-    mocks.isPro = false;
+  it("hides technical and non-recruiter settings from navigation and search", () => {
     render(<SettingsNav />);
-    expect(screen.queryByRole("button", { name: "Stats" })).toBeNull();
 
-    fireEvent.change(screen.getByPlaceholderText("Search settings..."), {
-      target: { value: "insights" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Insights" }));
+    for (const label of [
+      "Invite friends",
+      "Insights",
+      "Sync",
+      "Transcription",
+      "Dictation",
+      "Intelligence",
+      "Dictionary",
+      "Developers",
+    ]) {
+      expect(screen.queryByRole("button", { name: label })).toBeNull();
+    }
 
-    expect(openedSettingsTab()).toEqual({ tab: "insights" });
-    expect(screen.queryByRole("button", { name: "Stats" })).toBeNull();
+    const input = screen.getByPlaceholderText("Search settings...");
+    for (const query of ["transcription", "intelligence", "developers", "sync"]) {
+      fireEvent.change(input, { target: { value: query } });
+      expect(screen.queryByRole("button", { name: new RegExp(query, "i") })).toBeNull();
+    }
   });
 
-  it("keeps locked Pro features visible and navigable without forcing an upgrade", () => {
+  it("keeps recruiter-relevant Pro features visible and navigable without forcing an upgrade", () => {
     mocks.isPro = false;
     render(<SettingsNav />);
 
-    expect(hasProLock(/Sync/)).toBe(true);
+    expect(hasProLock(/Teams/)).toBe(true);
+    expect(hasProLock(/Automations/)).toBe(true);
+    expect(screen.queryByRole("button", { name: /Sync/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Dictionary/ })).toBeNull();
 
-    for (const [label, tab] of [
-      ["Sync", "sync"],
-      ["Dictionary", "dictionary"],
-      ["Teams", "team"],
-    ]) {
-      fireEvent.click(screen.getByRole("button", { name: new RegExp(label) }));
-      expect(openedSettingsTab()).toEqual({ tab });
-    }
+    fireEvent.click(screen.getByRole("button", { name: /Teams/ }));
+    expect(openedSettingsTab()).toEqual({ tab: "team" });
+
     fireEvent.click(screen.getByRole("button", { name: /Automations/ }));
-
     expect(mocks.openNew).toHaveBeenCalledWith({ type: "automations" });
     expect(mocks.upgradeToPro).not.toHaveBeenCalled();
   });

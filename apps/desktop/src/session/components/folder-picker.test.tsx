@@ -18,6 +18,21 @@ const mocks = vi.hoisted(() => ({
   openNew: vi.fn(),
   setSelectedPath: vi.fn(),
   updateSession: vi.fn(() => Promise.resolve()),
+  windowLabel: "main",
+  windowEmitNavigate: vi.fn(() =>
+    Promise.resolve({ status: "ok", data: null }),
+  ),
+  windowIsExists: vi.fn(() => Promise.resolve({ status: "ok", data: true })),
+  windowShow: vi.fn(() => Promise.resolve({ status: "ok", data: null })),
+}));
+
+vi.mock("@anlg/plugin-windows", () => ({
+  commands: {
+    windowEmitNavigate: mocks.windowEmitNavigate,
+    windowIsExists: mocks.windowIsExists,
+    windowShow: mocks.windowShow,
+  },
+  getCurrentWebviewWindowLabel: () => mocks.windowLabel,
 }));
 
 vi.mock("~/folders/selection", () => ({
@@ -54,6 +69,10 @@ describe("FolderPicker", () => {
     mocks.openNew.mockClear();
     mocks.setSelectedPath.mockClear();
     mocks.updateSession.mockClear();
+    mocks.windowLabel = "main";
+    mocks.windowEmitNavigate.mockClear();
+    mocks.windowIsExists.mockClear();
+    mocks.windowShow.mockClear();
     mocks.createNamedFolder.mockResolvedValue("clients");
     globalThis.ResizeObserver = class {
       observe() {}
@@ -200,5 +219,26 @@ describe("FolderPicker", () => {
 
     expect(mocks.setSelectedPath).toHaveBeenCalledWith("work");
     expect(mocks.openNew).toHaveBeenCalledWith({ type: "folders" });
+    expect(mocks.windowEmitNavigate).not.toHaveBeenCalled();
+  });
+
+  it("opens the main window folders workspace from a note window", async () => {
+    mocks.windowLabel = "note-session-1";
+    mocks.folderId = "work";
+
+    render(<FolderPicker sessionId="session-1" />);
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Folder: work" }));
+    fireEvent.click(screen.getByRole("button", { name: "See all folders" }));
+
+    await waitFor(() => {
+      expect(mocks.windowEmitNavigate).toHaveBeenCalledWith(
+        { type: "main" },
+        { path: "/app/folders", search: { path: "work" } },
+      );
+      expect(mocks.windowShow).toHaveBeenCalledWith({ type: "main" });
+    });
+    expect(mocks.openNew).not.toHaveBeenCalled();
+    expect(mocks.setSelectedPath).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,10 @@
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo, useState } from "react";
 
+import {
+  commands as windowsCommands,
+  getCurrentWebviewWindowLabel,
+} from "@anlg/plugin-windows";
 import { CaretRight, Check, Folder, Plus } from "@anlg/ui/components/icons";
 import {
   Command,
@@ -30,6 +34,7 @@ import {
   useSession,
   useUpdateSession,
 } from "~/session/queries";
+import { foldersNavigationEvent } from "~/shared/folders-navigation";
 import { useTabs } from "~/store/zustand/tabs";
 import { TemplateIconGlyph } from "~/templates/template-icon";
 
@@ -179,10 +184,14 @@ export function FolderPickerContent({
 
   const handleSeeAllFolders = useCallback(() => {
     onClose();
-    if (currentPath) {
-      setSelectedPath(currentPath);
+    if (getCurrentWebviewWindowLabel() === "main") {
+      if (currentPath) {
+        setSelectedPath(currentPath);
+      }
+      openNew({ type: "folders" });
+      return;
     }
-    openNew({ type: "folders" });
+    void openFoldersInMainWindow(currentPath);
   }, [currentPath, onClose, openNew, setSelectedPath]);
 
   return (
@@ -261,6 +270,39 @@ export function FolderPickerContent({
       </button>
     </div>
   );
+}
+
+async function openFoldersInMainWindow(folderPath: string) {
+  const event = foldersNavigationEvent(folderPath);
+  const exists = await windowsCommands.windowIsExists({ type: "main" });
+  if (exists.status === "error") {
+    console.error("[folder-picker] failed to check main window", exists.error);
+  }
+  const mainExists = exists.status === "ok" && exists.data;
+  if (mainExists) {
+    await emitFoldersNavigation(event);
+  }
+  const shown = await windowsCommands.windowShow({ type: "main" });
+  if (shown.status === "error") {
+    console.error("[folder-picker] failed to show main window", shown.error);
+    return;
+  }
+  if (!mainExists) {
+    await emitFoldersNavigation(event);
+  }
+}
+
+async function emitFoldersNavigation(event: {
+  path: string;
+  search: { path: string } | null;
+}) {
+  const emitted = await windowsCommands.windowEmitNavigate(
+    { type: "main" },
+    event,
+  );
+  if (emitted.status === "error") {
+    console.error("[folder-picker] failed to open folders", emitted.error);
+  }
 }
 
 function collectWithCurrent(folderPaths: string[], currentPath: string) {

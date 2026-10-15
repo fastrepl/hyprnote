@@ -582,13 +582,20 @@ async fn repair_migration_recreates_missing_templates_table() {
 
     anlg_db_migrate::migrate(&db, schema()).await.unwrap();
 
-    let row_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM templates")
-        .fetch_one(db.pool())
-        .await
-        .unwrap();
-    // The repair recreates an empty table; only the recruiting templates
-    // migration (20261015090000) seeds rows after it, so three rows remain.
-    assert_eq!(row_count, 3);
+    let template_ids: Vec<String> =
+        sqlx::query_scalar("SELECT id FROM templates ORDER BY id")
+            .fetch_all(db.pool())
+            .await
+            .unwrap();
+
+    assert_eq!(
+        template_ids,
+        vec![
+            String::from("default-behavioural-interview"),
+            String::from("default-initial-screen"),
+            String::from("default-technical-interview"),
+        ]
+    );
 }
 
 #[tokio::test]

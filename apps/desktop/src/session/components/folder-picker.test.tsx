@@ -22,14 +22,12 @@ const mocks = vi.hoisted(() => ({
   windowEmitNavigate: vi.fn(() =>
     Promise.resolve({ status: "ok", data: null }),
   ),
-  windowIsExists: vi.fn(() => Promise.resolve({ status: "ok", data: true })),
   windowShow: vi.fn(() => Promise.resolve({ status: "ok", data: null })),
 }));
 
 vi.mock("@anlg/plugin-windows", () => ({
   commands: {
     windowEmitNavigate: mocks.windowEmitNavigate,
-    windowIsExists: mocks.windowIsExists,
     windowShow: mocks.windowShow,
   },
   getCurrentWebviewWindowLabel: () => mocks.windowLabel,
@@ -71,7 +69,6 @@ describe("FolderPicker", () => {
     mocks.updateSession.mockClear();
     mocks.windowLabel = "main";
     mocks.windowEmitNavigate.mockClear();
-    mocks.windowIsExists.mockClear();
     mocks.windowShow.mockClear();
     mocks.createNamedFolder.mockResolvedValue("clients");
     globalThis.ResizeObserver = class {
@@ -238,6 +235,12 @@ describe("FolderPicker", () => {
       );
       expect(mocks.windowShow).toHaveBeenCalledWith({ type: "main" });
     });
+    // The main window must exist before the navigation event is emitted,
+    // otherwise a startup-time emit can be dropped before its React
+    // navigation listener has registered.
+    expect(mocks.windowShow.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.windowEmitNavigate.mock.invocationCallOrder[0]!,
+    );
     expect(mocks.openNew).not.toHaveBeenCalled();
     expect(mocks.setSelectedPath).not.toHaveBeenCalled();
   });

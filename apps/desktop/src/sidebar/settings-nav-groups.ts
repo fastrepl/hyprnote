@@ -137,8 +137,10 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
 }
 
 /**
- * Items intentionally omitted from the primary settings sidebar.
- * They remain in the complete registry for global search and other entry points.
+ * Items intentionally hidden from the recruiter-facing settings navigation.
+ * Apply this filter before rendering both the navigation and its settings search
+ * so hidden items cannot reappear in search results. Their routes and settings
+ * implementations remain available to existing internal recovery paths.
  */
 const HIDDEN_FROM_PRIMARY_SETTINGS_NAV = new Set<SettingsTab>([
   "referrals",

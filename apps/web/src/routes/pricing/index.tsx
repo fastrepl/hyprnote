@@ -71,7 +71,7 @@ function PricingPage() {
             </p>
 
             <div className="relative left-1/2 mt-8 w-screen max-w-[1100px] -translate-x-1/2 px-5 md:px-8">
-              <div className="overflow-x-auto rounded-3xl border border-[#eadfce] [corner-shape:squircle]">
+              <div className="overflow-x-auto rounded-3xl border border-[#eadfce]">
                 <table className="w-full min-w-[760px] border-collapse text-left text-sm">
                   <thead>
                     <tr className="border-b border-[#eadfce]">

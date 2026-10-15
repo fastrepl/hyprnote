@@ -586,7 +586,13 @@ describe("SessionViewSwitcher", () => {
       currentTab: { type: "enhanced", id: "note-1" },
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Customer Call" }));
+    // Both summary pills use the same mocked template title, so pick the
+    // active one (the current page) instead of an ambiguous name lookup.
+    const activePill = screen
+      .getAllByRole("button", { name: "Customer Call" })
+      .find((button) => button.getAttribute("aria-current") === "page");
+    expect(activePill).toBeDefined();
+    fireEvent.click(activePill as HTMLElement);
     fireEvent.click(screen.getByRole("button", { name: /Decision Log/ }));
 
     expect(hoisted.enhance).not.toHaveBeenCalled();

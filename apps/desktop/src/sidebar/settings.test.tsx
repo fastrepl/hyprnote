@@ -188,7 +188,16 @@ describe("SettingsNav", () => {
     }
 
     const input = screen.getByPlaceholderText("Search settings...");
-    for (const query of ["transcription", "intelligence", "developers", "sync"]) {
+    for (const query of [
+      "invite friends",
+      "insights",
+      "transcription",
+      "intelligence",
+      "developers",
+      "sync",
+      "dictation",
+      "dictionary",
+    ]) {
       fireEvent.change(input, { target: { value: query } });
       expect(screen.queryByRole("button", { name: new RegExp(query, "i") })).toBeNull();
     }

@@ -1,13 +1,9 @@
 import { useLingui } from "@lingui/react/macro";
 
 import {
-  ArrowsClockwise,
   Bell,
-  BookOpen,
   Buildings,
   CalendarDots,
-  ChartLineUp,
-  Code,
   CreditCard,
   DownloadSimple,
   FileText,
@@ -16,15 +12,12 @@ import {
   Lightning,
   type Icon,
   Lock,
-  Microphone,
   ShieldCheck,
-  Sparkle,
   Sun,
   User,
   Users,
   UsersThree,
   VideoCamera,
-  Waveform,
 } from "@anlg/ui/components/icons";
 
 import { privacyMessages } from "~/settings/general/app-settings";
@@ -60,41 +53,14 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
         { id: "app", label: t`General`, icon: Gear },
         { id: "account", label: t`Account`, icon: User },
         { id: "billing", label: t`Billing`, icon: CreditCard },
-        { id: "referrals", label: t`Invite friends`, icon: Users },
-        { id: "insights", label: t`Insights`, icon: ChartLineUp },
         {
           id: "team",
           label: t`Teams`,
           icon: UsersThree,
           requiresPro: !workspaces.isLoading && !hasExistingWorkspace,
         },
-        {
-          id: "sync",
-          label: t`Sync`,
-          icon: ArrowsClockwise,
-          requiresPro: true,
-        },
         { id: "appearance", label: t`Appearance`, icon: Sun },
         { id: "notifications", label: t`Notifications`, icon: Bell },
-      ],
-    },
-    {
-      label: "AI",
-      items: [
-        { id: "transcription", label: t`Transcription`, icon: Waveform },
-        {
-          id: "dictation",
-          label: t`Dictation`,
-          icon: Microphone,
-          requiresPro: true,
-        },
-        { id: "intelligence", label: t`Intelligence`, icon: Sparkle },
-        {
-          id: "dictionary",
-          label: t`Dictionary`,
-          icon: BookOpen,
-          requiresPro: true,
-        },
       ],
     },
     {
@@ -150,7 +116,6 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           icon: ShieldCheck,
         },
         { id: "permissions", label: t`Permissions`, icon: Lock },
-        { id: "developers", label: t`Developers`, icon: Code },
       ],
     },
   ];

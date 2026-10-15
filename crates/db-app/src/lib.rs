@@ -586,7 +586,7 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         },
         sql: include_str!("../migrations/20261002090000_session_share_activation_sync.sql"),
     },
-    anlg_db_migrate::MigrationStep {
+        anlg_db_migrate::MigrationStep {
         id: "20261005090000_e2ee_cloud_authority",
         scope: anlg_db_migrate::MigrationScope::Plain,
         sql: include_str!("../migrations/20261005090000_e2ee_cloud_authority.sql"),
@@ -596,7 +596,7 @@ pub const APP_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] = &[
         scope: anlg_db_migrate::MigrationScope::Plain,
         sql: include_str!("../migrations/20261015090000_recruiting_templates.sql"),
     },
-        anlg_db_migrate::MigrationStep {
+    anlg_db_migrate::MigrationStep {
         id: "20261015120000_recruiting_grounding",
         scope: anlg_db_migrate::MigrationScope::Plain,
         sql: include_str!("../migrations/20261015120000_recruiting_grounding.sql"),

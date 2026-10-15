@@ -199,7 +199,9 @@ describe("SettingsNav", () => {
       "dictionary",
     ]) {
       fireEvent.change(input, { target: { value: query } });
-      expect(screen.queryByRole("button", { name: new RegExp(query, "i") })).toBeNull();
+      expect(
+        screen.queryByRole("button", { name: new RegExp(query, "i") }),
+      ).toBeNull();
     }
   });
 

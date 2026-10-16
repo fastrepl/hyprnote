@@ -1,35 +1,24 @@
 ---
-meta_title: "2026's Best Bot-Free AI Meeting Assistants"
-meta_description: "Want AI meeting notes without bots joining your call? Here's a list of the best bot-free AI meeting assistants for secure, distraction-free note-taking."
+meta_title: "Bot-Free AI Meeting Assistants: Capture Options (2026)"
+meta_description: "Compare bot-free meeting assistants that capture from your device or browser. Understand recording, AI processing, local data, and participant notice separately."
 author: "John Jeong"
 category: "Comparisons"
 date: "2025-08-27"
 ---
 
-I'm tired of AI bots crashing my meetings uninvited. You know the drill - you're in a sensitive client call, and suddenly "OtterPilot has joined the meeting." Awkward silence. "Who invited the bot?"
+Bot-free meeting assistants capture audio or meeting text through your device or browser without adding a recording participant to the call. That can suit calls where a meeting bot is unwelcome, but it does not establish how the content is processed or whether recording has been approved.
 
-That's why I've been testing bot-free alternatives that capture your meetings without sending virtual party crashers. These tools record directly from your device or browser, so your calls stay natural while you still get AI-powered notes.
+Compare the capture method, transcription and summary providers, stored data, and sharing settings separately. A bot-free tool can still send audio or text to a cloud service.
 
-According to my research, here are the 12 bot-free meeting assistants worth trying:
+**Sources checked October 14, 2026.** This compares published capture paths and conditions, not a new hands-on benchmark of all twelve services. Meeting.ai's documented bot-free cases are in-person capture and uploads; its video-call workflow uses a bot.
 
-- **Anarlog** → Local, offline, open-source, max privacy
-- **Jamie AI** → GDPR-compliant AI with executive recall
-- **Granola AI** → Hybrid human + AI note expansion
-- **Tactiq** → Live transcription with deep integrations
-- **Krisp** → Noise cancellation + simple meeting notes
-- **Superpowered** → Multilingual-focused real-time transcription
-- **Circleback** → CRM-first insights for sales teams
-- **Notta** → Multilingual browser-based transcription
-- **Bluedot AI** → Quiet, template-based workflow automation
-- **Voicenotes** → All-in-one voice + meeting "second brain"
-- **Meeting AI** → Compliance-friendly for regulated industries
-- **Sonnet** → End-to-end CRM automation for sales
+For plan allowances, use the [free AI notetaker comparison](/blog/free-ai-notetakers/). For summary review, use the [meeting summary tools guide](/blog/ai-meeting-summary-tools/).
 
 ---
 
 **💡 Before we proceed:**
 
-- Check out our [full best AI meeting assistants list](/blog/best-ai-meeting-assistant-for-taking-notes) for both bot-free and bot-based tools to get the complete picture.
+- Check out our [full best AI meeting assistants list](/blog/best-ai-meeting-assistant-for-taking-notes/) for both bot-free and bot-based tools to get the complete picture.
 - If you're curious about how bot-free assistants work and why to choose them, don't miss the FAQs at the end.
 
 ---
@@ -38,478 +27,180 @@ According to my research, here are the 12 bot-free meeting assistants worth tryi
 
 ### 1. Anarlog
 
-[Anarlog](/) is an open-source AI notepad for meetings that gives you complete control over your data and AI stack. Meeting data is stored locally in SQLite instead of a vendor-hosted workspace. Markdown is available when you want to export it. You choose your AI: managed cloud, bring your own keys, or run local models.
+**Disclosure:** I'm a co-founder of Anarlog.
 
-The interface feels like Apple Notes but with AI superpowers running in the background. Start a meeting and it transcribes in real-time. When you hang up, you get structured summaries with decisions and action items automatically extracted.
+[Anarlog](/) is an open-source AI meeting notetaker that captures microphone and system audio without joining the call as a participant. Canonical sessions, notes, and transcripts live in local SQLite; Markdown is an export format, and recordings are separate local files.
 
-Anarlog's Smart Consent Management Package for enterprises stands out. It handles consent legally and transparently with multiple options: simple pop-ups, voice recognition that listens for verbal consent, and customizable policies.
+Use your own notes alongside the transcript, then generate and review a structured summary. [Transcription and Intelligence are independent settings](https://docs.anarlog.so/models-and-providers): local speech recognition does not make AI summaries local. Hosted transcription receives audio; hosted Intelligence receives the text and context needed for its request. For a fully local setup, follow the [offline Mac guide](/blog/offline-meeting-transcription-mac/), including model downloads and hardware requirements.
 
-**Pricing:** The Free plan supports on-device transcription and your own API keys. Pro is $14/month or $140/year and adds hosted transcription, cloud AI, encrypted CloudSync, and calendar integrations.
+Bot-free capture does not confirm permission to record. Anarlog's [recording guide](https://docs.anarlog.so/meetings) and [recording terms](/terms/) put the required notice and consent with the person recording. A disclosure message is not proof that every participant agreed; do not assume verbal consent detection or a compliance guarantee.
 
-[Download Anarlog](/download).
+**Pricing:** The [Free plan](/pricing/) supports on-device transcription on supported hardware and your own provider keys. Pro adds hosted transcription, cloud AI, encrypted CloudSync, and other hosted features. Using your own keys can incur provider charges.
+
+[Download Anarlog](/download/) to try the capture and summary configuration that fits your workflow.
 
 <Image src="https://static.anarlog.so/blog/library/products/anarlog/desktop/2026-08-20-meeting-summary.jpg" alt="Anarlog meeting summary with recent meetings in the local sidebar"/>
 
-#### Top features
+#### Useful capabilities
 
-- Local SQLite storage with Markdown export when it fits your workflow
-- Your choice of AI stack: managed cloud, bring your own keys, or run local models
-- Open source—zero lock-in, full transparency
-- Free forever for local transcription, BYOK, and all core features
-- Customizable templates for different meeting types (therapy, legal, interviews)
-- Smart Consent Management Package for enterprise compliance
-- AI Chat with MCP server connections for enhanced functionality
-- Calendar integration with notification system
-- Conversational search across all meeting history
-- Flexible AI model options (local, self-host, or connect to custom AI endpoints)
+- Local meeting records with portable exports
+- Independently selected transcription and summary providers
+- Templates for different meeting structures
+- AI Chat for questions about meeting content
+- Search across stored meetings
+- Open-source community application ([GitHub](https://github.com/fastrepl/anarlog))
 
-#### Perfect if you:
+#### Considerations
 
-- Are an engineer or developer who wants files over apps
-- Work in healthcare, legal, or finance where compliance matters
-- Want zero lock-in with open-source transparency ([GitHub](https://github.com/fastrepl/anarlog))
-- Your company has banned cloud tools like Otter, ChatGPT, or Granola
-- Already have unused LLM API credits and want to bring your own keys
-
-#### Things to consider:
-
-- macOS is the most mature build; Windows and Linux builds are in beta
-- No video recording by design for maximum privacy
+Check platform and model availability before choosing a setup. Cloud AI, sync, sharing, and other connected features have separate data paths. Review [summary output](/blog/ai-meeting-summary-tools/) before relying on it or sharing it.
 
 <CtaCard/>
 
 ### 2. Jamie AI
 
-[Jamie AI](https://www.meetjamie.ai/) takes privacy seriously but differently than Anarlog. Instead of keeping everything local, they process your audio in Germany under strict GDPR rules, then immediately delete the recordings. It's like having a very discreet German assistant who forgets everything after writing your notes.
+[Jamie AI](https://www.meetjamie.ai/) captures meeting audio without adding a recording participant. Its [data-handling documentation](https://docs.meetjamie.ai/faqs-troubleshooting/data) describes uploading audio for server transcription, deleting the audio after processing, and using an AI API to generate meeting notes. The transcript remains in the hosted workspace. Bot-free capture does not make this a fully offline workflow.
 
-What makes Jamie special is the Executive Assistant feature. Hit Ctrl+J and you get an AI sidebar that remembers everything from past meetings. Ask "What did Sarah say about the Q4 budget?" and it knows instantly.
-
-**Pricing:** Free plan with 10 meetings/month. Paid plans start at €24/month (~$25) with higher tiers available.
+**Pricing:** The [Free plan](https://www.meetjamie.ai/pricing) lists ten AI notes per month with a 30-minute meeting limit. Paid plans expand allowances and integrations; check the current plan and billing basis before choosing one.
 
 <Image src="https://static.anarlog.so/blog/articles/bot-free-ai-meeting-assistants/jamie.webp" alt="Jamie meeting-note workspace with a generated summary and AI assistant"/>
 
-*Jamie's meeting-note workspace with a generated summary and AI assistant. Source: [Jamie](https://www.meetjamie.ai/).*
+#### Useful capabilities
 
-#### Top features
+The [Meeting Output guide](https://docs.meetjamie.ai/getting-started/summary) describes editable topic-based summaries, transcripts, tasks, and a private scratchpad. Summary templates and detail settings let you shape the output; Ask Jamie provides a follow-up interface for meeting context.
 
-- Deletes audio files immediately after processing
-- Works completely offline—great for in-person meetings
-- 20+ languages with automatic detection
-- Executive Assistant sidebar for instant meeting recall
-- Advanced topic detection breaks notes into logical sections
+#### Considerations
 
-#### Perfect if you:
-
-- Need GDPR compliance with European data hosting
-- Have multilingual meetings or international teams
-- Handle sensitive discussions but need cloud processing power
-
-#### Things to consider:
-
-- No real-time transcription—you wait 5-10 minutes for summaries
-- More expensive than some alternatives at €24/month
-- Limited integrations compared to browser-based tools
+Evaluate the cloud processing and storage policy separately from the recording method. Check meeting-duration limits and review generated task owners and deadlines before sharing the result. Recording without a bot does not establish participant approval.
 
 ### 3. Granola AI
 
-[Granola](https://www.granola.ai/) operates similarly to Anarlog's note-taking approach but sends your data to the cloud instead of processing it locally. You jot down key points during calls, and after the meeting ends, Granola expands your rough notes into actionable summaries.
-
-**Pricing:** 25 free meetings (lifetime), then $18/month individual or $14/user/month for teams.
-
 <Image src="https://static.anarlog.so/blog/articles/bot-free-ai-meeting-assistants/granola.webp" alt="Granola collaborative meeting note with AI-generated summary and action items"/>
 
-#### Top features
+[Granola's current plan comparison](https://www.granola.ai/pricing) lists bot-free device-audio capture, meeting notes, chat, shared folders, and customized templates. It suits a workflow where you type context during the meeting and use AI to expand the note afterward.
 
-- Post-meeting task assistance: drafting follow-up emails, extracting action items, answering questions about discussions
-- Familiar notepad interface similar to Apple Notes—no complex setup required
-- Fast processing—enhanced notes ready almost immediately
-- Chat functionality to query your meeting history and get instant answers
+Basic includes meeting notes with **30 days of meeting history**. Business adds unlimited notes/history and broader integrations. Review retention, sharing, and model-training settings for the chosen account; device-audio capture alone does not establish local AI processing.
 
-#### Perfect if you:
-
-- Like the hybrid approach of human + AI note-taking
-- Need something that works immediately without complex setup
-- Don't mind cloud processing for better AI capabilities
-- Work primarily on Mac/iOS with some Windows usage
-
-#### Things to consider:
-
-- Only 25 free meetings total, then payment required
-- Limited integrations and search capabilities
-- Privacy approach less clear than Anarlog's local processing or Jamie's explicit deletion
-
-If you like the workflow but not the storage or processing model, compare [Granola AI alternatives](/blog/granola-ai-alternatives/) by capture, ownership, and automation.
+For other storage and workflow choices, see [Granola alternatives](/blog/granola-ai-alternatives/).
 
 ### 4. Tactiq
 
-[Tactiq](https://tactiq.io/) takes a completely different approach from the previous tools. Instead of post-meeting summaries, it shows live transcription as people speak. Watching words appear in real-time is satisfying and surprisingly useful for catching names or technical terms you might miss.
-
-Tactiq's integration ecosystem is where it really shines. It pushes meeting insights to Slack, HubSpot, Jira—basically everywhere you actually work.
-
-**Pricing:** Free plan with 10 meetings/month and 5 AI credits. Paid plans start at $12/user/month.
-
 <Image src="https://static.anarlog.so/blog/articles/bot-free-ai-meeting-assistants/tactiq.webp" alt="Tactiq live transcript panel beside a Google Meet browser call"/>
 
-*Tactiq's live transcript panel beside a Google Meet browser call. Source: [Tactiq](https://tactiq.io/).*
+[Tactiq](https://tactiq.io/) offers a bot-free browser transcript workflow for Google Meet, Zoom, and Microsoft Teams. Its FAQ says this workflow saves transcript text without recording or storing meeting audio. This matters if you want a transcript but also need to know whether an audio recording will be available for review.
 
-#### Top features
-
-- Live transcription visible during meetings
-- 60+ languages with automatic detection
-- Rich integrations with workplace tools
-- Custom AI workflows for repetitive tasks
-- No separate app installation needed
-
-#### Perfect if you:
-
-- Want to see transcription happening live instead of waiting
-- Already live in Chrome for most work tasks
-- Need workflow automation to move meeting insights into other tools
-- Primarily use Zoom, Google Meet, or Teams
-
-#### Things to consider:
-
-- Chrome-only limits flexibility compared to universal tools like Anarlog
-- [Accuracy with strong accents is less reliable](https://www.g2.com/products/tactiq/reviews/tactiq-review-5307104) than tools like Jamie
-- Limited to three meeting platforms
-- No offline functionality
+The [Free plan](https://tactiq.io/buy) includes ten transcripts and five AI credits per month. Transcript capacity and AI requests are separate allowances. Check the exact browser/client support, transcript notification, and export workflow before relying on it for your calls.
 
 ### 5. Krisp
 
-[Krisp](https://krisp.ai/) handles two jobs at once—it cancels background noise AND takes meeting notes. If you're working from cafes or dealing with construction next door, this dual functionality is genuinely valuable.
-
-The meeting notes are more basic than the AI-enhanced summaries from Anarlog or Granola, but they capture the essentials without fuss.
-
-**Pricing:** Free plan with 60 minutes/day noise cancellation, and paid plans start at $16/user/month.
-
 <Image src="https://static.anarlog.so/blog/articles/bot-free-ai-meeting-assistants/krisp.webp" alt="Krisp generated meeting summary with an action-item checklist"/>
 
-*Krisp's generated meeting summary with an action-item checklist. Source: [Krisp](https://krisp.ai/).*
+[Krisp's meeting assistant](https://krisp.ai/ai-meeting-assistant/) combines audio-level capture, transcription, summaries, and noise cancellation. It documents both bot-free recording and an optional meeting bot, plus desktop and mobile capture paths.
 
-#### Top features
-
-- Industry-leading noise cancellation alongside note-taking
-- Works with any meeting platform (more universal than Tactiq)
-- Device-level audio processing (better privacy than Granola)
-- Accent conversion helps with international teams
-- Mobile apps for in-person meeting recording
-
-#### Perfect if you:
-
-- Work in noisy environments and need both clean audio and notes
-- Jump between different meeting platforms constantly
-- Want one tool instead of separate noise cancellation + note-taker
-
-#### Things to consider:
-
-- Note-taking features aren't as sophisticated as dedicated tools
-- Limited conversation analytics and team collaboration features
-- Storage limitations even on paid plans can be restrictive for heavy users
-- [App stability issues](https://apps.apple.com/us/app/krisp-ai-meeting-note-taker/id6740535865?see-all=reviews) reported with crashes and recording interruptions
+It is worth evaluating when you need audio cleanup alongside meeting notes. Choose the recording method explicitly: having Krisp installed does not establish which capture path is active. Check the [current plan comparison](https://krisp.ai/pricing/) for capture, transcription, and noise-cancellation allowances. Test transcript quality with the accents and audio conditions in your actual calls.
 
 ### 6. Superpowered
 
-[Superpowered](https://superpowered.me/) focuses specifically on multilingual teams—something most other tools handle as an afterthought. With 50+ languages and automatic language detection, it's built for organizations where English isn't everyone's first language.
-
-Like Jamie, it emphasizes privacy through data minimization, automatically deleting audio after generating notes.
-
-**Pricing:** Offers a limited free plan, with paid plans ranging between $36-$108/month.
-
 ![Superpowered meeting-note templates for interviews, customer success, and sales calls](https://static.anarlog.so/blog/library/products/superpowered/templates/2026-08-30-meeting-templates.webp)
 
-*Superpowered's first-party product page shows its selectable meeting-note templates. Source: [Superpowered](https://superpowered.me/).*
+[Superpowered](https://superpowered.me/) describes live transcription of device audio without a meeting bot. Its FAQ distinguishes audio from transcripts: audio is transcribed live and deleted immediately, while transcripts are retained for seven days to allow note generation. That is not a seven-day audio archive.
 
-#### Top features
-
-- Support for 50+ languages (more than Jamie's 20+)
-- Audio automatically deleted after 7 days maximum
-- Desktop app with keyboard shortcuts for efficiency
-- Real-time transcription with immediate data deletion
-
-#### Perfect if you:
-
-- Work with international teams across multiple languages
-- Need strong privacy controls but can accept brief cloud processing
-- Want desktop-native performance with quick shortcuts
-
-#### Things to consider:
-
-- Less feature-rich than comprehensive tools like Anarlog or Jamie
-- Desktop dependency limits mobile usage compared to Tactiq's browser approach
-- Smaller user base means less community support
+The service lists macOS and Windows support; mobile and Linux are not listed as supported. Its homepage also distinguishes note-history and AI-note allowances by plan. Check those separately from transcript retention, especially if you need to revisit the original conversation after generating a note.
 
 ### 7. Circleback AI
 
-[Circleback AI](https://circleback.ai/) provides both bot-free and bot-based recording options, with a strong focus on CRM integration. While tools like Tactiq integrate broadly across many platforms, Circleback is built specifically for sales teams who need meeting insights to flow directly into their CRM.
-
-The tool captures audio via its desktop app or browser extension and automatically pushes structured data—contact details, deal stages, next steps—into systems like Salesforce and HubSpot.
-
-**Pricing:** Free trial available, then paid plans start at $25/month.
-
 <Image src="https://static.anarlog.so/blog/articles/bot-free-ai-meeting-assistants/circleback.webp" alt="Circleback onboarding screen with an upcoming meeting and automatic-join control"/>
 
-*Circleback's onboarding screen with an upcoming meeting and automatic-join control. Source: [Circleback](https://circleback.ai/).*
+[Circleback's FAQ](https://circleback.ai/) documents bot-free recording through its desktop app, in-person recording, and imports of past audio/video. Generated notes, action items, search, and automations support follow-up workflows.
 
-#### Top features
+Its current integrations include CRM and project tools as well as API, webhook, CLI, and MCP access. Consider it when meeting output needs to reach another system, but review the configured automations and destinations before enabling them. Desktop capture and a calendar-connected recording workflow are different choices; confirm which one your account will use.
 
-- Desktop app and browser extension options
-- Automatic contact and deal data extraction
-- Direct integration with major CRM platforms
-- Flexible recording modes (bot-free or bot-based)
-
-#### Perfect if you:
-
-- Live in your CRM and need seamless data flow from meetings
-- Want flexibility between bot-free and bot-based recording
-- Focus on sales conversations that need structured follow-up
-
-#### Things to consider:
-
-- Bot-free mode requires desktop app or browser extension
-- More specialized than general-purpose tools like Jamie or Granola
-- Smaller feature set outside of CRM integration
-
-### 8. Notta Chrome Extension
-
-[Notta's](https://www.notta.ai) browser extension brings multilingual capabilities to the bot-free world. While Tactiq supports 60+ languages, Notta focuses specifically on accuracy across different languages and dialects within the same meeting—something international teams really need.
-
-The extension works similarly to other Chrome-based solutions but with stronger emphasis on translation and cross-language understanding. Think of it as Tactiq's multilingual specialist cousin.
-
-**Pricing:** Free plan with 120 minutes/month, Pro from $13.49/month.
+### 8. Notta
 
 <Image src="https://static.anarlog.so/blog/articles/bot-free-ai-meeting-assistants/notta.webp" alt="Notta Chrome Transcript view with a YouTube video and live language controls"/>
 
-*Notta's Chrome Transcript view with a YouTube video and live language controls. Source: [Notta](https://www.notta.ai/).*
+Notta offers several capture and processing paths. [Desktop Privacy Mode](https://www.notta.ai/en/features/privacy-mode) records and transcribes locally, keeping the related files in local storage. It requires initial setup and an offline model download. Other Notta modes include bot-free capture with cloud workflows, so the app name alone does not establish the data path.
 
-#### Top features
+Privacy Mode's supported languages depend on the selected local model. Pro local transcription does not consume cloud transcription minutes; long recordings still depend on device resources. Review [current plans](https://www.notta.ai/en/pricing) and the mode-specific requirements before comparing its allowances with cloud transcription.
 
-- Multi-language transcripts with translation capabilities
-- Chrome extension for browser-based recording
-- Strong dialect and accent recognition
-- Searchable summaries across languages
-
-#### Perfect if you:
-
-- Work with international teams speaking multiple languages
-- Want browser convenience with a multilingual focus
-- Convert audio and video files and meetings into shareable text
-
-#### Things to consider:
-
-- Chrome dependency like other browser extensions
-- Limited free plan with 3 minutes of transcription per conversation
-- Live transcription can lag according to [user reports](https://www.g2.com/products/notta/reviews?utf8=%E2%9C%93&filters%5Bsentiment_snippet%5D=1169636)
-- Limited to 30 min/month of imported audio to transcribe
-
-### 9. Bluedot
-
-[Bluedot](https://www.bluedothq.com/) is another Chrome extension positioned as the quiet alternative to more visible tools. Like Circleback, it focuses on workflow integration but with broader scope—pushing meeting insights to both CRM systems like Salesforce and productivity tools like Notion.
-
-Users appreciate that it works without announcing itself, similar to how Granola operates discretely. The template system helps structure different types of meetings automatically.
-
-**Pricing:** Very limited free tier (5 meetings total), then Basic at $18/month, Pro at $25/month, Business at $39/month.
+### 9. Bluedot AI
 
 <Image src="https://static.anarlog.so/blog/articles/bot-free-ai-meeting-assistants/bluedot.webp" alt="Bluedot meeting note with transcript text and selectable note templates"/>
 
-*Bluedot's meeting note with transcript text and selectable note templates. Source: [Bluedot](https://www.bluedothq.com/).*
+[Bluedot](https://www.bluedothq.com/) documents capture through a Chrome extension or desktop app without adding a meeting participant. Its product page also describes browser, desktop, and mobile options, so verify the exact recording method for your platform.
 
-#### Top features
-
-- Quiet Chrome recording without disruption
-- Templates for different meeting types
-- CRM and Notion integration
-- Customizable workflow automation
-
-#### Perfect if you:
-
-- Want browser-based recording with template structure
-- Use Notion for project management alongside CRM tools
-- Need discrete operation without drawing attention
-
-#### Things to consider:
-
-- Manual start required unless you enable auto-flows
-- [AI chat features can't jump to exact timestamps](https://www.g2.com/products/bluedot-bluedot/reviews/bluedot-review-11314224) yet
-- [Can't adapt to spontaneous language changes](https://www.g2.com/products/bluedot-bluedot/reviews/bluedot-review-11489988) during meetings
+It combines meeting transcripts and summaries with sharing and follow-up workflows. This can suit teams that want meeting output in an existing workspace. Check what the selected mode retains, how recordings are shared, and which plan enables the integrations you intend to use. Bot-free capture should not be treated as a permission or compliance guarantee.
 
 ### 10. Voicenotes
 
-[Voicenotes](https://voicenotes.com/) takes a different approach from all the meeting-focused tools above. It's designed as a "second brain" that captures both meetings and voice memos in one unified system. Think of it as Jamie's meeting capabilities combined with a personal voice note system.
-
-The tool supports an impressive 100+ languages (more than Superpowered's 50+) and lets you query your entire voice history—meetings, personal notes, random thoughts—through AI search.
-
-**Pricing:** Offers a free trial, with paid plans starting at $14.99/month.
-
 <Image src="https://static.anarlog.so/blog/articles/bot-free-ai-meeting-assistants/voicenotes.webp" alt="Voicenotes meeting record with summary, transcript, creations, and Ask AI tabs"/>
 
-*Voicenotes' meeting record with summary, transcript, creations, and Ask AI tabs. Source: [Voicenotes](https://voicenotes.com/).*
+[Voicenotes](https://voicenotes.com/) offers bot-free meeting capture alongside personal voice notes, with desktop and mobile apps. Its meeting workflow keeps a recording, transcript, and key points together and supports follow-up documents and questions about past conversations.
 
-#### Top features
+It is a candidate when you want meetings and other spoken notes in one service. Check the intended recording mode, exports, and account retention before using it as your only archive. Its homepage advertises multilingual support; test the languages you use before relying on a transcript for follow-up.
 
-- Meeting and voice memo capture in one app
-- 100+ language support (most on this list)
-- AI-powered "second brain" for voice content
-- Cross-platform availability (app + desktop + watch)
-
-#### Perfect if you:
-
-- Want one place for all voice content, not just meetings
-- Need extensive language support beyond what other tools offer
-- Like the idea of searchable voice memory across all contexts
-
-#### Things to consider:
-
-- Limited integrations compared to tools like Tactiq
-- Broader focus means less specialized meeting features
-- No advanced admin controls for team usage
-
-### 11. Meeting.ai
-
-[Meeting.ai](https://meeting.ai) focuses specifically on compliance-heavy industries where data handling is critical. With 30+ language support and emphasis on regulatory compliance, it's positioned as the enterprise-safe alternative to consumer-focused tools.
-
-The platform is designed for organizations that need meeting intelligence but can't use tools with unclear data policies or overseas processing. It finds middle ground between Anarlog's local processing and cloud-based tools.
-
-**Pricing:** No free plans. Paid pricing starts at USD 19.99/month.
+### 11. Meeting.ai: In-Person Capture and Uploads
 
 <Image src="https://static.anarlog.so/blog/articles/bot-free-ai-meeting-assistants/meeting-ai.webp" alt="Meeting.ai desktop and mobile meeting-note workspaces"/>
 
-*Meeting.ai's desktop and mobile meeting-note workspaces. Source: [Meeting.ai](https://meeting.ai).*
+Meeting.ai needs a narrower qualification in a bot-free comparison. Its [first-meeting documentation](https://meeting.ai/en/docs/getting-started/your-first-meeting) describes in-person recording and existing-file uploads, but directs Zoom, Meet, and Teams video calls through its Meeting Bot.
 
-#### Top features
-
-- 30+ languages with compliance focus
-- Designed for regulated industries
-- Enterprise-grade data handling
-- Works for both virtual and in-person meetings
-
-#### Perfect if you:
-
-- Work in healthcare, finance, or legal where compliance matters
-- Need cloud processing but with enterprise controls
-- Want meeting intelligence with clear regulatory documentation
-
-#### Things to consider:
-
-- Less feature-rich than consumer tools like Jamie or Granola
-- Higher pricing typical of compliance-focused solutions
-- Smaller user community than mainstream alternatives
+The documented in-person/upload paths can produce a transcript, summary, and visual note without a bot joining a call. They do not establish a bot-free native capture path for video meetings. Choose it for the documented workflow you need rather than assuming every recording mode is bot-free. Review the processing and sharing settings for that workflow before uploading a recording.
 
 ### 12. Sonnet AI
 
-[Sonnet](https://www.sonnetai.com/) is the CRM specialist of bot-free tools, designed specifically for sales teams who live in systems like Salesforce and HubSpot. While Circleback offers CRM integration, Sonnet goes deeper—it's built primarily for automating the entire sales meeting workflow.
-
-The tool captures meetings without bots and automatically updates deal stages, contact information, and next steps directly in your CRM. It's like having a dedicated sales assistant who never forgets to log activities.
-
-**Pricing:** Free plan with 5 meetings/month and 30-minute limit, Plus at $25/month, Pro at $35/month.
-
 <Image src="https://static.anarlog.so/blog/articles/bot-free-ai-meeting-assistants/sonnet.webp" alt="Sonnet meeting library with templates and categorized conversations"/>
 
-*Sonnet's meeting library with templates and categorized conversations. Source: [Sonnet](https://www.sonnetai.com/).*
+[Sonnet](https://www.sonnetai.com/) describes capturing audio directly from your device without requiring a meeting bot. Its current feature list includes note templates, action items, participant context, relationship tracking, and CRM follow-up.
 
-#### Top features
+The homepage advertises **five free notes per month**. The available public pricing view did not clearly establish recording-length, storage, or paid-price terms. Check the account's actual allowances before relying on it for long calls. The companion mobile app is described as launching soon, not as an available capture option.
 
-- End-to-end CRM automation for sales workflows
-- Bot-free recording focused on sales conversations
-- Automatic deal and contact updates
-- Pre-meeting preparation with contact research
+## How to Choose a Bot-Free Workflow
 
-#### Perfect if you:
+Start with the call you need to capture: a browser meeting, native desktop client, phone conversation, or in-person discussion. Test that exact path before adopting a tool. An available mobile app, file upload, or calendar bot is not proof that the desktop video-call path is bot-free.
 
-- Live in your CRM and need automated sales workflow
-- Want dedicated sales functionality rather than general meeting notes
-- Need relationship tracking across multiple conversations
+Then check the processing and archive separately. Anarlog offers independent transcription and summary selections; Notta distinguishes Privacy Mode from other workflows; Jamie documents server transcription; Superpowered distinguishes live audio deletion from temporary transcript retention. These are different configurations, not a universal privacy ranking.
 
-#### Things to consider:
-
-- Very sales-focused—less useful for general meeting needs
-- More complex setup compared to simple tools like Granola
-- Higher pricing than general-purpose alternatives
-- Features may be excessive for non-sales use cases
-
----
-
-## How to choose the best bot-free meeting assistant
-
-Picking from 12 tools can get overwhelming fast. I've grouped them into clear categories based on what really matters when you're picking an AI meeting assistant.
-
-### 1. Privacy & Compliance
-
-If you handle sensitive data in healthcare, finance, law, or enterprise:
-
-- **Anarlog** → Local processing, no data leaves your device
-- **Jamie** → GDPR-compliant, auto-deletes audio
-- **Meeting.ai** → Compliance-grade cloud solution
-
-### 2. Multilingual & global teams
-
-If you work across different languages and accents:
-
-- **Superpowered** → 50+ languages, strong real-time focus
-- **Notta** → Multilingual translation + dialect support
-- **Voicenotes** → 100+ languages, one app for all voice content
-
-### 3. Sales & CRM power users
-
-If your world revolves around client calls and pipeline updates:
-
-- **Sonnet** → Sales-first tool with deep CRM automation
-- **Circleback** → Chrome-based CRM data capture
-- **Bluedot** → CRM + Notion workflow integrations
-
-### 4. Productivity & general use
-
-For everyday team meetings and streamlined workflows:
-
-- **Granola** → Expands quick notes into summaries
-- **Tactiq** → Real-time live transcription + app integrations
-- **Krisp** → Noise cancellation + simple notes in one
-
----
+Before enabling automatic capture or sharing, confirm the required participant notice and permission, inspect the recipients, and check whether you can correct and export the output. Verify monthly allowances, per-meeting limits, retention, and the price for your chosen billing period on the provider's current plan.
 
 ## Frequently asked questions
 
 ### 1. What are bot-free AI meeting assistants?
 
-Bot-free tools record directly from your device or browser instead of joining calls as a visible participant. They provide transcription, summaries, and action items without interrupting sensitive client conversations.
+Bot-free tools capture audio or meeting text through your device or browser instead of adding a visible recording participant. Their processing, storage, and sharing settings still need a separate review.
 
 ### 2. How are bot-free meeting assistants different from bot-based assistants?
 
-Here's a quick look at bot-free vs. bot-based meeting assistants like Otter AI and Fireflies.
+Compare recording methods rather than treating one as an automatic privacy or compliance guarantee. Some products offer both methods.
 
-| Aspect                | Bot-Based Meeting Assistants               | Bot-Free Meeting Assistants                  |
-| --------------------- | ------------------------------------------ | -------------------------------------------- |
-| Presence in Meeting   | Visible participants in attendee list      | No participant; works silently in background |
-| Meeting Flow Impact   | Can interrupt or distract meetings         | Keeps meetings smooth and natural            |
-| Audio Processing      | Mostly cloud-based with variable retention | Local processing or strict privacy cloud     |
-| Technical Integration | Connect via meeting platform APIs as users | Capture audio from device/browser output     |
-| Privacy & Security    | Data retention depends on provider         | Designed for strict data control             |
-| Typical Use Cases     | Casual, internal, or less sensitive calls  | Sensitive, regulated, client-facing calls    |
+| Aspect | Bot-based capture | Bot-free capture |
+| --- | --- | --- |
+| Meeting presence | Adds a recording participant | Does not add a recording participant |
+| Capture path | Recording participant receives meeting content | Device audio or browser meeting text, depending on the tool |
+| AI processing | Depends on the provider and configuration | Depends on the provider and configuration |
+| Notice and permission | Must be handled for the meeting | Must be handled for the meeting |
+| Retention and sharing | Check the configured policy and recipients | Check the configured policy and recipients |
 
 ### 3. How do you take AI meeting notes without bots?
 
-Use a bot-free assistant that records system audio or your microphone directly. The tool processes the audio [locally](/blog/local-ai-meeting-notes/) or securely in the cloud, then generates summaries, action items, and searchable transcripts.
+Choose a tool that supports the meeting platform and capture method you need. For audio capture, grant the required microphone and system-audio permissions. Then select the transcription and summary setup: [local AI meeting notes](/blog/local-ai-meeting-notes/) and cloud AI have different configuration and data paths. Check the result before sharing it.
 
 ### 4. How do botless meeting assistants work?
 
-They rely on local apps or browser extensions that listen to the meeting through your device's audio feed. This eliminates the need for a third-party bot account joining the call.
+The capture path is specific to each tool. A desktop audio recorder, browser extension, and uploaded recording have different permissions and availability. Confirm whether your exact meeting client is supported rather than assuming bot-free capture works with every app.
 
 ### 5. How does consent work with bot-free meeting assistants?
 
-Consent is handled differently depending on the tool:
-
-- **Anarlog** → Advanced consent management (pop-ups, voice recognition, customizable enterprise policies).
-- **Jamie/Superpowered** → Inform participants upfront; audio deleted after processing.
-- **Others** → Disclosure often relies on manual policies (users informing participants if needed).
+Do not infer agreement from the absence of a bot or from a recording notice. Anarlog's [terms](/terms/) make the person recording responsible for required notice and consent. Confirm the workflow your organization requires before recording, and check the tool's disclosure, participant-response, and sharing controls. Audio deletion or local storage does not establish that participants approved capture.
 
 ### 6. Why would someone choose a bot-free meeting assistant over a bot-based one?
 
 People often choose bot-free assistants because:
 
 - They want to avoid awkward or distracting bot participants in sensitive meetings.
-- They prioritize maximum privacy and data security with local or minimal cloud processing.
-- They work in regulated industries requiring strict consent and compliance controls.
+- They want to choose a capture method that fits their meeting platform and workflow.
+- They need to assess processing, retention, and access controls independently of capture.
 - They prefer seamless, natural conversations without extra virtual guests.
-- They need offline or low-bandwidth options that don't depend on cloud connectivity.
+- They need a local setup and have verified both transcription and summary models work offline.
 - They want full control over where and how meeting data is processed and stored.
 
 <CtaCard/>

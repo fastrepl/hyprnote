@@ -9,10 +9,7 @@ import { createClient } from "@anlg/api-client/client";
 import { env, requireEnv } from "@/env";
 import { getRequestAppOrigin } from "@/functions/app-origin";
 import { desktopSchemeSchema } from "@/functions/desktop-flow";
-import {
-  claimPendingReferral,
-  getReferralTrialDays,
-} from "@/functions/referrals";
+import { claimPendingReferral, getProTrialDays } from "@/functions/referrals";
 import { getStripeClient } from "@/functions/stripe";
 import {
   getSupabaseAdminClient,
@@ -534,10 +531,12 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         throw new Error("Trial is not available for this account");
       }
       reservationId = parsedReservationId.data;
-      trialDays = (await getReferralTrialDays(supabase)) ?? undefined;
     }
 
     try {
+      if (reservationId) {
+        trialDays = await getProTrialDays(supabase);
+      }
       const stripe = getStripeClient();
       const checkoutCode =
         !data.trial && data.code ? data.code.trim() : undefined;

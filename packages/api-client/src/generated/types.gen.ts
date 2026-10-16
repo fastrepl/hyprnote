@@ -201,7 +201,9 @@ export type CanStartTrialReason = 'eligible' | 'not_eligible' | 'error';
 
 export type CanStartTrialResponse = {
     canStartTrial: boolean;
+    offer?: null | TrialOffer;
     reason?: null | CanStartTrialReason;
+    trialDays?: number | null;
 };
 
 export type CanceledAttachmentBackupDeletion = {
@@ -1789,8 +1791,10 @@ export type StableSharedNoteSnapshot = {
 export type StartTrialReason = 'started' | 'not_eligible';
 
 export type StartTrialResponse = {
+    offer?: null | TrialOffer;
     reason?: null | StartTrialReason;
     started: boolean;
+    trialDays?: number | null;
 };
 
 export type StreamAlternatives = {
@@ -2008,6 +2012,8 @@ export type TranscriptionSegment = {
 };
 
 export type Transparency = 'opaque' | 'transparent' | 'unknown';
+
+export type TrialOffer = 'referral' | 'work_email' | 'personal_email';
 
 export type UpdateSettingsBody = {
     enabled: boolean;

@@ -10,7 +10,7 @@ type AuthState = {
 };
 
 type AuthActions = {
-  signIn: () => Promise<void>;
+  signIn: (options?: { switchAccount?: boolean }) => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<Session | null>;
   getSessionForRequest: () => Promise<Session | null>;

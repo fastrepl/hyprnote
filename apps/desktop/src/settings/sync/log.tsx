@@ -74,7 +74,7 @@ export function SyncLog() {
               />
             </div>
           ) : logQuery.data.length ? (
-            <ol className="divide-border/60 max-h-64 divide-y overflow-y-auto font-mono text-[11px] leading-5">
+            <ol className="select-text-deep divide-border/60 max-h-64 divide-y overflow-y-auto font-mono text-[11px] leading-5">
               {logQuery.data.map((line, index) => (
                 <li
                   key={`${index}-${line}`}

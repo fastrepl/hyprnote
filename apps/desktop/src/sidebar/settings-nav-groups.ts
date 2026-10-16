@@ -53,7 +53,7 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
   const workspaces = useMyWorkspacesWithMirror();
   const hasExistingWorkspace = (workspaces.data?.length ?? 0) > 0;
 
-  return [
+  return filterPrimarySettingsNavGroups([
     {
       label: t`App`,
       items: [
@@ -133,7 +133,7 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
         { id: "developers", label: t`Developers`, icon: Code },
       ],
     },
-  ];
+  ]);
 }
 
 /**

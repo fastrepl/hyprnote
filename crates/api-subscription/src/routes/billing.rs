@@ -13,7 +13,7 @@ use crate::stripe::{
     create_trial_subscription, customer_has_subscription_history, get_or_create_customer,
     trial_subscription_idempotency_key,
 };
-use crate::trial::{Interval, StartTrialQuery, StartTrialResponse, TrialOutcome, pro_trial_days};
+use crate::trial::{Interval, StartTrialQuery, StartTrialResponse, TrialOffer, TrialOutcome};
 
 #[utoipa::path(
     post,
@@ -147,12 +147,12 @@ pub async fn start_trial(
         Ok(false) => {}
     }
 
-    let trial_days: u32 = match state
+    let offer = match state
         .supabase
-        .rpc::<Option<u32>>("get_referral_trial_days", &auth.token, None)
+        .rpc::<Option<TrialOffer>>("get_pro_trial_offer", &auth.token, None)
         .await
     {
-        Ok(days) => days.unwrap_or_else(pro_trial_days),
+        Ok(offer) => offer.unwrap_or(TrialOffer::PersonalEmail),
         Err(e) => {
             release_trial_reservation(&state, user_id, &reservation.reservation_id).await;
             return emit_and_respond(
@@ -189,12 +189,12 @@ pub async fn start_trial(
         &state.stripe,
         &customer_id,
         price_id,
-        trial_days,
+        offer.days(),
         idempotency_key,
     )
     .await
     {
-        Ok(trial_end) => TrialOutcome::Started(query.interval, trial_end),
+        Ok(trial_end) => TrialOutcome::Started(query.interval, trial_end, offer),
         Err(e) => {
             tracing::warn!(
                 error = %e,

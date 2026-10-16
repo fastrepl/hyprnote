@@ -1946,6 +1946,10 @@ msgstr "Couldn't save your new badges."
 msgid "Couldn't save your profile. Try again."
 msgstr "Couldn't save your profile. Try again."
 
+#: src/onboarding/account/after-login.tsx
+msgid "Couldn't switch accounts. Please try again."
+msgstr "Couldn't switch accounts. Please try again."
+
 #: src/folders/sidebar.tsx
 #: src/settings/team/index.tsx
 msgid "Create"
@@ -2339,10 +2343,6 @@ msgstr "Edit"
 msgid "Edit date"
 msgstr "Edit date"
 
-#: src/onboarding/account/after-login.tsx
-msgid "Eligible for free trial"
-msgstr "Eligible for free trial"
-
 #: src/crm/enrich-contact.tsx
 msgid "email"
 msgstr "email"
@@ -2702,6 +2702,10 @@ msgstr "Free"
 #: src/settings/referrals.tsx
 msgid "Free months earned"
 msgstr "Free months earned"
+
+#: src/onboarding/account/before-login.tsx
+msgid "Free Pro with a work email"
+msgstr "Free Pro with a work email"
 
 #: src/templates/template-icon-picker.tsx
 msgid "Frequently used"
@@ -3161,6 +3165,10 @@ msgstr "Join scheduled meetings"
 #: src/settings/team/index.tsx
 msgid "Joined {0}"
 msgstr "Joined {0}"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Keep {PRO_TRIAL_DAYS} days"
+msgstr "Keep {PRO_TRIAL_DAYS} days"
 
 #: src/settings/dictation.tsx
 msgid "Keep Anarlog running to use your shortcut in other apps."
@@ -4373,6 +4381,10 @@ msgstr "Permissions for {0}"
 msgid "Permissions granted"
 msgstr "Permissions granted"
 
+#: src/onboarding/account/after-login.tsx
+msgid "Personal email"
+msgstr "Personal email"
+
 #: src/crm/enrich-contact.tsx
 msgid "phone"
 msgstr "phone"
@@ -4510,6 +4522,10 @@ msgstr "Pro plan"
 #: src/settings/general/billing.tsx
 msgid "Pro trial"
 msgstr "Pro trial"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Pro trial started"
+msgstr "Pro trial started"
 
 #: src/settings/appearance/app-icon.tsx
 msgid "Production"
@@ -5572,10 +5588,6 @@ msgstr "Sign in to share folders, templates, and automations."
 msgid "Sign in to share this note with others."
 msgstr "Sign in to share this note with others."
 
-#: src/onboarding/index.tsx
-msgid "Sign in to unlock powerful AI models, sync across devices, and personalization."
-msgstr "Sign in to unlock powerful AI models, sync across devices, and personalization."
-
 #: src/settings/sync/index.tsx
 msgid "Sign in to use cloud sync"
 msgstr "Sign in to use cloud sync"
@@ -6243,10 +6255,6 @@ msgstr "Travel & Places"
 msgid "Trial"
 msgstr "Trial"
 
-#: src/onboarding/account/after-login.tsx
-msgid "Trial activated - {trialDays} days of Pro"
-msgstr "Trial activated - {trialDays} days of Pro"
-
 #: src/settings/referrals.tsx
 msgid "Trial started · Applying your free month"
 msgstr "Trial started · Applying your free month"
@@ -6358,6 +6366,10 @@ msgstr "Unnamed device"
 #: src/contacts/contact-page-header.tsx
 msgid "Unpin"
 msgstr "Unpin"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Until {endsOn}"
+msgstr "Until {endsOn}"
 
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -6536,6 +6548,10 @@ msgstr "Use Touch ID or enter your password to view."
 #: src/lock/screen.tsx
 msgid "Use Windows Hello face, PIN, or password to view."
 msgstr "Use Windows Hello face, PIN, or password to view."
+
+#: src/onboarding/account/after-login.tsx
+msgid "Use work email"
+msgstr "Use work email"
 
 #: src/onboarding/permissions.tsx
 msgid "Use your microphone to capture your voice"

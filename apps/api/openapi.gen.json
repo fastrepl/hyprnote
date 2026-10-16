@@ -6472,6 +6472,16 @@
             "type": "boolean",
             "example": true
           },
+          "offer": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TrialOffer"
+              }
+            ]
+          },
           "reason": {
             "oneOf": [
               {
@@ -6481,6 +6491,15 @@
                 "$ref": "#/components/schemas/CanStartTrialReason"
               }
             ]
+          },
+          "trialDays": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "example": 30,
+            "minimum": 0
           }
         }
       },
@@ -12340,6 +12359,16 @@
           "started"
         ],
         "properties": {
+          "offer": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TrialOffer"
+              }
+            ]
+          },
           "reason": {
             "oneOf": [
               {
@@ -12353,6 +12382,15 @@
           "started": {
             "type": "boolean",
             "example": true
+          },
+          "trialDays": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "example": 30,
+            "minimum": 0
           }
         }
       },
@@ -13119,6 +13157,14 @@
           "opaque",
           "transparent",
           "unknown"
+        ]
+      },
+      "TrialOffer": {
+        "type": "string",
+        "enum": [
+          "referral",
+          "work_email",
+          "personal_email"
         ]
       },
       "UpdateSettingsBody": {

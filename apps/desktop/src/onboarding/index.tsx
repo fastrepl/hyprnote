@@ -248,12 +248,6 @@ function OnboardingScreenContent({
 
           <OnboardingSection
             title={<Trans>Create account</Trans>}
-            description={
-              <Trans>
-                Sign in to unlock powerful AI models, sync across devices, and
-                personalization.
-              </Trans>
-            }
             completedTitle={
               auth.session ? (
                 <Trans>Signed in</Trans>

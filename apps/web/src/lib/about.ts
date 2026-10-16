@@ -85,7 +85,7 @@ export const originStory = [
 export const howAnarlogWorks = [
   {
     title: "Getting started",
-    body: "Download the desktop app for macOS, Windows, or Linux and start recording. Free can run without an account after you configure and download supported local models. Pro starts with a 2-week trial, and includes shared workspaces for teams.",
+    body: "Download the desktop app for macOS, Windows, or Linux and start recording. Free can run without an account after you configure and download supported local models. Pro is free for 30 days when you sign up with your work email (7 days with a personal email), and includes shared workspaces for teams.",
   },
   {
     title: "Support",

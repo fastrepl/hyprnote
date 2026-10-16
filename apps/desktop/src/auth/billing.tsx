@@ -27,7 +27,7 @@ import { TrialStartedDialog } from "../billing/trial-started-dialog";
 import { env } from "../env";
 import { waitForBillingUpdate } from "../shared/billing";
 import { configurePaidSettings } from "../shared/config/configure-paid-settings";
-import { startTrialOnce } from "../shared/trial-start";
+import { startTrialOnce, useAutoTrialHeld } from "../shared/trial-start";
 import { buildWebAppUrl } from "../shared/utils";
 import { useAuth } from "./auth-context";
 import { type BillingAccess, BillingContext } from "./billing-context";
@@ -135,16 +135,17 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     queryFn: async () => {
       const headers = auth?.getHeaders();
       if (!headers) {
-        return { canStartTrial: false, reason: "error" as const };
+        return { canStartTrial: false, reason: "error" as const, offer: null };
       }
       const client = createClient({ baseUrl: env.VITE_API_URL, headers });
       const { data, error } = await canStartTrialApi({ client });
       if (error) {
-        return { canStartTrial: false, reason: "error" as const };
+        return { canStartTrial: false, reason: "error" as const, offer: null };
       }
       return {
         canStartTrial: data?.canStartTrial ?? false,
         reason: data?.reason ?? null,
+        offer: data?.offer ?? null,
       };
     },
   });
@@ -165,6 +166,11 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     ],
   );
 
+  // Onboarding offers a new personal-email account the switch to a work email first.
+  const awaitsWorkEmailChoice =
+    useAutoTrialHeld(auth?.session?.user.id) &&
+    canTrialQuery.data?.offer === "personal_email";
+
   // eslint-disable-next-line @tanstack/query/exhaustive-deps -- The user ID owns one automatic attempt; a refreshed token must not trigger another start.
   useQuery({
     enabled:
@@ -174,7 +180,8 @@ export function BillingProvider({ children }: { children: ReactNode }) {
       claimsAreCurrent &&
       canUsePersonalTrial &&
       !billing.isPaid &&
-      canTrialQuery.data?.canStartTrial === true,
+      canTrialQuery.data?.canStartTrial === true &&
+      !awaitsWorkEmailChoice,
     queryKey: [auth?.session?.user.id ?? "", "startEligibleTrial"],
     queryFn: async () => {
       const userId = auth?.session?.user.id;

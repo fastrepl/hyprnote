@@ -167,9 +167,7 @@ describe("OpenNoteDialog", () => {
       target: { value: "transcription" },
     });
 
-    expect(
-      screen.queryByRole("option", { name: /Transcription/ }),
-    ).toBeNull();
+    expect(screen.queryByRole("option", { name: /Transcription/ })).toBeNull();
     expect(screen.getByText("No results found.")).toBeTruthy();
     expect(mocks.openNew).not.toHaveBeenCalled();
   });

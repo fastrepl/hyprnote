@@ -160,18 +160,18 @@ describe("OpenNoteDialog", () => {
     expect(mocks.openNew).toHaveBeenCalledWith({ type: "contacts" });
   });
 
-  it("opens a matching settings sub-page", () => {
+  it("hides the Transcription settings option from global search", () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 
     fireEvent.change(screen.getByPlaceholderText("Search notes and pages..."), {
       target: { value: "transcription" },
     });
-    fireEvent.click(screen.getByRole("option", { name: /Transcription/ }));
 
-    expect(mocks.openNew).toHaveBeenCalledWith({
-      type: "settings",
-      state: { tab: "transcription" },
-    });
+    expect(
+      screen.queryByRole("option", { name: /Transcription/ }),
+    ).toBeNull();
+    expect(screen.getByText("No results found.")).toBeTruthy();
+    expect(mocks.openNew).not.toHaveBeenCalled();
   });
 
   it("shows an empty state when no pages or notes match", () => {

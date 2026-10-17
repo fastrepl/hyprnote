@@ -467,7 +467,9 @@ def run_test(test: str, environment: dict[str, str]) -> None:
         ],
         check=True,
         env=environment,
-        timeout=20 * 60,
+        # The policy test waits for one fresh-site bootstrap and then two concurrent
+        # ones, each up to the Rust tests' 300s ceiling, plus bounded attack syncs.
+        timeout=30 * 60,
     )
 
 
@@ -503,7 +505,7 @@ def cleanup_remote_workspaces(
             raise RuntimeError("verification workspace cleanup left remote records")
 
 
-def read_latency_log(path: str) -> list[tuple[str, float]]:
+def read_latency_log(path: str) -> list[tuple[str, float, bool]]:
     try:
         with open(path) as log:
             lines = log.read().splitlines()
@@ -513,26 +515,41 @@ def read_latency_log(path: str) -> list[tuple[str, float]]:
     for line in lines:
         if line.strip():
             entry = json.loads(line)
-            entries.append((str(entry["check"]), float(entry["seconds"])))
+            entries.append(
+                (
+                    str(entry["check"]),
+                    float(entry["seconds"]),
+                    bool(entry.get("completed", True)),
+                )
+            )
     return entries
+
+
+def latency_status(seconds: float, completed: bool) -> str:
+    if not completed:
+        return "timed out"
+    if seconds > FRESH_DEVICE_LATENCY_TARGET_SECONDS:
+        return "over target"
+    return "ok"
 
 
 def report_fresh_device_latency(path: str) -> None:
     entries = read_latency_log(path)
     target = FRESH_DEVICE_LATENCY_TARGET_SECONDS
-    for check, seconds in entries:
-        level = "warning" if seconds > target else "notice"
+    for check, seconds, completed in entries:
+        status = latency_status(seconds, completed)
+        level = "notice" if status == "ok" else "warning"
         print(
             f"::{level} title=CloudSync fresh-device latency::"
-            f"{check}: {seconds:.1f}s (target {target}s)"
+            f"{check}: {seconds:.1f}s, {status} (target {target}s)"
         )
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if not entries or not summary_path:
         return
     rows = [
-        f"| {check} | {seconds:.1f}s | {'over target' if seconds > target else 'ok'} |"
-        for check, seconds in entries
+        f"| {check} | {seconds:.1f}s | {latency_status(seconds, completed)} |"
+        for check, seconds, completed in entries
     ]
     with open(summary_path, "a") as summary:
         summary.write(

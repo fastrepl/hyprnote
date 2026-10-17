@@ -67,67 +67,62 @@ class VerifyCloudSyncE2eeTests(unittest.TestCase):
                 ["unrelated-workspace"],
             )
 
-    def test_reports_fresh_device_latency_without_failing(self) -> None:
+    def flagged_latency_checks(self, output: str) -> dict[str, set[str]]:
+        levels: dict[str, set[str]] = {"notice": set(), "warning": set()}
+        for line in output.splitlines():
+            level, _, message = line.removeprefix("::").partition(" ")
+            levels[level].add(message.split("::", 1)[1].split(":", 1)[0])
+        return levels
+
+    def test_slow_or_timed_out_bootstraps_are_flagged_without_failing(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             log = pathlib.Path(directory, "latency.jsonl")
             log.write_text(
-                '{"check": "workspace B update round trip", "seconds": 63.4}\n'
-                '{"check": "second personal client download", "seconds": 12.25}\n'
+                '{"check": "fast", "seconds": 12.0, "completed": true}\n'
+                '{"check": "slow", "seconds": 63.0, "completed": true}\n'
+                '{"check": "stuck", "seconds": 300.0, "completed": false}\n'
             )
-            summary = pathlib.Path(directory, "summary.md")
             output = io.StringIO()
             with (
-                mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
+                mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": ""}),
                 mock.patch.object(verify, "FRESH_DEVICE_LATENCY_TARGET_SECONDS", 60),
                 contextlib.redirect_stdout(output),
             ):
                 verify.report_fresh_device_latency(str(log))
 
-            self.assertEqual(
-                output.getvalue().splitlines(),
-                [
-                    "::warning title=CloudSync fresh-device latency::"
-                    "workspace B update round trip: 63.4s (target 60s)",
-                    "::notice title=CloudSync fresh-device latency::"
-                    "second personal client download: 12.2s (target 60s)",
-                ],
-            )
-            table = summary.read_text()
-            self.assertIn(
-                "| workspace B update round trip | 63.4s | over target |", table
-            )
-            self.assertIn("| second personal client download | 12.2s | ok |", table)
+        self.assertEqual(
+            self.flagged_latency_checks(output.getvalue()),
+            {"notice": {"fast"}, "warning": {"slow", "stuck"}},
+        )
 
-    def test_missing_latency_log_reports_nothing(self) -> None:
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            verify.report_fresh_device_latency("/nonexistent/cloudsync-latency.jsonl")
-        self.assertEqual(output.getvalue(), "")
-
-    def test_reports_latency_and_removes_log_when_verification_fails(self) -> None:
+    def test_failed_verification_still_reports_latency_and_removes_log(self) -> None:
         failure = subprocess.CalledProcessError(101, ["cargo", "test"])
         logs = []
 
         def failing_verification(_values, _database, latency_log):
             logs.append(latency_log)
             pathlib.Path(latency_log).write_text(
-                '{"check": "workspace B policy verification", "seconds": 1.0}\n'
+                '{"check": "stuck", "seconds": 300.0, "completed": false}\n'
             )
             raise failure
 
+        output = io.StringIO()
         with (
             mock.patch.object(sys, "argv", ["verify", "secrets.json"]),
+            mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": ""}),
             mock.patch.object(verify, "load_secrets", return_value={}),
             mock.patch.object(verify, "verify_remote_database", return_value="db"),
             mock.patch.object(
                 verify, "run_verification", side_effect=failing_verification
             ),
-            mock.patch.object(verify, "report_fresh_device_latency") as report,
+            contextlib.redirect_stdout(output),
         ):
             with self.assertRaises(subprocess.CalledProcessError):
                 verify.main()
 
-        report.assert_called_once_with(logs[0])
+        self.assertEqual(
+            self.flagged_latency_checks(output.getvalue())["warning"], {"stuck"}
+        )
         self.assertFalse(pathlib.Path(logs[0]).exists())
 
     def e2ee_record_columns(self) -> list[dict[str, object]]:

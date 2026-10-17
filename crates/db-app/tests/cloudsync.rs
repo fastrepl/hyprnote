@@ -96,12 +96,17 @@ async fn setup_policy_db(token: &str, workspace_id: &str) -> Db {
     setup_db_with_network_options(token_auth(token), workspace_id, 2_500, 1).await
 }
 
-// Content-free: a check label and a duration only.
-fn record_fresh_site_latency(check: &str, elapsed: Duration) {
+// Content-free: a check label, a duration, and whether the bootstrap completed. A
+// timed-out bootstrap is recorded too, since it is the slowest case worth reporting.
+fn record_fresh_site_latency(check: &str, elapsed: Duration, completed: bool) {
     let Ok(path) = std::env::var(LATENCY_LOG_ENV) else {
         return;
     };
-    let entry = serde_json::json!({ "check": check, "seconds": elapsed.as_secs_f64() });
+    let entry = serde_json::json!({
+        "check": check,
+        "seconds": elapsed.as_secs_f64(),
+        "completed": completed,
+    });
     let mut log = OpenOptions::new()
         .create(true)
         .append(true)
@@ -419,9 +424,7 @@ async fn wait_for_e2ee_record(
     })
     .await
     .unwrap_or(None);
-    if record.is_some() {
-        record_fresh_site_latency(operation, started.elapsed());
-    }
+    record_fresh_site_latency(operation, started.elapsed(), record.is_some());
     record
 }
 
@@ -588,7 +591,7 @@ async fn same_personal_workspace_syncs_and_decrypts_a_real_note() {
         .await
         .expect("second personal client snapshot reset failed");
     let download_started = Instant::now();
-    tokio::time::timeout(FRESH_SITE_BOOTSTRAP_TIMEOUT, async {
+    let downloaded = tokio::time::timeout(FRESH_SITE_BOOTSTRAP_TIMEOUT, async {
         let mut attempt = 1;
         loop {
             sync_ok(
@@ -607,17 +610,18 @@ async fn same_personal_workspace_syncs_and_decrypts_a_real_note() {
             tokio::time::sleep(REPLICA_VISIBILITY_POLL_INTERVAL).await;
         }
     })
-    .await
-    .unwrap_or_else(|_| {
+    .await;
+    record_fresh_site_latency(
+        "second personal client download",
+        download_started.elapsed(),
+        downloaded.is_ok(),
+    );
+    downloaded.unwrap_or_else(|_| {
         panic!(
             "second personal client did not receive encrypted fields within {} seconds",
             FRESH_SITE_BOOTSTRAP_TIMEOUT.as_secs()
         )
     });
-    record_fresh_site_latency(
-        "second personal client download",
-        download_started.elapsed(),
-    );
 
     let downloaded_title: Option<String> =
         sqlx::query_scalar("SELECT title FROM sessions WHERE id = ? AND workspace_id = ?")
@@ -719,12 +723,11 @@ async fn personal_workspace_tokens_block_foreign_encrypted_writes() {
     })
     .await
     .unwrap_or(None);
-    if round_trip_title.is_some() {
-        record_fresh_site_latency(
-            "workspace B update round trip",
-            round_trip_started.elapsed(),
-        );
-    }
+    record_fresh_site_latency(
+        "workspace B update round trip",
+        round_trip_started.elapsed(),
+        round_trip_title.is_some(),
+    );
 
     let insert_attacker = setup_policy_db(&token_a, &workspace_a).await;
     sync_full_snapshot(&insert_attacker, "workspace A foreign read check").await;

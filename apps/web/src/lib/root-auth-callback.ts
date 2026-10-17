@@ -26,8 +26,6 @@ export function forgetAuthFlowContext() {
 }
 
 // Inlined into <head> via toString(), so it must stay self-contained.
-// Only failed OAuth returns are handled here; successful root returns keep
-// the regular route redirects so their own params decide the flow.
 export function redirectRootAuthReturn(now = Date.now()) {
   const storageKey = "anarlog.auth-flow-context";
   const maxAgeMs = 15 * 60_000;
@@ -35,7 +33,20 @@ export function redirectRootAuthReturn(now = Date.now()) {
   if (location.pathname !== "/") return false;
 
   const params = new URLSearchParams(location.search);
-  if (!params.has("error") && !params.has("error_code")) return false;
+  if (!params.has("error") && !params.has("error_code")) {
+    // Prerendered "/" never runs its beforeLoad, so forward success returns
+    // here with their own params only (no saved context).
+    const target =
+      params.get("token_hash") && params.get("type")
+        ? "/confirm-auth/"
+        : params.get("code")
+          ? "/callback/auth/"
+          : null;
+    if (!target) return false;
+    document.documentElement.style.visibility = "hidden";
+    location.replace(`${target}?${params.toString()}`);
+    return true;
+  }
 
   try {
     const raw = window.sessionStorage.getItem(storageKey);

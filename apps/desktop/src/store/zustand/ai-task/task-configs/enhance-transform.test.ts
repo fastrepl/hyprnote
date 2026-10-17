@@ -128,6 +128,74 @@ describe("enhanceTransform.transformArgs", () => {
     ]);
   });
 
+  it.each([
+    {
+      interviewType: "Initial Screen",
+      expectedGuidance: "Focus on motivation, relevant experience, role fit",
+    },
+    {
+      interviewType: "Technical Interview",
+      expectedGuidance: "Focus on demonstrated technical skills, problem-solving approach",
+    },
+    {
+      interviewType: "Behavioural Interview",
+      expectedGuidance: "Organize evidence around relevant competencies and concrete examples",
+    },
+  ])(
+    "adds $interviewType guidance to summary context, including with a template",
+    async ({ interviewType, expectedGuidance }) => {
+      mocks.loadSessionContentSnapshot.mockResolvedValue({
+        ...createSnapshot(),
+        event: {
+          title: "Backend Engineer — Candidate A",
+          abrish_interview_type: interviewType,
+          abrish_interview_date: "2026-10-12",
+        },
+      });
+      mocks.getTemplateById.mockResolvedValue({
+        title: "Recruiter template",
+        description: "Existing template",
+        sections: [{ title: "Evidence", description: null }],
+      });
+
+      const result = await enhanceTransform.transformArgs(
+        {
+          sessionId: "session-1",
+          enhancedNoteId: "note-1",
+          templateId: "template-1",
+        },
+        settingsValues,
+      );
+
+      expect(result.postMeetingMemo).toContain(expectedGuidance);
+      expect(result.postMeetingMemo).toContain(
+        "Interview date: 2026-10-12",
+      );
+      expect(result.template?.title).toBe("Recruiter template");
+      expect(result.formatOverride).toBe("");
+    },
+  );
+
+  it("ignores invalid interview metadata without changing ordinary summaries", async () => {
+    mocks.loadSessionContentSnapshot.mockResolvedValue({
+      ...createSnapshot(),
+      event: {
+        title: "Weekly Review",
+        abrish_interview_type: "Unknown type",
+        abrish_interview_date: "not-a-date",
+      },
+    });
+
+    const result = await enhanceTransform.transformArgs(
+      { sessionId: "session-1", enhancedNoteId: "note-1" },
+      settingsValues,
+    );
+
+    expect(result.postMeetingMemo).toBe(
+      "![post](asset://localhost/post.png)",
+    );
+  });
+
   it("includes the detected meeting platform in generated context", async () => {
     mocks.loadSessionContentSnapshot.mockResolvedValue({
       ...createSnapshot(),

@@ -135,11 +135,13 @@ describe("enhanceTransform.transformArgs", () => {
     },
     {
       interviewType: "Technical Interview",
-      expectedGuidance: "Focus on demonstrated technical skills, problem-solving approach",
+      expectedGuidance:
+        "Focus on demonstrated technical skills, problem-solving approach",
     },
     {
       interviewType: "Behavioural Interview",
-      expectedGuidance: "Organize evidence around relevant competencies and concrete examples",
+      expectedGuidance:
+        "Organize evidence around relevant competencies and concrete examples",
     },
   ])(
     "adds $interviewType guidance to summary context, including with a template",
@@ -168,9 +170,7 @@ describe("enhanceTransform.transformArgs", () => {
       );
 
       expect(result.postMeetingMemo).toContain(expectedGuidance);
-      expect(result.postMeetingMemo).toContain(
-        "Interview date: 2026-10-12",
-      );
+      expect(result.postMeetingMemo).toContain("Interview date: 2026-10-12");
       expect(result.template?.title).toBe("Recruiter template");
       expect(result.formatOverride).toBe("");
     },
@@ -191,9 +191,7 @@ describe("enhanceTransform.transformArgs", () => {
       settingsValues,
     );
 
-    expect(result.postMeetingMemo).toBe(
-      "![post](asset://localhost/post.png)",
-    );
+    expect(result.postMeetingMemo).toBe("![post](asset://localhost/post.png)");
   });
 
   it("includes the detected meeting platform in generated context", async () => {

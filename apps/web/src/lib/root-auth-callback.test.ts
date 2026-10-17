@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  forgetAuthFlowContext,
   redirectRootAuthReturn,
   rememberAuthFlowContext,
 } from "./root-auth-callback.ts";
@@ -46,13 +47,22 @@ test("sends expired mobile and desktop OAuth returns on the homepage back to app
       });
     }
 
-    location.search = "?code=abc";
+    for (const search of [
+      "?code=abc",
+      "?token_hash=abc&type=email&redirect_to=https%3A%2F%2Fanarlog.so%2Fcallback%2Fauth%3Fflow%3Ddesktop",
+    ]) {
+      location.search = search;
+      destination = "";
+      rememberAuthFlowContext({ flow: "desktop", scheme: "anarlog" }, 1_000);
+      assert.equal(redirectRootAuthReturn(2_000), false);
+      assert.equal(destination, "");
+    }
+
+    location.search = "?error=access_denied";
     rememberAuthFlowContext({ flow: "desktop", scheme: "anarlog" }, 1_000);
+    forgetAuthFlowContext();
     assert.equal(redirectRootAuthReturn(2_000), true);
-    assert.equal(
-      destination,
-      "/callback/auth/?code=abc&flow=desktop&scheme=anarlog",
-    );
+    assert.equal(destination, "/auth?flow=web");
 
     location.pathname = "/callback/auth/";
     destination = "";

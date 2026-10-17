@@ -18,7 +18,16 @@ export function rememberAuthFlowContext(
   } catch {}
 }
 
+export function forgetAuthFlowContext() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(FLOW_STORAGE_KEY);
+  } catch {}
+}
+
 // Inlined into <head> via toString(), so it must stay self-contained.
+// Only failed OAuth returns are handled here; successful root returns keep
+// the regular route redirects so their own params decide the flow.
 export function redirectRootAuthReturn(now = Date.now()) {
   const storageKey = "anarlog.auth-flow-context";
   const maxAgeMs = 15 * 60_000;
@@ -26,13 +35,7 @@ export function redirectRootAuthReturn(now = Date.now()) {
   if (location.pathname !== "/") return false;
 
   const params = new URLSearchParams(location.search);
-  const failed = params.has("error") || params.has("error_code");
-  if (
-    !failed &&
-    !params.get("code") &&
-    !(params.get("token_hash") && params.get("type"))
-  )
-    return false;
+  if (!params.has("error") && !params.has("error_code")) return false;
 
   try {
     const raw = window.sessionStorage.getItem(storageKey);
@@ -62,11 +65,6 @@ export function redirectRootAuthReturn(now = Date.now()) {
   } catch {}
 
   document.documentElement.style.visibility = "hidden";
-  if (!failed) {
-    location.replace(`/callback/auth/?${params.toString()}`);
-    return true;
-  }
-
   // A failed OAuth return restarts sign-in instead of showing an error page.
   const retry = new URLSearchParams();
   const flow = params.get("flow") === "desktop" ? "desktop" : "web";

@@ -31,6 +31,7 @@ import {
 } from "@/functions/desktop-flow";
 import { useMountEffect } from "@/hooks/useMountEffect";
 import {
+  resolveAuthFlowContext,
   shouldReuseBrowserSession,
   toAuthFlowSearch,
 } from "@/lib/auth-flow-context";
@@ -45,6 +46,7 @@ import {
   resolveDesktopAuthCallbackMethod,
 } from "@/lib/desktop-auth-handoff";
 import { capturePrivateRouteEvent } from "@/lib/private-route-analytics";
+import { rememberAuthFlowContext } from "@/lib/root-auth-callback";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -54,6 +56,7 @@ export const Route = createFileRoute("/auth")({
     meta: [{ name: "robots", content: "noindex, nofollow" }],
   }),
   beforeLoad: async ({ search }) => {
+    rememberAuthFlowContext(resolveAuthFlowContext(search));
     const [user, lastSignInMethod] = await Promise.all([
       shouldReuseBrowserSession(search) ? fetchUser() : null,
       fetchLastSignInMethod(),

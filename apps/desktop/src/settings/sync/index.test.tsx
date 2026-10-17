@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   renameSyncDevice: vi.fn(),
   getDeviceIdentity: vi.fn(),
   repairKeychainAccess: vi.fn(),
+  setCredentialBlock: vi.fn(),
   openNew: vi.fn(),
   signOut: vi.fn(),
   trackAnalyticsEvent: vi.fn(),
@@ -87,6 +88,7 @@ vi.mock("~/auth/cloudsync", () => ({
 
 vi.mock("~/auth/cloudsync-credentials", () => ({
   getDeviceIdentity: mocks.getDeviceIdentity,
+  setCredentialBlock: mocks.setCredentialBlock,
 }));
 
 vi.mock("~/auth/sync-devices", () => ({
@@ -469,22 +471,75 @@ describe("SettingsSync", () => {
     expect(mocks.applyCloudsyncPreference).toHaveBeenCalledWith(mocks.session);
   });
 
-  it.each([
-    ["keychain_access", "macOS couldn't access your login Keychain."],
-    ["unavailable", "E2EE recovery key read timed out"],
-  ] as const)(
-    "does not offer Keychain repair for %s failures",
-    async (credentialBlock, rejection) => {
-      mocks.credentialBlock = credentialBlock;
-      mocks.getE2eeIdentityStatus.mockRejectedValue(rejection);
-      renderSettings();
+  it("offers Keychain repair when the recovery key read is blocked", async () => {
+    mocks.credentialBlock = "keychain_access";
+    mocks.repairKeychainAccess.mockResolvedValue({ status: "ok", data: null });
+    mocks.applyCloudsyncPreference.mockResolvedValue("ok");
+    renderSettings();
 
-      expect(await screen.findByText("Sync needs attention")).toBeTruthy();
-      expect(
-        screen.queryByRole("button", { name: "Repair Keychain Access" }),
-      ).toBeNull();
-    },
-  );
+    expect(await screen.findByText("Sync needs attention")).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Repair Keychain Access" }),
+    );
+
+    await vi.waitFor(() => {
+      expect(mocks.applyCloudsyncPreference).toHaveBeenCalledWith(
+        mocks.session,
+      );
+    });
+    expect(mocks.repairKeychainAccess).toHaveBeenCalledTimes(1);
+    expect(mocks.setCredentialBlock).toHaveBeenCalledWith(null);
+  });
+
+  it("does not offer Keychain repair for other credential failures", async () => {
+    mocks.credentialBlock = "unavailable";
+    mocks.getE2eeIdentityStatus.mockRejectedValue(
+      "E2EE recovery key read timed out",
+    );
+    renderSettings();
+
+    expect(await screen.findByText("Sync needs attention")).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Repair Keychain Access" }),
+    ).toBeNull();
+  });
+
+  it("retries resuming sync after repairing a Keychain failure", async () => {
+    const keychainError =
+      "macOS couldn't access your login Keychain. Use “Repair Keychain Access” below, then try again.";
+    mocks.syncEnabled = false;
+    mocks.getE2eeIdentityStatus
+      .mockRejectedValueOnce(keychainError)
+      .mockRejectedValueOnce(keychainError)
+      .mockResolvedValue({ configured: true });
+    mocks.repairKeychainAccess.mockResolvedValue({ status: "ok", data: null });
+    mocks.setSettingValue.mockResolvedValue(undefined);
+    mocks.applyCloudsyncPreference.mockResolvedValue("ok");
+    renderSettings();
+
+    const syncSwitch = await screen.findByRole("switch", {
+      name: "Cloud sync",
+    });
+    await vi.waitFor(() => {
+      expect((syncSwitch as HTMLButtonElement).disabled).toBe(false);
+    });
+    fireEvent.click(syncSwitch);
+
+    expect(await screen.findByText(keychainError)).toBeTruthy();
+    expect(mocks.setSettingValue).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Repair Keychain Access" }),
+    );
+
+    await vi.waitFor(() => {
+      expect(mocks.setSettingValue).toHaveBeenCalledWith(
+        "cloud_sync_enabled",
+        true,
+      );
+    });
+    expect(mocks.repairKeychainAccess).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(keychainError)).toBeNull();
+  });
 
   it("explains a stalled activation with the native configuration error", async () => {
     mocks.credentialBlock = "activation_failed";

@@ -53,6 +53,11 @@ test("sends expired mobile and desktop OAuth returns on the homepage back to app
     assert.equal(redirectRootAuthReturn(2_000), true);
     assert.equal(destination, `/confirm-auth/${location.search}`);
 
+    location.search = "?code=abc";
+    rememberAuthFlowContext({ flow: "desktop", scheme: "anarlog" }, 1_000);
+    assert.equal(redirectRootAuthReturn(2_000), true);
+    assert.equal(destination, "/callback/auth/?code=abc");
+
     location.search = "?error=access_denied";
     rememberAuthFlowContext({ flow: "desktop", scheme: "anarlog" }, 1_000);
     forgetAuthFlowContext();

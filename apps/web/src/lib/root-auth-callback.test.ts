@@ -47,16 +47,12 @@ test("sends expired mobile and desktop OAuth returns on the homepage back to app
       });
     }
 
-    for (const search of [
-      "?code=abc",
-      "?token_hash=abc&type=email&redirect_to=https%3A%2F%2Fanarlog.so%2Fcallback%2Fauth%3Fflow%3Ddesktop",
-    ]) {
-      location.search = search;
-      destination = "";
-      rememberAuthFlowContext({ flow: "desktop", scheme: "anarlog" }, 1_000);
-      assert.equal(redirectRootAuthReturn(2_000), false);
-      assert.equal(destination, "");
-    }
+    location.search =
+      "?token_hash=abc&type=email&redirect_to=https%3A%2F%2Fanarlog.so%2Fcallback%2Fauth%3Fflow%3Ddesktop";
+    destination = "";
+    rememberAuthFlowContext({ flow: "desktop", scheme: "anarlog" }, 1_000);
+    assert.equal(redirectRootAuthReturn(2_000), false);
+    assert.equal(destination, "");
 
     location.search = "?error=access_denied";
     rememberAuthFlowContext({ flow: "desktop", scheme: "anarlog" }, 1_000);

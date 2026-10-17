@@ -817,7 +817,11 @@ export function SettingsSync() {
     syncNowMutation.error;
   const keychainRepairNeeded =
     credentialBlock === "keychain_access" ||
-    (mutationError !== null && isKeychainAccessError(mutationError));
+    [
+      setSyncEnabledMutation.error,
+      e2eePreflightMutation.error,
+      syncNowMutation.error,
+    ].some((error) => error !== null && isKeychainAccessError(error));
   const deviceMutationError =
     replaceDeviceMutation.error ?? removeDeviceMutation.error;
   return (

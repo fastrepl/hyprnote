@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => ({
   billing: { isPro: true, isReady: true, upgradeToPro: vi.fn() },
   toastWarning: vi.fn(),
   credentialBlock: null as string | null,
+  credentialBlockListeners: new Set<() => void>(),
   syncHealthRows: [] as Array<Record<string, unknown>>,
   platform: "macos",
   syncEnabled: true,
@@ -83,7 +84,10 @@ vi.mock("~/auth/cloudsync", () => ({
   applyCloudsyncPreference: mocks.applyCloudsyncPreference,
   getCloudsyncCredentialBlock: () => mocks.credentialBlock,
   refreshCloudsyncForSession: mocks.refreshCloudsyncForSession,
-  subscribeCloudsyncCredentialBlock: () => () => {},
+  subscribeCloudsyncCredentialBlock: (listener: () => void) => {
+    mocks.credentialBlockListeners.add(listener);
+    return () => mocks.credentialBlockListeners.delete(listener);
+  },
 }));
 
 vi.mock("~/auth/cloudsync-credentials", () => ({
@@ -182,6 +186,11 @@ describe("SettingsSync", () => {
     mocks.billing.isPro = true;
     mocks.billing.isReady = true;
     mocks.credentialBlock = null;
+    mocks.credentialBlockListeners.clear();
+    mocks.setCredentialBlock.mockImplementation((block: string | null) => {
+      mocks.credentialBlock = block;
+      for (const listener of mocks.credentialBlockListeners) listener();
+    });
     mocks.platform = "macos";
     mocks.syncEnabled = true;
     mocks.session = {
@@ -482,13 +491,40 @@ describe("SettingsSync", () => {
       screen.getByRole("button", { name: "Repair Keychain Access" }),
     );
 
-    await vi.waitFor(() => {
-      expect(mocks.applyCloudsyncPreference).toHaveBeenCalledWith(
-        mocks.session,
-      );
-    });
+    expect(await screen.findByText("Synced")).toBeTruthy();
+    expect(screen.queryByText("Sync needs attention")).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Repair Keychain Access" }),
+    ).toBeNull();
     expect(mocks.repairKeychainAccess).toHaveBeenCalledTimes(1);
-    expect(mocks.setCredentialBlock).toHaveBeenCalledWith(null);
+    expect(mocks.applyCloudsyncPreference).toHaveBeenCalledWith(mocks.session);
+  });
+
+  it("offers Keychain repair even after an earlier preference write failed", async () => {
+    mocks.syncEnabled = false;
+    mocks.setSettingValue.mockRejectedValueOnce(new Error("Disk is full"));
+    renderSettings();
+
+    const syncSwitch = await screen.findByRole("switch", {
+      name: "Cloud sync",
+    });
+    await vi.waitFor(() => {
+      expect((syncSwitch as HTMLButtonElement).disabled).toBe(false);
+    });
+    fireEvent.click(syncSwitch);
+    expect(await screen.findByText("Disk is full")).toBeTruthy();
+
+    mocks.getE2eeIdentityStatus.mockRejectedValueOnce(
+      "macOS couldn't access your login Keychain. Use “Repair Keychain Access” below, then try again.",
+    );
+    await vi.waitFor(() => {
+      expect((syncSwitch as HTMLButtonElement).disabled).toBe(false);
+    });
+    fireEvent.click(syncSwitch);
+
+    expect(
+      await screen.findByRole("button", { name: "Repair Keychain Access" }),
+    ).toBeTruthy();
   });
 
   it("does not offer Keychain repair for other credential failures", async () => {

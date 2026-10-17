@@ -35,6 +35,7 @@ import {
 } from "@/lib/desktop-auth-handoff";
 import { completeOAuthCallback } from "@/lib/desktop-oauth-callback";
 import { capturePrivateRouteEvent } from "@/lib/private-route-analytics";
+import { forgetAuthFlowContext } from "@/lib/root-auth-callback";
 
 const validateSearch = z.object({
   intent: z.literal("link_identity").optional(),
@@ -82,6 +83,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
     meta: [{ name: "robots", content: "noindex, nofollow" }],
   }),
   beforeLoad: async ({ search }) => {
+    forgetAuthFlowContext();
     if (search.intent === "link_identity") {
       const hash = new URLSearchParams(window.location.hash.slice(1));
       const result = await finishAccountIdentity({

@@ -24,6 +24,7 @@ import { authSignInMethods } from "@/lib/auth-last-sign-in-method";
 import { buildPostAuthDestination } from "@/lib/auth-redirect";
 import { buildDesktopAuthCallbackPath } from "@/lib/desktop-auth-handoff";
 import { capturePrivateRouteEvent } from "@/lib/private-route-analytics";
+import { forgetAuthFlowContext } from "@/lib/root-auth-callback";
 
 const validateSearch = z.object({
   token_hash: z.string().min(1),
@@ -44,6 +45,7 @@ const validateSearch = z.object({
 });
 
 export const Route = createFileRoute("/confirm-auth")({
+  beforeLoad: () => forgetAuthFlowContext(),
   validateSearch,
   component: Component,
   head: () => ({

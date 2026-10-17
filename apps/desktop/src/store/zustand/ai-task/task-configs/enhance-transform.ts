@@ -50,6 +50,11 @@ type SegmentPayload = {
   words: Array<{ text: string; start_ms: number; end_ms: number }>;
 };
 
+type AbrishInterviewMetadata = {
+  interviewType: string | null;
+  interviewDate: string | null;
+};
+
 export const enhanceTransform: Pick<TaskConfig<"enhance">, "transformArgs"> = {
   transformArgs,
 };
@@ -62,6 +67,7 @@ async function transformArgs(
   const snapshot = await loadSessionContentSnapshot(sessionId, {
     includeTranscriptWords: false,
   });
+
   if (!snapshot) {
     throw new Error(`Session ${sessionId} no longer exists`);
   }
@@ -69,12 +75,40 @@ async function transformArgs(
   const meetingChatContext = formatMeetingChatContext(
     await loadMeetingChatRecords(sessionId),
   );
+
   const sessionContext = getSessionContext(snapshot, meetingChatContext);
+
+  // Abrish interview metadata is read separately from the validated session
+  // event so it does not change the existing session-event schema.
+  const interviewMetadata = getAbrishInterviewMetadata(snapshot.event);
+
+  const interviewContext = [
+    interviewMetadata.interviewType
+      ? getInterviewTypeGuidance(interviewMetadata.interviewType)
+      : "",
+    interviewMetadata.interviewDate
+      ? `Interview date: ${interviewMetadata.interviewDate}. Treat this as interview metadata, not as a transcript timestamp.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  if (interviewContext) {
+    sessionContext.postMeetingMemo = [
+      sessionContext.postMeetingMemo,
+      interviewContext,
+    ]
+      .filter((value) => value.trim())
+      .join("\n\n");
+  }
+
   const templateRecord = await loadTemplate(templateId);
+
   const memoTemplateSections =
     templateId === snapshot.rawTemplateId
       ? getMemoTemplateSections(snapshot, templateRecord?.sections ?? [])
       : null;
+
   let template: TaskArgsMapTransformed["enhance"]["template"] = templateRecord
     ? {
         title: templateRecord.title,
@@ -82,6 +116,7 @@ async function transformArgs(
         sections: templateRecord.sections,
       }
     : null;
+
   if (memoTemplateSections?.length) {
     template = {
       title: templateRecord?.title ?? "Meeting memo",
@@ -89,24 +124,32 @@ async function transformArgs(
       sections: memoTemplateSections,
     };
   }
+
   const formatOverride = getFormatOverride(settingsValues, templateId);
+
   const segments = await getTranscriptSegments(snapshot);
+
   const transcripts = formatTranscripts(
     segments,
     sessionContext.transcriptsMeta,
   );
+
   const transcriptTexts = transcripts.flatMap((transcript) =>
     transcript.segments.map((segment) => segment.text),
   );
+
   const language = await resolveSummaryLanguage(
     settingsValues,
     transcriptTexts,
   );
+
   const templateSectionCount = template?.sections.length ?? 0;
+
   const policyResult = await templateCommands.summaryLengthPolicy({
     transcript_texts: transcriptTexts,
     template_section_count: templateSectionCount,
   });
+
   if (policyResult.status === "error") {
     throw new Error(policyResult.error);
   }
@@ -138,6 +181,83 @@ async function transformArgs(
   };
 }
 
+function getAbrishInterviewMetadata(
+  event: unknown,
+): AbrishInterviewMetadata {
+  if (!event || typeof event !== "object" || Array.isArray(event)) {
+    return {
+      interviewType: null,
+      interviewDate: null,
+    };
+  }
+
+  const record = event as Record<string, unknown>;
+
+  const rawType =
+    typeof record.abrish_interview_type === "string"
+      ? record.abrish_interview_type.trim()
+      : "";
+
+  const rawDate =
+    typeof record.abrish_interview_date === "string"
+      ? record.abrish_interview_date.trim()
+      : "";
+
+  const validTypes = [
+    "Initial Screen",
+    "Technical Interview",
+    "Behavioural Interview",
+  ];
+
+  return {
+    interviewType: validTypes.includes(rawType) ? rawType : null,
+    interviewDate: isValidDateOnly(rawDate) ? rawDate : null,
+  };
+}
+
+function isValidDateOnly(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
+
+function getInterviewTypeGuidance(interviewType: string): string {
+  const guidance: Record<string, string> = {
+    "Initial Screen": [
+      "Interview type: Initial Screen.",
+      "Focus on motivation, relevant experience, role fit, communication,",
+      "and logistics only when supported by the conversation.",
+      "Separate evidence from inference and do not invent candidate answers.",
+    ].join(" "),
+
+    "Technical Interview": [
+      "Interview type: Technical Interview.",
+      "Focus on demonstrated technical skills, problem-solving approach,",
+      "implementation or design trade-offs, and evidence against role requirements.",
+      "Distinguish demonstrated evidence from candidate claims.",
+      "Mark requirements unresolved when the conversation does not establish them.",
+    ].join(" "),
+
+    "Behavioural Interview": [
+      "Interview type: Behavioural Interview.",
+      "Organize evidence around relevant competencies and concrete examples.",
+      "Capture situation, actions, outcomes, and reflection where available.",
+      "Avoid unsupported personality judgments and mark missing evidence as unresolved.",
+    ].join(" "),
+  };
+
+  return guidance[interviewType] ?? "";
+}
+
 function getMemoTemplateSections(
   snapshot: SessionContentSnapshot,
   originalSections: TemplateSection[],
@@ -146,14 +266,19 @@ function getMemoTemplateSections(
     snapshot.rawContentFormat === "markdown"
       ? md2json(snapshot.rawContent)
       : parseJsonContent(snapshot.rawContent);
+
   const originalByTitle = new Map(
     originalSections.map((section) => [section.title.trim(), section]),
   );
+
   const headings = (document.content ?? []).flatMap((node) => {
     if (node.type !== "heading" || node.attrs?.level !== 2) return [];
+
     const title = getNodeText(node).trim();
+
     return title ? [title] : [];
   });
+
   const preservePositionDescriptions =
     headings.length === originalSections.length;
 
@@ -196,6 +321,7 @@ function formatTranscripts(
       (min, transcript) => Math.min(min, transcript.startedAt),
       Number.POSITIVE_INFINITY,
     );
+
     const endedAt = transcriptsMeta.reduce(
       (max, transcript) =>
         Math.max(max, transcript.endedAt ?? transcript.startedAt),
@@ -230,6 +356,7 @@ function getFormatOverride(
   }
 
   const value = settingsValues.auto_summary_prompt;
+
   return typeof value === "string" && value.trim() ? value : "";
 }
 
@@ -238,6 +365,7 @@ function getOptionalSettingsValue(
   valueId: "current_llm_provider" | "current_llm_model",
 ): string | undefined {
   const value = settingsValues[valueId];
+
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
@@ -255,6 +383,7 @@ function getSessionContext(
   const meetingSourceContext = formatSessionSourceAppsContext(
     snapshot.sourceApps,
   );
+
   const supplementalContext = [meetingSourceContext, meetingChatContext]
     .filter((value) => value.trim())
     .join("\n\n");
@@ -274,8 +403,10 @@ function getSessionContext(
 
 function getSessionData(snapshot: SessionContentSnapshot): Session {
   const parsed = sessionEventSchema.safeParse(snapshot.event);
+
   if (parsed.success) {
     const eventTitle = parsed.data.title;
+
     return {
       title: eventTitle || snapshot.title || null,
       startedAt: parsed.data.started_at ?? null,
@@ -310,9 +441,11 @@ async function getTranscriptSegments(
     session_id: snapshot.sessionId,
     self_human_id: snapshot.ownerUserId || null,
   });
+
   if (result.status === "error") {
     throw new Error(result.error);
   }
+
   if (!result.data) {
     return [];
   }
@@ -321,11 +454,14 @@ async function getTranscriptSegments(
     if (segment.words.length > 0) {
       result.push(toSegmentPayload(segment));
     }
+
     return result;
   }, []);
 }
 
-function toSegmentPayload(segment: RenderedTranscriptSegment): SegmentPayload {
+function toSegmentPayload(
+  segment: RenderedTranscriptSegment,
+): SegmentPayload {
   return {
     speaker_label: segment.speaker_label,
     start_ms: segment.start_ms,

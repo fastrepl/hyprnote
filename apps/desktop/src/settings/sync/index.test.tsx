@@ -525,6 +525,12 @@ describe("SettingsSync", () => {
     expect(
       await screen.findByRole("button", { name: "Repair Keychain Access" }),
     ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "macOS couldn't access your login Keychain. Use “Repair Keychain Access” below, then try again.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText("Disk is full")).toBeNull();
   });
 
   it("does not offer Keychain repair for other credential failures", async () => {

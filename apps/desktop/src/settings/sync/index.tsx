@@ -817,11 +817,7 @@ export function SettingsSync() {
     syncNowMutation.error;
   const keychainRepairNeeded =
     credentialBlock === "keychain_access" ||
-    [
-      setSyncEnabledMutation.error,
-      e2eePreflightMutation.error,
-      syncNowMutation.error,
-    ].some((error) => error !== null && isKeychainAccessError(error));
+    (mutationError !== null && isKeychainAccessError(mutationError));
   const deviceMutationError =
     replaceDeviceMutation.error ?? removeDeviceMutation.error;
   return (
@@ -865,6 +861,9 @@ export function SettingsSync() {
               e2eeIdentityQuery.isLoading
             }
             onCheckedChange={(enabled) => {
+              // Drop the previous attempt's error so the shown error (and repair action) is this attempt's.
+              setSyncEnabledMutation.reset();
+              e2eePreflightMutation.reset();
               if (enabled) {
                 e2eePreflightMutation.mutate();
               } else {

@@ -32,6 +32,15 @@ LATENCY_LOG_ENV = "ANARLOG_CLOUDSYNC_LATENCY_LOG"
 # tenant history, which deployments cannot change. Report it instead of failing on it;
 # the tests themselves only fail when a bootstrap never completes.
 FRESH_DEVICE_LATENCY_TARGET_SECONDS = 90
+# Per-test subprocess budgets. Fresh-site waits stop at 300s inside the tests: the sync
+# test waits for one bootstrap, the policy test for one and then two concurrent ones
+# plus bounded attack syncs, and cleanup never waits for a snapshot. Their 40-minute
+# total leaves the 60-minute deploy job room for the build and remote cleanup.
+TEST_TIMEOUT_MINUTES = {
+    "same_personal_workspace_syncs_and_decrypts_a_real_note": 10,
+    "personal_workspace_tokens_block_foreign_encrypted_writes": 20,
+    "cleanup_e2ee_verification_workspaces": 5,
+}
 LEGACY_PLAINTEXT_TABLES = (
     "action_items",
     "events",
@@ -467,9 +476,7 @@ def run_test(test: str, environment: dict[str, str]) -> None:
         ],
         check=True,
         env=environment,
-        # The policy test waits for one fresh-site bootstrap and then two concurrent
-        # ones, each up to the Rust tests' 300s ceiling, plus bounded attack syncs.
-        timeout=30 * 60,
+        timeout=TEST_TIMEOUT_MINUTES.get(test, 20) * 60,
     )
 
 

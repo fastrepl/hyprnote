@@ -146,6 +146,10 @@ vi.mock("@lingui/react/macro", () => ({
 
 import { SettingsSync } from ".";
 
+// Injected native failure; only the prefix matters for Keychain detection.
+const KEYCHAIN_ACCESS_ERROR =
+  "macOS couldn't access your login Keychain. (test failure)";
+
 function syncedStatus() {
   return {
     cloudsync_enabled: true,
@@ -514,9 +518,7 @@ describe("SettingsSync", () => {
     fireEvent.click(syncSwitch);
     expect(await screen.findByText("Disk is full")).toBeTruthy();
 
-    mocks.getE2eeIdentityStatus.mockRejectedValueOnce(
-      "macOS couldn't access your login Keychain. Use “Repair Keychain Access” below, then try again.",
-    );
+    mocks.getE2eeIdentityStatus.mockRejectedValueOnce(KEYCHAIN_ACCESS_ERROR);
     await vi.waitFor(() => {
       expect((syncSwitch as HTMLButtonElement).disabled).toBe(false);
     });
@@ -525,6 +527,7 @@ describe("SettingsSync", () => {
     expect(
       await screen.findByRole("button", { name: "Repair Keychain Access" }),
     ).toBeTruthy();
+    expect(screen.getByText(KEYCHAIN_ACCESS_ERROR)).toBeTruthy();
     expect(screen.queryByText("Disk is full")).toBeNull();
   });
 
@@ -542,12 +545,10 @@ describe("SettingsSync", () => {
   });
 
   it("retries resuming sync after repairing a Keychain failure", async () => {
-    const keychainError =
-      "macOS couldn't access your login Keychain. Use “Repair Keychain Access” below, then try again.";
     mocks.syncEnabled = false;
     mocks.getE2eeIdentityStatus
-      .mockRejectedValueOnce(keychainError)
-      .mockRejectedValueOnce(keychainError)
+      .mockRejectedValueOnce(KEYCHAIN_ACCESS_ERROR)
+      .mockRejectedValueOnce(KEYCHAIN_ACCESS_ERROR)
       .mockResolvedValue({ configured: true });
     mocks.repairKeychainAccess.mockResolvedValue({ status: "ok", data: null });
     mocks.setSettingValue.mockResolvedValue(undefined);
@@ -562,7 +563,7 @@ describe("SettingsSync", () => {
     });
     fireEvent.click(syncSwitch);
 
-    expect(await screen.findByText(keychainError)).toBeTruthy();
+    expect(await screen.findByText(KEYCHAIN_ACCESS_ERROR)).toBeTruthy();
     expect(mocks.setSettingValue).not.toHaveBeenCalled();
     fireEvent.click(
       screen.getByRole("button", { name: "Repair Keychain Access" }),
@@ -575,7 +576,7 @@ describe("SettingsSync", () => {
       );
     });
     expect(mocks.repairKeychainAccess).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText(keychainError)).toBeNull();
+    expect(screen.queryByText(KEYCHAIN_ACCESS_ERROR)).toBeNull();
   });
 
   it("explains a stalled activation with the native configuration error", async () => {

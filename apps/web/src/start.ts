@@ -3,13 +3,11 @@ import { createMiddleware, createStart } from "@tanstack/react-start";
 import { invalidAuthSearchResponse } from "./functions/auth-search";
 import { prepareDrivePickerHandoff } from "./lib/drive-picker";
 import { prepareNangoSessionHandoff } from "./lib/integration-handoff";
-import { restoreRootAuthCallback } from "./lib/root-auth-callback";
 import { prepareShareRoutePrivacy } from "./lib/share-route-privacy";
 import { trailingSlashMiddleware } from "./middleware/trailing-slash";
 import { workspaceShareHostMiddleware } from "./middleware/workspace-share-host";
 import { bootstrapBrowserTelemetry } from "./telemetry";
 
-restoreRootAuthCallback();
 prepareDrivePickerHandoff();
 prepareShareRoutePrivacy();
 prepareNangoSessionHandoff();

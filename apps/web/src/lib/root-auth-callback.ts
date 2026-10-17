@@ -1,16 +1,12 @@
-import { flowSearchSchema } from "../functions/desktop-flow.ts";
-import {
-  resolveAuthFlowContext,
-  toAuthFlowSearch,
-  type AuthFlowContext,
-} from "./auth-flow-context.ts";
-
 const FLOW_STORAGE_KEY = "anarlog.auth-flow-context";
-const FLOW_MAX_AGE_MS = 15 * 60_000;
-const flowContextSchema = flowSearchSchema({});
 
 export function rememberAuthFlowContext(
-  context: AuthFlowContext,
+  context: {
+    flow: "desktop" | "web";
+    scheme?: string;
+    desktop_state?: string;
+    redirect?: string;
+  },
   now = Date.now(),
 ) {
   if (typeof window === "undefined") return;
@@ -22,50 +18,65 @@ export function rememberAuthFlowContext(
   } catch {}
 }
 
-export function restoreRootAuthCallback(now = Date.now()) {
-  if (typeof window === "undefined" || window.location.pathname !== "/")
-    return false;
+// Inlined into <head> via toString(), so it must stay self-contained.
+export function redirectRootAuthReturn(now = Date.now()) {
+  const storageKey = "anarlog.auth-flow-context";
+  const maxAgeMs = 15 * 60_000;
+  const location = window.location;
+  if (location.pathname !== "/") return false;
 
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(location.search);
+  const failed = params.has("error") || params.has("error_code");
   if (
+    !failed &&
     !params.get("code") &&
-    !params.get("error") &&
     !(params.get("token_hash") && params.get("type"))
   )
     return false;
 
-  if (!params.has("flow")) {
-    try {
-      const raw = window.sessionStorage.getItem(FLOW_STORAGE_KEY);
-      if (raw) {
-        window.sessionStorage.removeItem(FLOW_STORAGE_KEY);
-        const stored = JSON.parse(raw);
-        const parsed = flowContextSchema.safeParse(stored.context);
-        const age = now - stored.createdAt;
-        if (
-          parsed.success &&
-          typeof stored.createdAt === "number" &&
-          age >= 0 &&
-          age <= FLOW_MAX_AGE_MS
-        ) {
-          const context = resolveAuthFlowContext({
-            ...parsed.data,
-            redirect:
-              typeof stored.context.redirect === "string"
-                ? stored.context.redirect
-                : undefined,
-          });
-          for (const [key, value] of Object.entries(
-            toAuthFlowSearch(context),
-          )) {
-            if (value !== undefined && !params.has(key)) params.set(key, value);
-          }
-        }
-      }
-    } catch {}
+  try {
+    const raw = window.sessionStorage.getItem(storageKey);
+    window.sessionStorage.removeItem(storageKey);
+    const stored = raw ? JSON.parse(raw) : null;
+    const context = stored?.context;
+    const age = now - stored?.createdAt;
+    if (
+      !params.has("flow") &&
+      context &&
+      (context.flow === "desktop" || context.flow === "web") &&
+      age >= 0 &&
+      age <= maxAgeMs
+    ) {
+      params.set("flow", context.flow);
+      if (/^[a-z][a-z-]{0,31}$/.test(context.scheme ?? ""))
+        params.set("scheme", context.scheme);
+      if (
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          context.desktop_state ?? "",
+        )
+      )
+        params.set("desktop_state", context.desktop_state);
+      if (typeof context.redirect === "string" && !params.has("redirect"))
+        params.set("redirect", context.redirect);
+    }
+  } catch {}
+
+  document.documentElement.style.visibility = "hidden";
+  if (!failed) {
+    location.replace(`/callback/auth/?${params.toString()}`);
+    return true;
   }
 
-  // The prerendered homepage can hydrate without running its auth beforeLoad.
-  window.location.replace(`/callback/auth/?${params.toString()}`);
+  // A failed OAuth return restarts sign-in instead of showing an error page.
+  const retry = new URLSearchParams();
+  const flow = params.get("flow") === "desktop" ? "desktop" : "web";
+  retry.set("flow", flow);
+  const scheme = params.get("scheme");
+  if (scheme || flow === "desktop") retry.set("scheme", scheme || "anarlog");
+  for (const key of ["desktop_state", "redirect"]) {
+    const value = params.get(key);
+    if (value) retry.set(key, value);
+  }
+  location.replace(`/auth?${retry.toString()}`);
   return true;
 }

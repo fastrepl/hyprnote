@@ -208,7 +208,10 @@ function Component() {
         title={hasTokens ? "You’re signed in" : "Finishing sign-in"}
         description={
           hasTokens
-            ? "Return to the desktop app to keep going."
+            ? search.scheme.startsWith("anarlog-dev") ||
+              search.scheme === "anarlog"
+              ? "Return to the Anarlog app to keep going."
+              : "Return to the desktop app to keep going."
             : "Please wait while we complete the secure handoff."
         }
       >

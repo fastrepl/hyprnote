@@ -12,6 +12,7 @@ import { Toaster } from "@anlg/ui/components/ui/toast";
 
 import { WebProviders } from "@/components/web-providers";
 import { isTelemetryPrivateLocation } from "@/lib/auth-route-privacy";
+import { redirectRootAuthReturn } from "@/lib/root-auth-callback";
 import {
   ANARLOG_SITE_NAME,
   ANARLOG_SITE_URL,
@@ -119,6 +120,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(${redirectRootAuthReturn.toString()})();`,
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

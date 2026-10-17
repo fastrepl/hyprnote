@@ -1,7 +1,9 @@
 use std::collections::{HashMap, VecDeque};
+use std::fs::OpenOptions;
 use std::future::Future;
+use std::io::Write;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anlg_db_core::{
     CloudsyncAuth, CloudsyncNetworkResult, CloudsyncRuntimeConfig, Db, DbOpenOptions, DbStorage,
@@ -19,6 +21,12 @@ const SYNC_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 const POLICY_SYNC_TIMEOUT: Duration = Duration::from_secs(30);
 const REPLICA_VISIBILITY_TIMEOUT: Duration = Duration::from_secs(90);
 const REPLICA_VISIBILITY_POLL_INTERVAL: Duration = Duration::from_secs(2);
+// A fresh site's first download waits while the provider prepares a snapshot of the
+// whole tenant history, so it grows with every account's data (sqliteai/sqlite-sync#80,
+// #81). This deadline only catches a stuck bootstrap; the latency itself is reported
+// through ANARLOG_CLOUDSYNC_LATENCY_LOG and judged by the deployment verifier.
+const FRESH_SITE_BOOTSTRAP_TIMEOUT: Duration = Duration::from_secs(300);
+const LATENCY_LOG_ENV: &str = "ANARLOG_CLOUDSYNC_LATENCY_LOG";
 
 fn cloudsync_config(auth: CloudsyncAuth, wait_ms: i64, max_retries: i64) -> CloudsyncRuntimeConfig {
     CloudsyncRuntimeConfig {
@@ -86,6 +94,21 @@ async fn setup_db(token: &str, workspace_id: &str) -> Db {
 
 async fn setup_policy_db(token: &str, workspace_id: &str) -> Db {
     setup_db_with_network_options(token_auth(token), workspace_id, 2_500, 1).await
+}
+
+// Content-free: a check label and a duration only.
+fn record_fresh_site_latency(check: &str, elapsed: Duration) {
+    let Ok(path) = std::env::var(LATENCY_LOG_ENV) else {
+        return;
+    };
+    let entry = serde_json::json!({ "check": check, "seconds": elapsed.as_secs_f64() });
+    let mut log = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .unwrap_or_else(|error| panic!("{LATENCY_LOG_ENV} could not be opened: {error}"));
+    writeln!(log, "{entry}")
+        .unwrap_or_else(|error| panic!("{LATENCY_LOG_ENV} could not be written: {error}"));
 }
 
 async fn stop_db(db: &Db, label: &str) {
@@ -380,15 +403,11 @@ async fn wait_for_e2ee_record(
     expected_payload: &str,
     operation: &str,
 ) -> Option<(String, String)> {
-    tokio::time::timeout(REPLICA_VISIBILITY_TIMEOUT, async {
+    let started = Instant::now();
+    let record = tokio::time::timeout(FRESH_SITE_BOOTSTRAP_TIMEOUT, async {
         loop {
             sync_full_snapshot(db, operation).await;
-            let record: Option<(String, String)> =
-                sqlx::query_as("SELECT workspace_id, payload FROM e2ee_records WHERE id = ?")
-                    .bind(record_id)
-                    .fetch_optional(db.pool())
-                    .await
-                    .unwrap();
+            let record = local_e2ee_record(db, record_id).await;
             if record.as_ref().is_some_and(|(workspace_id, payload)| {
                 workspace_id == expected_workspace_id && payload == expected_payload
             }) {
@@ -399,36 +418,42 @@ async fn wait_for_e2ee_record(
         }
     })
     .await
-    .unwrap_or(None)
+    .unwrap_or(None);
+    if record.is_some() {
+        record_fresh_site_latency(operation, started.elapsed());
+    }
+    record
 }
 
-async fn setup_stale_record_client(
-    owner_token: &str,
+async fn local_e2ee_record(db: &Db, record_id: &str) -> Option<(String, String)> {
+    sqlx::query_as("SELECT workspace_id, payload FROM e2ee_records WHERE id = ?")
+        .bind(record_id)
+        .fetch_optional(db.pool())
+        .await
+        .unwrap()
+}
+
+// Reuses an owner client that already holds the record, so a stale-copy attack does
+// not pay another fresh-site bootstrap. The client is unusable as the owner afterwards.
+async fn reauthenticate_as_stale_record_client(
+    db: &Db,
     attacker_token: &str,
     owner_workspace_id: &str,
     record_id: &str,
     expected_payload: &str,
     operation: &str,
-) -> Db {
-    let db = setup_db(owner_token, owner_workspace_id).await;
+) {
     assert_eq!(
-        wait_for_e2ee_record(
-            &db,
-            record_id,
-            owner_workspace_id,
-            expected_payload,
-            &format!("{operation} owner snapshot"),
-        )
-        .await,
+        local_e2ee_record(db, record_id).await,
         Some((owner_workspace_id.to_owned(), expected_payload.to_owned())),
-        "{operation} did not download the expected encrypted record"
+        "{operation} client does not hold the expected encrypted record"
     );
+    wait_for_unsent_changes(db, false, &format!("{operation} owner state")).await;
 
     db.cloudsync_network_set_token(attacker_token)
         .await
         .unwrap_or_else(|error| panic!("{operation} attacker reauthentication failed: {error}"));
-    wait_for_unsent_changes(&db, false, &format!("{operation} reauthentication")).await;
-    db
+    wait_for_unsent_changes(db, false, &format!("{operation} reauthentication")).await;
 }
 
 fn is_rls_policy_denial(message: &str) -> bool {
@@ -562,7 +587,8 @@ async fn same_personal_workspace_syncs_and_decrypts_a_real_note() {
     db_b.cloudsync_network_reset_sync_version()
         .await
         .expect("second personal client snapshot reset failed");
-    tokio::time::timeout(REPLICA_VISIBILITY_TIMEOUT, async {
+    let download_started = Instant::now();
+    tokio::time::timeout(FRESH_SITE_BOOTSTRAP_TIMEOUT, async {
         let mut attempt = 1;
         loop {
             sync_ok(
@@ -585,9 +611,13 @@ async fn same_personal_workspace_syncs_and_decrypts_a_real_note() {
     .unwrap_or_else(|_| {
         panic!(
             "second personal client did not receive encrypted fields within {} seconds",
-            REPLICA_VISIBILITY_TIMEOUT.as_secs()
+            FRESH_SITE_BOOTSTRAP_TIMEOUT.as_secs()
         )
     });
+    record_fresh_site_latency(
+        "second personal client download",
+        download_started.elapsed(),
+    );
 
     let downloaded_title: Option<String> =
         sqlx::query_scalar("SELECT title FROM sessions WHERE id = ? AND workspace_id = ?")
@@ -663,8 +693,11 @@ async fn personal_workspace_tokens_block_foreign_encrypted_writes() {
     assert_ne!(owner_payload, initial_owner_payload);
     sync_ok(&owner, "workspace B encrypted note update").await;
 
+    // The only owner bootstrap before the attacks; this client later becomes the
+    // stale-copy UPDATE attacker instead of downloading the record again.
     let owner_round_trip = setup_db(&token_b, &workspace_b).await;
-    let round_trip_title = tokio::time::timeout(REPLICA_VISIBILITY_TIMEOUT, async {
+    let round_trip_started = Instant::now();
+    let round_trip_title = tokio::time::timeout(FRESH_SITE_BOOTSTRAP_TIMEOUT, async {
         loop {
             sync_full_snapshot(&owner_round_trip, "workspace B update round trip").await;
             apply_e2ee_replica_changes(owner_round_trip.pool(), &keys_b)
@@ -686,7 +719,12 @@ async fn personal_workspace_tokens_block_foreign_encrypted_writes() {
     })
     .await
     .unwrap_or(None);
-    stop_db(&owner_round_trip, "workspace B update round-trip client").await;
+    if round_trip_title.is_some() {
+        record_fresh_site_latency(
+            "workspace B update round trip",
+            round_trip_started.elapsed(),
+        );
+    }
 
     let insert_attacker = setup_policy_db(&token_a, &workspace_a).await;
     sync_full_snapshot(&insert_attacker, "workspace A foreign read check").await;
@@ -740,8 +778,11 @@ async fn personal_workspace_tokens_block_foreign_encrypted_writes() {
     .await;
     stop_db(&reassignment_attacker, "workspace reassignment attacker").await;
 
-    let update_attacker = setup_stale_record_client(
-        &token_b,
+    // Each stale-copy attack gets its own clean owner client, because one denied
+    // batch must not mask the other policy. Both already hold the record.
+    let update_attacker = &owner_round_trip;
+    reauthenticate_as_stale_record_client(
+        update_attacker,
         &token_a,
         &workspace_b,
         &owner_record_id,
@@ -756,14 +797,14 @@ async fn personal_workspace_tokens_block_foreign_encrypted_writes() {
         .await
         .unwrap();
     assert_eq!(updated.rows_affected(), 1);
-    assert_pending_change(&update_attacker, "foreign payload UPDATE").await;
+    assert_pending_change(update_attacker, "foreign payload UPDATE").await;
     let update_result =
-        expect_policy_sync_completed_or_denied(&update_attacker, "workspace A foreign UPDATE")
-            .await;
-    stop_db(&update_attacker, "foreign UPDATE attacker").await;
+        expect_policy_sync_completed_or_denied(update_attacker, "workspace A foreign UPDATE").await;
+    stop_db(update_attacker, "foreign UPDATE attacker").await;
 
-    let delete_attacker = setup_stale_record_client(
-        &token_b,
+    let delete_attacker = &owner;
+    reauthenticate_as_stale_record_client(
+        delete_attacker,
         &token_a,
         &workspace_b,
         &owner_record_id,
@@ -777,21 +818,31 @@ async fn personal_workspace_tokens_block_foreign_encrypted_writes() {
         .await
         .unwrap();
     assert_eq!(deleted.rows_affected(), 1);
-    assert_pending_change(&delete_attacker, "foreign DELETE").await;
+    assert_pending_change(delete_attacker, "foreign DELETE").await;
     let delete_result =
-        expect_policy_sync_completed_or_denied(&delete_attacker, "workspace A foreign DELETE")
-            .await;
-    stop_db(&delete_attacker, "foreign DELETE attacker").await;
+        expect_policy_sync_completed_or_denied(delete_attacker, "workspace A foreign DELETE").await;
+    stop_db(delete_attacker, "foreign DELETE attacker").await;
 
+    // Verification needs fresh sites: an existing client would keep rows that a
+    // successful attack deleted or moved out of its view. Both bootstraps run together.
     let verifier = setup_db(&token_b, &workspace_b).await;
-    let verified_record = wait_for_e2ee_record(
-        &verifier,
-        &owner_record_id,
-        &workspace_b,
-        &owner_payload,
-        "workspace B policy verification",
-    )
-    .await;
+    let workspace_a_verifier = setup_db(&token_a, &workspace_a).await;
+    let (verified_record, reassignment_owner_row) = tokio::join!(
+        wait_for_e2ee_record(
+            &verifier,
+            &owner_record_id,
+            &workspace_b,
+            &owner_payload,
+            "workspace B policy verification",
+        ),
+        wait_for_e2ee_record(
+            &workspace_a_verifier,
+            &reassignment_id,
+            &workspace_a,
+            &reassignment_payload,
+            "workspace A reassignment verification",
+        ),
+    );
     let foreign_insert_count: i64 =
         sqlx::query_scalar("SELECT COUNT(*) FROM e2ee_records WHERE id = ?")
             .bind(&foreign_insert_id)
@@ -816,15 +867,6 @@ async fn personal_workspace_tokens_block_foreign_encrypted_writes() {
             .await;
     }
 
-    let workspace_a_verifier = setup_db(&token_a, &workspace_a).await;
-    let reassignment_owner_row = wait_for_e2ee_record(
-        &workspace_a_verifier,
-        &reassignment_id,
-        &workspace_a,
-        &reassignment_payload,
-        "workspace A reassignment verification",
-    )
-    .await;
     cleanup_encrypted_records(
         &workspace_a_verifier,
         std::slice::from_ref(&reassignment_id),
@@ -832,13 +874,13 @@ async fn personal_workspace_tokens_block_foreign_encrypted_writes() {
     )
     .await;
 
+    // The owner client was reused as an attacker, so the clean verifier cleans up.
     cleanup_encrypted_records(
-        &owner,
+        &verifier,
         &note.record_ids,
         "workspace B encrypted record cleanup",
     )
     .await;
-    stop_db(&owner, "workspace B owner").await;
     stop_db(&verifier, "workspace B verifier").await;
     stop_db(&workspace_a_verifier, "workspace A verifier").await;
 

@@ -10,6 +10,7 @@ import re
 import secrets
 import subprocess
 import sys
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -26,6 +27,11 @@ REQUIRED_SECRETS = (
     "SQLITECLOUD_TOKEN_ISSUER_API_KEY",
 )
 PROTOCOL_MODES = {"dual", "e2ee_only", "e2ee_enforced"}
+LATENCY_LOG_ENV = "ANARLOG_CLOUDSYNC_LATENCY_LOG"
+# A fresh device's first download waits on provider snapshot preparation over the whole
+# tenant history, which deployments cannot change. Report it instead of failing on it;
+# the tests themselves only fail when a bootstrap never completes.
+FRESH_DEVICE_LATENCY_TARGET_SECONDS = 90
 LEGACY_PLAINTEXT_TABLES = (
     "action_items",
     "events",
@@ -497,6 +503,55 @@ def cleanup_remote_workspaces(
             raise RuntimeError("verification workspace cleanup left remote records")
 
 
+def read_latency_log(path: str) -> list[tuple[str, float]]:
+    try:
+        with open(path) as log:
+            lines = log.read().splitlines()
+    except FileNotFoundError:
+        return []
+    entries = []
+    for line in lines:
+        if line.strip():
+            entry = json.loads(line)
+            entries.append((str(entry["check"]), float(entry["seconds"])))
+    return entries
+
+
+def report_fresh_device_latency(path: str) -> None:
+    entries = read_latency_log(path)
+    target = FRESH_DEVICE_LATENCY_TARGET_SECONDS
+    for check, seconds in entries:
+        level = "warning" if seconds > target else "notice"
+        print(
+            f"::{level} title=CloudSync fresh-device latency::"
+            f"{check}: {seconds:.1f}s (target {target}s)"
+        )
+
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not entries or not summary_path:
+        return
+    rows = [
+        f"| {check} | {seconds:.1f}s | {'over target' if seconds > target else 'ok'} |"
+        for check, seconds in entries
+    ]
+    with open(summary_path, "a") as summary:
+        summary.write(
+            "\n".join(
+                [
+                    "",
+                    "### CloudSync fresh-device latency",
+                    "",
+                    f"Target: {target}s. Reported only; it does not fail the deployment.",
+                    "",
+                    "| Check | Latency | Status |",
+                    "| --- | --- | --- |",
+                    *rows,
+                    "",
+                ]
+            )
+        )
+
+
 def run_test_with_cleanup(
     test: str,
     environment: dict[str, str],
@@ -537,7 +592,21 @@ def main() -> None:
     values = load_secrets(sys.argv[1])
     database_name = verify_remote_database(values)
 
-    cargo_env = sanitized_cargo_env()
+    latency_log_fd, latency_log = tempfile.mkstemp(
+        prefix="cloudsync-latency-", suffix=".jsonl"
+    )
+    os.close(latency_log_fd)
+    try:
+        run_verification(values, database_name, latency_log)
+    finally:
+        report_fresh_device_latency(latency_log)
+        os.remove(latency_log)
+
+
+def run_verification(
+    values: dict[str, str], database_name: str, latency_log: str
+) -> None:
+    cargo_env = sanitized_cargo_env() | {LATENCY_LOG_ENV: latency_log}
     subprocess.run(
         [
             "cargo",

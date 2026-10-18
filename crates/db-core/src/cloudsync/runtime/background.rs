@@ -157,9 +157,7 @@ fn log_sync_result(
         tracing::warn!(
             trigger = ?activity.trigger,
             send_failed = result.send.as_ref().is_some_and(|send| {
-                send.last_failure.is_some()
-                    || (!send.status.eq_ignore_ascii_case("synced")
-                        && !send.status.eq_ignore_ascii_case("syncing"))
+                send.last_failure.is_some() || send_status_is_failure(&send.status)
             }),
             receive_failed = result.receive.as_ref().is_some_and(|receive| {
                 receive.error.is_some() || receive.last_failure.is_some()
@@ -242,13 +240,19 @@ pub(super) fn cloudsync_next_delay(
     }
 }
 
+// `out-of-sync` means local changes are still pending or a gap is being
+// resent; like `syncing`, it is an upload in flight, not a failure.
+fn send_status_is_failure(status: &str) -> bool {
+    !["synced", "syncing", "out-of-sync"]
+        .iter()
+        .any(|in_flight_or_done| status.eq_ignore_ascii_case(in_flight_or_done))
+}
+
 fn embedded_sync_error(result: &CloudsyncNetworkResult) -> Option<String> {
     let mut errors = Vec::new();
 
     if let Some(send) = &result.send {
-        if !send.status.eq_ignore_ascii_case("synced")
-            && !send.status.eq_ignore_ascii_case("syncing")
-        {
+        if send_status_is_failure(&send.status) {
             errors.push(format!("send status: {}", send.status));
         }
         if let Some(last_failure) = &send.last_failure {

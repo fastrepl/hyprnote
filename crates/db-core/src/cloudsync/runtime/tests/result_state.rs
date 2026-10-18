@@ -80,6 +80,17 @@ fn record_sync_result_tracks_settlement_and_failures() {
             expected_last_sync_at_is_set: true,
         },
         StateCase {
+            name: "send pending as out-of-sync",
+            initial_last_sync_at_ms: Some(42),
+            result: network_result(Some("out-of-sync"), Some((0, true, None))),
+            local_work_remaining: true,
+            expected_last_error: None,
+            expected_error_kind: None,
+            expected_consecutive_failures: 0,
+            expected_last_sync_at_ms: Some(42),
+            expected_last_sync_at_is_set: true,
+        },
+        StateCase {
             name: "initial receive in progress",
             initial_last_sync_at_ms: None,
             result: network_result(None, Some((3, false, None))),

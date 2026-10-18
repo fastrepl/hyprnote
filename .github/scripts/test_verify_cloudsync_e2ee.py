@@ -95,6 +95,49 @@ class VerifyCloudSyncE2eeTests(unittest.TestCase):
             {"notice": {"fast"}, "warning": {"slow", "stuck"}},
         )
 
+    def test_reports_wait_before_first_page_separately_from_download(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            log = pathlib.Path(directory, "latency.jsonl")
+            summary = pathlib.Path(directory, "summary.md")
+            log.write_text(
+                '{"check": "prepared", "seconds": 80.0, "completed": true,'
+                ' "first_page_seconds": 70.5, "empty_calls_before_first_page": 4,'
+                ' "sync_calls": 6, "sync_call_seconds": 66.25, "snapshot_resets": 1,'
+                ' "rows": 12, "chunks": 1, "bytes": 2048}\n'
+                '{"check": "never", "seconds": 180.0, "completed": false,'
+                ' "first_page_seconds": null, "empty_calls_before_first_page": 9,'
+                ' "sync_calls": 9, "sync_call_seconds": 160.0, "snapshot_resets": 4,'
+                ' "rows": 0, "chunks": 0, "bytes": 0}\n'
+                '{"check": "legacy", "seconds": 12.0, "completed": true}\n'
+            )
+            output = io.StringIO()
+            with (
+                mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
+                contextlib.redirect_stdout(output),
+            ):
+                verify.report_fresh_device_latency(str(log))
+            table = summary.read_text()
+
+        annotations = output.getvalue()
+        self.assertIn(
+            "prepared: 80.0s, ok (target 90s); first page at 70.5s after 4 empty sync calls",
+            annotations,
+        )
+        self.assertIn(
+            "never: 180.0s, timed out (target 90s); no page after 9 empty sync calls",
+            annotations,
+        )
+        self.assertIn("legacy: 12.0s, ok (target 90s)\n", annotations)
+        self.assertIn(
+            "| prepared | 80.0s | ok | 70.5s | 9.5s | 4 | 6 (66.2s) | 1 | 12 rows, 2048 B |",
+            table,
+        )
+        self.assertIn(
+            "| never | 180.0s | timed out | none | none | 9 | 9 (160.0s) | 4 | 0 rows, 0 B |",
+            table,
+        )
+        self.assertIn("| legacy | 12.0s | ok | n/a | n/a | n/a | n/a | n/a |", table)
+
     def test_failed_verification_still_reports_latency_and_removes_log(self) -> None:
         failure = subprocess.CalledProcessError(101, ["cargo", "test"])
         logs = []

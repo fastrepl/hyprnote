@@ -9,6 +9,7 @@ import {
   commands as fsSyncCommands,
   events as fsSyncEvents,
 } from "@anlg/plugin-fs-sync";
+import { commands as importerCommands } from "@anlg/plugin-importer";
 import { commands as listener2Commands } from "@anlg/plugin-transcription";
 
 import { estimateUploadedAudioSessionCreatedAt } from "./audio-note-date";
@@ -37,7 +38,7 @@ export const AUDIO_EXTENSIONS = [
 ];
 
 const AUDIO_TRANSFER_EXTENSIONS = [...AUDIO_EXTENSIONS, "qta"];
-const TRANSCRIPT_EXTENSIONS = ["vtt", "srt"];
+const TRANSCRIPT_EXTENSIONS = ["vtt", "srt", "txt"];
 const MAX_IPC_AUDIO_BYTES = 4 * 1024 * 1024;
 
 function fileExtension(value: string) {
@@ -276,19 +277,36 @@ export function useUploadFile(sessionId: string) {
       const normalizedPath = filePath.toLowerCase();
 
       if (kind === "transcript") {
-        if (
-          !normalizedPath.endsWith(".vtt") &&
-          !normalizedPath.endsWith(".srt")
-        ) {
+        const extension = fileExtension(normalizedPath);
+
+        if (!TRANSCRIPT_EXTENSIONS.includes(extension)) {
           return;
         }
 
+        const parseTranscript =
+          extension === "txt"
+            ? importerCommands.readTextFiles([filePath]).then((result) => {
+                if (result.status === "error") {
+                  return result;
+                }
+
+                const content = result.data[0]?.content?.trim() ?? "";
+
+                return {
+                  status: "ok" as const,
+                  data: {
+                    tokens: content
+                      ? [{ text: content, start_time: 0, end_time: 0 }]
+                      : [],
+                  },
+                };
+              })
+            : listener2Commands.parseSubtitle(filePath);
+
         const program = pipe(
-          fromResult(listener2Commands.parseSubtitle(filePath)),
+          fromResult(parseTranscript),
           Effect.tap((subtitle) => {
-            if (subtitle.tokens.length === 0) {
-              return Effect.void;
-            }
+            if (subtitle.tokens.length === 0) return Effect.void;
 
             const transcriptId = crypto.randomUUID();
             const createdAt = new Date().toISOString();

@@ -7,428 +7,166 @@ category: "Comparisons"
 date: "2026-07-07"
 ---
 
-Meeting minutes software now covers a wide range of jobs: AI summaries, formal board minutes, searchable transcript archives, CRM follow-up, collaborative agendas, and private local note-taking.
+Meeting minutes software can produce an AI recap, help a secretary record decisions, or manage the approval of formal board minutes. Those are different jobs. A transcript preserves what was said; useful minutes make decisions, owners, deadlines, and unresolved questions easy to find.
 
-The best choice depends less on "which AI writes the prettiest summary" and more on the workflow around the meeting. Do you need a bot in every call? Do minutes need approval? Will recordings contain sensitive customer or board information? Does your team need a searchable archive, or do you just need clean minutes that can live as files?
+Start with the record your team needs after the meeting. If everyone needs a searchable recap, an AI notetaker may fit. If a committee must approve an official record, look for editing, approval, access controls, and an archive before choosing a transcription engine.
 
-This guide compares the strongest options for 2026 and calls out where Anarlog fits for teams that want AI meeting minutes without giving up control over their data.
+This comparison covers nine options using their published product and pricing documentation, reviewed in October 2026. It is not a hands-on accuracy benchmark. Prices and plan limits can change; the linked vendor pages are the place to confirm a purchase.
 
 ![Private meeting minutes workflow](https://static.anarlog.so/blog/articles/meeting-minutes-software/meeting-minutes-workflow.png)
 
 ## How to choose meeting minutes software
 
-Before comparing tools, decide which workflow you are buying:
+Decide which of these workflows you need:
 
-- **Private AI minutes** if meetings include sensitive internal, customer, legal, or product conversations.
-- **Collaborative agendas** if the real problem is preparation, recurring meeting structure, and action-item accountability.
-- **Board or governance minutes** if approvals, voting, audit trails, and document control matter more than AI summaries.
-- **Sales or customer-call notes** if CRM sync, clips, and revenue-team workflows are the priority.
-- **Searchable archives** if the main value is finding what someone said months later.
+- **Personal AI notes:** capture a conversation, review the summary, and keep your own record.
+- **Team meeting management:** prepare shared agendas, record decisions, and follow up on assigned tasks.
+- **Formal minutes:** review a draft, approve it through the required process, and control access to the final record.
+- **Customer-call follow-up:** connect a recap and action items to the correct CRM records.
+- **A searchable meeting library:** retrieve transcripts, recordings, or clips with appropriate sharing and retention settings.
 
-For sensitive teams, privacy architecture matters as much as features. A tool that joins as a cloud bot and stores every transcript remotely is a very different product from a local-first tool that records system audio without joining the meeting.
+These can overlap, but an AI summary does not become approved minutes automatically. Agree on who reviews the draft and who can approve it. Our [meeting notes templates](/blog/meeting-notes-template/) include a minutes format you can use to compare outputs across tools.
+
+Recording method and processing location are separate choices. A desktop app can capture a meeting without a bot and still send audio to a cloud service. Check where transcription, summaries, storage, and sharing happen individually.
 
 ## Meeting minutes software comparison
 
-| Tool | Best for | Recording style | Starting price |
+| Tool | Main workflow | Capture or record | Entry plan |
 | --- | --- | --- | --- |
-| Anarlog | Private AI minutes and local-first workflows | No bot; desktop system-audio capture | Free; Pro is $14/month or $140/year |
-| Fellow | Collaborative agendas and team meeting workflows | Meeting assistant plus workspace workflow | Free; Team starts at $7/user/month billed annually |
-| MeetGeek | Conversation intelligence and sales/team analytics | Meeting bot plus browser/desktop recording options | Free; Pro starts at $9.99/user/month |
-| Diligent | Board meetings and governance | Board portal workflow | Custom |
-| Fireflies.ai | Searchable transcription archive | Bot-based recording plus desktop/mobile apps | Free; Pro starts at $10/seat/month billed annually |
-| Beenote | Structured agendas and manual minutes | Collaborative meeting-management workflow | $552/year for 10 users |
-| MeetingBooster | Formal enterprise meeting management | Structured agenda/minutes workflow | Custom |
-| Fathom | Sales calls and CRM follow-up | Bot-based recording | Free; Premium starts at $16/user/month billed annually |
-| tl;dv | Video recordings, clips, and call libraries | Bot-based video recording | Free; paid plans available |
+| Anarlog | Personal notes with local data and a choice of AI | Desktop audio capture; no meeting bot | Free; Pro $14/month or $140/year |
+| Fellow | Shared agendas and team follow-up | Bot, botless desktop/mobile, and in-person capture | Free; Team $7/user/month annually |
+| MeetGeek | Meeting library and team analytics | Bot plus desktop, extension, and mobile options | Free; Pro advertised at $9.99/user/month |
+| Diligent Boards | Board materials and governance | Board portal with AI draft minutes | Request a quote |
+| Fireflies.ai | Searchable transcripts and shared follow-up | Bot or desktop capture; other clients available | Free; Pro $10/seat/month annually |
+| Beenote | Collaborative agendas, decisions, and tasks | Structured meeting-management workspace | $552 USD/year for 10 users; limited free fallback |
+| MeetingBooster | Structured minutes and approval | Agenda, notes, approval, and distribution workflow | Request a quote |
+| Fathom | Call recaps and CRM follow-up | Meeting bot or Mac bot-free beta | Free; paid features vary by plan |
+| tl;dv | Recorded meetings, clips, and a call library | Meeting recorder; verify the client and capture mode | Free advertised; check feature limits |
 
-Prices change often, so treat this table as a planning snapshot and verify vendor pricing before buying.
+The sections below explain the boundaries behind these entries. Compare a full team's cost, transcription allowance, AI allowance, storage, and required integrations rather than the entry price alone.
 
 ## Detailed reviews of meeting minutes software
 
-### 1. Anarlog - control over your data and AI stack
+### 1. Anarlog - local meeting data and a choice of AI
 
 ![Anarlog](https://static.anarlog.so/blog/library/products/anarlog/desktop/2026-08-20-meeting-summary.jpg)
 
-**[Anarlog](https://anarlog.so)** is an open-source AI note-taker that stores your data locally and gives you complete control over the AI stack.
+[Anarlog](https://anarlog.so/) captures desktop audio without a meeting bot and combines your notes with a transcript to draft a summary. Canonical sessions, notes, and transcripts live in local SQLite; recordings and attachments are separate local files. Markdown is an export format.
 
-You decide if your audio, transcripts, or notes ever leave your device. You pick your preferred STT and LLM provider, which means you can go completely local if you want to.
+The useful distinction is control over both storage and AI providers. You can use local models, bring your own provider keys, or choose hosted AI. Local storage alone does not mean processing stays on the device: check transcription and summary settings separately. Optional encrypted CloudSync, hosted processing, and sharing each have their own data paths.
 
-#### How it works
+Choose Anarlog when you want a personal meeting record you can export and an AI configuration you can control. It does not replace a board portal's formal approval process. For an offline setup, follow the [local transcription and summary configuration guide](/blog/offline-meeting-transcription-mac/) and test it before a meeting.
 
-Anarlog captures system audio without joining meetings as a bot. During meetings, it transcribes conversations in real time and combines any notes you've taken with the transcript to create a summary when the meeting ends.
+**Pricing:** [Free covers local-model and bring-your-own-key workflows; Pro is $14/month or $140/year](https://anarlog.so/pricing/). Provider usage can have its own costs.
 
-That makes it useful for calls where a visible recording bot would be awkward: executive conversations, internal planning, product reviews, customer calls, or any meeting where you want AI help without changing the room.
-
-#### Key Features
-
-- **Local-first data** -- canonical meeting data stays in SQLite on your device, with Markdown export when you need it
-- **Flexible AI** lets you use the managed service or bring your own key (cloud or local). Switch anytime.
-- **No meeting bots** because system audio capture works on Zoom, Teams, phone calls, in-person
-- **Custom templates** structure recurring meetings automatically with community templates or your own
-- **Searchable notes** let you find anything from any meeting instantly with semantic search and date filters
-- **Open source** with public code. Your IT team can audit it, your security team can verify it
-
-#### Pros
-
-- You own your data—files stay on your device, not in a remote database
-- No internet required for recording or transcription with local models
-- No lock-in. Export anytime, switch AI providers anytime, or stop using it
-- No bots in your meetings
-- Security teams can audit the code before approving it
-- Works for any conversation
-
-#### Cons
-
-- Mac-first today, so cross-platform teams should confirm device coverage before rollout
-- No video recordings 
-- No built-in CRM integrations (though files export to anything)
-
-#### Pricing
-
-Free plan with local transcription and bring-your-own-key workflows. Pro is $14/month or $140/year for hosted transcription, hosted AI models, calendar connections, speaker identification, and advanced workflow features.
-
-### 2. Fellow - for remote teams
+### 2. Fellow - shared agendas and team follow-up
 
 ![Fellow Ask AI panel beside shared talking points and assigned action items](https://static.anarlog.so/blog/articles/meeting-minutes-software/image-1.png)
 
-**[Fellow](https://fellow.ai/)** covers the entire meeting lifecycle: preparation with shared agendas, live note-taking during meetings, and organized follow-ups afterward.
+[Fellow](https://fellow.ai/) combines shared agendas, meeting notes, action items, and a searchable meeting library. Ask Fellow can help retrieve meeting context and prepare follow-up material. This suits teams whose problem starts before the call and continues into the next recurring meeting.
 
-Unlike tools that focus only on transcription, Fellow handles collaborative meeting management from start to finish.
+Fellow is not restricted to a visible meeting bot or online calls: its published options include botless desktop and mobile capture, including in-person conversations. Confirm which capture mode works on your team's devices and which recording, access, and retention policies administrators can enforce.
 
-#### Key features
+**Pricing:** [A free plan is available; Team is $7/user/month billed annually or $11 monthly](https://fellow.ai/pricing). AI notes and recording allowances differ by tier. Check the allowance for your intended workflow before assuming every recurring meeting is covered.
 
-- **Collaborative agendas with 500+ templates** let you create shared meeting agendas where team members add talking points together, with pre-built templates for 1-on-1s, standups, and retrospectives
-- **Pre-meeting briefs** provide automatic reminders showing what was discussed in previous iterations of recurring meetings
-- **Ask Fellow (AI Copilot)** is a chatbot that answers questions about meeting history, drafts follow-up emails, and catches you up on missed meetings
-- **Centralized library with access controls** stores all recordings and notes in one searchable place with granular permissions for who can view what
-- **Deep CRM integrations** automatically sync meeting summaries and action items to Salesforce, HubSpot, Asana, Jira, and 50+ other tools
-- **No AI training on your data** as Fellow explicitly doesn't use meeting content to train models
-
-#### Pros
-
-- Comprehensive meeting lifecycle management in one platform
-- Strong collaborative features with shared agendas and real-time editing
-- Enterprise-grade security (SOC 2, GDPR, HIPAA compliance)
-- Excellent for recurring meetings with templates and context continuity
-- Multi-language transcription support for global teams
-
-#### Cons
-
-- Bot-based recording joins as visible participant
-- Cloud-only processing with no on-premises option
-- Free plan is useful for trying the workflow, but serious team usage belongs on a paid plan
-- Online meetings only; doesn't work for in-person conversations
-- Internal meeting focus makes it less robust than dedicated sales intelligence tools
-
-#### Pricing
-
-Free plan is available. Team starts at $7/user/month billed annually, and Business adds org-wide controls at $15/user/month billed annually.
-
-### 3. MeetGeek - for conversation intelligence and sales teams
+### 3. MeetGeek - a meeting library and team analytics
 
 ![MeetGeek meeting workspace with video playback, transcript, and AI summary](https://static.anarlog.so/blog/articles/meeting-minutes-software/image-2.png)
 
-**[MeetGeek](https://meetgeek.ai/)** is designed for sales teams and enterprises that want conversation analytics and performance tracking beyond transcription.
+[MeetGeek](https://meetgeek.ai/) offers transcripts, summaries, action items, templates, and a meeting library with team analytics. It is worth evaluating when several people need to search past conversations and turn meeting output into follow-up workflows.
 
-It captures data-driven insights into communication patterns, not just meeting notes.
+Its capture options include calendar-connected bots and desktop, browser-extension, and mobile tools. In-person or offline capture should not be confused with fully offline transcription and summarization. Verify where processing occurs and when a recording uploads.
 
-#### Key features
+**Pricing:** [The free plan includes three transcription hours per month; Pro is advertised at $9.99/user/month with 20 hours](https://meetgeek.ai/pricing). Confirm billing terms, retention, and the allowance for the capture method you use. A library is only useful for long-term reference if the plan retains the material you need.
 
-- **Automatic meeting type detection** recognizes your call type and applies context-aware summary templates without manual selection
-- **Team spaces and analytics** organize meetings by department with performance metrics tracking engagement, sentiment, and effectiveness at team and individual levels
-- **Automated workflows** let you set rules to auto-share meeting records with specific teams based on meeting type, pushing summaries to CRMs and task management tools
-- **Custom speech models** on the enterprise tier train the transcription system on your industry-specific terminology for better accuracy
-- **100+ language support** with automatic language detection
-- **Mobile apps** let you record and summarize in-person meetings on iOS and Android, even offline
-
-#### Pros
-
-- Powerful conversation intelligence with department-level analytics
-- Strong compliance certifications (SOC 2, GDPR, CCPA, HIPAA-ready)
-- Extensive integration ecosystem (7,000+ apps via Zapier)
-- Custom speech models for specialized industries
-- No-bot recording options via browser and desktop app
-
-#### Cons
-
-- Bot-based recording is still part of the default workflow for many teams
-- Hour limits on lower tiers mean heavy meeting teams should model usage before buying
-- Cloud-only processing with no on-premises option
-
-#### Pricing
-
-Free plan is available. Pro starts at $9.99/user/month and includes 20 hours of transcription per month.
-
-### 4. Diligent - for board meeting minutes
+### 4. Diligent Boards - board materials and governance
 
 ![Diligent board workspace showing a financial-insights dashboard](https://static.anarlog.so/blog/articles/meeting-minutes-software/image-3.png)
 
-**[Diligent](https://www.diligent.com/solutions/board-and-leadership-collaboration)** is built specifically for corporate boards, executive committees, and governance-focused organizations. It's designed for high-stakes board-level governance, not general meetings.
+[Diligent Boards](https://www.diligent.com/products/boards) combines board materials, document access, voting, signatures, and action tracking. Smart Minutes provides AI assistance with draft minutes. The reason to evaluate it is the surrounding board workflow, rather than transcription alone.
 
-#### Key features
+During a demonstration, ask a secretary and an approver to take a draft through your actual review process. Check how corrections, access permissions, approval, distribution, and the final archive work. An AI-generated draft still needs the organization's review and approval.
 
-- **Secure board book creation and distribution** includes drag-and-drop document uploads with automatic agenda updates, last-minute adjustments that retain director notes, and user-based watermarking for content protection
-- **AI-powered risk and analytics** provides pre-formatted risk reports on cybersecurity, sustainability, shareholder activism, and other critical issues with integrated dashboards for board-level insights
-- **Digital voting and approvals** enable real-time voting directly from the dashboard with comment boxes for explanatory narratives, plus streamlined signature collection
-- **Board evaluations and D&O questionnaires** support secure creation and monitoring of evaluations using best practice templates with digital signing and exporting
-- **Version control and audit trails** let directors view updated documents with change tracking, retain notes when materials are updated, and maintain complete audit logs for regulatory compliance
+**Pricing:** Request a quote and confirm which Boards, AI, and governance capabilities it includes. Public product descriptions do not establish your organization's renewal price or implementation cost.
 
-#### Pros
-
-- Industry-leading security with enterprise-grade encryption and compliance
-- Comprehensive governance features beyond basic meeting management
-- Trusted by Fortune 500 companies and major organizations globally
-- AI-powered analytics provide board-level insights on critical issues
-- Seamless mobile access from any device
-
-#### Cons
-
-- Premium pricing that may be prohibitive for smaller organizations or NGOs
-- Some features require additional fees beyond base subscription
-- Occasional difficulty renaming or editing documents directly in portal
-- Auto-renewal can include significant price increases (20%+) if not negotiated
-
-#### Pricing
-
-Diligent offers custom pricing based on organization size and requirements. Contact sales for enterprise quotes.
-
-### 5. Fireflies.ai - for meeting transcription
+### 5. Fireflies.ai - searchable transcripts and shared follow-up
 
 ![Fireflies meeting workspace with summary, transcript, sentiment, and speaker timeline](https://static.anarlog.so/blog/articles/meeting-minutes-software/image-4.png)
 
-**[Fireflies.ai](https://fireflies.ai/)** excels at helping you find specific information months later through advanced search functionality. While many tools transcribe meetings, Fireflies focuses on searchable archives and powerful search capabilities across all conversations.
+Fireflies organizes transcripts, summaries, search, and integrations in a shared workspace. Evaluate it when colleagues need to find discussion context and send follow-up into other systems.
 
-#### Key features
+It offers a meeting bot, but that is not the only recording method. The [desktop app can capture system audio without a bot](https://guide.fireflies.ai/articles/6666374717-how-to-record-meetings-without-a-bot-on-the-fireflies-desktop-app). That mode produces a transcript and summary without a separate audio or video recording. Check the resulting artifacts if you need a replayable source for reviewing minutes.
 
-- **Powerful search functionality** lets you search across all meetings using keywords, phrases, topics, or sentiment to find exact conversations and timestamps
-- **50+ language support** transcribes meetings in over 50 languages with automatic language detection
-- **Sentiment analysis** tracks positive, negative, and neutral sentiment throughout conversations to identify key emotional moments
-- **Topic tracking** automatically identifies and categorizes topics discussed, with custom topic trackers you can create for your specific needs
-- **Automated workflows** let you set rules to auto-share meeting summaries with specific team members or departments based on participants or topics
-- **Custom vocabulary** lets you train the system on your industry-specific terminology, acronyms, and product names for better accuracy
-- **Mobile apps** let you record and transcribe in-person meetings using iOS or Android apps
+**Pricing:** [Free includes 400 minutes of storage per team and limited AI summaries; Pro is $10/seat/month billed annually](https://fireflies.ai/pricing). Transcription, storage, and AI-summary allowances are distinct. Confirm each one instead of treating an unlimited-transcription label as unlimited use of the whole product.
 
-#### Pros
-
-- Excellent search functionality across entire meeting history
-- Sentiment analysis provides conversation insights
-- Strong integration ecosystem (7,000+ apps via Zapier)
-- Works well for both online and in-person meetings with mobile apps
-
-#### Cons
-
-- Bot-based recording joins as visible participant
-- Free tier has storage and feature limits compared with paid plans
-- Heavy teams should review storage, credit, and admin limits before rollout
-- Cloud-only processing with no local option
-
-#### Pricing
-
-Free plan is available. Pro starts at $10/seat/month billed annually, Business starts at $19/seat/month billed annually, and Enterprise is listed at $39/seat/month billed annually.
-
-### 6. Beenote - for collaborative agenda building and governance
+### 6. Beenote - structured agendas, decisions, and tasks
 
 ![Beenote meeting-minutes list with meeting actions and export menu](https://static.anarlog.so/blog/articles/meeting-minutes-software/image-5.png)
 
-**[Beenote](https://beenote.io/)** focuses on collaborative planning, real-time note-taking, and organized follow-up with a generous free tier. It's designed for teams that need structured meeting workflows without AI automation.
+[Beenote](https://beenote.io/) organizes collaborative agendas, notes, decisions, and tasks around meeting topics. It fits teams that want participants to prepare together and leave with an explicit record of decisions and responsibilities.
 
-#### Key features
+Beeboard adds governance features such as agenda approval, resolutions, voting, and confidential secretary workflows. Confirm the tier that covers your process rather than assuming all governance features are included in the entry plan.
 
-- **Collaborative draft agendas** let team members see the writing status and add content before meetings, ensuring nothing important gets missed
-- **Multiple items per agenda topic** means each agenda item can have multiple notes, decisions, and tasks, all organized under one discussion point
-- **Timekeeper per subject** provides a built-in timer that helps you know when to move to the next topic, saving precious meeting time
-- **Voice recording segments** let you record specific parts of discussions or entire agenda items for reference later
-- **Task synchronization** syncs assigned tasks directly to Google Task or Microsoft To Do, optimizing follow-ups without leaving your workflow
-- **Customizable templates** let you create different formats for various meeting types like board meetings, team standups, or project reviews
+**Pricing:** [Beenote lists $552 USD/year for 10 users and a 30-day trial](https://beenote.io/pricing-plan-meeting-management-software/). Its FAQ says that after the trial, the first five users retain access in the limited Beefree mode. That fallback is different from keeping the full paid feature set free forever; check its time and feature restrictions before relying on it for ongoing minutes.
 
-#### Pros
-
-- Strong governance features for boards and executive committees
-- Integration with Microsoft 365, Teams, and Google Workspace
-- Grammar checking with Antidote integration
-- Free tier is genuinely useful for small teams
-
-#### Cons
-
-- Manual note-taking required—no AI transcription
-- No Slack integration despite being a popular team communication tool
-- Learning curve for users unfamiliar with structured meeting management
-- Mobile apps available but desktop experience is primary focus
-
-#### Pricing
-
-Beenote is free forever with basic features. Paid plans start at $552/year for 10 users with additional collaboration and branding features.
-
-### 7. MeetingBooster - for enterprise meeting management
+### 7. MeetingBooster - structured minutes and approval
 
 ![MeetingBooster's Agenda editor with topics, timings, presenters, and tags for a board meeting](https://static.anarlog.so/blog/articles/meeting-minutes-software/meetingbooster-agenda-builder.png)
 
-*Source: [The Digital Project Manager's meeting management software review](https://thedigitalprojectmanager.com/tools/best-meeting-management-software/).*
+*Image source: [The Digital Project Manager's meeting management software review](https://thedigitalprojectmanager.com/tools/best-meeting-management-software/).*
 
-**[MeetingBooster](https://www.meetingbooster.com/meeting-minutes-software)** works well for mid-size to large companies running structured meetings with serious accountability requirements. It handles project change management meetings, board sessions, and cross-functional team coordination where nothing can slip through the cracks.
+[MeetingBooster](https://www.meetingbooster.com/meeting-minutes-software) supports agenda-based notes, decisions, voting results, action owners, and parked topics. Its published workflow includes editing and proofreading minutes, submitting them for approval, and distributing the approved record through PDF or email.
 
-#### Key features
+This is a useful shortlist option when ownership and approval matter more than an automatic recap. Test what happens to a disputed decision, an overdue action, and an agenda topic carried into the next meeting.
 
-- **Meeting series functionality** automatically groups related meetings together, making it easy to track recurring items and see action items across an entire project or committee
-- **Pre-meeting task assignment** lets you assign tasks that need completion before meetings, with status tracking to hold attendees accountable
-- **Advanced meeting tools** include built-in voting, pros/cons analysis, and rating features to facilitate decisions during meetings
-- **Comprehensive task management** provides a full task system with due dates, priorities, and cross-meeting project tracking that syncs seamlessly to Outlook tasks
-- **Meeting agenda module** is a separate module for agenda creation that forces pre-planning and prevents off-topic additions during meetings
-- **Parking topics feature** lets you park both main topics and sub-topics for future discussion, with automatic carry-forward to next meetings
+**Pricing:** Request a current quote. MeetingBooster advertises an on-premises hosting option; confirm the deployment, maintenance responsibilities, and capabilities included in the proposed package.
 
-#### Pros
-
-- Powerful for complex enterprise workflows with multiple stakeholders
-- Deep Outlook integration makes adoption easier in Microsoft-heavy organizations
-- Meeting series feature provides excellent continuity for recurring meetings
-- Advanced meeting facilitation tools (voting, pros/cons) improve decision quality
-- Proven track record with 30+ years in the market
-
-#### Cons
-
-- Interface feels more traditional/corporate compared to modern tools
-- Requires manual note-taking during meetings
-- Limited flexibility in some task management functions
-- Steeper learning curve than simpler alternatives
-
-#### Pricing
-
-MeetingBooster offers custom pricing based on organization size and needs. They provide site licenses for large deployments and on-premises installation options for enterprises with strict data requirements.
-
-### 8. Fathom - for sales CRM integration
+### 8. Fathom - call recaps and CRM follow-up
 
 ![Fathom Recap workspace with meeting video, AI summary, and action items](https://static.anarlog.so/blog/articles/meeting-minutes-software/image-7.png)
 
-**[Fathom](https://www.fathom.ai/)** automatically logs everything to Salesforce, HubSpot, and other platforms immediately after each call. While other tools require you to copy-paste summaries into your CRM, Fathom eliminates that step.
+[Fathom](https://www.fathom.ai/pricing) combines call recording, transcription, summaries, highlights, and follow-up features. Its CRM integrations can reduce manual transfer of meeting notes, but verify which plan and integration can update the fields your team uses.
 
-#### Key features
+Fathom supports a meeting bot and advertises a bot-free beta for Mac. Do not assume that beta establishes bot-free support on every platform. Check client availability, meeting-platform compatibility, and the recording mode before rollout.
 
-- **Automatic CRM logging** syncs meeting summaries automatically to Salesforce, HubSpot, and Close after every call
-- **Free plan** offers unlimited recordings and transcriptions, with advanced AI summaries limited on the free tier
-- **Instant highlights** let you click a button during meetings to create timestamped highlights of important moments
-- **AI-generated summaries** provide automatic summaries with key points, action items, and next steps
-- **Multi-language support** transcribes meetings in 28 languages
-- **Team collaboration** lets you share meeting clips and highlights with teammates instantly
+**Pricing:** The free plan advertises unlimited recording and transcription, with limits on advanced AI features. Paid plans add further AI, integration, and team capabilities. Compare the required feature tier rather than assuming free recording includes every summary format or CRM workflow.
 
-#### Pros
-
-- Strong free plan for individuals
-- Excellent CRM integration eliminates manual data entry
-- Simple, clean interface with minimal setup required
-- Fast AI processing—summaries available within minutes
-
-#### Cons
-
-- Bot-based recording joins as visible participant
-- Primarily designed for sales use cases
-- Limited customization compared to enterprise tools
-- Fewer advanced analytics than dedicated conversation intelligence platforms
-
-#### Pricing
-
-Free plan is available. Premium starts at $16/user/month billed annually, and Team starts at $15/user/month billed annually with a two-user minimum.
-
-### 9. tl;dv - free meeting recorder with AI summaries
+### 9. tl;dv - recordings, clips, and a meeting library
 
 ![tl;dv recording workspace with video, transcript, notes, and speaker insights](https://static.anarlog.so/blog/articles/meeting-minutes-software/image-8.png)
 
-**[tl;dv](https://tldv.io/)** offers genuinely unlimited recordings on its free plan. Unlike other "free" options with restrictive limits, it's ideal for individuals and small teams on tight budgets.
+[tl;dv](https://tldv.io/) focuses on recorded meetings, transcripts, summaries, clips, and a searchable call library. Consider it when sharing a short source excerpt is more useful than forwarding a long set of minutes.
 
-#### Key features
+Check which meeting clients and capture modes are available for your devices. For each shared clip, test who can open it and whether the recipient can access the underlying recording or transcript.
 
-- **AI-generated summaries** provide automatic summaries with key takeaways, action items, and decisions
-- **Timestamped highlights** let you click during meetings to bookmark important moments with timestamps
-- **Video clip sharing** lets you create and share short video clips from longer meetings
-- **20+ language support** transcribes meetings in multiple languages
-- **Meeting library** provides a searchable archive of all recordings with tags and filters
-- **Integration with tools** connects to Slack, Notion, Google Docs, CRM systems
+**Pricing:** tl;dv advertises a free plan and unlimited meeting recordings. Check the current AI-feature, upload, storage, and retention conditions separately. We have not verified current detailed quotas or paid prices, so this comparison does not promise unlimited AI use or permanent recording retention.
 
-#### Pros
+## Test the minutes, not just the transcript
 
-- Truly unlimited recordings on free plan (no monthly hour caps)
-- Video clip feature makes it easy to share key moments
-- Simple, intuitive interface with minimal setup
-- Works well for major video-meeting tools
+A tool can transcribe most words correctly and still miss a decision, reverse a negation, or assign a task to the wrong person. There is no cross-product accuracy percentage established by this comparison.
 
-#### Cons
+Use a representative meeting with participants' permission and run the same review for each shortlisted tool:
 
-- Bot-based recording joins as visible participant
-- Platform support is strongest for the major video-meeting tools
-- Advanced features like custom vocabulary require paid plans
-- Cloud-only processing with no local option
+1. Check names, technical terms, numbers, dates, and speaker attribution against the source.
+2. Separate proposals from agreed decisions. Mark unresolved questions instead of allowing a summary to imply agreement.
+3. Check each action's owner and deadline. Use our [meeting action items guide](/blog/meeting-action-items/) to build a consistent follow-up format.
+4. Correct the draft and take it through the required review or approval process.
+5. Export the final record, test recipient permissions, and check how long the transcript and recording remain accessible.
 
-#### Pricing
+If formal approval is essential, test that workflow first. If the main job is personal recall, prioritize a readable draft, reliable retrieval, and portable exports.
 
-Free plan includes unlimited meetings and AI notes. Paid plans add more advanced collaboration, coaching, and integration features.
+## Check processing, permissions, and retention separately
 
-## Key features that matter in meeting minutes software
+Map the path from capture to transcription, summary generation, storage, and sharing. Ask which services receive audio or text, who can decrypt stored material, and which administrators or link recipients can read it.
 
-When evaluating meeting minutes software, focus on these five categories:
+Transport encryption protects a connection; it does not by itself prevent the service at the other end from reading the content. End-to-end encryption has a different boundary: only the intended endpoints can decrypt the protected material. The [EFF's encryption guide](https://ssd.eff.org/module/what-should-i-know-about-encryption) explains this distinction. Check which data a product's encryption claim actually covers.
 
-### 1. Transcription accuracy
+Compliance language also needs scope. A SOC 2 report, GDPR obligations, and HIPAA requirements are different things; a badge does not establish that a particular meeting workflow meets your organization's requirements. [HHS does not recognize private HIPAA Security Rule certifications](https://www.hhs.gov/hipaa/for-professionals/faq/are-we-required-to-certify-our-organizations-compliance-with-the-standards/index.html). Review the applicable contracts, controls, retention settings, and access policies.
 
-Accuracy matters if you're relying on automated transcription. Look for:
+For more detail, see our [local AI privacy tools guide](/blog/local-ai-privacy-tools) and [Fireflies privacy review](/blog/is-fireflies-ai-safe).
 
-- 90%+ accuracy rates for clear audio
-- Speaker identification capabilities
-- Support for technical terminology and industry jargon
-- Custom vocabulary training for specialized terms
-- Multi-language support if needed
+## Choose the workflow you can maintain
 
-Most AI meeting minutes software achieves 90-95% accuracy in ideal conditions, but accuracy drops significantly with background noise, accents, or multiple speakers talking simultaneously.
+Shortlist Diligent, Beenote's governance tier, or MeetingBooster when a formal review and approval process is central. Compare Fellow's shared agendas when preparation and recurring follow-up are the problem. Evaluate MeetGeek, Fireflies, Fathom, or tl;dv for searchable call output and integrations.
 
-### 2. Privacy & security
-
-For sensitive conversations, privacy architecture matters more than compliance certifications:
-
-- **Local-first processing** (Anarlog) provides maximum privacy
-- **End-to-end encryption** protects data in transit
-- **Compliance certifications** (HIPAA, SOC 2, GDPR) verify security practices
-- **Data retention policies** control how long recordings are stored
-- **Access controls** manage who can view sensitive meetings
-
-If your conversations involve confidential information, prioritize tools with local processing or strong encryption over convenient cloud-based options.
-
-### 3. Integrations
-
-Meeting minutes software should connect with your existing workflow:
-
-- **Calendar integration** (Google Calendar, Outlook) for automatic meeting detection
-- **CRM systems** (Salesforce, HubSpot) for sales and customer data
-- **Project management** (Asana, Jira, Monday.com) for task tracking
-- **Communication platforms** (Slack, Teams) for sharing summaries
-- **Document storage** (Google Drive, Dropbox) for archival
-
-The best integrations are bidirectional—not just pushing data out, but pulling context in to make summaries more relevant.
-
-### 4. Collaboration features
-
-Teams need to work together on meeting documentation:
-
-- **Real-time co-editing** for collaborative note-taking
-- **Commenting and mentions** for feedback and questions
-- **Shared agendas** built collaboratively before meetings
-- **Approval workflows** for formal minutes requiring sign-off
-- **Version control** to track changes and revert if needed
-
-Remote teams particularly benefit from strong collaboration features that keep everyone aligned regardless of location.
-
-### 5. Search & retrieval
-
-Meeting minutes are only valuable if you can find information later:
-
-- **Keyword search** across all transcripts and summaries
-- **Semantic search** that understands context and intent
-- **Filter by date, participant, or meeting type**
-- **Topic-based organization** and automatic categorization
-- **Quick access** to specific timestamps in recordings
-
-The difference between a searchable meeting archive and 100 unsearchable documents is the difference between institutional knowledge and lost information.
-
-## Our top recommendation
-
-If you value both functionality and local-first control, Anarlog is worth a look. Meeting data stays in local SQLite by default, and you can export Markdown when a portable copy fits the workflow.
-
-That privacy tradeoff matters more as meeting notes become a long-term company memory. If you are comparing bot-based tools, also read our guide to [local AI privacy tools](/blog/local-ai-privacy-tools) and our breakdown of whether [Fireflies.ai is safe](/blog/is-fireflies-ai-safe).
-
-You can try Anarlog for free. If it is not for you, export everything and walk away.
+If you want local meeting data and control over transcription and summary providers, [try Anarlog](https://anarlog.so/download/). Start with one meeting, review the decisions and actions, and export a copy. The useful result is a record people can trust and use after the call.

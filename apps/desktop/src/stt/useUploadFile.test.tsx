@@ -15,6 +15,7 @@ const {
   downloadDirMock,
   selectFileMock,
   parseSubtitleMock,
+  readTextFilesMock,
   createTranscriptMock,
   enhanceMock,
   queueAutoEnhanceIfSummaryEmptyMock,
@@ -36,6 +37,7 @@ const {
   downloadDirMock: vi.fn(),
   selectFileMock: vi.fn(),
   parseSubtitleMock: vi.fn(),
+  readTextFilesMock: vi.fn(),
   createTranscriptMock: vi.fn(),
   enhanceMock: vi.fn(),
   queueAutoEnhanceIfSummaryEmptyMock: vi.fn(),
@@ -78,6 +80,12 @@ vi.mock("@anlg/plugin-fs-sync", () => ({
 
 vi.mock("@anlg/plugin-transcription", () => ({
   commands: { parseSubtitle: parseSubtitleMock },
+}));
+
+vi.mock("@anlg/plugin-importer", () => ({
+  commands: {
+    readTextFiles: readTextFilesMock,
+  },
 }));
 
 vi.mock("./contexts", () => ({
@@ -152,6 +160,16 @@ describe("useUploadFile", () => {
     });
     downloadDirMock.mockResolvedValue("/downloads");
     selectFileMock.mockResolvedValue("/tmp/replacement.wav");
+    readTextFilesMock.mockResolvedValue({
+      status: "ok",
+      data: [
+        {
+          path: "/tmp/session.txt",
+          name: "session.txt",
+          content: "Interview transcript",
+        },
+      ],
+    });
     catalogLocalSessionAudioMock.mockResolvedValue(undefined);
     runBatchMock.mockResolvedValue(undefined);
     createTranscriptMock.mockResolvedValue(undefined);
@@ -448,6 +466,116 @@ describe("useUploadFile", () => {
     );
     expect(createTranscriptMock.mock.invocationCallOrder[0]).toBeLessThan(
       enhanceMock.mock.invocationCallOrder[0],
+    );
+  });
+
+  test("imports plain-text transcripts without inventing timestamps", async () => {
+    readTextFilesMock.mockResolvedValueOnce({
+      status: "ok",
+      data: [
+        {
+          path: "/tmp/session.txt",
+          name: "session.txt",
+          content: "Candidate: I have five years of experience.",
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useUploadFile("session-1"), {
+      wrapper: createWrapper(),
+    });
+
+    act(() => {
+      result.current.processFile("/tmp/session.txt", "transcript");
+    });
+
+    await waitFor(() => {
+      expect(createTranscriptMock).toHaveBeenCalledTimes(1);
+    });
+
+    expect(readTextFilesMock).toHaveBeenCalledWith(["/tmp/session.txt"]);
+    expect(parseSubtitleMock).not.toHaveBeenCalled();
+    expect(createTranscriptMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionId: "session-1",
+        source: "subtitle_import",
+        words: [
+          expect.objectContaining({
+            text: "Candidate: I have five years of experience.",
+            start_ms: 0,
+            end_ms: 0,
+          }),
+        ],
+      }),
+    );
+
+    await waitFor(() => {
+      expect(enhanceMock).toHaveBeenCalledWith("session-1");
+    });
+  });
+
+  test("does not create a transcript from an empty text file", async () => {
+    readTextFilesMock.mockResolvedValueOnce({
+      status: "ok",
+      data: [
+        {
+          path: "/tmp/empty.txt",
+          name: "empty.txt",
+          content: "   \n ",
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useUploadFile("session-1"), {
+      wrapper: createWrapper(),
+    });
+
+    act(() => {
+      result.current.processFile("/tmp/empty.txt", "transcript");
+    });
+
+    await waitFor(() => {
+      expect(readTextFilesMock).toHaveBeenCalledWith(["/tmp/empty.txt"]);
+    });
+
+    expect(createTranscriptMock).not.toHaveBeenCalled();
+    expect(enhanceMock).not.toHaveBeenCalled();
+  });
+
+  test("continues to parse SRT files with the existing subtitle parser", async () => {
+    parseSubtitleMock.mockResolvedValueOnce({
+      status: "ok",
+      data: {
+        tokens: [
+          { text: "Existing subtitle", start_time: 1000, end_time: 1500 },
+        ],
+      },
+    });
+
+    const { result } = renderHook(() => useUploadFile("session-1"), {
+      wrapper: createWrapper(),
+    });
+
+    act(() => {
+      result.current.processFile("/tmp/session.srt", "transcript");
+    });
+
+    await waitFor(() => {
+      expect(createTranscriptMock).toHaveBeenCalledTimes(1);
+    });
+
+    expect(parseSubtitleMock).toHaveBeenCalledWith("/tmp/session.srt");
+    expect(readTextFilesMock).not.toHaveBeenCalled();
+    expect(createTranscriptMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        words: [
+          expect.objectContaining({
+            text: "Existing subtitle",
+            start_ms: 1000,
+            end_ms: 1500,
+          }),
+        ],
+      }),
     );
   });
 });

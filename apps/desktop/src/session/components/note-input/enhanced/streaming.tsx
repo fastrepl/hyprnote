@@ -64,9 +64,9 @@ export function StreamingView({
       <div
         role="status"
         aria-live="polite"
-        className="text-muted-foreground flex flex-col gap-0.5 pb-2 text-sm"
+        className="mx-auto flex w-full max-w-5xl flex-col gap-2 pb-4 text-sm text-muted-foreground"
       >
-        <p className="animate-pulse leading-5">
+        <p className="animate-pulse font-medium leading-5">
           {isReasoning ? (
             <Trans>Model is thinking...</Trans>
           ) : (
@@ -89,7 +89,7 @@ export function StreamingView({
                 appears.
               </Trans>
             ) : (
-              <Trans>Tip: The Anarlog team loves our users!</Trans>
+              <Trans>Review the generated sections against the transcript when the summary is ready.</Trans>
             )}
           </span>
         </p>
@@ -98,7 +98,7 @@ export function StreamingView({
   }
 
   return (
-    <div className="pb-2">
+    <div className="mx-auto w-full max-w-5xl pb-4">
       <div className="flex flex-col gap-1">
         <SummaryTitleSpace title={visibleTitle} />
         <Streamdown

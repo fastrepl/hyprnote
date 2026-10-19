@@ -5463,6 +5463,10 @@ msgstr "Show in folder"
 msgid "Show meeting times as 14:00 instead of 2:00 PM."
 msgstr "Show meeting times as 14:00 instead of 2:00 PM."
 
+#: src/settings/general/app-settings.tsx
+msgid "Show release notes"
+msgstr "Show release notes"
+
 #: src/main/windows-title-bar.tsx
 msgid "Show sidebar"
 msgstr "Show sidebar"

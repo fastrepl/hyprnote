@@ -97,7 +97,7 @@ impl NotificationManager {
         let layout = NotificationLayout::compact(&notification);
         let occupied = self.occupied_height();
         let (work_x, work_y, work_width, _) = work_area();
-        let (x, y) = stacked_origin(work_x, work_y, work_width, occupied);
+        let (x, y) = stacked_origin(work_x, work_y, work_width, occupied, &layout);
         let hwnd = match create_overlay_window(x, y, layout.width, layout.height) {
             Some(hwnd) => hwnd,
             None => return,
@@ -117,25 +117,33 @@ impl NotificationManager {
         };
         unsafe {
             let _ = SetTimer(Some(hwnd), TIMER_ID, 50, None);
-            let _ = ShowWindow(hwnd, SW_SHOWNOACTIVATE);
         }
         self.active.insert(key, instance);
         self.reposition();
+        unsafe {
+            let _ = ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+        }
     }
 
     fn occupied_height(&self) -> i32 {
         self.active
             .values()
-            .map(|instance| instance.layout.height + crate::layout::NOTIFICATION_SPACING)
+            .map(|instance| {
+                instance.layout.height + instance.layout.scale(crate::layout::NOTIFICATION_SPACING)
+            })
             .sum()
     }
 
     fn reposition(&mut self) {
         let (work_x, work_y, work_width, _) = work_area();
         let mut occupied = 0;
-        for instance in self.active.values() {
-            let (x, y) = stacked_origin(work_x, work_y, work_width, occupied);
-            occupied += instance.layout.height + crate::layout::NOTIFICATION_SPACING;
+        for instance in self.active.values_mut() {
+            let dpi = unsafe { GetDpiForWindow(instance.hwnd) }.max(96);
+            instance.layout =
+                NotificationLayout::for_state(&instance.payload, instance.is_expanded).at_dpi(dpi);
+            let (x, y) = stacked_origin(work_x, work_y, work_width, occupied, &instance.layout);
+            occupied +=
+                instance.layout.height + instance.layout.scale(crate::layout::NOTIFICATION_SPACING);
             unsafe {
                 let _ = SetWindowPos(
                     instance.hwnd,
@@ -181,6 +189,12 @@ impl NotificationManager {
     }
 
     fn tick(&mut self, hwnd: HWND) {
+        if self
+            .instance_by_hwnd_mut(hwnd)
+            .is_some_and(|instance| unsafe { GetDpiForWindow(hwnd) }.max(96) != instance.layout.dpi)
+        {
+            self.reposition();
+        }
         let now = Instant::now();
         let key = self.instance_by_hwnd_mut(hwnd).and_then(|instance| {
             instance
@@ -546,7 +560,7 @@ fn draw_notification(hdc: HDC, instance: &NotificationInstance) {
         SetBkMode(hdc, TRANSPARENT);
         SetTextColor(hdc, rgb(26, 26, 26));
 
-        let dpi = GetDpiForWindow(instance.hwnd).max(96);
+        let dpi = instance.layout.dpi;
         if let (Some(icon), Some(icon_rect)) = (instance.icon, instance.layout.icon) {
             let _ = DrawIconEx(
                 hdc,
@@ -621,9 +635,9 @@ fn draw_notification(hdc: HDC, instance: &NotificationInstance) {
                 draw_label(
                     hdc,
                     Rect {
-                        x: action.right() - 28,
+                        x: action.right() - instance.layout.scale(28),
                         y: action.y,
-                        width: 28,
+                        width: instance.layout.scale(28),
                         height: action.height,
                     },
                     "▾",
@@ -644,9 +658,9 @@ fn draw_notification(hdc: HDC, instance: &NotificationInstance) {
             draw_label(
                 hdc,
                 crate::layout::Rect {
-                    x: 12,
+                    x: instance.layout.scale(12),
                     y: footer.y,
-                    width: footer.x - 20,
+                    width: footer.x - instance.layout.scale(20),
                     height: footer.height,
                 },
                 &footer_payload.text,

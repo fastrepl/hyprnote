@@ -1,3 +1,4 @@
+
 import { useLingui } from "@lingui/react/macro";
 
 import { ArrowLeft } from "@anlg/ui/components/icons";
@@ -48,7 +49,7 @@ export function InterviewHeader({ sessionId }: { sessionId: string }) {
   return (
     <div
       data-interview-header
-      className="border-border/70 flex shrink-0 flex-col gap-1 border-b px-2 pt-1 pb-2"
+      className="border-border/70 flex shrink-0 flex-col gap-2 border-b px-3 pt-2 pb-3"
     >
       <div className="flex min-w-0 items-center gap-2">
         {canGoBack ? (
@@ -62,25 +63,27 @@ export function InterviewHeader({ sessionId }: { sessionId: string }) {
             {t`Back`}
           </Button>
         ) : null}
-        <h1 className="text-foreground min-w-0 truncate text-base font-semibold">
+        <h1 className="text-foreground min-w-0 truncate text-lg font-semibold tracking-tight">
           {title}
         </h1>
+      </div>
+      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
         {date ? (
-          <span className="text-muted-foreground shrink-0 text-xs">{date}</span>
+          <span className="text-muted-foreground text-xs">{date}</span>
+        ) : null}
+        {people.length > 0 ? (
+          <p className="text-muted-foreground min-w-0 truncate text-xs">
+            <span className="font-medium">{t`Participants`}: </span>
+            {people.map((person, index) => (
+              <span key={person.id}>
+                {index > 0 ? "; " : ""}
+                {person.name}
+                {person.details ? ` (${person.details})` : ""}
+              </span>
+            ))}
+          </p>
         ) : null}
       </div>
-      {people.length > 0 ? (
-        <p className="text-muted-foreground min-w-0 truncate text-xs">
-          <span className="font-medium">{t`Participants`}: </span>
-          {people.map((person, index) => (
-            <span key={person.id}>
-              {index > 0 ? "; " : ""}
-              {person.name}
-              {person.details ? ` (${person.details})` : ""}
-            </span>
-          ))}
-        </p>
-      ) : null}
     </div>
   );
 }

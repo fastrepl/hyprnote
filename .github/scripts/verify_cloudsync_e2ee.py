@@ -15,6 +15,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+from typing import NamedTuple
 
 
 CLOUDSYNC_MANAGEMENT_URL = "https://cloudsync.sqlite.ai"
@@ -512,7 +513,22 @@ def cleanup_remote_workspaces(
             raise RuntimeError("verification workspace cleanup left remote records")
 
 
-def read_latency_log(path: str) -> list[tuple[str, float, bool]]:
+class LatencyEntry(NamedTuple):
+    check: str
+    seconds: float
+    completed: bool
+    # Time until the first non-empty receive; None when no page arrived or the test
+    # predates the breakdown. Earlier calls came back empty while the provider prepared.
+    first_page_seconds: float | None = None
+    empty_calls_before_first_page: int | None = None
+    sync_calls: int | None = None
+    sync_call_seconds: float | None = None
+    snapshot_resets: int | None = None
+    rows: int | None = None
+    bytes: int | None = None
+
+
+def read_latency_log(path: str) -> list[LatencyEntry]:
     try:
         with open(path) as log:
             lines = log.read().splitlines()
@@ -522,11 +538,23 @@ def read_latency_log(path: str) -> list[tuple[str, float, bool]]:
     for line in lines:
         if line.strip():
             entry = json.loads(line)
+            first_page = entry.get("first_page_seconds")
             entries.append(
-                (
-                    str(entry["check"]),
-                    float(entry["seconds"]),
-                    bool(entry.get("completed", True)),
+                LatencyEntry(
+                    check=str(entry["check"]),
+                    seconds=float(entry["seconds"]),
+                    completed=bool(entry.get("completed", True)),
+                    first_page_seconds=None
+                    if first_page is None
+                    else float(first_page),
+                    empty_calls_before_first_page=entry.get(
+                        "empty_calls_before_first_page"
+                    ),
+                    sync_calls=entry.get("sync_calls"),
+                    sync_call_seconds=entry.get("sync_call_seconds"),
+                    snapshot_resets=entry.get("snapshot_resets"),
+                    rows=entry.get("rows"),
+                    bytes=entry.get("bytes"),
                 )
             )
     return entries
@@ -540,24 +568,50 @@ def latency_status(seconds: float, completed: bool) -> str:
     return "ok"
 
 
+def describe_first_page(entry: LatencyEntry) -> str:
+    if entry.sync_calls is None:
+        return ""
+    if entry.first_page_seconds is None:
+        return f"; no page after {entry.empty_calls_before_first_page} empty sync calls"
+    return (
+        f"; first page at {entry.first_page_seconds:.1f}s"
+        f" after {entry.empty_calls_before_first_page} empty sync calls"
+    )
+
+
+def latency_summary_row(entry: LatencyEntry) -> str:
+    status = latency_status(entry.seconds, entry.completed)
+    if entry.sync_calls is None:
+        return f"| {entry.check} | {entry.seconds:.1f}s | {status} | n/a | n/a | n/a | n/a | n/a |"
+    if entry.first_page_seconds is None:
+        first_page = after_first_page = "none"
+    else:
+        first_page = f"{entry.first_page_seconds:.1f}s"
+        after_first_page = f"{entry.seconds - entry.first_page_seconds:.1f}s"
+    return (
+        f"| {entry.check} | {entry.seconds:.1f}s | {status} | {first_page}"
+        f" | {after_first_page} | {entry.empty_calls_before_first_page}"
+        f" | {entry.sync_calls} ({entry.sync_call_seconds:.1f}s)"
+        f" | {entry.snapshot_resets} | {entry.rows} rows, {entry.bytes} B |"
+    )
+
+
 def report_fresh_device_latency(path: str) -> None:
     entries = read_latency_log(path)
     target = FRESH_DEVICE_LATENCY_TARGET_SECONDS
-    for check, seconds, completed in entries:
-        status = latency_status(seconds, completed)
+    for entry in entries:
+        status = latency_status(entry.seconds, entry.completed)
         level = "notice" if status == "ok" else "warning"
         print(
             f"::{level} title=CloudSync fresh-device latency::"
-            f"{check}: {seconds:.1f}s, {status} (target {target}s)"
+            f"{entry.check}: {entry.seconds:.1f}s, {status} (target {target}s)"
+            f"{describe_first_page(entry)}"
         )
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if not entries or not summary_path:
         return
-    rows = [
-        f"| {check} | {seconds:.1f}s | {latency_status(seconds, completed)} |"
-        for check, seconds, completed in entries
-    ]
+    rows = [latency_summary_row(entry) for entry in entries]
     with open(summary_path, "a") as summary:
         summary.write(
             "\n".join(
@@ -566,9 +620,14 @@ def report_fresh_device_latency(path: str) -> None:
                     "### CloudSync fresh-device latency",
                     "",
                     f"Target: {target}s. Reported only; it does not fail the deployment.",
+                    "Empty sync calls before the first page are the provider preparing"
+                    " its snapshot; time after it is download, apply, and waiting for"
+                    " the expected record.",
                     "",
-                    "| Check | Latency | Status |",
-                    "| --- | --- | --- |",
+                    "| Check | Latency | Status | First page | After first page"
+                    " | Empty calls before first page | Sync calls (time in calls)"
+                    " | Snapshot resets | Received |",
+                    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
                     *rows,
                     "",
                 ]

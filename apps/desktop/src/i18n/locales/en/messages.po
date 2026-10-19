@@ -2742,6 +2742,10 @@ msgid "General access"
 msgstr "General access"
 
 #: src/session/components/note-input/enhanced/index.tsx
+msgid "Generate a structured summary from the available interview transcript. You can review and edit the result afterward."
+msgstr "Generate a structured summary from the available interview transcript. You can review and edit the result afterward."
+
+#: src/session/components/note-input/enhanced/index.tsx
 msgid "Generate summary"
 msgstr "Generate summary"
 
@@ -3067,6 +3071,10 @@ msgstr "Installed"
 #: src/sidebar/settings-nav-groups.ts
 msgid "Intelligence"
 msgstr "Intelligence"
+
+#: src/session/components/note-input/enhanced/index.tsx
+msgid "Interview summary"
+msgstr "Interview summary"
 
 #: src/session-sharing/access-management.tsx
 #: src/settings/team/index.tsx
@@ -4970,6 +4978,10 @@ msgstr "Review memo"
 msgid "Review summary"
 msgstr "Review summary"
 
+#: src/session/components/note-input/enhanced/streaming.tsx
+msgid "Review the generated sections against the transcript when the summary is ready."
+msgstr "Review the generated sections against the transcript when the summary is ready."
+
 #: src/main/empty.tsx
 msgid "Review the transcript and AI-generated summary."
 msgstr "Review the transcript and AI-generated summary."
@@ -6219,10 +6231,6 @@ msgstr "Timezone"
 #: src/settings/dictionary/index.tsx
 msgid "Tip: Add teammate names, acronyms, company jargon, and product terms."
 msgstr "Tip: Add teammate names, acronyms, company jargon, and product terms."
-
-#: src/session/components/note-input/enhanced/streaming.tsx
-msgid "Tip: The Anarlog team loves our users!"
-msgstr "Tip: The Anarlog team loves our users!"
 
 #: src/sidebar/timeline/utils/index.ts
 msgid "Today"

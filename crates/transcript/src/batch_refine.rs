@@ -217,7 +217,9 @@ pub fn refine_batch_transcript(request: BatchRefinementRequest) -> BatchRefineme
         None
     };
 
-    if let [source] = previous_transcripts.as_slice() {
+    // A whole-session retry requests fresh diarization. Restoring channels word
+    // by word would split its clusters wherever text or timing changed.
+    if !replace_session && let [source] = previous_transcripts.as_slice() {
         words = restore_refined_source_channels(&source.words, words);
         hints = restore_refined_source_hints(&words, hints);
     }
@@ -1734,6 +1736,37 @@ mod tests {
                 .collect::<Vec<_>>(),
             [1, 2, 3, 4]
         );
+    }
+
+    #[test]
+    fn whole_session_retranscription_keeps_mixed_speaker_clusters_intact() {
+        let previous = vec![
+            word("old-a", 0.0, 100.0, 0.0),
+            word("old-b", 100.0, 200.0, 0.0),
+        ];
+        let replacement = vec![
+            StoredTranscriptWord {
+                text: previous[0].text.clone(),
+                ..word("new-a", 0.0, 100.0, 2.0)
+            },
+            StoredTranscriptWord {
+                text: Some("corrected".to_string()),
+                ..word("new-b", 100.0, 200.0, 2.0)
+            },
+        ];
+        let hints = replacement.iter().map(|word| provider(word, 7)).collect();
+        let (words, hints, _, _, _) = ready(refine_batch_transcript(BatchRefinementRequest {
+            words: replacement,
+            hints,
+            promotion: BatchTranscriptPromotion::WholeSession,
+            previous_transcripts: vec![source(previous, vec![])],
+        }));
+
+        assert!(words.iter().all(|word| word.channel == Some(2.0)));
+        assert!(hints.iter().all(|hint| {
+            let value = speaker_value(hint);
+            value["channel"] == 2.0 && value["speaker_index"] == 7
+        }));
     }
 
     #[test]

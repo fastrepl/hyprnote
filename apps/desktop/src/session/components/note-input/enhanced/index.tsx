@@ -134,11 +134,37 @@ function EmptySummary({ sessionId }: { sessionId: string }) {
     },
   });
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 px-6">
-      <Button onClick={() => generate.mutate()} disabled={generate.isPending}>
-        <Trans>Generate summary</Trans>
-      </Button>
-      {generate.error && <p role="alert">{generate.error.message}</p>}
+    <div className="flex h-full min-h-64 flex-col items-center justify-center px-6 py-12">
+      <div className="flex w-full max-w-md flex-col items-center gap-3 text-center">
+        <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-xl">
+          <span aria-hidden="true" className="text-lg font-semibold">
+            ✦
+          </span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-foreground text-base font-semibold">
+            <Trans>Interview summary</Trans>
+          </h2>
+          <p className="text-muted-foreground text-sm leading-5">
+            <Trans>
+              Generate a structured summary from the available interview
+              transcript. You can review and edit the result afterward.
+            </Trans>
+          </p>
+        </div>
+        <Button
+          onClick={() => generate.mutate()}
+          disabled={generate.isPending}
+          className="mt-1"
+        >
+          <Trans>Generate summary</Trans>
+        </Button>
+        {generate.error && (
+          <p role="alert" className="text-destructive text-sm">
+            {generate.error.message}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

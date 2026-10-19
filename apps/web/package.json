@@ -40,7 +40,7 @@
     "@tanstack/react-query": "^5.99.0",
     "@tanstack/react-router": "^1.168.19",
     "@tanstack/react-router-ssr-query": "^1.166.11",
-    "@tanstack/react-start": "^1.167.33",
+    "@tanstack/react-start": "^1.169.3",
     "@unpic/react": "^1.0.2",
     "jwt-decode": "^4.0.0",
     "lib0": "0.2.118",

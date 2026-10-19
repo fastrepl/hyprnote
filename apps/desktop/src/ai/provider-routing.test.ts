@@ -1,5 +1,43 @@
 import { afterEach, expect, it, vi } from "vitest";
 
+vi.mock("@lobehub/icons", () =>
+  Object.fromEntries(
+    [
+      "AlibabaCloud",
+      "Anthropic",
+      "Apple",
+      "AssemblyAI",
+      "Aws",
+      "Azure",
+      "AzureAI",
+      "Bedrock",
+      "Cerebras",
+      "Claude",
+      "Cohere",
+      "DeepSeek",
+      "ElevenLabs",
+      "Fireworks",
+      "Gemini",
+      "GithubCopilot",
+      "GoogleCloud",
+      "Grok",
+      "Groq",
+      "LmStudio",
+      "Mistral",
+      "Moonshot",
+      "Nvidia",
+      "Ollama",
+      "OpenAI",
+      "OpenRouter",
+      "SiliconCloud",
+      "Together",
+      "VertexAI",
+      "WorkersAI",
+      "XAI",
+      "ZAI",
+    ].map((name) => [name, () => null]),
+  ),
+);
 vi.mock("~/settings/ai/shared", () => ({
   AnarlogProviderIcon: () => null,
   ProviderBrandImage: () => null,

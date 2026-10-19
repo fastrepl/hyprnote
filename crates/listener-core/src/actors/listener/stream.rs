@@ -5,7 +5,7 @@ use owhisper_client::FinalizeHandle;
 use owhisper_interface::stream::{Extra, StreamResponse};
 use ractor::{ActorRef, rpc::CallResult};
 
-use super::{FINALIZE_STREAM_TIMEOUT, LISTEN_STREAM_TIMEOUT, ListenerMsg};
+use super::{FINALIZE_STREAM_TIMEOUT, ListenerMsg};
 
 const PROVIDER_RESPONSE_ACK_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(1);
 const FINALIZE_HANDLE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(1);
@@ -140,6 +140,7 @@ pub(super) async fn process_stream<S, E, H>(
     mut shutdown_rx: tokio::sync::oneshot::Receiver<()>,
     offset_secs: f64,
     extra: Extra,
+    response_timeout: Option<std::time::Duration>,
 ) -> Vec<StreamResponse>
 where
     S: futures_util::Stream<Item = Result<StreamResponse, E>>,
@@ -157,7 +158,13 @@ where
                     None,
                 ).await;
             }
-            result = tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()) => {
+            result = async {
+                // Local recognizers emit only speech, so silence is not a connection failure.
+                match response_timeout {
+                    Some(timeout) => tokio::time::timeout(timeout, listen_stream.next()).await,
+                    None => Ok(listen_stream.next().await),
+                }
+            } => {
                 match result {
                     Ok(Some(Ok(mut response))) => {
                         response.apply_offset(offset_secs);
@@ -691,6 +698,56 @@ mod tests {
         }
     }
 
+    #[tokio::test(start_paused = true)]
+    async fn silent_local_stream_survives_the_remote_response_timeout() {
+        let (response_tx, mut response_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (actor, actor_handle) = Actor::spawn(
+            None,
+            ResponseProbe {
+                delay: Duration::ZERO,
+                response_tx,
+            },
+            (),
+        )
+        .await
+        .unwrap();
+        let (input_tx, input_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (_shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel();
+        let stream_actor = actor.clone();
+        let task = tokio::spawn(async move {
+            let responses = tokio_stream::wrappers::UnboundedReceiverStream::new(input_rx);
+            futures_util::pin_mut!(responses);
+            process_stream(
+                responses,
+                NoopFinalizeHandle,
+                stream_actor,
+                shutdown_rx,
+                0.0,
+                extra(),
+                None,
+            )
+            .await
+        });
+        tokio::task::yield_now().await;
+        tokio::time::advance(super::super::LISTEN_STREAM_TIMEOUT + Duration::from_secs(1)).await;
+        tokio::task::yield_now().await;
+        assert!(
+            !task.is_finished(),
+            "silence must not end a local recording"
+        );
+        input_tx
+            .send(Ok::<_, ()>(transcript_response(true)))
+            .unwrap();
+        response_rx
+            .recv()
+            .await
+            .expect("speech after silence should still be delivered");
+        drop(input_tx);
+        task.await.unwrap();
+        actor.stop(None);
+        actor_handle.await.unwrap();
+    }
+
     #[tokio::test]
     async fn provider_responses_wait_for_actor_acknowledgement() {
         let (response_tx, mut response_rx) = tokio::sync::mpsc::unbounded_channel();
@@ -718,6 +775,7 @@ mod tests {
             shutdown_rx,
             0.0,
             extra(),
+            Some(super::super::LISTEN_STREAM_TIMEOUT),
         )
         .await;
 
@@ -747,6 +805,7 @@ mod tests {
                 shutdown_rx,
                 0.0,
                 extra(),
+                Some(super::super::LISTEN_STREAM_TIMEOUT),
             ),
         )
         .await
@@ -787,6 +846,7 @@ mod tests {
             shutdown_rx,
             0.0,
             extra(),
+            Some(super::super::LISTEN_STREAM_TIMEOUT),
         )
         .await;
 

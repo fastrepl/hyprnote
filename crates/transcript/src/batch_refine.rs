@@ -218,7 +218,11 @@ pub fn refine_batch_transcript(request: BatchRefinementRequest) -> BatchRefineme
     };
 
     if let [source] = previous_transcripts.as_slice() {
-        words = restore_refined_source_channels(&source.words, words);
+        words = if replace_session {
+            restore_refined_cluster_channels(&source.words, words, &hints)
+        } else {
+            restore_refined_source_channels(&source.words, words)
+        };
         hints = restore_refined_source_hints(&words, hints);
     }
 
@@ -361,6 +365,91 @@ impl<K: Eq + Hash + Clone, V> OrderedMap<K, V> {
     fn iter(&self) -> impl Iterator<Item = (&K, &V)> {
         self.entries.iter().map(|(key, value)| (key, value))
     }
+}
+
+fn restore_refined_cluster_channels(
+    previous: &[StoredTranscriptWord],
+    mut words: Vec<StoredTranscriptWord>,
+    hints: &[StoredSpeakerHint],
+) -> Vec<StoredTranscriptWord> {
+    let speakers = speaker_keys_by_word_id(hints);
+    let mut source = previous.iter().collect::<Vec<_>>();
+    source.sort_by(|a, b| compare_numbers(a.start_ms.unwrap_or(0.0), b.start_ms.unwrap_or(0.0)));
+    let mut targets = words.iter().collect::<Vec<_>>();
+    targets.sort_by(|a, b| compare_numbers(a.start_ms.unwrap_or(0.0), b.start_ms.unwrap_or(0.0)));
+    let mut channels: HashMap<String, Option<f64>> = HashMap::new();
+    let mut cursor = 0;
+
+    for word in targets {
+        let Some(speaker) = speakers
+            .get(&word.id)
+            .filter(|speaker| speaker.channel == 2.0)
+        else {
+            continue;
+        };
+        let start = word.start_ms.unwrap_or(0.0);
+        let end = word.end_ms.unwrap_or(start);
+        while cursor < source.len() && source[cursor].end_ms.unwrap_or(0.0) <= start {
+            cursor += 1;
+        }
+        let mut channel = None;
+        let mut covered_until = start;
+        let mut covered = 0.0;
+        let mut ambiguous = end <= start;
+        for old in source[cursor..]
+            .iter()
+            .take_while(|old| old.start_ms.unwrap_or(0.0) < end)
+        {
+            let overlap_start = start.max(old.start_ms.unwrap_or(0.0));
+            let overlap_end = end.min(old.end_ms.unwrap_or(0.0));
+            if overlap_end <= overlap_start {
+                continue;
+            }
+            if !matches!(old.channel, Some(0.0 | 1.0))
+                || channel.is_some_and(|channel| Some(channel) != old.channel)
+            {
+                ambiguous = true;
+                break;
+            }
+            channel = old.channel;
+            covered += (overlap_end - covered_until.max(overlap_start)).max(0.0);
+            covered_until = covered_until.max(overlap_end);
+        }
+        if ambiguous || covered < (end - start) * MIN_REFINED_ASSIGNMENT_COVERAGE_RATIO {
+            channel = None;
+        }
+        channels
+            .entry(speaker.key.clone())
+            .and_modify(|existing| {
+                if *existing != channel {
+                    *existing = None;
+                }
+            })
+            .or_insert(channel);
+    }
+
+    // Restore only whole, unambiguous clusters: per-word restoration fragments
+    // a fresh speaker whenever the provider corrects text or changes timing.
+    for (key, channel) in &mut channels {
+        if let Some(restored_channel) = *channel
+            && let Some(speaker) = parse_speaker_key(key)
+            && speakers.iter().any(|(_, existing)| {
+                existing.channel == restored_channel
+                    && existing.speaker_index == speaker.speaker_index
+            })
+        {
+            *channel = None;
+        }
+    }
+    for word in &mut words {
+        if word.channel == Some(2.0)
+            && let Some(speaker) = speakers.get(&word.id)
+            && let Some(Some(channel)) = channels.get(&speaker.key)
+        {
+            word.channel = Some(*channel);
+        }
+    }
+    words
 }
 
 fn restore_refined_source_channels(
@@ -1734,6 +1823,63 @@ mod tests {
                 .collect::<Vec<_>>(),
             [1, 2, 3, 4]
         );
+    }
+
+    #[test]
+    fn whole_session_retranscription_restores_owner_without_splitting_fresh_clusters() {
+        for (second_channel, second_start, restored_channel, label) in [
+            (0.0, 100.0, 0.0, "John"),
+            (1.0, 100.0, 2.0, "Speaker 1"),
+            (2.0, 100.0, 2.0, "Speaker 1"),
+            (0.0, 300.0, 2.0, "Speaker 1"),
+        ] {
+            let previous = vec![
+                word("old-a", 0.0, 100.0, 0.0),
+                word("old-b", 100.0, 200.0, second_channel),
+            ];
+            let replacement = vec![
+                StoredTranscriptWord {
+                    text: previous[0].text.clone(),
+                    ..word("new-a", 0.0, 100.0, 2.0)
+                },
+                StoredTranscriptWord {
+                    text: Some("corrected".to_string()),
+                    ..word("new-b", second_start, second_start + 100.0, 2.0)
+                },
+            ];
+            let hints = replacement.iter().map(|word| provider(word, 7)).collect();
+            let (words, hints, _, _, _) = ready(refine_batch_transcript(BatchRefinementRequest {
+                words: replacement,
+                hints,
+                promotion: BatchTranscriptPromotion::WholeSession,
+                previous_transcripts: vec![source(previous, vec![])],
+            }));
+
+            assert!(
+                words
+                    .iter()
+                    .all(|word| word.channel == Some(restored_channel))
+            );
+            assert!(hints.iter().all(|hint| {
+                let value = speaker_value(hint);
+                value["channel"] == restored_channel && value["speaker_index"] == 7
+            }));
+            let rendered = crate::render_transcript_segments(crate::RenderTranscriptRequest {
+                transcripts: vec![render_input_from_stored(Some(0), &words, &hints).unwrap()],
+                participant_human_ids: vec![],
+                self_human_id: Some("owner".to_string()),
+                humans: vec![crate::RenderTranscriptHuman {
+                    human_id: "owner".to_string(),
+                    name: "John".to_string(),
+                }],
+                speaker_context: None,
+                preview: None,
+            });
+            assert_eq!(rendered.len(), 1);
+            assert_eq!(rendered[0].speaker_label, label);
+            assert_eq!(rendered[0].words.len(), 2);
+            assert_eq!(rendered[0].key.speaker_index, Some(7));
+        }
     }
 
     #[test]

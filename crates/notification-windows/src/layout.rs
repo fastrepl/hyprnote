@@ -49,6 +49,7 @@ pub enum HitTarget {
 
 #[derive(Debug, Clone)]
 pub struct NotificationLayout {
+    pub dpi: u32,
     pub width: i32,
     pub height: i32,
     pub close: Rect,
@@ -94,6 +95,7 @@ impl NotificationLayout {
         let text_width = (text_right - text_x).max(48);
 
         Self {
+            dpi: 96,
             width: NOTIFICATION_WIDTH,
             height,
             close: Rect {
@@ -137,6 +139,7 @@ impl NotificationLayout {
 
     pub fn expanded(_notification: &Notification) -> Self {
         Self {
+            dpi: 96,
             width: NOTIFICATION_WIDTH,
             height: EXPANDED_HEIGHT,
             close: Rect {
@@ -183,6 +186,36 @@ impl NotificationLayout {
         }
     }
 
+    pub fn at_dpi(mut self, dpi: u32) -> Self {
+        self.dpi = dpi.max(96);
+        self.width = self.scale(self.width);
+        self.height = self.scale(self.height);
+        self.close = self.scale_rect(self.close);
+        self.icon = self.icon.map(|rect| self.scale_rect(rect));
+        self.title = self.scale_rect(self.title);
+        self.message = self.scale_rect(self.message);
+        self.action = self.action.map(|rect| self.scale_rect(rect));
+        self.footer_action = self.footer_action.map(|rect| self.scale_rect(rect));
+        self.collapse = self.collapse.map(|rect| self.scale_rect(rect));
+        self.progress = self.progress.map(|rect| self.scale_rect(rect));
+        self
+    }
+
+    pub fn scale(&self, value: i32) -> i32 {
+        ((i64::from(value) * i64::from(self.dpi) + 48) / 96) as i32
+    }
+
+    fn scale_rect(&self, rect: Rect) -> Rect {
+        let x = self.scale(rect.x);
+        let y = self.scale(rect.y);
+        Rect {
+            x,
+            y,
+            width: self.scale(rect.right()) - x,
+            height: self.scale(rect.bottom()) - y,
+        }
+    }
+
     pub fn hit_test(&self, x: i32, y: i32) -> HitTarget {
         if self.close.contains(x, y) {
             return HitTarget::Close;
@@ -204,7 +237,9 @@ impl NotificationLayout {
             HitTarget::Action
                 if notification.has_action_menu()
                     && self.collapse.is_none()
-                    && self.action.is_some_and(|rect| x >= rect.right() - 28) =>
+                    && self
+                        .action
+                        .is_some_and(|rect| x >= rect.right() - self.scale(28)) =>
             {
                 HitTarget::Options
             }
@@ -216,10 +251,82 @@ impl NotificationLayout {
     }
 }
 
-pub fn stacked_origin(work_x: i32, work_y: i32, work_width: i32, occupied: i32) -> (i32, i32) {
+pub fn try_expand(
+    layouts: &mut [NotificationLayout],
+    index: usize,
+    notification: &Notification,
+    work_height: i32,
+) -> bool {
+    let mut expanded = layouts.to_vec();
+    expanded[index] = NotificationLayout::expanded(notification).at_dpi(layouts[index].dpi);
+    if fit_stack(&mut expanded, work_height) != 0 {
+        return false;
+    }
+    layouts.clone_from_slice(&expanded);
+    true
+}
+
+pub fn fit_stack(layouts: &mut [NotificationLayout], work_height: i32) -> usize {
+    let minimum_height = |layout: &NotificationLayout| {
+        if layout.collapse.is_some() {
+            // Keep one body line above the bottom action when space is limited.
+            layout.scale(148)
+        } else {
+            layout.height
+        }
+    };
+    let mut first = 0;
+    while first < layouts.len() {
+        let visible = &layouts[first..];
+        let margin = visible
+            .iter()
+            .map(|layout| layout.scale(TOP_MARGIN))
+            .max()
+            .unwrap_or(0);
+        let spacing = visible
+            .iter()
+            .map(|layout| layout.scale(NOTIFICATION_SPACING))
+            .max()
+            .unwrap_or(0);
+        let minimum = visible.iter().map(minimum_height).sum::<i32>()
+            + spacing * (visible.len() as i32 - 1)
+            + margin;
+        if minimum <= work_height {
+            let expanded_count = visible
+                .iter()
+                .filter(|layout| layout.collapse.is_some())
+                .count() as i32;
+            let extra = (work_height - minimum) / expanded_count.max(1);
+            for layout in &mut layouts[first..] {
+                if layout.collapse.is_some() {
+                    layout.height = layout.height.min(minimum_height(layout) + extra);
+                    let action_y = layout.height - layout.scale(72);
+                    if let Some(action) = &mut layout.action {
+                        action.y = action_y;
+                    }
+                    layout.message.height = layout
+                        .message
+                        .height
+                        .min(layout.height - layout.scale(84) - layout.message.y);
+                }
+            }
+            return first;
+        }
+        first += 1;
+    }
+    first
+}
+
+pub fn stacked_origin(
+    work_x: i32,
+    work_y: i32,
+    work_width: i32,
+    occupied: i32,
+    layout: &NotificationLayout,
+) -> (i32, i32) {
     (
-        work_x + work_width - NOTIFICATION_WIDTH - RIGHT_MARGIN,
-        work_y + TOP_MARGIN + occupied,
+        work_x + work_width - layout.width - layout.scale(RIGHT_MARGIN),
+        work_y + layout.scale(TOP_MARGIN) + occupied,
     )
 }
 
@@ -289,6 +396,87 @@ mod tests {
             layout.action_hit(&notification, action.right() - 2, action.y + 2),
             HitTarget::Options
         );
+    }
+
+    #[test]
+    fn hidpi_notifications_keep_text_and_click_targets_inside_the_scaled_window() {
+        let notification = Notification::builder()
+            .title("Design sync")
+            .message("Starting soon")
+            .action(NotificationAction::JoinAndRecord)
+            .action_menu("Open meeting", NotificationAction::OpenMeeting)
+            .build();
+
+        let layout = NotificationLayout::compact(&notification).at_dpi(192);
+        assert_eq!((layout.width, layout.height), (720, 128));
+        assert!(layout.title.height >= 28);
+        assert!(layout.message.height >= 22);
+        assert_eq!(layout.action_hit(&notification, 480, 60), HitTarget::Action);
+        assert_eq!(
+            layout.action_hit(&notification, 640, 60),
+            HitTarget::Options
+        );
+    }
+
+    #[test]
+    fn expanded_hidpi_stack_keeps_every_action_on_a_short_work_area() {
+        let notification = compact_notification();
+        let mut layouts = vec![NotificationLayout::expanded(&notification).at_dpi(192)];
+        layouts.extend((0..4).map(|_| NotificationLayout::compact(&notification).at_dpi(192)));
+        assert_eq!(fit_stack(&mut layouts, 1080), 0);
+        let mut occupied = 0;
+        for layout in &layouts {
+            let (_, y) = stacked_origin(0, 0, 1920, occupied, layout);
+            assert!(y + layout.height <= 1080);
+            for control in [Some(layout.close), layout.collapse, layout.action]
+                .into_iter()
+                .flatten()
+            {
+                assert!(control.y >= 0 && control.bottom() <= layout.height);
+            }
+            if layout.collapse.is_some() {
+                assert!(layout.message.bottom() <= layout.action.unwrap().y);
+            }
+            occupied += layout.height + layout.scale(NOTIFICATION_SPACING);
+        }
+        assert!(layouts[0].message.height > 0);
+        assert!(fit_stack(&mut layouts, 500) > 0);
+    }
+
+    #[test]
+    fn refusing_expansion_keeps_the_clicked_oldest_notification_visible() {
+        let notification = compact_notification();
+        let mut layouts = vec![NotificationLayout::compact(&notification).at_dpi(192); 4];
+        assert!(!try_expand(&mut layouts, 0, &notification, 720));
+        assert_eq!(layouts[0].height, 128);
+        assert!(layouts[0].collapse.is_none());
+        assert_eq!(fit_stack(&mut layouts, 720), 0);
+    }
+
+    #[test]
+    fn fitting_compact_notifications_do_not_require_an_unused_bottom_margin() {
+        let notification = compact_notification();
+        let mut layouts = vec![NotificationLayout::compact(&notification).at_dpi(192); 5];
+        assert_eq!(fit_stack(&mut layouts, 768), 0);
+        let last = layouts.last().unwrap();
+        let (_, y) = stacked_origin(0, 0, 1920, 4 * (128 + 20), last);
+        assert_eq!(y + last.height, 750);
+    }
+
+    #[test]
+    fn fractional_dpi_rounds_the_progress_bottom_and_adjacent_hit_boundary_consistently() {
+        let notification = compact_notification();
+        let layout = NotificationLayout::compact(&notification).at_dpi(144);
+        let progress = layout.progress.unwrap();
+        assert_eq!(progress.y, 89);
+        assert_eq!(progress.bottom(), 93);
+        assert_eq!(progress.height, 4);
+        let action = layout.action.unwrap();
+        assert_eq!(
+            layout.hit_test(action.right() - 1, action.y),
+            HitTarget::Action
+        );
+        assert_eq!(layout.hit_test(action.right(), action.y), HitTarget::Body);
     }
 
     #[test]

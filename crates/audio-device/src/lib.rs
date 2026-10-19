@@ -177,66 +177,109 @@ fn resolved_capture_name(
         })
 }
 
-static BLUETOOTH_DEFAULT_OWNERS: std::sync::atomic::AtomicUsize =
-    std::sync::atomic::AtomicUsize::new(0);
+static BLUETOOTH_DEFAULT_OWNERS: std::sync::Mutex<Vec<std::sync::Weak<BluetoothDefaultOwnership>>> =
+    std::sync::Mutex::new(Vec::new());
 
-/// True while a macOS Bluetooth capture is holding the system default input for HFP/SCO.
-///
-/// Setting that default (and the A2DP→HFP profile switch) looks like a user device change
-/// to Core Audio. Capture must not restart itself on those events.
+struct BluetoothDefaultOwnership {
+    requested: AudioDevice,
+    active: std::sync::atomic::AtomicBool,
+}
+
+impl BluetoothDefaultOwnership {
+    fn owns_default(&self, current: Option<&AudioDevice>) -> bool {
+        let Some(current) = current else {
+            return false;
+        };
+        if !related_bluetooth_endpoint(&self.requested, current) {
+            // A later user selection relinquishes ownership permanently, even if they
+            // select the headset again before the old capture finishes shutting down.
+            self.active
+                .store(false, std::sync::atomic::Ordering::Release);
+        }
+        self.active.load(std::sync::atomic::Ordering::Acquire)
+    }
+}
+
+/// Suppress profile-switch events only while the activated headset remains the default.
 pub fn bluetooth_input_owns_system_defaults() -> bool {
-    BLUETOOTH_DEFAULT_OWNERS.load(std::sync::atomic::Ordering::Acquire) > 0
+    let mut owners = BLUETOOTH_DEFAULT_OWNERS
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
+    owners.retain(|owner| owner.strong_count() > 0);
+    if owners.is_empty() {
+        return false;
+    }
+    let current = backend().get_default_input_device().ok().flatten();
+    let mut owned = false;
+    owners.retain(|owner| {
+        let Some(owner) = owner.upgrade() else {
+            return false;
+        };
+        owned |= owner.owns_default(current.as_ref());
+        true
+    });
+    owned
 }
 
 #[cfg(target_os = "macos")]
-fn retain_bluetooth_system_defaults() {
-    BLUETOOTH_DEFAULT_OWNERS.fetch_add(1, std::sync::atomic::Ordering::AcqRel);
-}
-
-fn release_bluetooth_system_defaults() {
-    let _ = BLUETOOTH_DEFAULT_OWNERS.fetch_update(
-        std::sync::atomic::Ordering::AcqRel,
-        std::sync::atomic::Ordering::Acquire,
-        |n| Some(n.saturating_sub(1)),
-    );
+fn retain_bluetooth_system_defaults(
+    requested: AudioDevice,
+) -> std::sync::Arc<BluetoothDefaultOwnership> {
+    let owner = std::sync::Arc::new(BluetoothDefaultOwnership {
+        requested,
+        active: std::sync::atomic::AtomicBool::new(true),
+    });
+    let mut owners = BLUETOOTH_DEFAULT_OWNERS
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
+    owners.retain(|owner| owner.strong_count() > 0);
+    owners.push(std::sync::Arc::downgrade(&owner));
+    owner
 }
 
 /// Keeps a Bluetooth headset in HFP/SCO for the life of a capture stream.
-///
-/// Restores the previous default input when dropped if this activation changed it.
+/// Restores the previous input only if the user has not selected another device.
 pub struct BluetoothInputActivation {
     /// Post-handoff CPAL name to open. `None` means use the live system default.
     pub name: Option<String>,
     previous_default: Option<DeviceId>,
-    owns_system_defaults: bool,
+    ownership: Option<std::sync::Arc<BluetoothDefaultOwnership>>,
 }
 
 impl BluetoothInputActivation {
-    pub fn for_capture_device(
-        self: std::sync::Arc<Self>,
-        opened_name: &str,
-        default_name: Option<&str>,
-    ) -> Option<std::sync::Arc<Self>> {
-        // An unresolved handoff explicitly selects the live default. Keep its activation
-        // alive too, otherwise restoring the previous default can silence the headset.
-        (self.name.as_deref().or(default_name) == Some(opened_name)).then_some(self)
+    fn restore_previous_default(
+        &mut self,
+        current: Option<&AudioDevice>,
+        restore: impl FnOnce(&DeviceId) -> Result<(), Error>,
+    ) {
+        let Some(previous) = self.previous_default.take() else {
+            return;
+        };
+        if !self
+            .ownership
+            .as_ref()
+            .is_some_and(|owner| owner.owns_default(current))
+        {
+            return;
+        }
+        if let Err(error) = restore(&previous) {
+            tracing::warn!(
+                error = %error,
+                device_id = %previous,
+                "bluetooth_input_restore_default_failed"
+            );
+        }
     }
 }
 
 impl Drop for BluetoothInputActivation {
     fn drop(&mut self) {
-        if let Some(previous) = self.previous_default.take() {
-            if let Err(error) = backend().set_default_input_device(&previous) {
-                tracing::warn!(
-                    error = %error,
-                    device_id = %previous,
-                    "bluetooth_input_restore_default_failed"
-                );
-            }
-        }
-        if self.owns_system_defaults {
-            self.owns_system_defaults = false;
-            release_bluetooth_system_defaults();
+        if self.previous_default.is_some() {
+            let backend = backend();
+            let current = backend.get_default_input_device().ok().flatten();
+            self.restore_previous_default(current.as_ref(), |previous| {
+                backend.set_default_input_device(previous)
+            });
         }
     }
 }
@@ -296,11 +339,11 @@ fn prepare_macos_bluetooth_input(name: &str) -> Option<BluetoothInputActivation>
         return Some(BluetoothInputActivation {
             name: Some(requested.name),
             previous_default: None,
-            owns_system_defaults: false,
+            ownership: None,
         });
     }
 
-    retain_bluetooth_system_defaults();
+    let ownership = retain_bluetooth_system_defaults(requested.clone());
 
     let started = Instant::now();
     let mut default_after = previous.filter(|device| bluetooth_handoff_ready(&requested, device));
@@ -326,7 +369,7 @@ fn prepare_macos_bluetooth_input(name: &str) -> Option<BluetoothInputActivation>
     Some(BluetoothInputActivation {
         name,
         previous_default,
-        owns_system_defaults: true,
+        ownership: Some(ownership),
     })
 }
 
@@ -378,17 +421,43 @@ mod tests {
     use super::*;
 
     #[test]
-    fn live_default_capture_keeps_bluetooth_activation_alive() {
-        let activation = std::sync::Arc::new(BluetoothInputActivation {
-            name: None,
-            previous_default: None,
-            owns_system_defaults: false,
-        });
-        let weak = std::sync::Arc::downgrade(&activation);
-        let capture = activation.for_capture_device("AirPods", Some("AirPods"));
-        assert!(weak.upgrade().is_some());
-        drop(capture);
-        assert!(weak.upgrade().is_none());
+    fn bluetooth_capture_restores_its_default_but_preserves_later_user_selections() {
+        let requested = named_input("a2dp", "AirPods", TransportType::Bluetooth);
+        let handsfree = named_input("sco", "AirPods Hands-Free", TransportType::Bluetooth);
+        let usb = named_input("usb", "USB Microphone", TransportType::Usb);
+        for current in [&requested, &handsfree] {
+            for user_changed in [false, true] {
+                let ownership = std::sync::Arc::new(BluetoothDefaultOwnership {
+                    requested: requested.clone(),
+                    active: std::sync::atomic::AtomicBool::new(true),
+                });
+                let mut activation = BluetoothInputActivation {
+                    name: (current.id != requested.id).then(|| current.name.clone()),
+                    previous_default: Some(DeviceId("builtin".into())),
+                    ownership: Some(ownership.clone()),
+                };
+                assert!(ownership.owns_default(Some(current)));
+                if user_changed {
+                    assert!(!ownership.owns_default(Some(&usb)));
+                    // Returning to the headset before capture teardown must not reclaim
+                    // the earlier app-selected default over the user's newer selection.
+                    assert!(!ownership.owns_default(Some(current)));
+                }
+                let mut selected = current.id.clone();
+                activation.restore_previous_default(Some(current), |previous| {
+                    selected = previous.clone();
+                    Ok(())
+                });
+                assert_eq!(
+                    selected,
+                    if user_changed {
+                        current.id.clone()
+                    } else {
+                        DeviceId("builtin".into())
+                    }
+                );
+            }
+        }
     }
 
     fn output(id: &str, headphone: bool) -> AudioDevice {

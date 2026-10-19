@@ -187,8 +187,10 @@ describe("Enhanced", () => {
     expect(screen.queryByTestId("enhanced-editor")).toBeNull();
     expect(screen.getByRole("status")).not.toBeNull();
     expect(screen.getByText("Analyzing structure...")).not.toBeNull();
-    expect(
-      screen.getByText("Tip: The Anarlog team loves our users!"),
+        expect(
+      screen.getByText(
+        "Review the generated sections against the transcript when the summary is ready.",
+      ),
     ).not.toBeNull();
   });
 

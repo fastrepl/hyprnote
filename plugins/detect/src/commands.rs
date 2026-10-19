@@ -127,12 +127,28 @@ pub(crate) async fn list_default_ignored_bundle_ids<R: tauri::Runtime>(
     Ok(app.detect().list_default_ignored_bundle_ids())
 }
 
+// Accessibility walks issue synchronous AX IPC that can take minutes on large browser
+// windows; on an async worker they starve the shared runtime that drives audio capture.
+async fn run_blocking<T: Send + 'static>(
+    f: impl FnOnce() -> T + Send + 'static,
+) -> Result<T, String> {
+    tauri::async_runtime::spawn_blocking(f)
+        .await
+        .map_err(|error| error.to_string())
+}
+
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn inspect_meeting_accessibility<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
 ) -> Result<Vec<anlg_detect::MeetingAccessibilityInspection>, String> {
-    Ok(anlg_detect::inspect_meeting_accessibility())
+    let inspect = anlg_detect::inspect_meeting_accessibility;
+    #[cfg(test)]
+    let inspect = _app
+        .try_state::<tests::Inspector>()
+        .map(|state| std::sync::Arc::clone(state.inner()))
+        .unwrap_or_else(|| std::sync::Arc::new(inspect));
+    run_blocking(move || inspect()).await
 }
 
 #[tauri::command]
@@ -149,10 +165,7 @@ pub(crate) async fn send_meeting_chat_message<R: tauri::Runtime>(
     let verified_bundle_ids =
         intersect_mic_active_bundle_ids(&mic_active_bundle_ids, &current_mic_apps);
 
-    Ok(anlg_detect::send_meeting_chat_message(
-        message,
-        verified_bundle_ids,
-    ))
+    run_blocking(move || anlg_detect::send_meeting_chat_message(message, verified_bundle_ids)).await
 }
 
 #[tauri::command]
@@ -169,9 +182,7 @@ pub(crate) async fn capture_meeting_chat_messages<R: tauri::Runtime>(
         .map(|application| application.id)
         .collect::<Vec<_>>();
 
-    Ok(anlg_detect::capture_meeting_chat_messages(
-        verified_bundle_ids,
-    ))
+    run_blocking(move || anlg_detect::capture_meeting_chat_messages(verified_bundle_ids)).await
 }
 
 #[derive(Debug, serde::Serialize, specta::Type)]
@@ -302,11 +313,46 @@ pub(crate) async fn get_current_locale_identifier<R: tauri::Runtime>(
 mod tests {
     use super::*;
 
+    pub(super) type Inspector =
+        std::sync::Arc<dyn Fn() -> Vec<anlg_detect::MeetingAccessibilityInspection> + Send + Sync>;
+
     fn app(id: &str) -> anlg_detect::InstalledApp {
         anlg_detect::InstalledApp {
             id: id.to_string(),
             name: id.to_string(),
         }
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn stalled_inspection_command_does_not_starve_runtime_tasks() {
+        use std::sync::{Arc, Mutex, mpsc};
+        use std::time::Duration;
+
+        let (release_tx, release_rx) = mpsc::channel::<()>();
+        let release_rx = Mutex::new(release_rx);
+        let (started_tx, started_rx) = tokio::sync::oneshot::channel();
+        let started_tx = Mutex::new(Some(started_tx));
+        let inspect: Inspector = Arc::new(move || {
+            started_tx.lock().unwrap().take().unwrap().send(()).unwrap();
+            release_rx
+                .lock()
+                .unwrap()
+                .recv_timeout(Duration::from_secs(5))
+                .expect("the async runtime must release the stalled walk");
+            Vec::new()
+        });
+        let app = tauri::test::mock_builder()
+            .manage(inspect)
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap();
+        let walk = tokio::spawn(inspect_meeting_accessibility(app.handle().clone()));
+        tokio::time::timeout(Duration::from_secs(2), started_rx)
+            .await
+            .expect("the command must invoke the injected inspector")
+            .unwrap();
+        assert!(!walk.is_finished());
+        release_tx.send(()).unwrap();
+        assert!(walk.await.unwrap().is_ok());
     }
 
     #[test]

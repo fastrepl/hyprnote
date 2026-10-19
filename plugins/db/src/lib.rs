@@ -325,6 +325,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::cleanup_recording_imports,
             commands::list_meetings,
             commands::get_meeting,
             commands::get_meeting_transcript,

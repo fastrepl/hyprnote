@@ -143,6 +143,12 @@ export type QueryEvent<T = Record<string, unknown>> =
   | { event: "result"; data: T[] }
   | { event: "error"; data: string };
 
+export async function cleanupRecordingImports(
+  vaultPath: string,
+): Promise<void> {
+  return invoke("plugin:db|cleanup_recording_imports", { vaultPath });
+}
+
 export async function listMeetings(
   input: ListMeetingsInput,
 ): Promise<MeetingPage> {

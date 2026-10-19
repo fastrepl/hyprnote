@@ -6,6 +6,14 @@
 
 
 export const commands = {
+async cleanupRecordingImports(vaultPath: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:db|cleanup_recording_imports", { vaultPath }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async listMeetings(input: ListMeetingsInput) : Promise<Result<MeetingPage, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:db|list_meetings", { input }) };

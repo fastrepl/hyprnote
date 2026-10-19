@@ -28,7 +28,12 @@ export async function openUrlWithInstruction(
 ) {
   const saved = await commands.windowSaveFrame({ type: "main" });
   if (saved.status === "error") {
-    throw new Error(saved.error);
+    // Window-manager geometry failures must not prevent browser sign-in.
+    const result = await openUrl(url);
+    if (result.status === "error") {
+      throw new Error(String(result.error));
+    }
+    return;
   }
   const search = Object.fromEntries(
     Object.entries({ type: instructionType, url, ...instructionSearch }).filter(

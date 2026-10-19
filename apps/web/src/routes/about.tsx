@@ -148,7 +148,7 @@ function AboutPage() {
         <section className="pt-10 pb-4 md:pt-12">
           <SectionHeading>What makes Anarlog different</SectionHeading>
           <p className="mt-5 text-base leading-7 text-[#4f4940]">
-            The full feature-by-feature comparison against twelve notetakers is
+            Compare recording methods, free-plan limits and example paid plans
             on the{" "}
             <Link to="/pricing/" className="underline">
               pricing page

@@ -1,7 +1,7 @@
-export const ABOUT_UPDATED_ON = "2026-10-02";
+export const ABOUT_UPDATED_ON = "2026-10-15";
 
 export const VALUE_PROP =
-  "Anarlog is an open-source, bot-free AI meeting notetaker that captures, transcribes, and summarizes meetings on your own device for engineers, founders, and privacy-conscious professionals who want to own their meeting data.";
+  "Anarlog is an open-source, bot-free AI meeting notetaker with device-audio capture, local SQLite meeting records, and a choice of local, hosted, or bring-your-own-key AI for transcription and summaries.";
 
 export const whatAnarlogDoes = [
   {
@@ -29,23 +29,23 @@ export const whatAnarlogDoes = [
 export const differentiators = [
   {
     title: "No bot joins your meeting",
-    body: "Granola, Fathom, Otter.ai, and Fireflies.ai either send a bot into the call or route audio through their servers. Anarlog listens locally, so the meeting looks exactly the same to everyone else in it.",
+    body: "Anarlog captures microphone and system audio without adding a participant to the call. Capture and processing are separate choices: select your transcription and summary providers, and handle the required participant notice and permission before recording.",
   },
   {
-    title: "Your meeting data stays on your device",
-    body: "Most notetakers store transcripts in a hosted workspace they control. Anarlog keeps the canonical record in local SQLite, and the optional Cloud Sync encrypts content on the device before upload, so sync servers only hold ciphertext. Shared notes and the Cloud API are separate opt-in paths that store a server-readable copy.",
+    title: "Local records and explicit cloud choices",
+    body: "Anarlog keeps canonical meeting records in local SQLite. Hosted or BYOK AI requests send the audio or text needed by the selected provider. Optional Cloud Sync encrypts content on-device before upload; shared notes and the Cloud API are separate opt-in paths that store a server-readable copy.",
   },
   {
     title: "Open source under the MIT license",
-    body: "The full desktop app is on GitHub under MIT. Security teams can audit it, developers can fork it, and it keeps running even if the company disappears. None of the vendors above publish their code.",
+    body: "The community desktop app is on GitHub under MIT. Security teams can audit it and developers can fork it. Enterprise components use a separate commercial license; check the license of the component you intend to use.",
   },
   {
     title: "Unlimited free local use",
-    body: "The Free plan has no meeting or minute cap when you use on-device models or your own API keys. Otter.ai caps free use at 300 minutes a month and Granola offers a trial only.",
+    body: "The Free plan has no app meeting or minute cap for on-device models and BYOK. Your provider can charge for API usage, and local models require suitable hardware. Compare transcription, summary, storage and sharing allowances separately when choosing a plan.",
   },
   {
     title: "Bring your own AI, or run it offline",
-    body: "Anarlog is the only tool in its comparison set that supports local models, your own API keys, and offline recording and transcription. You choose which provider sees your meetings, including none at all.",
+    body: "Transcription and Intelligence are independent settings. For an offline meeting workflow, prepare both local speech and summary models and test them without a connection. Hosted transcription receives audio; hosted Intelligence receives the text and context needed for its request.",
   },
 ] as const;
 
@@ -85,7 +85,7 @@ export const originStory = [
 export const howAnarlogWorks = [
   {
     title: "Getting started",
-    body: "Download the desktop app for macOS, Windows, or Linux and start recording. Free works entirely locally with no account. Pro starts with a 2-week trial, and includes shared workspaces for teams.",
+    body: "Download the desktop app for macOS, Windows, or Linux and start recording. Free can run without an account after you configure and download supported local models. Pro is free for 30 days when you sign up with your work email (7 days with a personal email), and includes shared workspaces for teams.",
   },
   {
     title: "Support",
@@ -164,7 +164,7 @@ export const faqs = [
   {
     question: "Is Anarlog free?",
     answer:
-      "Yes. The Free plan has no meeting or minute limits when you use on-device models or your own API keys. Pro ($14/person/month) adds hosted transcription and AI, Cloud Sync, and sharing.",
+      "Yes. The Free plan has no app meeting or minute limits for on-device models or BYOK; API providers can charge for usage. Pro ($14/person/month) adds hosted transcription and AI, Cloud Sync, and sharing.",
   },
   {
     question: "Does Anarlog join my meetings as a bot?",
@@ -179,12 +179,12 @@ export const faqs = [
   {
     question: "Which AI models can I use?",
     answer:
-      "Hosted models on Pro, your own API keys for providers like OpenAI, Anthropic, and Deepgram, or local models through Ollama or LM Studio. Fastrepl never trains models on your notes, transcripts, or audio; hosted and BYOK providers handle requests under their own terms.",
+      "Choose Transcription and Intelligence separately: hosted models on Pro, your own provider keys, or supported local models. Ollama and LM Studio can provide local Intelligence. Fastrepl never trains models on your notes, transcripts, or audio; hosted and BYOK providers handle requests under their own terms.",
   },
   {
     question: "Is Anarlog open source?",
     answer:
-      "Yes. The desktop app is MIT-licensed and developed in the open at github.com/fastrepl/anarlog. You can audit it, fork it, and run it forever.",
+      "Yes. The community desktop app is MIT-licensed and developed in the open at github.com/fastrepl/anarlog. Enterprise components have a separate commercial license.",
   },
   {
     question: "What is the relationship between Anarlog, Char, and Hyprnote?",

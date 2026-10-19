@@ -35,6 +35,7 @@ import {
 } from "@/lib/desktop-auth-handoff";
 import { completeOAuthCallback } from "@/lib/desktop-oauth-callback";
 import { capturePrivateRouteEvent } from "@/lib/private-route-analytics";
+import { forgetAuthFlowContext } from "@/lib/root-auth-callback";
 
 const validateSearch = z.object({
   intent: z.literal("link_identity").optional(),
@@ -82,6 +83,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
     meta: [{ name: "robots", content: "noindex, nofollow" }],
   }),
   beforeLoad: async ({ search }) => {
+    forgetAuthFlowContext();
     if (search.intent === "link_identity") {
       const hash = new URLSearchParams(window.location.hash.slice(1));
       const result = await finishAccountIdentity({
@@ -208,7 +210,10 @@ function Component() {
         title={hasTokens ? "You’re signed in" : "Finishing sign-in"}
         description={
           hasTokens
-            ? "Return to the desktop app to keep going."
+            ? search.scheme.startsWith("anarlog-dev") ||
+              search.scheme === "anarlog"
+              ? "Return to the Anarlog app to keep going."
+              : "Return to the desktop app to keep going."
             : "Please wait while we complete the secure handoff."
         }
       >

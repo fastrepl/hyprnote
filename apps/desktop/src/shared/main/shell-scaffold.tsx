@@ -1,11 +1,9 @@
 import { platform } from "@tauri-apps/plugin-os";
-import { Fragment } from "react";
 
 import { cn } from "@anlg/utils";
 
 import { SyncProvider } from "~/calendar/components/context";
 import { usesWindowsStyleTitleBar } from "~/shared/hooks/useWindowControlsGutter";
-import { useTabs } from "~/store/zustand/tabs";
 
 export type MainSurfaceChrome = "default" | "top" | "top-borderless" | "left";
 
@@ -18,12 +16,9 @@ export function MainShellScaffold({
   edgeToEdge?: boolean;
   mainSurfaceChrome?: MainSurfaceChrome;
 }) {
-  const currentTab = useTabs((state) => state.currentTab);
-  const isCalendarMode = currentTab?.type === "calendar";
   const runtimePlatform = platform();
   const isMacos = runtimePlatform === "macos";
   const hasCustomTitleBar = usesWindowsStyleTitleBar();
-  const SyncWrapper = isCalendarMode ? SyncProvider : Fragment;
   const resolvedMainSurfaceChrome =
     mainSurfaceChrome ?? (edgeToEdge ? "top" : "default");
   const hasTopMainSurfaceChrome =
@@ -31,7 +26,7 @@ export function MainShellScaffold({
     resolvedMainSurfaceChrome === "top-borderless";
 
   return (
-    <SyncWrapper>
+    <SyncProvider>
       <div
         className={cn([
           "bg-background flex h-full gap-1 overflow-hidden",
@@ -66,6 +61,6 @@ export function MainShellScaffold({
       >
         {children}
       </div>
-    </SyncWrapper>
+    </SyncProvider>
   );
 }

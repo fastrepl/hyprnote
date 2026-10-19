@@ -22,20 +22,28 @@ describe("openUrlWithInstruction", () => {
     vi.resetAllMocks();
   });
 
-  it("does not navigate or resize when the original frame cannot be saved", async () => {
+  it("opens the browser without resizing when the original frame cannot be saved", async () => {
     mocks.windowSaveFrame.mockResolvedValue({
       status: "error",
       error: "restore geometry unavailable",
     });
-    const openUrl = vi.fn();
+    const openUrl = vi.fn().mockResolvedValue({ status: "ok" });
 
     await expect(
       openUrlWithInstruction("https://example.com", "billing", openUrl),
-    ).rejects.toThrow("restore geometry unavailable");
+    ).resolves.toBeUndefined();
 
     expect(mocks.windowEmitNavigate).not.toHaveBeenCalled();
     expect(mocks.windowSetFrameAnimated).not.toHaveBeenCalled();
-    expect(openUrl).not.toHaveBeenCalled();
+    expect(openUrl).toHaveBeenCalledWith("https://example.com");
+
+    openUrl.mockResolvedValue({
+      status: "error",
+      error: "browser unavailable",
+    });
+    await expect(
+      openUrlWithInstruction("https://example.com", "billing", openUrl),
+    ).rejects.toThrow("browser unavailable");
   });
 
   it("completes dismissal even if restoring the original frame fails", async () => {

@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useRef, useState, type ReactNode } from "react";
 
+import { WORK_EMAIL_PRO_TRIAL_DAYS } from "@anlg/pricing/trial";
 import { ArrowLeft, Buildings, Envelope } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
@@ -30,6 +31,7 @@ import {
 } from "@/functions/desktop-flow";
 import { useMountEffect } from "@/hooks/useMountEffect";
 import {
+  resolveAuthFlowContext,
   shouldReuseBrowserSession,
   toAuthFlowSearch,
 } from "@/lib/auth-flow-context";
@@ -44,6 +46,7 @@ import {
   resolveDesktopAuthCallbackMethod,
 } from "@/lib/desktop-auth-handoff";
 import { capturePrivateRouteEvent } from "@/lib/private-route-analytics";
+import { rememberAuthFlowContext } from "@/lib/root-auth-callback";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -53,6 +56,7 @@ export const Route = createFileRoute("/auth")({
     meta: [{ name: "robots", content: "noindex, nofollow" }],
   }),
   beforeLoad: async ({ search }) => {
+    rememberAuthFlowContext(resolveAuthFlowContext(search));
     const [user, lastSignInMethod] = await Promise.all([
       shouldReuseBrowserSession(search) ? fetchUser() : null,
       fetchLastSignInMethod(),
@@ -160,18 +164,8 @@ function Component() {
     <AuthShell title="Welcome to Anarlog" showEyebrow={false}>
       {view === "main" && (
         <>
+          <TrialOfferCard />
           <div className="flex flex-col gap-3">
-            {showApple && (
-              <OAuthButton
-                flow={flow}
-                scheme={scheme}
-                desktop_state={desktop_state}
-                redirect={redirect}
-                provider="apple"
-                autoStart={autoStartOAuth}
-                isLastUsed={lastSignInMethod === "apple"}
-              />
-            )}
             {showGoogle && (
               <OAuthButton
                 flow={flow}
@@ -194,16 +188,21 @@ function Component() {
                 isLastUsed={lastSignInMethod === "azure"}
               />
             )}
-            {showGithub && (
-              <OAuthButton
-                flow={flow}
-                scheme={scheme}
-                desktop_state={desktop_state}
-                redirect={redirect}
-                provider="github"
-                autoStart={autoStartOAuth}
-                isLastUsed={lastSignInMethod === "github"}
-              />
+            {showEmail && (
+              <AuthMethodButton isLastUsed={lastSignInMethod === "sso"}>
+                <button
+                  onClick={() => setView("sso")}
+                  className={authSecondaryButtonClassName}
+                >
+                  <AuthProviderContent
+                    icon={
+                      <Buildings className="size-[18px]" aria-hidden="true" />
+                    }
+                  >
+                    Sign in with SSO
+                  </AuthProviderContent>
+                </button>
+              </AuthMethodButton>
             )}
             {showEmail && (
               <AuthMethodButton isLastUsed={lastSignInMethod === "email"}>
@@ -221,21 +220,27 @@ function Component() {
                 </button>
               </AuthMethodButton>
             )}
-            {showEmail && (
-              <AuthMethodButton isLastUsed={lastSignInMethod === "sso"}>
-                <button
-                  onClick={() => setView("sso")}
-                  className={authSecondaryButtonClassName}
-                >
-                  <AuthProviderContent
-                    icon={
-                      <Buildings className="size-[18px]" aria-hidden="true" />
-                    }
-                  >
-                    Sign in with SSO
-                  </AuthProviderContent>
-                </button>
-              </AuthMethodButton>
+            {showApple && (
+              <OAuthButton
+                flow={flow}
+                scheme={scheme}
+                desktop_state={desktop_state}
+                redirect={redirect}
+                provider="apple"
+                autoStart={autoStartOAuth}
+                isLastUsed={lastSignInMethod === "apple"}
+              />
+            )}
+            {showGithub && (
+              <OAuthButton
+                flow={flow}
+                scheme={scheme}
+                desktop_state={desktop_state}
+                redirect={redirect}
+                provider="github"
+                autoStart={autoStartOAuth}
+                isLastUsed={lastSignInMethod === "github"}
+              />
             )}
           </div>
           <LegalText />
@@ -1129,5 +1134,24 @@ function OAuthButton({
         </AuthProviderContent>
       </button>
     </AuthMethodButton>
+  );
+}
+
+function TrialOfferCard() {
+  return (
+    <div className="mb-5 flex items-center gap-5 rounded-[20px] border border-amber-900/10 bg-white py-4 pr-5 pl-6 shadow-[0_12px_32px_-16px_rgba(120,53,15,0.35)]">
+      <div className="flex shrink-0 flex-col items-center">
+        <span className="font-hand text-[40px] leading-[0.9] font-semibold text-amber-800">
+          {WORK_EMAIL_PRO_TRIAL_DAYS}
+        </span>
+        <span className="mt-1 pl-[0.22em] text-[10px] font-semibold tracking-[0.22em] text-amber-800/70 uppercase">
+          days
+        </span>
+      </div>
+      <div className="h-11 w-px shrink-0 bg-amber-900/10" />
+      <span className="text-[15px] font-semibold text-stone-900">
+        Free Pro with a work email
+      </span>
+    </div>
   );
 }

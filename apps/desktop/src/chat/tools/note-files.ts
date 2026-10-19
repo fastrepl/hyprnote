@@ -1,7 +1,11 @@
 import { tool } from "ai";
 import { z } from "zod";
 
-import { resolveCurrentSessionId } from "./current-session";
+import {
+  resolveCurrentSessionId,
+  resolveFolderPaths,
+  type ToolCallOptions,
+} from "./current-session";
 import type { ToolDependencies } from "./types";
 
 import {
@@ -442,18 +446,29 @@ export const buildSearchMeetingContentTool = (deps: ToolDependencies) =>
         .optional()
         .describe("Maximum matching notes to return"),
     }),
-    execute: async (params: {
-      query: string;
-      meeting_ids?: string[];
-      limit?: number;
-    }) => {
-      const folderFilter = deps.getFolderFilter?.() ?? null;
+    execute: async (
+      params: {
+        query: string;
+        meeting_ids?: string[];
+        limit?: number;
+      },
+      options?: ToolCallOptions,
+    ) => {
+      const folderPaths = resolveFolderPaths(deps, options);
       const folderSessionIds =
-        folderFilter === null
+        folderPaths.length === 0
           ? undefined
-          : (await loadSessionSummariesByFolder(folderFilter)).map(
-              (session) => session.id,
-            );
+          : [
+              ...new Set(
+                (
+                  await Promise.all(
+                    folderPaths.map((folderPath) =>
+                      loadSessionSummariesByFolder(folderPath),
+                    ),
+                  )
+                ).flatMap((sessions) => sessions.map((session) => session.id)),
+              ),
+            ];
       const sessionIds =
         folderSessionIds === undefined
           ? params.meeting_ids

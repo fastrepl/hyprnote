@@ -104,7 +104,7 @@ export function DayCell({
         <div
           className={cn([
             "mb-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium",
-            today && "bg-primary text-primary-foreground",
+            today && "bg-foreground text-background",
             !today && !isCurrentMonth && "text-muted-foreground/70",
             !today &&
               isCurrentMonth &&

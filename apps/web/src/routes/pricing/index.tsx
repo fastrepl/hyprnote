@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { CheckCircle, XCircle } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
 import { AnarlogLogo } from "@/components/anarlog-logo";
@@ -10,7 +9,7 @@ import {
   ANARLOG_ROW,
   COMPARISON_ROWS,
   type ComparisonRow,
-  PRICING_VERIFIED_ON,
+  COMPARISON_REVIEWED_ON,
 } from "@/lib/competitors";
 import { getCanonicalUrl } from "@/lib/seo";
 
@@ -18,9 +17,9 @@ const title = "Pricing · Anarlog";
 const description =
   "Compare Anarlog Free, Pro, and Enterprise. Pro adds dictation, cloud features, and team collaboration for $14/person/month or $140/person/year.";
 
-const verifiedOnLabel = new Date(PRICING_VERIFIED_ON).toLocaleDateString(
+const reviewedOnLabel = new Date(COMPARISON_REVIEWED_ON).toLocaleDateString(
   "en-US",
-  { month: "long", day: "numeric", year: "numeric" },
+  { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" },
 );
 
 export const Route = createFileRoute("/pricing/")({
@@ -66,24 +65,20 @@ function PricingPage() {
               How we compare
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#4f4940]">
-              Most AI notetakers send your meeting to their servers and pick the
-              AI for you. The column that matters is where your data lives.
+              Compare the recording method, AI processing and stored meeting
+              record separately. A bot-free app can still use hosted AI, and a
+              free recording allowance can have separate AI or storage limits.
             </p>
 
-            <div className="relative left-1/2 mt-8 w-screen max-w-[980px] -translate-x-1/2 px-5 md:px-8">
-              <div className="overflow-x-auto rounded-3xl border border-[#eadfce] [corner-shape:squircle]">
-                <table className="w-full min-w-[860px] border-collapse text-left text-sm">
+            <div className="relative left-1/2 mt-8 w-screen max-w-[1100px] -translate-x-1/2 px-5 md:px-8">
+              <div className="overflow-x-auto rounded-3xl border border-[#eadfce] [corner-shape:round]">
+                <table className="w-full min-w-[760px] border-collapse text-left text-sm">
                   <thead>
                     <tr className="border-b border-[#eadfce]">
                       <Th sticky>Tool</Th>
-                      <Th>Paid from</Th>
-                      <Th>Free tier</Th>
-                      <Th center>Bot-free</Th>
-                      <Th center>Local data</Th>
-                      <Th center>Offline</Th>
-                      <Th center>Local models</Th>
-                      <Th center>Own keys</Th>
-                      <Th center>Open source</Th>
+                      <Th>Recording and processing</Th>
+                      <Th>Free plan or trial</Th>
+                      <Th>Example paid plan</Th>
                     </tr>
                   </thead>
                   <tbody>
@@ -96,16 +91,31 @@ function PricingPage() {
               </div>
 
               <p className="mt-4 text-left text-xs leading-5 text-[#756b5d]">
-                Bot-free means capture without adding a participant to the call.
-                Local data means the meeting record is stored on your device by
-                default. Offline means recording and transcription work with no
-                connection.
+                Source review: {reviewedOnLabel}. Quoted prices are USD with the
+                billing basis shown; annual rates require annual billing. Some
+                plan prices are left unquoted where currency, availability or
+                conflicting source details were unresolved. Follow each vendor's
+                plans and recording guide for current conditions.
               </p>
               <p className="mt-2 text-left text-xs leading-5 text-[#756b5d]">
-                Competitor details verified {verifiedOnLabel} from each vendor's
-                published material, using the lowest regularly available paid
-                tier. Plans change — follow the links above before deciding.
-                Anarlog pricing is always current.
+                Local speech recognition does not make summaries local. For
+                setup, use the{" "}
+                <Link
+                  to="/guides/transcription/"
+                  className="underline underline-offset-4"
+                >
+                  transcription guides
+                </Link>{" "}
+                and compare detailed allowances in the{" "}
+                <Link
+                  to="/blog/$slug/"
+                  params={{ slug: "free-ai-notetakers" }}
+                  className="underline underline-offset-4"
+                >
+                  free AI notetaker guide
+                </Link>
+                . Confirm required participant notice and permission before
+                recording.
               </p>
             </div>
           </section>
@@ -119,11 +129,9 @@ function PricingPage() {
 
 function Th({
   children,
-  center = false,
   sticky = false,
 }: {
   children: React.ReactNode;
-  center?: boolean;
   sticky?: boolean;
 }) {
   return (
@@ -131,7 +139,6 @@ function Th({
       scope="col"
       className={cn([
         "bg-[#fffaf0] px-4 py-3 text-xs font-semibold whitespace-nowrap text-[#756b5d]",
-        center && "text-center",
         sticky && "sticky left-0 z-10",
       ])}
     >
@@ -186,41 +193,21 @@ function Row({ row, highlight }: { row: ComparisonRow; highlight?: boolean }) {
           )}
         </div>
       </td>
-      <td
-        className={cn([
-          "px-4 py-3 whitespace-nowrap",
-          highlight ? "font-semibold text-[#181613]" : "text-[#4f4940]",
-        ])}
-      >
-        {row.paidFrom}
+      <td className="text-color px-4 py-3 align-top">
+        {row.capture}
+        {row.captureSourceUrl ? (
+          <a
+            href={row.captureSourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 block text-xs underline underline-offset-4"
+          >
+            Recording details
+          </a>
+        ) : null}
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-[#4f4940]">
-        {row.freeTier}
-      </td>
-      <Bool value={row.botFree} />
-      <Bool value={row.localData} />
-      <Bool value={row.offline} />
-      <Bool value={row.localModels} />
-      <Bool value={row.ownKeys} />
-      <Bool value={row.openSource} />
+      <td className="text-color px-4 py-3 align-top">{row.freeTier}</td>
+      <td className="text-color px-4 py-3 align-top">{row.paidPlan}</td>
     </tr>
-  );
-}
-
-function Bool({ value }: { value: boolean }) {
-  const Icon = value ? CheckCircle : XCircle;
-
-  return (
-    <td className="px-4 py-3">
-      <div className="flex justify-center">
-        <Icon
-          className={cn([
-            "size-4.5",
-            value ? "text-emerald-600" : "text-red-500",
-          ])}
-          aria-label={value ? "Yes" : "No"}
-        />
-      </div>
-    </td>
   );
 }

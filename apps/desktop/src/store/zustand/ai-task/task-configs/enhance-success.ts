@@ -74,7 +74,9 @@ export const runEnhanceSuccess = async ({
     const titleTaskId = createTaskId(args.sessionId, "title");
     const titleTask = getTaskState(titleTaskId);
 
-    if (titleTask?.status === "success" || titleTask?.status === "generating") {
+    // A finished title task belongs to an earlier summary; regenerate so the
+    // title reflects the new content.
+    if (titleTask?.status === "generating") {
       generatedTitle = getPersistableGeneratedTitle(titleTask.streamedText);
     } else {
       await startTask(titleTaskId, {

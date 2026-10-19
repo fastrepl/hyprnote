@@ -10,10 +10,12 @@ import re
 import secrets
 import subprocess
 import sys
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+from typing import NamedTuple
 
 
 CLOUDSYNC_MANAGEMENT_URL = "https://cloudsync.sqlite.ai"
@@ -26,6 +28,20 @@ REQUIRED_SECRETS = (
     "SQLITECLOUD_TOKEN_ISSUER_API_KEY",
 )
 PROTOCOL_MODES = {"dual", "e2ee_only", "e2ee_enforced"}
+LATENCY_LOG_ENV = "ANARLOG_CLOUDSYNC_LATENCY_LOG"
+# A fresh device's first download waits on provider snapshot preparation over the whole
+# tenant history, which deployments cannot change. Report it instead of failing on it;
+# the tests themselves only fail when a bootstrap never completes.
+FRESH_DEVICE_LATENCY_TARGET_SECONDS = 90
+# Per-test subprocess budgets. Fresh-site waits stop at 180s inside the tests: the sync
+# test waits for one bootstrap, the policy test for one and then two concurrent ones
+# plus bounded attack syncs, and cleanup never waits for a snapshot. Their 40-minute
+# total leaves the 60-minute deploy job room for the build and remote cleanup.
+TEST_TIMEOUT_MINUTES = {
+    "same_personal_workspace_syncs_and_decrypts_a_real_note": 10,
+    "personal_workspace_tokens_block_foreign_encrypted_writes": 20,
+    "cleanup_e2ee_verification_workspaces": 5,
+}
 LEGACY_PLAINTEXT_TABLES = (
     "action_items",
     "events",
@@ -461,7 +477,7 @@ def run_test(test: str, environment: dict[str, str]) -> None:
         ],
         check=True,
         env=environment,
-        timeout=20 * 60,
+        timeout=TEST_TIMEOUT_MINUTES.get(test, 20) * 60,
     )
 
 
@@ -495,6 +511,128 @@ def cleanup_remote_workspaces(
         )
         if remaining != [{"remaining": 0}]:
             raise RuntimeError("verification workspace cleanup left remote records")
+
+
+class LatencyEntry(NamedTuple):
+    check: str
+    seconds: float
+    completed: bool
+    # Time until the first non-empty receive; None when no page arrived or the test
+    # predates the breakdown. Earlier calls came back empty while the provider prepared.
+    first_page_seconds: float | None = None
+    empty_calls_before_first_page: int | None = None
+    sync_calls: int | None = None
+    sync_call_seconds: float | None = None
+    snapshot_resets: int | None = None
+    rows: int | None = None
+    bytes: int | None = None
+
+
+def read_latency_log(path: str) -> list[LatencyEntry]:
+    try:
+        with open(path) as log:
+            lines = log.read().splitlines()
+    except FileNotFoundError:
+        return []
+    entries = []
+    for line in lines:
+        if line.strip():
+            entry = json.loads(line)
+            first_page = entry.get("first_page_seconds")
+            entries.append(
+                LatencyEntry(
+                    check=str(entry["check"]),
+                    seconds=float(entry["seconds"]),
+                    completed=bool(entry.get("completed", True)),
+                    first_page_seconds=None
+                    if first_page is None
+                    else float(first_page),
+                    empty_calls_before_first_page=entry.get(
+                        "empty_calls_before_first_page"
+                    ),
+                    sync_calls=entry.get("sync_calls"),
+                    sync_call_seconds=entry.get("sync_call_seconds"),
+                    snapshot_resets=entry.get("snapshot_resets"),
+                    rows=entry.get("rows"),
+                    bytes=entry.get("bytes"),
+                )
+            )
+    return entries
+
+
+def latency_status(seconds: float, completed: bool) -> str:
+    if not completed:
+        return "timed out"
+    if seconds > FRESH_DEVICE_LATENCY_TARGET_SECONDS:
+        return "over target"
+    return "ok"
+
+
+def describe_first_page(entry: LatencyEntry) -> str:
+    if entry.sync_calls is None:
+        return ""
+    if entry.first_page_seconds is None:
+        return f"; no page after {entry.empty_calls_before_first_page} empty sync calls"
+    return (
+        f"; first page at {entry.first_page_seconds:.1f}s"
+        f" after {entry.empty_calls_before_first_page} empty sync calls"
+    )
+
+
+def latency_summary_row(entry: LatencyEntry) -> str:
+    status = latency_status(entry.seconds, entry.completed)
+    if entry.sync_calls is None:
+        return f"| {entry.check} | {entry.seconds:.1f}s | {status} | n/a | n/a | n/a | n/a | n/a |"
+    if entry.first_page_seconds is None:
+        first_page = after_first_page = "none"
+    else:
+        first_page = f"{entry.first_page_seconds:.1f}s"
+        after_first_page = f"{entry.seconds - entry.first_page_seconds:.1f}s"
+    return (
+        f"| {entry.check} | {entry.seconds:.1f}s | {status} | {first_page}"
+        f" | {after_first_page} | {entry.empty_calls_before_first_page}"
+        f" | {entry.sync_calls} ({entry.sync_call_seconds:.1f}s)"
+        f" | {entry.snapshot_resets} | {entry.rows} rows, {entry.bytes} B |"
+    )
+
+
+def report_fresh_device_latency(path: str) -> None:
+    entries = read_latency_log(path)
+    target = FRESH_DEVICE_LATENCY_TARGET_SECONDS
+    for entry in entries:
+        status = latency_status(entry.seconds, entry.completed)
+        level = "notice" if status == "ok" else "warning"
+        print(
+            f"::{level} title=CloudSync fresh-device latency::"
+            f"{entry.check}: {entry.seconds:.1f}s, {status} (target {target}s)"
+            f"{describe_first_page(entry)}"
+        )
+
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not entries or not summary_path:
+        return
+    rows = [latency_summary_row(entry) for entry in entries]
+    with open(summary_path, "a") as summary:
+        summary.write(
+            "\n".join(
+                [
+                    "",
+                    "### CloudSync fresh-device latency",
+                    "",
+                    f"Target: {target}s. Reported only; it does not fail the deployment.",
+                    "Empty sync calls before the first page are the provider preparing"
+                    " its snapshot; time after it is download, apply, and waiting for"
+                    " the expected record.",
+                    "",
+                    "| Check | Latency | Status | First page | After first page"
+                    " | Empty calls before first page | Sync calls (time in calls)"
+                    " | Snapshot resets | Received |",
+                    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+                    *rows,
+                    "",
+                ]
+            )
+        )
 
 
 def run_test_with_cleanup(
@@ -537,7 +675,21 @@ def main() -> None:
     values = load_secrets(sys.argv[1])
     database_name = verify_remote_database(values)
 
-    cargo_env = sanitized_cargo_env()
+    latency_log_fd, latency_log = tempfile.mkstemp(
+        prefix="cloudsync-latency-", suffix=".jsonl"
+    )
+    os.close(latency_log_fd)
+    try:
+        run_verification(values, database_name, latency_log)
+    finally:
+        report_fresh_device_latency(latency_log)
+        os.remove(latency_log)
+
+
+def run_verification(
+    values: dict[str, str], database_name: str, latency_log: str
+) -> None:
+    cargo_env = sanitized_cargo_env() | {LATENCY_LOG_ENV: latency_log}
     subprocess.run(
         [
             "cargo",

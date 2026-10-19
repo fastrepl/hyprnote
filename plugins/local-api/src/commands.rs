@@ -1,6 +1,9 @@
 use tauri::Manager;
 
-use crate::{CreatedWebhook, MarkdownExportOptions, WebhookDelivery, WebhookInfo, dispatch};
+use crate::{
+    CreatedWebhook, MarkdownExportFile, MarkdownExportOptions, WebhookDelivery, WebhookInfo,
+    dispatch,
+};
 
 const MAX_CLOUD_SNAPSHOT_BYTES: usize = 2 * 1024 * 1024;
 static MARKDOWN_EXPORT_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
@@ -172,7 +175,8 @@ pub async fn export_meeting_markdown<R: tauri::Runtime>(
     meeting_id: String,
     directory: String,
     options: Option<MarkdownExportOptions>,
-) -> Result<String, String> {
+    previous: Option<MarkdownExportFile>,
+) -> Result<MarkdownExportFile, String> {
     let directory = directory.trim();
     if directory.is_empty() {
         return Err("export directory is not set".to_string());
@@ -181,8 +185,50 @@ pub async fn export_meeting_markdown<R: tauri::Runtime>(
     let export = anlg_agent_access::get_meeting_export(&pool, meeting_id)
         .await
         .map_err(|error| error.to_string())?;
-    write_markdown_export_with_options(std::path::Path::new(directory), &export, options.as_ref())
-        .map(|path| path.to_string_lossy().into_owned())
+    let path = write_markdown_export_with_options(
+        std::path::Path::new(directory),
+        &export,
+        options.as_ref(),
+    )?;
+    let file = markdown_export_file(&path)?;
+    if let Some(previous) = previous {
+        remove_replaced_export(&previous, &file);
+    }
+    Ok(file)
+}
+
+pub(crate) fn markdown_export_file(path: &std::path::Path) -> Result<MarkdownExportFile, String> {
+    let content =
+        std::fs::read(path).map_err(|error| format!("could not read markdown export: {error}"))?;
+    Ok(MarkdownExportFile {
+        path: path.to_string_lossy().into_owned(),
+        sha256: sha256_hex(&content),
+    })
+}
+
+// A changed title renames a configured export. Remove the file the same action
+// wrote before, unless it was edited since or is the new file itself, such as
+// a case-only rename on a case-insensitive disk.
+pub(crate) fn remove_replaced_export(previous: &MarkdownExportFile, current: &MarkdownExportFile) {
+    if same_file::is_same_file(&previous.path, &current.path).unwrap_or(true) {
+        return;
+    }
+    let Ok(content) = std::fs::read(&previous.path) else {
+        return;
+    };
+    if sha256_hex(&content) == previous.sha256
+        && let Err(error) = std::fs::remove_file(&previous.path)
+    {
+        tracing::warn!(%error, "could not remove replaced markdown export");
+    }
+}
+
+fn sha256_hex(content: &[u8]) -> String {
+    use sha2::{Digest, Sha256};
+    Sha256::digest(content)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 pub(crate) fn markdown_export_filename(meeting: &anlg_agent_access::Meeting) -> String {

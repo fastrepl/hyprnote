@@ -170,11 +170,6 @@ export const SETTING_DEFINITIONS = {
     path: ["notification", "detect"],
     default: true as boolean,
   },
-  notification_transcription_complete: {
-    type: "boolean",
-    path: ["notification", "transcription_complete"],
-    default: true as boolean,
-  },
   notification_summary_complete: {
     type: "boolean",
     path: ["notification", "summary_complete"],
@@ -384,6 +379,11 @@ export const SETTING_DEFINITIONS = {
   automation_markdown_export_last_run: {
     type: "string",
     path: ["automations", "markdown_export_last_run"],
+    default: "" as string,
+  },
+  automation_markdown_export_files: {
+    type: "string",
+    path: ["automations", "markdown_export_files"],
     default: "" as string,
   },
   automation_slack_recap_enabled: {

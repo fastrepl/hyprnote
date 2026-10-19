@@ -59,7 +59,6 @@ import {
   useSession,
   useSessionTranscriptExistence,
 } from "~/session/queries";
-import { requestAppAttention } from "~/shared/app-attention";
 import { playCompletionSound } from "~/shared/completion-sound";
 import { useConfigValue } from "~/shared/config";
 import { id } from "~/shared/utils";
@@ -1117,7 +1116,7 @@ export function useCaptureLifecycle(sessionId: string) {
           return;
         }
 
-        // Batch repair already requests attention when runBatchSession
+        // Batch repair already plays the sound when runBatchSession
         // finishes; a recovered summary-only pass has no new transcript.
         if (
           !batchCompleted &&
@@ -1125,7 +1124,6 @@ export function useCaptureLifecycle(sessionId: string) {
           (transcriptTouched || preserveExistingTranscript)
         ) {
           void playCompletionSound();
-          void requestAppAttention();
         }
 
         try {

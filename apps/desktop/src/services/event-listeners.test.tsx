@@ -7,7 +7,6 @@ import {
   cancelAutoStopEndedNotification,
   createAutoStopEndedNotificationKey,
 } from "~/stt/auto-stop-notification";
-import { createBatchCompletedNotificationKey } from "~/stt/batch-completed-notification";
 
 const speakerContextJson = JSON.stringify({
   intervals: [
@@ -827,25 +826,14 @@ describe("EventListeners notification events", () => {
     },
   );
 
-  test.each([
-    {
-      name: "session source",
-      key: "batch-completed-session-1",
-      source: { type: "session", session_id: "session-1" },
-    },
-    {
-      name: "batch key",
-      key: createBatchCompletedNotificationKey("session-1"),
-      source: null,
-    },
-  ])("notification_confirm with $name opens that session", async (payload) => {
+  test("notification_confirm with a session source opens that session", async () => {
     const handler = await renderNotificationHandler();
 
     handler({
       payload: {
         type: "notification_confirm",
-        key: payload.key,
-        source: payload.source,
+        key: "summary-ready:session-1",
+        source: { type: "session", session_id: "session-1" },
       },
     });
 

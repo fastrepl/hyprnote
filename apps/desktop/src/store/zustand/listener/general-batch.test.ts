@@ -4,13 +4,11 @@ import { EMPTY_BATCH_TRANSCRIPT_ERROR } from "./batch";
 import {
   recoverRunningBatchSessions,
   runBatchSession,
-  showBatchCompletedNotification,
   shouldUseSyntheticBatchProgress,
   syntheticBatchProgress,
 } from "./general-batch";
 
 import { trackAnalyticsEvent } from "~/analytics";
-import { parseBatchCompletedNotificationKey } from "~/stt/batch-completed-notification";
 import { BatchResponseProcessingError } from "~/stt/batch-response-processing-error";
 
 const {
@@ -603,15 +601,11 @@ describe("runBatchSession", () => {
   });
 
   test.each([
-    {
-      notifyOnCompletion: undefined,
-      expectedNotifications: 1,
-      expectedSounds: 1,
-    },
-    { notifyOnCompletion: false, expectedNotifications: 0, expectedSounds: 0 },
+    { notifyOnCompletion: undefined, expectedSounds: 1 },
+    { notifyOnCompletion: false, expectedSounds: 0 },
   ])(
-    "shows $expectedNotifications completion notifications when notifyOnCompletion is $notifyOnCompletion",
-    async ({ notifyOnCompletion, expectedNotifications, expectedSounds }) => {
+    "plays $expectedSounds completion sounds without a notification or Dock bounce when notifyOnCompletion is $notifyOnCompletion",
+    async ({ notifyOnCompletion, expectedSounds }) => {
       isFocusedMock.mockResolvedValue(false);
 
       const handleBatchStarted = vi.fn();
@@ -692,39 +686,11 @@ describe("runBatchSession", () => {
         { notifyOnCompletion },
       );
 
-      expect(showNotificationMock).toHaveBeenCalledTimes(expectedNotifications);
+      expect(showNotificationMock).not.toHaveBeenCalled();
+      expect(requestAppAttentionMock).not.toHaveBeenCalled();
       expect(playCompletionSoundMock).toHaveBeenCalledTimes(expectedSounds);
-      if (expectedNotifications === 0) {
-        return;
-      }
-
-      const notification = showNotificationMock.mock.calls[0]?.[0];
-      expect(notification).toEqual(
-        expect.objectContaining({
-          title: "Transcription complete",
-          message: "Your transcript is ready.",
-          timeout: { secs: 15, nanos: 0 },
-          action_label: "Open Anarlog",
-          source: { type: "session", session_id: "session-1" },
-        }),
-      );
-      expect(parseBatchCompletedNotificationKey(notification.key)).toBe(
-        "session-1",
-      );
     },
   );
-
-  test("uses a fresh notification key for each batch completion", async () => {
-    await showBatchCompletedNotification("session-1", { force: true });
-    await showBatchCompletedNotification("session-1", { force: true });
-
-    const firstKey = showNotificationMock.mock.calls[0]?.[0].key;
-    const secondKey = showNotificationMock.mock.calls[1]?.[0].key;
-
-    expect(parseBatchCompletedNotificationKey(firstKey)).toBe("session-1");
-    expect(parseBatchCompletedNotificationKey(secondKey)).toBe("session-1");
-    expect(firstKey).not.toBe(secondKey);
-  });
 
   test("forwards streamed progress events before completion", async () => {
     const handleBatchStarted = vi.fn();

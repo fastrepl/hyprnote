@@ -4,6 +4,7 @@ import { z } from "zod";
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
 
 import { CONTEXT_TEXT_FIELD } from "./context-text";
+import { resolveFolderPaths, type ToolCallOptions } from "./current-session";
 import { extractPdfText, isPdfMaterial } from "./pdf-text";
 import type { ToolDependencies } from "./types";
 
@@ -72,16 +73,25 @@ export const buildReadFolderMaterialTool = (deps: ToolDependencies) =>
         .describe("Folder material id from the folder context list"),
       maxChars: maxCharsSchema,
     }),
-    execute: async (params: { materialId: string; maxChars?: number }) => {
-      const folderPath = deps.getFolderFilter?.() ?? null;
-      if (!folderPath) {
+    execute: async (
+      params: { materialId: string; maxChars?: number },
+      options?: ToolCallOptions,
+    ) => {
+      const folderPaths = resolveFolderPaths(deps, options);
+      if (folderPaths.length === 0) {
         return {
           status: "error" as const,
           message: "No folder is selected",
         };
       }
 
-      const material = await loadFolderMaterial(folderPath, params.materialId);
+      let folderPath = folderPaths[0];
+      let material = await loadFolderMaterial(folderPath, params.materialId);
+      for (const candidate of folderPaths.slice(1)) {
+        if (material) break;
+        folderPath = candidate;
+        material = await loadFolderMaterial(folderPath, params.materialId);
+      }
       if (!material) {
         return {
           status: "error" as const,

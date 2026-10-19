@@ -55,9 +55,11 @@ Hosts can choose who receives the notes and request a longer format. They can al
 
 The constraint is the ecosystem. The output is a Google Doc governed by Drive sharing and Meet retention settings. Audio must use one of eight supported languages at a time, and eligibility depends on specific Workspace editions or Google AI Pro/Ultra. If that is already how your company works, the integration is hard to beat. If you want a portable local meeting archive, it is the wrong architecture.
 
-Take notes for me is not the only native AI capability now. [Ask Gemini in Meet](https://support.google.com/meet/answer/16024610) runs alongside it on the same eligible plans and does a different job: any participant can privately ask a question during the live call, such as what was just decided or what they missed by joining late, and Gemini answers from the live captions, Workspace files the user can already see, and public search results. It does not record the meeting or keep the conversation after the call ends, and only the person who asked can see the answer. Use Take notes for me for a shareable record after the meeting, and Ask Gemini for a private answer during it.
+[Ask Gemini in Meet](https://support.google.com/meet/answer/16024610) serves a different purpose: private questions during the live call. It can recap discussion from before you joined only if Take notes for me was already running. Check [Google's feature table](https://support.google.com/meet/answer/13952129) for each feature's eligibility rather than assuming the plans are identical.
 
-**Pricing:** Included with eligible Business Standard, Business Plus, Enterprise Standard, Enterprise Plus, Frontline Plus, Google AI Pro, and Google AI Ultra plans. [Google's plan table](https://support.google.com/meet/answer/13952129) is the reliable place to check eligibility.
+Google says Ask Gemini does not create a meeting recording or retain caption data after the call. However, its guide also says prompts and responses are saved in Conversation History. Private answers are not a promise that no conversation history is retained.
+
+**Take notes for me availability:** Included with eligible Business Standard, Business Plus, Enterprise Standard, Enterprise Plus, Frontline Plus, Google AI Pro, and Google AI Ultra plans. [Google's plan table](https://support.google.com/meet/answer/13952129) is the reliable place to check eligibility. For organizer requirements, sharing controls, and where the Doc is saved, use our [Gemini meeting-notes setup guide](/blog/google-gemini-meeting-notes/).
 
 ## 2. Anarlog: best for local control
 
@@ -67,7 +69,7 @@ Take notes for me is not the only native AI capability now. [Ask Gemini in Meet]
 
 The difference runs deeper than "bot-free". Tactiq, Krisp, Otter, Fireflies, and tl;dv all have a bot-free path now. Anarlog's sharper advantage is control over the full stack: local data, local or cloud transcription, your choice of language model, portable exports, and an MIT-licensed desktop client your team can audit.
 
-That control adds decisions. The free path works best for people comfortable choosing local models or adding their own API keys. The managed Pro path removes most of that setup, but hosted transcription and AI still create explicit cloud data paths. Only the local-only configuration keeps the full workflow on the device.
+That control adds decisions. The free path works best for people comfortable choosing local models or adding their own API keys. The managed Pro path removes most of that setup, but hosted transcription and AI still create explicit cloud data paths. Only the local-only configuration keeps the full workflow on the device. Follow the [offline setup guide](/blog/offline-meeting-transcription-mac/) to configure local speech and summaries separately.
 
 macOS is the mature build. Windows and Linux builds are available in beta. Anarlog records Google Meet, Zoom, Teams, phone calls, and in-person conversations through the same desktop workflow, but it does not record meeting video.
 
@@ -209,4 +211,4 @@ Yes. A hidden participant is still recording or transcription. Google Workspace 
 
 ### What is Ask Gemini in Meet, and how is it different from Take notes for me?
 
-They are two separate native features on the same eligible Workspace plans. [Take notes for me](https://support.google.com/meet/answer/14754931) generates a shared Google Doc after the meeting. [Ask Gemini in Meet](https://support.google.com/meet/answer/16024610) answers private, in-the-moment questions during the call, such as a recap of what you missed, and does not save the conversation or create a recording once the meeting ends.
+Take notes for me creates a shareable Google Doc. [Ask Gemini](https://support.google.com/meet/answer/16024610) provides private in-call answers without creating a recording or keeping caption data after the call, but Google says prompts and responses are saved in Conversation History. Check eligibility separately for the two features.

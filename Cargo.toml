@@ -382,6 +382,7 @@ objc2-user-notifications = "0.3.2"
 security-framework = "3.7"
 
 hmac = "0.13"
+same-file = "1.0.6"
 sha2 = "0.11"
 
 whatlang = "0.18.0"

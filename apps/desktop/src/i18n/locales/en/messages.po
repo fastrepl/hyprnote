@@ -1946,6 +1946,10 @@ msgstr "Couldn't save your new badges."
 msgid "Couldn't save your profile. Try again."
 msgstr "Couldn't save your profile. Try again."
 
+#: src/onboarding/account/after-login.tsx
+msgid "Couldn't switch accounts. Please try again."
+msgstr "Couldn't switch accounts. Please try again."
+
 #: src/folders/sidebar.tsx
 #: src/settings/team/index.tsx
 msgid "Create"
@@ -2339,10 +2343,6 @@ msgstr "Edit"
 msgid "Edit date"
 msgstr "Edit date"
 
-#: src/onboarding/account/after-login.tsx
-msgid "Eligible for free trial"
-msgstr "Eligible for free trial"
-
 #: src/crm/enrich-contact.tsx
 msgid "email"
 msgstr "email"
@@ -2703,6 +2703,10 @@ msgstr "Free"
 msgid "Free months earned"
 msgstr "Free months earned"
 
+#: src/onboarding/account/before-login.tsx
+msgid "Free Pro with a work email"
+msgstr "Free Pro with a work email"
+
 #: src/templates/template-icon-picker.tsx
 msgid "Frequently used"
 msgstr "Frequently used"
@@ -2762,8 +2766,8 @@ msgid "Get started"
 msgstr "Get started"
 
 #: src/settings/general/notification.tsx
-msgid "Get your attention when Anarlog finishes work in the background."
-msgstr "Get your attention when Anarlog finishes work in the background."
+msgid "Get your attention when a summary is ready in the background."
+msgstr "Get your attention when a summary is ready in the background."
 
 #: src/sidebar/timeline/index.tsx
 msgid "Go back to now"
@@ -3161,6 +3165,10 @@ msgstr "Join scheduled meetings"
 #: src/settings/team/index.tsx
 msgid "Joined {0}"
 msgstr "Joined {0}"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Keep {PRO_TRIAL_DAYS} days"
+msgstr "Keep {PRO_TRIAL_DAYS} days"
 
 #: src/settings/dictation.tsx
 msgid "Keep Anarlog running to use your shortcut in other apps."
@@ -4142,7 +4150,6 @@ msgstr "Open AI Settings"
 #: src/composer/index.tsx
 #: src/onboarding/final.tsx
 #: src/services/enhancer/summary-notification.ts
-#: src/store/zustand/listener/general-batch.ts
 msgid "Open Anarlog"
 msgstr "Open Anarlog"
 
@@ -4374,6 +4381,10 @@ msgstr "Permissions for {0}"
 msgid "Permissions granted"
 msgstr "Permissions granted"
 
+#: src/onboarding/account/after-login.tsx
+msgid "Personal email"
+msgstr "Personal email"
+
 #: src/crm/enrich-contact.tsx
 msgid "phone"
 msgstr "phone"
@@ -4511,6 +4522,10 @@ msgstr "Pro plan"
 #: src/settings/general/billing.tsx
 msgid "Pro trial"
 msgstr "Pro trial"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Pro trial started"
+msgstr "Pro trial started"
 
 #: src/settings/appearance/app-icon.tsx
 msgid "Production"
@@ -5481,10 +5496,6 @@ msgid "Show when a summary is ready."
 msgstr "Show when a summary is ready."
 
 #: src/settings/general/notification.tsx
-msgid "Show when a transcript is ready."
-msgstr "Show when a transcript is ready."
-
-#: src/settings/general/notification.tsx
 msgid "Show when initial cloud sync finishes."
 msgstr "Show when initial cloud sync finishes."
 
@@ -5576,10 +5587,6 @@ msgstr "Sign in to share folders, templates, and automations."
 #: src/session-sharing/index.tsx
 msgid "Sign in to share this note with others."
 msgstr "Sign in to share this note with others."
-
-#: src/onboarding/index.tsx
-msgid "Sign in to unlock powerful AI models, sync across devices, and personalization."
-msgstr "Sign in to unlock powerful AI models, sync across devices, and personalization."
 
 #: src/settings/sync/index.tsx
 msgid "Sign in to use cloud sync"
@@ -6223,11 +6230,6 @@ msgstr "Transcript"
 msgid "Transcription"
 msgstr "Transcription"
 
-#: src/settings/general/notification.tsx
-#: src/store/zustand/listener/general-batch.ts
-msgid "Transcription complete"
-msgstr "Transcription complete"
-
 #: src/session/components/note-input/transcript/screens/empty.tsx
 #: src/stt/useRunBatch.ts
 msgid "Transcription failed"
@@ -6252,10 +6254,6 @@ msgstr "Travel & Places"
 #: src/settings/general/billing.tsx
 msgid "Trial"
 msgstr "Trial"
-
-#: src/onboarding/account/after-login.tsx
-msgid "Trial activated - {trialDays} days of Pro"
-msgstr "Trial activated - {trialDays} days of Pro"
 
 #: src/settings/referrals.tsx
 msgid "Trial started · Applying your free month"
@@ -6368,6 +6366,10 @@ msgstr "Unnamed device"
 #: src/contacts/contact-page-header.tsx
 msgid "Unpin"
 msgstr "Unpin"
+
+#: src/onboarding/account/after-login.tsx
+msgid "Until {endsOn}"
+msgstr "Until {endsOn}"
 
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -6546,6 +6548,10 @@ msgstr "Use Touch ID or enter your password to view."
 #: src/lock/screen.tsx
 msgid "Use Windows Hello face, PIN, or password to view."
 msgstr "Use Windows Hello face, PIN, or password to view."
+
+#: src/onboarding/account/after-login.tsx
+msgid "Use work email"
+msgstr "Use work email"
 
 #: src/onboarding/permissions.tsx
 msgid "Use your microphone to capture your voice"
@@ -6884,10 +6890,6 @@ msgstr "Your session has expired. Sign in again to reconnect."
 #: src/services/enhancer/summary-notification.ts
 msgid "Your summary is ready."
 msgstr "Your summary is ready."
-
-#: src/store/zustand/listener/general-batch.ts
-msgid "Your transcript is ready."
-msgstr "Your transcript is ready."
 
 #: src/settings/referrals.tsx
 msgid "Your trial or paid subscription is extended by one month. No payment from your friend is required."

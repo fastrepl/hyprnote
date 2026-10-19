@@ -35,10 +35,10 @@ in the child skills refer to `.github/workflows/`.
   reason, or explicit user deferral with impact. Do not redeploy unchanged services
   merely to refresh timestamps. A website build before desktop publication cannot
   expose the new changelog and is not reusable evidence for that publication step.
-- Preserve the 2–3 working-day candidate use period, final stable package checks,
-  exact source/provenance requirements, and downgrade compatibility in the desktop
-  procedure. Honor an explicit owner exception without claiming the skipped checks
-  occurred. Broad QA through `qa-critical-ux` or `qa-cli-mcp-api` is separate and runs
+- Preserve final stable package checks, exact source/provenance requirements,
+  and downgrade compatibility in the desktop procedure. Proceed with publication
+  when the required technical release gates pass. Broad QA through
+  `qa-critical-ux` or `qa-cli-mcp-api` is separate and runs
   only when requested; packaging and release verification remain required.
 
 ## Release Surface Review
@@ -73,7 +73,7 @@ candidate/published revisions, checks, live or artifact evidence, and unresolved
    Merge release preparation to `main`, then freeze its exact SHA. A new source change requires renewed affected
    verification; do not mix runs or artifacts from different candidates.
 3. When desktop is in scope, follow [Desktop release procedures](references/desktop.md) for native CI,
-   CloudSync source rebuilds, staging use, first-attempt stable dry run, packaged
+   CloudSync source rebuilds, staging verification, first-attempt stable dry run, packaged
    verification, upgrade/restart, immutable tags, and publication. Follow
    [Mobile store distribution](references/mobile.md) only when requested.
 4. Publish required backward-compatible hosted dependencies through Release API
@@ -97,8 +97,8 @@ rather than duplicate routine comments. For mobile-only distribution, mark deskt
 version, staging, artifacts, Desktop changelog, and desktop store checks not applicable;
 review affected shared surfaces and complete the mobile checks.
 
-- Explicit stable version, candidate SHA, staging run and actual-use evidence,
-  owner exceptions, first-attempt dry-run and publish URLs/head SHAs.
+- Explicit stable version, candidate SHA, staging run and verification evidence,
+  first-attempt dry-run and publish URLs/head SHAs.
 - Immutable `desktop_v<version>` tag, GitHub/CrabNebula publication, asset
   hashes/signatures, final stable install/upgrade/restart, and updater/download routes.
 - Packaged CLI version on each shipped platform, installer/update resolution,

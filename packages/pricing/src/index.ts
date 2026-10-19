@@ -15,4 +15,10 @@ export {
 
 export { PlanFeatureList } from "./plan-feature-list";
 
-export { PRO_TRIAL_DAYS } from "./trial";
+export {
+  PRO_TRIAL_DAYS,
+  proTrialDaysForOffer,
+  type ProTrialOffer,
+  REFERRAL_PRO_TRIAL_DAYS,
+  WORK_EMAIL_PRO_TRIAL_DAYS,
+} from "./trial";

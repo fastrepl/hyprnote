@@ -6,8 +6,7 @@ import { resolveConfigValue } from "~/shared/config";
 
 export type NotificationSettingKey =
   | "notification_cloudsync_complete"
-  | "notification_summary_complete"
-  | "notification_transcription_complete";
+  | "notification_summary_complete";
 
 export async function shouldShowNotification(
   settingKey: NotificationSettingKey,

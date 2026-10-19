@@ -7,6 +7,7 @@ const COMMANDS: &[&str] = &[
     "get_recurring_meeting_history",
     "get_legacy_cleanup_status",
     "get_legacy_import_report",
+    "cleanup_recording_imports",
     "list_meetings",
     "cleanup_legacy_files",
     "run_legacy_import",

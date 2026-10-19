@@ -54,6 +54,17 @@ async fn read_e2ee_secret_with_timeout(
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn cleanup_recording_imports(
+    state: tauri::State<'_, ManagedState>,
+    vault_path: String,
+) -> Result<(), String> {
+    anlg_agent_access::cleanup_recording_imports(state.pool(), &vault_path)
+        .await
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn list_meetings(
     state: tauri::State<'_, ManagedState>,
     input: anlg_agent_access::ListMeetingsInput,

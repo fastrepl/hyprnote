@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { cleanupRecordingImports } from "@anlg/plugin-db";
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
 import { commands as fsCommands } from "@anlg/plugin-fs2";
 import { commands as settingsCommands } from "@anlg/plugin-settings";
@@ -46,6 +47,7 @@ async function heartbeat() {
       params: [],
     },
   ]);
+  await cleanupRecordingImports(vault.data);
   const completed = await liveQueryClient.execute<ImportJob>(
     `SELECT id, meeting_id, file_path FROM local_recording_import_jobs WHERE processing_status IN ('done', 'failed') AND file_path != ''`,
     [],

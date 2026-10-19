@@ -13,6 +13,9 @@ const mocks = vi.hoisted(() => ({
   billingReady: true,
   authSession: {} as object | null,
 }));
+vi.mock("@anlg/plugin-db", () => ({
+  cleanupRecordingImports: async () => {},
+}));
 vi.mock("@anlg/plugin-settings", () => ({
   commands: { vaultBase: async () => ({ status: "ok", data: "/vault" }) },
 }));

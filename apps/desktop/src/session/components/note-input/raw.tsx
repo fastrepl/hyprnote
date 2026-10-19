@@ -285,7 +285,7 @@ export const RawEditor = forwardRef<
         isActive={isAudioDragActive}
       >
         <>
-          <div className="relative min-h-full">
+          <div className="relative mx-auto min-h-full w-full max-w-4xl">
             <NoteEditor
               ref={setEditorRef}
               className={cn(["session-note-editor", className])}

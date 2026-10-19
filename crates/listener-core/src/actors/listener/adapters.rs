@@ -300,6 +300,7 @@ async fn spawn_soniqo_rx_task(
                 shutdown_rx,
                 session_offset_secs,
                 extra,
+                None,
             )
             .await
         });
@@ -343,6 +344,7 @@ async fn spawn_soniqo_rx_task(
                 shutdown_rx,
                 session_offset_secs,
                 extra,
+                None,
             )
             .await
         });
@@ -432,6 +434,7 @@ async fn spawn_apple_speech_rx_task(
                 shutdown_rx,
                 session_offset_secs,
                 extra,
+                None,
             )
             .await
         });
@@ -475,6 +478,7 @@ async fn spawn_apple_speech_rx_task(
                 shutdown_rx,
                 session_offset_secs,
                 extra,
+                None,
             )
             .await
         });
@@ -589,6 +593,7 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
             shutdown_rx,
             session_offset_secs,
             extra,
+            Some(super::LISTEN_STREAM_TIMEOUT),
         )
         .await
     });
@@ -639,6 +644,7 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
             shutdown_rx,
             session_offset_secs,
             extra,
+            Some(super::LISTEN_STREAM_TIMEOUT),
         )
         .await
     });

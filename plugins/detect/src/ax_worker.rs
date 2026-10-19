@@ -121,26 +121,40 @@ mod tests {
     use std::time::Duration;
 
     #[tokio::test(flavor = "current_thread")]
-    async fn hung_walk_does_not_block_runtime_and_queued_inspections_share_one_walk() {
+    async fn inspection_command_keeps_runtime_responsive_and_coalesces_queued_walks() {
         let walks = Arc::new(AtomicUsize::new(0));
         let (release_tx, release_rx) = mpsc::channel::<()>();
         let release_rx = Mutex::new(release_rx);
-        let worker = Arc::new(AxWorker::new(Arc::new({
+        let (started_tx, started_rx) = oneshot::channel();
+        let started_tx = Mutex::new(Some(started_tx));
+        let worker = AxWorker::new(Arc::new({
             let walks = walks.clone();
             move || {
                 if walks.fetch_add(1, Ordering::SeqCst) == 0 {
-                    let _ = lock(&release_rx).recv();
+                    lock(&started_tx).take().unwrap().send(()).unwrap();
+                    lock(&release_rx)
+                        .recv_timeout(Duration::from_secs(5))
+                        .expect("the async runtime must release the stalled walk");
                 }
                 Vec::new()
             }
-        })));
+        }));
+        let app = tauri::test::mock_builder()
+            .manage(worker)
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap();
 
-        let spawn_inspect =
-            |worker: Arc<AxWorker>| tokio::spawn(async move { worker.inspect().await });
-        let hung = spawn_inspect(worker.clone());
-        tokio::time::sleep(Duration::from_millis(50)).await;
-        let queued = [spawn_inspect(worker.clone()), spawn_inspect(worker.clone())];
-        tokio::time::sleep(Duration::from_millis(50)).await;
+        let spawn_inspect = || {
+            let handle = app.handle().clone();
+            tokio::spawn(crate::commands::inspect_meeting_accessibility(handle))
+        };
+        let hung = spawn_inspect();
+        tokio::time::timeout(Duration::from_secs(2), started_rx)
+            .await
+            .expect("the command must dispatch to the injected AX worker")
+            .unwrap();
+        let queued = [spawn_inspect(), spawn_inspect()];
+        tokio::task::yield_now().await;
         assert!(!hung.is_finished());
 
         release_tx.send(()).unwrap();

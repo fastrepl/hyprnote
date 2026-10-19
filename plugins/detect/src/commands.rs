@@ -142,7 +142,13 @@ async fn run_blocking<T: Send + 'static>(
 pub(crate) async fn inspect_meeting_accessibility<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
 ) -> Result<Vec<anlg_detect::MeetingAccessibilityInspection>, String> {
-    run_blocking(anlg_detect::inspect_meeting_accessibility).await
+    let inspect = anlg_detect::inspect_meeting_accessibility;
+    #[cfg(test)]
+    let inspect = _app
+        .try_state::<tests::Inspector>()
+        .map(|state| std::sync::Arc::clone(state.inner()))
+        .unwrap_or_else(|| std::sync::Arc::new(inspect));
+    run_blocking(move || inspect()).await
 }
 
 #[tauri::command]
@@ -307,6 +313,9 @@ pub(crate) async fn get_current_locale_identifier<R: tauri::Runtime>(
 mod tests {
     use super::*;
 
+    pub(super) type Inspector =
+        std::sync::Arc<dyn Fn() -> Vec<anlg_detect::MeetingAccessibilityInspection> + Send + Sync>;
+
     fn app(id: &str) -> anlg_detect::InstalledApp {
         anlg_detect::InstalledApp {
             id: id.to_string(),
@@ -315,18 +324,35 @@ mod tests {
     }
 
     #[tokio::test(flavor = "current_thread")]
-    async fn stalled_accessibility_walk_does_not_starve_runtime_tasks() {
-        let (release_tx, release_rx) = std::sync::mpsc::channel::<()>();
-        let walk = tokio::spawn(run_blocking(move || {
+    async fn stalled_inspection_command_does_not_starve_runtime_tasks() {
+        use std::sync::{Arc, Mutex, mpsc};
+        use std::time::Duration;
+
+        let (release_tx, release_rx) = mpsc::channel::<()>();
+        let release_rx = Mutex::new(release_rx);
+        let (started_tx, started_rx) = tokio::sync::oneshot::channel();
+        let started_tx = Mutex::new(Some(started_tx));
+        let inspect: Inspector = Arc::new(move || {
+            started_tx.lock().unwrap().take().unwrap().send(()).unwrap();
             release_rx
-                .recv_timeout(std::time::Duration::from_secs(5))
-                .is_ok()
-        }));
-
-        tokio::task::yield_now().await;
-        let _ = release_tx.send(());
-
-        assert!(walk.await.unwrap().unwrap());
+                .lock()
+                .unwrap()
+                .recv_timeout(Duration::from_secs(5))
+                .expect("the async runtime must release the stalled walk");
+            Vec::new()
+        });
+        let app = tauri::test::mock_builder()
+            .manage(inspect)
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap();
+        let walk = tokio::spawn(inspect_meeting_accessibility(app.handle().clone()));
+        tokio::time::timeout(Duration::from_secs(2), started_rx)
+            .await
+            .expect("the command must invoke the injected inspector")
+            .unwrap();
+        assert!(!walk.is_finished());
+        release_tx.send(()).unwrap();
+        assert!(walk.await.unwrap().is_ok());
     }
 
     #[test]

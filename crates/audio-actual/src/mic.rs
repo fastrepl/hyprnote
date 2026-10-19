@@ -243,10 +243,30 @@ impl Drop for StartupPermit {
     }
 }
 
+struct CaptureDevice<D, A> {
+    handles: D,
+    bluetooth: Option<A>,
+}
+
+impl<D, A> CaptureDevice<D, A> {
+    fn new(
+        handles: D,
+        opened_name: &str,
+        default_name: Option<&str>,
+        bluetooth: Option<(Option<String>, A)>,
+    ) -> Self {
+        let bluetooth = bluetooth.and_then(|(prepared_name, activation)| {
+            // An unresolved handoff selects the live default. Keep its activation until
+            // capture ends, otherwise teardown can restore and silence that input.
+            (prepared_name.as_deref().or(default_name) == Some(opened_name)).then_some(activation)
+        });
+        Self { handles, bluetooth }
+    }
+}
+
 pub struct MicInput {
-    handles: CpalHandles,
+    capture: CaptureDevice<CpalHandles, Arc<anlg_audio_device::BluetoothInputActivation>>,
     config: cpal::SupportedStreamConfig,
-    bluetooth: Option<Arc<anlg_audio_device::BluetoothInputActivation>>,
 }
 
 const MIC_READ_CHUNK_SIZE: usize = 256;
@@ -272,7 +292,8 @@ fn build_stream_error_type(error: &cpal::BuildStreamError) -> &'static str {
 
 impl MicInput {
     pub fn device_name(&self) -> String {
-        self.handles
+        self.capture
+            .handles
             .device()
             .description()
             .map(|d| d.name().to_string())
@@ -446,18 +467,18 @@ impl MicInput {
 
         match opened {
             Some((device, config, name)) => {
-                let bluetooth =
-                    bluetooth.filter(|activation| activation.name.as_ref() == Some(&name));
+                let capture = CaptureDevice::new(
+                    CpalHandles::new(host, device),
+                    &name,
+                    default_name.as_deref(),
+                    bluetooth.map(|activation| (activation.name.clone(), activation)),
+                );
                 tracing::info!(
                     anarlog.audio.sample_rate_hz = ?config.sample_rate(),
                     device_name = name,
                     "mic_input_initialized"
                 );
-                Ok(Self {
-                    handles: CpalHandles::new(host, device),
-                    config,
-                    bluetooth,
-                })
+                Ok(Self { capture, config })
             }
             None => {
                 drop_quietly(host);
@@ -479,7 +500,7 @@ impl MicInput {
     pub fn stream(&self) -> Result<MicStream, crate::Error> {
         let startup_permit = StartupPermit::acquire()?;
         let config = self.config.clone();
-        let device = self.handles.device().clone();
+        let device = self.capture.handles.device().clone();
         let (drop_tx, drop_rx) = std::sync::mpsc::channel();
         let (init_tx, init_rx) = std::sync::mpsc::channel();
 
@@ -654,7 +675,7 @@ impl MicInput {
         Ok(MicStream {
             drop_tx,
             config: self.config.clone(),
-            _bluetooth: self.bluetooth.clone(),
+            _bluetooth: self.capture.bluetooth.clone(),
             reader: RingbufAsyncReader::new(
                 consumer,
                 waker,
@@ -705,6 +726,33 @@ impl AsyncSource for MicStream {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn capture_keeps_default_handoff_active_until_the_last_stream_stops() {
+        struct RestoreInput(Arc<std::sync::atomic::AtomicUsize>);
+        impl Drop for RestoreInput {
+            fn drop(&mut self) {
+                self.0.store(0, Ordering::SeqCst);
+            }
+        }
+
+        for prepared_name in [None, Some("AirPods Hands-Free".to_string())] {
+            let default = Arc::new(std::sync::atomic::AtomicUsize::new(1));
+            let activation = Arc::new(RestoreInput(default.clone()));
+            let capture = CaptureDevice::new(
+                (),
+                "AirPods Hands-Free",
+                Some("AirPods Hands-Free"),
+                Some((prepared_name, activation)),
+            );
+            assert_eq!(default.load(Ordering::SeqCst), 1);
+            let stream = capture.bluetooth.clone();
+            drop(capture);
+            assert_eq!(default.load(Ordering::SeqCst), 1);
+            drop(stream);
+            assert_eq!(default.load(Ordering::SeqCst), 0);
+        }
+    }
 
     type RankInputDevicesCase<'a> = (
         &'a str,

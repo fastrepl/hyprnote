@@ -32,6 +32,45 @@ fn network_result(
 }
 
 #[test]
+fn out_of_sync_without_server_progress_backs_off_and_reports_a_stall() {
+    let runtime = Mutex::new(CloudsyncRuntimeState::default());
+    let limit = OUT_OF_SYNC_STALL_LIMIT.as_millis() as u64;
+    let out_of_sync = |server_version| {
+        let mut result = network_result(Some("out-of-sync"), Some((0, true, None)));
+        result.send.as_mut().unwrap().server_version = server_version;
+        result
+    };
+    let record = |result, now_ms| {
+        record_sync_result_at(
+            &runtime,
+            result,
+            true,
+            CloudsyncActivityTrigger::Background,
+            now_ms,
+        )
+    };
+
+    assert!(!record(out_of_sync(3), 1_000));
+    assert!(!record(out_of_sync(4), 1_000 + limit));
+    assert!(runtime.lock().unwrap().last_error.is_none());
+
+    assert!(record(out_of_sync(4), 1_000 + 2 * limit));
+    {
+        let state = runtime.lock().unwrap();
+        assert_eq!(
+            state.last_error.as_deref(),
+            Some("send status: out-of-sync with no server progress for 120s")
+        );
+        assert_eq!(state.consecutive_failures, 1);
+    }
+
+    assert!(!record(out_of_sync(5), 1_000 + 3 * limit));
+    let state = runtime.lock().unwrap();
+    assert!(state.last_error.is_none());
+    assert_eq!(state.consecutive_failures, 0);
+}
+
+#[test]
 fn record_sync_result_tracks_settlement_and_failures() {
     struct StateCase {
         name: &'static str,

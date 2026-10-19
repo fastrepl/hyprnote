@@ -6,7 +6,7 @@ use sqlx::pool::PoolConnection;
 use sqlx::{Sqlite, SqlitePool};
 use tokio::sync::oneshot;
 
-use super::super::state::CloudsyncRuntimeState;
+use super::super::state::{CloudsyncRuntimeState, OutOfSyncStall};
 use super::super::types::{
     CloudsyncActivityStatus, CloudsyncActivityTrigger, CloudsyncNetworkResult,
     cloudsync_receive_error,
@@ -54,14 +54,30 @@ pub(super) fn sync_result_log_level(
     }
 }
 
+/// Returns whether an `out-of-sync` send has stopped making server progress, so
+/// the caller backs off to the normal interval instead of polling for progress.
 pub(super) fn record_sync_result(
     runtime: &Mutex<CloudsyncRuntimeState>,
     result: CloudsyncNetworkResult,
     local_work_remaining: bool,
     trigger: CloudsyncActivityTrigger,
-) {
-    let (activity, transferred_data) = activity_from_result(&result, local_work_remaining, trigger);
+) -> bool {
+    record_sync_result_at(runtime, result, local_work_remaining, trigger, now_ms())
+}
+
+pub(super) fn record_sync_result_at(
+    runtime: &Mutex<CloudsyncRuntimeState>,
+    result: CloudsyncNetworkResult,
+    local_work_remaining: bool,
+    trigger: CloudsyncActivityTrigger,
+    now_ms: u64,
+) -> bool {
     let mut runtime = runtime.lock().unwrap();
+    runtime.out_of_sync_stall = track_out_of_sync_stall(runtime.out_of_sync_stall, &result, now_ms);
+    let stall_error = out_of_sync_stall_error(runtime.out_of_sync_stall, now_ms);
+    let stalled = stall_error.is_some();
+    let (activity, transferred_data) =
+        activity_from_result(&result, local_work_remaining, trigger, stall_error.clone());
     if activity.status != CloudsyncActivityStatus::Failed && runtime.consecutive_failures > 0 {
         tracing::info!(
             failures = runtime.consecutive_failures,
@@ -85,14 +101,19 @@ pub(super) fn record_sync_result(
     }
     runtime.last_sync = Some(result);
 
-    if let Some(error) = runtime.last_sync.as_ref().and_then(embedded_sync_error) {
+    if let Some(error) = runtime
+        .last_sync
+        .as_ref()
+        .and_then(embedded_sync_error)
+        .or(stall_error)
+    {
         runtime.consecutive_failures = runtime.consecutive_failures.saturating_add(1);
         runtime.last_error = Some(error);
         runtime.last_error_kind = runtime
             .last_error
             .as_deref()
             .map(|error| anlg_cloudsync::Error::Io(std::io::Error::other(error)).kind());
-        return;
+        return stalled;
     }
 
     if runtime
@@ -100,19 +121,55 @@ pub(super) fn record_sync_result(
         .as_ref()
         .is_some_and(|result| sync_result_settled(result) && !local_work_remaining)
     {
-        runtime.last_sync_at_ms = Some(now_ms());
+        runtime.last_sync_at_ms = Some(now_ms);
     }
     runtime.last_error = None;
     runtime.last_error_kind = None;
     runtime.consecutive_failures = 0;
+    false
+}
+
+/// How long an `out-of-sync` send may go without the server version advancing
+/// before it is reported as stuck rather than in flight.
+pub(super) const OUT_OF_SYNC_STALL_LIMIT: Duration = Duration::from_secs(120);
+
+fn track_out_of_sync_stall(
+    previous: Option<OutOfSyncStall>,
+    result: &CloudsyncNetworkResult,
+    now_ms: u64,
+) -> Option<OutOfSyncStall> {
+    let send = result
+        .send
+        .as_ref()
+        .filter(|send| send.status.eq_ignore_ascii_case("out-of-sync"))?;
+    // Only server progress counts: local writes keep changing local_version
+    // even while the server is stuck.
+    Some(match previous {
+        Some(stall) if stall.server_version == send.server_version => stall,
+        _ => OutOfSyncStall {
+            server_version: send.server_version,
+            since_ms: now_ms,
+        },
+    })
+}
+
+fn out_of_sync_stall_error(stall: Option<OutOfSyncStall>, now_ms: u64) -> Option<String> {
+    let stalled_ms = now_ms.saturating_sub(stall?.since_ms);
+    (stalled_ms >= OUT_OF_SYNC_STALL_LIMIT.as_millis() as u64).then(|| {
+        format!(
+            "send status: out-of-sync with no server progress for {}s",
+            stalled_ms / 1000
+        )
+    })
 }
 
 fn activity_from_result(
     result: &CloudsyncNetworkResult,
     local_work_remaining: bool,
     trigger: CloudsyncActivityTrigger,
+    stall_error: Option<String>,
 ) -> (SyncActivity, bool) {
-    let error = embedded_sync_error(result);
+    let error = embedded_sync_error(result).or(stall_error);
     let sent_bytes = result
         .send
         .as_ref()
@@ -442,18 +499,23 @@ pub(super) async fn cloudsync_background_loop(
 
         match result {
             Ok(CloudsyncStepOutcome::Completed(step)) => {
-                next_sync_deadline = tokio::time::Instant::now()
-                    + cloudsync_next_delay(
-                        Some(&step.network),
-                        step.local_work_remaining,
-                        context.config.interval,
-                    );
-                record_sync_result(
+                let delay = cloudsync_next_delay(
+                    Some(&step.network),
+                    step.local_work_remaining,
+                    context.config.interval,
+                );
+                let stalled = record_sync_result(
                     &context.runtime_state,
                     step.network,
                     step.local_work_remaining,
                     CloudsyncActivityTrigger::Background,
                 );
+                next_sync_deadline = tokio::time::Instant::now()
+                    + if stalled {
+                        context.config.interval
+                    } else {
+                        delay
+                    };
             }
             Ok(CloudsyncStepOutcome::Deferred) => {
                 next_sync_deadline = tokio::time::Instant::now() + context.config.interval;

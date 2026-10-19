@@ -39,7 +39,9 @@ use anlg_notification_interface::{
 
 use crate::callbacks;
 use crate::icon::{destroy_icon, header_title, load_notification_icon};
-use crate::layout::{HitTarget, MAX_NOTIFICATIONS, NotificationLayout, Rect, stacked_origin};
+use crate::layout::{
+    HitTarget, MAX_NOTIFICATIONS, NotificationLayout, Rect, fit_stack, stacked_origin,
+};
 
 const CLASS_NAME: windows::core::PCWSTR = w!("AnarlogNotification");
 const TIMER_ID: usize = 1;
@@ -120,8 +122,10 @@ impl NotificationManager {
         }
         self.active.insert(key, instance);
         self.reposition();
-        unsafe {
-            let _ = ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+        if self.active.values().any(|instance| instance.hwnd == hwnd) {
+            unsafe {
+                let _ = ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+            }
         }
     }
 
@@ -135,12 +139,32 @@ impl NotificationManager {
     }
 
     fn reposition(&mut self) {
-        let (work_x, work_y, work_width, _) = work_area();
+        let (work_x, work_y, work_width, work_height) = work_area();
+        let mut layouts: Vec<_> = self
+            .active
+            .values()
+            .map(|instance| {
+                let dpi = unsafe { GetDpiForWindow(instance.hwnd) }.max(96);
+                NotificationLayout::for_state(&instance.payload, instance.is_expanded).at_dpi(dpi)
+            })
+            .collect();
+        let first = fit_stack(&mut layouts, work_height);
+        for _ in 0..first {
+            if let Some((_, instance)) = self.active.shift_remove_index(0) {
+                unsafe {
+                    let _ = KillTimer(Some(instance.hwnd), TIMER_ID);
+                    let _ = DestroyWindow(instance.hwnd);
+                }
+                destroy_icon(instance.icon);
+            }
+        }
         let mut occupied = 0;
-        for instance in self.active.values_mut() {
-            let dpi = unsafe { GetDpiForWindow(instance.hwnd) }.max(96);
-            instance.layout =
-                NotificationLayout::for_state(&instance.payload, instance.is_expanded).at_dpi(dpi);
+        for (instance, layout) in self
+            .active
+            .values_mut()
+            .zip(layouts.into_iter().skip(first))
+        {
+            instance.layout = layout;
             let (x, y) = stacked_origin(work_x, work_y, work_width, occupied, &instance.layout);
             occupied +=
                 instance.layout.height + instance.layout.scale(crate::layout::NOTIFICATION_SPACING);

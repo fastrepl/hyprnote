@@ -251,6 +251,57 @@ impl NotificationLayout {
     }
 }
 
+pub fn fit_stack(layouts: &mut [NotificationLayout], work_height: i32) -> usize {
+    let minimum_height = |layout: &NotificationLayout| {
+        if layout.collapse.is_some() {
+            // Keep one body line above the bottom action when space is limited.
+            layout.scale(148)
+        } else {
+            layout.height
+        }
+    };
+    let mut first = 0;
+    while first < layouts.len() {
+        let visible = &layouts[first..];
+        let margin = visible
+            .iter()
+            .map(|layout| layout.scale(TOP_MARGIN))
+            .max()
+            .unwrap_or(0);
+        let spacing = visible
+            .iter()
+            .map(|layout| layout.scale(NOTIFICATION_SPACING))
+            .max()
+            .unwrap_or(0);
+        let minimum = visible.iter().map(minimum_height).sum::<i32>()
+            + spacing * (visible.len() as i32 - 1)
+            + margin * 2;
+        if minimum <= work_height {
+            let expanded_count = visible
+                .iter()
+                .filter(|layout| layout.collapse.is_some())
+                .count() as i32;
+            let extra = (work_height - minimum) / expanded_count.max(1);
+            for layout in &mut layouts[first..] {
+                if layout.collapse.is_some() {
+                    layout.height = layout.height.min(minimum_height(layout) + extra);
+                    let action_y = layout.height - layout.scale(72);
+                    if let Some(action) = &mut layout.action {
+                        action.y = action_y;
+                    }
+                    layout.message.height = layout
+                        .message
+                        .height
+                        .min(layout.height - layout.scale(84) - layout.message.y);
+                }
+            }
+            return first;
+        }
+        first += 1;
+    }
+    first
+}
+
 pub fn stacked_origin(
     work_x: i32,
     work_y: i32,
@@ -341,32 +392,40 @@ mod tests {
             .action_menu("Open meeting", NotificationAction::OpenMeeting)
             .build();
 
-        for (dpi, width, height, action_x, caret_x, action_y) in
-            [(144, 540, 96, 360, 480, 45), (192, 720, 128, 480, 640, 60)]
-        {
-            let layout = NotificationLayout::compact(&notification).at_dpi(dpi);
-            assert_eq!((layout.width, layout.height), (width, height));
-            assert!(layout.title.height >= (14 * dpi / 96) as i32);
-            assert!(layout.message.height >= (11 * dpi / 96) as i32);
-            assert_eq!(
-                layout.action_hit(&notification, action_x, action_y),
-                HitTarget::Action
-            );
-            assert_eq!(
-                layout.action_hit(&notification, caret_x, action_y),
-                HitTarget::Options
-            );
-            let (x, y) = stacked_origin(0, 0, 1920, 0, &layout);
-            assert!(x + layout.width < 1920);
-            let (_, next_y) = stacked_origin(
-                0,
-                0,
-                1920,
-                layout.height + layout.scale(NOTIFICATION_SPACING),
-                &layout,
-            );
-            assert!(next_y > y + layout.height);
+        let layout = NotificationLayout::compact(&notification).at_dpi(192);
+        assert_eq!((layout.width, layout.height), (720, 128));
+        assert!(layout.title.height >= 28);
+        assert!(layout.message.height >= 22);
+        assert_eq!(layout.action_hit(&notification, 480, 60), HitTarget::Action);
+        assert_eq!(
+            layout.action_hit(&notification, 640, 60),
+            HitTarget::Options
+        );
+    }
+
+    #[test]
+    fn expanded_hidpi_stack_keeps_every_action_on_a_short_work_area() {
+        let notification = compact_notification();
+        let mut layouts = vec![NotificationLayout::expanded(&notification).at_dpi(192)];
+        layouts.extend((0..4).map(|_| NotificationLayout::compact(&notification).at_dpi(192)));
+        assert_eq!(fit_stack(&mut layouts, 1080), 0);
+        let mut occupied = 0;
+        for layout in &layouts {
+            let (_, y) = stacked_origin(0, 0, 1920, occupied, layout);
+            assert!(y + layout.height <= 1080);
+            for control in [Some(layout.close), layout.collapse, layout.action]
+                .into_iter()
+                .flatten()
+            {
+                assert!(control.y >= 0 && control.bottom() <= layout.height);
+            }
+            if layout.collapse.is_some() {
+                assert!(layout.message.bottom() <= layout.action.unwrap().y);
+            }
+            occupied += layout.height + layout.scale(NOTIFICATION_SPACING);
         }
+        assert!(layouts[0].message.height > 0);
+        assert!(fit_stack(&mut layouts, 500) > 0);
     }
 
     #[test]

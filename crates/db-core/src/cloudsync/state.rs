@@ -17,6 +17,14 @@ pub(crate) struct CloudsyncRuntimeState {
     pub(crate) last_error_kind: Option<anlg_cloudsync::ErrorKind>,
     pub(crate) consecutive_failures: u32,
     pub(crate) last_logged_activity: Option<CloudsyncActivityStatus>,
+    pub(crate) out_of_sync_stall: Option<OutOfSyncStall>,
+}
+
+/// Server version an `out-of-sync` send has been stuck at, and since when.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct OutOfSyncStall {
+    pub(crate) server_version: i64,
+    pub(crate) since_ms: u64,
 }
 
 #[derive(Debug)]

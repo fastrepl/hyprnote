@@ -237,37 +237,33 @@ Searches the `company` property across person notes. Useful when you're preparin
 
 ### Step 8: Add Anarlog for real-time transcription and AI notes
 
-Everything up to this point relies on what you managed to type. In a 30-minute meeting, that's maybe 15% of what was said. The decision that was made at minute 22. The exact phrasing someone used when they pushed back on a deadline. The side comment that turns out to be the most important thing said all week. It's gone unless you happened to write it down.
+Your template captures what you type. A transcript can help you check the decision, name, or deadline you missed while listening. Anarlog, the open-source meeting notetaker we build, can capture microphone and system audio without adding a meeting bot. Tell participants when you record and follow the meeting's consent requirements.
 
-You need transcription. And if you're the kind of person who chose Obsidian — you chose it because your files live on your machine, in a format you control, with no lock-in — you need transcription that works the same way.
-
-Most meeting transcription tools don't. They store your data on their servers. They require monthly subscriptions. They join your call as a bot. They lock your transcripts in a proprietary format you can't move.
-
-This is exactly the problem Anarlog solves.
-
-Anarlog is an open-source AI notepad for meetings. Here's what it does and why it fits this system:
+Anarlog stores the original meeting session, notes, and transcript in local SQLite, with attachments kept as separate local files. Markdown is an export format. Setting a storage location alone does not put readable notes in an Obsidian vault.
 
 ![Current Anarlog meeting summary view](https://static.anarlog.so/blog/library/products/anarlog/desktop/2026-08-20-meeting-summary.jpg "char-editor-width=80")
 
-You point the output folder at your vault. This is the key. Set Anarlog's output folder to your `Meetings/` folder (or a subfolder like `Meetings/Transcripts/`). When Anarlog finishes processing a meeting, the transcript and summary appear in your vault. Obsidian indexes them instantly. They're searchable, linkable, part of your system. No export. No copy-paste.
+Start with a manual export:
 
-It records via system audio. No bot joins your Zoom. No calendar permissions. Anarlog captures what your computer hears, which means it works with Zoom, Teams, Google Meet, phone calls, and in-person conversations with a mic. Nobody in the meeting knows it's running.
+1. Finish the meeting and generate a summary if you want one included. Review the transcript and summary for names, decisions, and deadlines.
+2. Open the meeting's **Export** dialog in Anarlog. Choose **Markdown** and select the notes, summary, and transcript sections you need.
+3. Save the `.md` file in your vault's `Meetings/` folder, or move the exported file there. Open it in Obsidian and link it from your meeting note.
 
-It transcribes in real time and generates structured summaries. Anarlog combines your notes with the full transcript and produces a summary using AI. The summary lands as a file on your computer.
+For repeated exports, **Pro Automations** can write Markdown to a chosen folder. In **Settings → Automations**, create a workflow with **After the meeting summary is ready** as its trigger, add **Markdown export**, choose the content sections and your vault's `Meetings/` directory, then select **Save & enable**. Run a short sample and check the resulting file before depending on it for a real meeting. A meeting-end trigger runs at a different stage; do not assume a generated summary is already available then.
 
-You choose the AI. Use Anarlog's managed cloud service if you want simplicity. Bring your own API keys from OpenAI, Deepgram, or Anthropic if your company already has them. Run models locally through Ollama or LM Studio if nothing leaves your machine. Your security team can audit the code. You're not trusting a black box with your meeting recordings.
+This is a one-way export. Editing the vault copy does not update the original session in Anarlog. Keep Anarlog's original data and backups when you need the recording or the complete meeting record. Do not assume an exported file matches the YAML properties or template fields used earlier in this guide; check it and add the properties your Obsidian workflow needs.
 
-There's no lock-in. Every file Anarlog produces is a file on your computer. Stop using Anarlog and every transcript is still there, in your vault, working. There's nothing to export because nothing was ever locked up.
+Choose transcription and summary providers separately. Local speech models handle transcription; Ollama or LM Studio can handle local summaries. Selecting only a local summary model does not make cloud transcription local. Managed or bring-your-own-key cloud providers receive the audio or text needed for their requests. Follow the [offline transcription setup and checks](/blog/offline-meeting-transcription-mac/) if you need an on-device workflow.
 
-If you use Obsidian, you already made this choice once: files on your machine, open format, your control. Anarlog is the same choice applied to meeting recordings.
+For a broader comparison of editable files and database-backed notes, see the [Markdown note-taking apps guide](/blog/markdown-note-taking-apps/).
 
 ## Your Obsidian Meeting Notes Workflow
 
 Monday morning. You open Obsidian.
 
 1. You check your calendar and see three meetings today. From your daily note, you create a meeting note for the first one: `2026-04-07 Sprint Planning`.
-2. The meeting starts. You open Anarlog. It starts recording system audio. You take notes in Obsidian: quick bullets, [[wikilinks]] for people and topics as they come up.
-3. The meeting ends. You stop Anarlog. It processes the recording and drops a transcript and structured summary into your vault. You pull the key decisions and action items to the top of your meeting note.
+2. With participants informed, you start recording in Anarlog. You take notes in Obsidian: quick bullets, [[wikilinks]] for people and topics as they come up.
+3. The meeting ends. You stop Anarlog, generate and review the summary, then export Markdown to your vault or check the file from your enabled summary-ready automation. You pull the verified decisions and action items to the top of your meeting note.
 4. Before your 1:1 with Sarah that afternoon, you open [[Sarah Chen]] and glance at backlinks. You can see every meeting she's been in this month, what she committed to, what's still open. You search task-todo:"Sarah Chen" and it shows rwo open items from last week.
 5. In the 1:1, you reference the specific thing she said in the sprint planning meeting. You know the exact phrasing because it's in the transcript. You're not guessing. You're not paraphrasing from memory. You're reading her words back from a file in your vault.
 

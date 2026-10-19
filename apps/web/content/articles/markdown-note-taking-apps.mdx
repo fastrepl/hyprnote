@@ -1,6 +1,6 @@
 ---
 meta_title: "The Best Markdown Note-Taking Apps in 2026"
-meta_description: "We tested the best markdown note-taking apps in 2026. From meeting notes to PKM, find the right app for your workflow."
+meta_description: "Compare Markdown note-taking apps for meetings, linked notes, and coding. See which use editable files, which use local databases, and how exports differ."
 author:
   - "John Jeong"
 featured: false
@@ -8,25 +8,36 @@ category: "Comparisons"
 date: "2026-09-16"
 ---
 
-Markdown note-taking apps have quietly become the default for anyone serious about owning their knowledge long-term. The format is future-proof, the files are portable, and you're never one pricing change away from losing access to years of work.
+Markdown is useful when you want notes you can read in another editor. But a Markdown editor does not always save its working notes as independent `.md` files. Some apps use a local database and create Markdown copies when you export.
 
 "Markdown app" covers a lot of ground though. Some are built for linking ideas across thousands of notes. Some are built for developers who think in code blocks. Some are built for people who just want their notes encrypted and synced without drama.
 
-This list covers five apps, each strong for a specific use case, so you can find the one that fits how you actually think and work.
+This comparison covers five apps by workflow and storage model. Start with whether you need to edit the same files in several tools or mainly want a portable copy of notes managed inside one app.
 
 ## Top markdown note-taking apps compared
 
 
-| &nbsp;   | &nbsp;                         | &nbsp;          | &nbsp;          | &nbsp;            |
-| -------- | ------------------------------ | --------------- | --------------- | ----------------- |
-| **App**  | **Best For**                   | **Open Source** | **Local Files** | **Price**         |
-| Anarlog     | Meeting notes                  | ✅               | ✅               | Free / $14/mo     |
-| Obsidian | Personal knowledge management  | ❌               | ✅               | Free / $4/mo sync |
-| Logseq   | Daily journaling & outlining   | ✅               | ✅               | Free              |
-| Joplin   | Cross-device sync with privacy | ✅               | ✅               | Free / 2.99€/mo   |
-| Inkdrop  | Developers                     | ❌               | ❌               | $8.31/mo          |
+| App | Best for | Working storage and Markdown | Price |
+| --- | --- | --- | --- |
+| Anarlog | Meeting notes | Local SQLite; manual or configured automated Markdown export | Free / $14/mo Pro |
+| Obsidian | Personal knowledge management | Editable Markdown files in a local vault | Free / $4/mo Sync billed annually |
+| Logseq | Daily journaling & outlining | OG: Markdown/Org files; DB graphs: SQLite with export options | Free |
+| Joplin | Cross-device sync with privacy | Local SQLite; Markdown import/export | Free / 2.99€/mo Cloud |
+| Inkdrop | Developers | Local database; Markdown export | $8.31/mo billed annually |
+
+Listed plan prices checked October 19, 2026: [Anarlog](/pricing/), [Obsidian](https://obsidian.md/pricing), [Joplin Cloud](https://joplinapp.org/plans/), and [Inkdrop](https://www.inkdrop.app/). Annual rates require annual billing; Joplin's €2.99 example is monthly billing.
 
 <Image src="https://static.anarlog.so/blog/articles/markdown-note-taking-apps/markdown-app-fit.png" alt="Five Markdown note-taking apps mapped to their best-fit use cases" />
+
+## Markdown files or Markdown export: which do you need?
+
+Choose a file-based app if another editor, a script, or a Git workflow must read and change your working notes directly. [Obsidian stores notes as plain-text Markdown files](https://obsidian.md/help/data-storage) in a vault folder and detects external file changes.
+
+A local database can still work offline and offer useful exports. [Joplin uses SQLite](https://joplinapp.org/help/dev/spec/architecture/), while [Inkdrop writes to a local database before syncing](https://developers.inkdrop.app/guides/access-the-local-database). Their Markdown exports are separate copies, not the live database. Logseq needs an extra check: [OG is the file version](https://github.com/logseq/og), while [DB graphs use SQLite](https://github.com/logseq/docs/blob/master/db-version-changes.md). Its [standard Markdown export does not preserve every timestamp or property](https://github.com/logseq/docs/blob/master/db-version.md#graph-export).
+
+Before moving a collection, try one note with headings, tasks, links, and an attachment. Export it and open it in your intended editor. Check what survives and where attachments go. If you need external editing, check whether edits return to the original app; export alone does not establish that. Keep the app's native backup as well as portable copies when you need its metadata or history.
+
+For meeting notes, Anarlog keeps the original session in SQLite and exports the content you select. The [Obsidian meeting workflow](/blog/obsidian-meeting-notes/) explains manual export and an optional Pro automation; saving a copy in a vault does not make Obsidian and Anarlog a two-way sync system.
 
 ## The best markdown note-taking apps, reviewed
 
@@ -41,8 +52,8 @@ This list covers five apps, each strong for a specific use case, so you can find
 - System audio capture - No bots joining your calls. No calendar permissions needed. Works on Zoom, Teams, phone calls, and in-person conversations
 - Real-time transcription - Live transcript generates as the meeting happens, so you can follow along instead of furiously typing
 - AI summaries - Combines your own notes with the transcript to produce structured summaries with action items
-- Your choice of AI stack - Use Anarlog's managed cloud service, bring your own API keys (OpenAI, Anthropic, Deepgram, others), or run fully local via Ollama or LM Studio
-- Local SQLite meeting record - Export Markdown when you need a portable copy
+- Your choice of AI stack - Use managed cloud services, bring your own API keys, or configure local speech and summary models separately. Ollama or LM Studio handles the language-model step; it does not replace the speech model. See the [offline setup and checks](/blog/offline-meeting-transcription-mac/)
+- Local SQLite meeting record - Export selected notes, summary, and transcript as Markdown. Pro Automations can write exports to a chosen folder
 - Custom templates - Set up templates for recurring meeting types so your summaries are always structured the same way
 - AI chat - Query your transcripts after the fact. Ask what was decided, what's pending, what someone said
 - Search - Semantic search across every meeting you've ever recorded
@@ -51,7 +62,7 @@ This list covers five apps, each strong for a specific use case, so you can find
 
 #### Pros:
 
-- Data never has to leave your device
+- On-device processing is available when both transcription and summary providers are configured locally; cloud providers receive the data needed for their requests
 - Switch AI providers anytime - no forced stack
 - Works with local models, so you can go fully offline
 - Open source builds trust for regulated industries and security-conscious teams
@@ -65,7 +76,7 @@ This list covers five apps, each strong for a specific use case, so you can find
 
 #### Pricing:
 
-Free plan with local transcription or bring-your-own-key. Pro is $14/month or $140/year for the managed cloud service.
+Free includes on-device or bring-your-own-key transcription and manual exports; external provider charges can apply. Pro is $14/person/month or $140/person/year and adds hosted AI, sync, sharing, and automations. See the [current plan details](/pricing/).
 
 ### 2. Obsidian - best markdown note-taking app for personal knowledge management
 
@@ -93,7 +104,7 @@ Opening one note pulls you into three others you forgot existed but suddenly nee
 - Free for personal use with zero feature restrictions, no sign-up required
 - Sync works with whatever you already use (iCloud, Dropbox, Google Drive) or pay for Obsidian Sync if you want something purpose-built
 - Plugin ecosystem means the app grows with your needs
-- [Meeting notes](/blog/obsidian-meeting-notes/) from Anarlog land directly in your vault since both use markdown
+- Bring [meeting notes from Anarlog into your vault](/blog/obsidian-meeting-notes/) with manual Markdown export or a configured Pro automation
 - Active community with real depth - forums, Discord, YouTube channels dedicated to workflows
 
 #### Cons:
@@ -116,6 +127,8 @@ Free for everyone, no limits, no sign-up - including commercial use, which has b
 
 Every bullet point is a block that can be linked, referenced, and surfaced anywhere else in your graph. Organization happens as a byproduct of writing, not before it.
 
+The file-oriented features below describe Logseq OG. Check whether you are installing OG or the DB version before choosing it for a Markdown-folder workflow; their storage and export behavior differ.
+
 #### Key Features:
 
 - Daily journal - Every day starts with a fresh page. Just write. No upfront organization required
@@ -126,7 +139,7 @@ Every bullet point is a block that can be linked, referenced, and surfaced anywh
 - Whiteboards - Infinite canvas for pulling notes out of the graph and thinking spatially
 - Queries - Pull any information back out of your graph with structured queries
 - 150+ plugins - Task management, custom views, integrations
-- Local markdown files - Everything stored as .md files you own
+- Local files in OG - Markdown or Org files; DB graphs use SQLite instead
 - Logseq Sync - Encrypted file syncing across devices (beta)
 - Mobile apps - iOS and Android
 
@@ -141,7 +154,7 @@ Every bullet point is a block that can be linked, referenced, and surfaced anywh
 #### Cons:
 
 - The project is mid-transition. After years of rewrite, Logseq 2.0 (the "DB version") finally hit beta in July 2026, and Logseq is officially splitting into two versions: the file-based 1.x you know, and a database-backed 2.0
-- The DB version stores canonical data in a database, with markdown available as a mirror rather than the source of truth - a genuine shift for anyone who picked Logseq specifically for plain-file portability
+- The DB version stores canonical data in SQLite. Markdown export is not a complete graph backup; check the [documented export options](https://github.com/logseq/docs/blob/master/db-version.md#graph-export) before migrating
 - The DB version's new sync approach (RTC, for Real-Time Collaboration) and its new mobile app are both still in alpha, a step behind the DB version's own beta status - expect rough edges if you depend on either
 - The file-based 1.x version is effectively in maintenance mode while the team focuses on 2.0
 - Performance degrades with large graphs on 1.x - slow startup, laggy rendering, real complaints at scale
@@ -155,11 +168,11 @@ Free for personal use. Logseq Sync is in beta. No paid tiers beyond sync.
 
 ![Joplin desktop workspace with notebooks, tags, Markdown source, and rendered preview](https://static.anarlog.so/blog/articles/markdown-note-taking-apps/image-4.png)
 
-**[Joplin](https://joplinapp.org/)** does one thing exceptionally well: keeping your notes encrypted, portable, and in sync across every device you own using whatever cloud storage you already pay for. No vendor lock-in on sync, no paywall surprises, no compromise on privacy.
+**[Joplin](https://joplinapp.org/)** offers a Markdown editor, local SQLite storage, and a choice of sync services. It suits people who want control over their sync backend and can spend time configuring it. Working notes live in Joplin's database; exporting Markdown gives you copies for other tools.
 
 #### Key Features:
 
-- End-to-end encryption - Notes are encrypted before they ever leave your device. Nobody else can read them, including the Joplin team
+- Optional end-to-end encrypted sync - [Enable E2EE manually](https://joplinapp.org/help/apps/sync/e2ee/) and follow the setup steps on your other devices. Local database storage and encrypted sync are separate properties
 - Flexible sync - Works with Joplin Cloud, Dropbox, OneDrive, Nextcloud, WebDAV, or S3. You're never locked to one provider
 - Rich and markdown editors - Switch between a rich text editor and a markdown editor depending on your preference. Markdown isn't mandatory
 - Web clipper - Browser extension for Chrome and Firefox to save web pages directly as notes
@@ -173,12 +186,12 @@ Free for personal use. Logseq Sync is in beta. No paid tiers beyond sync.
 
 #### Pros:
 
-- The sync flexibility is genuinely unmatched - no other free app lets you bring your own backend with E2EE
+- Choose a supported sync backend and enable E2EE when you need encrypted sync
 - Desktop app is solid and reliable, users regularly report six-plus years of daily use without issues
 - Completely free with no note limits, no device limits, no paywall surprises
 - Rich text editor means markdown is optional - lower barrier than most apps in this list
 - Open source with an active community and web clipper that actually works
-- Exports to JEX, PDF, HTML, and raw markdown - getting your data out is never a problem
+- [Markdown export with frontmatter](https://joplinapp.org/help/dev/spec/interop_with_frontmatter/) supports moving notes to other tools; [JEX export](https://joplinapp.org/help/apps/import_export/) preserves Joplin metadata for a fuller backup
 
 #### Cons:
 
@@ -224,7 +237,7 @@ Where Obsidian gives you a blank canvas to build whatever system you want, Inkdr
 
 #### Cons:
 
-- Notes are stored in an internal database, not plain markdown files - you can export, but you can't just open your vault in another editor
+- Notes are stored in a local database rather than an editable Markdown folder. Use [File → Export → All Notes](https://docs.inkdrop.app/reference/data-backup) to create Markdown copies for another editor
 - Pricing jumped from $4.99 to $8.31/month, which stings for a single-developer app and has driven some users away
 - No backlinks or graph view - not designed for networked knowledge, purely note organization
 - Smaller plugin ecosystem compared to Obsidian
@@ -242,7 +255,7 @@ $8.31/month billed annually ($99.80/year), or $9.98 billed monthly. 30-day free 
 
 ### 2. Bear
 
-**[Bear](https://bear.app/)** is the polished option for Apple users. Beautiful typography, fast, tag-based organization, and a markdown-compatible editor. The free version is local-only; Bear Pro ($2.99/month or $29.99/year) adds iCloud sync, note encryption, and full export options. Two caveats keep it off the main list: it is Apple-only, and notes live in Bear's database rather than as plain files on disk - you export markdown rather than own it directly.
+**[Bear](https://bear.app/)** is the polished option for Apple users. Beautiful typography, fast, tag-based organization, and a markdown-compatible editor. The free version is local-only; Bear Pro ($2.99/month or $29.99/year) adds iCloud sync, note encryption, and full export options. Two caveats keep it off the main list: it is Apple-only, and notes live in Bear's database rather than as plain files on disk - editing independent Markdown files requires export.
 
 ### 3. iA Writer
 
@@ -272,6 +285,6 @@ If you want to build a knowledge base that gets more valuable the longer you use
 
 If you hate deciding where to put things and just want to write, **Logseq** removes that friction entirely. Open it and start. The graph does the organizing for you. Go in aware of the 2.0 database transition though - the markdown-first story is changing.
 
-If you need your notes on every device, encrypted, without paying anyone a monthly fee, **Joplin** is the most practical choice here. The desktop app is rock solid. Manage your expectations on mobile.
+If you want a choice of sync backends with optional end-to-end encryption, consider **Joplin**. Configure E2EE explicitly and test exports before moving an existing collection.
 
 If you're a developer and the first thing you check in any note app is whether it has Vim mode, download **Inkdrop**.

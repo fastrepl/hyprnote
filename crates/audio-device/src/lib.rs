@@ -182,15 +182,41 @@ static BLUETOOTH_DEFAULT_OWNERS: std::sync::Mutex<Vec<std::sync::Weak<BluetoothD
 
 struct BluetoothDefaultOwnership {
     requested: AudioDevice,
+    endpoint_ids: std::sync::Mutex<Option<Vec<DeviceId>>>,
     active: std::sync::atomic::AtomicBool,
 }
 
 impl BluetoothDefaultOwnership {
+    fn finish_handoff(
+        &self,
+        default_after: Option<&AudioDevice>,
+        listed_after: Option<&[AudioDevice]>,
+    ) {
+        let capture = default_after
+            .filter(|device| bluetooth_handoff_ready(&self.requested, device))
+            .or_else(|| {
+                listed_after.and_then(|inputs| listed_hands_free_capture(&self.requested, inputs))
+            });
+        let mut ids = vec![self.requested.id.clone()];
+        if let Some(capture) = capture {
+            if !ids.contains(&capture.id) {
+                ids.push(capture.id.clone());
+            }
+        }
+        *self.endpoint_ids.lock().unwrap_or_else(|e| e.into_inner()) = Some(ids);
+    }
+
     fn owns_default(&self, current: Option<&AudioDevice>) -> bool {
         let Some(current) = current else {
             return false;
         };
-        if !related_bluetooth_endpoint(&self.requested, current) {
+        let endpoint_ids = self.endpoint_ids.lock().unwrap_or_else(|e| e.into_inner());
+        let owned = match endpoint_ids.as_ref() {
+            Some(ids) => ids.contains(&current.id),
+            // Names may identify the new HFP endpoint during the initial handoff only.
+            None => related_bluetooth_endpoint(&self.requested, current),
+        };
+        if !owned {
             // A later user selection relinquishes ownership permanently, even if they
             // select the headset again before the old capture finishes shutting down.
             self.active
@@ -227,6 +253,7 @@ fn retain_bluetooth_system_defaults(
 ) -> std::sync::Arc<BluetoothDefaultOwnership> {
     let owner = std::sync::Arc::new(BluetoothDefaultOwnership {
         requested,
+        endpoint_ids: std::sync::Mutex::new(None),
         active: std::sync::atomic::AtomicBool::new(true),
     });
     let mut owners = BLUETOOTH_DEFAULT_OWNERS
@@ -358,6 +385,7 @@ fn prepare_macos_bluetooth_input(name: &str) -> Option<BluetoothInputActivation>
     }
 
     let listed_after = backend.list_input_devices().ok();
+    ownership.finish_handoff(default_after.as_ref(), listed_after.as_deref());
     let name = resolved_capture_name(&requested, default_after.as_ref(), listed_after.as_deref());
     tracing::info!(
         requested = %requested.name,
@@ -429,8 +457,10 @@ mod tests {
             for user_changed in [false, true] {
                 let ownership = std::sync::Arc::new(BluetoothDefaultOwnership {
                     requested: requested.clone(),
+                    endpoint_ids: std::sync::Mutex::new(None),
                     active: std::sync::atomic::AtomicBool::new(true),
                 });
+                ownership.finish_handoff(Some(current), None);
                 let mut activation = BluetoothInputActivation {
                     name: (current.id != requested.id).then(|| current.name.clone()),
                     previous_default: Some(DeviceId("builtin".into())),
@@ -457,6 +487,34 @@ mod tests {
                     }
                 );
             }
+        }
+    }
+
+    #[test]
+    fn same_named_headset_selection_is_not_owned_or_restored() {
+        for handoff_name in ["AirPods", "AirPods Hands-Free"] {
+            let requested = named_input("headset-a", "AirPods", TransportType::Bluetooth);
+            let captured = named_input("headset-a-hfp", handoff_name, TransportType::Bluetooth);
+            let other = named_input("headset-b", handoff_name, TransportType::Bluetooth);
+            let ownership = std::sync::Arc::new(BluetoothDefaultOwnership {
+                requested,
+                endpoint_ids: std::sync::Mutex::new(None),
+                active: std::sync::atomic::AtomicBool::new(true),
+            });
+            ownership.finish_handoff(Some(&captured), None);
+            assert!(ownership.owns_default(Some(&captured)));
+            let mut activation = BluetoothInputActivation {
+                name: Some(captured.name.clone()),
+                previous_default: Some(DeviceId("builtin".into())),
+                ownership: Some(ownership.clone()),
+            };
+            let mut selected = other.id.clone();
+            activation.restore_previous_default(Some(&other), |previous| {
+                selected = previous.clone();
+                Ok(())
+            });
+            assert_eq!(selected, other.id);
+            assert!(!ownership.owns_default(Some(&other)));
         }
     }
 

@@ -2,6 +2,7 @@ import { resolveResource } from "@tauri-apps/api/path";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
+import { AUTO_STOP_ACCESSIBILITY_TIMEOUT_MS } from "./auto-stop";
 import {
   cancelAutoStopEndedNotification,
   consumeAutoStopEndedNotificationKey,
@@ -1571,6 +1572,49 @@ describe("ListenerProvider detect events", () => {
         key: expect.stringContaining("auto-stop-ended:session-1"),
       }),
     );
+  });
+
+  test("keeps recording and prompts when AX stalls without queuing duplicate inspections", async () => {
+    const store = createListenerStore();
+    const stopSpy = vi.fn();
+    const app = { id: "us.zoom.xos", name: "Zoom" };
+    let resolveInspection!: (result: { status: "ok"; data: [] }) => void;
+    inspectMeetingAccessibilityMock.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveInspection = resolve;
+      }),
+    );
+    store.setState({ stop: stopSpy });
+    store.getState().setTriggerAppIds([app.id]);
+    setStoreActive(store);
+    const handler = await renderProvider(store);
+    vi.useFakeTimers();
+
+    const micStopped = () =>
+      handler({ payload: { type: "micStopped", apps: [app] } });
+    micStopped();
+    await vi.advanceTimersByTimeAsync(AUTO_STOP_CONFIRM_DELAY_MS);
+    expect(showNotificationMock).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(AUTO_STOP_ACCESSIBILITY_TIMEOUT_MS);
+
+    expect(stopSpy).not.toHaveBeenCalled();
+    expect(showNotificationMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        key: expect.stringContaining("auto-stop-ended:session-1"),
+        action_label: "Stop",
+      }),
+    );
+    micStopped();
+    await vi.advanceTimersByTimeAsync(AUTO_STOP_CONFIRM_DELAY_MS);
+    expect(inspectMeetingAccessibilityMock).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(AUTO_STOP_ACCESSIBILITY_TIMEOUT_MS);
+    resolveInspection({ status: "ok", data: [] });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(stopSpy).not.toHaveBeenCalled();
+
+    micStopped();
+    await vi.advanceTimersByTimeAsync(AUTO_STOP_CONFIRM_DELAY_MS);
+    expect(stopSpy).toHaveBeenCalledOnce();
   });
 
   test("does not recheck after the meeting resumes during accessibility inspection", async () => {

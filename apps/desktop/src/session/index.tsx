@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import React, { useEffect, useRef } from "react";
@@ -272,6 +273,11 @@ function TabContentNoteInner({
     enabled: !lockOverlay,
   });
 
+  const showSourcePanel =
+    audioExists &&
+    audioUrlReady &&
+    sessionMode !== "active" &&
+    sessionMode !== "finalizing";
   const showTopAudioPlayer = shouldShowSessionTopAudioPlayer({
     audioExists,
     audioUrlReady,
@@ -365,33 +371,68 @@ function TabContentNoteInner({
           {showTopAudioPlayer && !lockOverlay ? (
             <div
               data-session-top-audio-player
-              className="shrink-0 px-1 pt-1 pb-2"
+              className="shrink-0 px-1 pt-2 pb-1 xl:hidden"
             >
-              <div className="border-border/70 bg-card/80 overflow-hidden rounded-[22px] border">
+              <div className="border-border/70 bg-card/80 overflow-hidden rounded-xl border">
                 <AudioPlayer.Timeline contentClassName="py-1.5 pr-3 pl-1" />
               </div>
             </div>
           ) : null}
-          <div className="min-h-0 flex-1">
-            {session ? (
-              <NoteInput
-                ref={noteInputRef}
-                tab={tab}
-                rawMd={session.raw_md}
-                sessionTitle={session.title}
-                eventTitle={sessionEvent?.title}
-                eventDescription={sessionEvent?.description}
-                editorTabs={editorTabs}
-                currentTab={currentView}
-                handleTabChange={handleTabChange}
-                sessionMode={sessionMode}
-                transcriptEditMode={transcriptEditMode}
-                onTranscriptEditModeChange={handleTranscriptEditModeChange}
-                hideHeader
-              />
-            ) : (
-              <SessionContentLoading />
-            )}
+          <div className="flex min-h-0 flex-1 gap-3 pt-3">
+            <main
+              data-interview-workspace-main
+              className="min-h-0 min-w-0 flex-1 overflow-hidden"
+            >
+              {session ? (
+                <NoteInput
+                  ref={noteInputRef}
+                  tab={tab}
+                  rawMd={session.raw_md}
+                  sessionTitle={session.title}
+                  eventTitle={sessionEvent?.title}
+                  eventDescription={sessionEvent?.description}
+                  editorTabs={editorTabs}
+                  currentTab={currentView}
+                  handleTabChange={handleTabChange}
+                  sessionMode={sessionMode}
+                  transcriptEditMode={transcriptEditMode}
+                  onTranscriptEditModeChange={handleTranscriptEditModeChange}
+                  hideHeader
+                />
+              ) : (
+                <SessionContentLoading />
+              )}
+            </main>
+            {showSourcePanel && !lockOverlay ? (
+              <aside
+                data-interview-source-panel
+                aria-label="Interview source"
+                className="border-border/80 bg-card hidden w-[280px] shrink-0 flex-col overflow-hidden rounded-xl border xl:flex 2xl:w-[320px]"
+              >
+                <div className="border-border/70 flex items-center justify-between border-b px-3 py-3">
+                  <div className="min-w-0">
+                    <h2 className="text-foreground text-sm font-semibold">
+                      Interview source
+                    </h2>
+                    <p className="text-muted-foreground mt-0.5 text-xs">
+                      Audio recording
+                    </p>
+                  </div>
+                  <span className="bg-muted text-muted-foreground rounded-full px-2 py-1 text-[10px] font-medium">
+                    SOURCE
+                  </span>
+                </div>
+                <div className="min-h-0 flex-1 p-2">
+                  <div className="border-border/70 bg-background overflow-hidden rounded-lg border">
+                    <AudioPlayer.Timeline contentClassName="px-2 py-2" />
+                  </div>
+                  <p className="text-muted-foreground mt-3 px-1 text-xs leading-relaxed">
+                    Use the recording controls to review the source while
+                    reading the interview summary, transcript, or notes.
+                  </p>
+                </div>
+              </aside>
+            ) : null}
           </div>
         </div>
       </SessionSurface>

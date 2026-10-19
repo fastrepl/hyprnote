@@ -446,8 +446,9 @@ impl MicInput {
 
         match opened {
             Some((device, config, name)) => {
-                let bluetooth =
-                    bluetooth.filter(|activation| activation.name.as_ref() == Some(&name));
+                let bluetooth = bluetooth.and_then(|activation| {
+                    activation.for_capture_device(&name, default_name.as_deref())
+                });
                 tracing::info!(
                     anarlog.audio.sample_rate_hz = ?config.sample_rate(),
                     device_name = name,

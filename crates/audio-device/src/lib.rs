@@ -211,6 +211,18 @@ pub struct BluetoothInputActivation {
     owns_system_defaults: bool,
 }
 
+impl BluetoothInputActivation {
+    pub fn for_capture_device(
+        self: std::sync::Arc<Self>,
+        opened_name: &str,
+        default_name: Option<&str>,
+    ) -> Option<std::sync::Arc<Self>> {
+        // An unresolved handoff explicitly selects the live default. Keep its activation
+        // alive too, otherwise restoring the previous default can silence the headset.
+        (self.name.as_deref().or(default_name) == Some(opened_name)).then_some(self)
+    }
+}
+
 impl Drop for BluetoothInputActivation {
     fn drop(&mut self) {
         if let Some(previous) = self.previous_default.take() {
@@ -364,6 +376,20 @@ pub trait AudioDeviceBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn live_default_capture_keeps_bluetooth_activation_alive() {
+        let activation = std::sync::Arc::new(BluetoothInputActivation {
+            name: None,
+            previous_default: None,
+            owns_system_defaults: false,
+        });
+        let weak = std::sync::Arc::downgrade(&activation);
+        let capture = activation.for_capture_device("AirPods", Some("AirPods"));
+        assert!(weak.upgrade().is_some());
+        drop(capture);
+        assert!(weak.upgrade().is_none());
+    }
 
     fn output(id: &str, headphone: bool) -> AudioDevice {
         let name = if headphone { "Headphones" } else { "Speakers" };

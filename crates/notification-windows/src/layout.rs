@@ -251,6 +251,21 @@ impl NotificationLayout {
     }
 }
 
+pub fn try_expand(
+    layouts: &mut [NotificationLayout],
+    index: usize,
+    notification: &Notification,
+    work_height: i32,
+) -> bool {
+    let mut expanded = layouts.to_vec();
+    expanded[index] = NotificationLayout::expanded(notification).at_dpi(layouts[index].dpi);
+    if fit_stack(&mut expanded, work_height) != 0 {
+        return false;
+    }
+    layouts.clone_from_slice(&expanded);
+    true
+}
+
 pub fn fit_stack(layouts: &mut [NotificationLayout], work_height: i32) -> usize {
     let minimum_height = |layout: &NotificationLayout| {
         if layout.collapse.is_some() {
@@ -275,7 +290,7 @@ pub fn fit_stack(layouts: &mut [NotificationLayout], work_height: i32) -> usize 
             .unwrap_or(0);
         let minimum = visible.iter().map(minimum_height).sum::<i32>()
             + spacing * (visible.len() as i32 - 1)
-            + margin * 2;
+            + margin;
         if minimum <= work_height {
             let expanded_count = visible
                 .iter()
@@ -426,6 +441,42 @@ mod tests {
         }
         assert!(layouts[0].message.height > 0);
         assert!(fit_stack(&mut layouts, 500) > 0);
+    }
+
+    #[test]
+    fn refusing_expansion_keeps_the_clicked_oldest_notification_visible() {
+        let notification = compact_notification();
+        let mut layouts = vec![NotificationLayout::compact(&notification).at_dpi(192); 4];
+        assert!(!try_expand(&mut layouts, 0, &notification, 720));
+        assert_eq!(layouts[0].height, 128);
+        assert!(layouts[0].collapse.is_none());
+        assert_eq!(fit_stack(&mut layouts, 720), 0);
+    }
+
+    #[test]
+    fn fitting_compact_notifications_do_not_require_an_unused_bottom_margin() {
+        let notification = compact_notification();
+        let mut layouts = vec![NotificationLayout::compact(&notification).at_dpi(192); 5];
+        assert_eq!(fit_stack(&mut layouts, 768), 0);
+        let last = layouts.last().unwrap();
+        let (_, y) = stacked_origin(0, 0, 1920, 4 * (128 + 20), last);
+        assert_eq!(y + last.height, 750);
+    }
+
+    #[test]
+    fn fractional_dpi_rounds_the_progress_bottom_and_adjacent_hit_boundary_consistently() {
+        let notification = compact_notification();
+        let layout = NotificationLayout::compact(&notification).at_dpi(144);
+        let progress = layout.progress.unwrap();
+        assert_eq!(progress.y, 89);
+        assert_eq!(progress.bottom(), 93);
+        assert_eq!(progress.height, 4);
+        let action = layout.action.unwrap();
+        assert_eq!(
+            layout.hit_test(action.right() - 1, action.y),
+            HitTarget::Action
+        );
+        assert_eq!(layout.hit_test(action.right(), action.y), HitTarget::Body);
     }
 
     #[test]

@@ -40,7 +40,7 @@ use anlg_notification_interface::{
 use crate::callbacks;
 use crate::icon::{destroy_icon, header_title, load_notification_icon};
 use crate::layout::{
-    HitTarget, MAX_NOTIFICATIONS, NotificationLayout, Rect, fit_stack, stacked_origin,
+    HitTarget, MAX_NOTIFICATIONS, NotificationLayout, Rect, fit_stack, stacked_origin, try_expand,
 };
 
 const CLASS_NAME: windows::core::PCWSTR = w!("AnarlogNotification");
@@ -305,12 +305,28 @@ impl NotificationManager {
     }
 
     fn toggle_expanded(&mut self, hwnd: HWND) {
-        let Some(instance) = self.instance_by_hwnd_mut(hwnd) else {
+        let Some(index) = self
+            .active
+            .values()
+            .position(|instance| instance.hwnd == hwnd)
+        else {
             return;
         };
+        let instance = self.active.get_index(index).unwrap().1;
         if !instance.payload.has_expandable_content() && !instance.is_expanded {
             return;
         }
+        if !instance.is_expanded {
+            let mut layouts: Vec<_> = self
+                .active
+                .values()
+                .map(|instance| instance.layout.clone())
+                .collect();
+            if !try_expand(&mut layouts, index, &instance.payload, work_area().3) {
+                return;
+            }
+        }
+        let instance = self.active.get_index_mut(index).unwrap().1;
         instance.is_expanded = !instance.is_expanded;
         instance.layout = NotificationLayout::for_state(&instance.payload, instance.is_expanded);
         if let Some(timer) = &mut instance.dismiss_timer {

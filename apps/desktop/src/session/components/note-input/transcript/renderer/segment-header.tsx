@@ -23,8 +23,8 @@ export function SegmentHeader({
   const { selectMode } = useTranscriptSelectionState();
   const colorVars = useSegmentColorVars(segment.key);
   const headerClassName = cn([
-    "relative py-1",
-    "text-xs font-light",
+    "relative py-1.5",
+    "text-xs font-medium",
     "flex items-center gap-2",
     "[--segment-color:var(--segment-color-light)]",
     "dark:[--segment-color:var(--segment-color-dark)]",

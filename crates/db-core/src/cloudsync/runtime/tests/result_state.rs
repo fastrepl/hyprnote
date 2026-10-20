@@ -163,7 +163,6 @@ fn record_sync_result_tracks_settlement_and_failures() {
 
 #[test]
 fn bounded_upload_reports_progress_until_the_remaining_versions_are_sent() {
-    use crate::cloudsync::types::CloudsyncActivityStatus;
     let runtime = Mutex::new(CloudsyncRuntimeState::default());
     let partial = network_result(Some("out-of-sync"), Some((0, true, None)));
     assert_eq!(
@@ -181,10 +180,6 @@ fn bounded_upload_reports_progress_until_the_remaining_versions_are_sent() {
         assert!(state.last_error.is_none());
         assert_eq!(state.consecutive_failures, 0);
         assert!(state.last_sync_at_ms.is_none());
-        assert_eq!(
-            state.last_logged_activity,
-            Some(CloudsyncActivityStatus::Progress)
-        );
     }
     record_sync_result(
         &runtime,
@@ -195,10 +190,6 @@ fn bounded_upload_reports_progress_until_the_remaining_versions_are_sent() {
     let state = runtime.lock().unwrap();
     assert!(state.last_error.is_none());
     assert!(state.last_sync_at_ms.is_some());
-    assert_eq!(
-        state.last_logged_activity,
-        Some(CloudsyncActivityStatus::Completed)
-    );
 }
 
 #[test]

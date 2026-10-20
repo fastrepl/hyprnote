@@ -46,7 +46,8 @@ static RECORDING_TITLE: Mutex<Option<String>> = Mutex::new(None);
 static AGENDA_SECTIONS: Mutex<Vec<TrayAgendaSection>> = Mutex::new(Vec::new());
 // muda 0.17 stores a raw MenuChild pointer on each NSMenuItem. Replacing the
 // tray menu while it is still visible frees those items and crashes on click
-// (HYPRNOTE2-2MTS). Defer set_menu until the next tray mouse-down instead.
+// (HYPRNOTE2-2MTS). Defer set_menu until the pointer next enters the tray icon
+// instead; macOS does not deliver mouse-down while the status item owns a menu.
 #[cfg(target_os = "macos")]
 static MENU_DIRTY: AtomicBool = AtomicBool::new(false);
 
@@ -210,11 +211,14 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         let builder = {
             let app = app.clone();
             builder.on_tray_icon_event(move |_tray, event| {
-                if let TrayIconEvent::Click {
-                    button_state: MouseButtonState::Down,
-                    ..
-                } = event
-                {
+                if matches!(
+                    event,
+                    TrayIconEvent::Enter { .. }
+                        | TrayIconEvent::Click {
+                            button_state: MouseButtonState::Down,
+                            ..
+                        }
+                ) {
                     let _ = Self::apply_pending_menu(&app);
                 }
             })

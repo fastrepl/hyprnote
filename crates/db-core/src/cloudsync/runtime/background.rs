@@ -159,7 +159,8 @@ fn log_sync_result(
             send_failed = result.send.as_ref().is_some_and(|send| {
                 send.last_failure.is_some()
                     || (!send.status.eq_ignore_ascii_case("synced")
-                        && !send.status.eq_ignore_ascii_case("syncing"))
+                        && !send.status.eq_ignore_ascii_case("syncing")
+                        && !send.status.eq_ignore_ascii_case("out-of-sync"))
             }),
             receive_failed = result.receive.as_ref().is_some_and(|receive| {
                 receive.error.is_some() || receive.last_failure.is_some()
@@ -248,6 +249,7 @@ fn embedded_sync_error(result: &CloudsyncNetworkResult) -> Option<String> {
     if let Some(send) = &result.send {
         if !send.status.eq_ignore_ascii_case("synced")
             && !send.status.eq_ignore_ascii_case("syncing")
+            && !send.status.eq_ignore_ascii_case("out-of-sync")
         {
             errors.push(format!("send status: {}", send.status));
         }

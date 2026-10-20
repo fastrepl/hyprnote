@@ -162,6 +162,37 @@ fn record_sync_result_tracks_settlement_and_failures() {
 }
 
 #[test]
+fn bounded_upload_reports_progress_until_the_remaining_versions_are_sent() {
+    let runtime = Mutex::new(CloudsyncRuntimeState::default());
+    let partial = network_result(Some("out-of-sync"), Some((0, true, None)));
+    assert_eq!(
+        cloudsync_next_delay(Some(&partial), true, Duration::from_secs(30)),
+        CLOUDSYNC_PROGRESS_INTERVAL
+    );
+    record_sync_result(
+        &runtime,
+        partial,
+        true,
+        CloudsyncActivityTrigger::Background,
+    );
+    {
+        let state = runtime.lock().unwrap();
+        assert!(state.last_error.is_none());
+        assert_eq!(state.consecutive_failures, 0);
+        assert!(state.last_sync_at_ms.is_none());
+    }
+    record_sync_result(
+        &runtime,
+        network_result(Some("synced"), Some((0, true, None))),
+        false,
+        CloudsyncActivityTrigger::Background,
+    );
+    let state = runtime.lock().unwrap();
+    assert!(state.last_error.is_none());
+    assert!(state.last_sync_at_ms.is_some());
+}
+
+#[test]
 fn background_sync_uses_shared_receive_errors() {
     assert_eq!(
         crate::cloudsync_receive_error(&CloudsyncNetworkResult {

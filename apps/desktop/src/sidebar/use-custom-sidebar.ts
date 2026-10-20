@@ -45,13 +45,11 @@ export function hasOwnSidebarHeaderTab(tab: Tab | null): boolean {
 export function useCustomSidebarEffect(
   active: boolean,
   leftsidebar: {
-    expanded: boolean;
     setExpanded: (v: boolean) => void;
     setLocked: (v: boolean) => void;
   },
   { restoreExpandedOnExit = true }: { restoreExpandedOnExit?: boolean } = {},
 ) {
-  const savedExpandedRef = useRef<boolean | null>(null);
   const wasActiveRef = useRef(false);
   const leftsidebarRef = useRef(leftsidebar);
   const restoreExpandedOnExitRef = useRef(restoreExpandedOnExit);
@@ -67,13 +65,10 @@ export function useCustomSidebarEffect(
     const currentLeftSidebar = leftsidebarRef.current;
 
     currentLeftSidebar.setLocked(false);
-    if (restoreExpandedOnExitRef.current && savedExpandedRef.current !== null) {
-      currentLeftSidebar.setExpanded(savedExpandedRef.current);
-    } else if (!restoreExpandedOnExitRef.current) {
+    if (!restoreExpandedOnExitRef.current) {
       currentLeftSidebar.setExpanded(false);
     }
 
-    savedExpandedRef.current = null;
     wasActiveRef.current = false;
   };
 
@@ -81,10 +76,6 @@ export function useCustomSidebarEffect(
     if (active && !wasActiveRef.current) {
       const currentLeftSidebar = leftsidebarRef.current;
 
-      savedExpandedRef.current = currentLeftSidebar.expanded;
-      if (!currentLeftSidebar.expanded) {
-        currentLeftSidebar.setExpanded(true);
-      }
       currentLeftSidebar.setLocked(true);
       wasActiveRef.current = true;
     } else if (!active && wasActiveRef.current) {

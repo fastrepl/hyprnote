@@ -59,33 +59,6 @@ describe("ClassicMainShellFrame", () => {
     mocks.leftsidebar.setLocked.mockClear();
   });
 
-  it("opens the settings sidebar and restores its previous state on exit", () => {
-    mocks.currentTab = { type: "settings" };
-    mocks.leftsidebar.expanded = false;
-
-    const { rerender } = render(<ClassicMainShellFrame />);
-
-    expect(mocks.leftsidebar.setExpanded).toHaveBeenCalledWith(true);
-    expect(mocks.leftsidebar.setLocked).toHaveBeenCalledWith(true);
-
-    mocks.currentTab = { type: "empty" };
-    rerender(<ClassicMainShellFrame />);
-
-    expect(mocks.leftsidebar.setExpanded).toHaveBeenLastCalledWith(false);
-    expect(mocks.leftsidebar.setLocked).toHaveBeenLastCalledWith(false);
-  });
-
-  it("unlocks the custom sidebar when the shell unmounts", () => {
-    mocks.currentTab = { type: "calendar" };
-    mocks.leftsidebar.expanded = false;
-
-    const { unmount } = render(<ClassicMainShellFrame />);
-    unmount();
-
-    expect(mocks.leftsidebar.setExpanded).toHaveBeenLastCalledWith(false);
-    expect(mocks.leftsidebar.setLocked).toHaveBeenLastCalledWith(false);
-  });
-
   it.each([
     ["windows", true],
     ["linux", true],

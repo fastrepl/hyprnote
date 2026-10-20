@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -12,6 +18,8 @@ const mocks = vi.hoisted(() => ({
   sendEvent: vi.fn(),
   sessionProps: { sessionId: "chat-session-1" },
   setLeftSidebarExpanded: vi.fn(),
+  setAutoCollapsed: (collapsed: boolean) =>
+    mocks.setLeftSidebarExpanded(!collapsed),
   windowExpandWidth: vi.fn(() => Promise.resolve({ status: "ok", data: null })),
   windowRestoreWidth: vi.fn(() =>
     Promise.resolve({ status: "ok", data: null }),
@@ -83,13 +91,11 @@ vi.mock("@anlg/ui/components/ui/resizable", () => ({
 
 vi.mock("~/contexts/shell", () => ({
   useShell: () => ({
-    chat: {
-      mode: mocks.chatMode,
-      sendEvent: mocks.sendEvent,
-    },
+    chat: { mode: mocks.chatMode, sendEvent: mocks.sendEvent },
     leftsidebar: {
       expanded: mocks.leftSidebarExpanded,
       setExpanded: mocks.setLeftSidebarExpanded,
+      setAutoCollapsed: mocks.setAutoCollapsed,
     },
   }),
 }));
@@ -142,7 +148,11 @@ vi.mock("~/chat/components/persistent-chat", () => ({
 
 import { MainChatPanels } from "./chat-panels";
 
+import { useShell } from "~/contexts/shell";
+import * as shellContext from "~/contexts/shell";
+import { useLeftSidebar } from "~/contexts/shell/leftsidebar";
 import { ZOOM_STORAGE_KEY } from "~/shared/zoom";
+import { useCustomSidebarEffect } from "~/sidebar/use-custom-sidebar";
 
 let restorePanelWidths: (() => void) | null = null;
 
@@ -435,23 +445,72 @@ describe("MainChatPanels", () => {
     expect(mocks.windowRestoreWidth).not.toHaveBeenCalled();
   });
 
-  it("collapses the left sidebar when a window resize would make the note surface narrower than 500px", () => {
+  it("restores an automatically hidden sidebar on widening but preserves a manual collapse", () => {
     mocks.currentTab = { type: "sessions" };
-    mocks.leftSidebarExpanded = true;
-    const panelWidths = {
-      bodyPanelWidth: 720,
-      leftSidebarWidth: 200,
-    };
+    const panelWidths = { bodyPanelWidth: 720, leftSidebarWidth: 200 };
     mockPanelWidths(panelWidths);
 
-    render(renderPanels("data-left-sidebar-chrome"));
-
-    expect(mocks.setLeftSidebarExpanded).not.toHaveBeenCalled();
-
+    function Sidebar() {
+      const { leftsidebar } = useShell();
+      return (
+        <button onClick={leftsidebar.toggleExpanded}>
+          {leftsidebar.expanded ? "Expanded" : "Collapsed"}
+        </button>
+      );
+    }
+    const { result, rerender: changeTab } = renderHook(
+      ({ settings }) => {
+        const sidebar = useLeftSidebar();
+        useCustomSidebarEffect(settings, sidebar);
+        return sidebar;
+      },
+      { initialProps: { settings: false } },
+    );
+    const originalShell = shellContext.useShell();
+    const shellSpy = vi
+      .spyOn(shellContext, "useShell")
+      .mockImplementation(() => ({
+        ...originalShell,
+        leftsidebar: result.current,
+      }));
+    const view = () =>
+      renderPanels("data-left-sidebar-chrome", {}, <Sidebar />);
+    const { rerender } = render(view());
     panelWidths.bodyPanelWidth = 690;
     fireEvent.resize(window);
-
-    expect(mocks.setLeftSidebarExpanded).toHaveBeenCalledWith(false);
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Collapsed" })).toBeTruthy();
+    mocks.currentTab = { type: "settings" };
+    changeTab({ settings: true });
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Expanded" })).toBeTruthy();
+    mocks.currentTab = { type: "sessions" };
+    changeTab({ settings: false });
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Collapsed" })).toBeTruthy();
+    panelWidths.bodyPanelWidth = 720;
+    fireEvent.resize(window);
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Expanded" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Expanded" }));
+    rerender(view());
+    panelWidths.bodyPanelWidth = 690;
+    fireEvent.resize(window);
+    panelWidths.bodyPanelWidth = 900;
+    fireEvent.resize(window);
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Collapsed" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Collapsed" }));
+    rerender(view());
+    panelWidths.bodyPanelWidth = 690;
+    fireEvent.resize(window);
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Collapsed" })).toBeTruthy();
+    mocks.currentTab = { type: "changelog" };
+    rerender(view());
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Expanded" })).toBeTruthy();
+    shellSpy.mockRestore();
   });
 });
 

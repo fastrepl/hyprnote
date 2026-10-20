@@ -20,6 +20,7 @@ import { ChatPanelFrame, ChatSessionHost } from "~/chat/components/chat-panel";
 import { PersistentChatPanel } from "~/chat/components/persistent-chat";
 import { useShell } from "~/contexts/shell";
 import { readZoomFactor } from "~/shared/zoom";
+import { hasCustomSidebarTab } from "~/sidebar/use-custom-sidebar";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 
 const RIGHT_CHAT_PANEL_MIN_WIDTH_PX = 320;
@@ -41,11 +42,17 @@ export function MainChatPanels({
   const bodyPanelContainerRef = useRef<HTMLDivElement>(null);
   const isAutomationsTab = currentTab?.type === "automations";
   const isRightPanelOpen = isAutomationsTab || chat.mode === "RightPanelOpen";
-  const leftSidebarExpanded = leftSidebarAvailable && leftsidebar.expanded;
   const reserveNoteSurfaceMinWidth = usesNoteSurfaceMinWidth(currentTab);
+  const leftSidebarExpanded =
+    leftSidebarAvailable &&
+    leftsidebar.expanded &&
+    !(reserveNoteSurfaceMinWidth && leftsidebar.autoCollapsed);
   const collapseLeftSidebar = useCallback(() => {
-    leftsidebar.setExpanded(false);
-  }, [leftsidebar.setExpanded]);
+    leftsidebar.setAutoCollapsed(true);
+  }, [leftsidebar.setAutoCollapsed]);
+  const restoreLeftSidebar = useCallback(() => {
+    leftsidebar.setAutoCollapsed(false);
+  }, [leftsidebar.setAutoCollapsed]);
   const bodyMinWidthPx = getMainBodyMinWidth({
     currentTab,
     leftSidebarExpanded,
@@ -59,8 +66,10 @@ export function MainChatPanels({
   useNoteSurfaceWindowWidthGuard({
     bodyPanelContainerRef,
     enabled: reserveNoteSurfaceMinWidth,
+    preserveCollapseWhenDisabled: hasCustomSidebarTab(currentTab),
     leftPanelOpen: leftSidebarExpanded,
     collapseLeftPanel: collapseLeftSidebar,
+    restoreLeftPanel: restoreLeftSidebar,
     noteSurfaceMinWidth,
     rightPanelOpen: isRightPanelOpen,
   });
@@ -159,6 +168,8 @@ function getMainBodyMinWidth({
 function useNoteSurfaceWindowWidthGuard({
   bodyPanelContainerRef,
   collapseLeftPanel,
+  restoreLeftPanel,
+  preserveCollapseWhenDisabled,
   enabled,
   leftPanelOpen,
   noteSurfaceMinWidth,
@@ -166,11 +177,14 @@ function useNoteSurfaceWindowWidthGuard({
 }: {
   bodyPanelContainerRef: React.RefObject<HTMLDivElement | null>;
   collapseLeftPanel: () => void;
+  restoreLeftPanel: () => void;
   enabled: boolean;
+  preserveCollapseWhenDisabled: boolean;
   leftPanelOpen: boolean;
   noteSurfaceMinWidth: number;
   rightPanelOpen: boolean;
 }) {
+  const collapsedSidebarWidthRef = useRef(LEFT_SIDEBAR_MIN_WIDTH_PX);
   const restorableExpansionCountRef = useRef(0);
   const lastVisibleBodyWidthRef = useRef<number | null>(null);
   const previousStateRef = useRef({
@@ -237,6 +251,7 @@ function useNoteSurfaceWindowWidthGuard({
       bodyWidth - leftSidebarWidth < noteSurfaceMinWidth;
 
     if (shouldCollapseLeftPanelForRightPanel) {
+      collapsedSidebarWidthRef.current = leftSidebarWidth;
       collapseLeftPanel();
       leftSidebarWidth = 0;
     }
@@ -288,7 +303,8 @@ function useNoteSurfaceWindowWidthGuard({
   useLayoutEffect(() => {
     lastVisibleBodyWidthRef.current = null;
 
-    if (!enabled || !leftPanelOpen) {
+    if (!enabled) {
+      if (!preserveCollapseWhenDisabled) restoreLeftPanel();
       return;
     }
 
@@ -298,6 +314,14 @@ function useNoteSurfaceWindowWidthGuard({
     }
 
     const handleResize = () => {
+      if (!leftPanelOpen) {
+        const width = getVisibleBodyWidth(bodyPanel);
+        if (width >= noteSurfaceMinWidth + collapsedSidebarWidthRef.current) {
+          restoreLeftPanel();
+        }
+        return;
+      }
+      collapsedSidebarWidthRef.current = getLeftSidebarWidth(bodyPanel, true);
       collapseLeftPanelIfNoteSurfaceWouldShrink({
         bodyPanel,
         collapseLeftPanel,
@@ -333,6 +357,8 @@ function useNoteSurfaceWindowWidthGuard({
     leftPanelOpen,
     noteSurfaceMinWidth,
     rightPanelOpen,
+    restoreLeftPanel,
+    preserveCollapseWhenDisabled,
   ]);
 
   useLayoutEffect(() => restoreWidthExpansions, [restoreWidthExpansions]);

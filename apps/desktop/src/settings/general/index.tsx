@@ -2,6 +2,7 @@ import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
 import { commands as listenerCommands } from "@anlg/plugin-transcription";
@@ -57,28 +58,29 @@ function useSettingsForm(storedSettings: StoredSettingValues) {
 
   const setSettingValues = useSetSettingValues();
 
+  const formValues = {
+    autostart: settingsValue.autostart,
+    automatic_updates: settingsValue.automatic_updates,
+    auto_join_scheduled_meetings: settingsValue.auto_join_scheduled_meetings,
+    auto_start_scheduled_meetings: settingsValue.auto_start_scheduled_meetings,
+    auto_stop_meetings: settingsValue.auto_stop_meetings,
+    floating_bar_enabled: settingsValue.floating_bar_enabled,
+    show_app_in_dock: settingsValue.show_app_in_dock,
+    show_tray_icon: settingsValue.show_tray_icon,
+    notification_detect: settingsValue.notification_detect,
+    consent_auto_send_chat: settingsValue.consent_auto_send_chat,
+    capture_meeting_chat: settingsValue.capture_meeting_chat,
+    capture_shared_screens: settingsValue.capture_shared_screens,
+    ai_language: settingsValue.ai_language,
+    summary_use_main_language: settingsValue.summary_use_main_language,
+    spoken_languages: getAdditionalSpokenLanguages(
+      settingsValue.ai_language,
+      settingsValue.spoken_languages,
+    ),
+  };
+
   const form = useForm({
-    defaultValues: {
-      autostart: settingsValue.autostart,
-      automatic_updates: settingsValue.automatic_updates,
-      auto_join_scheduled_meetings: settingsValue.auto_join_scheduled_meetings,
-      auto_start_scheduled_meetings:
-        settingsValue.auto_start_scheduled_meetings,
-      auto_stop_meetings: settingsValue.auto_stop_meetings,
-      floating_bar_enabled: settingsValue.floating_bar_enabled,
-      show_app_in_dock: settingsValue.show_app_in_dock,
-      show_tray_icon: settingsValue.show_tray_icon,
-      notification_detect: settingsValue.notification_detect,
-      consent_auto_send_chat: settingsValue.consent_auto_send_chat,
-      capture_meeting_chat: settingsValue.capture_meeting_chat,
-      capture_shared_screens: settingsValue.capture_shared_screens,
-      ai_language: settingsValue.ai_language,
-      summary_use_main_language: settingsValue.summary_use_main_language,
-      spoken_languages: getAdditionalSpokenLanguages(
-        settingsValue.ai_language,
-        settingsValue.spoken_languages,
-      ),
-    },
+    defaultValues: formValues,
     listeners: {
       onChange: ({ formApi }) => {
         const {
@@ -137,6 +139,23 @@ function useSettingsForm(storedSettings: StoredSettingValues) {
         capture_shared_screens: normalizedValue.capture_shared_screens,
       });
     },
+  });
+
+  // Once touched, the form ignores new default values, and every submission
+  // writes all fields. Copy in changes made elsewhere, such as the tray
+  // language menu, so the next submission does not restore stale values.
+  const syncedValues = useRef(formValues);
+  useEffect(() => {
+    const previous = syncedValues.current;
+    syncedValues.current = formValues;
+    for (const key of Object.keys(formValues) as (keyof typeof formValues)[]) {
+      if (JSON.stringify(previous[key]) !== JSON.stringify(formValues[key])) {
+        form.setFieldValue(key, formValues[key] as never, {
+          dontRunListeners: true,
+          dontUpdateMeta: true,
+        });
+      }
+    }
   });
 
   // form.setFieldValue never reaches the form-level onChange listener when

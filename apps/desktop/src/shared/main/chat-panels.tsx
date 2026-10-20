@@ -41,8 +41,11 @@ export function MainChatPanels({
   const bodyPanelContainerRef = useRef<HTMLDivElement>(null);
   const isAutomationsTab = currentTab?.type === "automations";
   const isRightPanelOpen = isAutomationsTab || chat.mode === "RightPanelOpen";
-  const leftSidebarExpanded = leftSidebarAvailable && leftsidebar.expanded;
   const reserveNoteSurfaceMinWidth = usesNoteSurfaceMinWidth(currentTab);
+  const leftSidebarExpanded =
+    leftSidebarAvailable &&
+    leftsidebar.expanded &&
+    !(reserveNoteSurfaceMinWidth && leftsidebar.autoCollapsed);
   const collapseLeftSidebar = useCallback(() => {
     leftsidebar.setAutoCollapsed(true);
   }, [leftsidebar.setAutoCollapsed]);
@@ -297,7 +300,6 @@ function useNoteSurfaceWindowWidthGuard({
     lastVisibleBodyWidthRef.current = null;
 
     if (!enabled) {
-      restoreLeftPanel();
       return;
     }
 

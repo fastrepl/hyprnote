@@ -19,6 +19,12 @@ test("visiting settings preserves the preference of an automatically hidden side
   rerender({ active: true });
   expect(result.current.expanded).toBe(true);
   rerender({ active: false });
+  expect(result.current.expanded).toBe(false);
   act(() => result.current.setAutoCollapsed(false));
   expect(result.current.expanded).toBe(true);
+  act(() => result.current.setExpanded(false));
+  rerender({ active: true });
+  expect(result.current.expanded).toBe(true);
+  rerender({ active: false });
+  expect(result.current.expanded).toBe(false);
 });

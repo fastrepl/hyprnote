@@ -152,6 +152,7 @@ import { useShell } from "~/contexts/shell";
 import * as shellContext from "~/contexts/shell";
 import { useLeftSidebar } from "~/contexts/shell/leftsidebar";
 import { ZOOM_STORAGE_KEY } from "~/shared/zoom";
+import { useCustomSidebarEffect } from "~/sidebar/use-custom-sidebar";
 
 let restorePanelWidths: (() => void) | null = null;
 
@@ -457,7 +458,14 @@ describe("MainChatPanels", () => {
         </button>
       );
     }
-    const { result } = renderHook(() => useLeftSidebar());
+    const { result, rerender: changeTab } = renderHook(
+      ({ settings }) => {
+        const sidebar = useLeftSidebar();
+        useCustomSidebarEffect(settings, sidebar);
+        return sidebar;
+      },
+      { initialProps: { settings: false } },
+    );
     const originalShell = shellContext.useShell();
     const shellSpy = vi
       .spyOn(shellContext, "useShell")
@@ -470,6 +478,14 @@ describe("MainChatPanels", () => {
     const { rerender } = render(view());
     panelWidths.bodyPanelWidth = 690;
     fireEvent.resize(window);
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Collapsed" })).toBeTruthy();
+    mocks.currentTab = { type: "settings" };
+    changeTab({ settings: true });
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Expanded" })).toBeTruthy();
+    mocks.currentTab = { type: "sessions" };
+    changeTab({ settings: false });
     rerender(view());
     expect(screen.getByRole("button", { name: "Collapsed" })).toBeTruthy();
     panelWidths.bodyPanelWidth = 720;

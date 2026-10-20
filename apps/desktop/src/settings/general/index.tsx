@@ -53,6 +53,10 @@ const SETTINGS_FORM_KEYS = [
   "current_stt_provider",
 ] as const;
 
+function isSameValue(a: unknown, b: unknown) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 function useSettingsForm(storedSettings: StoredSettingValues) {
   const settingsValue = resolveConfigValues(SETTINGS_FORM_KEYS, storedSettings);
 
@@ -79,6 +83,15 @@ function useSettingsForm(storedSettings: StoredSettingValues) {
     ),
   };
 
+  // Once touched, the form ignores new default values, and every submission
+  // writes all fields. The effect below copies in changes made elsewhere,
+  // such as the tray language menu, so a submission does not restore stale
+  // values. Fields with a write from this form still on its way are skipped
+  // until it lands, so a late write cannot replace a newer edit.
+  type FormKey = keyof typeof formValues;
+  const syncedValues = useRef(formValues);
+  const pendingWrites = useRef(new Map<FormKey, unknown>());
+
   const form = useForm({
     defaultValues: formValues,
     listeners: {
@@ -100,6 +113,15 @@ function useSettingsForm(storedSettings: StoredSettingValues) {
           value.spoken_languages,
         ),
       };
+
+      for (const key of Object.keys(normalizedValue) as FormKey[]) {
+        if (
+          pendingWrites.current.has(key) ||
+          !isSameValue(normalizedValue[key], syncedValues.current[key])
+        ) {
+          pendingWrites.current.set(key, normalizedValue[key]);
+        }
+      }
 
       setSettingValues({
         autostart: normalizedValue.autostart,
@@ -141,15 +163,15 @@ function useSettingsForm(storedSettings: StoredSettingValues) {
     },
   });
 
-  // Once touched, the form ignores new default values, and every submission
-  // writes all fields. Copy in changes made elsewhere, such as the tray
-  // language menu, so the next submission does not restore stale values.
-  const syncedValues = useRef(formValues);
   useEffect(() => {
     const previous = syncedValues.current;
     syncedValues.current = formValues;
-    for (const key of Object.keys(formValues) as (keyof typeof formValues)[]) {
-      if (JSON.stringify(previous[key]) !== JSON.stringify(formValues[key])) {
+    for (const key of Object.keys(formValues) as FormKey[]) {
+      if (pendingWrites.current.has(key)) {
+        if (isSameValue(formValues[key], pendingWrites.current.get(key))) {
+          pendingWrites.current.delete(key);
+        }
+      } else if (!isSameValue(previous[key], formValues[key])) {
         form.setFieldValue(key, formValues[key] as never, {
           dontRunListeners: true,
           dontUpdateMeta: true,

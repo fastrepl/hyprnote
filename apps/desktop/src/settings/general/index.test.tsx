@@ -202,4 +202,44 @@ describe("SettingsApp", () => {
       );
     });
   });
+
+  it("keeps a newer edit when the write of an earlier one arrives late", async () => {
+    const stored = (values: Record<string, unknown>) => ({
+      data: { values, hasValues: new Set(Object.keys(values)) },
+      isLoading: false,
+      error: null,
+    });
+    const meetingProps = () =>
+      mocks.meetingSettingsProps.mock.lastCall?.[0] as {
+        autoStopMeetings: { onChange: (value: boolean) => void };
+        autoStartScheduledMeetings: { onChange: (value: boolean) => void };
+      };
+    mocks.useStoredSettingValuesQuery.mockReturnValue(
+      stored({ auto_stop_meetings: true }),
+    );
+
+    const { rerender } = render(<SettingsMeetings />);
+    act(() => meetingProps().autoStopMeetings.onChange(false));
+    await waitFor(() =>
+      expect(mocks.setSettingValues).toHaveBeenCalledTimes(1),
+    );
+    act(() => meetingProps().autoStopMeetings.onChange(true));
+    await waitFor(() =>
+      expect(mocks.setSettingValues).toHaveBeenCalledTimes(2),
+    );
+    mocks.useStoredSettingValuesQuery.mockReturnValue(
+      stored({ auto_stop_meetings: false }),
+    );
+    rerender(<SettingsMeetings />);
+    act(() => meetingProps().autoStartScheduledMeetings.onChange(false));
+
+    await waitFor(() => {
+      expect(mocks.setSettingValues).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          auto_start_scheduled_meetings: false,
+          auto_stop_meetings: true,
+        }),
+      );
+    });
+  });
 });

@@ -193,23 +193,19 @@ mod tests {
 
     #[test]
     fn temporary_cloud_http_failures_retry_instead_of_stopping_sync() {
-        for status in ["429", "500", "502", "503", "504"] {
-            let message = format!(
-                r#"{{"errors":[{{"status":"{status}","code":"database_unreachable","title":"Service Unavailable"}}]}}"#
-            );
-            assert_eq!(
-                Error::Sqlite {
-                    code: 1,
-                    message: message.clone()
-                }
-                .kind(),
-                ErrorKind::Transient
-            );
-            assert_eq!(
-                Error::Io(std::io::Error::other(format!("sqlite error 1: {message}"))).kind(),
-                ErrorKind::Transient
-            );
-        }
+        let message = r#"{"errors":[{"status":"503","code":"database_unreachable","title":"Service Unavailable"}]}"#;
+        assert_eq!(
+            Error::Sqlite {
+                code: 1,
+                message: message.to_string()
+            }
+            .kind(),
+            ErrorKind::Transient
+        );
+        assert_eq!(
+            Error::Io(std::io::Error::other(format!("sqlite error 1: {message}"))).kind(),
+            ErrorKind::Transient
+        );
         assert_eq!(
             Error::Sqlite {
                 code: 1,

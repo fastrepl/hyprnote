@@ -52,6 +52,37 @@ export function isUsablePeaks(
   );
 }
 
+const AUDIO_TYPES_BY_EXTENSION: Record<string, string> = {
+  mp3: "audio/mpeg",
+  wav: "audio/wav",
+  m4a: "audio/mp4",
+  ogg: "audio/ogg",
+  opus: "audio/ogg",
+  webm: "audio/webm",
+  flac: "audio/flac",
+};
+
+// Tauri's asset protocol sniffs content types, and headerless MP3 recordings
+// come back as text/html. WebKitGTK cannot stream asset:// URLs either, so
+// relabel the blob from the file extension before giving up on it.
+function playableBlob(
+  media: Pick<HTMLMediaElement, "canPlayType">,
+  blob: Blob,
+  url: string,
+): Blob | null {
+  if (media.canPlayType(blob.type)) {
+    return blob;
+  }
+
+  const extension = decodeURIComponent(url)
+    .split(/[?#]/)[0]
+    .split(".")
+    .pop()
+    ?.toLowerCase();
+  const type = extension ? AUDIO_TYPES_BY_EXTENSION[extension] : undefined;
+  return type && media.canPlayType(type) ? new Blob([blob], { type }) : null;
+}
+
 // Playback must not wait for native peaks, which can take seconds on long
 // uncached recordings; `load` with the same src only renders the waveform.
 export async function loadWaveform(
@@ -82,7 +113,8 @@ export async function loadWaveform(
   }
 
   const media = ws.getMediaElement();
-  const src = media.canPlayType(blob.type) ? URL.createObjectURL(blob) : url;
+  const playable = playableBlob(media, blob, url);
+  const src = playable ? URL.createObjectURL(playable) : url;
   media.src = src;
 
   const peaks = await peaksRequest;

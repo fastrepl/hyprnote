@@ -500,6 +500,16 @@ describe("MainChatPanels", () => {
     fireEvent.resize(window);
     rerender(view());
     expect(screen.getByRole("button", { name: "Collapsed" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Collapsed" }));
+    rerender(view());
+    panelWidths.bodyPanelWidth = 690;
+    fireEvent.resize(window);
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Collapsed" })).toBeTruthy();
+    mocks.currentTab = { type: "changelog" };
+    rerender(view());
+    rerender(view());
+    expect(screen.getByRole("button", { name: "Expanded" })).toBeTruthy();
     shellSpy.mockRestore();
   });
 });

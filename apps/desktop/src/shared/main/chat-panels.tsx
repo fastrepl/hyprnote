@@ -20,6 +20,7 @@ import { ChatPanelFrame, ChatSessionHost } from "~/chat/components/chat-panel";
 import { PersistentChatPanel } from "~/chat/components/persistent-chat";
 import { useShell } from "~/contexts/shell";
 import { readZoomFactor } from "~/shared/zoom";
+import { hasCustomSidebarTab } from "~/sidebar/use-custom-sidebar";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 
 const RIGHT_CHAT_PANEL_MIN_WIDTH_PX = 320;
@@ -65,6 +66,7 @@ export function MainChatPanels({
   useNoteSurfaceWindowWidthGuard({
     bodyPanelContainerRef,
     enabled: reserveNoteSurfaceMinWidth,
+    preserveCollapseWhenDisabled: hasCustomSidebarTab(currentTab),
     leftPanelOpen: leftSidebarExpanded,
     collapseLeftPanel: collapseLeftSidebar,
     restoreLeftPanel: restoreLeftSidebar,
@@ -167,6 +169,7 @@ function useNoteSurfaceWindowWidthGuard({
   bodyPanelContainerRef,
   collapseLeftPanel,
   restoreLeftPanel,
+  preserveCollapseWhenDisabled,
   enabled,
   leftPanelOpen,
   noteSurfaceMinWidth,
@@ -176,6 +179,7 @@ function useNoteSurfaceWindowWidthGuard({
   collapseLeftPanel: () => void;
   restoreLeftPanel: () => void;
   enabled: boolean;
+  preserveCollapseWhenDisabled: boolean;
   leftPanelOpen: boolean;
   noteSurfaceMinWidth: number;
   rightPanelOpen: boolean;
@@ -300,6 +304,7 @@ function useNoteSurfaceWindowWidthGuard({
     lastVisibleBodyWidthRef.current = null;
 
     if (!enabled) {
+      if (!preserveCollapseWhenDisabled) restoreLeftPanel();
       return;
     }
 
@@ -353,6 +358,7 @@ function useNoteSurfaceWindowWidthGuard({
     noteSurfaceMinWidth,
     rightPanelOpen,
     restoreLeftPanel,
+    preserveCollapseWhenDisabled,
   ]);
 
   useLayoutEffect(() => restoreWidthExpansions, [restoreWidthExpansions]);

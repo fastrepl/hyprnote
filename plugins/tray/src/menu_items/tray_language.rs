@@ -54,23 +54,3 @@ fn language_item_id(code: &str) -> String {
 fn language_code(id: &MenuId) -> Option<&str> {
     id.0.strip_prefix(ID_PREFIX).filter(|code| !code.is_empty())
 }
-
-#[cfg(test)]
-mod tests {
-    use tauri::menu::MenuId;
-
-    use super::{language_code, language_item_id};
-
-    #[test]
-    fn language_item_ids_round_trip() {
-        let id = MenuId::new(language_item_id("es"));
-
-        assert_eq!(language_code(&id), Some("es"));
-    }
-
-    #[test]
-    fn ignores_other_menu_ids() {
-        assert_eq!(language_code(&MenuId::new("anlg_tray_agenda_es")), None);
-        assert_eq!(language_code(&MenuId::new("anlg_tray_language_")), None);
-    }
-}

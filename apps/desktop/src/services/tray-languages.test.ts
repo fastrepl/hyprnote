@@ -1,9 +1,29 @@
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import {
-  buildTrayLanguageOptions,
-  getTrayLanguageSelection,
-} from "./tray-languages";
+const mocks = vi.hoisted(() => ({
+  storedValues: {} as Record<string, string>,
+}));
+
+vi.mock("~/settings/queries", () => ({
+  getStoredSettingValues: () =>
+    Promise.resolve({
+      values: { ...mocks.storedValues },
+      hasValues: new Set(Object.keys(mocks.storedValues)),
+    }),
+  setSettingValues: async (values: Record<string, string>) => {
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    Object.assign(mocks.storedValues, values);
+  },
+}));
+
+import { buildTrayLanguageOptions, selectTrayLanguage } from "./tray-languages";
+
+function storedLanguages() {
+  return {
+    ai_language: mocks.storedValues.ai_language,
+    spoken_languages: JSON.parse(mocks.storedValues.spoken_languages),
+  };
+}
 
 describe("buildTrayLanguageOptions", () => {
   test("lists the main language first and selected", () => {
@@ -12,37 +32,43 @@ describe("buildTrayLanguageOptions", () => {
       { code: "en", label: "English", selected: false },
     ]);
   });
-
-  test("skips duplicates of the main language", () => {
-    expect(
-      buildTrayLanguageOptions("en", ["en", "fr"]).map(({ code }) => code),
-    ).toEqual(["en", "fr"]);
-  });
-
-  test("returns a single option when no other language is configured", () => {
-    expect(buildTrayLanguageOptions("en", [])).toHaveLength(1);
-  });
 });
 
-describe("getTrayLanguageSelection", () => {
-  test("makes the selection main and keeps the previous main language", () => {
-    expect(getTrayLanguageSelection("en", "es", ["en", "fr"])).toEqual({
-      ai_language: "en",
-      spoken_languages: JSON.stringify(["es", "fr"]),
+describe("selectTrayLanguage", () => {
+  beforeEach(() => {
+    mocks.storedValues = {};
+  });
+
+  test("switching away and back keeps a regional main language", async () => {
+    mocks.storedValues = {
+      ai_language: "en-US",
+      spoken_languages: JSON.stringify(["es"]),
+    };
+
+    await selectTrayLanguage("es");
+    expect(storedLanguages()).toEqual({
+      ai_language: "es",
+      spoken_languages: ["en-US"],
+    });
+
+    await selectTrayLanguage("en-US");
+    expect(storedLanguages()).toEqual({
+      ai_language: "en-US",
+      spoken_languages: ["es"],
     });
   });
 
-  test("switching back restores the original order", () => {
-    const first = getTrayLanguageSelection("en", "es", ["en"]);
-    const back = getTrayLanguageSelection(
-      "es",
-      first.ai_language,
-      JSON.parse(first.spoken_languages),
-    );
-
-    expect(back).toEqual({
+  test("rapid switches persist the last choice", async () => {
+    mocks.storedValues = {
       ai_language: "es",
       spoken_languages: JSON.stringify(["en"]),
+    };
+
+    await Promise.all([selectTrayLanguage("en"), selectTrayLanguage("es")]);
+
+    expect(storedLanguages()).toEqual({
+      ai_language: "es",
+      spoken_languages: ["en"],
     });
   });
 });

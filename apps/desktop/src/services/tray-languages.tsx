@@ -8,7 +8,7 @@ import {
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import {
-  getAdditionalSpokenLanguages,
+  getBaseLanguageCode,
   getBaseLanguageDisplayName,
 } from "~/settings/general/language";
 import { getStoredSettingValues, setSettingValues } from "~/settings/queries";
@@ -32,24 +32,36 @@ export function buildTrayLanguageOptions(
 
 // The selected language becomes the main language and the previous main
 // language joins the additional spoken languages, so the configured set
-// stays the same and the tray keeps offering every language.
-export function getTrayLanguageSelection(
+// stays the same and the tray keeps offering every language. Codes are kept
+// as stored so a regional main language like en-US survives a round trip.
+function getTrayLanguageSelection(
   code: string,
   mainLanguage: string | null | undefined,
   spokenLanguages: readonly string[] | null | undefined,
 ) {
+  const selectedLanguage = getBaseLanguageCode(code);
+
   return {
     ai_language: code,
     spoken_languages: JSON.stringify(
-      getAdditionalSpokenLanguages(code, [
-        ...(mainLanguage ? [mainLanguage] : []),
-        ...(spokenLanguages ?? []),
-      ]),
+      getTranscriptionLanguages(mainLanguage, spokenLanguages).filter(
+        (language) => getBaseLanguageCode(language) !== selectedLanguage,
+      ),
     ),
   };
 }
 
-async function selectTrayLanguage(code: string) {
+// Selections read settings before writing them, so run them one at a time;
+// otherwise a quick second click can read the state from before the first.
+let selectionQueue = Promise.resolve();
+
+export function selectTrayLanguage(code: string): Promise<void> {
+  const selection = selectionQueue.then(() => applyTrayLanguage(code));
+  selectionQueue = selection.catch(() => {});
+  return selection;
+}
+
+async function applyTrayLanguage(code: string) {
   const current = resolveConfigValues(
     LANGUAGE_KEYS,
     await getStoredSettingValues(),

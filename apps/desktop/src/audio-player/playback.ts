@@ -23,3 +23,15 @@ export function configureCenteredPlayback(
 
   return context;
 }
+
+// WebKitGTK creates contexts in the non-standard "interrupted" state, so any
+// state other than running needs a resume() before the media graph emits sound.
+export function shouldResumeBeforePlay(
+  context: AudioContext | null,
+): context is AudioContext {
+  return (
+    context !== null &&
+    context.state !== "running" &&
+    context.state !== "closed"
+  );
+}

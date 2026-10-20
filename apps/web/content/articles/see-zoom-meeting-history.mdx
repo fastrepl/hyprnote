@@ -106,7 +106,8 @@ Use this map when you know what you are looking for but not where Zoom put it:
 | A recently joined meeting ID | Desktop app, **Join** dropdown | Short local list, not a complete archive |
 | Attendance and duration | **Analytics & Reports** or Admin Center | Paid-account and role requirements |
 | Messages and shared links | Desktop app, **Chat** search | Subject to account retention policy |
-| One call's in-meeting chat | Local **chat.txt** file, or the meeting's cloud recording | Not saved by default; needs a manual save, auto-save, or cloud recording |
+| A meeting's ongoing group chat | **Chat**, under the meeting topic | Requires meeting chat before and after the call, plus permission to access the group |
+| A saved copy of in-meeting chat | Local **chat.txt** file, or the meeting's cloud recording | Local saves include messages visible to you; cloud saves include public messages sent while recording |
 | A cloud recording or transcript | Web portal, **Recordings & Transcripts** | Only recordings made to Zoom Cloud appear |
 | What was actually discussed | Recording, transcript, or meeting notes | Meeting metadata alone does not contain content |
 
@@ -132,13 +133,31 @@ Search only returns messages that still exist under your account's retention rul
 
 ### Recover in-meeting chat that was never saved
 
-The chat panel inside a specific call is a different thing from persistent Zoom Chat, and Zoom does not save it by default. When the meeting ends, whatever was typed in that call's chat disappears unless it was captured one of three ways before the meeting closed.
+Before assuming the messages are lost, check whether the meeting had an ongoing group chat. A chat file and a conversation retained in Zoom Chat are different records.
 
-The most common path is a manual save: open the in-meeting chat panel's more-options menu and click **Save Chat**. This writes a local text file with every message you could see, including private messages sent to or from you. An account owner or admin can also turn on [**Meeting chat - Auto-save**](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0062084) so the host does not have to remember to click anything; it only covers the host, only works while the host stays in the meeting, and does not run if the host joins from the Zoom mobile app. The third path is cloud recording: with **Save chat messages from the meeting/webinar** enabled under the account's Recording settings, Zoom writes the chat into the same cloud recording as a plain-text file.
+#### Check the meeting's group chat first
+
+Zoom calls this feature **Allow users to access meeting chats before and after the meeting**, formerly continuous meeting chat. When enabled for a supported meeting, it carries public in-meeting messages into a dedicated Zoom Chat conversation. Zoom's [current setting guide](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0085162) says it is enabled by default for most customers, with enterprise rollout controls and account-level restrictions. Check your meeting's configuration rather than assuming every call has it.
+
+To find an existing conversation:
+
+1. Open **Chat** in the Zoom desktop app.
+2. Search for the meeting topic or look under **Meeting Chats** if your chats are organized into sections.
+3. Look for the meeting's calendar icon. A recurring series can share one group chat.
+
+If it is missing, ask the host whether you belong to the group. Zoom's [meeting-chat FAQ](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0057731) explains that external participants and people who joined through a shared link may need to be added. Account permissions and the group's history-sharing settings still apply. Enabling the feature later does not reconstruct messages from an earlier call.
+
+Zoom's [usage guide](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0058605) distinguishes public messages from private and breakout-room conversations: private messages do not enter the group chat, and breakout-room chats do not sync to it. The feature is also unavailable with Advanced Chat Encryption or meeting end-to-end encryption. A missing group or denied access is not proof that every participant's messages were deleted.
+
+#### Look for a saved chat file
+
+During a call, **Chat > More > Save Chat** creates a local text copy of messages visible to you, including your private exchanges. The host must allow participants to save chats. Zoom's [chat-saving guide](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0067312) explains that cloud chat files contain public messages sent while cloud recording was active. Private messages and messages outside that recording period are excluded.
+
+An account owner or admin can also enable [**Meeting chat - Auto-save**](https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0062084) for the host. It works while the host is present in the desktop app, not when the host joins only through the mobile app. Cloud chat saving requires an eligible licensed host, cloud recording, and **Save chat messages from the meeting/webinar** enabled in Recording settings.
 
 A manually saved or auto-saved chat lands in the same local folder as computer recordings, by default **Documents/Zoom/[meeting name, date, time]**, in a file usually named **chat.txt**. A cloud-saved chat shows up next to the recording under **Recordings & Transcripts > Cloud Recordings**; open the meeting and download the file labeled **Chat file**.
 
-None of the three happened? The messages are gone. Zoom has no way to reconstruct an unsaved, non-recorded in-meeting chat after the call ends. At that point the only realistic move is asking a participant who might have copied or screenshotted something before the meeting closed.
+If there is no retained group chat and nobody saved a local or cloud copy, Zoom cannot recreate an unsaved conversation after the call. Ask the host or another participant whether they have a saved copy before concluding there is no record. For future calls, choose the appropriate chat setting or save method in advance; a recording or transcript is a separate record of the spoken discussion.
 
 ### Understand Zoom chat retention
 
@@ -310,7 +329,7 @@ Only when transcription or recording was enabled for that meeting. A meeting ent
 
 ### Does Zoom save in-meeting chat automatically?
 
-No, not by default. A specific call's chat panel is only preserved if it was saved manually during the meeting, the host had the Meeting chat - Auto-save setting enabled, or the meeting was cloud recorded with chat saving turned on. Without one of those three, the messages are deleted once the meeting ends and cannot be recovered afterward.
+It depends on the meeting's settings. With meeting chat before and after the call enabled, public messages can remain in a dedicated Zoom Chat group without a manual file export. Guest access and history visibility are restricted; private messages and breakout-room chats do not carry over. Separate local auto-save and cloud-recording settings create chat files. Check the group chat and saved files before treating a missing conversation as permanently lost.
 
 [Download Anarlog](/download) if you want searchable meeting history without tying your canonical records to a vendor-hosted workspace.
 

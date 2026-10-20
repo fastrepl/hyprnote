@@ -109,28 +109,19 @@ type PinnedPersistenceMiddlewareImpl = <
   f: StateCreator<T, [], []>,
 ) => StateCreator<T, [], []>;
 
-const getPinnedTabIds = (tabs: Tab[]): string[] => {
-  return tabs
-    .filter((t) => t.pinned)
-    .map(uniqueIdfromTab)
-    .sort();
-};
-
 const pinnedPersistenceMiddlewareImpl: PinnedPersistenceMiddlewareImpl =
   (config) => (set, get, api) => {
     return config(
       (args) => {
         const prevState = get();
-        const prevPinnedIds = getPinnedTabIds(prevState.tabs);
+        const prevPinned = serializePinnedTabs(prevState.tabs);
 
         set(args);
 
         const nextState = get();
-        const nextPinnedIds = getPinnedTabIds(nextState.tabs);
+        const nextPinned = serializePinnedTabs(nextState.tabs);
 
-        const pinnedChanged =
-          prevPinnedIds.length !== nextPinnedIds.length ||
-          prevPinnedIds.some((id, i) => id !== nextPinnedIds[i]);
+        const pinnedChanged = prevPinned !== nextPinned;
 
         if (pinnedChanged && getCurrentWebviewWindowLabel() === "main") {
           savePinnedTabs(nextState.tabs).catch((e) => {

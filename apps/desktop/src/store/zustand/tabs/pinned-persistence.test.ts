@@ -19,6 +19,39 @@ describe("pinned tab persistence", () => {
     });
   });
 
+  it("restores the updated version of pinned release notes after restarting", async () => {
+    let stored: string | null = null;
+    vi.mocked(commands.setPinnedTabs).mockImplementation(async (value) => {
+      stored = value;
+      return { status: "ok", data: null };
+    });
+    vi.mocked(commands.getPinnedTabs).mockImplementation(async () => ({
+      status: "ok",
+      data: stored,
+    }));
+    useTabs.getState().openNew({
+      type: "changelog",
+      state: { current: "1.4.30", previous: "1.4.30" },
+    });
+    useTabs.getState().pin(useTabs.getState().currentTab!);
+    useTabs.getState().openNew({
+      type: "changelog",
+      state: { current: "1.4.31", previous: "1.4.31" },
+    });
+    resetTabsStore();
+    await restorePinnedTabsToStore(
+      useTabs.getState().openNew,
+      useTabs.getState().pin,
+      () => useTabs.getState().tabs,
+    );
+    expect(useTabs.getState().currentTab).toMatchObject({
+      type: "changelog",
+      pinned: true,
+      state: { current: "1.4.31" },
+    });
+    vi.mocked(commands.setPinnedTabs).mockReset();
+  });
+
   it("drops legacy and classic-only pinned tabs during load", async () => {
     vi.mocked(commands.getPinnedTabs).mockResolvedValue({
       status: "ok",

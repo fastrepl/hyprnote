@@ -46,6 +46,7 @@ export function useCustomSidebarEffect(
   active: boolean,
   leftsidebar: {
     expanded: boolean;
+    preferredExpanded: boolean;
     setExpanded: (v: boolean) => void;
     setLocked: (v: boolean) => void;
   },
@@ -81,7 +82,7 @@ export function useCustomSidebarEffect(
     if (active && !wasActiveRef.current) {
       const currentLeftSidebar = leftsidebarRef.current;
 
-      savedExpandedRef.current = currentLeftSidebar.expanded;
+      savedExpandedRef.current = currentLeftSidebar.preferredExpanded;
       if (!currentLeftSidebar.expanded) {
         currentLeftSidebar.setExpanded(true);
       }

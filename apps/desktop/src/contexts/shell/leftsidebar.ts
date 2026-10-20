@@ -29,6 +29,7 @@ export function useLeftSidebar() {
 
   return {
     expanded,
+    preferredExpanded,
     setExpanded,
     setAutoCollapsed,
     locked,

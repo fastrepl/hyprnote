@@ -455,6 +455,17 @@ const reuseExistingTab = (
     preserveReturnOrigin: boolean;
   },
 ): Tab => {
+  if (existingTab.type === "changelog" && requestedTab.type === "changelog") {
+    return {
+      ...applyReturnOriginForReuse(
+        existingTab,
+        requestedTab,
+        preserveReturnOrigin,
+      ),
+      state: requestedTab.state,
+    };
+  }
+
   if (existingTab.type === "settings" && requestedTab.type === "settings") {
     const nextTab = applyReturnOriginForReuse(
       existingTab,

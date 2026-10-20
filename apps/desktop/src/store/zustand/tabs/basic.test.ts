@@ -19,6 +19,22 @@ describe("Basic Tab Actions", () => {
     resetTabsStore();
   });
 
+  test("reopening release notes refreshes an existing older version", () => {
+    useTabs.getState().openNew({
+      type: "changelog",
+      state: { current: "1.4.30", previous: "1.4.29" },
+    });
+    useTabs.getState().openNew(createSettingsTab({ active: false }));
+    useTabs.getState().openNew({
+      type: "changelog",
+      state: { current: "1.4.31", previous: "1.4.31" },
+    });
+    expect(useTabs.getState()).toHaveCurrentTab({
+      type: "changelog",
+      state: { current: "1.4.31", previous: "1.4.31" },
+    });
+  });
+
   test("openNew builds tab list with last tab active", () => {
     const session1 = createSessionTab({ active: false });
     const session2 = createSessionTab({

@@ -597,3 +597,37 @@ test("sync activity stays bounded and excludes credentials across account change
   await waitFor(() => controller.getSnapshot().phase === "ready");
   controller.suspend();
 });
+
+test("sync activity records later background successes without duplicating unchanged polls", async () => {
+  let poll;
+  let lastSyncAtMs = 1000;
+  const controller = new MobileSyncController(
+    dependencies({
+      getStatus: async () => ({ ...status, last_sync_at_ms: lastSyncAtMs }),
+    }),
+    5000,
+    0,
+    {
+      setInterval: (callback) => {
+        poll = callback;
+        return 1;
+      },
+      clearInterval: () => {},
+      setTimeout,
+      clearTimeout,
+    },
+    instantSettle,
+  );
+  controller.activate(session);
+  await waitFor(() => controller.getSnapshot().lastSyncAtMs === 1000);
+  const initialCount = controller.getActivity().length;
+  lastSyncAtMs = 2000;
+  poll();
+  await waitFor(() => controller.getSnapshot().lastSyncAtMs === 2000);
+  assert.equal(controller.getActivity().length, initialCount + 1);
+  assert.equal(controller.getActivity()[0].status.lastSyncAtMs, 2000);
+  poll();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(controller.getActivity().length, initialCount + 1);
+  controller.suspend();
+});

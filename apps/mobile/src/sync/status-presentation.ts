@@ -105,13 +105,18 @@ export function syncStatusPresentation(
             description:
               "This device is connected. Waiting for its first encrypted sync to finish.",
           }
-        : snapshot.phase === "ready" &&
-            (snapshot.syncingNow || snapshot.hasUnsentChanges)
+        : snapshot.phase === "ready" && snapshot.syncingNow
           ? {
               title: "Syncing…",
               description: "Sending and receiving your latest changes.",
             }
-          : phaseCopy[snapshot.phase];
+          : snapshot.phase === "ready" && snapshot.hasUnsentChanges
+            ? {
+                title: "Changes waiting to sync",
+                description:
+                  "Your notes are saved on this device and waiting to sync.",
+              }
+            : phaseCopy[snapshot.phase];
 
   const detail =
     snapshot.phase !== "ready"

@@ -538,7 +538,7 @@ export class MobileSyncController {
         previous.hasUnsentChanges !== snapshot.hasUnsentChanges ||
         previous.consecutiveFailures !== snapshot.consecutiveFailures ||
         Boolean(previous.errorMessage) !== Boolean(snapshot.errorMessage) ||
-        (previous.lastSyncAtMs === null) !== (snapshot.lastSyncAtMs === null))
+        previous.lastSyncAtMs !== snapshot.lastSyncAtMs)
     ) {
       this.activity = [
         {

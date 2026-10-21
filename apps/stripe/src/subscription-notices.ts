@@ -8,6 +8,10 @@ export type SubscriptionNoticeDependencies = {
   getSubscription: (id: string) => Promise<Stripe.Subscription>;
   getCustomer: (id: string) => Promise<Stripe.Customer | null>;
   previewInvoice: (id: string) => Promise<Stripe.Invoice>;
+  hasEarlierPaidInvoice: (
+    id: string,
+    invoice: Stripe.Invoice,
+  ) => Promise<boolean>;
   deliver: (
     key: string,
     kind: "acknowledgment" | "renewal",
@@ -54,12 +58,17 @@ export async function sendSubscriptionNotice(
   const customer = await deps.getCustomer(customerId);
   if (!customer?.email || isAutumnManagedCustomer(customer.metadata)) return;
   const owner = getCustomerOwner(customer.metadata);
+  if (!owner) return;
+  const willRenew =
+    subscription.status === "active" &&
+    !subscription.cancel_at_period_end &&
+    !subscription.cancel_at &&
+    !subscription.pause_collection;
+  if (kind === "renewal" && !willRenew) return;
   if (
-    !owner ||
-    subscription.status !== "active" ||
-    subscription.cancel_at_period_end ||
-    subscription.cancel_at ||
-    subscription.pause_collection
+    kind === "acknowledgment" &&
+    subscription.status !== "active" &&
+    subscription.status !== "canceled"
   )
     return;
   const items = subscription.items.data;
@@ -79,12 +88,6 @@ export async function sendSubscriptionNotice(
   const interval = item.price.recurring!.interval;
   if (interval !== "month" && interval !== "year")
     throw new Error("Unsupported subscription notice interval");
-  if (
-    !items.some(
-      (i) => (i.price.unit_amount ?? Number(i.price.unit_amount_decimal)) > 0,
-    )
-  )
-    return;
   const renewal = item.current_period_end;
   const remaining = renewal - deps.now();
   if (
@@ -93,22 +96,37 @@ export async function sendSubscriptionNotice(
   )
     return;
   if (remaining <= 0) return;
+  const invoice = subscription.latest_invoice;
+  let paymentSummary = "";
   if (kind === "acknowledgment") {
-    const invoice = subscription.latest_invoice;
-    if (!invoice || typeof invoice === "string" || invoice.status !== "paid")
+    if (
+      !invoice ||
+      typeof invoice === "string" ||
+      invoice.status !== "paid" ||
+      invoice.subtotal <= 0
+    )
       return;
+    // Trial invoices are zero-subtotal; a discounted paid plan still has a positive subtotal.
+    if (await deps.hasEarlierPaidInvoice(id, invoice)) return;
+    paymentSummary = `Your paid invoice total is ${formatAmount(invoice.total, invoice.currency)}; the amount paid is ${formatAmount(invoice.amount_paid, invoice.currency)}. Discounts, tax, prorations, and account credits can make this differ from your next renewal.`;
   }
-  const preview = await deps.previewInvoice(id);
-  const formatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: preview.currency,
-    currencyDisplay: "code",
-  });
-  // Stripe keeps ISK and UGX in hundredths despite their zero-decimal display.
-  const digits = ["isk", "ugx"].includes(preview.currency)
-    ? 2
-    : (formatter.resolvedOptions().maximumFractionDigits ?? 2);
-  const amount = formatter.format(preview.total / 10 ** digits);
+  const preview = willRenew ? await deps.previewInvoice(id) : null;
+  if (kind === "renewal" && preview && preview.subtotal <= 0) return;
+  const price = preview
+    ? `${formatAmount(preview.total, preview.currency)} (estimated next invoice total, including applicable discounts and tax; account credits may reduce the charge)`
+    : "";
+  const renewalDate =
+    new Date(renewal * 1000).toLocaleDateString("en-US", {
+      timeZone: "UTC",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }) + " (UTC)";
+  const renewalSummary = willRenew
+    ? `Your plan renews automatically until you cancel. Your next renewal is ${renewalDate} for ${price}.`
+    : subscription.pause_collection
+      ? "Payment collection is currently paused. Check the billing portal for your current subscription status."
+      : "Your subscription is canceled or scheduled to cancel and will not automatically renew.";
   await deps.deliver(
     kind === "acknowledgment"
       ? `subscription-ack:${id}`
@@ -121,18 +139,14 @@ export async function sendSubscriptionNotice(
         owner.kind === "workspace"
           ? `Anarlog Team (${item.quantity ?? 1} seats)`
           : "Anarlog Pro",
-      price: `${amount} (estimated next invoice total, including applicable discounts and tax; account credits may reduce the charge)`,
+      price,
+      paymentSummary,
+      renewalSummary,
       billingPeriod:
         interval === "year"
           ? "yearly (every 12 months)"
           : "monthly (every month)",
-      renewalDate:
-        new Date(renewal * 1000).toLocaleDateString("en-US", {
-          timeZone: "UTC",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }) + " (UTC)",
+      renewalDate,
       cancellationUrl:
         owner.kind === "workspace"
           ? `mailto:team@fastrepl.com?${`subject=${encodeURIComponent("Cancel my Anarlog Team subscription")}&body=${encodeURIComponent(`Please cancel automatic renewal of my Anarlog Team subscription ${id}.`)}`}`
@@ -147,4 +161,17 @@ async function defaultDependencies() {
   const { subscriptionNoticeDependencies } =
     await import("./subscription-notice-runtime");
   return subscriptionNoticeDependencies;
+}
+
+function formatAmount(amount: number, currency: string) {
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    currencyDisplay: "code",
+  });
+  // Stripe keeps ISK and UGX in hundredths despite their zero-decimal display.
+  const digits = ["isk", "ugx"].includes(currency)
+    ? 2
+    : (formatter.resolvedOptions().maximumFractionDigits ?? 2);
+  return formatter.format(amount / 10 ** digits);
 }

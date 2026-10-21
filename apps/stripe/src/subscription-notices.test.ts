@@ -20,7 +20,14 @@ function fixture() {
     id: "sub_notice",
     customer: "cus_notice",
     status: "active",
-    latest_invoice: { status: "paid" },
+    latest_invoice: {
+      id: "in_first",
+      status: "paid",
+      subtotal: 36000,
+      total: 18000,
+      amount_paid: 18000,
+      currency: "usd",
+    },
     items: {
       data: [
         {
@@ -44,7 +51,8 @@ function fixture() {
     getSubscription: async () => subscription,
     getCustomer: async () => customer,
     previewInvoice: async () =>
-      ({ currency: "usd", total: 32400 }) as Stripe.Invoice,
+      ({ currency: "usd", subtotal: 36000, total: 32400 }) as Stripe.Invoice,
+    hasEarlierPaidInvoice: async () => false,
     now: () => now,
     deliver: async (key, kind, email, variables) => {
       sent.push({ key, kind, email, variables });
@@ -102,7 +110,13 @@ describe("subscription notices", () => {
       deps,
     );
     expect(sent).toHaveLength(0);
-    subscription.latest_invoice = { status: "paid" } as Stripe.Invoice;
+    subscription.latest_invoice = {
+      status: "paid",
+      subtotal: 1200,
+      total: 1200,
+      amount_paid: 1200,
+      currency: "usd",
+    } as Stripe.Invoice;
     await sendSubscriptionAcknowledgment(
       event("invoice.paid", { subscription: subscription.id }),
       deps,
@@ -143,7 +157,7 @@ describe("subscription notices", () => {
     );
   });
 
-  test("current cancellation and paused state suppress stale webhook and renewal notices", async () => {
+  test("scheduled cancellation preserves a paid acknowledgment but suppresses renewal notices", async () => {
     const { deps, subscription, sent } = fixture();
     subscription.cancel_at_period_end = true;
     await sendSubscriptionAcknowledgment(
@@ -157,6 +171,37 @@ describe("subscription notices", () => {
     subscription.cancel_at_period_end = false;
     subscription.status = "paused";
     await sendSubscriptionNotice(subscription.id, "renewal", deps);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].variables.renewalSummary).toContain(
+      "will not automatically renew",
+    );
+  });
+
+  test("routine renewals of existing subscriptions do not receive an acknowledgment", async () => {
+    const { deps, subscription, sent } = fixture();
+    deps.hasEarlierPaidInvoice = async () => true;
+    await sendSubscriptionAcknowledgment(
+      event("customer.subscription.updated", subscription),
+      deps,
+    );
+    await sendSubscriptionAcknowledgment(
+      event("invoice.paid", { subscription: subscription.id }),
+      deps,
+    );
     expect(sent).toHaveLength(0);
+  });
+
+  test("tiered paid plans disclose the settled discount separately from renewal pricing", async () => {
+    const { deps, subscription, sent } = fixture();
+    subscription.items.data[0].price.unit_amount = null;
+    subscription.items.data[0].price.unit_amount_decimal = null;
+    await sendSubscriptionAcknowledgment(
+      event("invoice.paid", { subscription: subscription.id }),
+      deps,
+    );
+    await sendSubscriptionNotice(subscription.id, "renewal", deps);
+    expect(sent).toHaveLength(2);
+    expect(sent[0].variables.paymentSummary).toContain("USD 180.00");
+    expect(sent[0].variables.renewalSummary).toContain("USD 324.00");
   });
 });

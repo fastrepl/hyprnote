@@ -28,20 +28,12 @@ test("accepts only internal paths with one leading slash", () => {
   }
 });
 
-test("new web accounts enter the card-required onboarding checkout", () => {
-  const destination = buildPostAuthDestination({
-    newAccount: true,
-    returnTo: "/share/invite/abc/?scheme=hyprnote",
-  });
-  const url = new URL(destination, "https://anarlog.so");
-
-  assert.equal(url.pathname, "/app/checkout");
-  assert.equal(url.searchParams.get("period"), "monthly");
-  assert.equal(url.searchParams.get("plan"), "pro");
-  assert.equal(url.searchParams.get("trial"), "true");
-  assert.equal(url.searchParams.get("source"), "onboarding");
+test("new web accounts bypass Anarlog checkout and preserve the safe return path", () => {
   assert.equal(
-    url.searchParams.get("return_to"),
+    buildPostAuthDestination({
+      newAccount: true,
+      returnTo: "/share/invite/abc/?scheme=hyprnote",
+    }),
     "/share/invite/abc/?scheme=hyprnote",
   );
 });

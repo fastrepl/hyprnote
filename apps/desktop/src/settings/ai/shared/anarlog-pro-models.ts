@@ -78,7 +78,3 @@ export const ANARLOG_PRO_LLM_MODELS = [
 export function anarlogProLlmModelLabel(model: string): string | undefined {
   return ANARLOG_PRO_LLM_MODELS.find(({ id }) => id === model)?.label;
 }
-
-export function isAnarlogProLlmModel(model: string): boolean {
-  return ANARLOG_PRO_LLM_MODELS.some(({ id }) => id === model);
-}

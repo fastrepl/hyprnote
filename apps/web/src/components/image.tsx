@@ -2,6 +2,7 @@ import type { ImageProps } from "@unpic/react";
 import { Image as UnpicImage } from "@unpic/react/base";
 import type { ComponentProps } from "react";
 
+import { assetUrl } from "@/lib/asset-url";
 import { getResizedImageUrl } from "@/lib/image-cdn";
 import { stripEditorWidthFromTitle } from "@/lib/image-metadata";
 
@@ -17,12 +18,13 @@ export const Image = ({
   background,
   breakpoints,
   objectFit,
-  src,
+  src: source,
   ...props
 }: Partial<ImageProps> &
   Pick<ImageProps, "src" | "alt"> & {
     objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down";
   }) => {
+  const src = typeof source === "string" ? assetUrl(source) : source;
   const title = stripEditorWidthFromTitle(props.title);
 
   if (isGifSource(src)) {

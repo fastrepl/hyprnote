@@ -66,3 +66,14 @@ test("snaps image widths to the CDN allowlist", () => {
   assert.match(getResizedImageUrl("/image.png", { width: 31 }), /w=32&/);
   assert.match(getResizedImageUrl("/image.png", { width: 9000 }), /w=3840&/);
 });
+
+test("resizes shared-bucket testimonial avatars at both pixel densities", () => {
+  const src = "https://static.fastrepl.com/anarlog/blog/testimonials/tobi.jpg";
+  const prefix =
+    "/_vercel/image?url=https%3A%2F%2Fstatic.fastrepl.com%2Fanarlog%2Fblog%2Ftestimonials%2Ftobi.jpg";
+  assert.equal(getResizedImageUrl(src, { width: 48 }), `${prefix}&w=48&q=75`);
+  assert.equal(
+    getResizedImageSrcSet(src, 48),
+    `${prefix}&w=48&q=75 1x, ${prefix}&w=96&q=75 2x`,
+  );
+});

@@ -694,7 +694,12 @@ export const vercelBuildConfig = {
   routes: [...routes],
   images: {
     sizes: [...IMAGE_SIZES],
-    domains: ["char.com", "hyprnote.com", "static.anarlog.so"],
+    domains: [
+      "char.com",
+      "hyprnote.com",
+      "static.anarlog.so",
+      "static.fastrepl.com",
+    ],
     formats: ["image/webp" as const],
     minimumCacheTTL: 3600,
   },

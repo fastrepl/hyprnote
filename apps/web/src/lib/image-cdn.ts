@@ -7,7 +7,8 @@ export function canResize(src: string) {
       !src.startsWith("//") &&
       !src.startsWith("/_vercel/") &&
       !src.startsWith("/.netlify/")) ||
-      src.startsWith("https://static.anarlog.so/")) &&
+      src.startsWith("https://static.anarlog.so/") ||
+      src.startsWith("https://static.fastrepl.com/anarlog/")) &&
     !/\.(svg|gif)(?:$|[?#])/i.test(src)
   );
 }

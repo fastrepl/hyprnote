@@ -1,5 +1,7 @@
 // Anarlog's public images live under anarlog/ in the shared fastrepl R2 bucket.
-export const PUBLIC_ASSET_ORIGIN = "https://static.fastrepl.com/anarlog";
+import { PUBLIC_ASSET_ORIGIN as ASSET_ORIGIN } from "./asset-url.ts";
+
+export const PUBLIC_ASSET_ORIGIN = `${ASSET_ORIGIN}/anarlog`;
 
 const REQUEST_HEADERS = [
   "range",

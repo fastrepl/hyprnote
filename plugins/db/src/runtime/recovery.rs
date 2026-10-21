@@ -806,7 +806,6 @@ impl PluginDbRuntime {
                             .unwrap()
                             .mark_failure(&generation, &message);
                         tracing::warn!(
-                            %error,
                             phase = ?phase,
                             generation = %generation,
                             "CloudSync recovery remains pending"

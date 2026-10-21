@@ -200,11 +200,7 @@ async fn sync_ok_traced(db: &Db, label: &str, trace: Option<&BootstrapTrace>) {
     })
     .await;
     let status = db.cloudsync_status().await.unwrap();
-    assert!(
-        status.last_error.is_none(),
-        "{label} recorded a sync error: {:?}",
-        status.last_error
-    );
+    assert!(status.last_error.is_none(), "{label} recorded a sync error");
 }
 
 #[derive(Debug, PartialEq)]
@@ -248,26 +244,25 @@ fn sync_step_state(result: &CloudsyncNetworkResult) -> SyncStepState {
 fn describe_sync_step(result: &CloudsyncNetworkResult) -> String {
     let failure = |failure: &Option<serde_json::Value>| match failure {
         None => "none".to_string(),
-        Some(failure) => {
-            let field = |key: &str| {
-                failure
-                    .get(key)
-                    .map_or_else(|| "?".to_string(), |value| value.to_string())
-            };
-            format!(
-                "code={} stage={} retryable={}",
-                field("code"),
-                field("stage"),
-                field("retryable")
-            )
-        }
+        Some(failure) => format!(
+            "present retryable={:?}",
+            failure
+                .get("retryable")
+                .and_then(serde_json::Value::as_bool)
+        ),
     };
     let send = result.send.as_ref().map_or_else(
         || "none".to_string(),
         |send| {
             format!(
                 "status={} local_version={} server_version={} chunks={} bytes={} last_failure={}",
-                send.status,
+                if send.status.eq_ignore_ascii_case("synced") {
+                    "synced"
+                } else if send.status.eq_ignore_ascii_case("syncing") {
+                    "syncing"
+                } else {
+                    "unknown"
+                },
                 send.local_version,
                 send.server_version,
                 send.chunks,
@@ -332,8 +327,8 @@ async fn drive_sync_until_settled<F, Fut>(
                     );
                 }
             }
-            Err(error) => {
-                history.push(format!("transport error: {error}"));
+            Err(_error) => {
+                history.push("transport error present".to_string());
                 transport_failures += 1;
                 if transport_failures == SYNC_ATTEMPTS {
                     panic!(
@@ -581,6 +576,22 @@ async fn expect_policy_sync_completed_or_denied(db: &Db, operation: &str) -> Res
         }
         tokio::time::sleep(SYNC_RETRY_INTERVAL).await;
     };
+    let status = db.cloudsync_status().await.unwrap();
+    policy_sync_outcome(
+        operation,
+        steps,
+        outcome.map_err(|error| error.to_string()),
+        status.last_error.as_deref(),
+    )
+}
+
+fn policy_sync_outcome(
+    operation: &str,
+    steps: usize,
+    outcome: Result<CloudsyncNetworkResult, String>,
+    runtime_error: Option<&str>,
+) -> Result<(), String> {
+    let mut denied = runtime_error.is_some_and(is_rls_policy_denial);
     let mut evidence = vec![format!("bounded sync steps: {steps}")];
     let mut clean_send = false;
     let mut clean_receive = true;
@@ -589,33 +600,36 @@ async fn expect_policy_sync_completed_or_denied(db: &Db, operation: &str) -> Res
             if let Some(send) = result.send {
                 clean_send =
                     send.status.eq_ignore_ascii_case("synced") && send.last_failure.is_none();
-                evidence.push(format!("send status: {}", send.status));
-                if let Some(last_failure) = send.last_failure {
-                    evidence.push(format!("send failure: {last_failure}"));
+                evidence.push(format!("send settled: {clean_send}"));
+                if let Some(failure) = &send.last_failure {
+                    denied |= is_rls_policy_denial(&failure.to_string());
+                    evidence.push("send failure present".to_string());
                 }
             }
             if let Some(receive) = result.receive {
-                if let Some(error) = receive.error {
+                if let Some(error) = &receive.error {
+                    denied |= is_rls_policy_denial(error);
                     clean_receive = false;
-                    evidence.push(format!("receive error: {error}"));
+                    evidence.push("receive error present".to_string());
                 }
-                if let Some(last_failure) = receive.last_failure {
+                if let Some(failure) = &receive.last_failure {
+                    denied |= is_rls_policy_denial(&failure.to_string());
                     clean_receive = false;
-                    evidence.push(format!("receive failure: {last_failure}"));
+                    evidence.push("receive failure present".to_string());
                 }
             }
         }
-        Err(error) => evidence.push(error.to_string()),
+        Err(error) => {
+            denied |= is_rls_policy_denial(&error);
+            evidence.push("transport error present".to_string());
+        }
     }
-    let status = db.cloudsync_status().await.unwrap();
-    let runtime_clean = status.last_error.is_none();
-    if let Some(error) = &status.last_error {
-        evidence.push(format!("runtime error: {error}"));
+    let runtime_clean = runtime_error.is_none();
+    if !runtime_clean {
+        evidence.push("runtime error present".to_string());
     }
 
-    if evidence.iter().any(|entry| is_rls_policy_denial(entry))
-        || (clean_send && clean_receive && runtime_clean)
-    {
+    if denied || (clean_send && clean_receive && runtime_clean) {
         Ok(())
     } else {
         Err(format!(
@@ -1086,6 +1100,19 @@ fn upload_step(
     }
 }
 
+#[test]
+fn sync_diagnostics_do_not_expose_server_text() {
+    let secret = "private-server-content";
+    let failure = serde_json::json!({"code": secret, "stage": secret, "retryable": secret});
+    let mut result = upload_step(secret, 0, Some(failure.clone()));
+    let receive = result.receive.as_mut().unwrap();
+    receive.error = Some(secret.to_string());
+    receive.last_failure = Some(failure);
+    let diagnostic = describe_sync_step(&result);
+    assert!(!diagnostic.contains(secret));
+    assert!(diagnostic.contains("last_failure=present"));
+}
+
 async fn scripted_sync_outcome(steps: Vec<CloudsyncNetworkResult>) -> Result<(), String> {
     let steps = Arc::new(Mutex::new(VecDeque::from(steps)));
     tokio::spawn(async move {
@@ -1121,7 +1148,7 @@ async fn bounded_out_of_sync_upload_continues_until_synced_or_fails_with_diagnos
         .unwrap_err();
     assert!(message.contains("did not settle after"), "{message}");
     assert!(
-        message.contains("status=out-of-sync local_version=2 server_version=0"),
+        message.contains("status=unknown local_version=2 server_version=0"),
         "{message}"
     );
 
@@ -1136,8 +1163,26 @@ async fn bounded_out_of_sync_upload_continues_until_synced_or_fails_with_diagnos
         .unwrap_err();
     assert!(message.contains("reported a sync failure"), "{message}");
     assert!(
-        message.contains(r#"code="internal_error" stage="apply_payload" retryable=true"#),
+        message.contains("last_failure=present retryable=Some(true)"),
         "{message}"
     );
     assert!(!message.contains("server detail"), "{message}");
+}
+
+#[test]
+fn policy_diagnostics_redact_runtime_errors_without_losing_denial_classification() {
+    let secret = "private server contents";
+    let message =
+        policy_sync_outcome("policy", 1, Err(secret.to_string()), Some(secret)).unwrap_err();
+    assert!(!message.contains(secret));
+    assert!(message.contains("runtime error present"));
+    assert!(
+        policy_sync_outcome(
+            "policy",
+            1,
+            Err(secret.to_string()),
+            Some("RLS policy denied: private server contents")
+        )
+        .is_ok()
+    );
 }

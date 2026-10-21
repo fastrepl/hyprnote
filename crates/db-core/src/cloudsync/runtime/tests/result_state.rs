@@ -466,3 +466,38 @@ async fn confirmed_prefix_retry_sends_the_tail_without_recording_a_sync_failure(
     );
     server.await.unwrap();
 }
+
+#[test]
+fn logged_failure_does_not_expose_server_text() {
+    let failure = serde_json::json!({
+        "code": "apply_conflict", "stage": "apply", "retryable": true,
+        "failedAt": "secret timestamp text", "message": "secret row contents"
+    });
+    assert_eq!(
+        logged_failure(Some(&failure)),
+        LoggedFailure {
+            code: Some("apply_conflict"),
+            stage: Some("apply"),
+            retryable: Some(true),
+        }
+    );
+    let failure = serde_json::json!({
+        "code": "secret", "stage": "secret", "retryable": "secret",
+        "failedAt": "secret", "message": "secret"
+    });
+    assert_eq!(
+        logged_failure(Some(&failure)),
+        LoggedFailure {
+            code: Some("unknown"),
+            stage: Some("unknown"),
+            retryable: None,
+        }
+    );
+    assert_eq!(
+        logged_failure(Some(&serde_json::json!({
+            "code": 409, "stage": {"message": "secret"}, "retryable": []
+        }))),
+        LoggedFailure::default()
+    );
+    assert_eq!(logged_failure(None), LoggedFailure::default());
+}

@@ -25,17 +25,13 @@ export const subscriptionNoticeDependencies: SubscriptionNoticeDependencies = {
     stripe.subscriptions.retrieve(id, { expand: ["latest_invoice"] }),
   getCustomer: getStripeCustomer,
   previewInvoice: (id) => stripe.invoices.createPreview({ subscription: id }),
-  async hasEarlierPaidInvoice(id, invoice) {
-    for await (const candidate of stripe.invoices.list({
+  listPaidInvoices: (id, created) =>
+    stripe.invoices.list({
       subscription: id,
       status: "paid",
-      created: { lte: invoice.created },
+      created: { lte: created },
       limit: 100,
-    })) {
-      if (candidate.id !== invoice.id && candidate.subtotal > 0) return true;
-    }
-    return false;
-  },
+    }),
   now: () => Math.floor(Date.now() / 1000),
   async deliver(key, kind, email, dataVariables) {
     const transactionalId =

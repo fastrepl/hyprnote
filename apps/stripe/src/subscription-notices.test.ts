@@ -52,7 +52,7 @@ function fixture() {
     getCustomer: async () => customer,
     previewInvoice: async () =>
       ({ currency: "usd", subtotal: 36000, total: 32400 }) as Stripe.Invoice,
-    hasEarlierPaidInvoice: async () => false,
+    listPaidInvoices: async function* () {},
     now: () => now,
     deliver: async (key, kind, email, variables) => {
       sent.push({ key, kind, email, variables });
@@ -179,7 +179,13 @@ describe("subscription notices", () => {
 
   test("routine renewals of existing subscriptions do not receive an acknowledgment", async () => {
     const { deps, subscription, sent } = fixture();
-    deps.hasEarlierPaidInvoice = async () => true;
+    deps.listPaidInvoices = async function* () {
+      yield {
+        id: "in_earlier",
+        total: 12000,
+        amount_paid: 12000,
+      } as Stripe.Invoice;
+    };
     await sendSubscriptionAcknowledgment(
       event("customer.subscription.updated", subscription),
       deps,
@@ -189,6 +195,53 @@ describe("subscription notices", () => {
       deps,
     );
     expect(sent).toHaveLength(0);
+  });
+
+  test("free promotional history does not suppress the first charged invoice, but credit-paid history does", async () => {
+    const { deps, subscription, sent } = fixture();
+    const invoice = subscription.latest_invoice as Stripe.Invoice;
+    invoice.total = 0;
+    invoice.amount_paid = 0;
+    await sendSubscriptionAcknowledgment(
+      event("invoice.paid", { subscription: subscription.id }),
+      deps,
+    );
+    expect(sent).toHaveLength(0);
+    invoice.total = 12000;
+    invoice.amount_paid = 12000;
+    deps.listPaidInvoices = async function* () {
+      yield invoice;
+      yield {
+        id: "in_promo",
+        subtotal: 12000,
+        total: 0,
+        amount_paid: 0,
+      } as Stripe.Invoice;
+      yield {
+        id: "in_trial",
+        subtotal: 0,
+        total: 0,
+        amount_paid: 0,
+      } as Stripe.Invoice;
+    };
+    await sendSubscriptionAcknowledgment(
+      event("invoice.paid", { subscription: subscription.id }),
+      deps,
+    );
+    expect(sent).toHaveLength(1);
+    deps.listPaidInvoices = async function* () {
+      yield {
+        id: "in_credit",
+        subtotal: 12000,
+        total: 12000,
+        amount_paid: 0,
+      } as Stripe.Invoice;
+    };
+    await sendSubscriptionAcknowledgment(
+      event("invoice.paid", { subscription: subscription.id }),
+      deps,
+    );
+    expect(sent).toHaveLength(1);
   });
 
   test("tiered paid plans disclose the settled discount separately from renewal pricing", async () => {

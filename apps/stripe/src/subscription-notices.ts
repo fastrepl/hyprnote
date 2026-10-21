@@ -8,10 +8,10 @@ export type SubscriptionNoticeDependencies = {
   getSubscription: (id: string) => Promise<Stripe.Subscription>;
   getCustomer: (id: string) => Promise<Stripe.Customer | null>;
   previewInvoice: (id: string) => Promise<Stripe.Invoice>;
-  hasEarlierPaidInvoice: (
+  listPaidInvoices: (
     id: string,
-    invoice: Stripe.Invoice,
-  ) => Promise<boolean>;
+    created: number,
+  ) => AsyncIterable<Stripe.Invoice>;
   deliver: (
     key: string,
     kind: "acknowledgment" | "renewal",
@@ -103,11 +103,17 @@ export async function sendSubscriptionNotice(
       !invoice ||
       typeof invoice === "string" ||
       invoice.status !== "paid" ||
-      invoice.subtotal <= 0
+      (invoice.total <= 0 && invoice.amount_paid <= 0)
     )
       return;
-    // Trial invoices are zero-subtotal; a discounted paid plan still has a positive subtotal.
-    if (await deps.hasEarlierPaidInvoice(id, invoice)) return;
+    // A fully discounted invoice is free; a positive total settled by credits is still paid.
+    for await (const earlier of deps.listPaidInvoices(id, invoice.created)) {
+      if (
+        earlier.id !== invoice.id &&
+        (earlier.total > 0 || earlier.amount_paid > 0)
+      )
+        return;
+    }
     paymentSummary = `Your paid invoice total is ${formatAmount(invoice.total, invoice.currency)}; the amount paid is ${formatAmount(invoice.amount_paid, invoice.currency)}. Discounts, tax, prorations, and account credits can make this differ from your next renewal.`;
   }
   const preview = willRenew ? await deps.previewInvoice(id) : null;

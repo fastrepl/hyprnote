@@ -157,7 +157,7 @@ function Component() {
   const showEmail = !provider;
 
   return (
-    <AuthShell title="Welcome to Anarlog" showEyebrow={false}>
+    <AuthShell title="Welcome to Abrish" showEyebrow={false}>
       {view === "main" && (
         <>
           <div className="flex flex-col gap-3">
@@ -875,8 +875,10 @@ function handlePasswordSuccess(
       desktop_state,
     );
   } else {
+    // Abrish MVP: do not send newly registered web users into Anarlog's
+    // trial/checkout onboarding. Continue to the normal post-auth destination.
     window.location.href = buildPostAuthDestination({
-      newAccount,
+      newAccount: false,
       returnTo: redirectPath,
     });
   }

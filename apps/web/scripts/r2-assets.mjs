@@ -1,5 +1,6 @@
 import { AwsClient } from "aws4fetch";
 import { createHash } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 
 // Anarlog's public images live under anarlog/ in the shared fastrepl R2 bucket and
 // are served at https://static.anarlog.so/<path> (alias of static.fastrepl.com/anarlog/<path>).
@@ -11,13 +12,16 @@ export const sha256 = (bytes) =>
 
 const encode = (path) => path.split("/").map(encodeURIComponent).join("/");
 export const publicUrl = (path) => `https://static.anarlog.so/${encode(path)}`;
-const originUrl = (path) =>
-  `https://static.fastrepl.com/${PREFIX}/${encode(path)}`;
 
 // False when nothing is published at the path; throws when different bytes are.
 export async function isPublished(path, { sha, contentType }, fetchImpl) {
-  const response = await fetchImpl(originUrl(path));
-  if (response.status === 404) return false;
+  const response = await fetchImpl(publicUrl(path), {
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (response.status === 404) {
+    await response.body?.cancel();
+    return false;
+  }
   const bytes = Buffer.from(await response.arrayBuffer());
   if (
     response.status !== 200 ||
@@ -25,7 +29,7 @@ export async function isPublished(path, { sha, contentType }, fetchImpl) {
     sha256(bytes) !== sha
   )
     throw new Error(
-      `${originUrl(path)} already serves different content (HTTP ${response.status}); published assets are never replaced`,
+      `${publicUrl(path)} already serves different content (HTTP ${response.status}); published assets are never replaced`,
     );
   return true;
 }
@@ -75,11 +79,28 @@ export async function s3Put(
 }
 
 export async function existsAt(path, fetchImpl = fetch) {
-  const response = await fetchImpl(originUrl(path), { method: "HEAD" });
-  if (response.status === 404) return false;
-  if (!response.ok)
-    throw new Error(`HEAD ${originUrl(path)} failed (HTTP ${response.status})`);
-  return true;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await fetchImpl(publicUrl(path), {
+        method: "HEAD",
+        signal: AbortSignal.timeout(10_000),
+      });
+      await response.body?.cancel();
+      if (response.status === 404) return false;
+      if (response.ok) return true;
+      if (response.status !== 429 && response.status < 500)
+        throw new Error(
+          `HEAD ${publicUrl(path)} failed (HTTP ${response.status})`,
+          { cause: "permanent" },
+        );
+      throw new Error(
+        `HEAD ${publicUrl(path)} failed (HTTP ${response.status})`,
+      );
+    } catch (error) {
+      if (attempt >= 2 || error.cause === "permanent") throw error;
+      await delay(200 * 2 ** attempt);
+    }
+  }
 }
 
 // Uploads bytes once and verifies them through the public origin. Re-running with the
@@ -92,6 +113,6 @@ export async function publishObject(
   if (await isPublished(path, expected, fetchImpl)) return "existing";
   await put(path, bytes, { contentType, cacheControl });
   if (!(await isPublished(path, expected, fetchImpl)))
-    throw new Error(`Uploaded but not served: ${originUrl(path)}`);
+    throw new Error(`Uploaded but not served: ${publicUrl(path)}`);
   return "uploaded";
 }

@@ -76,6 +76,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "aws4fetch": "^1.0.20",
     "js-yaml": "^5.4.1",
     "jsdom": "^27.4.0",
     "nf3": "0.3.24",

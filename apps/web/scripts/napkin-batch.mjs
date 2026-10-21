@@ -65,7 +65,7 @@ Declare figures in content/articles/figures.json:
 
 An empty array marks a post as deliberately figure-less and satisfies --check.
 
-Generation requires NAPKIN_API_TOKEN and a wrangler login with R2 write access;
+Generation requires NAPKIN_API_TOKEN and bucket-scoped R2 S3 credentials;
 see napkin-figure.md. Published figures are never replaced: regenerate under a new filename.
 `;
 }

@@ -74,7 +74,7 @@ Useful options:
 
 Environment:
   NAPKIN_API_TOKEN
-  A \`wrangler login\` with R2 write access to the fastrepl-static-assets bucket.
+  Bucket-scoped R2 S3 credentials in ANARLOG_R2_* environment variables (Infisical prod /anarlog/web).
 
 Published figures are never replaced: regenerate under a new filename.
 `;

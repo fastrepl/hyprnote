@@ -161,19 +161,22 @@ async fn run_socket(
         content_revision,
         seed_required: seed_required && capability == LiveCapability::Editor,
     });
-    if sink.send(WsMessage::Text(ready.into())).await.is_err() {
-        docs.leave(&live, peer_id).await;
-        return;
-    }
-    for frame in handshake {
-        if sink.send(WsMessage::Binary(frame.into())).await.is_err() {
-            docs.leave(&live, peer_id).await;
-            return;
-        }
-    }
-
-    let writer = tokio::spawn(async move {
-        while let Some(frame) = outbound.recv().await {
+    let mut initial = std::collections::VecDeque::from([Outbound::Control(ready)]);
+    initial.extend(handshake.into_iter().map(Outbound::Binary));
+    let writer = async {
+        loop {
+            let frame = match initial.pop_front() {
+                Some(frame) => frame,
+                None => match outbound.recv().await {
+                    Some(frame) => frame,
+                    None => break,
+                },
+            };
+            // All content, including queued updates and handshake state, crosses this gate.
+            match resolve_access(&state, &share_id, &user_id).await {
+                Ok(access) if access.capability == capability => {}
+                _ => break,
+            }
             let message = match frame {
                 Outbound::Binary(bytes) => WsMessage::Binary(bytes.into()),
                 Outbound::Control(text) => WsMessage::Text(text.into()),
@@ -182,42 +185,46 @@ async fn run_socket(
                 break;
             }
         }
-        let _ = sink.close().await;
-    });
+    };
 
-    while let Some(Ok(message)) = stream.next().await {
-        let frame = match message {
-            WsMessage::Binary(bytes) => bytes,
-            WsMessage::Close(_) => break,
-            WsMessage::Ping(_) | WsMessage::Pong(_) | WsMessage::Text(_) => continue,
-        };
-        match docs
-            .handle_frame(&state, &live, peer_id, &user_id, capability, &frame)
-            .await
-        {
-            Ok(replies) => {
-                let mut delivered = true;
-                for reply in replies {
-                    if live.send_to(peer_id, reply).await.is_err() {
-                        delivered = false;
+    let reader = async {
+        while let Some(Ok(message)) = stream.next().await {
+            let frame = match message {
+                WsMessage::Binary(bytes) => bytes,
+                WsMessage::Close(_) => break,
+                WsMessage::Ping(_) | WsMessage::Pong(_) | WsMessage::Text(_) => continue,
+            };
+            match docs
+                .handle_frame(&state, &live, peer_id, &user_id, capability, &frame)
+                .await
+            {
+                Ok(replies) => {
+                    let mut delivered = true;
+                    for reply in replies {
+                        if live.send_to(peer_id, reply).await.is_err() {
+                            delivered = false;
+                            break;
+                        }
+                    }
+                    if !delivered {
                         break;
                     }
                 }
-                if !delivered {
+                Err(SyncError::SnapshotPublicationForbidden) => {
+                    tracing::warn!(%share_id, "live document edit rejected");
+                    break;
+                }
+                Err(error) => {
+                    tracing::warn!(%error, %share_id, "live document frame rejected");
                     break;
                 }
             }
-            Err(SyncError::SnapshotPublicationForbidden) => {
-                tracing::warn!(%share_id, "live document edit rejected");
-                break;
-            }
-            Err(error) => {
-                tracing::warn!(%error, %share_id, "live document frame rejected");
-                break;
-            }
         }
+    };
+    tokio::select! {
+        _ = writer => {},
+        _ = reader => {},
     }
-
     docs.leave(&live, peer_id).await;
-    let _ = tokio::time::timeout(std::time::Duration::from_secs(5), writer).await;
+    let _ = tokio::time::timeout(std::time::Duration::from_secs(5), sink.close()).await;
 }

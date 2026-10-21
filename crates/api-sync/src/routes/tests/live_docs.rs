@@ -635,3 +635,72 @@ async fn racing_seeds_reset_the_losing_peer() {
     assert_eq!(body_text(&fresh), "winner");
     assert_eq!(store.seq(), 1);
 }
+
+#[tokio::test]
+async fn revoked_readers_receive_neither_handshake_broadcasts_nor_requested_state() {
+    for trigger in ["handshake", "local", "remote", "diff", "unavailable"] {
+        let server = MockServer::start().await;
+        let store = FakeStore::default();
+        store.mount(&server).await;
+        mock_access(&server, "reader", "viewer").await;
+        mock_access(&server, "editor", "editor").await;
+        let state = live_test_state(&server);
+        let base = serve(authed_router(state.clone(), "reader")).await;
+        let ticket = issue_ticket(authed_router(state.clone(), "reader")).await;
+        let editor_ticket = issue_ticket(authed_router(state, "editor")).await;
+        let mut editor = connect(&base, editor_ticket["ticket"].as_str().unwrap()).await;
+        let source = Doc::new();
+        handshake(&mut editor, &source).await;
+        let mut reader = if trigger == "handshake" {
+            None
+        } else {
+            let mut socket = connect(&base, ticket["ticket"].as_str().unwrap()).await;
+            handshake(&mut socket, &Doc::new()).await;
+            Some(socket)
+        };
+
+        Mock::given(method("POST"))
+            .and(path("/rest/v1/rpc/resolve_session_share_live_access"))
+            .and(body_partial_json(json!({"p_actor_user_id": "reader"})))
+            .respond_with(if trigger == "unavailable" {
+                ResponseTemplate::new(503)
+            } else {
+                ResponseTemplate::new(200).set_body_json(json!([]))
+            })
+            .with_priority(1)
+            .mount(&server)
+            .await;
+        if reader.is_none() {
+            reader = Some(connect(&base, ticket["ticket"].as_str().unwrap()).await);
+        }
+        let mut reader = reader.unwrap();
+        match trigger {
+            "local" => editor
+                .send(update_frame(text_update(&source, "private")))
+                .await
+                .unwrap(),
+            "remote" => store
+                .0
+                .lock()
+                .unwrap()
+                .updates
+                .push((1, text_update(&source, "private"))),
+            "diff" | "unavailable" => reader
+                .send(WsMessage::Binary(
+                    Message::Sync(SyncMessage::SyncStep1(StateVector::default()))
+                        .encode_v1()
+                        .into(),
+                ))
+                .await
+                .unwrap(),
+            _ => {}
+        }
+        let received = tokio::time::timeout(std::time::Duration::from_secs(5), reader.next())
+            .await
+            .expect("revoked socket closes");
+        assert!(
+            matches!(received, None | Some(Ok(WsMessage::Close(_)))),
+            "{trigger} must not deliver a frame: {received:?}"
+        );
+    }
+}

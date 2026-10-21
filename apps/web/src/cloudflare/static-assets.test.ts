@@ -92,6 +92,19 @@ test("redirects moved objects to their new path without fetching the old one", a
     response.headers.get("location"),
     "https://static.anarlog.so/blog/library/products/otter/meeting-summary/2026-08-27-summary-card.webp",
   );
+  const encoded = await worker.fetch(
+    new Request(
+      "https://static.anarlog.so/blog/articles/free-ai-notetakers/free%2D11.webp",
+    ),
+  );
+  assert.equal(encoded.status, 301);
+  const preflight = await worker.fetch(
+    new Request(
+      "https://static.anarlog.so/blog/articles/free-ai-notetakers/free-11.webp",
+      { method: "OPTIONS" },
+    ),
+  );
+  assert.equal(preflight.status, 204);
   const inherited = await worker.fetch(
     new Request("https://static.anarlog.so/constructor"),
   );

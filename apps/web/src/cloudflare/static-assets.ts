@@ -1,6 +1,17 @@
 import { servePublicAsset } from "../lib/public-assets.ts";
 import { MOVED_ASSETS } from "./moved-assets.ts";
 
+// Matches how servePublicAsset reads paths, so encoded spellings of an old path redirect too.
+function movedAsset(pathname: string) {
+  let path: string;
+  try {
+    path = decodeURIComponent(pathname.slice(1));
+  } catch {
+    return undefined;
+  }
+  return Object.hasOwn(MOVED_ASSETS, path) ? MOVED_ASSETS[path] : undefined;
+}
+
 export default {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -11,10 +22,9 @@ export default {
       url.protocol = "https:";
       return Response.redirect(url, 308);
     }
-    const moved = Object.hasOwn(MOVED_ASSETS, url.pathname.slice(1))
-      ? MOVED_ASSETS[url.pathname.slice(1)]
-      : undefined;
-    if (moved) {
+    const moved = movedAsset(url.pathname);
+    // Preflights are answered below: browsers do not follow a redirected preflight.
+    if (moved && (request.method === "GET" || request.method === "HEAD")) {
       return new Response(null, {
         status: 301,
         headers: {

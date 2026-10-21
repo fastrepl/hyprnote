@@ -133,11 +133,7 @@ async fn sync_ok(db: &Db, label: &str) {
     })
     .await;
     let status = db.cloudsync_status().await.unwrap();
-    assert!(
-        status.last_error.is_none(),
-        "{label} recorded a sync error: {:?}",
-        status.last_error
-    );
+    assert!(status.last_error.is_none(), "{label} recorded a sync error");
 }
 
 #[derive(Debug, PartialEq)]
@@ -255,8 +251,8 @@ where
                     );
                 }
             }
-            Err(error) => {
-                history.push(format!("transport error: {error}"));
+            Err(_error) => {
+                history.push("transport error present".to_string());
                 transport_failures += 1;
                 if transport_failures == SYNC_ATTEMPTS {
                     panic!(
@@ -497,6 +493,22 @@ async fn expect_policy_sync_completed_or_denied(db: &Db, operation: &str) -> Res
         }
         tokio::time::sleep(SYNC_RETRY_INTERVAL).await;
     };
+    let status = db.cloudsync_status().await.unwrap();
+    policy_sync_outcome(
+        operation,
+        steps,
+        outcome.map_err(|error| error.to_string()),
+        status.last_error.as_deref(),
+    )
+}
+
+fn policy_sync_outcome(
+    operation: &str,
+    steps: usize,
+    outcome: Result<CloudsyncNetworkResult, String>,
+    runtime_error: Option<&str>,
+) -> Result<(), String> {
+    let mut denied = runtime_error.is_some_and(is_rls_policy_denial);
     let mut evidence = vec![format!("bounded sync steps: {steps}")];
     let mut clean_send = false;
     let mut clean_receive = true;
@@ -506,32 +518,35 @@ async fn expect_policy_sync_completed_or_denied(db: &Db, operation: &str) -> Res
                 clean_send =
                     send.status.eq_ignore_ascii_case("synced") && send.last_failure.is_none();
                 evidence.push(format!("send settled: {clean_send}"));
-                if send.last_failure.is_some() {
+                if let Some(failure) = &send.last_failure {
+                    denied |= is_rls_policy_denial(&failure.to_string());
                     evidence.push("send failure present".to_string());
                 }
             }
             if let Some(receive) = result.receive {
-                if receive.error.is_some() {
+                if let Some(error) = &receive.error {
+                    denied |= is_rls_policy_denial(error);
                     clean_receive = false;
                     evidence.push("receive error present".to_string());
                 }
-                if receive.last_failure.is_some() {
+                if let Some(failure) = &receive.last_failure {
+                    denied |= is_rls_policy_denial(&failure.to_string());
                     clean_receive = false;
                     evidence.push("receive failure present".to_string());
                 }
             }
         }
-        Err(error) => evidence.push(error.to_string()),
+        Err(error) => {
+            denied |= is_rls_policy_denial(&error);
+            evidence.push("transport error present".to_string());
+        }
     }
-    let status = db.cloudsync_status().await.unwrap();
-    let runtime_clean = status.last_error.is_none();
-    if let Some(error) = &status.last_error {
-        evidence.push(format!("runtime error: {error}"));
+    let runtime_clean = runtime_error.is_none();
+    if !runtime_clean {
+        evidence.push("runtime error present".to_string());
     }
 
-    if evidence.iter().any(|entry| is_rls_policy_denial(entry))
-        || (clean_send && clean_receive && runtime_clean)
-    {
+    if denied || (clean_send && clean_receive && runtime_clean) {
         Ok(())
     } else {
         Err(format!(
@@ -1044,7 +1059,7 @@ async fn bounded_out_of_sync_upload_continues_until_synced_or_fails_with_diagnos
         .unwrap_err();
     assert!(message.contains("did not settle after"), "{message}");
     assert!(
-        message.contains("status=out-of-sync local_version=2 server_version=0"),
+        message.contains("status=unknown local_version=2 server_version=0"),
         "{message}"
     );
 
@@ -1059,8 +1074,26 @@ async fn bounded_out_of_sync_upload_continues_until_synced_or_fails_with_diagnos
         .unwrap_err();
     assert!(message.contains("reported a sync failure"), "{message}");
     assert!(
-        message.contains(r#"code="internal_error" stage="apply_payload" retryable=true"#),
+        message.contains("last_failure=present retryable=Some(true)"),
         "{message}"
     );
     assert!(!message.contains("server detail"), "{message}");
+}
+
+#[test]
+fn policy_diagnostics_redact_runtime_errors_without_losing_denial_classification() {
+    let secret = "private server contents";
+    let message =
+        policy_sync_outcome("policy", 1, Err(secret.to_string()), Some(secret)).unwrap_err();
+    assert!(!message.contains(secret));
+    assert!(message.contains("runtime error present"));
+    assert!(
+        policy_sync_outcome(
+            "policy",
+            1,
+            Err(secret.to_string()),
+            Some("RLS policy denied: private server contents")
+        )
+        .is_ok()
+    );
 }

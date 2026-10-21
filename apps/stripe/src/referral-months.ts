@@ -44,10 +44,6 @@ export function planReferralExtension(
   return { previousEnd, targetEnd: addCalendarMonth(previousEnd) };
 }
 
-export function isReferralExtension(subscription: Stripe.Subscription) {
-  return subscription.metadata?.referral_extension === "true";
-}
-
 export async function applyPreparedReferralExtension({
   subscription,
   prices,

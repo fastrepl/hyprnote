@@ -181,26 +181,25 @@ fn sync_step_state(result: &CloudsyncNetworkResult) -> SyncStepState {
 fn describe_sync_step(result: &CloudsyncNetworkResult) -> String {
     let failure = |failure: &Option<serde_json::Value>| match failure {
         None => "none".to_string(),
-        Some(failure) => {
-            let field = |key: &str| {
-                failure
-                    .get(key)
-                    .map_or_else(|| "?".to_string(), |value| value.to_string())
-            };
-            format!(
-                "code={} stage={} retryable={}",
-                field("code"),
-                field("stage"),
-                field("retryable")
-            )
-        }
+        Some(failure) => format!(
+            "present retryable={:?}",
+            failure
+                .get("retryable")
+                .and_then(serde_json::Value::as_bool)
+        ),
     };
     let send = result.send.as_ref().map_or_else(
         || "none".to_string(),
         |send| {
             format!(
                 "status={} local_version={} server_version={} chunks={} bytes={} last_failure={}",
-                send.status,
+                if send.status.eq_ignore_ascii_case("synced") {
+                    "synced"
+                } else if send.status.eq_ignore_ascii_case("syncing") {
+                    "syncing"
+                } else {
+                    "unknown"
+                },
                 send.local_version,
                 send.server_version,
                 send.chunks,
@@ -506,19 +505,19 @@ async fn expect_policy_sync_completed_or_denied(db: &Db, operation: &str) -> Res
             if let Some(send) = result.send {
                 clean_send =
                     send.status.eq_ignore_ascii_case("synced") && send.last_failure.is_none();
-                evidence.push(format!("send status: {}", send.status));
-                if let Some(last_failure) = send.last_failure {
-                    evidence.push(format!("send failure: {last_failure}"));
+                evidence.push(format!("send settled: {clean_send}"));
+                if send.last_failure.is_some() {
+                    evidence.push("send failure present".to_string());
                 }
             }
             if let Some(receive) = result.receive {
-                if let Some(error) = receive.error {
+                if receive.error.is_some() {
                     clean_receive = false;
-                    evidence.push(format!("receive error: {error}"));
+                    evidence.push("receive error present".to_string());
                 }
-                if let Some(last_failure) = receive.last_failure {
+                if receive.last_failure.is_some() {
                     clean_receive = false;
-                    evidence.push(format!("receive failure: {last_failure}"));
+                    evidence.push("receive failure present".to_string());
                 }
             }
         }
@@ -995,6 +994,19 @@ fn upload_step(
             last_failure: None,
         }),
     }
+}
+
+#[test]
+fn sync_diagnostics_do_not_expose_server_text() {
+    let secret = "private-server-content";
+    let failure = serde_json::json!({"code": secret, "stage": secret, "retryable": secret});
+    let mut result = upload_step(secret, 0, Some(failure.clone()));
+    let receive = result.receive.as_mut().unwrap();
+    receive.error = Some(secret.to_string());
+    receive.last_failure = Some(failure);
+    let diagnostic = describe_sync_step(&result);
+    assert!(!diagnostic.contains(secret));
+    assert!(diagnostic.contains("last_failure=present"));
 }
 
 async fn scripted_sync_outcome(steps: Vec<CloudsyncNetworkResult>) -> Result<(), String> {

@@ -20,16 +20,13 @@ struct SyncActivity {
     error: Option<String>,
 }
 
-const LOGGED_FAILURE_FIELD_MAX_CHARS: usize = 64;
-
-/// Fields of a server-reported `lastFailure` that are safe to log. The full
-/// failure, and the error string built from it, can carry server messages.
+/// Server strings are untrusted even when short; only known classifications
+/// and a typed retry flag may leave the process through logging.
 #[derive(Debug, Default, Eq, PartialEq)]
 pub(super) struct LoggedFailure {
-    pub(super) code: Option<String>,
-    pub(super) stage: Option<String>,
+    pub(super) code: Option<&'static str>,
+    pub(super) stage: Option<&'static str>,
     pub(super) retryable: Option<bool>,
-    pub(super) failed_at: Option<String>,
 }
 
 pub(super) fn logged_failure(failure: Option<&serde_json::Value>) -> LoggedFailure {
@@ -37,22 +34,21 @@ pub(super) fn logged_failure(failure: Option<&serde_json::Value>) -> LoggedFailu
         return LoggedFailure::default();
     };
     LoggedFailure {
-        code: logged_failure_scalar(failure.get("code")),
-        stage: logged_failure_scalar(failure.get("stage")),
+        code: match failure.get("code").and_then(serde_json::Value::as_str) {
+            Some("apply_conflict") => Some("apply_conflict"),
+            Some("check_failed") => Some("check_failed"),
+            Some(_) => Some("unknown"),
+            None => None,
+        },
+        stage: match failure.get("stage").and_then(serde_json::Value::as_str) {
+            Some("apply") => Some("apply"),
+            Some("check") => Some("check"),
+            Some(_) => Some("unknown"),
+            None => None,
+        },
         retryable: failure
             .get("retryable")
             .and_then(serde_json::Value::as_bool),
-        failed_at: logged_failure_scalar(failure.get("failedAt")),
-    }
-}
-
-fn logged_failure_scalar(value: Option<&serde_json::Value>) -> Option<String> {
-    match value? {
-        serde_json::Value::String(value) => {
-            Some(value.chars().take(LOGGED_FAILURE_FIELD_MAX_CHARS).collect())
-        }
-        serde_json::Value::Number(value) => Some(value.to_string()),
-        _ => None,
     }
 }
 
@@ -218,11 +214,9 @@ fn log_sync_result(
             send_failure_code = ?send_failure.code,
             send_failure_stage = ?send_failure.stage,
             send_failure_retryable = ?send_failure.retryable,
-            send_failure_failed_at = ?send_failure.failed_at,
             receive_failure_code = ?receive_failure.code,
             receive_failure_stage = ?receive_failure.stage,
             receive_failure_retryable = ?receive_failure.retryable,
-            receive_failure_failed_at = ?receive_failure.failed_at,
             failures,
             sent_bytes = activity.sent_bytes,
             received_bytes = activity.received_bytes,

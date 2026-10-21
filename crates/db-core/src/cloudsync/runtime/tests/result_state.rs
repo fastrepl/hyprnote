@@ -437,50 +437,36 @@ async fn confirmed_prefix_retry_sends_the_tail_without_recording_a_sync_failure(
 }
 
 #[test]
-fn logged_failure_keeps_only_safe_scalar_fields() {
+fn logged_failure_does_not_expose_server_text() {
     let failure = serde_json::json!({
-        "jobId": "job-1",
-        "code": "apply_conflict",
-        "stage": "apply",
-        "message": "row with secret contents conflicts",
-        "retryable": true,
-        "failedAt": "2026-10-17T18:34:32Z",
+        "code": "apply_conflict", "stage": "apply", "retryable": true,
+        "failedAt": "secret timestamp text", "message": "secret row contents"
     });
     assert_eq!(
         logged_failure(Some(&failure)),
         LoggedFailure {
-            code: Some("apply_conflict".to_string()),
-            stage: Some("apply".to_string()),
+            code: Some("apply_conflict"),
+            stage: Some("apply"),
             retryable: Some(true),
-            failed_at: Some("2026-10-17T18:34:32Z".to_string()),
         }
     );
-
     let failure = serde_json::json!({
-        "code": 409,
-        "stage": {"message": "nested server text"},
-        "retryable": "yes",
-        "failedAt": 1_792_262_072,
+        "code": "secret", "stage": "secret", "retryable": "secret",
+        "failedAt": "secret", "message": "secret"
     });
     assert_eq!(
         logged_failure(Some(&failure)),
         LoggedFailure {
-            code: Some("409".to_string()),
-            stage: None,
+            code: Some("unknown"),
+            stage: Some("unknown"),
             retryable: None,
-            failed_at: Some("1792262072".to_string()),
         }
     );
-
-    let failure = serde_json::json!({"code": "x".repeat(100)});
     assert_eq!(
-        logged_failure(Some(&failure)).code.map(|code| code.len()),
-        Some(64)
-    );
-
-    assert_eq!(logged_failure(None), LoggedFailure::default());
-    assert_eq!(
-        logged_failure(Some(&serde_json::json!("previous apply failed"))),
+        logged_failure(Some(&serde_json::json!({
+            "code": 409, "stage": {"message": "secret"}, "retryable": []
+        }))),
         LoggedFailure::default()
     );
+    assert_eq!(logged_failure(None), LoggedFailure::default());
 }

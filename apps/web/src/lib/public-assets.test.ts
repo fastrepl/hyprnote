@@ -29,7 +29,7 @@ test("keeps blog media behind the shared proxy and preserves video ranges withou
     },
   );
   const response = await servePublicAsset(
-    new Request("https://anarlog.so/api/assets/test", {
+    new Request("https://static.anarlog.so/test", {
       headers: {
         range: "bytes=0-3",
         cookie: "session=private",
@@ -58,7 +58,7 @@ test("rejects asset traversal and handles conditional reads without an upstream 
     assert.equal(
       (
         await servePublicAsset(
-          new Request("https://anarlog.so/api/assets/a"),
+          new Request("https://static.anarlog.so/a"),
           path,
         )
       ).status,
@@ -80,7 +80,7 @@ test("rejects asset traversal and handles conditional reads without an upstream 
     },
   );
   const response = await servePublicAsset(
-    new Request("https://anarlog.so/api/assets/desktop/icon.svg", {
+    new Request("https://static.anarlog.so/desktop/icon.svg", {
       headers: { "if-none-match": '"icon"' },
     }),
     "desktop/icon.svg",

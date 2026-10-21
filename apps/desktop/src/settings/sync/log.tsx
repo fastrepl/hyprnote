@@ -7,8 +7,6 @@ import { CaretDown, CircleNotch } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { cn } from "@anlg/utils";
 
-import { LogEntry } from "~/shared/log-entry";
-
 async function readCloudsyncLog() {
   const result = await tracingCommands.logContent(true);
   if (result.status === "error") {
@@ -82,7 +80,7 @@ export function SyncLog() {
                   key={`${index}-${line}`}
                   className="py-2 break-words whitespace-pre-wrap first:pt-0 last:pb-0"
                 >
-                  <LogEntry text={line} />
+                  {line}
                 </li>
               ))}
             </ol>

@@ -34,19 +34,11 @@ function readFrontmatterValue(block: string, key: string) {
   return value;
 }
 
-export function fixImageUrls(content: string): string {
-  return content.replace(
-    /!\[([^\]]*)\]\(\/api\/assets\/([^)]+)\)/g,
-    "![$1](https://static.anarlog.so/$2)",
-  );
-}
-
 export function processContent(raw: string): {
   content: string;
   date: string | null;
   summary: string | null;
 } {
   const { date, summary, body } = parseFrontmatter(raw);
-  const markdown = fixImageUrls(body);
-  return { content: markdown, date, summary };
+  return { content: body, date, summary };
 }

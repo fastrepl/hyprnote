@@ -3,7 +3,7 @@ const EDITORS = {
     id: "john",
     name: "John Jeong",
     email: "team@fastrepl.com",
-    avatar: "/api/assets/team/john.png",
+    avatar: "https://static.anarlog.so/team/john.png",
     role: "Chief Wisdom Seeker",
     bio: "I love designing simple and intuitive user interfaces.",
     links: {

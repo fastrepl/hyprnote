@@ -1,11 +1,13 @@
 import { IMAGE_SIZES } from "./image-sizes.ts";
 
-function canResize(src: string) {
+// Remote hosts must also be listed in the image domains of vercel-build-config.ts.
+export function canResize(src: string) {
   return (
-    src.startsWith("/") &&
-    !src.startsWith("//") &&
-    !src.startsWith("/_vercel/") &&
-    !src.startsWith("/.netlify/") &&
+    ((src.startsWith("/") &&
+      !src.startsWith("//") &&
+      !src.startsWith("/_vercel/") &&
+      !src.startsWith("/.netlify/")) ||
+      src.startsWith("https://static.anarlog.so/")) &&
     !/\.(svg|gif)(?:$|[?#])/i.test(src)
   );
 }

@@ -73,11 +73,11 @@ test("agent discovery proxies retain paths and their required origin header", ()
 });
 
 test("public asset redirects and legacy host redirects preserve suffixes", () => {
-  assert.equal(
-    routeFor("https://anarlog.so/api/assets/blog/library/image.webp")
-      ?.destination,
-    "https://static.anarlog.so/blog/library/image.webp",
-  );
+  for (const path of ["blog/library/image.webp", "team/john.png"]) {
+    const route = routeFor(`https://anarlog.so/api/assets/${path}`);
+    assert.equal(route?.status, 301);
+    assert.equal(route?.destination, `https://static.anarlog.so/${path}`);
+  }
   assert.equal(
     routeFor("https://char.com/blog/old-article/")?.destination,
     "https://anarlog.so/blog/old-article/",

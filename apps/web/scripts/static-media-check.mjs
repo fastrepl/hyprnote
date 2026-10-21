@@ -6,12 +6,16 @@ import { fileURLToPath } from "node:url";
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const webDir = resolve(scriptDir, "..");
 const publicBlogDir = resolve(webDir, "public/images/blog");
-const scanRoots = [resolve(webDir, "content/articles"), resolve(webDir, "src")];
+const scanRoots = [
+  resolve(webDir, "content/articles"),
+  resolve(webDir, "src"),
+  resolve(webDir, "../../packages/changelog/content"),
+];
 const textExtensions = new Set([".md", ".mdx", ".ts", ".tsx"]);
 
 const STATIC_BLOG_PREFIX = "https://static.anarlog.so/blog/";
 const legacyLocalPattern = /\/images\/blog\/[A-Za-z0-9._+%/-]+/g;
-const legacyProxyPattern = /\/api\/assets\/blog\/[A-Za-z0-9._+%/-]+/g;
+const legacyProxyPattern = /\/api\/assets\/[A-Za-z0-9._+%/-]+/g;
 const supabaseStoragePattern =
   /https:\/\/[a-z0-9.-]+\/storage\/v1\/object\/public\/[A-Za-z0-9._+%/-]+/g;
 
@@ -68,7 +72,9 @@ if (legacyLocalReferences.length > 0) {
 }
 
 if (legacyProxyReferences.length > 0) {
-  console.error("Legacy /api/assets/blog/* references remain:");
+  console.error(
+    "Legacy /api/assets/* references remain; use https://static.anarlog.so/:",
+  );
   for (const item of legacyProxyReferences)
     console.error(`  - ${item.file}: ${item.url}`);
   process.exitCode = 1;

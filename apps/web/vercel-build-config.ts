@@ -26,10 +26,10 @@ const routes = [
     continue: true,
   },
   {
-    src: "^/api/assets/blog/(.*)$",
+    src: "^/api/assets/(.*)$",
     status: 301,
     headers: {
-      Location: "https://static.anarlog.so/blog/$1",
+      Location: "https://static.anarlog.so/$1",
     },
   },
   {
@@ -694,7 +694,7 @@ export const vercelBuildConfig = {
   routes: [...routes],
   images: {
     sizes: [...IMAGE_SIZES],
-    domains: ["char.com", "hyprnote.com", "ijoptyyjrfqwaqhyxkxj.supabase.co"],
+    domains: ["char.com", "hyprnote.com", "static.anarlog.so"],
     formats: ["image/webp" as const],
     minimumCacheTTL: 3600,
   },

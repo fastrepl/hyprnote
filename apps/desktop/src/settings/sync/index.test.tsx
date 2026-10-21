@@ -437,10 +437,7 @@ describe("SettingsSync", () => {
     expect(await screen.findByText("Synced")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "View sync log" }));
 
-    const latest = await screen.findByText(
-      (_, element) =>
-        element?.tagName === "LI" && element.textContent === newer,
-    );
+    const latest = await screen.findByText(newer);
     const previous = screen.getByText(
       (_, element) =>
         element?.tagName === "LI" && element.textContent === older,

@@ -12,6 +12,7 @@ import { verifyStripeWebhook } from "./middleware";
 import { startReferralMonthWorker } from "./referral-month-worker";
 import { routes } from "./routes";
 import { drainServer } from "./shutdown";
+import { startSubscriptionNoticeWorker } from "./subscription-notice-runtime";
 import { startWorkspaceSeatWorker } from "./workspace-seat-worker";
 
 Sentry.init({
@@ -61,8 +62,13 @@ app.notFound((c) => c.text("not_found", 404));
 
 const stopSeatWorker = startWorkspaceSeatWorker();
 const stopReferralWorker = startReferralMonthWorker();
+const stopNoticeWorker = startSubscriptionNoticeWorker();
 const stopWorkers = async () => {
-  await Promise.all([stopSeatWorker(), stopReferralWorker()]);
+  await Promise.all([
+    stopSeatWorker(),
+    stopReferralWorker(),
+    stopNoticeWorker(),
+  ]);
 };
 const server = Bun.serve({
   port: Bun.env.BILLING_API_BINARY ? 8788 : env.PORT,

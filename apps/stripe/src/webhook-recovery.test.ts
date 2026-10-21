@@ -21,6 +21,12 @@ test("the webhook route completes once its database recovers", async () => {
         receipts.add(JSON.parse(body).id);
       },
     } }));
+    let noticeFailure = true;
+    let acknowledged = false;
+    mock.module("./src/subscription-notices", () => ({ async sendSubscriptionAcknowledgment() {
+      if (noticeFailure) { noticeFailure = false; throw new Error("notice provider unavailable"); }
+      acknowledged = true;
+    } }));
     const reconciled = new Set();
     mock.module("./src/billing-bridge", () => ({ async syncBillingBridge(event) {
       assert.ok(receipts.has(event.id));
@@ -35,7 +41,7 @@ test("the webhook route completes once its database recovers", async () => {
       ["subscription-welcome-email", ["sendSubscriptionWelcomeEmail"]],
       ["trial-emails", ["sendTrialEndingEmail"]],
     ]) mock.module("./src/" + path, () => Object.fromEntries(names.map(name => [name, async () => {}])));
-    mock.module("./src/error-reporting", () => ({ captureOperationalError(error) { throw error; } }));
+    mock.module("./src/error-reporting", () => ({ captureOperationalError(error) { if (error.message !== "notice provider unavailable") throw error; } }));
     const { webhook } = await import("./src/routes/webhook");
     const event = { id: "evt_recovery", type: "customer.created", data: { object: { id: "cus_recovery" } } };
     const app = new Hono();
@@ -46,11 +52,15 @@ test("the webhook route completes once its database recovers", async () => {
       await next();
     });
     app.route("/webhook", webhook);
+    const failed = await app.request("/webhook/stripe", { method: "POST" });
+    assert.equal(failed.status, 500);
+    assert.equal(acknowledged, false);
     const response = await app.request("/webhook/stripe", { method: "POST" });
     assert.equal(response.status, 200);
     assert.deepEqual(await response.json(), { ok: true });
     assert.deepEqual([...receipts], [event.id]);
     assert.deepEqual([...reconciled], [event.id]);
+    assert.equal(acknowledged, true);
   `,
     ],
     {

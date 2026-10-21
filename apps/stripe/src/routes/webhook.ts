@@ -11,6 +11,7 @@ import { sendNewCustomerAlert } from "../new-customer-alert";
 import { scheduleReplacedPersonalPlanCancellation } from "../personal-plan-transition";
 import { recordReferralTrial } from "../referral-month-worker";
 import { issueReferralReward } from "../referral-rewards";
+import { sendSubscriptionAcknowledgment } from "../subscription-notices";
 import { sendSubscriptionWelcomeEmail } from "../subscription-welcome-email";
 import { sendTrialEndingEmail } from "../trial-emails";
 
@@ -98,6 +99,16 @@ webhook.post("/stripe", async (c) => {
         event_type: stripeEvent.type,
       },
     });
+  }
+
+  try {
+    await sendSubscriptionAcknowledgment(stripeEvent);
+  } catch (error) {
+    captureOperationalError(error, {
+      operation: "subscription_acknowledgment_send",
+      tags: { event_type: stripeEvent.type },
+    });
+    return c.json({ error: "subscription_acknowledgment_failed" }, 500);
   }
 
   try {

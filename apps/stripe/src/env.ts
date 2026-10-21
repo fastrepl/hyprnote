@@ -17,6 +17,19 @@ export const env = createEnv({
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
     POSTHOG_API_KEY: z.string().min(1).optional(),
     LOOPS_API_KEY: requiredInProduction(z.string().min(1)),
+    // Enable only after the Loops drafts are approved and published.
+    SUBSCRIPTION_NOTICES_ENABLED: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+    LOOPS_SUBSCRIPTION_ACKNOWLEDGMENT_ID: z
+      .string()
+      .min(1)
+      .default("cmvhnbe6k07hh0kz9qpod13y4"),
+    LOOPS_YEARLY_RENEWAL_ID: z
+      .string()
+      .min(1)
+      .default("cmvhncczm07g80jx1mi4o64lm"),
     SLACK_ALERT_ANARLOG_WEBHOOK_URL: z.url().optional(),
     SLACK_ALERT_CHAR_WEBHOOK_URL: z.url().optional(),
   },

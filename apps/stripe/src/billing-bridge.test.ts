@@ -41,6 +41,23 @@ const dependencies = (
 });
 
 describe("syncBillingBridge", () => {
+  it("never assigns Anarlog owner metadata or syncs mixed-metadata Autumn customers", async () => {
+    for (const key of ["user_id", "workspaceId"]) {
+      await syncBillingBridge(
+        event(
+          "customer.updated",
+          customer({ autumn_id: "char", [key]: "owner" }),
+        ),
+        dependencies({
+          getCustomer: async () =>
+            customer({ autumn_id: "char", [key]: "owner" }),
+          syncWorkspaceCustomer: async () => {
+            throw new Error("must not sync Char ownership");
+          },
+        }),
+      );
+    }
+  });
   it("an older retry keeps newer workspace seats after the database recovers", async () => {
     const updates: Array<Record<string, unknown>> = [];
     let recovering = true;

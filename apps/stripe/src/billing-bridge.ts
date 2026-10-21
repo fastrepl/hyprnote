@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import {
   getCustomerIdentityMetadata,
   getCustomerOwner,
+  isAutumnManagedCustomer,
 } from "./customer-metadata";
 import { withDatabaseRetry } from "./database-retry";
 import { getWorkspaceBillingUpdate } from "./workspace-billing";
@@ -54,7 +55,7 @@ export async function syncBillingBridge(
     dependencies ?? (await createDefaultDependencies());
   const customer = await activeDependencies.getCustomer(customerId);
 
-  if (!customer) {
+  if (!customer || isAutumnManagedCustomer(customer.metadata)) {
     return;
   }
 

@@ -79,6 +79,10 @@ impl<C: HttpClient> OutlookCalendarClient<C> {
 
         let bytes = self.http.get(&full_path).await.map_err(Error::Http)?;
         let mut response: ListEventsResponse = serde_json::from_slice(&bytes)?;
+        // Explicit limits retain the public API's bounded page and continuation link.
+        if req.top.is_some() {
+            return Ok(response);
+        }
         let mut seen = HashSet::new();
         while let Some(link) = response.odata_next_link.take() {
             let path = next_page_path(&link, &base_path, &mut seen)?;

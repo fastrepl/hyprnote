@@ -59,6 +59,28 @@ fn page(ids: &[&str], next: Option<&str>) -> Result<Vec<u8>, &'static str> {
 }
 
 #[tokio::test]
+async fn explicit_event_limit_preserves_the_bounded_page_and_continuation() {
+    let next = "https://graph.microsoft.com/v1.0/me/calendars/calendar-id/events?$skiptoken=next";
+    let client = OutlookCalendarClient::new(FixtureHttp {
+        pages: HashMap::from([(
+            "/me/calendars/calendar-id/events?$top=1".into(),
+            page(&["first"], Some(next)),
+        )]),
+    });
+    let response = client
+        .list_events(ListEventsRequest {
+            calendar_id: "calendar-id".into(),
+            top: Some(1),
+            ..Default::default()
+        })
+        .await
+        .unwrap();
+    assert_eq!(response.value.len(), 1);
+    assert_eq!(response.value[0].id, "first");
+    assert_eq!(response.odata_next_link.as_deref(), Some(next));
+}
+
+#[tokio::test]
 async fn lists_complete_snapshots_or_errors_without_returning_partial_pages() {
     for resource in [
         "/me/calendars",

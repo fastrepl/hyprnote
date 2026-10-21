@@ -294,7 +294,26 @@ async function performCloudApiSnapshotSync(
     removePendingChange(userId, sessionId, "upserts");
     return;
   }
-  const result = await localApiCommands.getCloudSnapshot(sessionId);
+  const result = await enqueueSnapshotRequest(async () => {
+    const snapshot = await localApiCommands.getCloudSnapshot(sessionId);
+    if (snapshot.status === "error") {
+      return snapshot;
+    }
+    if (hasSnapshotIntent(sessionId, "delete")) {
+      return { status: "ok" as const, uploaded: false };
+    }
+    await request(
+      `/v1/sync-snapshots/${encodeURIComponent(sessionId)}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(snapshot.data),
+      },
+      true,
+      true,
+      userId,
+    );
+    return { status: "ok" as const, uploaded: true };
+  });
   if (result.status === "error") {
     if (await localSnapshotIsMissing(sessionId)) {
       const deleteIntent = setSnapshotIntent(sessionId, "delete");
@@ -310,26 +329,7 @@ async function performCloudApiSnapshotSync(
     }
     throw new CloudApiClientError("local_snapshot_unavailable", result.error);
   }
-  if (hasSnapshotIntent(sessionId, "delete")) {
-    return;
-  }
-  const uploaded = await enqueueSnapshotRequest(async () => {
-    if (hasSnapshotIntent(sessionId, "delete")) {
-      return false;
-    }
-    await request(
-      `/v1/sync-snapshots/${encodeURIComponent(sessionId)}`,
-      {
-        method: "PUT",
-        body: JSON.stringify(result.data),
-      },
-      true,
-      true,
-      userId,
-    );
-    return true;
-  });
-  if (uploaded) {
+  if (result.uploaded) {
     removePendingChange(userId, sessionId, "upserts");
   }
 }
@@ -657,7 +657,7 @@ function shouldRetry(error: unknown) {
   );
 }
 
-function enqueueSnapshotRequest(operation: () => Promise<unknown>) {
+function enqueueSnapshotRequest<T>(operation: () => Promise<T>) {
   const queuedRequest = snapshotRequestQueue.catch(() => {}).then(operation);
   snapshotRequestQueue = queuedRequest.then(
     () => undefined,

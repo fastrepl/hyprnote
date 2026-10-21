@@ -137,12 +137,16 @@ describe("cloud API client", () => {
     );
   });
 
-  it("uploads snapshots one at a time across meetings", async () => {
+  it("keeps only one prepared snapshot while uploads are queued", async () => {
     mocks.getSession.mockResolvedValue(authSession("user-upload-queue"));
-    mocks.getCloudSnapshot.mockImplementation(async (sessionId: string) => ({
-      status: "ok",
-      data: { id: sessionId, transcripts: [] },
-    }));
+    const preparedSnapshots = new Set<string>();
+    mocks.getCloudSnapshot.mockImplementation(async (sessionId: string) => {
+      preparedSnapshots.add(sessionId);
+      return {
+        status: "ok",
+        data: { id: sessionId, transcripts: [] },
+      };
+    });
 
     await getCloudApiSettings();
 
@@ -152,7 +156,10 @@ describe("cloud API client", () => {
         return Promise.resolve(new Response(null, { status: 200 }));
       }
       return new Promise<Response>((resolve) => {
-        pendingUploads.push(() => resolve(new Response(null, { status: 204 })));
+        pendingUploads.push(() => {
+          preparedSnapshots.delete(String(input).split("/").pop()!);
+          resolve(new Response(null, { status: 204 }));
+        });
       });
     });
 
@@ -160,20 +167,18 @@ describe("cloud API client", () => {
     const second = syncCloudApiSnapshot("meeting-2");
 
     await vi.waitFor(() => expect(pendingUploads).toHaveLength(1));
-    expect(
-      mocks.fetch.mock.calls.filter(([input]) =>
-        String(input).includes("/v1/sync-snapshots/"),
-      ),
-    ).toHaveLength(1);
+    expect([...preparedSnapshots]).toEqual(["meeting-1"]);
 
     pendingUploads[0]?.();
     await vi.waitFor(() => expect(pendingUploads).toHaveLength(2));
+    expect([...preparedSnapshots]).toEqual(["meeting-2"]);
     pendingUploads[1]?.();
 
     await expect(Promise.all([first, second])).resolves.toEqual([
       undefined,
       undefined,
     ]);
+    expect(preparedSnapshots.size).toBe(0);
     expect(
       mocks.fetch.mock.calls
         .filter(([input]) => String(input).includes("/v1/sync-snapshots/"))
@@ -210,11 +215,6 @@ describe("cloud API client", () => {
     await vi.waitFor(() => expect(releaseBlockingUpload).toBeDefined());
 
     const deletedSync = syncCloudApiSnapshot("meeting-deleted-in-queue");
-    await vi.waitFor(() =>
-      expect(mocks.getCloudSnapshot).toHaveBeenCalledWith(
-        "meeting-deleted-in-queue",
-      ),
-    );
     localStorage.setItem(
       "anarlog.cloud-api-pending.v1.user-delete-queue",
       JSON.stringify({

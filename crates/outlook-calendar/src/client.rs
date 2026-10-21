@@ -7,6 +7,8 @@ use crate::types::{
     CreateEventRequest, Event, ListCalendarsResponse, ListEventsRequest, ListEventsResponse,
 };
 
+const MAX_PAGES: usize = 1_000;
+
 pub struct OutlookCalendarClient<C> {
     http: C,
 }
@@ -123,6 +125,9 @@ fn next_page_path<'a>(
             })
         })
         .ok_or(Error::InvalidNextLink)?;
+    if seen.len() >= MAX_PAGES - 1 {
+        return Err(Error::TooManyPages);
+    }
     if !seen.insert(path.to_string()) {
         return Err(Error::RepeatedNextLink);
     }

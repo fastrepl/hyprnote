@@ -60,24 +60,32 @@ fn page(ids: &[&str], next: Option<&str>) -> Result<Vec<u8>, &'static str> {
 
 #[tokio::test]
 async fn explicit_event_limit_preserves_the_bounded_page_and_continuation() {
-    let next = "https://graph.microsoft.com/v1.0/me/calendars/calendar-id/events?$skiptoken=next";
-    let client = OutlookCalendarClient::new(FixtureHttp {
-        pages: HashMap::from([(
-            "/me/calendars/calendar-id/events?$top=1".into(),
-            page(&["first"], Some(next)),
-        )]),
-    });
-    let response = client
-        .list_events(ListEventsRequest {
-            calendar_id: "calendar-id".into(),
-            top: Some(1),
-            ..Default::default()
-        })
-        .await
-        .unwrap();
-    assert_eq!(response.value.len(), 1);
-    assert_eq!(response.value[0].id, "first");
-    assert_eq!(response.odata_next_link.as_deref(), Some(next));
+    for view in [false, true] {
+        let resource = if view { "calendarView" } else { "events" };
+        let base = format!("/me/calendars/calendar-id/{resource}");
+        let next = format!("https://graph.microsoft.com/v1.0{base}?$skiptoken=next");
+        let query = if view {
+            "startDateTime=2026-10-01T00%3A00%3A00%2B00%3A00&endDateTime=2026-11-01T00%3A00%3A00%2B00%3A00&$top=1"
+        } else {
+            "$top=1"
+        };
+        let client = OutlookCalendarClient::new(FixtureHttp {
+            pages: HashMap::from([(format!("{base}?{query}"), page(&["first"], Some(&next)))]),
+        });
+        let response = client
+            .list_events(ListEventsRequest {
+                calendar_id: "calendar-id".into(),
+                top: Some(1),
+                start_date_time: view.then(|| "2026-10-01T00:00:00Z".parse().unwrap()),
+                end_date_time: view.then(|| "2026-11-01T00:00:00Z".parse().unwrap()),
+                ..Default::default()
+            })
+            .await
+            .unwrap();
+        assert_eq!(response.value.len(), 1);
+        assert_eq!(response.value[0].id, "first");
+        assert_eq!(response.odata_next_link.as_deref(), Some(next.as_str()));
+    }
 }
 
 #[tokio::test]
@@ -124,6 +132,32 @@ async fn lists_complete_snapshots_or_errors_without_returning_partial_pages() {
             list(resource, fixture(page(&[], Some(&second_link)))).await,
             Err(Error::RepeatedNextLink)
         ));
+        let mut pages = HashMap::new();
+        for index in 0..MAX_PAGES {
+            let path = if index == 0 {
+                first_path.clone()
+            } else {
+                format!("{resource}?$skiptoken={index}")
+            };
+            let next = format!(
+                "https://graph.microsoft.com/v1.0{resource}?$skiptoken={}",
+                index + 1
+            );
+            pages.insert(path, page(&["item"], Some(&next)));
+        }
+        assert!(matches!(
+            list(resource, FixtureHttp { pages }).await,
+            Err(Error::TooManyPages)
+        ));
+        for invalid in [
+            format!("https://graph.microsoft.com/v1.0{resource}"),
+            format!("https://graph.microsoft.com/v1.0{resource}?"),
+        ] {
+            assert!(matches!(
+                list(resource, fixture(page(&[], Some(&invalid)))).await,
+                Err(Error::InvalidNextLink)
+            ));
+        }
         for invalid in [
             "https://example.com/v1.0/me/calendars?$skiptoken=x",
             "https://graph.microsoft.com.evil/v1.0/me/calendars?$skiptoken=x",

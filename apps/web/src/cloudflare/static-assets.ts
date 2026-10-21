@@ -1,4 +1,5 @@
 import { servePublicAsset } from "../lib/public-assets.ts";
+import { MOVED_ASSETS } from "./moved-assets.ts";
 
 export default {
   async fetch(request: Request): Promise<Response> {
@@ -9,6 +10,19 @@ export default {
     if (url.protocol !== "https:") {
       url.protocol = "https:";
       return Response.redirect(url, 308);
+    }
+    const moved = Object.hasOwn(MOVED_ASSETS, url.pathname.slice(1))
+      ? MOVED_ASSETS[url.pathname.slice(1)]
+      : undefined;
+    if (moved) {
+      return new Response(null, {
+        status: 301,
+        headers: {
+          location: `https://static.anarlog.so/${moved}`,
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=86400",
+        },
+      });
     }
     if (
       /^\/og\/blog\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/.test(url.pathname) &&

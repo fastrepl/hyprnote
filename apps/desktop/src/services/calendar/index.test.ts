@@ -33,6 +33,7 @@ import {
   allowReconnectedCalendarConnections,
   CALENDAR_SYNC_TASK_ID,
   removeDisconnectedCalendarConnection,
+  removeDisconnectedCalendarConnectionFromCallback,
   scheduleCalendarSync,
   syncCalendarEvents,
   syncCalendarEventsForRange,
@@ -93,6 +94,53 @@ describe("syncCalendarEventsForRange", () => {
       expect(ctxMocks.getProviderConnections).not.toHaveBeenCalled();
     },
   );
+
+  test("untrusted disconnect callbacks only remove authoritatively absent cloud connections", async () => {
+    for (const [integration, connection] of [
+      ["apple", "apple"],
+      ["apple-calendar", "apple"],
+      ["google-calendar", "conn-1"],
+    ]) {
+      await removeDisconnectedCalendarConnectionFromCallback(
+        integration,
+        connection,
+      );
+    }
+    ctxMocks.getProviderConnections.mockResolvedValueOnce([]);
+    await removeDisconnectedCalendarConnectionFromCallback("outlook", "conn-1");
+    ctxMocks.getProviderConnections.mockRejectedValueOnce(new Error("offline"));
+    await expect(
+      removeDisconnectedCalendarConnectionFromCallback(
+        "google-calendar",
+        "conn-1",
+      ),
+    ).rejects.toThrow("offline");
+
+    ctxMocks.getProviderConnections.mockImplementationOnce(async () => {
+      allowReconnectedCalendarConnections("google-calendar");
+      return [{ provider: "google", connection_ids: [] }];
+    });
+    await removeDisconnectedCalendarConnectionFromCallback(
+      "google-calendar",
+      "conn-1",
+    );
+    expect(storageMocks.tombstoneCalendarConnection).not.toHaveBeenCalled();
+    await syncCalendarEventsForRange({ from: ctx.from, to: ctx.to });
+    expect(storageMocks.syncConnectionEvents).toHaveBeenCalled();
+
+    ctxMocks.getProviderConnections.mockResolvedValueOnce([
+      { provider: "google", connection_ids: [] },
+    ]);
+    await removeDisconnectedCalendarConnectionFromCallback(
+      "google-calendar",
+      "conn-1",
+    );
+    expect(storageMocks.tombstoneCalendarConnection).toHaveBeenCalledWith(
+      "google",
+      "conn-1",
+    );
+    allowReconnectedCalendarConnections("google-calendar");
+  });
 
   test("allows recovery sync when disconnect persistence fails", async () => {
     storageMocks.tombstoneCalendarConnection.mockRejectedValueOnce(

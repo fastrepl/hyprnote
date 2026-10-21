@@ -62,6 +62,28 @@ export function syncCalendarEventsForRange(
   return enqueueCalendarSync(() => run(range, options, calendarSyncGeneration));
 }
 
+export async function removeDisconnectedCalendarConnectionFromCallback(
+  integrationId: string,
+  connectionId: string,
+): Promise<void> {
+  if (integrationId !== "google-calendar" && integrationId !== "outlook")
+    return;
+
+  const generation = calendarSyncGeneration;
+  const provider = calendarProviderForIntegration(integrationId);
+  const connections = await getProviderConnections();
+  const discovered = connections.find((entry) => entry.provider === provider);
+  // An omitted provider means discovery failed or authentication is unavailable.
+  if (
+    generation !== calendarSyncGeneration ||
+    !discovered ||
+    discovered.connection_ids.includes(connectionId)
+  )
+    return;
+
+  await removeDisconnectedCalendarConnection(integrationId, connectionId);
+}
+
 export function removeDisconnectedCalendarConnection(
   integrationId: string,
   connectionId: string,

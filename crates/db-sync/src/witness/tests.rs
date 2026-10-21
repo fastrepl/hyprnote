@@ -224,6 +224,29 @@ async fn retries_rate_limited_and_busy_witness_reads() {
 }
 
 #[tokio::test]
+async fn witness_timeout_diagnostics_do_not_expose_the_workspace_url() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .respond_with(ResponseTemplate::new(200).set_delay(std::time::Duration::from_secs(1)))
+        .mount(&server)
+        .await;
+    let mut client = E2eeWitnessClient::new(
+        E2eeWitnessConfig {
+            endpoint: format!("{}/sync/e2ee/witness/private-workspace", server.uri()),
+            access_token: "private-token".to_string(),
+        },
+        "private-workspace",
+    )
+    .unwrap();
+    client.client = http_client(std::time::Duration::from_millis(50)).unwrap();
+    let error = client.read_page(0, None).await.err().unwrap().to_string();
+    assert!(error.contains("timed out"));
+    assert!(!error.contains("private-workspace"));
+    assert!(!error.contains("private-token"));
+    assert!(!error.contains(&server.uri()));
+}
+
+#[tokio::test]
 async fn headerless_service_outages_fail_without_a_rate_limit_retry_delay() {
     let server = MockServer::start().await;
     Mock::given(method("GET"))

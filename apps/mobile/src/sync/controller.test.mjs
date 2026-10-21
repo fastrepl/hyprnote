@@ -554,3 +554,46 @@ test("retains the first-device key when the claim response is lost", async () =>
   assert.equal(bootstrapKey, "generated-recovery-key");
   controller.suspend();
 });
+
+test("sync activity stays bounded and excludes credentials across account changes", async () => {
+  let failing = true;
+  const controller = new MobileSyncController(
+    dependencies({
+      syncNow: async () => {
+        if (failing)
+          throw new Error(
+            "E2EE witness request failed: Bearer secret-token https://private.example/note",
+          );
+      },
+    }),
+    0,
+    0,
+    undefined,
+    instantSettle,
+  );
+  controller.activate(session);
+  await waitFor(() => controller.getSnapshot().phase === "ready");
+  await controller.syncNow();
+  assert.ok(
+    controller.getActivity().some((entry) => entry.status.errorMessage),
+  );
+  const serialized = JSON.stringify(controller.getActivity());
+  for (const sensitive of [
+    "secret-token",
+    "private.example",
+    session.accountUserId,
+    "recovery-key",
+  ]) {
+    assert.equal(serialized.includes(sensitive), false);
+  }
+  failing = false;
+  for (let attempt = 0; attempt < 30; attempt += 1) await controller.syncNow();
+  assert.equal(controller.getActivity().length, 50);
+  assert.equal(controller.getActivity()[0].status.errorMessage, null);
+
+  controller.activate({ ...session, accountUserId: "another-user" });
+  assert.equal(controller.getActivity().length, 1);
+  assert.equal(controller.getActivity()[0].status.phase, "starting");
+  await waitFor(() => controller.getSnapshot().phase === "ready");
+  controller.suspend();
+});

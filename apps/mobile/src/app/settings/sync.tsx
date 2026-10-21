@@ -14,6 +14,7 @@ import { FieldGroup } from "@/settings/field-group";
 import { Button, Switch, Text } from "@/settings/fields";
 import { formatStorageBytes, useRecordingStorage } from "@/settings/storage";
 import { requestSyncDeviceList } from "@/settings/sync-devices";
+import { SyncLog } from "@/settings/sync-log";
 import {
   getMobileSyncSnapshot,
   retryMobileSync,
@@ -57,7 +58,7 @@ export default function SyncSettings() {
               : optedOut
                 ? "Cloud sync is off"
                 : presentation.healthy
-                  ? "Up to date"
+                  ? "Synced"
                   : presentation.title
           }
           description={
@@ -84,6 +85,16 @@ export default function SyncSettings() {
         )}
         {auth.billing.isPro && presentation.detail && (
           <Text>{presentation.detail}</Text>
+        )}
+        {showOptIn && cloudSyncEnabled && (
+          <SettingsRow
+            title="Last successful sync"
+            value={
+              snapshot.lastSyncAtMs === null
+                ? "No completed sync in this session"
+                : new Date(snapshot.lastSyncAtMs).toLocaleString()
+            }
+          />
         )}
         {auth.billing.isPro && snapshot.phase === "ready" && (
           <Button
@@ -126,6 +137,7 @@ export default function SyncSettings() {
         <ConnectLibraryRow phase={snapshot.phase} />
         <SettingsError error={optIn.error || sync.error || refresh.error} />
       </FieldGroup.Section>
+      <SyncLog />
       {(health.conflictedNotes > 0 ||
         health.awaitingUpdate > 0 ||
         health.tooLarge > 0) && (

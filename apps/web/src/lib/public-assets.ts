@@ -1,8 +1,5 @@
-const BUCKETS = {
-  images:
-    "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images",
-  blog: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/blog",
-};
+// Anarlog's public images live under anarlog/ in the shared fastrepl R2 bucket.
+export const PUBLIC_ASSET_ORIGIN = "https://static.fastrepl.com/anarlog";
 
 const REQUEST_HEADERS = [
   "range",
@@ -65,11 +62,7 @@ export async function servePublicAsset(
   ) {
     return new Response("Not found", { status: 404, headers });
   }
-  const isBlog = segments[0] === "blog";
-  const objectPath = isBlog ? segments.slice(1) : segments;
-  if (!objectPath.length)
-    return new Response("Not found", { status: 404, headers });
-  const url = `${isBlog ? BUCKETS.blog : BUCKETS.images}/${objectPath.map(encodeURIComponent).join("/")}`;
+  const url = `${PUBLIC_ASSET_ORIGIN}/${segments.map(encodeURIComponent).join("/")}`;
 
   let upstream: Response;
   try {

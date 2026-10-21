@@ -6,13 +6,14 @@ export function AnarlogLogo({
   compact?: boolean;
 }) {
   return (
-    <img
-      src="/logo.svg"
-      alt="Anarlog"
-      width={1205}
-      height={334}
-      className={className}
+    <span
+      className={`inline-flex items-center whitespace-nowrap font-semibold tracking-tight ${className ?? ""}`}
+      role="img"
+      aria-label="Abrish AI"
       data-compact={compact ? "true" : undefined}
-    />
+    >
+      <span className="text-xl">Abrish</span>
+      <span className="ml-1 text-xl font-normal opacity-70">AI</span>
+    </span>
   );
 }

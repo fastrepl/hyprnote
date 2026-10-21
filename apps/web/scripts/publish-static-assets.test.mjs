@@ -9,7 +9,7 @@ import {
   collectStaticAssets,
   publishStaticAssets,
 } from "./publish-static-assets.mjs";
-import { publishObject, s3Put } from "./r2-assets.mjs";
+import { existsAt, publishObject, s3Put } from "./r2-assets.mjs";
 
 test("concurrent publishers cannot replace the first object at a permanent URL", async (t) => {
   let stored;
@@ -71,7 +71,7 @@ test("publishes immutable media to R2 once and refuses different bytes at a publ
   const fetchImpl = async (url) => {
     assert.equal(
       url,
-      `https://static.fastrepl.com/anarlog/${assets[0].object.replace(" ", "%20")}`,
+      `https://static.anarlog.so/${assets[0].object.replace(" ", "%20")}`,
     );
     return served === null
       ? new Response(null, { status: 404 })
@@ -101,4 +101,55 @@ test("publishes immutable media to R2 once and refuses different bytes at a publ
     /already serves different content/,
   );
   assert.deepEqual(served, Buffer.from("corrupted"));
+});
+
+test("public asset checks recover from transient failures and bound persistent failures", async () => {
+  let transient = true;
+  assert.equal(
+    await existsAt("image.svg", async (url, { signal }) => {
+      assert.equal(url, "https://static.anarlog.so/image.svg");
+      assert.ok(signal instanceof AbortSignal);
+      if (transient) {
+        transient = false;
+        throw new DOMException("stalled", "TimeoutError");
+      }
+      return new Response(null, { status: 200 });
+    }),
+    true,
+  );
+  await assert.rejects(
+    existsAt("image.svg", async () => {
+      throw new DOMException("stalled", "TimeoutError");
+    }),
+    { name: "TimeoutError" },
+  );
+});
+
+test("publishing releases a missing asset response before uploading", async () => {
+  let released = false;
+  let stored;
+  const bytes = Buffer.from("image");
+  await publishObject(
+    { path: "image.svg", bytes, contentType: "image/svg+xml" },
+    {
+      fetchImpl: async () =>
+        stored
+          ? new Response(stored, {
+              headers: { "content-type": "image/svg+xml" },
+            })
+          : new Response(
+              new ReadableStream({
+                cancel() {
+                  released = true;
+                },
+              }),
+              { status: 404 },
+            ),
+      put: async (_, data) => {
+        assert.equal(released, true);
+        stored = data;
+      },
+    },
+  );
+  assert.deepEqual(stored, bytes);
 });

@@ -3,15 +3,21 @@ import test from "node:test";
 
 import { getResizedImageSrcSet, getResizedImageUrl } from "./image-cdn.ts";
 
-test("routes local assets through the image cdn", () => {
+test("routes local and static-host assets through the image cdn", () => {
   assert.equal(
-    getResizedImageUrl("/api/assets/team/john.png", { width: 30 }),
-    "/_vercel/image?url=%2Fapi%2Fassets%2Fteam%2Fjohn.png&w=30&q=75",
+    getResizedImageUrl("/images/hero.webp", { width: 30 }),
+    "/_vercel/image?url=%2Fimages%2Fhero.webp&w=30&q=75",
+  );
+  assert.equal(
+    getResizedImageUrl("https://static.anarlog.so/team/john.png", {
+      width: 30,
+    }),
+    "/_vercel/image?url=https%3A%2F%2Fstatic.anarlog.so%2Fteam%2Fjohn.png&w=30&q=75",
   );
 });
 
 test("uses width-based optimization when the element supplies a crop height", () => {
-  const url = getResizedImageUrl("/api/assets/team/john.png", {
+  const url = getResizedImageUrl("https://static.anarlog.so/team/john.png", {
     width: 30,
     height: 30,
   });
@@ -32,14 +38,23 @@ test("passes through urls the cdn must not transform", () => {
     undefined,
   );
 
-  for (const src of ["/logo.svg", "/demo.gif?v=1", "//example.com/image.png"]) {
+  for (const src of [
+    "/logo.svg",
+    "/demo.gif?v=1",
+    "//example.com/image.png",
+    "https://static.anarlog.so.example.com/a.png",
+    "https://static.anarlog.so/brand/logo.svg",
+  ]) {
     assert.equal(getResizedImageUrl(src, { width: 30 }), src);
     assert.equal(getResizedImageSrcSet(src, 30), undefined);
   }
 });
 
 test("builds a 1x/2x srcset", () => {
-  const srcSet = getResizedImageSrcSet("/api/assets/team/john.png", 30);
+  const srcSet = getResizedImageSrcSet(
+    "https://static.anarlog.so/team/john.png",
+    30,
+  );
 
   assert.match(srcSet ?? "", /w=30/);
   assert.match(srcSet ?? "", /1x/);

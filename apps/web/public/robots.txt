@@ -15,7 +15,7 @@ Disallow: /admin/
 Disallow: /auth
 Disallow: /_view/callback/
 
-# Block API endpoints, but keep served assets and OG images crawlable
+# Block API endpoints, but let crawlers follow legacy asset redirects and OG images
 Disallow: /api/
 Allow: /api/assets/
 Allow: /api/og/

@@ -45,7 +45,6 @@ import { Route as ShareInviteInvitationIdRouteImport } from './routes/share/invi
 import { Route as ChangelogStreamVersionRouteImport } from './routes/changelog/$stream.$version'
 import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
 import { Route as ApiCronJobRouteImport } from './routes/api/cron/$job'
-import { Route as ApiAssetsSplatRouteImport } from './routes/api/assets.$'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
 import { Route as ViewCallbackSignoutRouteImport } from './routes/_view/callback/signout'
@@ -245,11 +244,6 @@ const ApiCronJobRoute = ApiCronJobRouteImport.update({
   path: '/api/cron/$job',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAssetsSplatRoute = ApiAssetsSplatRouteImport.update({
-  id: '/api/assets/$',
-  path: '/api/assets/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ViewDownloadAppleSiliconRoute =
   ViewDownloadAppleSiliconRouteImport.update({
     id: '/download/apple-silicon',
@@ -384,7 +378,6 @@ export interface FileRoutesByFullPath {
   '/callback/signout': typeof ViewCallbackSignoutRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/api/assets/$': typeof ApiAssetsSplatRoute
   '/api/cron/$job': typeof ApiCronJobRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/changelog/$stream/$version': typeof ChangelogStreamVersionRoute
@@ -439,7 +432,6 @@ export interface FileRoutesByTo {
   '/callback/signout': typeof ViewCallbackSignoutRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/api/assets/$': typeof ApiAssetsSplatRoute
   '/api/cron/$job': typeof ApiCronJobRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/changelog/$stream/$version': typeof ChangelogStreamVersionRoute
@@ -497,7 +489,6 @@ export interface FileRoutesById {
   '/_view/callback/signout': typeof ViewCallbackSignoutRoute
   '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/api/assets/$': typeof ApiAssetsSplatRoute
   '/api/cron/$job': typeof ApiCronJobRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/changelog/$stream/$version': typeof ChangelogStreamVersionRoute
@@ -555,7 +546,6 @@ export interface FileRouteTypes {
     | '/callback/signout'
     | '/download/apple-intel'
     | '/download/apple-silicon'
-    | '/api/assets/$'
     | '/api/cron/$job'
     | '/api/tweet/$id'
     | '/changelog/$stream/$version'
@@ -610,7 +600,6 @@ export interface FileRouteTypes {
     | '/callback/signout'
     | '/download/apple-intel'
     | '/download/apple-silicon'
-    | '/api/assets/$'
     | '/api/cron/$job'
     | '/api/tweet/$id'
     | '/changelog/$stream/$version'
@@ -667,7 +656,6 @@ export interface FileRouteTypes {
     | '/_view/callback/signout'
     | '/_view/download/apple-intel'
     | '/_view/download/apple-silicon'
-    | '/api/assets/$'
     | '/api/cron/$job'
     | '/api/tweet/$id'
     | '/changelog/$stream/$version'
@@ -711,7 +699,6 @@ export interface RootRouteChildren {
   EnterpriseIndexRoute: typeof EnterpriseIndexRoute
   PricingIndexRoute: typeof PricingIndexRoute
   YcIndexRoute: typeof YcIndexRoute
-  ApiAssetsSplatRoute: typeof ApiAssetsSplatRoute
   ApiCronJobRoute: typeof ApiCronJobRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
   ChangelogStreamVersionRoute: typeof ChangelogStreamVersionRoute
@@ -980,13 +967,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCronJobRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/assets/$': {
-      id: '/api/assets/$'
-      path: '/api/assets/$'
-      fullPath: '/api/assets/$'
-      preLoaderRoute: typeof ApiAssetsSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_view/download/apple-silicon': {
       id: '/_view/download/apple-silicon'
       path: '/download/apple-silicon'
@@ -1196,7 +1176,6 @@ const rootRouteChildren: RootRouteChildren = {
   EnterpriseIndexRoute: EnterpriseIndexRoute,
   PricingIndexRoute: PricingIndexRoute,
   YcIndexRoute: YcIndexRoute,
-  ApiAssetsSplatRoute: ApiAssetsSplatRoute,
   ApiCronJobRoute: ApiCronJobRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
   ChangelogStreamVersionRoute: ChangelogStreamVersionRoute,

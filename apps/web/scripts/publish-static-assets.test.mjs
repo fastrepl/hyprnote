@@ -13,6 +13,16 @@ import { existsAt, publishObject, s3Put } from "./r2-assets.mjs";
 
 test("concurrent publishers cannot replace the first object at a permanent URL", async (t) => {
   let stored;
+  const openBodies = new Set();
+  const response = (status) => {
+    const body = new ReadableStream({
+      cancel() {
+        openBodies.delete(body);
+      },
+    });
+    openBodies.add(body);
+    return new Response(body, { status });
+  };
   const credentials = {
     accountId: "a".repeat(32),
     accessKeyId: "test-access-key",
@@ -21,9 +31,9 @@ test("concurrent publishers cannot replace the first object at a permanent URL",
   t.mock.method(globalThis, "fetch", async (request) => {
     assert.equal(request.headers.get("if-none-match"), "*");
     const bytes = Buffer.from(await request.arrayBuffer());
-    if (stored) return new Response(null, { status: 412 });
+    if (stored) return response(412);
     stored = bytes;
-    return new Response(null, { status: 200 });
+    return response(200);
   });
   const options = {
     fetchImpl: async () =>
@@ -49,6 +59,7 @@ test("concurrent publishers cannot replace the first object at a permanent URL",
     results.find((result) => result.status === "rejected").reason.message,
     /different content/,
   );
+  assert.equal(openBodies.size, 0);
   const winner = Buffer.from(stored);
   assert.equal(
     await publishObject({ ...asset, bytes: winner }, options),
@@ -92,7 +103,12 @@ test("publishes immutable media to R2 once and refuses different bytes at a publ
     },
   ]);
 
-  await publishStaticAssets(assets, { fetchImpl, put });
+  await publishStaticAssets(assets, {
+    fetchImpl,
+    put: async () => {
+      throw new Error("publishing is unavailable");
+    },
+  });
   assert.deepEqual(served, assets[0].bytes);
 
   served = Buffer.from("corrupted");
@@ -151,5 +167,30 @@ test("publishing releases a missing asset response before uploading", async () =
       },
     },
   );
+  assert.deepEqual(stored, bytes);
+});
+
+test("publication verification recovers from transient errors after a successful upload", async () => {
+  const bytes = Buffer.from("image");
+  let stored;
+  const failures = [new DOMException("stalled", "TimeoutError"), 503];
+  const result = await publishObject(
+    { path: "retry.svg", bytes, contentType: "image/svg+xml" },
+    {
+      fetchImpl: async () => {
+        if (!stored) return new Response(null, { status: 404 });
+        const failure = failures.shift();
+        if (failure instanceof Error) throw failure;
+        if (failure) return new Response(null, { status: failure });
+        return new Response(stored, {
+          headers: { "content-type": "image/svg+xml" },
+        });
+      },
+      put: async (_, data) => {
+        stored = data;
+      },
+    },
+  );
+  assert.equal(result, "uploaded");
   assert.deepEqual(stored, bytes);
 });

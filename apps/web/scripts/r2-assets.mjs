@@ -15,14 +15,8 @@ export const publicUrl = (path) => `https://static.anarlog.so/${encode(path)}`;
 
 // False when nothing is published at the path; throws when different bytes are.
 export async function isPublished(path, { sha, contentType }, fetchImpl) {
-  const response = await fetchImpl(publicUrl(path), {
-    signal: AbortSignal.timeout(10_000),
-  });
-  if (response.status === 404) {
-    await response.body?.cancel();
-    return false;
-  }
-  const bytes = Buffer.from(await response.arrayBuffer());
+  const { response, bytes } = await fetchPublic(path, "GET", fetchImpl);
+  if (response.status === 404) return false;
   if (
     response.status !== 200 ||
     response.headers.get("content-type") !== contentType ||
@@ -72,35 +66,46 @@ export async function s3Put(
       body: bytes,
     },
   );
+  await response.body?.cancel();
   // Another publisher may have created the key; the caller verifies its bytes.
   if (!response.ok && response.status !== 412) {
     throw new Error(`Conditional R2 upload failed (HTTP ${response.status})`);
   }
 }
 
-export async function existsAt(path, fetchImpl = fetch) {
+async function fetchPublic(path, method, fetchImpl) {
   for (let attempt = 0; ; attempt++) {
     try {
       const response = await fetchImpl(publicUrl(path), {
-        method: "HEAD",
+        method,
         signal: AbortSignal.timeout(10_000),
       });
-      await response.body?.cancel();
-      if (response.status === 404) return false;
-      if (response.ok) return true;
-      if (response.status !== 429 && response.status < 500)
+      if (response.status === 429 || response.status >= 500) {
+        await response.body?.cancel();
         throw new Error(
-          `HEAD ${publicUrl(path)} failed (HTTP ${response.status})`,
-          { cause: "permanent" },
+          `${method} ${publicUrl(path)} failed (HTTP ${response.status})`,
         );
-      throw new Error(
-        `HEAD ${publicUrl(path)} failed (HTTP ${response.status})`,
-      );
+      }
+      let bytes;
+      if (method === "GET" && response.ok) {
+        bytes = Buffer.from(await response.arrayBuffer());
+      } else {
+        await response.body?.cancel();
+      }
+      return { response, bytes };
     } catch (error) {
-      if (attempt >= 2 || error.cause === "permanent") throw error;
+      if (attempt >= 2) throw error;
       await delay(200 * 2 ** attempt);
     }
   }
+}
+
+export async function existsAt(path, fetchImpl = fetch) {
+  const { response } = await fetchPublic(path, "HEAD", fetchImpl);
+  if (response.status === 404) return false;
+  if (!response.ok)
+    throw new Error(`HEAD ${publicUrl(path)} failed (HTTP ${response.status})`);
+  return true;
 }
 
 // Uploads bytes once and verifies them through the public origin. Re-running with the

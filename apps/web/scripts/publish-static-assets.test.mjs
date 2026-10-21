@@ -119,7 +119,7 @@ test("publishes immutable media to R2 once and refuses different bytes at a publ
   assert.deepEqual(served, Buffer.from("corrupted"));
 });
 
-test("public asset checks recover from transient failures and bound persistent failures", async () => {
+test("public asset checks recover from transient failures and bound persistent failures", async (t) => {
   let transient = true;
   assert.equal(
     await existsAt("image.svg", async (url, { signal }) => {
@@ -133,9 +133,13 @@ test("public asset checks recover from transient failures and bound persistent f
     }),
     true,
   );
+  t.mock.method(AbortSignal, "timeout", () =>
+    AbortSignal.abort(new DOMException("stalled", "TimeoutError")),
+  );
   await assert.rejects(
-    existsAt("image.svg", async () => {
-      throw new DOMException("stalled", "TimeoutError");
+    existsAt("image.svg", async (_, { signal }) => {
+      signal.throwIfAborted();
+      throw new Error("request did not time out");
     }),
     { name: "TimeoutError" },
   );

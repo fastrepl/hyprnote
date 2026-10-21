@@ -56,12 +56,8 @@ test("rejects asset traversal and handles conditional reads without an upstream 
     "https://evil.example/a",
   ]) {
     assert.equal(
-      (
-        await servePublicAsset(
-          new Request("https://static.anarlog.so/a"),
-          path,
-        )
-      ).status,
+      (await servePublicAsset(new Request("https://static.anarlog.so/a"), path))
+        .status,
       404,
     );
   }

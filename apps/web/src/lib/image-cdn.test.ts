@@ -51,7 +51,10 @@ test("passes through urls the cdn must not transform", () => {
 });
 
 test("builds a 1x/2x srcset", () => {
-  const srcSet = getResizedImageSrcSet("https://static.anarlog.so/team/john.png", 30);
+  const srcSet = getResizedImageSrcSet(
+    "https://static.anarlog.so/team/john.png",
+    30,
+  );
 
   assert.match(srcSet ?? "", /w=30/);
   assert.match(srcSet ?? "", /1x/);

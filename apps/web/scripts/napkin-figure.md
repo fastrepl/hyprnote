@@ -5,7 +5,15 @@ diagrams, decision trees, comparisons, and abstract explainers. Never use it
 to fabricate product UI.
 
 Generated Napkin URLs expire after 30 minutes, so accepted figures are uploaded
-immediately to the Supabase `blog` bucket at `articles/<slug>/<filename>`.
+immediately to the Cloudflare R2 bucket `fastrepl-static-assets` (account
+johntopia) at `anarlog/blog/articles/<slug>/<filename>`. Uploads use bucket-scoped
+R2 S3 credentials from Infisical production `/anarlog/web` through
+`ANARLOG_R2_ACCOUNT_ID`, `ANARLOG_R2_ACCESS_KEY_ID`, and
+`ANARLOG_R2_SECRET_ACCESS_KEY`. Use the Infisical commands below; never pass
+credentials as CLI arguments or commit them to the repository.
+The S3 write uses `If-None-Match: *` so concurrent publishers cannot replace an object. The script refuses a path that already serves different bytes
+and verifies the upload through the public URL. Published figures are never
+replaced: regenerate under a new filename.
 
 Use the branded serving URL in posts:
 
@@ -23,8 +31,7 @@ infisical run --silent \
   -- pnpm -F @anlg/web media:figures --slug <slug>
 ```
 
-Add `--upsert` to regenerate existing figures or `--dry-run` to print requests
-without calling Napkin. An empty manifest array marks an article as deliberately
+Add `--dry-run` to print requests without calling Napkin. An empty manifest array marks an article as deliberately
 figure-less.
 
 ## Validation
@@ -33,9 +40,9 @@ figure-less.
 pnpm -F @anlg/web media:figures:check
 ```
 
-The check needs no credentials. It validates the manifest and checks every `https://static.anarlog.so/blog/...`
-reference with a public HEAD request. Direct Supabase, local, and legacy proxy
-image URLs are rejected.
+The check needs no credentials. It validates the manifest, checks each declared
+figure and every `https://static.anarlog.so/blog/...` reference with a public
+HEAD request, and rejects direct Supabase, local, and legacy proxy image URLs.
 
 ## Single-figure usage
 
@@ -44,7 +51,7 @@ infisical run --silent \
   --env=prod \
   --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1 \
   --path=/anarlog/web \
-  -- pnpm --dir apps/web exec node scripts/napkin-to-supabase.mjs \
+  -- pnpm --dir apps/web exec node scripts/napkin-figure.mjs \
     --slug meeting-minutes-software \
     --filename meeting-minutes-workflow.png \
     --content-file /tmp/meeting-minutes-workflow.txt \
@@ -55,5 +62,5 @@ infisical run --silent \
 ```
 
 The script prints the Napkin request ID, generated file metadata, storage path,
-and the `https://static.anarlog.so/blog/...` URL to use in MDX. It does not
-overwrite an existing object unless `--upsert` is passed.
+and the `https://static.anarlog.so/blog/...` URL to use in MDX. It never
+overwrites an existing object.

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { createClient } from "@supabase/supabase-js";
 import { readFile } from "node:fs/promises";
 import { basename, extname } from "node:path";
 
+import { existsAt, publicUrl, publishObject } from "./r2-assets.mjs";
+
 const NAPKIN_API_BASE = "https://api.napkin.ai";
-const BLOG_BUCKET = "blog";
 const DEFAULT_STYLE_ID = "CDQPRVVJCSTPRBBCD5Q6AWSDE8S0";
 const DEFAULT_LANGUAGE = "en-US";
 const DEFAULT_POLL_INTERVAL_MS = 5000;
@@ -47,14 +47,14 @@ function parseArgs(argv) {
 
 function usage() {
   return `Usage:
-  pnpm --dir apps/web exec node scripts/napkin-to-supabase.mjs \\
+  pnpm --dir apps/web exec node scripts/napkin-figure.mjs \\
     --slug meeting-minutes-software \\
     --filename meeting-minutes-workflow.png \\
     --content-file /tmp/figure-prompt.txt \\
     --context "Anarlog blog figure for private, bot-free meeting notes"
 
 Required:
-  --slug           Blog article slug. Uploads to articles/<slug>/<filename> in the Supabase "blog" bucket.
+  --slug           Blog article slug. Publishes https://static.anarlog.so/blog/articles/<slug>/<filename>.
   --filename       Output filename. Extension should match --format.
   --content        Text to visualize, or use --content-file.
   --content-file   File containing text to visualize.
@@ -70,13 +70,13 @@ Useful options:
   --language en-US                  Defaults to en-US.
   --number-of-visuals 1             1-4. Defaults to 1.
   --file-index 0                    Which generated file to upload. Defaults to 0.
-  --upsert                          Replace existing Supabase object.
   --dry-run                         Create/download nothing; print request and target.
 
 Environment:
   NAPKIN_API_TOKEN
-  SUPABASE_URL
-  SUPABASE_SERVICE_ROLE_KEY
+  Bucket-scoped R2 S3 credentials in ANARLOG_R2_* environment variables (Infisical prod /anarlog/web).
+
+Published figures are never replaced: regenerate under a new filename.
 `;
 }
 
@@ -202,52 +202,7 @@ async function pollNapkinVisual(requestId, timeoutMs) {
 async function downloadGeneratedFile(file) {
   if (!file?.url) throw new Error("Selected generated file has no URL");
   const response = await napkinFetch(file.url);
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  return {
-    bytes,
-    contentType: response.headers.get("content-type"),
-  };
-}
-
-function getSupabaseClient() {
-  return createClient(
-    requireEnv("SUPABASE_URL"),
-    requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    },
-  );
-}
-
-async function uploadToSupabase({ storagePath, bytes, contentType, upsert }) {
-  const supabase = getSupabaseClient();
-  const { error } = await supabase.storage
-    .from(BLOG_BUCKET)
-    .upload(storagePath, bytes, {
-      cacheControl: "31536000",
-      contentType,
-      upsert,
-    });
-
-  if (error) throw error;
-
-  return `https://static.anarlog.so/blog/${storagePath.split("/").map(encodeURIComponent).join("/")}`;
-}
-
-async function checkExistingObject(storagePath) {
-  const supabase = getSupabaseClient();
-  const [dir, filename] = [
-    storagePath.split("/").slice(0, -1).join("/"),
-    storagePath.split("/").at(-1),
-  ];
-  const { data, error } = await supabase.storage.from(BLOG_BUCKET).list(dir, {
-    search: filename,
-  });
-  if (error) throw error;
-  return data.some((entry) => entry.name === filename);
+  return new Uint8Array(await response.arrayBuffer());
 }
 
 async function main() {
@@ -261,7 +216,7 @@ async function main() {
   const slug = normalizeSlug(args.slug);
   const filename = normalizeFilename(args.filename, format);
   const content = await readContent(args);
-  const storagePath = `articles/${slug}/${filename}`;
+  const storagePath = `blog/articles/${slug}/${filename}`;
   const fileIndex = asOptionalInteger(args.fileIndex, "file-index") ?? 0;
   const numberOfVisuals =
     asOptionalInteger(args.numberOfVisuals, "number-of-visuals") ?? 1;
@@ -289,11 +244,9 @@ async function main() {
   if (args.colorMode) request.color_mode = String(args.colorMode);
 
   const target = {
-    bucket: BLOG_BUCKET,
-    storagePath,
+    mediaUrl: publicUrl(storagePath),
     format,
     contentType: MIME_BY_FORMAT[format],
-    upsert: Boolean(args.upsert),
   };
 
   if (args.dryRun) {
@@ -301,13 +254,15 @@ async function main() {
     return;
   }
 
-  if (!args.upsert) {
-    const exists = await checkExistingObject(storagePath);
-    if (exists) {
-      throw new Error(
-        `Asset already exists: ${storagePath}. Use --upsert to replace it.`,
-      );
-    }
+  if (args.upsert) {
+    throw new Error(
+      "--upsert is no longer supported: published figures are never replaced. Use a new filename.",
+    );
+  }
+  if (await existsAt(storagePath)) {
+    throw new Error(
+      `Already published: ${target.mediaUrl}. Use a new filename for a regenerated figure.`,
+    );
   }
 
   const created = await createNapkinVisual(request);
@@ -321,13 +276,12 @@ async function main() {
     );
   }
 
-  const downloaded = await downloadGeneratedFile(files[fileIndex]);
-  const contentType = downloaded.contentType || MIME_BY_FORMAT[format];
-  const publicUrl = await uploadToSupabase({
-    storagePath,
-    bytes: downloaded.bytes,
-    contentType,
-    upsert: Boolean(args.upsert),
+  const bytes = await downloadGeneratedFile(files[fileIndex]);
+  await publishObject({
+    path: storagePath,
+    bytes,
+    contentType: target.contentType,
+    cacheControl: "public, max-age=31536000",
   });
 
   console.log(
@@ -336,9 +290,9 @@ async function main() {
         napkinRequestId: created.id,
         selectedFile: files[fileIndex],
         storagePath,
-        mediaUrl: publicUrl,
-        bytes: downloaded.bytes.length,
-        contentType,
+        mediaUrl: target.mediaUrl,
+        bytes: bytes.length,
+        contentType: target.contentType,
       },
       null,
       2,

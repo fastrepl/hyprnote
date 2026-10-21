@@ -1,16 +1,16 @@
 #!/usr/bin/env node
-import { createClient } from "@supabase/supabase-js";
 import { spawn } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { existsAt } from "./r2-assets.mjs";
+
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const webDir = resolve(scriptDir, "..");
 const ARTICLES_DIR = resolve(webDir, "content/articles");
 const MANIFEST_PATH = resolve(ARTICLES_DIR, "figures.json");
-const SINGLE_SCRIPT = resolve(scriptDir, "napkin-to-supabase.mjs");
-const BLOG_BUCKET = "blog";
+const SINGLE_SCRIPT = resolve(scriptDir, "napkin-figure.mjs");
 
 function parseArgs(argv) {
   const args = {};
@@ -40,13 +40,12 @@ function usage() {
   pnpm -F @anlg/web media:figures:check      Report missing figures, generate nothing
 
 Options:
-  --check          Report only, generate nothing. Needs no credentials, so it is
-                   safe in CI. Exits 1 when an article has no manifest entry or
+  --check          Report only, generate nothing. Checks figures through their
+                   public URLs and needs no credentials, so it is safe in CI. Exits 1 when an article has no manifest entry or
                    the manifest names a slug with no article. A declared but
                    not-yet-generated figure only warns.
   --strict         With --check, also exit 1 on not-yet-generated figures.
   --slug <slug>    Limit to one article.
-  --upsert         Regenerate and replace figures that already exist.
   --dry-run        Print what each generation would request.
 
 Declare figures in content/articles/figures.json:
@@ -66,7 +65,8 @@ Declare figures in content/articles/figures.json:
 
 An empty array marks a post as deliberately figure-less and satisfies --check.
 
-Generation requires NAPKIN_API_TOKEN; see napkin-to-supabase.md for the Infisical command.
+Generation requires NAPKIN_API_TOKEN and bucket-scoped R2 S3 credentials;
+see napkin-figure.md. Published figures are never replaced: regenerate under a new filename.
 `;
 }
 
@@ -94,28 +94,10 @@ async function readManifest() {
 }
 
 function storagePath(slug, filename) {
-  return `articles/${slug}/${filename}`;
+  return `blog/articles/${slug}/${filename}`;
 }
 
-async function figureExists(slug, filename) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !supabaseKey) {
-    // Napkin figure checks cannot run without credentials; callers that
-    // pass --check should still validate the manifest and not fail here.
-    return false;
-  }
-  const supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const { data, error } = await supabase.storage
-    .from(BLOG_BUCKET)
-    .list(`articles/${slug}`, { search: filename });
-  if (error) throw error;
-  return data.some((entry) => entry.name === filename);
-}
-
-function runSingle(slug, figure, { upsert, dryRun }) {
+function runSingle(slug, figure, { dryRun }) {
   const args = [
     SINGLE_SCRIPT,
     "--slug",
@@ -144,7 +126,6 @@ function runSingle(slug, figure, { upsert, dryRun }) {
     if (figure[key] !== undefined) args.push(flag, String(figure[key]));
   }
   if (figure.transparentBackground) args.push("--transparent-background");
-  if (upsert) args.push("--upsert");
   if (dryRun) args.push("--dry-run");
 
   return new Promise((resolvePromise, reject) => {
@@ -155,7 +136,7 @@ function runSingle(slug, figure, { upsert, dryRun }) {
     child.on("error", reject);
     child.on("close", (code) => {
       if (code === 0) resolvePromise();
-      else reject(new Error(`napkin-to-supabase exited with code ${code}`));
+      else reject(new Error(`napkin-figure exited with code ${code}`));
     });
   });
 }
@@ -176,6 +157,11 @@ async function main() {
     return;
   }
 
+  if (args.upsert) {
+    throw new Error(
+      "--upsert is no longer supported: published figures are never replaced. Use a new filename.",
+    );
+  }
   const checkOnly = Boolean(args.check);
   const onlySlug = typeof args.slug === "string" ? args.slug : null;
 
@@ -205,8 +191,8 @@ async function main() {
 
   const missing = [];
   for (const target of targets) {
-    const exists = await figureExists(target.slug, target.figure.filename);
-    if (!exists || args.upsert) missing.push(target);
+    if (!(await existsAt(storagePath(target.slug, target.figure.filename))))
+      missing.push(target);
   }
 
   if (orphaned.length > 0) {
@@ -275,10 +261,7 @@ async function main() {
     const label = storagePath(slug, figure.filename);
     console.error(`[${index + 1}/${missing.length}] ${label}`);
     try {
-      await runSingle(slug, figure, {
-        upsert: Boolean(args.upsert),
-        dryRun: Boolean(args.dryRun),
-      });
+      await runSingle(slug, figure, { dryRun: Boolean(args.dryRun) });
     } catch (error) {
       failures.push({ label, message: error.message });
       console.error(`  failed: ${error.message}`);

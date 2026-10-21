@@ -1,7 +1,8 @@
-import { createHash } from "node:crypto";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
+
+import { publishObject, sha256 } from "./r2-assets.mjs";
 
 const ASSET_ROOT = new URL("../../desktop/public/assets/", import.meta.url);
 const MANIFEST = new URL(
@@ -34,7 +35,7 @@ export async function collectStaticAssets(root = ASSET_ROOT, prefix = "") {
       const contentType = MIME_TYPES[entry.name.split(".").at(-1)];
       if (!contentType) throw new Error(`Unsupported asset type: ${path}`);
       const bytes = await readFile(file);
-      const digest = createHash("sha256").update(bytes).digest("hex");
+      const digest = sha256(bytes);
       assets.push({
         local: `/assets/${path}`,
         object: `desktop/${digest}/${path}`,
@@ -52,60 +53,17 @@ function manifestFor(assets) {
   return `${JSON.stringify(Object.fromEntries(assets.map(({ local, object }) => [local, object])), null, 2)}\n`;
 }
 
-export async function publishStaticAssets(
-  assets,
-  { supabaseUrl, serviceRoleKey, fetchImpl = fetch },
-) {
-  const base = new URL(supabaseUrl);
-  if (base.protocol !== "https:")
-    throw new Error("SUPABASE_URL must use HTTPS");
-  if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required");
-  const headers = {
-    authorization: `Bearer ${serviceRoleKey}`,
-    apikey: serviceRoleKey,
-  };
-  const bucketResponse = await fetchImpl(
-    new URL("/storage/v1/bucket/public_images", base),
-    { headers },
-  );
-  if (!bucketResponse.ok || !(await bucketResponse.json()).public) {
-    throw new Error(
-      "The existing public_images bucket must be public and accessible",
-    );
-  }
+export async function publishStaticAssets(assets, options) {
   for (const asset of assets) {
-    const object = asset.object.split("/").map(encodeURIComponent).join("/");
-    const upload = await fetchImpl(
-      new URL(`/storage/v1/object/public_images/${object}`, base),
+    await publishObject(
       {
-        method: "POST",
-        headers: {
-          ...headers,
-          "content-type": asset.contentType,
-          "cache-control": "max-age=31536000",
-          "x-upsert": "false",
-        },
-        body: asset.bytes,
+        path: asset.object,
+        bytes: asset.bytes,
+        contentType: asset.contentType,
+        cacheControl: "public, max-age=31536000, immutable",
       },
+      options,
     );
-    if (!upload.ok && upload.status !== 409 && upload.status !== 400) {
-      throw new Error(
-        `Upload failed for ${asset.local} (HTTP ${upload.status})`,
-      );
-    }
-    // A retry may encounter an existing immutable object. Verify its bytes rather than overwriting it.
-    const download = await fetchImpl(
-      new URL(`/storage/v1/object/public/public_images/${object}`, base),
-    );
-    if (!download.ok)
-      throw new Error(
-        `Public download failed for ${asset.local} (HTTP ${download.status})`,
-      );
-    const actual = createHash("sha256")
-      .update(Buffer.from(await download.arrayBuffer()))
-      .digest("hex");
-    if (actual !== asset.object.split("/")[1])
-      throw new Error(`Public asset checksum mismatch: ${asset.local}`);
   }
 }
 
@@ -125,13 +83,7 @@ async function main() {
     );
   }
   if (values.upload) {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !serviceRoleKey)
-      throw new Error(
-        "Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to upload assets",
-      );
-    await publishStaticAssets(assets, { supabaseUrl, serviceRoleKey });
+    await publishStaticAssets(assets);
   }
   if (values.manifest) await writeFile(MANIFEST, manifest);
   console.log(

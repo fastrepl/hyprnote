@@ -1,3 +1,4 @@
+cat << 'EOF' > apps/web/vite.config.ts
 import contentCollections from "@content-collections/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -6,7 +7,6 @@ import { nitro } from "nitro/vite";
 import { fileURLToPath } from "node:url";
 import { generateSitemap } from "tanstack-router-sitemap";
 import { defineConfig, type UserConfig } from "vite";
-
 import { publishedChangelogs } from "./changelog-build.ts";
 import { getSitemap } from "./src/utils/sitemap";
 import { vercelBuildConfig } from "./vercel-build-config";
@@ -17,6 +17,9 @@ const config = defineConfig(async ({ command }): Promise<UserConfig> => {
   );
 
   return {
+    server: {
+      allowedHosts: true,
+    },
     build: {
       sourcemap: generateSourceMaps ? ("hidden" as const) : false,
       rolldownOptions: { external: ["sharp"] },
@@ -107,3 +110,4 @@ const config = defineConfig(async ({ command }): Promise<UserConfig> => {
 });
 
 export default config;
+EOF

@@ -122,3 +122,7 @@ A meeting notetaker that gives complete control without getting in your way. Cle
 - **Tone:** Direct, engineering-minded, respects user intelligence
 - **Focus:** Zero lock-in, true ownership, complete control, open source
 - **Avoid:** Generic productivity language, corporate marketing speak, fear-based messaging
+
+## Public images
+
+Use bucket-relative keys such as `anarlog/blog/articles/<slug>/<file>.png` in Markdown images and `<Image src="..." />`. The shared image component resolves these against `https://static.fastrepl.com`. In TypeScript use `assetUrl` from `@/lib/asset-url`. Keep absolute URLs for external media and `/...` paths for bundled files.

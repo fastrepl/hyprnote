@@ -13,6 +13,8 @@ const scanRoots = [
 ];
 const textExtensions = new Set([".md", ".mdx", ".ts", ".tsx"]);
 
+import { assetUrl } from "../src/lib/asset-url.ts";
+
 const STATIC_BLOG_PREFIX = "https://static.anarlog.so/blog/";
 const legacyLocalPattern = /\/images\/blog\/[A-Za-z0-9._+%/-]+/g;
 const legacyProxyPattern = /\/api\/assets\/[A-Za-z0-9._+%/-]+/g;
@@ -56,6 +58,11 @@ for (const root of scanRoots) {
       legacyProxyReferences.push({ file, url });
     }
     for (const url of text.match(staticBlogPattern) || []) assetUrls.add(url);
+    for (const path of text.match(
+      /(?<![\w/])anarlog\/blog\/[A-Za-z0-9._+%/-]+/g,
+    ) || []) {
+      assetUrls.add(assetUrl(path));
+    }
     for (const url of text.match(supabaseStoragePattern) || []) {
       directSupabaseReferences.push({ file, url });
     }

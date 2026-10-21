@@ -634,7 +634,6 @@ function PasswordForm({
           scheme,
           desktop_state,
           redirect,
-          false,
         );
       }
     },
@@ -706,7 +705,6 @@ function PasswordForm({
             scheme,
             desktop_state,
             redirect,
-            "newAccount" in result && result.newAccount,
           );
         }
       }
@@ -864,7 +862,6 @@ function handlePasswordSuccess(
   scheme?: DesktopScheme,
   desktop_state?: string,
   redirectPath?: string,
-  newAccount = false,
 ) {
   if (flow === "desktop") {
     window.location.href = buildDesktopAuthCallbackPath(

@@ -6,9 +6,12 @@ to fabricate product UI.
 
 Generated Napkin URLs expire after 30 minutes, so accepted figures are uploaded
 immediately to the Cloudflare R2 bucket `fastrepl-static-assets` (account
-johntopia) at `anarlog/blog/articles/<slug>/<filename>`. Uploads use your own
-`wrangler login` (run `pnpm -F @anlg/web exec wrangler login` once; it needs R2
-write access). The script refuses a path that already serves different bytes
+johntopia) at `anarlog/blog/articles/<slug>/<filename>`. Uploads use bucket-scoped
+R2 S3 credentials from Infisical production `/anarlog/web` through
+`ANARLOG_R2_ACCOUNT_ID`, `ANARLOG_R2_ACCESS_KEY_ID`, and
+`ANARLOG_R2_SECRET_ACCESS_KEY`. Use the Infisical commands below; never pass
+credentials as CLI arguments or commit them to the repository.
+The S3 write uses `If-None-Match: *` so concurrent publishers cannot replace an object. The script refuses a path that already serves different bytes
 and verifies the upload through the public URL. Published figures are never
 replaced: regenerate under a new filename.
 

@@ -40,7 +40,7 @@
     "@tanstack/react-query": "^5.99.0",
     "@tanstack/react-router": "^1.168.19",
     "@tanstack/react-router-ssr-query": "^1.166.11",
-    "@tanstack/react-start": "^1.167.33",
+    "@tanstack/react-start": "^1.169.3",
     "@unpic/react": "^1.0.2",
     "jwt-decode": "^4.0.0",
     "lib0": "0.2.118",
@@ -84,7 +84,7 @@
     "pagefind": "^1.5.2",
     "tanstack-router-sitemap": "^1.0.13",
     "typescript": "^5.9.3",
-    "vite": "^8.0.16",
+    "vite": "^8.1.6",
     "wrangler": "4.129.0"
   }
 }

@@ -16,7 +16,7 @@ import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
 import type { SessionAudioRetentionEvent } from "@anlg/plugin-transcription";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
-import { configureCenteredPlayback } from "./playback";
+import { configureCenteredPlayback, shouldResumeBeforePlay } from "./playback";
 import { loadWaveform } from "./waveform";
 
 import { useBillingAccess } from "~/auth/billing-context";
@@ -296,7 +296,7 @@ export function AudioPlayerProvider({
     }
 
     const audioContext = audioContextRef.current;
-    if (audioContext?.state === "suspended") {
+    if (shouldResumeBeforePlay(audioContext)) {
       void audioContext
         .resume()
         .then(() => {

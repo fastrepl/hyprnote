@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { configureCenteredPlayback } from "./playback";
+import { configureCenteredPlayback, shouldResumeBeforePlay } from "./playback";
 
 function createFakeContext() {
   const destination = {};
@@ -77,5 +77,22 @@ describe("configureCenteredPlayback", () => {
       ),
     ).toBeNull();
     expect(context.createMediaElementSource).not.toHaveBeenCalled();
+  });
+});
+
+describe("shouldResumeBeforePlay", () => {
+  it.each([
+    ["suspended", true],
+    ["interrupted", true],
+    ["running", false],
+    ["closed", false],
+  ])("returns %s -> %s", (state, expected) => {
+    expect(shouldResumeBeforePlay({ state } as unknown as AudioContext)).toBe(
+      expected,
+    );
+  });
+
+  it("returns false without a context", () => {
+    expect(shouldResumeBeforePlay(null)).toBe(false);
   });
 });

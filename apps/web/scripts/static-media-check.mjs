@@ -9,15 +9,11 @@ const publicBlogDir = resolve(webDir, "public/images/blog");
 const scanRoots = [resolve(webDir, "content/articles"), resolve(webDir, "src")];
 const textExtensions = new Set([".md", ".mdx", ".ts", ".tsx"]);
 
-const SUPABASE_BLOG_PREFIX =
-  "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/blog/";
 const STATIC_BLOG_PREFIX = "https://static.anarlog.so/blog/";
 const legacyLocalPattern = /\/images\/blog\/[A-Za-z0-9._+%/-]+/g;
 const legacyProxyPattern = /\/api\/assets\/blog\/[A-Za-z0-9._+%/-]+/g;
-const supabaseBlogPattern = new RegExp(
-  `${SUPABASE_BLOG_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[A-Za-z0-9._+%/-]+`,
-  "g",
-);
+const supabaseStoragePattern =
+  /https:\/\/[a-z0-9.-]+\/storage\/v1\/object\/public\/[A-Za-z0-9._+%/-]+/g;
 
 const staticBlogPattern = new RegExp(
   `${STATIC_BLOG_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[A-Za-z0-9._+%/-]+`,
@@ -56,7 +52,7 @@ for (const root of scanRoots) {
       legacyProxyReferences.push({ file, url });
     }
     for (const url of text.match(staticBlogPattern) || []) assetUrls.add(url);
-    for (const url of text.match(supabaseBlogPattern) || []) {
+    for (const url of text.match(supabaseStoragePattern) || []) {
       directSupabaseReferences.push({ file, url });
     }
   }
@@ -64,7 +60,7 @@ for (const root of scanRoots) {
 
 if (legacyLocalReferences.length > 0) {
   console.error(
-    "Legacy /images/blog/* references remain (blog assets should be hosted on Supabase only):",
+    "Legacy /images/blog/* references remain (blog assets are hosted on static.anarlog.so only):",
   );
   for (const item of legacyLocalReferences)
     console.error(`  - ${item.file}: ${item.url}`);
@@ -80,7 +76,7 @@ if (legacyProxyReferences.length > 0) {
 
 if (directSupabaseReferences.length > 0) {
   console.error(
-    "Direct Supabase blog image URLs remain; use https://static.anarlog.so/blog/:",
+    "Direct Supabase Storage image URLs remain; use https://static.anarlog.so/:",
   );
   for (const item of directSupabaseReferences)
     console.error(`  - ${item.file}: ${item.url}`);
@@ -98,7 +94,7 @@ if (localDirExists) {
   if (leftoverFiles.length > 0) {
     console.error(
       `${leftoverFiles.length} blog asset(s) still committed under public/images/blog; ` +
-        "Supabase Storage should be the only host for blog assets:",
+        "static.anarlog.so should be the only host for blog assets:",
     );
     for (const file of leftoverFiles) console.error(`  - ${file}`);
     process.exitCode = 1;

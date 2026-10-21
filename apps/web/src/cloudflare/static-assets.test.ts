@@ -3,7 +3,7 @@ import test from "node:test";
 
 import worker from "./static-assets.ts";
 
-test("serves static asset metadata through the shared Supabase handler without leaking app credentials", async (t) => {
+test("serves static asset metadata from the shared R2 origin without leaking app credentials", async (t) => {
   const digest = "a".repeat(64);
   t.mock.method(
     globalThis,
@@ -11,7 +11,7 @@ test("serves static asset metadata through the shared Supabase handler without l
     async (url: string, options: RequestInit) => {
       assert.equal(
         url,
-        `https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/desktop/${digest}/icon.svg`,
+        `https://static.fastrepl.com/anarlog/desktop/${digest}/icon.svg`,
       );
       assert.equal(options.method, "HEAD");
       const headers = new Headers(options.headers);

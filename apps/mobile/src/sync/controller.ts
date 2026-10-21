@@ -28,6 +28,11 @@ export type MobileSyncSession = {
   accountUserId: string;
 };
 
+export type MobileSyncActivity = {
+  atMs: number;
+  status: Omit<MobileSyncSnapshot, "accountUserId" | "hasRecoveryKey">;
+};
+
 type NativeSyncStatus = {
   configured: boolean;
   running: boolean;
@@ -129,6 +134,7 @@ function errorMessage(error: unknown): string {
 
 export class MobileSyncController {
   private snapshot = initialSnapshot;
+  private activity: MobileSyncActivity[] = [];
   private readonly listeners = new Set<() => void>();
   private session: MobileSyncSession | null = null;
   private generation = 0;
@@ -168,6 +174,8 @@ export class MobileSyncController {
   };
 
   getSnapshot = (): MobileSyncSnapshot => this.snapshot;
+
+  getActivity = (): readonly MobileSyncActivity[] => this.activity;
 
   activate(session: MobileSyncSession): () => void {
     this.generation += 1;
@@ -517,6 +525,42 @@ export class MobileSyncController {
   }
 
   private update(snapshot: MobileSyncSnapshot): void {
+    const previous = this.snapshot;
+    if (previous.accountUserId !== snapshot.accountUserId) {
+      this.activity = [];
+    }
+    if (
+      snapshot.accountUserId &&
+      (previous.accountUserId !== snapshot.accountUserId ||
+        previous.phase !== snapshot.phase ||
+        previous.running !== snapshot.running ||
+        previous.syncingNow !== snapshot.syncingNow ||
+        previous.hasUnsentChanges !== snapshot.hasUnsentChanges ||
+        previous.consecutiveFailures !== snapshot.consecutiveFailures ||
+        Boolean(previous.errorMessage) !== Boolean(snapshot.errorMessage) ||
+        previous.lastSyncAtMs !== snapshot.lastSyncAtMs)
+    ) {
+      this.activity = [
+        {
+          atMs: Date.now(),
+          status: {
+            phase: snapshot.phase,
+            running: snapshot.running,
+            syncingNow: snapshot.syncingNow,
+            hasUnsentChanges: snapshot.hasUnsentChanges,
+            lastSyncAtMs: snapshot.lastSyncAtMs,
+            consecutiveFailures: snapshot.consecutiveFailures,
+            // Native errors can contain request details; retain only known categories.
+            errorMessage: snapshot.errorMessage
+              ? snapshot.errorMessage.includes("E2EE witness request failed")
+                ? "Encrypted sync request failed. Check your connection and try again."
+                : "Sync operation failed."
+              : null,
+          },
+        },
+        ...this.activity,
+      ].slice(0, 50);
+    }
     this.snapshot = snapshot;
     for (const listener of this.listeners) listener();
   }

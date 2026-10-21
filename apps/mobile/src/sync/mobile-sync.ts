@@ -188,6 +188,7 @@ const controller = new MobileSyncController({
 
 export const subscribeMobileSync = controller.subscribe;
 export const getMobileSyncSnapshot = controller.getSnapshot;
+export const getMobileSyncActivity = controller.getActivity;
 
 export function activateMobileSync({
   accessToken,

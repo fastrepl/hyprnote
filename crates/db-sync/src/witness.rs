@@ -1002,7 +1002,18 @@ fn replica_error(error: anlg_db_app::E2eeReplicaError) -> io::Error {
 }
 
 fn transport_error(error: reqwest::Error) -> io::Error {
-    io::Error::other(format!("E2EE witness request failed: {error}"))
+    let reason = if error.is_timeout() {
+        "request timed out"
+    } else if error.is_connect() {
+        "connection could not be established"
+    } else if error.is_body() {
+        "response body transfer failed"
+    } else if error.is_decode() {
+        "response could not be decoded"
+    } else {
+        "request transport failed"
+    };
+    io::Error::other(format!("E2EE witness request failed: {reason}"))
 }
 
 fn invalid_data(message: &'static str) -> io::Error {

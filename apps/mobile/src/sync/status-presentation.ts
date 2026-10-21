@@ -9,8 +9,8 @@ const phaseCopy: Record<
     description: "Sign in with Anarlog Pro to sync this device.",
   },
   starting: {
-    title: "Connecting this device",
-    description: "Preparing your encrypted workspace…",
+    title: "Connecting…",
+    description: "Setting up encrypted cloud sync.",
   },
   approval_pending: {
     title: "Connecting this device",
@@ -59,11 +59,11 @@ function relativeSyncTime(
     0,
     Math.floor((nowMs - lastSyncAtMs) / 60_000),
   );
-  if (elapsedMinutes < 1) return "Synced just now";
-  if (elapsedMinutes < 60) return `Synced ${elapsedMinutes}m ago`;
+  if (elapsedMinutes < 1) return "Last synced less than a minute ago";
+  if (elapsedMinutes < 60) return `Last synced ${elapsedMinutes}m ago`;
   const elapsedHours = Math.floor(elapsedMinutes / 60);
-  if (elapsedHours < 24) return `Synced ${elapsedHours}h ago`;
-  return `Synced ${Math.floor(elapsedHours / 24)}d ago`;
+  if (elapsedHours < 24) return `Last synced ${elapsedHours}h ago`;
+  return `Last synced ${Math.floor(elapsedHours / 24)}d ago`;
 }
 
 export function syncStatusPresentation(
@@ -105,7 +105,18 @@ export function syncStatusPresentation(
             description:
               "This device is connected. Waiting for its first encrypted sync to finish.",
           }
-        : phaseCopy[snapshot.phase];
+        : snapshot.phase === "ready" && snapshot.syncingNow
+          ? {
+              title: "Syncing…",
+              description: "Sending and receiving your latest changes.",
+            }
+          : snapshot.phase === "ready" && snapshot.hasUnsentChanges
+            ? {
+                title: "Changes waiting to sync",
+                description:
+                  "Your notes are saved on this device and waiting to sync.",
+              }
+            : phaseCopy[snapshot.phase];
 
   const detail =
     snapshot.phase !== "ready"

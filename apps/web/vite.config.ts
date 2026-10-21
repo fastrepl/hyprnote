@@ -1,4 +1,3 @@
-cat << 'EOF' > apps/web/vite.config.ts
 import contentCollections from "@content-collections/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -110,4 +109,3 @@ const config = defineConfig(async ({ command }): Promise<UserConfig> => {
 });
 
 export default config;
-EOF

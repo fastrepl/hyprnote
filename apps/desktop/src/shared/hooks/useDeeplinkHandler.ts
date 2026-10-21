@@ -17,7 +17,7 @@ import { stopActiveWelcomeDemo } from "~/onboarding/welcome-note";
 import {
   allowReconnectedCalendarConnections,
   CALENDAR_SYNC_TASK_ID,
-  removeDisconnectedCalendarConnection,
+  removeDisconnectedCalendarConnectionFromCallback,
   syncCalendarEvents,
 } from "~/services/calendar";
 import { useScheduleTaskRunCallback } from "~/services/task-scheduler";
@@ -108,7 +108,7 @@ export function useDeeplinkHandler() {
           console.log(`[deeplink] integration updated: ${integration_id}`);
           if (disconnected_connection_id) {
             invalidateIntegrationState();
-            void removeDisconnectedCalendarConnection(
+            void removeDisconnectedCalendarConnectionFromCallback(
               integration_id,
               disconnected_connection_id,
             )

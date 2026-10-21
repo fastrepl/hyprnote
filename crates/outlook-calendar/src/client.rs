@@ -1,9 +1,13 @@
+use std::collections::HashSet;
+
 use anlg_http::HttpClient;
 
 use crate::error::Error;
 use crate::types::{
     CreateEventRequest, Event, ListCalendarsResponse, ListEventsRequest, ListEventsResponse,
 };
+
+const MAX_PAGES: usize = 1_000;
 
 pub struct OutlookCalendarClient<C> {
     http: C,
@@ -16,7 +20,15 @@ impl<C: HttpClient> OutlookCalendarClient<C> {
 
     pub async fn list_calendars(&self) -> Result<ListCalendarsResponse, Error> {
         let bytes = self.http.get("/me/calendars").await.map_err(Error::Http)?;
-        let response: ListCalendarsResponse = serde_json::from_slice(&bytes)?;
+        let mut response: ListCalendarsResponse = serde_json::from_slice(&bytes)?;
+        let mut seen = HashSet::new();
+        while let Some(link) = response.odata_next_link.take() {
+            let path = next_page_path(&link, "/me/calendars", &mut seen)?;
+            let bytes = self.http.get(path).await.map_err(Error::Http)?;
+            let page: ListCalendarsResponse = serde_json::from_slice(&bytes)?;
+            response.value.extend(page.value);
+            response.odata_next_link = page.odata_next_link;
+        }
         Ok(response)
     }
 
@@ -62,13 +74,25 @@ impl<C: HttpClient> OutlookCalendarClient<C> {
         }
 
         let full_path = if query_parts.is_empty() {
-            base_path
+            base_path.clone()
         } else {
             format!("{}?{}", base_path, query_parts.join("&"))
         };
 
         let bytes = self.http.get(&full_path).await.map_err(Error::Http)?;
-        let response: ListEventsResponse = serde_json::from_slice(&bytes)?;
+        let mut response: ListEventsResponse = serde_json::from_slice(&bytes)?;
+        // Explicit limits retain the public API's bounded page and continuation link.
+        if req.top.is_some() {
+            return Ok(response);
+        }
+        let mut seen = HashSet::new();
+        while let Some(link) = response.odata_next_link.take() {
+            let path = next_page_path(&link, &base_path, &mut seen)?;
+            let bytes = self.http.get(path).await.map_err(Error::Http)?;
+            let page: ListEventsResponse = serde_json::from_slice(&bytes)?;
+            response.value.extend(page.value);
+            response.odata_next_link = page.odata_next_link;
+        }
         Ok(response)
     }
 
@@ -86,3 +110,29 @@ impl<C: HttpClient> OutlookCalendarClient<C> {
         Ok(event)
     }
 }
+
+fn next_page_path<'a>(
+    link: &'a str,
+    collection_path: &str,
+    seen: &mut HashSet<String>,
+) -> Result<&'a str, Error> {
+    // Keep Graph's opaque query intact, but never send the connection to another resource.
+    let path = link
+        .strip_prefix("https://graph.microsoft.com/v1.0")
+        .filter(|path| {
+            path.split_once('?').is_some_and(|(resource, query)| {
+                resource == collection_path && !query.is_empty() && !path.contains('#')
+            })
+        })
+        .ok_or(Error::InvalidNextLink)?;
+    if seen.len() >= MAX_PAGES - 1 {
+        return Err(Error::TooManyPages);
+    }
+    if !seen.insert(path.to_string()) {
+        return Err(Error::RepeatedNextLink);
+    }
+    Ok(path)
+}
+
+#[cfg(test)]
+mod tests;

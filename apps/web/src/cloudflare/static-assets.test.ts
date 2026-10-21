@@ -77,3 +77,23 @@ test("serves blog preview HEAD requests from the image generator without returni
   assert.equal(response.headers.get("set-cookie"), null);
   assert.equal(await response.text(), "");
 });
+
+test("redirects moved objects to their new path without fetching the old one", async (t) => {
+  t.mock.method(globalThis, "fetch", () => {
+    throw new Error("unexpected fetch");
+  });
+  const response = await worker.fetch(
+    new Request(
+      "https://static.anarlog.so/blog/articles/free-ai-notetakers/free-11.webp",
+    ),
+  );
+  assert.equal(response.status, 301);
+  assert.equal(
+    response.headers.get("location"),
+    "https://static.anarlog.so/blog/library/products/otter/meeting-summary/2026-08-27-summary-card.webp",
+  );
+  const inherited = await worker.fetch(
+    new Request("https://static.anarlog.so/constructor"),
+  );
+  assert.notEqual(inherited.status, 301);
+});

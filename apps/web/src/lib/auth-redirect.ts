@@ -43,23 +43,13 @@ export function toAbsoluteInternalReturnUrl(
 }
 
 export function buildPostAuthDestination({
-  newAccount,
+  newAccount: _newAccount,
   returnTo,
 }: {
+  // Retained for compatibility with existing callers. Abrish does not route
+  // newly created web accounts through Anarlog's trial/checkout onboarding.
   newAccount: boolean;
   returnTo?: string;
 }) {
-  const safeReturnTo = sanitizeInternalReturnPath(returnTo);
-  if (!newAccount) {
-    return safeReturnTo;
-  }
-
-  const search = new URLSearchParams({
-    period: "monthly",
-    plan: "pro",
-    trial: "true",
-    source: "onboarding",
-    return_to: safeReturnTo,
-  });
-  return `/app/checkout?${search.toString()}`;
+  return sanitizeInternalReturnPath(returnTo);
 }

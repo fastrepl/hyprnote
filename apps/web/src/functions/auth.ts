@@ -99,6 +99,12 @@ async function prepareNewAccountTrial(
     return { createdAccount: false, needsTrialCheckout: false, session };
   }
 
+  // Abrish MVP: web signup must not depend on Anarlog's trial/checkout system.
+  // Keep the existing desktop flow unchanged.
+  if (flow === "web") {
+    return { createdAccount: true, needsTrialCheckout: false, session };
+  }
+
   let result: Awaited<ReturnType<typeof ensureNewAccountTrial>>;
   try {
     await claimPendingReferral(supabase);

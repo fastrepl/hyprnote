@@ -498,7 +498,7 @@ const createCheckoutSessionInput = z.object({
 });
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
-  .inputValidator(createCheckoutSessionInput)
+  .validator(createCheckoutSessionInput)
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     const {
@@ -678,7 +678,7 @@ const createTeamCheckoutSessionInput = z.object({
 });
 
 export const createTeamCheckoutSession = createServerFn({ method: "POST" })
-  .inputValidator(createTeamCheckoutSessionInput)
+  .validator(createTeamCheckoutSessionInput)
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     const {
@@ -870,7 +870,7 @@ const createPlanSwitchSessionInput = z.object({
 });
 
 export const createPlanSwitchSession = createServerFn({ method: "POST" })
-  .inputValidator(createPlanSwitchSessionInput)
+  .validator(createPlanSwitchSessionInput)
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     const {
@@ -964,7 +964,7 @@ const createPortalSessionInput = z.object({
 });
 
 export const createPortalSession = createServerFn({ method: "POST" })
-  .inputValidator(createPortalSessionInput)
+  .validator(createPortalSessionInput)
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     const {
@@ -1125,7 +1125,7 @@ const updateSyncDeviceAddonInput = z.object({
 });
 
 export const updateSyncDeviceAddon = createServerFn({ method: "POST" })
-  .inputValidator(updateSyncDeviceAddonInput)
+  .validator(updateSyncDeviceAddonInput)
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     const {
@@ -1195,7 +1195,7 @@ const deleteAccountInput = z.object({
 });
 
 export const deleteAccount = createServerFn({ method: "POST" })
-  .inputValidator(deleteAccountInput)
+  .validator(deleteAccountInput)
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     const {

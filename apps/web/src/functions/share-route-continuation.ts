@@ -28,7 +28,7 @@ const inputSchema = z
 const pathnameSchema = z.string().min(1).max(256);
 
 export const persistShareRouteContinuation = createServerFn({ method: "POST" })
-  .inputValidator(inputSchema)
+  .validator(inputSchema)
   .handler(async ({ data }) => {
     setPrivateContinuationResponseHeaders();
     if (!isSameOriginContinuationRequest()) {
@@ -46,7 +46,7 @@ export const persistShareRouteContinuation = createServerFn({ method: "POST" })
   });
 
 export const restoreShareRouteContinuation = createServerFn({ method: "POST" })
-  .inputValidator(pathnameSchema)
+  .validator(pathnameSchema)
   .handler(async ({ data }) => {
     setPrivateContinuationResponseHeaders();
     if (!isSameOriginContinuationRequest()) {
@@ -67,7 +67,7 @@ export const restoreShareRouteContinuation = createServerFn({ method: "POST" })
 export const clearShareRouteContinuation = createServerFn({
   method: "POST",
 })
-  .inputValidator(pathnameSchema)
+  .validator(pathnameSchema)
   .handler(async ({ data }) => {
     setPrivateContinuationResponseHeaders();
     if (!isSameOriginContinuationRequest()) {

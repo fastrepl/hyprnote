@@ -54,7 +54,7 @@ export type ManagedSharesResult =
   | { status: "error" };
 
 export const listMyManagedShares = createServerFn({ method: "GET" })
-  .inputValidator(listManagedSharesInput)
+  .validator(listManagedSharesInput)
   .handler(async ({ data }): Promise<ManagedSharesResult> => {
     setResponseHeader("Cache-Control", "no-store");
 
@@ -121,7 +121,7 @@ async function listManagedShareIds() {
 }
 
 export const deleteMyShare = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ shareId: z.string().uuid() }))
+  .validator(z.object({ shareId: z.string().uuid() }))
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     const { error } = await supabase.rpc("delete_session_share", {
@@ -135,7 +135,7 @@ export const deleteMyShare = createServerFn({ method: "POST" })
   });
 
 export const restrictMyShare = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ shareId: z.string().uuid() }))
+  .validator(z.object({ shareId: z.string().uuid() }))
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     const { error } = await supabase.rpc("set_session_share_scope", {

@@ -188,7 +188,7 @@ type SharedNoteAccessRequestResult =
   | { status: "error" };
 
 export const readAuthenticatedSharedNote = createServerFn({ method: "GET" })
-  .inputValidator(shareIdSchema)
+  .validator(shareIdSchema)
   .handler(
     async ({ data: shareId }): Promise<AuthenticatedSharedNoteReadResult> => {
       setPrivateShareResponseHeaders();
@@ -217,7 +217,7 @@ export const readAuthenticatedSharedNote = createServerFn({ method: "GET" })
   );
 
 export const readPublicSharedNote = createServerFn({ method: "GET" })
-  .inputValidator(publicShareSlugSchema)
+  .validator(publicShareSlugSchema)
   .handler(async ({ data: publicSlug }): Promise<SharedNoteReadResult> => {
     setResponseHeader("Cache-Control", "no-store");
     setResponseHeader("Referrer-Policy", "no-referrer");
@@ -225,7 +225,7 @@ export const readPublicSharedNote = createServerFn({ method: "GET" })
   });
 
 export const listSharedNoteComments = createServerFn({ method: "GET" })
-  .inputValidator(listSharedNoteCommentsInputSchema)
+  .validator(listSharedNoteCommentsInputSchema)
   .handler(
     async ({
       data: input,
@@ -260,7 +260,7 @@ export const listSharedNoteComments = createServerFn({ method: "GET" })
   );
 
 export const createSharedNoteComment = createServerFn({ method: "POST" })
-  .inputValidator(sharedNoteCommentInputSchema)
+  .validator(sharedNoteCommentInputSchema)
   .handler(
     async ({
       data,
@@ -311,7 +311,7 @@ export const createSharedNoteComment = createServerFn({ method: "POST" })
   );
 
 export const deleteSharedNoteComment = createServerFn({ method: "POST" })
-  .inputValidator(shareIdSchema)
+  .validator(shareIdSchema)
   .handler(async ({ data: commentId }): Promise<SharedNoteOperationStatus> => {
     setPrivateShareResponseHeaders();
 
@@ -336,7 +336,7 @@ export const deleteSharedNoteComment = createServerFn({ method: "POST" })
   });
 
 export const getMySharedNoteAccessRequest = createServerFn({ method: "GET" })
-  .inputValidator(shareIdSchema)
+  .validator(shareIdSchema)
   .handler(
     async ({ data: shareId }): Promise<SharedNoteAccessRequestResult> => {
       setPrivateShareResponseHeaders();
@@ -345,7 +345,7 @@ export const getMySharedNoteAccessRequest = createServerFn({ method: "GET" })
   );
 
 export const requestSharedNoteAccess = createServerFn({ method: "POST" })
-  .inputValidator(requestSharedNoteAccessInputSchema)
+  .validator(requestSharedNoteAccessInputSchema)
   .handler(async ({ data }): Promise<SharedNoteAccessRequestResult> => {
     setPrivateShareResponseHeaders();
 
@@ -381,7 +381,7 @@ export const requestSharedNoteAccess = createServerFn({ method: "POST" })
 export const cancelMySharedNoteAccessRequest = createServerFn({
   method: "POST",
 })
-  .inputValidator(shareIdSchema)
+  .validator(shareIdSchema)
   .handler(async ({ data: requestId }): Promise<SharedNoteOperationStatus> => {
     setPrivateShareResponseHeaders();
 
@@ -407,7 +407,7 @@ export const cancelMySharedNoteAccessRequest = createServerFn({
   });
 
 export const listSharedNoteManagerAccess = createServerFn({ method: "GET" })
-  .inputValidator(listSharedNoteManagerAccessInputSchema)
+  .validator(listSharedNoteManagerAccessInputSchema)
   .handler(
     async ({
       data: input,
@@ -439,7 +439,7 @@ export const listSharedNoteManagerAccess = createServerFn({ method: "GET" })
   );
 
 export const reviewSharedNoteAccessRequest = createServerFn({ method: "POST" })
-  .inputValidator(reviewSharedNoteAccessRequestInputSchema)
+  .validator(reviewSharedNoteAccessRequestInputSchema)
   .handler(async ({ data: input }): Promise<SharedNoteOperationStatus> => {
     setPrivateShareResponseHeaders();
 
@@ -470,7 +470,7 @@ export const reviewSharedNoteAccessRequest = createServerFn({ method: "POST" })
   });
 
 export const inspectMySharedNoteInvitation = createServerFn({ method: "POST" })
-  .inputValidator(invitationActionInputSchema)
+  .validator(invitationActionInputSchema)
   .handler(
     async ({
       data: input,
@@ -507,7 +507,7 @@ export const inspectMySharedNoteInvitation = createServerFn({ method: "POST" })
   );
 
 export const acceptSharedNoteInvitation = createServerFn({ method: "POST" })
-  .inputValidator(invitationActionInputSchema)
+  .validator(invitationActionInputSchema)
   .handler(
     async ({
       data: input,
@@ -544,7 +544,7 @@ export const acceptSharedNoteInvitation = createServerFn({ method: "POST" })
 export const createAuthenticatedSharedAttachmentDownload = createServerFn({
   method: "POST",
 })
-  .inputValidator(attachmentDownloadInputSchema)
+  .validator(attachmentDownloadInputSchema)
   .handler(async ({ data }) => {
     setPrivateShareResponseHeaders();
     const supabase = getSupabaseServerClient();

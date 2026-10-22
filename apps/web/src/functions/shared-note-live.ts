@@ -38,7 +38,7 @@ export type SharedNoteLiveTicketResult =
   | { status: "error" };
 
 export const createSharedNoteLiveTicket = createServerFn({ method: "POST" })
-  .inputValidator(shareIdSchema)
+  .validator(shareIdSchema)
   .handler(async ({ data: shareId }): Promise<SharedNoteLiveTicketResult> => {
     setPrivateHeaders();
     const accessToken = await currentAccessToken();
@@ -79,7 +79,7 @@ export const createSharedNoteLiveTicket = createServerFn({ method: "POST" })
   });
 
 export const saveSharedNoteWebEdit = createServerFn({ method: "POST" })
-  .inputValidator(webEditInputSchema)
+  .validator(webEditInputSchema)
   .handler(async ({ data }): Promise<SharedNoteWebEditResult> => {
     setPrivateHeaders();
     const accessToken = await currentAccessToken();

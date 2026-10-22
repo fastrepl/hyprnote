@@ -55,7 +55,7 @@ async function getOrCreateYcPerkClaimCode(claimId: string) {
 }
 
 export const submitYcPerkRequest = createServerFn({ method: "POST" })
-  .inputValidator(ycPerkRequestSchema)
+  .validator(ycPerkRequestSchema)
   .handler(async ({ data }) => {
     if (data.additionalComments) {
       return { status: "submitted" as const };
@@ -114,7 +114,7 @@ export const submitYcPerkRequest = createServerFn({ method: "POST" })
   });
 
 export const applyYcPerk = createServerFn({ method: "POST" })
-  .inputValidator(ycPerkApplyInputSchema)
+  .validator(ycPerkApplyInputSchema)
   .handler(async ({ data }) => {
     const parsed = parseYcPerkApplyValue(data.value);
     if (parsed.type === "invalid") {

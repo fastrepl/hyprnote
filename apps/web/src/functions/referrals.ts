@@ -21,7 +21,7 @@ import { proTrialDaysForOffer } from "@anlg/pricing/trial";
 import type { ReferralSummary } from "@anlg/supabase/referrals";
 
 export const persistReferralAttribution = createServerFn({ method: "POST" })
-  .inputValidator(referralCodeSchema)
+  .validator(referralCodeSchema)
   .handler(async ({ data: code }) => {
     setPrivateResponseHeaders();
     const supabase = getSupabaseServerClient();

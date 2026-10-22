@@ -31,7 +31,7 @@ const pendingSchema = z.object({
 });
 
 export const fetchAccountIdentities = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ expectedUserId: z.uuid() }))
+  .validator(z.object({ expectedUserId: z.uuid() }))
   .handler(async ({ data }) => {
     const {
       data: { user },
@@ -51,9 +51,7 @@ export const fetchAccountIdentities = createServerFn({ method: "GET" })
   });
 
 export const connectAccountIdentity = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({ expectedUserId: z.uuid(), provider: providerSchema }),
-  )
+  .validator(z.object({ expectedUserId: z.uuid(), provider: providerSchema }))
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     const {
@@ -106,7 +104,7 @@ export const connectAccountIdentity = createServerFn({ method: "POST" })
   });
 
 export const finishAccountIdentity = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     z.object({
       state: z.string().optional(),
       code: z.string().optional(),

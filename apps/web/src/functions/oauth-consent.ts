@@ -9,7 +9,7 @@ const authorizationInput = z.object({
 });
 
 export const getOAuthAuthorizationDetails = createServerFn({ method: "GET" })
-  .inputValidator(authorizationInput)
+  .validator(authorizationInput)
   .handler(async ({ data: { authorizationId } }) => {
     const supabase = getSupabaseServerClient();
     const { data, error } =
@@ -32,7 +32,7 @@ export const getOAuthAuthorizationDetails = createServerFn({ method: "GET" })
   });
 
 export const decideOAuthAuthorization = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     authorizationInput.extend({
       decision: z.enum(["approve", "deny"]),
     }),

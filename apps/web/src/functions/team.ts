@@ -48,7 +48,7 @@ function unavailableOrError(
 }
 
 export const inspectMyWorkspaceInvitation = createServerFn({ method: "POST" })
-  .inputValidator(invitationActionInputSchema)
+  .validator(invitationActionInputSchema)
   .handler(
     async ({
       data: input,
@@ -90,7 +90,7 @@ export const inspectMyWorkspaceInvitation = createServerFn({ method: "POST" })
   );
 
 export const acceptWorkspaceInvitation = createServerFn({ method: "POST" })
-  .inputValidator(invitationActionInputSchema)
+  .validator(invitationActionInputSchema)
   .handler(
     async ({
       data: input,

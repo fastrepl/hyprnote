@@ -9,99 +9,68 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UpdatePasswordRouteImport } from './routes/update-password'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SecurityRouteImport } from './routes/security'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as DiscordRouteImport } from './routes/discord'
-import { Route as ConfirmAuthRouteImport } from './routes/confirm-auth'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as ViewRouteRouteImport } from './routes/_view/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as YcIndexRouteImport } from './routes/yc/index'
-import { Route as PricingIndexRouteImport } from './routes/pricing/index'
-import { Route as EnterpriseIndexRouteImport } from './routes/enterprise/index'
-import { Route as ChangelogIndexRouteImport } from './routes/changelog/index'
-import { Route as BlogIndexRouteImport } from './routes/blog/index'
-import { Route as TLinkIdRouteImport } from './routes/t/$linkId'
-import { Route as ShareShareIdRouteImport } from './routes/share/$shareId'
-import { Route as OauthConsentRouteImport } from './routes/oauth/consent'
-import { Route as OauthCallbackRouteImport } from './routes/oauth/callback'
-import { Route as InviteCodeRouteImport } from './routes/invite/$code'
-import { Route as ChangelogVersionRouteImport } from './routes/changelog/$version'
-import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
-import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
-import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
+import { Route as ViewRouteRouteImport } from './routes/_view/route'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ConfirmAuthRouteImport } from './routes/confirm-auth'
+import { Route as DiscordRouteImport } from './routes/discord'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SecurityRouteImport } from './routes/security'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as UpdatePasswordRouteImport } from './routes/update-password'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
-import { Route as GuidesTranscriptionIndexRouteImport } from './routes/guides/transcription/index'
-import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
+import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
+import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as ChangelogIndexRouteImport } from './routes/changelog/index'
+import { Route as ChangelogVersionRouteImport } from './routes/changelog/$version'
+import { Route as EnterpriseIndexRouteImport } from './routes/enterprise/index'
+import { Route as InviteCodeRouteImport } from './routes/invite/$code'
+import { Route as OauthCallbackRouteImport } from './routes/oauth/callback'
+import { Route as OauthConsentRouteImport } from './routes/oauth/consent'
+import { Route as PricingIndexRouteImport } from './routes/pricing/index'
+import { Route as ShareShareIdRouteImport } from './routes/share/$shareId'
+import { Route as TLinkIdRouteImport } from './routes/t/$linkId'
+import { Route as YcIndexRouteImport } from './routes/yc/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
-import { Route as TeamInviteInvitationIdRouteImport } from './routes/team/invite/$invitationId'
-import { Route as SharePublicPublicSlugRouteImport } from './routes/share/public/$publicSlug'
-import { Route as ShareLinkShareIdRouteImport } from './routes/share/link/$shareId'
-import { Route as ShareInviteInvitationIdRouteImport } from './routes/share/invite/$invitationId'
-import { Route as ChangelogStreamVersionRouteImport } from './routes/changelog/$stream.$version'
-import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
-import { Route as ApiCronJobRouteImport } from './routes/api/cron/$job'
-import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
-import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
-import { Route as ViewCallbackSignoutRouteImport } from './routes/_view/callback/signout'
-import { Route as ViewCallbackIntegrationRouteImport } from './routes/_view/callback/integration'
-import { Route as ViewCallbackBillingRouteImport } from './routes/_view/callback/billing'
-import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
-import { Route as ViewAppTeamCheckoutRouteImport } from './routes/_view/app/team-checkout'
-import { Route as ViewAppSwitchPlanRouteImport } from './routes/_view/app/switch-plan'
-import { Route as ViewAppPortalRouteImport } from './routes/_view/app/portal'
-import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
-import { Route as ViewAppGoogleDrivePickerRouteImport } from './routes/_view/app/google-drive-picker'
-import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
+import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
+import { Route as ViewAppGoogleDrivePickerRouteImport } from './routes/_view/app/google-drive-picker'
+import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
+import { Route as ViewAppPortalRouteImport } from './routes/_view/app/portal'
+import { Route as ViewAppSwitchPlanRouteImport } from './routes/_view/app/switch-plan'
+import { Route as ViewAppTeamCheckoutRouteImport } from './routes/_view/app/team-checkout'
+import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
+import { Route as ViewCallbackBillingRouteImport } from './routes/_view/callback/billing'
+import { Route as ViewCallbackIntegrationRouteImport } from './routes/_view/callback/integration'
+import { Route as ViewCallbackSignoutRouteImport } from './routes/_view/callback/signout'
+import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
+import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
+import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
+import { Route as ApiCronJobRouteImport } from './routes/api/cron/$job'
+import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
+import { Route as ChangelogStreamVersionRouteImport } from './routes/changelog/$stream.$version'
+import { Route as GuidesTranscriptionIndexRouteImport } from './routes/guides/transcription/index'
+import { Route as ShareInviteInvitationIdRouteImport } from './routes/share/invite/$invitationId'
+import { Route as ShareLinkShareIdRouteImport } from './routes/share/link/$shareId'
+import { Route as SharePublicPublicSlugRouteImport } from './routes/share/public/$publicSlug'
+import { Route as TeamInviteInvitationIdRouteImport } from './routes/team/invite/$invitationId'
 import { Route as ViewDownloadNightlyIndexRouteImport } from './routes/_view/download/nightly/index'
 import { Route as ApiOgBlogSlugRouteImport } from './routes/api/og/blog/$slug'
-import { Route as ApiOgShareTLinkIdRouteImport } from './routes/api/og/share/t/$linkId'
-import { Route as ApiOgSharePublicPublicSlugRouteImport } from './routes/api/og/share/public/$publicSlug'
 import { Route as ApiOgShareLinkShareIdRouteImport } from './routes/api/og/share/link/$shareId'
+import { Route as ApiOgSharePublicPublicSlugRouteImport } from './routes/api/og/share/public/$publicSlug'
+import { Route as ApiOgShareTLinkIdRouteImport } from './routes/api/og/share/t/$linkId'
 
-const UpdatePasswordRoute = UpdatePasswordRouteImport.update({
-  id: '/update-password',
-  path: '/update-password',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SecurityRoute = SecurityRouteImport.update({
-  id: '/security',
-  path: '/security',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiscordRoute = DiscordRouteImport.update({
-  id: '/discord',
-  path: '/discord',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfirmAuthRoute = ConfirmAuthRouteImport.update({
-  id: '/confirm-auth',
-  path: '/confirm-auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const ViewRouteRoute = ViewRouteRouteImport.update({
+  id: '/_view',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -109,83 +78,44 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ViewRouteRoute = ViewRouteRouteImport.update({
-  id: '/_view',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ConfirmAuthRoute = ConfirmAuthRouteImport.update({
+  id: '/confirm-auth',
+  path: '/confirm-auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const YcIndexRoute = YcIndexRouteImport.update({
-  id: '/yc/',
-  path: '/yc/',
+const DiscordRoute = DiscordRouteImport.update({
+  id: '/discord',
+  path: '/discord',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PricingIndexRoute = PricingIndexRouteImport.update({
-  id: '/pricing/',
-  path: '/pricing/',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EnterpriseIndexRoute = EnterpriseIndexRouteImport.update({
-  id: '/enterprise/',
-  path: '/enterprise/',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChangelogIndexRoute = ChangelogIndexRouteImport.update({
-  id: '/changelog/',
-  path: '/changelog/',
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TLinkIdRoute = TLinkIdRouteImport.update({
-  id: '/t/$linkId',
-  path: '/t/$linkId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShareShareIdRoute = ShareShareIdRouteImport.update({
-  id: '/share/$shareId',
-  path: '/share/$shareId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OauthConsentRoute = OauthConsentRouteImport.update({
-  id: '/oauth/consent',
-  path: '/oauth/consent',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OauthCallbackRoute = OauthCallbackRouteImport.update({
-  id: '/oauth/callback',
-  path: '/oauth/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InviteCodeRoute = InviteCodeRouteImport.update({
-  id: '/invite/$code',
-  path: '/invite/$code',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChangelogVersionRoute = ChangelogVersionRouteImport.update({
-  id: '/changelog/$version',
-  path: '/changelog/$version',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiTemplatesRoute = ApiTemplatesRouteImport.update({
-  id: '/api/templates',
-  path: '/api/templates',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiShortcutsRoute = ApiShortcutsRouteImport.update({
-  id: '/api/shortcuts',
-  path: '/api/shortcuts',
+const UpdatePasswordRoute = UpdatePasswordRouteImport.update({
+  id: '/update-password',
+  path: '/update-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
@@ -193,106 +123,89 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   path: '/app',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const GuidesTranscriptionIndexRoute =
-  GuidesTranscriptionIndexRouteImport.update({
-    id: '/guides/transcription/',
-    path: '/guides/transcription/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ViewDownloadIndexRoute = ViewDownloadIndexRouteImport.update({
-  id: '/download/',
-  path: '/download/',
-  getParentRoute: () => ViewRouteRoute,
+const ApiShortcutsRoute = ApiShortcutsRouteImport.update({
+  id: '/api/shortcuts',
+  path: '/api/shortcuts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTemplatesRoute = ApiTemplatesRouteImport.update({
+  id: '/api/templates',
+  path: '/api/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangelogIndexRoute = ChangelogIndexRouteImport.update({
+  id: '/changelog/',
+  path: '/changelog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangelogVersionRoute = ChangelogVersionRouteImport.update({
+  id: '/changelog/$version',
+  path: '/changelog/$version',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnterpriseIndexRoute = EnterpriseIndexRouteImport.update({
+  id: '/enterprise/',
+  path: '/enterprise/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteCodeRoute = InviteCodeRouteImport.update({
+  id: '/invite/$code',
+  path: '/invite/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthCallbackRoute = OauthCallbackRouteImport.update({
+  id: '/oauth/callback',
+  path: '/oauth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthConsentRoute = OauthConsentRouteImport.update({
+  id: '/oauth/consent',
+  path: '/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingIndexRoute = PricingIndexRouteImport.update({
+  id: '/pricing/',
+  path: '/pricing/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareShareIdRoute = ShareShareIdRouteImport.update({
+  id: '/share/$shareId',
+  path: '/share/$shareId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TLinkIdRoute = TLinkIdRouteImport.update({
+  id: '/t/$linkId',
+  path: '/t/$linkId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const YcIndexRoute = YcIndexRouteImport.update({
+  id: '/yc/',
+  path: '/yc/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
-const TeamInviteInvitationIdRoute = TeamInviteInvitationIdRouteImport.update({
-  id: '/team/invite/$invitationId',
-  path: '/team/invite/$invitationId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SharePublicPublicSlugRoute = SharePublicPublicSlugRouteImport.update({
-  id: '/share/public/$publicSlug',
-  path: '/share/public/$publicSlug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShareLinkShareIdRoute = ShareLinkShareIdRouteImport.update({
-  id: '/share/link/$shareId',
-  path: '/share/link/$shareId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShareInviteInvitationIdRoute = ShareInviteInvitationIdRouteImport.update({
-  id: '/share/invite/$invitationId',
-  path: '/share/invite/$invitationId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChangelogStreamVersionRoute = ChangelogStreamVersionRouteImport.update({
-  id: '/changelog/$stream/$version',
-  path: '/changelog/$stream/$version',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiTweetIdRoute = ApiTweetIdRouteImport.update({
-  id: '/api/tweet/$id',
-  path: '/api/tweet/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCronJobRoute = ApiCronJobRouteImport.update({
-  id: '/api/cron/$job',
-  path: '/api/cron/$job',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ViewDownloadAppleSiliconRoute =
-  ViewDownloadAppleSiliconRouteImport.update({
-    id: '/download/apple-silicon',
-    path: '/download/apple-silicon',
-    getParentRoute: () => ViewRouteRoute,
-  } as any)
-const ViewDownloadAppleIntelRoute = ViewDownloadAppleIntelRouteImport.update({
-  id: '/download/apple-intel',
-  path: '/download/apple-intel',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewCallbackSignoutRoute = ViewCallbackSignoutRouteImport.update({
-  id: '/callback/signout',
-  path: '/callback/signout',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewCallbackIntegrationRoute = ViewCallbackIntegrationRouteImport.update({
-  id: '/callback/integration',
-  path: '/callback/integration',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewCallbackBillingRoute = ViewCallbackBillingRouteImport.update({
-  id: '/callback/billing',
-  path: '/callback/billing',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewCallbackAuthRoute = ViewCallbackAuthRouteImport.update({
-  id: '/callback/auth',
-  path: '/callback/auth',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewAppTeamCheckoutRoute = ViewAppTeamCheckoutRouteImport.update({
-  id: '/team-checkout',
-  path: '/team-checkout',
+const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
-const ViewAppSwitchPlanRoute = ViewAppSwitchPlanRouteImport.update({
-  id: '/switch-plan',
-  path: '/switch-plan',
-  getParentRoute: () => ViewAppRouteRoute,
-} as any)
-const ViewAppPortalRoute = ViewAppPortalRouteImport.update({
-  id: '/portal',
-  path: '/portal',
-  getParentRoute: () => ViewAppRouteRoute,
-} as any)
-const ViewAppIntegrationRoute = ViewAppIntegrationRouteImport.update({
-  id: '/integration',
-  path: '/integration',
+const ViewAppCheckoutRoute = ViewAppCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
 const ViewAppGoogleDrivePickerRoute =
@@ -301,15 +214,102 @@ const ViewAppGoogleDrivePickerRoute =
     path: '/google-drive-picker',
     getParentRoute: () => ViewAppRouteRoute,
   } as any)
-const ViewAppCheckoutRoute = ViewAppCheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
+const ViewAppIntegrationRoute = ViewAppIntegrationRouteImport.update({
+  id: '/integration',
+  path: '/integration',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
-const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
+const ViewAppPortalRoute = ViewAppPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => ViewAppRouteRoute,
+} as any)
+const ViewAppSwitchPlanRoute = ViewAppSwitchPlanRouteImport.update({
+  id: '/switch-plan',
+  path: '/switch-plan',
+  getParentRoute: () => ViewAppRouteRoute,
+} as any)
+const ViewAppTeamCheckoutRoute = ViewAppTeamCheckoutRouteImport.update({
+  id: '/team-checkout',
+  path: '/team-checkout',
+  getParentRoute: () => ViewAppRouteRoute,
+} as any)
+const ViewCallbackAuthRoute = ViewCallbackAuthRouteImport.update({
+  id: '/callback/auth',
+  path: '/callback/auth',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewCallbackBillingRoute = ViewCallbackBillingRouteImport.update({
+  id: '/callback/billing',
+  path: '/callback/billing',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewCallbackIntegrationRoute = ViewCallbackIntegrationRouteImport.update({
+  id: '/callback/integration',
+  path: '/callback/integration',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewCallbackSignoutRoute = ViewCallbackSignoutRouteImport.update({
+  id: '/callback/signout',
+  path: '/callback/signout',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDownloadIndexRoute = ViewDownloadIndexRouteImport.update({
+  id: '/download/',
+  path: '/download/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDownloadAppleIntelRoute = ViewDownloadAppleIntelRouteImport.update({
+  id: '/download/apple-intel',
+  path: '/download/apple-intel',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDownloadAppleSiliconRoute =
+  ViewDownloadAppleSiliconRouteImport.update({
+    id: '/download/apple-silicon',
+    path: '/download/apple-silicon',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
+const ApiCronJobRoute = ApiCronJobRouteImport.update({
+  id: '/api/cron/$job',
+  path: '/api/cron/$job',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTweetIdRoute = ApiTweetIdRouteImport.update({
+  id: '/api/tweet/$id',
+  path: '/api/tweet/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangelogStreamVersionRoute = ChangelogStreamVersionRouteImport.update({
+  id: '/changelog/$stream/$version',
+  path: '/changelog/$stream/$version',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidesTranscriptionIndexRoute =
+  GuidesTranscriptionIndexRouteImport.update({
+    id: '/guides/transcription/',
+    path: '/guides/transcription/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ShareInviteInvitationIdRoute = ShareInviteInvitationIdRouteImport.update({
+  id: '/share/invite/$invitationId',
+  path: '/share/invite/$invitationId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareLinkShareIdRoute = ShareLinkShareIdRouteImport.update({
+  id: '/share/link/$shareId',
+  path: '/share/link/$shareId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SharePublicPublicSlugRoute = SharePublicPublicSlugRouteImport.update({
+  id: '/share/public/$publicSlug',
+  path: '/share/public/$publicSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamInviteInvitationIdRoute = TeamInviteInvitationIdRouteImport.update({
+  id: '/team/invite/$invitationId',
+  path: '/team/invite/$invitationId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ViewDownloadNightlyIndexRoute =
   ViewDownloadNightlyIndexRouteImport.update({
@@ -322,9 +322,9 @@ const ApiOgBlogSlugRoute = ApiOgBlogSlugRouteImport.update({
   path: '/api/og/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiOgShareTLinkIdRoute = ApiOgShareTLinkIdRouteImport.update({
-  id: '/api/og/share/t/$linkId',
-  path: '/api/og/share/t/$linkId',
+const ApiOgShareLinkShareIdRoute = ApiOgShareLinkShareIdRouteImport.update({
+  id: '/api/og/share/link/$shareId',
+  path: '/api/og/share/link/$shareId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOgSharePublicPublicSlugRoute =
@@ -333,9 +333,9 @@ const ApiOgSharePublicPublicSlugRoute =
     path: '/api/og/share/public/$publicSlug',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiOgShareLinkShareIdRoute = ApiOgShareLinkShareIdRouteImport.update({
-  id: '/api/og/share/link/$shareId',
-  path: '/api/og/share/link/$shareId',
+const ApiOgShareTLinkIdRoute = ApiOgShareTLinkIdRouteImport.update({
+  id: '/api/og/share/t/$linkId',
+  path: '/api/og/share/t/$linkId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -715,67 +715,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/update-password': {
-      id: '/update-password'
-      path: '/update-password'
-      fullPath: '/update-password'
-      preLoaderRoute: typeof UpdatePasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/security': {
-      id: '/security'
-      path: '/security'
-      fullPath: '/security'
-      preLoaderRoute: typeof SecurityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/discord': {
-      id: '/discord'
-      path: '/discord'
-      fullPath: '/discord'
-      preLoaderRoute: typeof DiscordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/confirm-auth': {
-      id: '/confirm-auth'
-      path: '/confirm-auth'
-      fullPath: '/confirm-auth'
-      preLoaderRoute: typeof ConfirmAuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_view': {
@@ -785,109 +729,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/yc/': {
-      id: '/yc/'
-      path: '/yc'
-      fullPath: '/yc/'
-      preLoaderRoute: typeof YcIndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pricing/': {
-      id: '/pricing/'
-      path: '/pricing'
-      fullPath: '/pricing/'
-      preLoaderRoute: typeof PricingIndexRouteImport
+    '/confirm-auth': {
+      id: '/confirm-auth'
+      path: '/confirm-auth'
+      fullPath: '/confirm-auth'
+      preLoaderRoute: typeof ConfirmAuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/enterprise/': {
-      id: '/enterprise/'
-      path: '/enterprise'
-      fullPath: '/enterprise/'
-      preLoaderRoute: typeof EnterpriseIndexRouteImport
+    '/discord': {
+      id: '/discord'
+      path: '/discord'
+      fullPath: '/discord'
+      preLoaderRoute: typeof DiscordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/changelog/': {
-      id: '/changelog/'
-      path: '/changelog'
-      fullPath: '/changelog/'
-      preLoaderRoute: typeof ChangelogIndexRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/t/$linkId': {
-      id: '/t/$linkId'
-      path: '/t/$linkId'
-      fullPath: '/t/$linkId'
-      preLoaderRoute: typeof TLinkIdRouteImport
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/share/$shareId': {
-      id: '/share/$shareId'
-      path: '/share/$shareId'
-      fullPath: '/share/$shareId'
-      preLoaderRoute: typeof ShareShareIdRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/oauth/consent': {
-      id: '/oauth/consent'
-      path: '/oauth/consent'
-      fullPath: '/oauth/consent'
-      preLoaderRoute: typeof OauthConsentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/oauth/callback': {
-      id: '/oauth/callback'
-      path: '/oauth/callback'
-      fullPath: '/oauth/callback'
-      preLoaderRoute: typeof OauthCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/invite/$code': {
-      id: '/invite/$code'
-      path: '/invite/$code'
-      fullPath: '/invite/$code'
-      preLoaderRoute: typeof InviteCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/changelog/$version': {
-      id: '/changelog/$version'
-      path: '/changelog/$version'
-      fullPath: '/changelog/$version'
-      preLoaderRoute: typeof ChangelogVersionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/templates': {
-      id: '/api/templates'
-      path: '/api/templates'
-      fullPath: '/api/templates'
-      preLoaderRoute: typeof ApiTemplatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/shortcuts': {
-      id: '/api/shortcuts'
-      path: '/api/shortcuts'
-      fullPath: '/api/shortcuts'
-      preLoaderRoute: typeof ApiShortcutsRouteImport
+    '/update-password': {
+      id: '/update-password'
+      path: '/update-password'
+      fullPath: '/update-password'
+      preLoaderRoute: typeof UpdatePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_view/app': {
@@ -897,19 +799,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppRouteRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/guides/transcription/': {
-      id: '/guides/transcription/'
-      path: '/guides/transcription'
-      fullPath: '/guides/transcription/'
-      preLoaderRoute: typeof GuidesTranscriptionIndexRouteImport
+    '/api/shortcuts': {
+      id: '/api/shortcuts'
+      path: '/api/shortcuts'
+      fullPath: '/api/shortcuts'
+      preLoaderRoute: typeof ApiShortcutsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_view/download/': {
-      id: '/_view/download/'
-      path: '/download'
-      fullPath: '/download/'
-      preLoaderRoute: typeof ViewDownloadIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
+    '/api/templates': {
+      id: '/api/templates'
+      path: '/api/templates'
+      fullPath: '/api/templates'
+      preLoaderRoute: typeof ApiTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/changelog/': {
+      id: '/changelog/'
+      path: '/changelog'
+      fullPath: '/changelog/'
+      preLoaderRoute: typeof ChangelogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/changelog/$version': {
+      id: '/changelog/$version'
+      path: '/changelog/$version'
+      fullPath: '/changelog/$version'
+      preLoaderRoute: typeof ChangelogVersionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/enterprise/': {
+      id: '/enterprise/'
+      path: '/enterprise'
+      fullPath: '/enterprise/'
+      preLoaderRoute: typeof EnterpriseIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$code': {
+      id: '/invite/$code'
+      path: '/invite/$code'
+      fullPath: '/invite/$code'
+      preLoaderRoute: typeof InviteCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/callback': {
+      id: '/oauth/callback'
+      path: '/oauth/callback'
+      fullPath: '/oauth/callback'
+      preLoaderRoute: typeof OauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/consent': {
+      id: '/oauth/consent'
+      path: '/oauth/consent'
+      fullPath: '/oauth/consent'
+      preLoaderRoute: typeof OauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing/': {
+      id: '/pricing/'
+      path: '/pricing'
+      fullPath: '/pricing/'
+      preLoaderRoute: typeof PricingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share/$shareId': {
+      id: '/share/$shareId'
+      path: '/share/$shareId'
+      fullPath: '/share/$shareId'
+      preLoaderRoute: typeof ShareShareIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/t/$linkId': {
+      id: '/t/$linkId'
+      path: '/t/$linkId'
+      fullPath: '/t/$linkId'
+      preLoaderRoute: typeof TLinkIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/yc/': {
+      id: '/yc/'
+      path: '/yc'
+      fullPath: '/yc/'
+      preLoaderRoute: typeof YcIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_view/app/': {
       id: '/_view/app/'
@@ -918,130 +904,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppIndexRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
-    '/team/invite/$invitationId': {
-      id: '/team/invite/$invitationId'
-      path: '/team/invite/$invitationId'
-      fullPath: '/team/invite/$invitationId'
-      preLoaderRoute: typeof TeamInviteInvitationIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/share/public/$publicSlug': {
-      id: '/share/public/$publicSlug'
-      path: '/share/public/$publicSlug'
-      fullPath: '/share/public/$publicSlug'
-      preLoaderRoute: typeof SharePublicPublicSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/share/link/$shareId': {
-      id: '/share/link/$shareId'
-      path: '/share/link/$shareId'
-      fullPath: '/share/link/$shareId'
-      preLoaderRoute: typeof ShareLinkShareIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/share/invite/$invitationId': {
-      id: '/share/invite/$invitationId'
-      path: '/share/invite/$invitationId'
-      fullPath: '/share/invite/$invitationId'
-      preLoaderRoute: typeof ShareInviteInvitationIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/changelog/$stream/$version': {
-      id: '/changelog/$stream/$version'
-      path: '/changelog/$stream/$version'
-      fullPath: '/changelog/$stream/$version'
-      preLoaderRoute: typeof ChangelogStreamVersionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/tweet/$id': {
-      id: '/api/tweet/$id'
-      path: '/api/tweet/$id'
-      fullPath: '/api/tweet/$id'
-      preLoaderRoute: typeof ApiTweetIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/cron/$job': {
-      id: '/api/cron/$job'
-      path: '/api/cron/$job'
-      fullPath: '/api/cron/$job'
-      preLoaderRoute: typeof ApiCronJobRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_view/download/apple-silicon': {
-      id: '/_view/download/apple-silicon'
-      path: '/download/apple-silicon'
-      fullPath: '/download/apple-silicon'
-      preLoaderRoute: typeof ViewDownloadAppleSiliconRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/apple-intel': {
-      id: '/_view/download/apple-intel'
-      path: '/download/apple-intel'
-      fullPath: '/download/apple-intel'
-      preLoaderRoute: typeof ViewDownloadAppleIntelRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/callback/signout': {
-      id: '/_view/callback/signout'
-      path: '/callback/signout'
-      fullPath: '/callback/signout'
-      preLoaderRoute: typeof ViewCallbackSignoutRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/callback/integration': {
-      id: '/_view/callback/integration'
-      path: '/callback/integration'
-      fullPath: '/callback/integration'
-      preLoaderRoute: typeof ViewCallbackIntegrationRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/callback/billing': {
-      id: '/_view/callback/billing'
-      path: '/callback/billing'
-      fullPath: '/callback/billing'
-      preLoaderRoute: typeof ViewCallbackBillingRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/callback/auth': {
-      id: '/_view/callback/auth'
-      path: '/callback/auth'
-      fullPath: '/callback/auth'
-      preLoaderRoute: typeof ViewCallbackAuthRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/app/team-checkout': {
-      id: '/_view/app/team-checkout'
-      path: '/team-checkout'
-      fullPath: '/app/team-checkout'
-      preLoaderRoute: typeof ViewAppTeamCheckoutRouteImport
-      parentRoute: typeof ViewAppRouteRoute
-    }
-    '/_view/app/switch-plan': {
-      id: '/_view/app/switch-plan'
-      path: '/switch-plan'
-      fullPath: '/app/switch-plan'
-      preLoaderRoute: typeof ViewAppSwitchPlanRouteImport
-      parentRoute: typeof ViewAppRouteRoute
-    }
-    '/_view/app/portal': {
-      id: '/_view/app/portal'
-      path: '/portal'
-      fullPath: '/app/portal'
-      preLoaderRoute: typeof ViewAppPortalRouteImport
-      parentRoute: typeof ViewAppRouteRoute
-    }
-    '/_view/app/integration': {
-      id: '/_view/app/integration'
-      path: '/integration'
-      fullPath: '/app/integration'
-      preLoaderRoute: typeof ViewAppIntegrationRouteImport
-      parentRoute: typeof ViewAppRouteRoute
-    }
-    '/_view/app/google-drive-picker': {
-      id: '/_view/app/google-drive-picker'
-      path: '/google-drive-picker'
-      fullPath: '/app/google-drive-picker'
-      preLoaderRoute: typeof ViewAppGoogleDrivePickerRouteImport
+    '/_view/app/account': {
+      id: '/_view/app/account'
+      path: '/account'
+      fullPath: '/app/account'
+      preLoaderRoute: typeof ViewAppAccountRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
     '/_view/app/checkout': {
@@ -1051,12 +918,145 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppCheckoutRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
-    '/_view/app/account': {
-      id: '/_view/app/account'
-      path: '/account'
-      fullPath: '/app/account'
-      preLoaderRoute: typeof ViewAppAccountRouteImport
+    '/_view/app/google-drive-picker': {
+      id: '/_view/app/google-drive-picker'
+      path: '/google-drive-picker'
+      fullPath: '/app/google-drive-picker'
+      preLoaderRoute: typeof ViewAppGoogleDrivePickerRouteImport
       parentRoute: typeof ViewAppRouteRoute
+    }
+    '/_view/app/integration': {
+      id: '/_view/app/integration'
+      path: '/integration'
+      fullPath: '/app/integration'
+      preLoaderRoute: typeof ViewAppIntegrationRouteImport
+      parentRoute: typeof ViewAppRouteRoute
+    }
+    '/_view/app/portal': {
+      id: '/_view/app/portal'
+      path: '/portal'
+      fullPath: '/app/portal'
+      preLoaderRoute: typeof ViewAppPortalRouteImport
+      parentRoute: typeof ViewAppRouteRoute
+    }
+    '/_view/app/switch-plan': {
+      id: '/_view/app/switch-plan'
+      path: '/switch-plan'
+      fullPath: '/app/switch-plan'
+      preLoaderRoute: typeof ViewAppSwitchPlanRouteImport
+      parentRoute: typeof ViewAppRouteRoute
+    }
+    '/_view/app/team-checkout': {
+      id: '/_view/app/team-checkout'
+      path: '/team-checkout'
+      fullPath: '/app/team-checkout'
+      preLoaderRoute: typeof ViewAppTeamCheckoutRouteImport
+      parentRoute: typeof ViewAppRouteRoute
+    }
+    '/_view/callback/auth': {
+      id: '/_view/callback/auth'
+      path: '/callback/auth'
+      fullPath: '/callback/auth'
+      preLoaderRoute: typeof ViewCallbackAuthRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/callback/billing': {
+      id: '/_view/callback/billing'
+      path: '/callback/billing'
+      fullPath: '/callback/billing'
+      preLoaderRoute: typeof ViewCallbackBillingRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/callback/integration': {
+      id: '/_view/callback/integration'
+      path: '/callback/integration'
+      fullPath: '/callback/integration'
+      preLoaderRoute: typeof ViewCallbackIntegrationRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/callback/signout': {
+      id: '/_view/callback/signout'
+      path: '/callback/signout'
+      fullPath: '/callback/signout'
+      preLoaderRoute: typeof ViewCallbackSignoutRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/download/': {
+      id: '/_view/download/'
+      path: '/download'
+      fullPath: '/download/'
+      preLoaderRoute: typeof ViewDownloadIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/download/apple-intel': {
+      id: '/_view/download/apple-intel'
+      path: '/download/apple-intel'
+      fullPath: '/download/apple-intel'
+      preLoaderRoute: typeof ViewDownloadAppleIntelRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/download/apple-silicon': {
+      id: '/_view/download/apple-silicon'
+      path: '/download/apple-silicon'
+      fullPath: '/download/apple-silicon'
+      preLoaderRoute: typeof ViewDownloadAppleSiliconRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/api/cron/$job': {
+      id: '/api/cron/$job'
+      path: '/api/cron/$job'
+      fullPath: '/api/cron/$job'
+      preLoaderRoute: typeof ApiCronJobRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tweet/$id': {
+      id: '/api/tweet/$id'
+      path: '/api/tweet/$id'
+      fullPath: '/api/tweet/$id'
+      preLoaderRoute: typeof ApiTweetIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/changelog/$stream/$version': {
+      id: '/changelog/$stream/$version'
+      path: '/changelog/$stream/$version'
+      fullPath: '/changelog/$stream/$version'
+      preLoaderRoute: typeof ChangelogStreamVersionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/transcription/': {
+      id: '/guides/transcription/'
+      path: '/guides/transcription'
+      fullPath: '/guides/transcription/'
+      preLoaderRoute: typeof GuidesTranscriptionIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share/invite/$invitationId': {
+      id: '/share/invite/$invitationId'
+      path: '/share/invite/$invitationId'
+      fullPath: '/share/invite/$invitationId'
+      preLoaderRoute: typeof ShareInviteInvitationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share/link/$shareId': {
+      id: '/share/link/$shareId'
+      path: '/share/link/$shareId'
+      fullPath: '/share/link/$shareId'
+      preLoaderRoute: typeof ShareLinkShareIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share/public/$publicSlug': {
+      id: '/share/public/$publicSlug'
+      path: '/share/public/$publicSlug'
+      fullPath: '/share/public/$publicSlug'
+      preLoaderRoute: typeof SharePublicPublicSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team/invite/$invitationId': {
+      id: '/team/invite/$invitationId'
+      path: '/team/invite/$invitationId'
+      fullPath: '/team/invite/$invitationId'
+      preLoaderRoute: typeof TeamInviteInvitationIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_view/download/nightly/': {
       id: '/_view/download/nightly/'
@@ -1072,11 +1072,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOgBlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/og/share/t/$linkId': {
-      id: '/api/og/share/t/$linkId'
-      path: '/api/og/share/t/$linkId'
-      fullPath: '/api/og/share/t/$linkId'
-      preLoaderRoute: typeof ApiOgShareTLinkIdRouteImport
+    '/api/og/share/link/$shareId': {
+      id: '/api/og/share/link/$shareId'
+      path: '/api/og/share/link/$shareId'
+      fullPath: '/api/og/share/link/$shareId'
+      preLoaderRoute: typeof ApiOgShareLinkShareIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/og/share/public/$publicSlug': {
@@ -1086,11 +1086,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOgSharePublicPublicSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/og/share/link/$shareId': {
-      id: '/api/og/share/link/$shareId'
-      path: '/api/og/share/link/$shareId'
-      fullPath: '/api/og/share/link/$shareId'
-      preLoaderRoute: typeof ApiOgShareLinkShareIdRouteImport
+    '/api/og/share/t/$linkId': {
+      id: '/api/og/share/t/$linkId'
+      path: '/api/og/share/t/$linkId'
+      fullPath: '/api/og/share/t/$linkId'
+      preLoaderRoute: typeof ApiOgShareTLinkIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

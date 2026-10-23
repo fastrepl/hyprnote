@@ -49,7 +49,7 @@ WORKDIR /app
 EXPOSE 3001
 ENTRYPOINT ["/usr/local/bin/api"]
 
-FROM node:22-slim AS billing-node-base
+FROM node:22.23.4-slim AS billing-node-base
 WORKDIR /repo
 
 ENV PNPM_HOME="/pnpm"

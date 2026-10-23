@@ -87,7 +87,7 @@ jobs:
           df -h /
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "22.23.4"
       - uses: ./.github/actions/rust_install
       - run: |
           cargo test --locked -p agent-access

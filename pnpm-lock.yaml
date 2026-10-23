@@ -90,8 +90,8 @@ importers:
         specifier: 3.0.3
         version: 3.0.3(patch_hash=ab5323f4bdd02335125374c4299f8052d9973075d0c3bf341074eee55be4551d)
       decode-uri-component:
-        specifier: 0.2.2
-        version: 0.2.2(patch_hash=1533799b0dd9d819610a20f051a615d52c96f3455da87240dbad53c21dd21296)
+        specifier: 0.5.0
+        version: 0.5.0
       dprint:
         specifier: ^0.51.1
         version: 0.51.1
@@ -457,7 +457,7 @@ importers:
         version: 4.5.4
       zustand:
         specifier: ^5.0.12
-        version: 5.0.12(@types/react@19.2.14)(immer@11.2.7)(react@19.2.5)(use-sync-external-store@1.7.0(react@19.2.5))
+        version: 5.0.12(@types/react@19.2.14)(immer@11.2.9)(react@19.2.5)(use-sync-external-store@1.7.0(react@19.2.5))
     devDependencies:
       '@dotenvx/dotenvx':
         specifier: ^1.61.0
@@ -707,8 +707,8 @@ importers:
         specifier: ^3.21.0
         version: 3.21.0
       hono:
-        specifier: ^4.13.11
-        version: 4.13.11
+        specifier: ^4.13.12
+        version: 4.13.12
       pg:
         specifier: ^8.20.0
         version: 8.20.0
@@ -10967,8 +10967,8 @@ packages:
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
 
-  hono@4.13.11:
-    resolution: {integrity: sha512-/SMX/RQNJn7oNmFwH6DtwDqcrzZU2otm1FD6OJe2cWF6cfy/F8hq0XVBv7xW3FTJshRQwuBnXHDq2kNsdZnshg==}
+  hono@4.13.12:
+    resolution: {integrity: sha512-6E2QDAc9Ick9Sq77ZrGS/dk2WUYni91aufTw6LJKpV7w8kW5/GxVUc650FOADOmlwg3K+f7Pun6XlV+pYmW6gw==}
     engines: {node: '>=16.9.0'}
 
   hono@4.13.7:
@@ -11073,8 +11073,8 @@ packages:
   immediate@3.0.6:
     resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
 
-  immer@11.2.7:
-    resolution: {integrity: sha512-zGk7AJPx/dKSYCjdUG0jkY6qLKvCzHMtLjqIEm2LhQJOrpRubIvI71RwsYwQGBfRAaLcJuZU0i4dAF3rxwedOA==}
+  immer@11.2.9:
+    resolution: {integrity: sha512-IQ4UEtXjZjyefyWjtLEDXUSrF6T2hwjKPi6BIJl3bY/2XXW24d6cNGdXJSBOA/+KNnuiXkZY6DR0C3efolhitA==}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -17906,7 +17906,7 @@ snapshots:
       dayjs: 1.11.23
       emoji-mart: 5.6.0
       fast-deep-equal: 3.1.3
-      immer: 11.2.7
+      immer: 11.2.9
       katex: 0.18.2
       leva: 0.10.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       lodash-es: 4.18.1
@@ -25594,7 +25594,7 @@ snapshots:
     dependencies:
       react-is: 16.13.1
 
-  hono@4.13.11: {}
+  hono@4.13.12: {}
 
   hono@4.13.7: {}
 
@@ -25699,7 +25699,7 @@ snapshots:
 
   immediate@3.0.6: {}
 
-  immer@11.2.7: {}
+  immer@11.2.9: {}
 
   import-fresh@3.3.1:
     dependencies:
@@ -31349,10 +31349,10 @@ snapshots:
     optionalDependencies:
       react: 19.2.5
 
-  zustand@5.0.12(@types/react@19.2.14)(immer@11.2.7)(react@19.2.5)(use-sync-external-store@1.7.0(react@19.2.5)):
+  zustand@5.0.12(@types/react@19.2.14)(immer@11.2.9)(react@19.2.5)(use-sync-external-store@1.7.0(react@19.2.5)):
     optionalDependencies:
       '@types/react': 19.2.14
-      immer: 11.2.7
+      immer: 11.2.9
       react: 19.2.5
       use-sync-external-store: 1.7.0(react@19.2.5)
 

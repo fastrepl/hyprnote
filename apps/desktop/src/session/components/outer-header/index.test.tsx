@@ -16,8 +16,6 @@ const mocks = vi.hoisted(() => ({
   sessionEvents: {} as Record<string, any>,
   nowMs: 0,
   openUrl: vi.fn(),
-  startCallbackServer: vi.fn(),
-  getScheme: vi.fn(),
   startListening: vi.fn(),
   stopListening: vi.fn(),
   requestMainListenerControl: vi.fn(),
@@ -61,10 +59,6 @@ vi.mock("@anlg/plugin-opener2", () => ({
   commands: { openUrl: mocks.openUrl },
 }));
 
-vi.mock("@anlg/plugin-deeplink2", () => ({
-  commands: { startCallbackServer: mocks.startCallbackServer },
-}));
-
 vi.mock("~/calendar/hooks", () => ({
   useNow: () => new Date(mocks.nowMs),
 }));
@@ -92,7 +86,6 @@ vi.mock("~/shared/config", () => ({
 
 vi.mock("~/shared/utils", async (importOriginal) => ({
   ...(await importOriginal<typeof import("~/shared/utils")>()),
-  getScheme: mocks.getScheme,
 }));
 
 vi.mock("~/store/zustand/tabs", () => ({
@@ -208,10 +201,6 @@ describe("OuterHeader", () => {
     mocks.sessionEvents = {};
     mocks.nowMs = new Date(BEFORE).getTime();
     mocks.openUrl.mockClear();
-    mocks.startCallbackServer.mockReset();
-    mocks.startCallbackServer.mockResolvedValue({ status: "ok", data: 43210 });
-    mocks.getScheme.mockReset();
-    mocks.getScheme.mockResolvedValue("anarlog-dev");
     mocks.startListening.mockClear();
     mocks.stopListening.mockClear();
     mocks.requestMainListenerControl.mockClear();
@@ -276,13 +265,13 @@ describe("OuterHeader", () => {
       "Record",
     ],
     [
-      "welcome demo after start with mic in use",
+      "welcome session with a stale demo link",
       {
         event: { ...DEMO_EVENT, started_at: "2026-06-05T10:00:00.000Z" },
         now: DURING,
         micInUse: true,
       },
-      "Join & record",
+      "Record",
     ],
   ])("shows the right meeting action for %s", (_label, scenario, expected) => {
     arrange(scenario);
@@ -335,92 +324,16 @@ describe("OuterHeader", () => {
     expect(mocks.stopListening).not.toHaveBeenCalled();
   });
 
-  it("opens the welcome demo with an automatic completion callback", async () => {
+  it("records locally instead of opening the stale welcome demo link", () => {
     arrange({ event: DEMO_EVENT });
     renderHeader();
 
-    fireEvent.click(screen.getByRole("button", { name: "Join & record" }));
+    expect(visibleAction()).toBe("Record");
+    expect(screen.queryByText("Try the demo")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Record" }));
 
     expect(mocks.startListening).toHaveBeenCalledOnce();
-    await vi.waitFor(() => {
-      expect(mocks.startCallbackServer).toHaveBeenCalledWith(
-        "anarlog-dev",
-        null,
-      );
-      expect(mocks.openUrl).toHaveBeenCalledOnce();
-    });
-
-    const openedUrl = new URL(mocks.openUrl.mock.calls[0][0]);
-    expect(openedUrl.origin + openedUrl.pathname).toBe(
-      "https://anarlog.so/onboarding-demo/",
-    );
-    expect(openedUrl.searchParams.get("autojoin")).toBe("1");
-    expect(openedUrl.searchParams.get("completion_url")).toBe(
-      "http://127.0.0.1:43210/onboarding-demo/complete",
-    );
-  });
-
-  it("still auto-joins the welcome demo if the completion callback cannot start", async () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
-    mocks.startCallbackServer.mockRejectedValue(new Error("unavailable"));
-    arrange({ event: DEMO_EVENT });
-
-    try {
-      renderHeader();
-      fireEvent.click(screen.getByRole("button", { name: "Join & record" }));
-
-      await vi.waitFor(() => {
-        expect(mocks.openUrl).toHaveBeenCalledOnce();
-      });
-
-      const openedUrl = new URL(mocks.openUrl.mock.calls[0][0]);
-      expect(openedUrl.searchParams.get("autojoin")).toBe("1");
-      expect(openedUrl.searchParams.get("completion_url")).toBeNull();
-    } finally {
-      consoleError.mockRestore();
-    }
-  });
-
-  it("ignores repeated welcome demo joins while startup is in progress", async () => {
-    let resolveCallbackServer: (value: {
-      status: "ok";
-      data: number;
-    }) => void = () => {};
-    mocks.startCallbackServer.mockReturnValue(
-      new Promise((resolve) => {
-        resolveCallbackServer = resolve;
-      }),
-    );
-    arrange({ event: DEMO_EVENT });
-    renderHeader();
-
-    const joinButton = screen.getByRole("button", { name: "Join & record" });
-    fireEvent.click(joinButton);
-    fireEvent.click(joinButton);
-
-    expect(mocks.startListening).toHaveBeenCalledOnce();
-    await vi.waitFor(() => {
-      expect(mocks.startCallbackServer).toHaveBeenCalledOnce();
-    });
-
-    resolveCallbackServer({ status: "ok", data: 43210 });
-
-    await vi.waitFor(() => {
-      expect(mocks.openUrl).toHaveBeenCalledOnce();
-      expect(joinButton.hasAttribute("disabled")).toBe(false);
-    });
-  });
-
-  it.each([
-    ["before recording", false, true],
-    ["after recording", true, false],
-  ])("prompts to try the welcome demo only %s", (_label, audio, prompted) => {
-    arrange({ event: DEMO_EVENT, audio });
-    renderHeader();
-
-    expect(screen.queryByText("Try the demo") !== null).toBe(prompted);
+    expect(mocks.openUrl).not.toHaveBeenCalled();
   });
 
   it("shows the meeting countdown before start and hides it while listening", () => {

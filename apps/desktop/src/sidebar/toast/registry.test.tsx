@@ -173,7 +173,7 @@ describe("sidebar toast registry", () => {
 
     expect(toast).toMatchObject({
       id: "desktop-update:1.0.34:downloading",
-      description: "Downloading Anarlog 1.0.34 (58%)",
+      description: "Downloading Abrish 1.0.34 (58%)",
       lifecycle: { type: "persistent", dismissal: "session" },
       loading: true,
     });

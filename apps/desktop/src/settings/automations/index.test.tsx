@@ -327,7 +327,7 @@ describe("AutomationsContent", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
 
     expect(mocks.toastWarning).toHaveBeenCalledWith(
-      "This requires Anarlog Pro",
+      "This requires Abrish Pro",
       {
         action: {
           label: "Upgrade",

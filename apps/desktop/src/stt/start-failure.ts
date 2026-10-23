@@ -59,21 +59,21 @@ export function describeStartFailure(kind: StartFailureKind): {
       };
     case "storage":
       return {
-        title: "Anarlog couldn't prepare storage for this recording",
+        title: "Abrish couldn't prepare storage for this recording",
         description:
           "Check that your vault folder is available and your disk has free space, then try again.",
       };
     case "microphone_permission":
       return {
-        title: "Anarlog doesn't have microphone access",
-        description: "Allow microphone access for Anarlog, then try again.",
+        title: "Abrish doesn't have microphone access",
+        description: "Allow microphone access for Abrish, then try again.",
         action: { label: "Open permissions", tab: "permissions" },
       };
     case "recorder":
       return {
         title: "Recording couldn't start",
         description:
-          "Anarlog couldn't open your audio input. Check your microphone selection, then try again.",
+          "Abrish couldn't open your audio input. Check your microphone selection, then try again.",
         action: { label: "Audio settings", tab: "meetings" },
       };
   }

@@ -4,11 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Popover } from "@anlg/ui/components/ui/popover";
 
 import { DateEditor } from "./date";
-import { MetadataPopoverContent } from "./index";
+import { EventDisplay, MetadataPopoverContent } from "./index";
 
 const mocks = vi.hoisted(() => ({
   createdAt: "2026-07-02T03:53:00.000Z" as unknown,
   setCreatedAt: vi.fn(),
+  openUrl: vi.fn(),
   sessionEvent: null as unknown,
 }));
 
@@ -35,8 +36,12 @@ vi.mock("@lingui/react/macro", () => ({
 
 vi.mock("@anlg/plugin-opener2", () => ({
   commands: {
-    openUrl: vi.fn(),
+    openUrl: mocks.openUrl,
   },
+}));
+
+vi.mock("~/shared/hooks/useTimeFormat", () => ({
+  useTimeFormat: () => "h:mm a",
 }));
 
 vi.mock("~/shared/config", () => ({
@@ -60,6 +65,7 @@ describe("Metadata controls", () => {
   beforeEach(() => {
     mocks.createdAt = "2026-07-02T03:53:00.000Z";
     mocks.setCreatedAt.mockClear();
+    mocks.openUrl.mockClear();
     mocks.sessionEvent = null;
   });
 
@@ -116,5 +122,48 @@ describe("Metadata controls", () => {
     expect(
       screen.getByRole("button", { name: "Cancel date edit" }),
     ).not.toBeNull();
+  });
+
+  it("hides the stale demo link on existing welcome sessions", () => {
+    render(
+      <EventDisplay
+        event={{
+          title: "Welcome to Abrish AI",
+          startedAt: undefined,
+          endedAt: undefined,
+          location: undefined,
+          meetingLink: "https://anarlog.so/onboarding-demo/",
+          trackingId: "anarlog-onboarding-demo-v1",
+          description: undefined,
+          calendarId: undefined,
+        }}
+      />,
+    );
+
+    expect(screen.queryByText("anarlog.so")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Join" })).toBeNull();
+  });
+
+  it("keeps ordinary meeting links available", () => {
+    render(
+      <EventDisplay
+        event={{
+          title: "Design review",
+          startedAt: undefined,
+          endedAt: undefined,
+          location: undefined,
+          meetingLink: "https://meet.google.com/abc-defg-hij",
+          description: undefined,
+          calendarId: undefined,
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Join" }));
+
+    expect(mocks.openUrl).toHaveBeenCalledWith(
+      "https://meet.google.com/abc-defg-hij",
+      null,
+    );
   });
 });

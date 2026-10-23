@@ -12,7 +12,7 @@ export function integrationCallbackCopy({
     return {
       title: isSuccess ? "You’re disconnected" : "Disconnect didn’t work",
       description: isSuccess
-        ? "Return to Anarlog to keep going."
+        ? "Return to Abrish AI to keep going."
         : "Something went wrong while disconnecting.",
     };
   }
@@ -20,7 +20,7 @@ export function integrationCallbackCopy({
   return {
     title: isSuccess ? "You’re connected" : "Connection didn’t work",
     description: isSuccess
-      ? "Return to Anarlog to keep going."
+      ? "Return to Abrish AI to keep going."
       : "Something went wrong while connecting.",
   };
 }

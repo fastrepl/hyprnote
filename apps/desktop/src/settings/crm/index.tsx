@@ -44,8 +44,8 @@ export function SettingsCrm() {
       <SettingsPageTitle title={<Trans>CRM</Trans>} />
       <p className="text-muted-foreground text-sm">
         <Trans>
-          Connect a CRM to look up your contacts from Anarlog. Connections are
-          managed through your Anarlog account.
+          Connect a CRM to look up your contacts from Abrish. Connections are
+          managed through your Abrish account.
         </Trans>
       </p>
       {!signedIn ? (

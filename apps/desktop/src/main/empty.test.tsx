@@ -25,9 +25,7 @@ vi.mock("@lingui/react/macro", () => ({
 }));
 
 vi.mock("@anlg/ui/components/ui/kbd", () => ({
-  Kbd: ({ children }: { children: React.ReactNode }) => (
-    <span>{children}</span>
-  ),
+  Kbd: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
 
 vi.mock("@anlg/ui/components/ui/toast", () => ({
@@ -36,8 +34,8 @@ vi.mock("@anlg/ui/components/ui/toast", () => ({
 
 vi.mock("~/shared/chat-cta", () => ({
   FloatingChatCTA: () => (
-    <button type="button" aria-label="Ask Anarlog anything">
-      Ask Anarlog anything
+    <button type="button" aria-label="Ask Abrish anything">
+      Ask Abrish anything
     </button>
   ),
 }));
@@ -116,7 +114,7 @@ describe("TabContentEmpty", () => {
     ).toBeTruthy();
 
     expect(
-      screen.getByRole("button", { name: "Ask Anarlog anything" }),
+      screen.getByRole("button", { name: "Ask Abrish anything" }),
     ).toBeTruthy();
   });
 
@@ -130,9 +128,9 @@ describe("TabContentEmpty", () => {
     ).toBeTruthy();
 
     expect(
-      screen.getByRole("tab", { name: /Upload audio/i }).getAttribute(
-        "aria-selected",
-      ),
+      screen
+        .getByRole("tab", { name: /Upload audio/i })
+        .getAttribute("aria-selected"),
     ).toBe("true");
 
     expect(screen.getByLabelText(/Conversation name/i)).toBeTruthy();
@@ -150,9 +148,9 @@ describe("TabContentEmpty", () => {
     expect(screen.getAllByRole("tab")).toHaveLength(2);
 
     expect(
-      screen.getByRole("tab", { name: /Import transcript/i }).getAttribute(
-        "aria-selected",
-      ),
+      screen
+        .getByRole("tab", { name: /Import transcript/i })
+        .getAttribute("aria-selected"),
     ).toBe("true");
 
     expect(

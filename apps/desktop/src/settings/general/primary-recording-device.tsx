@@ -62,9 +62,7 @@ export function PrimaryRecordingDeviceSelector() {
           !session ? (
             <Trans>Sign in to choose a primary recording device.</Trans>
           ) : !isPro ? (
-            <Trans>
-              Anarlog Pro coordinates recording across your devices.
-            </Trans>
+            <Trans>Abrish Pro coordinates recording across your devices.</Trans>
           ) : (
             <Trans>
               Prefer this device when multiple devices record the same meeting.

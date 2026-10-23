@@ -59,8 +59,8 @@ export function EnhanceError({
         <p className="text-muted-foreground text-sm leading-relaxed">
           {isUnauthenticated ? (
             <Trans>
-              Anarlog could not generate this summary because you were not
-              signed in. Sign in, then try again.
+              Abrish could not generate this summary because you were not signed
+              in. Sign in, then try again.
             </Trans>
           ) : (
             error?.message || (
@@ -124,7 +124,7 @@ function ErrorSourceNote({ error }: { error: Error | undefined }) {
       label = t`Source: OpenRouter or the AI model provider`;
       break;
     case "anarlog":
-      label = t`Source: Anarlog`;
+      label = t`Source: Abrish`;
       break;
   }
 

@@ -1,5 +1,5 @@
 export const ANARLOG_SITE_URL = "https://anarlog.so";
-export const ANARLOG_SITE_NAME = "anarlog";
+export const ANARLOG_SITE_NAME = "Abrish AI";
 export const DEFAULT_OG_IMAGE_URL = `${ANARLOG_SITE_URL}/og.jpg`;
 
 /**
@@ -12,9 +12,9 @@ export function getCanonicalUrl(path = "/") {
   const withSlash = normalized.endsWith("/") ? normalized : `${normalized}/`;
   return `${ANARLOG_SITE_URL}${withSlash}`;
 }
-export const ROOT_TITLE = "Private AI Meeting Notetaker | Anarlog";
+export const ROOT_TITLE = "Private AI Meeting Notetaker | Abrish AI";
 export const ROOT_DESCRIPTION =
-  "Anarlog is the open-source, local-first alternative to Granola. Take private meeting notes, get editable AI summaries, and keep your data and AI stack yours.";
+  "Abrish AI is the local-first alternative to Granola. Take private meeting notes, get editable AI summaries, and keep your data and AI stack yours.";
 export const ROOT_KEYWORDS =
   "private meeting notes, open source meeting notes, local-first AI notepad, Granola AI alternative, AI meeting notes, local meeting transcription, bot-free AI notes, offline meeting notes, on-device AI, BYOK AI, meeting transcription, meeting summaries, data ownership";
 
@@ -58,7 +58,7 @@ export function getStructuredDataGraph(nodes: StructuredDataNode[]) {
 export function getOrganizationJsonLd() {
   return {
     "@type": "Organization",
-    name: "Anarlog",
+    name: "Abrish AI",
     url: getCanonicalUrl(),
     logo: `${ANARLOG_SITE_URL}/logo.svg`,
   };
@@ -81,7 +81,7 @@ export function getSoftwareApplicationJsonLd({
 }) {
   return {
     "@type": "SoftwareApplication",
-    name: "Anarlog",
+    name: "Abrish AI",
     url,
     description,
     applicationCategory: "ProductivityApplication",

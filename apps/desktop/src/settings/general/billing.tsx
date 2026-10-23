@@ -106,7 +106,7 @@ export function SettingsBilling() {
               openNew({ type: "settings", state: { tab: "account" } })
             }
           >
-            <Trans>Sign in to Anarlog</Trans>
+            <Trans>Sign in to Abrish AI</Trans>
           </button>
           <GuestPlanSection />
         </>
@@ -421,7 +421,7 @@ function PlanBillingSection({
           ) : (
             <>
               <p className="font-sans text-base font-medium">
-                {`Anarlog ${planLabel}`}
+                {`Abrish ${planLabel}`}
               </p>
               <div className="text-muted-foreground mt-1 flex flex-col gap-0.5 text-sm">
                 {priceText != null && <p>{priceText}</p>}

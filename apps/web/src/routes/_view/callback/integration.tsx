@@ -138,7 +138,7 @@ function Component() {
           <div className="flex flex-col gap-3">
             {handoff.error ? (
               <p role="alert">
-                Could not reach Anarlog. Keep the desktop app open and start
+                Could not reach Abrish AI. Keep the desktop app open and start
                 connecting again from the app.
               </p>
             ) : null}
@@ -152,7 +152,7 @@ function Component() {
             >
               {search.callback_port !== undefined && handoff.isSuccess
                 ? "Connected — return to the desktop app"
-                : "Open Anarlog"}
+                : "Open Abrish AI"}
             </button>
 
             <div className="rounded-xl border border-[#e5ddcf] bg-[#fbfaf7] p-4 text-center">
@@ -180,7 +180,7 @@ function Component() {
         ) : (
           <div className={authNoticeClassName}>
             <p className="text-sm font-medium text-[#4f4940]">
-              Close this window and try again from Anarlog.
+              Close this window and try again from Abrish AI.
             </p>
           </div>
         )}

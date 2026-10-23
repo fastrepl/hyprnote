@@ -449,8 +449,8 @@ async function executeLinearIssues(
   const connectionId = await findConnectionId(client, "linear");
   const recap = await loadMeetingRecap(sessionId);
   const description = recap
-    ? `Action item from the Anarlog meeting "${recap.title}" (${recap.date}).`
-    : "Action item from an Anarlog meeting.";
+    ? `Action item from the Abrish meeting "${recap.title}" (${recap.date}).`
+    : "Action item from an Abrish meeting.";
   const items = actionItems.slice(0, MAX_LINEAR_ISSUES_PER_MEETING);
   await beforeCreate?.();
   for (const item of items) {

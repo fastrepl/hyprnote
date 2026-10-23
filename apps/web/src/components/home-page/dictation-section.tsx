@@ -11,7 +11,7 @@ const rawSpeechParts = [
   { text: "thanks for making time today. ", filler: false },
   { text: "you know ", filler: true },
   {
-    text: "the standup notes are in Anarlog, and the client liked the direction. ",
+    text: "the standup notes are in Abrish AI, and the client liked the direction. ",
     filler: false,
   },
   { text: "like ", filler: true },
@@ -49,7 +49,7 @@ const rawSpeechParts = [
 ];
 
 const polishedSpeech =
-  "Thanks for making time today. The standup notes are in Anarlog, and the client liked the direction. We should make the next version easier to get started with. Let’s simplify the first screen and put the main action at the top. People should know what to do without reading a whole guide. I’ll send the updated proposal tomorrow morning. Please add your feedback before Thursday so we can review it together. If anything is unclear, leave a comment next to the relevant section. After that, we can share the final plan with the team and get started. ";
+  "Thanks for making time today. The standup notes are in Abrish AI, and the client liked the direction. We should make the next version easier to get started with. Let’s simplify the first screen and put the main action at the top. People should know what to do without reading a whole guide. I’ll send the updated proposal tomorrow morning. Please add your feedback before Thursday so we can review it together. If anything is unclear, leave a comment next to the relevant section. After that, we can share the final plan with the team and get started. ";
 
 const rawSpeech = rawSpeechParts.map((part) => part.text).join("");
 const streamCopies = 3;
@@ -71,8 +71,8 @@ export function DictationSection() {
         talking.
       </h2>
       <p className="text-color mx-auto mt-6 max-w-xl text-lg leading-8">
-        Dictation, built right into Anarlog. Turn your thoughts into text in the
-        apps you already use.
+        Dictation, built right into Abrish AI. Turn your thoughts into text in
+        the apps you already use.
       </p>
       <SpeechFlowVisual />
     </section>

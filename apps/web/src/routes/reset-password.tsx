@@ -24,7 +24,10 @@ export const Route = createFileRoute("/reset-password")({
   validateSearch,
   component: Component,
   head: () => ({
-    meta: [{ name: "robots", content: "noindex, nofollow" }],
+    meta: [
+      { title: "Reset password · Abrish AI" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
   }),
 });
 

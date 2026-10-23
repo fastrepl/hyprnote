@@ -309,7 +309,7 @@ export function ConnectFlow({ sessionToken }: { sessionToken?: string } = {}) {
       {isConnectedCalendar && !isConnecting && status !== "success" && (
         <ul className="flex list-disc flex-col gap-2 pl-5 text-left text-sm leading-6 text-neutral-600">
           <li>
-            Read-only access — Anarlog can’t create, edit, or delete events.
+            Read-only access — Abrish AI can’t create, edit, or delete events.
           </li>
           <li>
             Data passes through Nango’s encrypted proxy and stays on your

@@ -167,16 +167,17 @@ fn channel_product_name(identifier: &str) -> &'static str {
     if identifier == crate::db::NIGHTLY_BUNDLE_ID {
         "Anarlog Nightly"
     } else {
+        // Matches the stable bundle/installer display name until productName migrates.
         "Anarlog"
     }
 }
 
 pub fn exit_for_already_running_instance() -> ! {
-    eprintln!("another Anarlog process holds the launch lock; exiting");
+    eprintln!("another Abrish AI process holds the launch lock; exiting");
 
     #[cfg(target_os = "macos")]
     {
-        let alert = "display alert \"Anarlog is already starting\" message \"Another Anarlog process is preparing your data, possibly finishing an update. The app will open automatically when it is ready.\" buttons {\"OK\"} default button \"OK\"";
+        let alert = "display alert \"Abrish AI is already starting\" message \"Another Abrish AI process is preparing your data, possibly finishing an update. The app will open automatically when it is ready.\" buttons {\"OK\"} default button \"OK\"";
         let _ = std::process::Command::new("/usr/bin/osascript")
             .args(["-e", alert])
             .spawn();
@@ -256,7 +257,7 @@ impl SlowStartupIndicator {
 
 #[cfg(target_os = "macos")]
 fn spawn_indicator_alert() -> Option<std::process::Child> {
-    let alert = "display alert \"Updating your data\" message \"Anarlog is updating your data. This can take several minutes for a large library.\\n\\nPlease keep Anarlog running; it will open automatically when the update finishes.\" buttons {\"OK\"} default button \"OK\"";
+    let alert = "display alert \"Updating your data\" message \"Abrish AI is updating your data. This can take several minutes for a large library.\\n\\nPlease keep Abrish AI running; it will open automatically when the update finishes.\" buttons {\"OK\"} default button \"OK\"";
     std::process::Command::new("/usr/bin/osascript")
         .args(["-e", alert])
         .spawn()

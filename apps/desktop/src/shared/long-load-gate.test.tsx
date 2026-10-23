@@ -113,7 +113,7 @@ describe("LongLoadGate", () => {
     renderLongLoadGate();
 
     await waitFor(() => {
-      expect(screen.getByText("Anarlog needs an update")).toBeTruthy();
+      expect(screen.getByText("Abrish AI needs an update")).toBeTruthy();
     });
     expect(screen.queryByText("app")).toBeNull();
     expect(screen.queryByRole("button", { name: "Restart App" })).toBeNull();

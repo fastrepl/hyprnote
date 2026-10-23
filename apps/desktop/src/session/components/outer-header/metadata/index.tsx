@@ -10,6 +10,7 @@ import { safeFormat, safeParseDate, TZDate } from "@anlg/utils";
 import { DateEditor } from "./date";
 import { ParticipantsDisplay } from "./participants";
 
+import { WELCOME_NOTE_TRACKING_ID } from "~/onboarding/welcome-note.constants";
 import { useSessionEvent } from "~/session/hooks/useSessionEvent";
 import { useConfigValue } from "~/shared/config";
 import { useTimeFormat } from "~/shared/hooks/useTimeFormat";
@@ -40,6 +41,7 @@ function ContentInner({ sessionId }: { sessionId: string }) {
         endedAt: sessionEvent.ended_at,
         location: sessionEvent.location,
         meetingLink: sessionEvent.meeting_link,
+        trackingId: sessionEvent.tracking_id,
         description: sessionEvent.description,
         calendarId: sessionEvent.calendar_id,
       }
@@ -68,6 +70,7 @@ export function EventDisplay({
     endedAt: string | undefined;
     location: string | undefined;
     meetingLink: string | undefined;
+    trackingId?: string;
     description: string | undefined;
     calendarId: string | undefined;
   };
@@ -75,10 +78,14 @@ export function EventDisplay({
 }) {
   const timeFormat = useTimeFormat();
   const tz = useConfigValue("timezone") || undefined;
+  const meetingLink =
+    event.trackingId === WELCOME_NOTE_TRACKING_ID
+      ? undefined
+      : event.meetingLink;
 
   const handleJoinMeeting = () => {
-    if (event.meetingLink) {
-      void openerCommands.openUrl(event.meetingLink, null);
+    if (meetingLink) {
+      void openerCommands.openUrl(meetingLink, null);
     }
   };
 
@@ -113,11 +120,11 @@ export function EventDisplay({
   };
 
   const getMeetingLinkDomain = () => {
-    if (!event.meetingLink) {
+    if (!meetingLink) {
       return null;
     }
     try {
-      const url = new URL(event.meetingLink);
+      const url = new URL(meetingLink);
       return url.hostname.replace("www.", "");
     } catch {
       return null;
@@ -154,7 +161,7 @@ export function EventDisplay({
         </>
       )}
 
-      {event.meetingLink && (
+      {meetingLink && (
         <>
           <div className="flex items-center justify-between gap-2">
             <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm">

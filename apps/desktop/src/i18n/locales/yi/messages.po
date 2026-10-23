@@ -249,6 +249,98 @@ msgstr ""
 msgid "a week ago"
 msgstr ""
 
+#. placeholder {0}: update.version
+#: src/sidebar/toast/registry.tsx
+msgid "Abrish {0} is available"
+msgstr ""
+
+#. placeholder {0}: update.version
+#: src/sidebar/toast/registry.tsx
+msgid "Abrish {0} is ready to install"
+msgstr ""
+
+#: src/settings/general/account.tsx
+msgid "Abrish AI couldn't sign you out. Try again."
+msgstr ""
+
+#: src/onboarding/index.tsx
+msgid "Abrish AI needs access to your microphone and system audio to record and transcribe your meetings"
+msgstr ""
+
+#: src/onboarding/index.tsx
+msgid "Abrish AI needs microphone and system audio to transcribe your meetings, plus Accessibility to read meeting controls, visible chat."
+msgstr ""
+
+#. placeholder {0}: statuses[0].displayName
+#: src/settings/developers/skills.tsx
+msgid "Abrish AI skill added to {0}"
+msgstr ""
+
+#. placeholder {0}: statuses.length
+#: src/settings/developers/skills.tsx
+msgid "Abrish AI skill added to {0} agents"
+msgstr ""
+
+#: src/onboarding/index.tsx
+msgid "Abrish AI will sync your calendar to get meeting reminders"
+msgstr ""
+
+#: src/onboarding/permissions.tsx
+msgid "Abrish can hear others"
+msgstr ""
+
+#: src/onboarding/permissions.tsx
+msgid "Abrish can hear your voice"
+msgstr ""
+
+#: src/onboarding/permissions.tsx
+msgid "Abrish can read meeting details"
+msgstr ""
+
+#: src/session/components/note-input/enhanced/enhance-error.tsx
+msgid "Abrish could not generate this summary because you were not signed in. Sign in, then try again."
+msgstr ""
+
+#: src/shared-notes/index.tsx
+msgid "Abrish could not read the local shared-note cache."
+msgstr ""
+
+#: src/settings/sync/index.tsx
+msgid "Abrish could not start cloud sync on this device."
+msgstr ""
+
+#: src/settings/sync/index.tsx
+msgid "Abrish could not start cloud sync on this device. It will keep retrying."
+msgstr ""
+
+#: src/lock/gate.tsx
+msgid "Abrish is Locked"
+msgstr ""
+
+#: src/session-sharing/access-management.tsx
+msgid "Abrish member"
+msgstr ""
+
+#: src/settings/general/primary-recording-device.tsx
+msgid "Abrish Pro coordinates recording across your devices."
+msgstr ""
+
+#: src/session-sharing/access-management.tsx
+msgid "Abrish user"
+msgstr ""
+
+#: src/settings/sync/index.tsx
+msgid "Abrish will keep retrying."
+msgstr ""
+
+#: src/settings/sync/index.tsx
+msgid "Abrish will retry automatically."
+msgstr ""
+
+#: src/settings/general/storage/legacy-cleanup.tsx
+msgid "Abrish will retry automatically. This does not affect your notes."
+msgstr ""
+
 #: src/settings/team/index.tsx
 msgid "Accept"
 msgstr ""
@@ -568,101 +660,97 @@ msgstr ""
 msgid "Analyzing structure..."
 msgstr ""
 
-#. placeholder {0}: update.version
 #: src/sidebar/toast/registry.tsx
-msgid "Anarlog {0} is available"
-msgstr ""
+#~ msgid "Anarlog {0} is available"
+#~ msgstr ""
 
-#. placeholder {0}: update.version
 #: src/sidebar/toast/registry.tsx
-msgid "Anarlog {0} is ready to install"
-msgstr ""
+#~ msgid "Anarlog {0} is ready to install"
+#~ msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Anarlog can hear others"
-msgstr ""
+#~ msgid "Anarlog can hear others"
+#~ msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Anarlog can hear your voice"
-msgstr ""
+#~ msgid "Anarlog can hear your voice"
+#~ msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Anarlog can read meeting details"
-msgstr ""
+#~ msgid "Anarlog can read meeting details"
+#~ msgstr ""
 
 #: src/settings/developers/cli.tsx
 msgid "Anarlog CLI"
 msgstr ""
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
-msgid "Anarlog could not generate this summary because you were not signed in. Sign in, then try again."
-msgstr ""
+#~ msgid "Anarlog could not generate this summary because you were not signed in. Sign in, then try again."
+#~ msgstr ""
 
 #: src/shared-notes/index.tsx
-msgid "Anarlog could not read the local shared-note cache."
-msgstr ""
+#~ msgid "Anarlog could not read the local shared-note cache."
+#~ msgstr ""
 
 #: src/settings/sync/index.tsx
-msgid "Anarlog could not start cloud sync on this device."
-msgstr ""
+#~ msgid "Anarlog could not start cloud sync on this device."
+#~ msgstr ""
 
 #: src/settings/sync/index.tsx
-msgid "Anarlog could not start cloud sync on this device. It will keep retrying."
-msgstr ""
+#~ msgid "Anarlog could not start cloud sync on this device. It will keep retrying."
+#~ msgstr ""
 
 #: src/settings/general/account.tsx
-msgid "Anarlog couldn't sign you out. Try again."
-msgstr ""
+#~ msgid "Anarlog couldn't sign you out. Try again."
+#~ msgstr ""
 
 #: src/lock/gate.tsx
-msgid "Anarlog is Locked"
-msgstr ""
+#~ msgid "Anarlog is Locked"
+#~ msgstr ""
 
 #: src/session-sharing/access-management.tsx
-msgid "Anarlog member"
-msgstr ""
+#~ msgid "Anarlog member"
+#~ msgstr ""
 
 #: src/onboarding/index.tsx
-msgid "Anarlog needs access to your microphone and system audio to record and transcribe your meetings"
-msgstr ""
+#~ msgid "Anarlog needs access to your microphone and system audio to record and transcribe your meetings"
+#~ msgstr ""
 
 #: src/onboarding/index.tsx
-msgid "Anarlog needs microphone and system audio to transcribe your meetings, plus Accessibility to read meeting controls, visible chat."
-msgstr ""
+#~ msgid "Anarlog needs microphone and system audio to transcribe your meetings, plus Accessibility to read meeting controls, visible chat."
+#~ msgstr ""
 
 #: src/settings/general/primary-recording-device.tsx
-msgid "Anarlog Pro coordinates recording across your devices."
-msgstr ""
+#~ msgid "Anarlog Pro coordinates recording across your devices."
+#~ msgstr ""
 
-#. placeholder {0}: statuses[0].displayName
 #: src/settings/developers/skills.tsx
-msgid "Anarlog skill added to {0}"
-msgstr ""
+#~ msgid "Anarlog skill added to {0}"
+#~ msgstr ""
 
-#. placeholder {0}: statuses.length
 #: src/settings/developers/skills.tsx
-msgid "Anarlog skill added to {0} agents"
-msgstr ""
+#~ msgid "Anarlog skill added to {0} agents"
+#~ msgstr ""
 
 #: src/session-sharing/access-management.tsx
-msgid "Anarlog user"
-msgstr ""
+#~ msgid "Anarlog user"
+#~ msgstr ""
 
 #: src/settings/sync/index.tsx
-msgid "Anarlog will keep retrying."
-msgstr ""
+#~ msgid "Anarlog will keep retrying."
+#~ msgstr ""
 
 #: src/settings/sync/index.tsx
-msgid "Anarlog will retry automatically."
-msgstr ""
+#~ msgid "Anarlog will retry automatically."
+#~ msgstr ""
 
 #: src/settings/general/storage/legacy-cleanup.tsx
-msgid "Anarlog will retry automatically. This does not affect your notes."
-msgstr ""
+#~ msgid "Anarlog will retry automatically. This does not affect your notes."
+#~ msgstr ""
 
 #: src/onboarding/index.tsx
-msgid "Anarlog will sync your calendar to get meeting reminders"
-msgstr ""
+#~ msgid "Anarlog will sync your calendar to get meeting reminders"
+#~ msgstr ""
 
 #: src/templates/template-icon-picker.tsx
 msgid "Animals & Nature"
@@ -731,12 +819,20 @@ msgid "Approve"
 msgstr ""
 
 #: src/composer/index.tsx
-msgid "Ask Anarlog AI anything"
+msgid "Ask Abrish AI anything"
 msgstr ""
 
 #: src/shared/chat-cta.tsx
-msgid "Ask Anarlog anything"
+msgid "Ask Abrish anything"
 msgstr ""
+
+#: src/composer/index.tsx
+#~ msgid "Ask Anarlog AI anything"
+#~ msgstr ""
+
+#: src/shared/chat-cta.tsx
+#~ msgid "Ask Anarlog anything"
+#~ msgstr ""
 
 #: src/chat/components/input/index.tsx
 #: src/shared/chat-cta.tsx
@@ -744,8 +840,12 @@ msgid "Ask anything"
 msgstr ""
 
 #: src/settings/general/notification.tsx
-msgid "Ask before stopping when a meeting may have ended. When alerts are off, Anarlog keeps listening."
+msgid "Ask before stopping when a meeting may have ended. When alerts are off, Abrish keeps listening."
 msgstr ""
+
+#: src/settings/general/notification.tsx
+#~ msgid "Ask before stopping when a meeting may have ended. When alerts are off, Anarlog keeps listening."
+#~ msgstr ""
 
 #: src/settings/general/primary-recording-device.tsx
 msgid "Ask each meeting"
@@ -764,8 +864,12 @@ msgid "Attach Markdown or text"
 msgstr ""
 
 #: src/templates/auto-format-examples-dialog.tsx
-msgid "Attach up to three past summaries you like. Anarlog will learn how you prefer meeting notes to be structured and written."
+msgid "Attach up to three past summaries you like. Abrish will learn how you prefer meeting notes to be structured and written."
 msgstr ""
+
+#: src/templates/auto-format-examples-dialog.tsx
+#~ msgid "Attach up to three past summaries you like. Anarlog will learn how you prefer meeting notes to be structured and written."
+#~ msgstr ""
 
 #: src/session-sharing/attachment-management.ts
 msgid "Attachment settings updated."
@@ -797,8 +901,12 @@ msgid "Authenticating…"
 msgstr ""
 
 #: src/instruction/index.tsx
-msgid "Authorize access in your browser, then return to Anarlog."
+msgid "Authorize access in your browser, then return to Abrish AI."
 msgstr ""
+
+#: src/instruction/index.tsx
+#~ msgid "Authorize access in your browser, then return to Anarlog."
+#~ msgstr ""
 
 #: src/templates/auto-form.tsx
 msgid "Auto summary format"
@@ -1241,12 +1349,20 @@ msgid "Choose Google Drive folder"
 msgstr ""
 
 #: src/settings/appearance/app-icon.tsx
-msgid "Choose how Anarlog appears in the Dock."
+msgid "Choose how Abrish appears in the Dock."
 msgstr ""
 
 #: src/settings/appearance/theme.tsx
-msgid "Choose how Anarlog looks on this device."
+msgid "Choose how Abrish looks on this device."
 msgstr ""
+
+#: src/settings/appearance/app-icon.tsx
+#~ msgid "Choose how Anarlog appears in the Dock."
+#~ msgstr ""
+
+#: src/settings/appearance/theme.tsx
+#~ msgid "Choose how Anarlog looks on this device."
+#~ msgstr ""
 
 #: src/templates/auto-form.tsx
 msgid "Choose how Auto structures and styles your summaries."
@@ -1361,8 +1477,12 @@ msgid "Cloud API enabled — 1 meeting uploaded"
 msgstr ""
 
 #: src/settings/developers/cloud-api.tsx
-msgid "Cloud API enabled, but existing meetings could not be uploaded. Anarlog will retry."
+msgid "Cloud API enabled, but existing meetings could not be uploaded. Abrish will retry."
 msgstr ""
+
+#: src/settings/developers/cloud-api.tsx
+#~ msgid "Cloud API enabled, but existing meetings could not be uploaded. Anarlog will retry."
+#~ msgstr ""
 
 #: src/settings/developers/cloud-api.tsx
 msgid "Cloud API key copied"
@@ -1480,8 +1600,12 @@ msgid "Complete onboarding. You're ready for your next conversation."
 msgstr ""
 
 #: src/instruction/index.tsx
-msgid "Complete sign-in in your browser, then return to Anarlog."
+msgid "Complete sign-in in your browser, then return to Abrish AI."
 msgstr ""
+
+#: src/instruction/index.tsx
+#~ msgid "Complete sign-in in your browser, then return to Anarlog."
+#~ msgstr ""
 
 #: src/settings/general/notification.tsx
 msgid "Completion sound"
@@ -1540,8 +1664,12 @@ msgid "Connect a CRM in Settings › CRM to enrich contacts."
 msgstr ""
 
 #: src/settings/crm/index.tsx
-msgid "Connect a CRM to look up your contacts from Anarlog. Connections are managed through your Anarlog account."
+msgid "Connect a CRM to look up your contacts from Abrish. Connections are managed through your Abrish account."
 msgstr ""
+
+#: src/settings/crm/index.tsx
+#~ msgid "Connect a CRM to look up your contacts from Anarlog. Connections are managed through your Anarlog account."
+#~ msgstr ""
 
 #: src/onboarding/calendar.tsx
 #: src/onboarding/index.tsx
@@ -1667,8 +1795,12 @@ msgid "Continuing without trial"
 msgstr ""
 
 #: src/settings/general/meeting-settings.tsx
-msgid "Control listening without reopening Anarlog."
+msgid "Control listening without reopening Abrish."
 msgstr ""
+
+#: src/settings/general/meeting-settings.tsx
+#~ msgid "Control listening without reopening Anarlog."
+#~ msgstr ""
 
 #: src/settings/stats/index.tsx
 msgid "Conversations"
@@ -2004,12 +2136,16 @@ msgid "Create template"
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
+msgid "Create your Abrish account. A place for your conversations to call home."
+msgstr ""
+
+#: src/settings/stats/badge-collection.tsx
 msgid "Create your account"
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Create your Anarlog account. A place for your conversations to call home."
-msgstr ""
+#~ msgid "Create your Anarlog account. A place for your conversations to call home."
+#~ msgstr ""
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Created"
@@ -2230,8 +2366,12 @@ msgid "Dictation shortcut"
 msgstr ""
 
 #: src/settings/dictation.tsx
-msgid "Dictation uses your microphone, transcription provider, languages, and dictionary. Temporary audio is deleted after transcription. Your last transcript stays in memory until dictation is disabled or Anarlog closes."
+msgid "Dictation uses your microphone, transcription provider, languages, and dictionary. Temporary audio is deleted after transcription. Your last transcript stays in memory until dictation is disabled or Abrish closes."
 msgstr ""
+
+#: src/settings/dictation.tsx
+#~ msgid "Dictation uses your microphone, transcription provider, languages, and dictionary. Temporary audio is deleted after transcription. Your last transcript stays in memory until dictation is disabled or Anarlog closes."
+#~ msgstr ""
 
 #: src/settings/dictation.tsx
 #: src/settings/dictionary/index.tsx
@@ -2294,8 +2434,12 @@ msgstr ""
 
 #. placeholder {0}: update.version
 #: src/sidebar/toast/registry.tsx
-msgid "Downloading Anarlog {0}{progress}"
+msgid "Downloading Abrish {0}{progress}"
 msgstr ""
+
+#: src/sidebar/toast/registry.tsx
+#~ msgid "Downloading Anarlog {0}{progress}"
+#~ msgstr ""
 
 #: src/sidebar/toast/registry.tsx
 msgid "Downloading model"
@@ -2490,8 +2634,12 @@ msgid "Every conversation adds to your story."
 msgstr ""
 
 #: src/settings/automations/google-drive-config.tsx
-msgid "Every note summarized after enabling this automation is saved here as one file with its summary and transcript in the selected format. Anarlog must be open."
+msgid "Every note summarized after enabling this automation is saved here as one file with its summary and transcript in the selected format. Abrish must be open."
 msgstr ""
+
+#: src/settings/automations/google-drive-config.tsx
+#~ msgid "Every note summarized after enabling this automation is saved here as one file with its summary and transcript in the selected format. Anarlog must be open."
+#~ msgstr ""
 
 #. placeholder {0}: owned.workspaceName
 #. placeholder {0}: workspace.name
@@ -2629,13 +2777,22 @@ msgid "Finding Your Rhythm"
 msgstr ""
 
 #: src/instruction/index.tsx
-msgid "Finish checkout in your browser to unlock more, then return to Anarlog."
+msgid "Finish checkout in your browser to unlock more, then return to Abrish AI."
+msgstr ""
+
+#: src/instruction/index.tsx
+#~ msgid "Finish checkout in your browser to unlock more, then return to Anarlog."
+#~ msgstr ""
+
+#: src/settings/general/account.tsx
+#: src/settings/referrals.tsx
+msgid "Finish in your browser, then return to Abrish AI."
 msgstr ""
 
 #: src/settings/general/account.tsx
 #: src/settings/referrals.tsx
-msgid "Finish in your browser, then return to Anarlog."
-msgstr ""
+#~ msgid "Finish in your browser, then return to Anarlog."
+#~ msgstr ""
 
 #: src/settings/general/account.tsx
 msgid "Finish sign-in"
@@ -2778,8 +2935,12 @@ msgid "Get started"
 msgstr ""
 
 #: src/settings/general/notification.tsx
-msgid "Get your attention when Anarlog finishes work in the background."
+msgid "Get your attention when Abrish finishes work in the background."
 msgstr ""
+
+#: src/settings/general/notification.tsx
+#~ msgid "Get your attention when Anarlog finishes work in the background."
+#~ msgstr ""
 
 #: src/sidebar/timeline/index.tsx
 msgid "Go back to now"
@@ -2856,8 +3017,12 @@ msgid "Hands-free dictation"
 msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Have Anarlog ready when you sign in."
+msgid "Have Abrish ready when you sign in."
 msgstr ""
+
+#: src/settings/general/app-settings.tsx
+#~ msgid "Have Anarlog ready when you sign in."
+#~ msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
 msgid "Having trouble?"
@@ -2868,32 +3033,56 @@ msgid "Having trouble? Paste the redirect URL"
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Hello, Anarlog"
+msgid "Hello, Abrish"
 msgstr ""
+
+#: src/settings/stats/badge-collection.tsx
+#~ msgid "Hello, Anarlog"
+#~ msgstr ""
 
 #: src/main/windows-title-bar.tsx
 msgid "Help"
 msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Help Anarlog listen to others"
+msgid "Help Abrish listen to others"
 msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Help Anarlog listen to you"
+msgid "Help Abrish listen to you"
 msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Help Anarlog read meeting activity"
+msgid "Help Abrish read meeting activity"
+msgstr ""
+
+#: src/onboarding/permissions.tsx
+#~ msgid "Help Anarlog listen to others"
+#~ msgstr ""
+
+#: src/onboarding/permissions.tsx
+#~ msgid "Help Anarlog listen to you"
+#~ msgstr ""
+
+#: src/onboarding/permissions.tsx
+#~ msgid "Help Anarlog read meeting activity"
+#~ msgstr ""
+
+#: src/settings/general/app-settings.tsx
+msgid "Help improve Abrish with anonymous usage data."
 msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Help improve Anarlog with anonymous usage data."
+#~ msgid "Help improve Anarlog with anonymous usage data."
+#~ msgstr ""
+
+#: src/chat/components/body/empty.tsx
+msgid "Hi, I'm Abrish AI. Set up a language model and I'll be ready to help."
 msgstr ""
 
 #: src/chat/components/body/empty.tsx
-msgid "Hi, I'm Anarlog AI. Set up a language model and I'll be ready to help."
-msgstr ""
+#~ msgid "Hi, I'm Anarlog AI. Set up a language model and I'll be ready to help."
+#~ msgstr ""
 
 #: src/settings/general/notification.tsx
 msgid "Hide all notification panels, Dock alerts, and completion sounds."
@@ -2962,8 +3151,12 @@ msgid "Icons"
 msgstr ""
 
 #: src/settings/general/account.tsx
-msgid "If Anarlog stays closed, paste the link in the sign-in window."
+msgid "If Abrish AI stays closed, paste the link in the sign-in window."
 msgstr ""
+
+#: src/settings/general/account.tsx
+#~ msgid "If Anarlog stays closed, paste the link in the sign-in window."
+#~ msgstr ""
 
 #: src/settings/referrals.tsx
 msgid "If your friend signed up through your link and started their free trial, but your free month hasn't appeared, email us and we'll help."
@@ -3056,8 +3249,12 @@ msgid "Install"
 msgstr ""
 
 #: src/settings/sync/index.tsx
-msgid "Install Anarlog and sign in with this account on the new device. Keep this device online and the new device will connect automatically."
+msgid "Install Abrish and sign in with this account on the new device. Keep this device online and the new device will connect automatically."
 msgstr ""
+
+#: src/settings/sync/index.tsx
+#~ msgid "Install Anarlog and sign in with this account on the new device. Keep this device online and the new device will connect automatically."
+#~ msgstr ""
 
 #: src/settings/developers/skills.tsx
 msgid "Install to all agents"
@@ -3187,8 +3384,12 @@ msgid "Joined {0}"
 msgstr ""
 
 #: src/settings/dictation.tsx
-msgid "Keep Anarlog running to use your shortcut in other apps."
+msgid "Keep Abrish running to use your shortcut in other apps."
 msgstr ""
+
+#: src/settings/dictation.tsx
+#~ msgid "Keep Anarlog running to use your shortcut in other apps."
+#~ msgstr ""
 
 #: src/session-sharing/management-panel.tsx
 msgid "Keep desktop edits"
@@ -3461,8 +3662,12 @@ msgid "Low-light canvas"
 msgstr ""
 
 #: src/settings/ai/shared/index.tsx
-msgid "macOS cannot access your login Keychain. Repairing briefly locks it and asks for your Mac password before Anarlog retries this API key."
+msgid "macOS cannot access your login Keychain. Repairing briefly locks it and asks for your Mac password before Abrish retries this API key."
 msgstr ""
+
+#: src/settings/ai/shared/index.tsx
+#~ msgid "macOS cannot access your login Keychain. Repairing briefly locks it and asks for your Mac password before Anarlog retries this API key."
+#~ msgstr ""
 
 #: src/auth/cloudsync-keychain-repair.tsx
 msgid "macOS could not access your recovery key. Repair Keychain access, then resume sync."
@@ -3509,7 +3714,11 @@ msgid "Manage workspace billing"
 msgstr ""
 
 #: src/settings/general/account.tsx
-msgid "Manage your sign-in methods on the Anarlog website."
+#~ msgid "Manage your sign-in methods on the Anarlog website."
+#~ msgstr ""
+
+#: src/settings/general/account.tsx
+msgid "Manage your sign-in methods on the website."
 msgstr ""
 
 #: src/settings/automations/google-drive-config.tsx
@@ -3655,8 +3864,12 @@ msgid "Merged"
 msgstr ""
 
 #: src/composer/index.tsx
-msgid "Message Anarlog AI"
+msgid "Message Abrish AI"
 msgstr ""
+
+#: src/composer/index.tsx
+#~ msgid "Message Anarlog AI"
+#~ msgstr ""
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Metadata"
@@ -3792,8 +4005,12 @@ msgid "New interview notes"
 msgstr ""
 
 #: src/imports/screen.tsx
-msgid "New meetings are imported automatically while Anarlog is running."
+msgid "New meetings are imported automatically while Abrish is running."
 msgstr ""
+
+#: src/imports/screen.tsx
+#~ msgid "New meetings are imported automatically while Anarlog is running."
+#~ msgstr ""
 
 #. placeholder {0}: accessConfirmation?.label
 #: src/folders/folder-editor.tsx
@@ -3965,8 +4182,12 @@ msgid "No page selected yet."
 msgstr ""
 
 #: src/settings/automations/starter-config.tsx
-msgid "No pages found. Share the page with the Anarlog integration in Notion first."
+msgid "No pages found. Share the page with the Abrish integration in Notion first."
 msgstr ""
+
+#: src/settings/automations/starter-config.tsx
+#~ msgid "No pages found. Share the page with the Anarlog integration in Notion first."
+#~ msgstr ""
 
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "No people"
@@ -4167,6 +4388,21 @@ msgstr ""
 msgid "Open {0} settings"
 msgstr ""
 
+#: src/composer/index.tsx
+#: src/onboarding/final.tsx
+#: src/services/enhancer/summary-notification.ts
+#: src/store/zustand/listener/general-batch.ts
+msgid "Open Abrish"
+msgstr ""
+
+#: src/settings/general/app-settings.tsx
+msgid "Open Abrish from the menu bar."
+msgstr ""
+
+#: src/settings/sync/index.tsx
+msgid "Open Abrish on an existing synced device signed in to the same account. This device will connect automatically."
+msgstr ""
+
 #: src/chat/components/body/empty.tsx
 msgid "Open AI Settings"
 msgstr ""
@@ -4175,16 +4411,16 @@ msgstr ""
 #: src/onboarding/final.tsx
 #: src/services/enhancer/summary-notification.ts
 #: src/store/zustand/listener/general-batch.ts
-msgid "Open Anarlog"
-msgstr ""
+#~ msgid "Open Anarlog"
+#~ msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Open Anarlog from the menu bar."
-msgstr ""
+#~ msgid "Open Anarlog from the menu bar."
+#~ msgstr ""
 
 #: src/settings/sync/index.tsx
-msgid "Open Anarlog on an existing synced device signed in to the same account. This device will connect automatically."
-msgstr ""
+#~ msgid "Open Anarlog on an existing synced device signed in to the same account. This device will connect automatically."
+#~ msgstr ""
 
 #: src/sidebar/timeline/index.tsx
 msgid "Open calendar"
@@ -4258,13 +4494,21 @@ msgstr ""
 
 #. placeholder {0}: accessibilityGuidance.paneTitle ?? "Privacy"
 #: src/onboarding/permissions.tsx
-msgid "Opens System Settings and guides you to add Anarlog to the {0} list"
+msgid "Opens System Settings and guides you to add Abrish to the {0} list"
 msgstr ""
 
 #. placeholder {0}: accessibilityGuidance.paneTitle ?? "Privacy"
 #: src/settings/general/permissions.tsx
-msgid "Opens System Settings and guides you to add Anarlog to the {0} list."
+msgid "Opens System Settings and guides you to add Abrish to the {0} list."
 msgstr ""
+
+#: src/onboarding/permissions.tsx
+#~ msgid "Opens System Settings and guides you to add Anarlog to the {0} list"
+#~ msgstr ""
+
+#: src/settings/general/permissions.tsx
+#~ msgid "Opens System Settings and guides you to add Anarlog to the {0} list."
+#~ msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
 #: src/calendar/components/oauth/provider-content.tsx
@@ -4340,8 +4584,12 @@ msgid "Paste the authorization code"
 msgstr ""
 
 #: src/instruction/index.tsx
-msgid "Paste the browser URL here if the browser button did not reopen Anarlog."
+msgid "Paste the browser URL here if the browser button did not reopen Abrish AI."
 msgstr ""
+
+#: src/instruction/index.tsx
+#~ msgid "Paste the browser URL here if the browser button did not reopen Anarlog."
+#~ msgstr ""
 
 #: src/settings/ai/llm/subscriptions/connect.tsx
 msgid "Paste the localhost redirect URL"
@@ -4477,8 +4725,12 @@ msgid "Preparing…"
 msgstr ""
 
 #: src/settings/dictation.tsx
-msgid "Press Escape to cancel. Dictation stops after five minutes and pauses while Anarlog records a meeting."
+msgid "Press Escape to cancel. Dictation stops after five minutes and pauses while Abrish records a meeting."
 msgstr ""
+
+#: src/settings/dictation.tsx
+#~ msgid "Press Escape to cancel. Dictation stops after five minutes and pauses while Anarlog records a meeting."
+#~ msgstr ""
 
 #: src/settings/dictation-shortcut.tsx
 msgid "Press shortcut…"
@@ -4881,17 +5133,30 @@ msgid "Require SSO"
 msgstr ""
 
 #: src/settings/privacy/index.tsx
-msgid "Require Touch ID or your password when opening Anarlog."
+msgid "Require Touch ID or your password when opening Abrish."
 msgstr ""
 
 #: src/settings/privacy/index.tsx
-msgid "Require Windows Hello face, PIN, or password when opening Anarlog."
+#~ msgid "Require Touch ID or your password when opening Anarlog."
+#~ msgstr ""
+
+#: src/settings/privacy/index.tsx
+msgid "Require Windows Hello face, PIN, or password when opening Abrish."
+msgstr ""
+
+#: src/settings/privacy/index.tsx
+#~ msgid "Require Windows Hello face, PIN, or password when opening Anarlog."
+#~ msgstr ""
+
+#: src/shared/open-note-dialog.tsx
+#: src/sidebar/settings.tsx
+msgid "Requires Abrish Pro"
 msgstr ""
 
 #: src/shared/open-note-dialog.tsx
 #: src/sidebar/settings.tsx
-msgid "Requires Anarlog Pro"
-msgstr ""
+#~ msgid "Requires Anarlog Pro"
+#~ msgstr ""
 
 #: src/settings/team/index.tsx
 msgid "Resend invitation"
@@ -5160,8 +5425,12 @@ msgid "Search or type owner/repo"
 msgstr ""
 
 #: src/settings/automations/starter-config.tsx
-msgid "Search pages shared with Anarlog…"
+msgid "Search pages shared with Abrish…"
 msgstr ""
+
+#: src/settings/automations/starter-config.tsx
+#~ msgid "Search pages shared with Anarlog…"
+#~ msgstr ""
 
 #: src/settings/ai/shared/provider-search.tsx
 msgid "Search providers"
@@ -5269,8 +5538,12 @@ msgid "Send message"
 msgstr ""
 
 #: src/settings/privacy/index.tsx
-msgid "Send sanitized crash and error reports to help improve Anarlog."
+msgid "Send sanitized crash and error reports to help improve Abrish."
 msgstr ""
+
+#: src/settings/privacy/index.tsx
+#~ msgid "Send sanitized crash and error reports to help improve Anarlog."
+#~ msgstr ""
 
 #: src/automations/starters.tsx
 msgid "Send the recap to the selected Slack channel."
@@ -5449,21 +5722,29 @@ msgstr ""
 msgid "Sharing paused to protect your edits"
 msgstr ""
 
+#: src/settings/general/app-settings.tsx
+msgid "Show Abrish in the Dock and app switcher."
+msgstr ""
+
 #: src/sidebar/timeline/item.tsx
 msgid "Show All Recurring Events"
 msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Show Anarlog in the Dock and app switcher."
-msgstr ""
+#~ msgid "Show Anarlog in the Dock and app switcher."
+#~ msgstr ""
 
 #: src/settings/general/app-settings.tsx
 msgid "Show app in Dock"
 msgstr ""
 
 #: src/settings/general/permissions.tsx
-msgid "Show Apple Calendar events in Anarlog."
+msgid "Show Apple Calendar events in Abrish."
 msgstr ""
+
+#: src/settings/general/permissions.tsx
+#~ msgid "Show Apple Calendar events in Anarlog."
+#~ msgstr ""
 
 #: src/sidebar/timeline/index.tsx
 msgid "Show Deleted Events"
@@ -5558,14 +5839,19 @@ msgstr ""
 msgid "Sign in for private repo access."
 msgstr ""
 
+#: src/settings/general/account.tsx
+#: src/settings/general/billing.tsx
+msgid "Sign in to Abrish AI"
+msgstr ""
+
 #: src/folders/sidebar.tsx
 msgid "Sign in to add this folder"
 msgstr ""
 
 #: src/settings/general/account.tsx
 #: src/settings/general/billing.tsx
-msgid "Sign in to Anarlog"
-msgstr ""
+#~ msgid "Sign in to Anarlog"
+#~ msgstr ""
 
 #: src/settings/general/primary-recording-device.tsx
 msgid "Sign in to choose a primary recording device."
@@ -5598,8 +5884,12 @@ msgid "Sign in to generate this summary"
 msgstr ""
 
 #: src/sidebar/toast/registry.tsx
-msgid "Sign in to get the most out of Anarlog"
+msgid "Sign in to get the most out of Abrish"
 msgstr ""
+
+#: src/sidebar/toast/registry.tsx
+#~ msgid "Sign in to get the most out of Anarlog"
+#~ msgstr ""
 
 #: src/settings/referrals.tsx
 msgid "Sign in to see your referral invites."
@@ -5638,8 +5928,12 @@ msgid "Sign in with ChatGPT Plus or Pro, then paste the redirect URL from your b
 msgstr ""
 
 #: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Sign in with ChatGPT Plus or Pro. We'll open Anarlog and finish connecting."
+msgid "Sign in with ChatGPT Plus or Pro. We'll open Abrish and finish connecting."
 msgstr ""
+
+#: src/settings/ai/llm/subscriptions/connect.tsx
+#~ msgid "Sign in with ChatGPT Plus or Pro. We'll open Anarlog and finish connecting."
+#~ msgstr ""
 
 #: src/settings/ai/llm/subscriptions/connect.tsx
 msgid "Sign in with GitHub Copilot and enter the code below."
@@ -5662,8 +5956,12 @@ msgid "Sign out and sign in again to resume cloud sync."
 msgstr ""
 
 #: src/settings/general/account.tsx
-msgid "Sign out of Anarlog?"
+msgid "Sign out of Abrish AI?"
 msgstr ""
+
+#: src/settings/general/account.tsx
+#~ msgid "Sign out of Anarlog?"
+#~ msgstr ""
 
 #: src/onboarding/account/after-login.tsx
 #: src/onboarding/index.tsx
@@ -5746,12 +6044,16 @@ msgid "Source: {provider} (AI model provider)"
 msgstr ""
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
+msgid "Source: Abrish"
+msgstr ""
+
+#: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "Source: AI model provider"
 msgstr ""
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
-msgid "Source: Anarlog"
-msgstr ""
+#~ msgid "Source: Anarlog"
+#~ msgstr ""
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "Source: OpenRouter (AI routing service)"
@@ -5782,8 +6084,12 @@ msgid "Start a Pro trial or add your own LLM API key to generate a summary from 
 msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Start Anarlog at login"
-msgstr "אָנהייב אַנאַלאָג ביי לאָגין"
+msgid "Start Abrish at login"
+msgstr ""
+
+#: src/settings/general/app-settings.tsx
+#~ msgid "Start Anarlog at login"
+#~ msgstr "אָנהייב אַנאַלאָג ביי לאָגין"
 
 #: src/settings/general/billing.tsx
 msgid "Start free trial"
@@ -5860,8 +6166,12 @@ msgid "Starting…"
 msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Stay current with updates installed the next time Anarlog opens."
+msgid "Stay current with updates installed the next time Abrish opens."
 msgstr ""
+
+#: src/settings/general/app-settings.tsx
+#~ msgid "Stay current with updates installed the next time Anarlog opens."
+#~ msgstr ""
 
 #: src/settings/automations/index.tsx
 msgid "Steps run from top to bottom."
@@ -6187,8 +6497,8 @@ msgid "This guest needs Team access"
 msgstr ""
 
 #: src/session/components/outer-header/index.tsx
-msgid "This is a prerecorded demo, so your camera stays off. Click Join & record to see Anarlog in action."
-msgstr ""
+#~ msgid "This is a prerecorded demo, so your camera stays off. Click Join & record to see Anarlog in action."
+#~ msgstr ""
 
 #: src/settings/sync/index.tsx
 msgid "This name is synced to your other devices signed in to this account."
@@ -6207,12 +6517,20 @@ msgid "This recording is using batch transcription, so the transcript isn't avai
 msgstr ""
 
 #: src/settings/plan-gate.tsx
-msgid "This requires Anarlog Enterprise"
+msgid "This requires Abrish Enterprise"
 msgstr ""
 
 #: src/settings/plan-gate.tsx
-msgid "This requires Anarlog Pro"
+msgid "This requires Abrish Pro"
 msgstr ""
+
+#: src/settings/plan-gate.tsx
+#~ msgid "This requires Anarlog Enterprise"
+#~ msgstr ""
+
+#: src/settings/plan-gate.tsx
+#~ msgid "This requires Anarlog Pro"
+#~ msgstr ""
 
 #. placeholder {0}: status.fileCount
 #. placeholder {1}: formatBytes(status.totalBytes)
@@ -6323,8 +6641,8 @@ msgid "Try speaking a little closer to the microphone."
 msgstr ""
 
 #: src/session/components/outer-header/index.tsx
-msgid "Try the demo"
-msgstr ""
+#~ msgid "Try the demo"
+#~ msgstr ""
 
 #: src/automations/starters.tsx
 msgid "Turn action items into Linear issues"
@@ -6335,8 +6653,12 @@ msgid "Turn assigned follow-ups into Linear issue drafts."
 msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
-msgid "Turn on Anarlog in System Settings → Privacy & Security → Calendars, then return here."
+msgid "Turn on Abrish in System Settings → Privacy & Security → Calendars, then return here."
 msgstr ""
+
+#: src/calendar/components/apple/permission.tsx
+#~ msgid "Turn on Anarlog in System Settings → Privacy & Security → Calendars, then return here."
+#~ msgstr ""
 
 #: src/settings/appearance/app-icon.tsx
 msgid "Typewriter Key"
@@ -6393,8 +6715,12 @@ msgid "Unlock the Team library"
 msgstr ""
 
 #: src/settings/ai/shared/index.tsx
-msgid "Unlock your login Keychain in the macOS prompt. Anarlog will retry saving this API key automatically."
+msgid "Unlock your login Keychain in the macOS prompt. Abrish will retry saving this API key automatically."
 msgstr ""
+
+#: src/settings/ai/shared/index.tsx
+#~ msgid "Unlock your login Keychain in the macOS prompt. Anarlog will retry saving this API key automatically."
+#~ msgstr ""
 
 #: src/contacts/details.tsx
 #: src/contacts/organization-details.tsx
@@ -6523,8 +6849,12 @@ msgid "Upload transcript"
 msgstr ""
 
 #: src/settings/developers/cloud-api.tsx
-msgid "Uploads meeting content for remote access while Anarlog is closed."
+msgid "Uploads meeting content for remote access while Abrish is closed."
 msgstr ""
+
+#: src/settings/developers/cloud-api.tsx
+#~ msgid "Uploads meeting content for remote access while Anarlog is closed."
+#~ msgstr ""
 
 #: src/settings/team/index.tsx
 msgid "Usage"
@@ -6617,8 +6947,12 @@ msgid "View"
 msgstr ""
 
 #: src/lock/gate.tsx
-msgid "View Anarlog"
+msgid "View Abrish"
 msgstr ""
+
+#: src/lock/gate.tsx
+#~ msgid "View Anarlog"
+#~ msgstr ""
 
 #: src/settings/referrals.tsx
 msgid "View billing"
@@ -6637,8 +6971,12 @@ msgid "View sync log"
 msgstr ""
 
 #: src/chat/components/input/use-dictation.ts
-msgid "Voice input is unavailable while Anarlog is recording a meeting."
+msgid "Voice input is unavailable while Abrish is recording a meeting."
 msgstr ""
+
+#: src/chat/components/input/use-dictation.ts
+#~ msgid "Voice input is unavailable while Anarlog is recording a meeting."
+#~ msgstr ""
 
 #: src/settings/general/notification.tsx
 msgid "Wait before treating microphone activity as a meeting."
@@ -6682,8 +7020,12 @@ msgid "Weekly streak: {0}"
 msgstr ""
 
 #: src/onboarding/index.tsx
-msgid "Welcome to Anarlog"
+msgid "Welcome to Abrish AI"
 msgstr ""
+
+#: src/onboarding/index.tsx
+#~ msgid "Welcome to Anarlog"
+#~ msgstr ""
 
 #: src/chat/components/body/empty.tsx
 msgid "What action items have come up so far in this meeting?"
@@ -6880,8 +7222,12 @@ msgid "Your notes remain available locally."
 msgstr ""
 
 #: src/settings/sync/index.tsx
-msgid "Your notes remain available locally. Anarlog will keep retrying."
+msgid "Your notes remain available locally. Abrish will keep retrying."
 msgstr ""
+
+#: src/settings/sync/index.tsx
+#~ msgid "Your notes remain available locally. Anarlog will keep retrying."
+#~ msgstr ""
 
 #: src/settings/sync/index.tsx
 msgid "Your notes remain available locally. Try again in a moment."
@@ -6921,8 +7267,12 @@ msgid "Your Pro trial just started"
 msgstr ""
 
 #: src/settings/general/e2ee-setup.tsx
-msgid "Your recovery key encrypts synced notes before they leave this device. Anarlog cannot read or recover it."
+msgid "Your recovery key encrypts synced notes before they leave this device. Abrish cannot read or recover it."
 msgstr ""
+
+#: src/settings/general/e2ee-setup.tsx
+#~ msgid "Your recovery key encrypts synced notes before they leave this device. Anarlog cannot read or recover it."
+#~ msgstr ""
 
 #: src/settings/referrals.tsx
 msgid "Your referrals"

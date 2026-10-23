@@ -124,7 +124,7 @@ export function GoogleDriveConfig({
         <Trans>
           Every note summarized after enabling this automation is saved here as
           one file with its summary and transcript in the selected format.
-          Anarlog must be open.
+          Abrish must be open.
         </Trans>
       </p>
       {picker.error ? (

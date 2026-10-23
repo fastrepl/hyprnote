@@ -50,7 +50,10 @@ export const Route = createFileRoute("/auth")({
   validateSearch: authSearchSchema,
   component: Component,
   head: () => ({
-    meta: [{ name: "robots", content: "noindex, nofollow" }],
+    meta: [
+      { title: "Sign in · Abrish AI" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
   }),
   beforeLoad: async ({ search }) => {
     const [user, lastSignInMethod] = await Promise.all([

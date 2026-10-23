@@ -194,7 +194,7 @@ describe("SettingsDevelopers", () => {
         installPath: "/Users/test/.local/bin/anarlog",
         state: "installed",
         details:
-          "Installed at /Users/test/.local/bin/anarlog and managed by Anarlog.",
+          "Installed at /Users/test/.local/bin/anarlog and managed by Abrish AI.",
       },
     });
 
@@ -451,7 +451,7 @@ describe("SettingsDevelopers", () => {
     expect(screen.getByText(/server-readable copy/)).toBeTruthy();
     expect(mocks.getCloudApiSettings).not.toHaveBeenCalled();
     expect(mocks.toastWarning).toHaveBeenCalledWith(
-      "This requires Anarlog Pro",
+      "This requires Abrish Pro",
       {
         action: {
           label: "Upgrade",
@@ -558,7 +558,7 @@ describe("SettingsDevelopers", () => {
     expect(mocks.installAgentSkill).not.toHaveBeenCalledWith("cursor");
     await waitFor(() =>
       expect(mocks.toastSuccess).toHaveBeenCalledWith(
-        "Anarlog skill added to 3 agents",
+        "Abrish AI skill added to 3 agents",
       ),
     );
   });
@@ -613,7 +613,7 @@ describe("SettingsDevelopers", () => {
     );
     await waitFor(() =>
       expect(mocks.toastSuccess).toHaveBeenCalledWith(
-        "Anarlog skill added to Codex",
+        "Abrish AI skill added to Codex",
       ),
     );
   });

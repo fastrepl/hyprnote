@@ -167,7 +167,7 @@ function SharedNoteActionButtons({
           onClick={onOpen}
         >
           <span className="hidden sm:inline">
-            {isPending ? "Opening…" : "Open in Anarlog"}
+            {isPending ? "Opening…" : "Open in Abrish AI"}
           </span>
           <span className="sm:hidden">{isPending ? "Opening…" : "Open"}</span>
         </button>
@@ -180,7 +180,7 @@ function SharedNoteActionButtons({
               "translate-y-[-2px] opacity-0 transition-[opacity,transform] group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:translate-y-0 group-hover:opacity-100",
             ])}
           >
-            Open in Anarlog to edit
+            Open in Abrish AI to edit
           </span>
         )}
       </div>
@@ -189,7 +189,7 @@ function SharedNoteActionButtons({
           className="text-color-muted basis-full text-right text-xs"
           role="status"
         >
-          Anarlog couldn’t be opened. Try again.
+          Abrish AI couldn’t be opened. Try again.
         </p>
       )}
     </>

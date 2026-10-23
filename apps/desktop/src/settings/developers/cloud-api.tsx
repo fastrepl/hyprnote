@@ -58,7 +58,7 @@ export function CloudApiSection() {
       });
       if (backfillFailed) {
         toast.error(
-          t`Cloud API enabled, but existing meetings could not be uploaded. Anarlog will retry.`,
+          t`Cloud API enabled, but existing meetings could not be uploaded. Abrish will retry.`,
         );
       } else if (settings.enabled) {
         toast.success(
@@ -152,7 +152,7 @@ function CloudApiHeading({ error }: { error?: string }) {
       </h2>
       <p className="text-muted-foreground mt-1 text-xs">
         <Trans>
-          Uploads meeting content for remote access while Anarlog is closed.
+          Uploads meeting content for remote access while Abrish is closed.
         </Trans>
       </p>
       <p className="text-muted-foreground mt-1 text-xs">

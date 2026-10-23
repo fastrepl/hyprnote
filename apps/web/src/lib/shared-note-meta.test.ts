@@ -54,7 +54,7 @@ test("authorized link previews receive note-specific social metadata", () => {
       (meta) =>
         "property" in meta &&
         meta.property === "og:site_name" &&
-        meta.content === "anarlog",
+        meta.content === "Abrish AI",
     ),
   );
   assert.ok(
@@ -104,7 +104,7 @@ test("short links receive note-specific social metadata without a query token", 
       (meta) =>
         "property" in meta &&
         meta.property === "og:site_name" &&
-        meta.content === "anarlog",
+        meta.content === "Abrish AI",
     ),
   );
 });
@@ -208,7 +208,8 @@ test("available public notes receive canonical indexable metadata", () => {
   );
   assert.ok(
     head.meta.some(
-      (meta) => meta.property === "og:site_name" && meta.content === "anarlog",
+      (meta) =>
+        meta.property === "og:site_name" && meta.content === "Abrish AI",
     ),
   );
   assert.ok(

@@ -16,7 +16,7 @@ test("OAuth authorization IDs accept Supabase opaque identifiers", () => {
 
 test("OAuth scope descriptions preserve unknown scopes", () => {
   assert.deepEqual(describeOAuthScopes("openid future_scope"), [
-    "Confirm your Anarlog account identity",
+    "Confirm your Abrish AI account identity",
     "Grant the future_scope permission",
   ]);
 });

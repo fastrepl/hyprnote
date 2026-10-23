@@ -99,8 +99,8 @@ export function SkillsRow() {
       void queryClient.invalidateQueries({ queryKey: SKILL_AGENTS_QUERY_KEY });
       toast.success(
         statuses.length === 1
-          ? t`Anarlog skill added to ${statuses[0].displayName}`
-          : t`Anarlog skill added to ${statuses.length} agents`,
+          ? t`Abrish AI skill added to ${statuses[0].displayName}`
+          : t`Abrish AI skill added to ${statuses.length} agents`,
       );
     },
     onError: (error) => {

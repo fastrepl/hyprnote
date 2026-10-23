@@ -26,7 +26,10 @@ export const Route = createFileRoute("/update-password")({
   validateSearch,
   component: Component,
   head: () => ({
-    meta: [{ name: "robots", content: "noindex, nofollow" }],
+    meta: [
+      { title: "Choose a new password · Abrish AI" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
   }),
   beforeLoad: async ({ search }) => {
     const user = await fetchUser();

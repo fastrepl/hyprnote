@@ -682,8 +682,8 @@ export function MeetingImportScreen({
                       {connected ? (
                         <p className="text-muted-foreground text-xs">
                           <Trans>
-                            New meetings are imported automatically while
-                            Anarlog is running.
+                            New meetings are imported automatically while Abrish
+                            is running.
                           </Trans>
                         </p>
                       ) : null}

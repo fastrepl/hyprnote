@@ -2,15 +2,15 @@ import type { Session, User } from "@supabase/supabase-js";
 
 export const identityLinkMessages = {
   connected:
-    "Sign-in method connected. You can now use it to sign in to this Anarlog account.",
+    "Sign-in method connected. You can now use it to sign in to this Abrish AI account.",
   account_mismatch:
-    "Your browser is signed in to a different Anarlog account than your app. Sign in to the account you use in the app before connecting a sign-in method.",
+    "Your browser is signed in to a different Abrish AI account than your app. Sign in to the account you use in the app before connecting a sign-in method.",
   signed_out: "Sign in again before connecting a sign-in method.",
   unsupported: "Connecting sign-in methods is not available for this account.",
   already_connected:
     "This sign-in method is already connected to your account.",
   identity_already_exists:
-    "This sign-in method belongs to another Anarlog account. Contact support to resolve the duplicate accounts and their subscriptions.",
+    "This sign-in method belongs to another Abrish AI account. Contact support to resolve the duplicate accounts and their subscriptions.",
   canceled: "Connection canceled. You can try again when you're ready.",
   expired:
     "This connection request has expired or was replaced. Start again from Connected accounts.",

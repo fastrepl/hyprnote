@@ -44,7 +44,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: "keywords", content: ROOT_KEYWORDS },
       { name: "ai-sitemap", content: `${ANARLOG_SITE_URL}/llms.txt` },
       { name: "ai-content", content: "public" },
-      { name: "apple-mobile-web-app-title", content: "Anarlog" },
+      { name: "apple-mobile-web-app-title", content: "Abrish AI" },
       { name: "theme-color", content: "#ffe09d" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: ANARLOG_SITE_NAME },
@@ -166,7 +166,7 @@ function NotFound() {
           to="/"
           className="mt-6 inline-flex rounded-full bg-[#181613] px-5 py-3 text-sm font-medium text-white"
         >
-          Back to Anarlog
+          Back to Abrish AI
         </Link>
       </div>
     </main>

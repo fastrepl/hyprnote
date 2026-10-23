@@ -25,7 +25,7 @@ import { CredibilityLogoMarquee } from "./social-proof-sections";
 export function HeroSection() {
   return (
     <section className="isolate pt-10 pb-2 md:pt-12 md:pb-4">
-      <Link to="/" aria-label="Anarlog home" className="inline-flex">
+      <Link to="/" aria-label="Abrish AI home" className="inline-flex">
         <AnarlogLogo className="h-8 w-auto md:h-9" />
       </Link>
       <h1 className="font-hand mx-auto mt-12 max-w-3xl text-5xl leading-[0.98] font-semibold tracking-normal text-balance md:mt-16 md:text-7xl lg:relative lg:left-1/2 lg:w-max lg:max-w-none lg:-translate-x-1/2 lg:whitespace-nowrap">

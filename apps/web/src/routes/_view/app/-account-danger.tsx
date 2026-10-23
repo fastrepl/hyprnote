@@ -57,9 +57,9 @@ export function DangerAreaSection() {
     >
       <p className="text-base font-medium text-red-900">Delete account</p>
       <p className="mt-3 text-sm leading-6 text-red-900">
-        Anarlog is a local-first app. Your local notes, transcripts, and meeting
-        data stay on your device. Deleting your account removes cloud-stored
-        data.
+        Abrish AI is a local-first app. Your local notes, transcripts, and
+        meeting data stay on your device. Deleting your account removes
+        cloud-stored data.
       </p>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>

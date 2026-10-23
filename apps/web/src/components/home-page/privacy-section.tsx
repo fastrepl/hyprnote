@@ -10,7 +10,7 @@ const privacyCommitments = [
   {
     title: "Invisible while you meet",
     description:
-      "No bot joins the meeting, and Anarlog stays hidden while sharing screens.",
+      "No bot joins the meeting, and Abrish AI stays hidden while sharing screens.",
     visual: "meeting",
   },
   {
@@ -35,7 +35,7 @@ export function PrivacySection() {
           Private from call to file
         </h2>
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#4f4940]">
-          Anarlog works quietly from your desktop, without joining your calls,
+          Abrish AI works quietly from your desktop, without joining your calls,
           forcing your data into the cloud, or locking it inside our app.
         </p>
       </div>

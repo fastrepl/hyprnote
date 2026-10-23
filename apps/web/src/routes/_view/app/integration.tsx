@@ -35,18 +35,20 @@ const INTEGRATION_DISPLAY: Record<
     name: "Google Drive",
     description:
       "Connect Google Drive to save meeting summaries and transcripts to a folder you choose",
-    connectingHint: "Finish authorization with Google, then return to Anarlog",
+    connectingHint:
+      "Finish authorization with Google, then return to Abrish AI",
   },
   "google-calendar": {
     name: "Google Calendar",
     description: "See upcoming events and link them to private notes",
-    connectingHint: "Finish authorization with Google, then return to Anarlog",
+    connectingHint:
+      "Finish authorization with Google, then return to Abrish AI",
   },
   outlook: {
     name: "Outlook Calendar",
     description: "See upcoming events and link them to private notes",
     connectingHint:
-      "Finish authorization with Microsoft, then return to Anarlog",
+      "Finish authorization with Microsoft, then return to Abrish AI",
   },
   linear: {
     name: "Linear",
@@ -61,38 +63,40 @@ const INTEGRATION_DISPLAY: Record<
   slack: {
     name: "Slack",
     description: "Send meeting recaps to your channels",
-    connectingHint: "Finish authorization with Slack, then return to Anarlog",
+    connectingHint: "Finish authorization with Slack, then return to Abrish AI",
   },
   notion: {
     name: "Notion",
     description: "Add meeting updates to your pages",
-    connectingHint: "Pick the Notion pages to share, then return to Anarlog",
+    connectingHint: "Pick the Notion pages to share, then return to Abrish AI",
   },
   zoom: {
     name: "Zoom",
     description: "Sync your Zoom cloud recordings",
-    connectingHint: "Finish authorization with Zoom, then return to Anarlog",
+    connectingHint: "Finish authorization with Zoom, then return to Abrish AI",
   },
   fathom: {
     name: "Fathom",
     description: "Sync your Fathom meeting recordings",
-    connectingHint: "Finish authorization with Fathom, then return to Anarlog",
+    connectingHint:
+      "Finish authorization with Fathom, then return to Abrish AI",
   },
   webex: {
     name: "Webex",
     description: "Sync your Webex meeting transcripts",
-    connectingHint: "Finish authorization with Webex, then return to Anarlog",
+    connectingHint: "Finish authorization with Webex, then return to Abrish AI",
   },
   "google-meet": {
     name: "Google Meet",
     description: "Sync your Google Meet transcripts",
-    connectingHint: "Finish authorization with Google, then return to Anarlog",
+    connectingHint:
+      "Finish authorization with Google, then return to Abrish AI",
   },
   "microsoft-teams": {
     name: "Microsoft Teams",
     description: "Sync your Teams meeting transcripts",
     connectingHint:
-      "Finish authorization with Microsoft, then return to Anarlog",
+      "Finish authorization with Microsoft, then return to Abrish AI",
   },
   attio: {
     name: "Attio",
@@ -169,7 +173,7 @@ function DesktopHandoffConnect() {
       <IntegrationPageLayout>
         <div className="flex flex-col gap-4">
           <p className="text-neutral-600">
-            This connection link is invalid or expired. Return to Anarlog and
+            This connection link is invalid or expired. Return to Abrish AI and
             try again.
           </p>
         </div>

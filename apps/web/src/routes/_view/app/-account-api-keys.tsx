@@ -137,7 +137,7 @@ export function ApiKeysSection() {
           ) : (
             <div className="flex items-center justify-between gap-4">
               <p className="text-sm leading-6 text-[#756b5d]">
-                Keys let your own tools call the Anarlog Cloud API.
+                Keys let your own tools call the Abrish Cloud API.
               </p>
               <button
                 onClick={() => {

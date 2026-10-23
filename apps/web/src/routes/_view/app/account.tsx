@@ -138,6 +138,9 @@ export const Route = createFileRoute("/_view/app/account")({
   validateSearch,
   component: Component,
   loader: async ({ context }) => ({ user: context.user }),
+  head: () => ({
+    meta: [{ title: "Account · Abrish AI" }],
+  }),
 });
 
 function Component() {
@@ -227,7 +230,7 @@ function Component() {
   return (
     <main className="surface text-color min-h-screen">
       <div className="mx-auto w-full max-w-[700px] px-5 pt-10 pb-16 md:px-8 md:pt-12 md:pb-24">
-        <Link to="/" aria-label="Anarlog home" className="inline-flex">
+        <Link to="/" aria-label="Abrish AI home" className="inline-flex">
           <AnarlogLogo className="h-8 w-auto" />
         </Link>
 

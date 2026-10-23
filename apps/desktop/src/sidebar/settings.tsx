@@ -152,7 +152,7 @@ export function SettingsNav() {
                         </span>
                         {requiresPro ? (
                           <Lock
-                            aria-label={t`Requires Anarlog Pro`}
+                            aria-label={t`Requires Abrish Pro`}
                             className="size-3.5 shrink-0"
                           />
                         ) : null}

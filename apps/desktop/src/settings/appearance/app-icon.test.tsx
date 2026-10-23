@@ -96,7 +96,7 @@ describe("AppIconSelector", () => {
     fireEvent.click(blueprintOption);
 
     expect(mocks.toastWarning).toHaveBeenCalledWith(
-      "This requires Anarlog Pro",
+      "This requires Abrish Pro",
       {
         action: {
           label: "Upgrade",

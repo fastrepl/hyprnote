@@ -519,7 +519,7 @@ function NotionPageSearch({
               setSubmittedQuery(query.trim());
             }
           }}
-          placeholder={t`Search pages shared with Anarlog…`}
+          placeholder={t`Search pages shared with Abrish…`}
           className={cn([
             "border-border bg-accent/50 h-8 min-w-0 flex-1 rounded-lg border px-3 text-xs",
             "placeholder:text-muted-foreground focus:outline-hidden",
@@ -559,8 +559,8 @@ function NotionPageSearch({
       ) : pages.data ? (
         <p className="text-muted-foreground text-xs">
           <Trans>
-            No pages found. Share the page with the Anarlog integration in
-            Notion first.
+            No pages found. Share the page with the Abrish integration in Notion
+            first.
           </Trans>
         </p>
       ) : null}

@@ -370,7 +370,7 @@ export function OpenNoteDialog({
           ) : null}
           {page.requiresPro && !isPro ? (
             <Lock
-              aria-label={t`Requires Anarlog Pro`}
+              aria-label={t`Requires Abrish Pro`}
               className="h-3.5 w-3.5 shrink-0"
             />
           ) : null}

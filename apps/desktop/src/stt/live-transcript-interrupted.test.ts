@@ -13,7 +13,7 @@ describe("getLiveTranscriptPausedMessage", () => {
     ).toMatch(/because Deepgram is having an outage\./);
   });
 
-  it("separates an upstream outage from Anarlog server issues on cloud", () => {
+  it("separates an upstream outage from Abrish server issues on cloud", () => {
     const upstream = getLiveTranscriptPausedMessage({
       degraded: {
         type: "stream_error",
@@ -32,7 +32,7 @@ describe("getLiveTranscriptPausedMessage", () => {
     });
 
     expect(upstream).toMatch(/our speech-to-text provider is having an outage/);
-    expect(server).toMatch(/Anarlog's transcription server is having issues/);
+    expect(server).toMatch(/Abrish's transcription server is having issues/);
   });
 
   it("blames the connection when offline", () => {
@@ -52,7 +52,7 @@ describe("getLiveTranscriptPausedMessage", () => {
         sttProvider: "deepgram",
         online: true,
       }),
-    ).toMatch(/Anarlog can't reach Deepgram/);
+    ).toMatch(/Abrish can't reach Deepgram/);
   });
 
   it("does not blame the network for on-device models", () => {

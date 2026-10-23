@@ -472,7 +472,7 @@ describe("SettingsTeam", () => {
     fireEvent.click(screen.getByRole("textbox"));
 
     expect(mocks.toastWarning).toHaveBeenCalledWith(
-      "This requires Anarlog Pro",
+      "This requires Abrish Pro",
       {
         action: {
           label: "Upgrade",

@@ -161,7 +161,7 @@ function InvitationClient({
             href={`/auth/?${search.toString()}`}
             className={sharedPrimaryButtonClassName}
           >
-            Sign in to Anarlog
+            Sign in to Abrish AI
           </a>
         }
       />
@@ -243,7 +243,7 @@ function InvitationClient({
     <SharedNotePrompt
       icon={<EnvelopeOpen className="size-6" aria-hidden="true" />}
       title="A note was shared with you"
-      description="Accept the invitation to add this note to your shared notes in Anarlog."
+      description="Accept the invitation to add this note to your shared notes in Abrish AI."
       actions={
         <>
           <button

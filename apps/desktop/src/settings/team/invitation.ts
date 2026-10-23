@@ -82,7 +82,7 @@ export function getTeamSenderName(user: {
     ? metadata.full_name.trim()
     : typeof metadata?.name === "string" && metadata.name.trim()
       ? metadata.name.trim()
-      : user.email || "An Anarlog user";
+      : user.email || "An Abrish AI user";
 }
 
 function buildTeamInvitationUrl(invitation: {

@@ -45,7 +45,7 @@ function getPauseCause({
 
   if (degraded?.type === "authentication_failed") {
     return isCloud
-      ? "Anarlog couldn't verify your account"
+      ? "Abrish couldn't verify your account"
       : `${providerName} rejected your API key`;
   }
 
@@ -66,16 +66,16 @@ function getPauseCause({
 
   if (degraded) {
     if (isCloud) {
-      return "Anarlog's transcription server is having issues";
+      return "Abrish's transcription server is having issues";
     }
     if (sttProvider && LOCAL_PROVIDER_IDS.has(sttProvider)) {
       return "the local transcription model stopped responding";
     }
-    return `Anarlog can't reach ${providerName}`;
+    return `Abrish can't reach ${providerName}`;
   }
 
   return isCloud
-    ? "Anarlog's transcription server stopped sending words"
+    ? "Abrish's transcription server stopped sending words"
     : `${providerName} stopped sending words`;
 }
 

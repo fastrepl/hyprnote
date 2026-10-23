@@ -99,7 +99,7 @@ export function SharedNoteAccessGate({
             href={`/auth/?${search.toString()}`}
             className={sharedPrimaryButtonClassName}
           >
-            Sign in to Anarlog
+            Sign in to Abrish AI
           </a>
         }
       />

@@ -39,7 +39,7 @@ export const Route = createFileRoute("/team/invite/$invitationId")({
   loader: async () => ({ user: await fetchUser() }),
   head: () => ({
     meta: [
-      { title: "Team invitation · Anarlog" },
+      { title: "Team invitation · Abrish AI" },
       {
         name: "robots",
         content: "noindex, nofollow, noarchive, nosnippet",
@@ -150,7 +150,7 @@ function InvitationClient({
             href={`/auth/?${search.toString()}`}
             className={sharedPrimaryButtonClassName}
           >
-            Sign in to Anarlog
+            Sign in to Abrish AI
           </a>
         }
       />
@@ -191,10 +191,10 @@ function InvitationClient({
         headerLabel="Team invitation"
         icon={<CheckCircle className="size-6" aria-hidden="true" />}
         title={`You've joined ${invitation.workspaceName}`}
-        description="Open Anarlog on your computer to start collaborating in this workspace."
+        description="Open Abrish AI on your computer to start collaborating in this workspace."
         actions={
           <a href="/download/" className={sharedPrimaryButtonClassName}>
-            Download Anarlog
+            Download Abrish AI
           </a>
         }
       />
@@ -228,7 +228,7 @@ function InvitationClient({
       headerLabel="Team invitation"
       icon={<EnvelopeOpen className="size-6" aria-hidden="true" />}
       title={`Join ${invitation.workspaceName}`}
-      description="Accept the invitation to become a member of this Anarlog workspace."
+      description="Accept the invitation to become a member of this Abrish AI workspace."
       actions={
         <>
           <button
@@ -287,7 +287,7 @@ function WorkspaceInvitationTransientError({ retry }: { retry: () => void }) {
       headerLabel="Team invitation"
       icon={<WarningCircle className="size-6" aria-hidden="true" />}
       title="We couldn’t load this team invitation"
-      description="Anarlog had a temporary problem loading the invitation. Please try again."
+      description="Abrish AI had a temporary problem loading the invitation. Please try again."
       actions={
         <button
           type="button"

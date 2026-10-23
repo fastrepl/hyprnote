@@ -47,7 +47,10 @@ export const Route = createFileRoute("/confirm-auth")({
   validateSearch,
   component: Component,
   head: () => ({
-    meta: [{ name: "robots", content: "noindex, nofollow" }],
+    meta: [
+      { title: "Confirm sign-in · Abrish AI" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
   }),
 });
 

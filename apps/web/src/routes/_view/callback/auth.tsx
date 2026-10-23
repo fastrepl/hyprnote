@@ -79,7 +79,10 @@ export const Route = createFileRoute("/_view/callback/auth")({
     />
   ),
   head: () => ({
-    meta: [{ name: "robots", content: "noindex, nofollow" }],
+    meta: [
+      { title: "Signing in · Abrish AI" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
   }),
   beforeLoad: async ({ search }) => {
     if (search.intent === "link_identity") {
@@ -260,7 +263,7 @@ function DesktopAuthHandoffActions({ deeplink }: { deeplink: string }) {
         {...getDesktopAppOpenLinkProps(deeplink)}
         className={authPrimaryButtonClassName}
       >
-        Open Anarlog
+        Open Abrish AI
       </a>
 
       <div className="rounded-xl border border-[#e5ddcf] bg-[#fbfaf7] p-4 text-center">

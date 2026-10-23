@@ -417,7 +417,7 @@ mod cross_platform {
             WINDOW_LABEL,
             WebviewUrl::App("app/floating-bar".into()),
         )
-        .title("Anarlog")
+        .title("Abrish AI")
         .inner_size(width, height)
         .visible(false)
         .focused(false)

@@ -93,7 +93,7 @@ describe("PermissionsSection", () => {
 
     render(<PermissionsSection onContinue={onContinue} />);
 
-    expect(screen.queryByText("Help Anarlog read meeting activity")).toBeNull();
+    expect(screen.queryByText("Help Abrish read meeting activity")).toBeNull();
     expect(mocks.usePermission).not.toHaveBeenCalledWith("accessibility");
     expect(onContinue).toHaveBeenCalledTimes(1);
   });

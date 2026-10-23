@@ -207,7 +207,7 @@ function StopControl({
       }
       title={
         state.status === "error"
-          ? `${state.transcriptNotice ?? "Recording needs attention"}. Open Anarlog to retry or change devices.`
+          ? `${state.transcriptNotice ?? "Recording needs attention"}. Open Abrish to retry or change devices.`
           : undefined
       }
       disabled={state.dictation?.phase === "transcribing"}

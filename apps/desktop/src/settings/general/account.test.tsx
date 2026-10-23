@@ -135,7 +135,7 @@ describe("SettingsAccount", () => {
 
     expect(mocks.signOut).not.toHaveBeenCalled();
     expect(
-      screen.getByRole("heading", { name: "Sign out of Anarlog?" }),
+      screen.getByRole("heading", { name: "Sign out of Abrish AI?" }),
     ).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));

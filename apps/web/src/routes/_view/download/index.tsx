@@ -9,6 +9,7 @@ import {
 } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
+import { AnarlogLogo } from "@/components/anarlog-logo";
 import { SiteFooter } from "@/components/site-footer";
 import { useExperiment } from "@/hooks/use-experiment";
 import { useAnalytics } from "@/hooks/use-posthog";
@@ -39,13 +40,13 @@ export const Route = createFileRoute("/_view/download/")({
   head: () => ({
     links: [{ rel: "canonical", href: getCanonicalUrl("/download") }],
     meta: [
-      { title: "Download Anarlog" },
+      { title: "Download Abrish AI" },
       {
         name: "description",
         content:
-          "Download Anarlog for macOS, Windows, or Linux. iOS and Android apps are coming in October.",
+          "Download Abrish AI for macOS, Windows, or Linux. iOS and Android apps are coming in October.",
       },
-      { property: "og:title", content: "Download Anarlog" },
+      { property: "og:title", content: "Download Abrish AI" },
       { property: "og:url", content: getCanonicalUrl("/download") },
     ],
   }),
@@ -110,8 +111,8 @@ function Component() {
         ])}
       >
         <header>
-          <Link to="/" aria-label="Anarlog home">
-            <img src="/logo.svg" alt="Anarlog" className="h-9 w-auto" />
+          <Link to="/" aria-label="Abrish AI home">
+            <AnarlogLogo className="h-9 w-auto" />
           </Link>
         </header>
 
@@ -121,7 +122,7 @@ function Component() {
           ])}
         >
           <h1 className="font-hand text-color text-6xl leading-[0.98] font-semibold tracking-normal text-balance md:text-8xl">
-            Download Anarlog
+            Download Abrish AI
           </h1>
         </section>
 

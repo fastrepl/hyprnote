@@ -175,7 +175,7 @@ pub async fn begin_connection(
     let scopes = manager.select_scopes(None, &[]);
     let scope_refs = scopes.iter().map(String::as_str).collect::<Vec<_>>();
     let client = manager
-        .register_client("Anarlog", &redirect_uri, &scope_refs)
+        .register_client("Abrish AI", &redirect_uri, &scope_refs)
         .await
         .map_err(|error| auth_error(provider, error))?;
     let authorization_url = manager
@@ -458,12 +458,12 @@ async fn receive_authorization_callback(
         Ok(_) => (
             "200 OK",
             format!("{provider_name} connected"),
-            "Your meeting history is being brought into Anarlog. You can close this window.",
+            "Your meeting history is being brought into Abrish AI. You can close this window.",
         ),
         Err(_) => (
             "400 Bad Request",
             format!("{provider_name} connection failed"),
-            "Return to Anarlog and try connecting again.",
+            "Return to Abrish AI and try connecting again.",
         ),
     };
     let body = format!(

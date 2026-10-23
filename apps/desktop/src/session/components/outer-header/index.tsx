@@ -1,15 +1,9 @@
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useRef, useState } from "react";
 
-import { commands as deeplinkCommands } from "@anlg/plugin-deeplink2";
 import { commands as openerCommands } from "@anlg/plugin-opener2";
 import { Headset, Square, VideoCamera } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
-import {
-  Popover,
-  PopoverAnchor,
-  PopoverContent,
-} from "@anlg/ui/components/ui/popover";
 import { cn, parseEventInstant, safeParseDate } from "@anlg/utils";
 
 import { FolderPicker } from "../folder-picker";
@@ -20,10 +14,7 @@ import { OverflowButton } from "./overflow";
 import { useAudioPlayer } from "~/audio-player";
 import { useNow } from "~/calendar/hooks";
 import { useShell } from "~/contexts/shell";
-import {
-  buildWelcomeNoteDemoUrl,
-  WELCOME_NOTE_TRACKING_ID,
-} from "~/onboarding/welcome-note.constants";
+import { WELCOME_NOTE_TRACKING_ID } from "~/onboarding/welcome-note.constants";
 import { SessionShareButton } from "~/session-sharing";
 import { useEventCountdown } from "~/session/hooks/useEventCountdown";
 import { useMeetingMicInUse } from "~/session/hooks/useMeetingMicInUse";
@@ -38,7 +29,6 @@ import {
   WINDOW_CONTROLS_GUTTER_CLASS,
   WINDOW_CONTROLS_GUTTER_PLUS_32_CLASS,
 } from "~/shared/hooks/useWindowControlsGutter";
-import { getScheme } from "~/shared/utils";
 import type { EditorView, Tab } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
 import { useStartListening } from "~/stt/useStartListening";
@@ -205,23 +195,20 @@ function HeaderMeetingAction({
 }) {
   const startListening = useStartListening(sessionId);
   const stop = useListener((state) => state.stop);
-  const remote = getRemoteMeeting(event?.meeting_link);
-  const meetingLink = event?.meeting_link || null;
-  const isWelcomeDemo = event?.tracking_id === WELCOME_NOTE_TRACKING_ID;
+  const isWelcomeSession = event?.tracking_id === WELCOME_NOTE_TRACKING_ID;
+  const meetingLink = isWelcomeSession ? null : event?.meeting_link || null;
+  const remote = getRemoteMeeting(meetingLink ?? undefined);
   const canJoinFromHeader = Boolean(
     !eventEnded &&
     !hasTranscript &&
     !audioExists &&
     meetingLink &&
-    (remote !== null || isWelcomeDemo),
+    remote !== null,
   );
   const now = useNow();
   const meetingStarted = meetingHasStarted(event?.started_at, now);
   const meetingMicInUse = useMeetingMicInUse(
-    canJoinFromHeader &&
-      !isWelcomeDemo &&
-      sessionMode === "inactive" &&
-      meetingStarted,
+    canJoinFromHeader && sessionMode === "inactive" && meetingStarted,
   );
   const { t } = useLingui();
   const joiningMeetingRef = useRef(false);
@@ -239,25 +226,8 @@ function HeaderMeetingAction({
       return;
     }
 
-    let url = meetingLink;
-    if (isWelcomeDemo) {
-      url = buildWelcomeNoteDemoUrl(meetingLink);
-      try {
-        const scheme = await getScheme();
-        const result = await deeplinkCommands.startCallbackServer(scheme, null);
-        if (result.status === "ok") {
-          url = buildWelcomeNoteDemoUrl(meetingLink, result.data);
-        }
-      } catch (error) {
-        console.error(
-          "[onboarding] failed to prepare demo completion callback",
-          error,
-        );
-      }
-    }
-
-    void openerCommands.openUrl(url, null);
-  }, [isWelcomeDemo, meetingLink]);
+    void openerCommands.openUrl(meetingLink, null);
+  }, [meetingLink]);
   const joinMeeting = useCallback(async () => {
     if (joiningMeetingRef.current) {
       return;
@@ -291,22 +261,11 @@ function HeaderMeetingAction({
       };
     }
 
-    if (
-      canJoinFromHeader &&
-      (isWelcomeDemo || !meetingStarted || !meetingMicInUse)
-    ) {
+    if (canJoinFromHeader && (!meetingStarted || !meetingMicInUse)) {
       return {
         label: t`Join & record`,
         title: t`Join meeting and record`,
-        icon: isWelcomeDemo ? (
-          <img
-            src="/assets/anarlog-icon.png"
-            alt=""
-            className="size-3.5 shrink-0"
-          />
-        ) : remote ? (
-          getMeetingDisplay(remote.type).icon
-        ) : undefined,
+        icon: remote ? getMeetingDisplay(remote.type).icon : undefined,
         onClick: () => {
           void joinMeeting();
         },
@@ -327,70 +286,42 @@ function HeaderMeetingAction({
     sessionMode !== "active" &&
     sessionMode !== "running_batch" &&
     sessionMode !== "finalizing";
-  const showWelcomeDemoPrompt =
-    isWelcomeDemo &&
-    sessionMode === "inactive" &&
-    !hasTranscript &&
-    !audioExists;
-
   return (
-    <Popover open={showWelcomeDemoPrompt}>
-      <div className="relative mr-1 ml-1 flex min-w-0 shrink-0 items-center">
-        <PopoverAnchor asChild>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            data-tauri-drag-region="false"
-            aria-label={action.label}
-            title={action.title}
-            disabled={disabled}
-            onClick={action.onClick}
-            className={cn([
-              "max-w-56 shrink-0 gap-1.5 overflow-hidden border pr-2.5 pl-1.5 text-sm",
-              isPrimaryCta
-                ? "border-border text-foreground bg-transparent shadow-none"
-                : "border-border bg-card text-foreground",
-              disabled && "cursor-default opacity-60",
-            ])}
-          >
-            {action.icon}
-            <span className="truncate">{action.label}</span>
-          </Button>
-        </PopoverAnchor>
-        {showWelcomeDemoPrompt ? (
-          <PopoverContent
-            data-welcome-demo-prompt
-            side="bottom"
-            sideOffset={10}
-            onOpenAutoFocus={(event) => event.preventDefault()}
-            className="border-border bg-popover text-popover-foreground pointer-events-none w-72 max-w-[calc(100vw-1rem)] rounded-md border px-3 py-2.5 text-sm shadow-sm"
-          >
-            <span
-              data-welcome-demo-prompt-tail
-              aria-hidden="true"
-              className="border-border bg-popover absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 border-t border-l"
-            />
-            <span className="relative block font-medium">{t`Try the demo`}</span>
-            <span className="text-muted-foreground relative mt-0.5 block leading-snug">
-              {t`This is a prerecorded demo, so your camera stays off. Click Join & record to see Anarlog in action.`}
-            </span>
-          </PopoverContent>
-        ) : showCountdown ? (
-          <div
-            data-header-meeting-countdown
-            className="border-border bg-popover text-popover-foreground pointer-events-none absolute top-full left-1/2 z-20 mt-2 -translate-x-1/2 rounded-md border px-2.5 py-1 font-mono text-xs whitespace-nowrap tabular-nums shadow-sm"
-          >
-            <span
-              data-header-meeting-countdown-tail
-              aria-hidden="true"
-              className="border-border bg-popover absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 border-t border-l"
-            />
-            <span className="relative">{countdown.label}</span>
-          </div>
-        ) : null}
-      </div>
-    </Popover>
+    <div className="relative mr-1 ml-1 flex min-w-0 shrink-0 items-center">
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        data-tauri-drag-region="false"
+        aria-label={action.label}
+        title={action.title}
+        disabled={disabled}
+        onClick={action.onClick}
+        className={cn([
+          "max-w-56 shrink-0 gap-1.5 overflow-hidden border pr-2.5 pl-1.5 text-sm",
+          isPrimaryCta
+            ? "border-border text-foreground bg-transparent shadow-none"
+            : "border-border bg-card text-foreground",
+          disabled && "cursor-default opacity-60",
+        ])}
+      >
+        {action.icon}
+        <span className="truncate">{action.label}</span>
+      </Button>
+      {showCountdown ? (
+        <div
+          data-header-meeting-countdown
+          className="border-border bg-popover text-popover-foreground pointer-events-none absolute top-full left-1/2 z-20 mt-2 -translate-x-1/2 rounded-md border px-2.5 py-1 font-mono text-xs whitespace-nowrap tabular-nums shadow-sm"
+        >
+          <span
+            data-header-meeting-countdown-tail
+            aria-hidden="true"
+            className="border-border bg-popover absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 border-t border-l"
+          />
+          <span className="relative">{countdown.label}</span>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

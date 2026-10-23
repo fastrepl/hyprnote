@@ -68,7 +68,7 @@ export async function showBatchCompletedNotification(
       start_time: null,
       participants: null,
       event_details: null,
-      action_label: t`Open Anarlog`,
+      action_label: t`Open Abrish`,
       action: null,
       action_menu: null,
       action_variant: null,

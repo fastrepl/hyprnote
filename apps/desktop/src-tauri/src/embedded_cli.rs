@@ -50,9 +50,9 @@ pub fn check<R: tauri::Runtime, T: tauri::Manager<R>>(manager: &T) -> EmbeddedCl
         // Windows resolves the install path from local app data, not the home
         // directory, so the two platforms cannot share one message.
         #[cfg(target_os = "windows")]
-        let missing_dir = "Anarlog could not find your local application data directory.";
+        let missing_dir = "Abrish AI could not find your local application data directory.";
         #[cfg(not(target_os = "windows"))]
-        let missing_dir = "Anarlog could not find your home directory.";
+        let missing_dir = "Abrish AI could not find your home directory.";
 
         return unavailable_status(command_name, missing_dir);
     };
@@ -79,7 +79,7 @@ pub fn check<R: tauri::Runtime, T: tauri::Manager<R>>(manager: &T) -> EmbeddedCl
                 command_name: command_name.to_string(),
                 install_path: install_path.display().to_string(),
                 state: EmbeddedCliState::ResourceMissing,
-                details: Some("The CLI is not included in this build of Anarlog.".to_string()),
+                details: Some("The CLI is not included in this build of Abrish AI.".to_string()),
             };
         };
 
@@ -94,7 +94,7 @@ pub fn check<R: tauri::Runtime, T: tauri::Manager<R>>(manager: &T) -> EmbeddedCl
                 command_name: command_name.to_string(),
                 install_path: install_path.display().to_string(),
                 state: EmbeddedCliState::ResourceMissing,
-                details: Some("The CLI is not included in this build of Anarlog.".to_string()),
+                details: Some("The CLI is not included in this build of Abrish AI.".to_string()),
             };
         };
         let app_version = manager.package_info().version.to_string();
@@ -683,7 +683,7 @@ fn is_legacy_app_cli_target(target: &Path) -> bool {
 fn details_for_state(state: EmbeddedCliState, install_path: &Path) -> Option<String> {
     match state {
         EmbeddedCliState::Installed => Some(format!(
-            "Installed at {} and managed by Anarlog.",
+            "Installed at {} and managed by Abrish AI.",
             install_path.display()
         )),
         EmbeddedCliState::Missing => Some(format!(

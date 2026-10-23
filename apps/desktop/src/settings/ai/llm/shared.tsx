@@ -66,7 +66,7 @@ export type Provider = {
 const _PROVIDERS = [
   {
     id: "anarlog",
-    displayName: "Anarlog",
+    displayName: "Abrish",
     badge: "Recommended",
     icon: <AnarlogProviderIcon />,
     baseUrl: new URL(

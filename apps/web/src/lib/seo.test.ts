@@ -54,7 +54,7 @@ test("builds blog posting metadata with typed authors", () => {
     "@type": "WebPage",
     "@id": url,
   });
-  assert.equal(jsonLd.publisher.name, "Anarlog");
+  assert.equal(jsonLd.publisher.name, "Abrish AI");
   assert.equal(
     jsonLd.image,
     "https://static.anarlog.so/og/blog/local-ai-meeting-notes",

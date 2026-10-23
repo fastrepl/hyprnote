@@ -16,7 +16,7 @@
     "@infisical/cli": "^0.43.72",
     "@tanstack/eslint-plugin-query": "^5.99.0",
     "braces": "3.0.3",
-    "decode-uri-component": "0.2.2",
+    "decode-uri-component": "0.5.0",
     "dprint": "^0.51.1",
     "eslint": "^9.39.4",
     "extract-zip": "2.0.1",

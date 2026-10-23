@@ -24,12 +24,13 @@ test("braces rejects deeply nested patterns before recursive walkers exhaust the
 
 test("malformed URI decoding stays bounded and preserves valid UTF-8", () => {
   assert.equal(decode("%E2%82%AC%FF"), "€%FF");
-  assert.equal(decode("a+b"), "a b");
+  assert.equal(decode("a+b"), "a+b");
   const result = spawnSync(
     process.execPath,
     [
+      "--input-type=module",
       "-e",
-      "const d=require('decode-uri-component'); const s='%FF'.repeat(5000); if(d(s)!==s) process.exit(1);",
+      "import decode from 'decode-uri-component'; const s='%FF'.repeat(5000); if(decode(s)!==s) process.exit(1);",
     ],
     { timeout: 3_000, encoding: "utf8" },
   );

@@ -7,7 +7,7 @@ runs:
 
     - uses: actions/setup-node@v4
       with:
-        node-version: "22"
+        node-version: "22.23.4"
 
     - run: pnpm install --frozen-lockfile
       shell: bash
